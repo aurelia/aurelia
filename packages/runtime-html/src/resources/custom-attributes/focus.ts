@@ -8,7 +8,6 @@ import {
   State
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
-import { addListener, removeListener } from './utils';
 
 /**
  * Focus attribute for element focus binding
@@ -16,13 +15,11 @@ import { addListener, removeListener } from './utils';
 @customAttribute('focus')
 export class Focus {
 
-  public static readonly inject: unknown = [INode, IDOM];
+  // tslint:disable-next-line
+  private static readonly inject = [INode, IDOM];
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
-
-  private element: HTMLElement;
-  private dom: HTMLDOM;
 
   /**
    * Indicates whether `apply` should be called when `attached` callback is invoked
@@ -34,8 +31,8 @@ export class Focus {
   private $controller!: IController;
 
   constructor(
-    element: HTMLElement,
-    dom: HTMLDOM
+    private readonly element: HTMLElement,
+    private readonly dom: HTMLDOM
   ) {
     this.element = element;
     this.dom = dom;
@@ -56,7 +53,7 @@ export class Focus {
     // while it's disconnected from the document
     // thus, there neesd to be a check if it's currently connected or not
     // before applying the value to the element
-    if (this.$controller.flags & State.isAttached) {
+    if (this.$controller.state & State.isAttached) {
       this.apply();
     }
     // If the element is not currently connect
@@ -76,24 +73,18 @@ export class Focus {
       this.needsApply = false;
       this.apply();
     }
-    // the following block is to help minification
-    // as addEventListener method name, together with element property
-    // adds quite a bit of munification unfriendly code
     const el = this.element;
-    addListener(el, 'focus', this);
-    addListener(el, 'blur', this);
+    el.addEventListener('focus', this);
+    el.addEventListener('blur', this);
   }
 
   /**
    * Invoked when the attribute is detached from the DOM.
    */
   public detached(): void {
-    // the following block is to help minification
-    // as addEventListener method name, together with element property
-    // adds quite a bit of munification unfriendly code
     const el = this.element;
-    removeListener(el, 'focus', this);
-    removeListener(el, 'blur', this);
+    el.removeEventListener('focus', this);
+    el.removeEventListener('blur', this);
   }
 
   /**

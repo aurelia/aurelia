@@ -16,29 +16,11 @@ describe('focus.spec.ts', function() {
     selectedOption?: string;
   }
 
-  let $aurelia: Aurelia;
-  let $host: HTMLElement;
-
-  beforeEach(function() {
-    $aurelia = undefined;
-    $host = undefined;
-  });
-
-  afterEach(function() {
-    if ($aurelia) {
-      $aurelia.stop();
-      ($aurelia.root.host as Element).remove();
-    }
-    if ($host) {
-      $host.remove();
-    }
-  });
-
   describe('basic scenarios', function() {
 
     describe('with non-focusable element', function() {
-      it('focuses when there is tabindex attribute', function() {
-        const { au, component, ctx } = setup<IApp>(
+      it('focuses when there is tabindex attribute', async function() {
+        const { startPromise, dispose, component, ctx } = setup<IApp>(
           `<template>
             <div focus.bind="hasFocus" id="blurred" tabindex="-1"></div>
           </template>`,
@@ -46,6 +28,7 @@ describe('focus.spec.ts', function() {
             public hasFocus = true;
           }
         );
+        await startPromise;
 
         const activeElement = ctx.doc.activeElement;
         const div = ctx.doc.querySelector('app div');
@@ -53,17 +36,19 @@ describe('focus.spec.ts', function() {
         assert.equal(activeElement.tagName, 'DIV', 'activeElement === <div/>');
         assert.equal(activeElement, div, 'activeElement === <div/>');
         assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
+
+        await dispose();
       });
     });
 
-    it('invokes focus when there is **NO** tabindex attribute', function() {
+    it('invokes focus when there is **NO** tabindex attribute', async function() {
       let callCount = 0;
       HTMLDivElement.prototype.focus = function() {
         callCount++;
         return HTMLElement.prototype.focus.call(this);
       };
 
-      const { au, component, ctx } = setup<IApp>(
+      const { startPromise, dispose, component, ctx } = setup<IApp>(
         `<template>
           <div focus.bind="hasFocus" id="blurred"></div>
         </template>`,
@@ -71,6 +56,7 @@ describe('focus.spec.ts', function() {
           public hasFocus = true;
         }
       );
+      await startPromise;
 
       const activeElement = ctx.doc.activeElement;
       const div = ctx.doc.querySelector('app div');
@@ -82,6 +68,8 @@ describe('focus.spec.ts', function() {
 
       // focus belongs to HTMLElement class
       delete HTMLDivElement.prototype.focus;
+
+      await dispose();
     });
 
     for (const [desc, template] of [
@@ -94,8 +82,8 @@ describe('focus.spec.ts', function() {
       ['<textarea/>', `<textarea focus.bind=hasFocus id=blurred></textarea>`]
     ]) {
       describe(`with ${desc}`, function() {
-        it('Works in basic scenario', function() {
-          const { au, component, ctx } = setup<IApp>(
+        it('Works in basic scenario', async function() {
+          const { startPromise, dispose, component, ctx } = setup<IApp>(
             `<template>
               ${template}
             </template>`,
@@ -103,6 +91,7 @@ describe('focus.spec.ts', function() {
               public hasFocus = true;
             }
           );
+          await startPromise;
 
           const elName = desc.replace(/^<|\/>.*$/g, '');
           const activeElement = ctx.doc.activeElement;
@@ -111,6 +100,8 @@ describe('focus.spec.ts', function() {
           assert.equal(activeElement.tagName, elName.toUpperCase());
           assert.equal(activeElement, focusable);
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
+
+          await dispose();
         });
       });
     }
@@ -150,9 +141,16 @@ describe('focus.spec.ts', function() {
           const isFocusable = ceProp && (typeof ceProp.tabIndex !== undefined || ceProp.contentEditable);
           // tslint:disable-next-line:insecure-random
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
-          const CustomEl = defineCustomElement(ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
 
-          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, function() {
+          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function() {
+            const { start, dispose, component, ctx } = setup<IApp>(
+              `<template><${ceName} focus.bind=hasFocus></${ceName}></template>`,
+              class App {
+                public hasFocus = true;
+              },
+              false/* autoStart? */
+            );
+            const CustomEl = defineCustomElement(ctx, ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
             let callCount = 0;
             // only track call, virtually no different without this layer
             CustomEl.prototype['focus'] = function focus(options?: FocusOptions): void {
@@ -171,13 +169,7 @@ describe('focus.spec.ts', function() {
                 return HTMLElement.prototype.focus.call(this, options);
               }
             };
-
-            const { au, component, ctx } = setup<IApp>(
-              `<template><${ceName} focus.bind=hasFocus></${ceName}></template>`,
-              class App {
-                public hasFocus = true;
-              }
-            );
+            await start();
 
             const activeElement = ctx.doc.activeElement;
             const ceEl = ctx.doc.querySelector(`app ${ceName}`);
@@ -196,6 +188,8 @@ describe('focus.spec.ts', function() {
               }
             }
             assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
+
+            await dispose();
           });
         }
       );
@@ -257,7 +251,7 @@ describe('focus.spec.ts', function() {
           const win = ctx.wnd;
           const button = doc.querySelector('button');
           button.focus();
-          await waitForDelay(50);
+          await waitForFrames(5);
           assert.equal(doc.activeElement, button);
           assert.equal(component.hasFocus, false, '> button@focus');
 
@@ -270,7 +264,7 @@ describe('focus.spec.ts', function() {
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          await waitForDelay();
+          await waitForFrames(5);
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }
@@ -291,7 +285,7 @@ describe('focus.spec.ts', function() {
           const input2 = ctx.doc.querySelector('#input2') as HTMLInputElement;
           assert.notEqual(focusable, input2, '@setup: focusable === #input2');
           input2.focus();
-          await waitForDelay(50);
+          await waitForFrames(5);
           assert.equal(document.activeElement, input2, '#input2@focus -> document.activeElement === #input2');
           assert.equal(component.isFocused2, true, '#input2@focus -> component.isFocused2 === true');
           assert.equal(component.hasFocus, false, '#input2@focus -> component.hasFocus === false');
@@ -302,11 +296,12 @@ describe('focus.spec.ts', function() {
     eachCartesianJoin(
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
-        it(title(command), function() {
-          const { au, component, ctx } = setup<IApp>(
+        it(title(command), async function() {
+          const { startPromise, dispose, component, ctx } = setup<IApp>(
             template(command),
             app
           );
+          await startPromise;
           const doc = ctx.doc;
           const activeElement = doc.activeElement;
           const focusable = typeof getFocusable === 'string'
@@ -319,7 +314,9 @@ describe('focus.spec.ts', function() {
           }
           assert.equal(activeElement, focusable, '@setup -> document.activeElement === focusable');
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
-          return assertionFn(ctx, component, focusable);
+          await assertionFn(ctx, component, focusable);
+
+          await dispose();
         });
       }
     );
@@ -333,23 +330,43 @@ describe('focus.spec.ts', function() {
     }
   });
 
-  function setup<T>(template: string | Node, $class: Constructable<T>, ...registrations: any[]) {
+  function setup<T>(template: string | Node, $class: Constructable<T>, autoStart: boolean = true, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations, Focus);
-    const host = $host = ctx.doc.body.appendChild(ctx.createElement('app'));
+    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
-    au.app({ host, component });
-    au.start();
+    let startPromise: Promise<unknown>;
+    if (autoStart) {
+      au.app({ host, component });
+      startPromise = au.start().wait();
+    }
 
-    return { ctx, container, lifecycle, host, au, component, observerLocator };
+    return {
+      startPromise,
+      ctx,
+      container,
+      lifecycle,
+      host,
+      au,
+      component,
+      observerLocator,
+      start: async () => {
+        au.app({ host, component });
+        await au.start().wait();
+      },
+      dispose: async () => {
+        await au.stop().wait();
+        host.remove();
+      }
+    };
   }
 
-  function defineCustomElement(name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
-    class CustomEl extends HTMLElement {
+  function defineCustomElement(ctx: HTMLTestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
+    class CustomEl extends ctx.HTMLElement {
       constructor() {
         super();
         if (mode !== null) {
@@ -366,8 +383,10 @@ describe('focus.spec.ts', function() {
     return CustomEl;
   }
 
-  function waitForDelay(time = 0): Promise<void> {
-    return new Promise(r => setTimeout(r, time));
+  async function waitForFrames(frameCount: number): Promise<void> {
+    while (frameCount-- >= 0) {
+      await new Promise(requestAnimationFrame);
+    }
   }
 
   type TemplateFn = (focusAttrBindingCommand: string) => string;

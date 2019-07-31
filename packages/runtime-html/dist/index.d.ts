@@ -14,6 +14,7 @@ export { ValueAttributeObserver } from './observation/value-attribute-observer';
 export { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 export { SelfableBinding, SelfBindingBehavior } from './resources/binding-behaviors/self';
 export { UpdateTriggerBindingBehavior, UpdateTriggerableBinding, UpdateTriggerableObserver } from './resources/binding-behaviors/update-trigger';
+export { Focus } from './resources/custom-attributes/focus';
 export { Subject, Compose } from './resources/custom-elements/compose';
 export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors"], factory);
+        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/focus", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -47,6 +47,8 @@
     exports.SelfBindingBehavior = self_1.SelfBindingBehavior;
     var update_trigger_1 = require("./resources/binding-behaviors/update-trigger");
     exports.UpdateTriggerBindingBehavior = update_trigger_1.UpdateTriggerBindingBehavior;
+    var focus_1 = require("./resources/custom-attributes/focus");
+    exports.Focus = focus_1.Focus;
     var compose_1 = require("./resources/custom-elements/compose");
     exports.Compose = compose_1.Compose;
     var configuration_1 = require("./configuration");

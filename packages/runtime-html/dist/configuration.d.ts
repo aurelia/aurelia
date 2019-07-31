@@ -15,6 +15,7 @@ export declare const AttrBindingBehaviorRegistration: IRegistry;
 export declare const SelfBindingBehaviorRegistration: IRegistry;
 export declare const UpdateTriggerBindingBehaviorRegistration: IRegistry;
 export declare const ComposeRegistration: IRegistry;
+export declare const FocusRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `attr`, `self`, `updateTrigger`

@@ -28,26 +28,26 @@
     "dev": "tsc -b -w"
   },
   "dependencies": {
-    "@aurelia/aot": "0.4.0-dev.201907311558",
-    "@aurelia/debug": "0.4.0-dev.201907311558",
-    "@aurelia/fetch-client": "0.4.0-dev.201907311558",
-    "@aurelia/i18n": "0.4.0-dev.201907311558",
-    "@aurelia/jit-html-browser": "0.4.0-dev.201907311558",
-    "@aurelia/jit-html-jsdom": "0.4.0-dev.201907311558",
-    "@aurelia/jit-html": "0.4.0-dev.201907311558",
-    "@aurelia/jit": "0.4.0-dev.201907311558",
-    "@aurelia/kernel": "0.4.0-dev.201907311558",
-    "@aurelia/plugin-conventions": "0.4.0-dev.201907311558",
-    "@aurelia/plugin-gulp": "0.4.0-dev.201907311558",
-    "@aurelia/router": "0.4.0-dev.201907311558",
-    "@aurelia/runtime-html-browser": "0.4.0-dev.201907311558",
-    "@aurelia/runtime-html-jsdom": "0.4.0-dev.201907311558",
-    "@aurelia/runtime-html": "0.4.0-dev.201907311558",
-    "@aurelia/runtime": "0.4.0-dev.201907311558",
-    "@aurelia/store": "0.4.0-dev.201907311558",
-    "@aurelia/testing": "0.4.0-dev.201907311558",
-    "@aurelia/validation": "0.4.0-dev.201907311558",
-    "@aurelia/webpack-loader": "0.4.0-dev.201907311558"
+    "@aurelia/aot": "0.4.0-dev.201907312254",
+    "@aurelia/debug": "0.4.0-dev.201907312254",
+    "@aurelia/fetch-client": "0.4.0-dev.201907312254",
+    "@aurelia/i18n": "0.4.0-dev.201907312254",
+    "@aurelia/jit-html-browser": "0.4.0-dev.201907312254",
+    "@aurelia/jit-html-jsdom": "0.4.0-dev.201907312254",
+    "@aurelia/jit-html": "0.4.0-dev.201907312254",
+    "@aurelia/jit": "0.4.0-dev.201907312254",
+    "@aurelia/kernel": "0.4.0-dev.201907312254",
+    "@aurelia/plugin-conventions": "0.4.0-dev.201907312254",
+    "@aurelia/plugin-gulp": "0.4.0-dev.201907312254",
+    "@aurelia/router": "0.4.0-dev.201907312254",
+    "@aurelia/runtime-html-browser": "0.4.0-dev.201907312254",
+    "@aurelia/runtime-html-jsdom": "0.4.0-dev.201907312254",
+    "@aurelia/runtime-html": "0.4.0-dev.201907312254",
+    "@aurelia/runtime": "0.4.0-dev.201907312254",
+    "@aurelia/store": "0.4.0-dev.201907312254",
+    "@aurelia/testing": "0.4.0-dev.201907312254",
+    "@aurelia/validation": "0.4.0-dev.201907312254",
+    "@aurelia/webpack-loader": "0.4.0-dev.201907312254"
   },
   "devDependencies": {
     "@types/jsdom": "^12.2.4",
@@ -89,5 +89,5 @@
   },
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
-  "version": "0.4.0-dev.201907311558"
+  "version": "0.4.0-dev.201907312254"
 }

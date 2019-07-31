@@ -1,7 +1,7 @@
 // tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationBinding } from '@aurelia/i18n';
 import { DI } from '@aurelia/kernel';
-import { IBindingTargetAccessor, IObserverLocator, IScope, IsExpression, LifecycleFlags, RuntimeBasicConfiguration, ensureExpression, IExpressionParser, BindingType } from '@aurelia/runtime';
+import { BindingType, ensureExpression, IBindingTargetAccessor, IExpressionParser, IObserverLocator, IScope, LifecycleFlags, RuntimeBasicConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, createSpy } from '@aurelia/testing';
 
@@ -27,7 +27,8 @@ describe.only('TranslationBinding', function () {
     const expr = parseExpr
       ? ensureExpression(container.get(IExpressionParser), rawExpr, BindingType.BindCommand)
       : rawExpr;
-    const sut = new TranslationBinding(expr, target, '', observerLocator, container);
+    const sut = new TranslationBinding(target, '', observerLocator, container);
+    sut.expr = expr;
     await sut['i18n']['task'].wait();
     return { translation, getAccessorSpy, setValueSpy, sut };
   }

@@ -27,12 +27,12 @@ export class I18nService {
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
   }
 
-  public evaluate(keyExpr: string): I18nKeyEvaluationResult[] {
+  public evaluate(keyExpr: string, options?: i18nextCore.TOptions<object>): I18nKeyEvaluationResult[] {
     const parts = keyExpr.split(';');
     const result: I18nKeyEvaluationResult[] = [];
     for (const part of parts) {
       const { attributes, key } = this.extractAttributesFromKey(part);
-      result.push({ attributes, value: this.tr(key) });
+      result.push({ attributes, value: this.tr(key, options) });
     }
     return result;
   }

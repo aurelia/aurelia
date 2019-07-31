@@ -6,40 +6,45 @@
   <span id="i18n-vm-bound" t.bind="obj.key"></span><br>
   <!-- <span id="i18n-simple-2" t="${obj.key}">interpolated attr.</span><br> -->
 
-  <!-- <span id="i18n-attr" t="[title]simple.attr">attribute test</span>
+  <!--<span id="i18n-attr" t="[title]simple.attr">attribute test</span>
   <span id="i18n-multiple-attr" t="simple.text;[title]simple.attr"></span>
   <span id="i18n-multiple-attr-same-key" t="simple.text;[title,data-foo]simple.attr"></span>
-  <span id="i18n-nested" t="$t(simple.text) $t(simple.attr)"></span>
+  <span id="i18n-nested" t="$t(simple.text) $t(simple.attr)"></span> -->
+  <br>
 
-  <span id="i18n-ctx" t="status"></span>
-  <span id="i18n-ctx-dispatched" t="status" t-params.bind="{context: 'dispatched', date: dispatchedOn}"></span>
-  <span id="i18n-ctx-delivered" t="status" t-params.bind="{context: 'delivered', date: deliveredOn}"></span>
+  <span id="i18n-ctx" t="status"></span><br>
+  <span id="i18n-ctx-dispatched" t="status" t-params.bind="{context: 'dispatched', date: dispatchedOn}"></span><br>
+  <span id="i18n-ctx-delivered" t="status" t-params.bind="{context: 'delivered', date: deliveredOn}"></span><br>
+  <br>
 
-  <span id="i18n-interpolation" t="status_delivered" t-params.bind="{date: deliveredOn}"></span>
+  <span id="i18n-interpolation" t="status_delivered" t-params.bind="{date: deliveredOn}"></span><br>
   <span id="i18n-interpolation-custom" t="custom_interpolation_brace"
-    t-params.bind="{date: deliveredOn, interpolation: { prefix: '{', suffix: '}' }}"></span>
+    t-params.bind="{date: deliveredOn, interpolation: { prefix: '{', suffix: '}' }}"></span><br>
   <span id="i18n-interpolation-es6" t="custom_interpolation_es6_syntax"
-    t-params.bind="{date: deliveredOn, interpolation: { prefix: '${', suffix: '}' }}"></span>
+    t-params.bind="{date: deliveredOn, interpolation: { prefix: '${', suffix: '}' }}"></span><br>
+  <br>
 
-  <span id="i18n-items-plural-0" t="itemWithCount" t-params.bind="{count: 0}"></span>
-  <span id="i18n-items-plural-1" t="itemWithCount" t-params.bind="{count: 1}"></span>
-  <span id="i18n-items-plural-10" t="itemWithCount" t-params.bind="{count: 10}"></span>
+  <span id="i18n-items-plural-0" t="itemWithCount" t-params.bind="{count: 0}"></span><br>
+  <span id="i18n-items-plural-1" t="itemWithCount" t-params.bind="{count: 1}"></span><br>
+  <span id="i18n-items-plural-10" t="itemWithCount" t-params.bind="{count: 10}"></span><br>
+  <br>
 
-  <span id="i18n-interval-0" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 0}"></span>
-  <span id="i18n-interval-1" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 1}"></span>
-  <span id="i18n-interval-2" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 2}"></span>
-  <span id="i18n-interval-3" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 3}"></span>
-  <span id="i18n-interval-6" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 6}"></span>
-  <span id="i18n-interval-7" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 7}"></span>
-  <span id="i18n-interval-10" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 10}"></span>
+  <span id="i18n-interval-0" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 0}"></span><br>
+  <span id="i18n-interval-1" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 1}"></span><br>
+  <span id="i18n-interval-2" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 2}"></span><br>
+  <span id="i18n-interval-3" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 3}"></span><br>
+  <span id="i18n-interval-6" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 6}"></span><br>
+  <span id="i18n-interval-7" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 7}"></span><br>
+  <span id="i18n-interval-10" t="itemWithCount_interval"
+    t-params.bind="{postProcess: 'interval', count: 10}"></span><br>
 
-  <span id="i18n-html" t="[html]html"></span>
+  <!--<span id="i18n-html" t="[html]html"></span>
 
-  <span id="i18n-prepend-append" t="[prepend]pretest;[append]post-test">Blue</span>
+  <span id="i18n-prepend-append" t="[prepend]pretest;[append]post-test">Blue</span>-->
 
   <img id="i18n-img" t="imgPath" />
 
-  <span id="i18n-t-vc"> ${'itemWithCount' | t : {count: 10}} </span>
+  <!--<span id="i18n-t-vc"> ${'itemWithCount' | t : {count: 10}} </span>
   <span id="i18n-t-bb"> ${'itemWithCount' & t : {count: 100}} </span>
 
   <span id="i18n-nf-vc"> ${ 123456789.12 | nf : undefined : locale} </span>

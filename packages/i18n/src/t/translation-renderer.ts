@@ -55,7 +55,7 @@ export class TranslationBindingCommand implements IBindingCommand {
   public static register(container: IContainer) {
     for (const alias of this.aliases) {
       for (const part of ['', '.bind']) {
-        // `.bind` is directly used her as pattern to replicate the vCurrent syntax.
+        // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
         // In this case, it probably has lesser or no significance as actual binding mode.
         const key = BindingCommandResource.keyFrom(`${alias}${part}`);
         Registration.singleton(key, this).register(container);
@@ -82,7 +82,12 @@ export class TranslationBindingRenderer implements IInstructionRenderer {
     const expr = instruction.to
       ? ensureExpression(this.parser, instruction.from, BindingType.BindCommand) as AccessMemberExpression
       : instruction.from.toString();
-    const binding = new TranslationBinding(expr, target, instruction.to, this.observerLocator, context);
-    addBinding(renderable, binding);
+    let binding: TranslationBinding | undefined = renderable.bindings &&
+      renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+    if (!binding) {
+      binding = new TranslationBinding(target, instruction.to, this.observerLocator, context);
+      addBinding(renderable, binding);
+    }
+    binding.expr = expr;
   }
 }

@@ -1,0 +1,6 @@
+<template>
+  <require from="../../resources/elements/article-list"></require>
+
+  <article-list articles.bind="articles" total-pages.bind="totalPages" page-number.bind="pageNumber"
+                current-page.bind="currentPage" set-page-cb.call="setPageTo(pageNumber)"></article-list>
+</template>

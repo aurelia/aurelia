@@ -57,5 +57,6 @@
     "statusBar.background": "#3f2e5e",
     "statusBarItem.hoverBackground": "#563f80",
     "statusBar.foreground": "#e7e7e7"
-  }
+  },
+  "workbench.tree.indent": 16
 }

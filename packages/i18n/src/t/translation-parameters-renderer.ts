@@ -1,5 +1,5 @@
 import { attributePattern, AttrSyntax, bindingCommand, BindingSymbol, getTarget, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
-import { AccessMemberExpression, addBinding, BindingMode, BindingType, ensureExpression, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { addBinding, BindingMode, BindingType, ensureExpression, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 
 export const TranslationParametersInstructionType = 'tpt';

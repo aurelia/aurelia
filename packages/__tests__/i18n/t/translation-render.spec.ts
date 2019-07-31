@@ -140,9 +140,7 @@ describe.only('TranslationBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    (TranslationBindingRenderer as any).register(container);
-    RuntimeBasicConfiguration.register(container);
-    I18nConfiguration.register(container);
+    container.register(RuntimeBasicConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -187,5 +185,28 @@ describe.only('TranslationBindingRenderer', function () {
       } as unknown as ITargetedInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
+  });
+
+  it('#render adds expr to the existing TranslationBinding for the target element', function () {
+    const container = setup();
+    const sut: IInstructionRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const expressionParser = container.get(IExpressionParser);
+    const targetElement = DOM.createElement('span');
+    const binding = new TranslationBinding(targetElement, '', {} as unknown as IObserverLocator, container);
+    const renderable = ({ bindings: [binding] } as unknown as IController);
+
+    const expr = expressionParser.parse('simple.key', BindingType.BindCommand);
+    sut.render(
+      LifecycleFlags.none,
+      DOM,
+      container as unknown as IRenderContext,
+      renderable,
+      targetElement,
+      {
+        from: expr,
+        to: '.bind'
+      } as unknown as ITargetedInstruction);
+
+    assert.equal(binding.expr, expr);
   });
 });

@@ -15,9 +15,6 @@ import { HTMLDOM } from '../../dom';
 @customAttribute('focus')
 export class Focus {
 
-  // tslint:disable-next-line
-  private static readonly inject = [INode, IDOM];
-
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
 
@@ -27,12 +24,11 @@ export class Focus {
   private needsApply: boolean;
 
   // This is set by the controller after this instance is constructed
-  // tslint:disable-next-line: prefer-readonly
-  private $controller!: IController;
+  private readonly $controller!: IController;
 
   constructor(
-    private readonly element: HTMLElement,
-    private readonly dom: HTMLDOM
+    @INode private readonly element: HTMLElement,
+    @IDOM private readonly dom: HTMLDOM
   ) {
     this.element = element;
     this.dom = dom;

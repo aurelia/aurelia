@@ -1,0 +1,40 @@
+<template>
+  <require from="./comment"></require>
+  <require from="./article-meta"></require>
+  <div class="article-page">
+    <div class="banner">
+      <div class="container">
+        <h1>${article.title}</h1>
+        <article-meta article.bind="article"></article-meta>
+      </div>
+    </div>
+    <div class="container page">
+      <div class="row article-content">
+        <div class="col-md-12">
+          <div innerhtml.bind="article.body | markdownHtml">
+          </div>
+        </div>
+      </div>
+      <hr />
+      <div class="article-actions">
+        <article-meta article.bind="article"></article-meta>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 col-md-8 offset-md-2">
+          <form class="card comment-form" if.bind="sharedState.isAuthenticated">
+            <div class="card-block">
+              <textarea class="form-control" placeholder="Write a comment..." rows="3" value.bind="myComment"></textarea>
+            </div>
+            <div class="card-footer">
+              <img src.bind="sharedState.currentUser.image" class="comment-author-img" />
+              <button class="btn btn-sm btn-primary" click.delegate="postComment()">
+                Post Comment
+              </button>
+            </div>
+          </form>
+          <comment repeat.for="comment of comments" comment.bind="comment" delete-cb.call="deleteComment(commentId)"></comment>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

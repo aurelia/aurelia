@@ -14,7 +14,7 @@ export type NavInstruction = string | Partial<ICustomElementType> | IViewportCom
 
 export interface INavRoute {
   route: NavInstruction | NavInstruction[];
-  consideredActive?: NavInstruction | NavInstruction[];
+  consideredActive?: NavInstruction | NavInstruction[] | ((route: NavRoute) => boolean);
   link?: string;
   title: string;
   children?: INavRoute[];

@@ -8,7 +8,7 @@ export class NavRoute {
   public instructions: ViewportInstruction[];
   public title: string;
   public link?: string;
-  public linkActive?: string;
+  public linkActive?: string | ((route: NavRoute) => boolean);
   public children?: NavRoute[];
   public meta?: Record<string, unknown>;
 
@@ -27,7 +27,11 @@ export class NavRoute {
     });
     this.instructions = this.parseRoute(route.route);
     this.link = this._link(this.instructions);
-    this.linkActive = route.consideredActive ? this._link(this.parseRoute(route.consideredActive)) : this.link;
+    this.linkActive = route.consideredActive
+      ? route.consideredActive instanceof Function
+        ? route.consideredActive
+        : this._link(this.parseRoute(route.consideredActive))
+      : this.link;
     this.observerLocator = this.nav.router.container.get(IObserverLocator);
     this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<IRouter, 'activeComponents'>;
     this.observer.subscribe(this);
@@ -46,6 +50,9 @@ export class NavRoute {
   }
 
   public _active(): string {
+    if (this.linkActive instanceof Function) {
+      return this.linkActive(this) ? 'nav-active' : '';
+    }
     const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
     const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
     for (const component of components) {

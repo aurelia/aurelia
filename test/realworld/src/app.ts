@@ -25,7 +25,6 @@ export class App implements IViewModel {
       }
       , { include: [{ componentName: 'editor' }, { componentName: 'settings' }] },
     );
-    // await this.router.activate();
     this.userService.populate();
   }
 }

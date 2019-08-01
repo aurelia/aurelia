@@ -46,6 +46,7 @@ export class HeaderLayout {
         condition: !this.authenticated
       },
       {
+        consideredActive: (route: unknown) => { debugger; console.log('consideredActive', route); return true; },
         route: `auth(type=register)`,
         title: 'Sign up',
         condition: !this.authenticated
@@ -58,7 +59,7 @@ export class HeaderLayout {
     ];
     return routes
       .filter((r) => r.condition === undefined || r.condition)
-      .map((r) => { return { route: r.route, title: r.title } });
+      .map((r) => { return { route: r.route, title: r.title, consideredActive: r.consideredActive } });
   }
 
   public get authenticated() {

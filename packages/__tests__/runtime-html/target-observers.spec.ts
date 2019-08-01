@@ -309,7 +309,8 @@ describe('ClassAccessor', function () {
   const secondClassListArr = ['', 'fooo  ', { fooo: true }, { fooo: 'true' }, { fooo: true, baaar: false },
     { fooo: 'true', baaar: 'false' }, { foo: true, bar: false, fooo: true }, { foo: false, bar: false },
     { 'fooo baaar': true, 'baar': true, 'fono': false },
-    ['fooo', { baar: true }, 'bazz']];
+    ['fooo', ['bar', { baz: true }], 'bazz'],
+    ['fooo', { baar: true }, 'bazz'], []]; //empty array test
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 

@@ -44,7 +44,7 @@ export interface IElementProjector<T extends INode = INode> {
   project(nodes: INodeSequence<T>): void;
   take(nodes: INodeSequence<T>): void;
 
-  subscribeToChildrenChange(callback: () => void): void;
+  subscribeToChildrenChange(callback: () => void, options?: any): void;
 }
 
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
@@ -105,31 +105,6 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     return Type;
   },
 });
-
-// tslint:enable:align
-
-// TODO
-// ## DefaultSlotProjector
-// An implementation of IElementProjector that can handle a subset of default
-// slot projection scenarios without needing real Shadow DOM.
-// ### Conditions
-// We can do a one-time, static composition of the content and view,
-// to emulate shadow DOM, if the following constraints are met:
-// * There must be exactly one slot and it must be a default slot.
-// * The default slot must not have any fallback content.
-// * The default slot must not have a custom element as its immediate parent or
-//   a slot attribute (re-projection).
-// ### Projection
-// The projector copies all content nodes to the slot's location.
-// The copy process should inject a comment node before and after the slotted
-// content, so that the bounds of the content can be clearly determined,
-// even if the slotted content has template controllers or string interpolation.
-// ### Encapsulation Source
-// Uses the same strategy as HostProjector.
-// ### Children
-// The projector adds a mutation observer to the parent node of the
-// slot comment. When direct children of that node change, the projector
-// will gather up all nodes between the start and end slot comments.
 
 export interface ICustomElementDecorator {
   // Using a type breaks syntax highlighting: https://github.com/Microsoft/TypeScript-TmLanguage/issues/481

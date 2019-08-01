@@ -22,6 +22,9 @@ import {
   ensureValidStrategy
 } from './flags';
 import { Bindable } from './templating/bindable';
+import { INode } from './dom';
+import { IController, IViewModel } from './lifecycle';
+import { IElementProjector } from './resources/custom-element';
 
 export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
@@ -33,6 +36,17 @@ export interface IBindableDescription {
   attribute?: string;
   property?: string;
 }
+
+export interface IChildrenObserverDescription<TNode extends INode = INode> {
+  callback?: string;
+  property?: string;
+  options?: MutationObserverInit;
+  query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
+  filter?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
+  map?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
+}
+
+export type ChildrenObserverSource = Omit<IChildrenObserverDescription, 'property'>;
 
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
@@ -70,6 +84,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription> | string[];
+  childrenObservers?: Record<string, IChildrenObserverDescription>
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
@@ -255,6 +270,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public build: IBuildInstruction;
   public surrogates: ITargetedInstruction[];
   public bindables: Record<string, IBindableDescription> | string[];
+  public childrenObservers: Record<string, IChildrenObserverDescription>;
   public containerless: boolean;
   public shadowOptions: { mode: 'open' | 'closed' };
   public hasSlots: boolean;
@@ -268,6 +284,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
+    this.childrenObservers = PLATFORM.emptyObject;
     this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
@@ -300,6 +317,7 @@ export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  childrenObservers?: TemplateDefinition['childrenObservers'];
 };
 
 export function buildTemplateDefinition(
@@ -326,7 +344,8 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  strategy?: BindingStrategy | null): TemplateDefinition;
+  strategy?: BindingStrategy | null,
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -341,13 +360,15 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  strategy?: BindingStrategy | null): TemplateDefinition {
+  strategy?: BindingStrategy | null,
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
+    case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
     case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
     case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions!;
@@ -369,6 +390,9 @@ export function buildTemplateDefinition(
         }
         if (ctor.shadowOptions) {
           def.shadowOptions = ctor.shadowOptions as unknown as { mode: 'open' | 'closed' };
+        }
+        if (ctor.childrenObservers) {
+          def.childrenObservers = ctor.childrenObservers;
         }
         if (ctor.prototype) {
           def.hooks = new HooksDefinition(ctor.prototype);
@@ -397,6 +421,13 @@ export function buildTemplateDefinition(
             def.bindables = Bindable.for(nameOrDef as unknown as {}).get();
           } else {
             Object.assign(def.bindables, nameOrDef.bindables);
+          }
+        }
+        if (nameOrDef['childrenObservers']) {
+          if (def.childrenObservers === PLATFORM.emptyObject) {
+            def.childrenObservers = { ...nameOrDef.childrenObservers };
+          } else {
+            Object.assign(def.childrenObservers, nameOrDef.childrenObservers);
           }
         }
       }

@@ -13,13 +13,16 @@ window['au'] = new Aurelia()
   .register(
     BasicConfiguration,
     DebugConfiguration,
-    I18nConfiguration.customize(() => ({
-      plugins: [intervalPlural.default],
-      resources: {
-        en: { translation: en['default'] },
-        de: { translation: de['default'] },
-      }
-    }))
+    I18nConfiguration.customize((options) => {
+      options.translationAttributeAliases = ['t', 'i18n'];
+      options.initOptions = {
+        plugins: [intervalPlural.default],
+        resources: {
+          en: { translation: en['default'] },
+          de: { translation: de['default'] },
+        }
+      };
+    })
   )
   .register(SutI18N as unknown as IRegistration)
   .app({ host: document.querySelector('app'), component: new App() })

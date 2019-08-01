@@ -1,4 +1,4 @@
-import { I18nConfigurationOptions, I18nModule, I18nService } from '@aurelia/i18n';
+import { I18nInitOptions, I18nModule, I18nService } from '@aurelia/i18n';
 import { assert } from '@aurelia/testing';
 import i18next from 'i18next';
 import { Spy } from './Spy';
@@ -11,7 +11,7 @@ const translation = {
 };
 
 describe.only('I18N', function () {
-  async function setup(options: I18nConfigurationOptions = {}) {
+  async function setup(options: I18nInitOptions = {}) {
     let sut: I18nService, mockContext: Spy;
     mockContext = new Spy();
     sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options);

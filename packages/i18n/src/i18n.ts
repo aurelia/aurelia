@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { ILifecycleTask, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
-import { I18nConfigurationOptions } from './i18n-configuration-options';
+import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 
 export interface I18nKeyEvaluationResult {
@@ -17,12 +17,12 @@ export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
 export class I18nService {
 
   public i18next: i18nextCore.i18n;
-  private options!: I18nConfigurationOptions;
+  private options!: I18nInitOptions;
   private task: ILifecycleTask;
 
   constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
-    @I18nConfigurationOptions options: I18nConfigurationOptions) {
+    @I18nInitOptions options: I18nInitOptions) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
   }
@@ -55,8 +55,8 @@ export class I18nService {
     return { attributes, key };
   }
 
-  private async initializeI18next(options: I18nConfigurationOptions) {
-    const defaultOptions: I18nConfigurationOptions = {
+  private async initializeI18next(options: I18nInitOptions) {
+    const defaultOptions: I18nInitOptions = {
       lng: 'en',
       fallbackLng: ['en'],
       debug: false,

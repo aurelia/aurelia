@@ -1,16 +1,25 @@
 import { IContainer, Registration } from '@aurelia/kernel';
 import { I18N, I18nService } from './i18n';
-import { I18nConfigurationOptions } from './i18n-configuration-options';
+import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
 import { TranslationAttributePattern, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
 
-export type I18NConfigOptionsProvider = () => I18nConfigurationOptions;
+export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 
 function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
+      const options: I18nConfigurationOptions = {
+        initOptions: Object.create(null)
+      };
+      optionsProvider(options);
+      if (Array.isArray(options.translationAttributeAliases)) {
+        TranslationAttributePattern.aliases = options.translationAttributeAliases;
+        TranslationBindingCommand.aliases = options.translationAttributeAliases;
+      }
+
       return container.register(
         TranslationAttributePattern,
         TranslationBindingCommand,
@@ -18,7 +27,7 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
         TranslationParametersAttributePattern,
         TranslationParametersBindingCommand,
         TranslationParametersBindingRenderer,
-        Registration.callback(I18nConfigurationOptions, this.optionsProvider),
+        Registration.callback(I18nInitOptions, () => options.initOptions),
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
       );
@@ -29,4 +38,4 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
   };
 }
 
-export const I18nConfiguration = createI18nConfiguration(() => Object.create(null));
+export const I18nConfiguration = createI18nConfiguration(() => {/* noop */ });

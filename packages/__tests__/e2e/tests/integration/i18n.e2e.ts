@@ -34,6 +34,10 @@ describe('i18n', () => {
   ];
   const specs: Spec[] = [
     {
+      name: 'should work for alias',
+      suts: [{ selector: `#i18n-alias`, expected: en.simple.text, expectedDe: de.simple.text }]
+    },
+    {
       name: 'should work for simple text-content',
       suts: [{ selector: `#i18n-simple`, expected: en.simple.text, expectedDe: de.simple.text }]
     },

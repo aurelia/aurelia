@@ -8,10 +8,12 @@ export class NavRoute {
   public instructions: ViewportInstruction[];
   public title: string;
   public link?: string;
+  public linkVisible?: boolean | ((route: NavRoute) => boolean);
   public linkActive?: string | ((route: NavRoute) => boolean);
   public children?: NavRoute[];
   public meta?: Record<string, unknown>;
 
+  public visible: boolean = true;
   public active: string = '';
 
   private readonly observerLocator: IObserverLocator;
@@ -27,6 +29,7 @@ export class NavRoute {
     });
     this.instructions = this.parseRoute(route.route);
     this.link = this._link(this.instructions);
+    this.linkVisible = route.condition === undefined ? true : route.condition;
     this.linkActive = route.consideredActive
       ? route.consideredActive instanceof Function
         ? route.consideredActive
@@ -42,11 +45,19 @@ export class NavRoute {
   }
 
   public handleChange(): void {
+    this.visible = this._visible();
     if (this.link && this.link.length) {
       this.active = this._active();
     } else {
       this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
     }
+  }
+
+  public _visible(): boolean {
+    if (this.linkVisible instanceof Function) {
+      return this.linkVisible(this);
+    }
+    return this.linkVisible;
   }
 
   public _active(): string {

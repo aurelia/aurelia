@@ -302,7 +302,8 @@ describe('ClassAccessor', function () {
     '<div></div>',
     '<div class=""></div>',
     '<div class="foo"></div>',
-    '<div class="foo bar baz"></div>'
+    '<div class="foo bar baz"></div>',
+    '<div class="foo bar baz qux"></div>'
   ];
   const classListArr = ['', 'foo', 'foo bar   ', '    bar baz', 'qux', 'bar qux', 'qux quux'];
   const secondClassListArr = ['', 'fooo  ', { fooo: true }, { fooo: 'true' }, { fooo: true, baaar: false },

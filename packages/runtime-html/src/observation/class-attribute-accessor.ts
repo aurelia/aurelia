@@ -118,11 +118,12 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
       for (let i = 0; i < object.length; i++) {
         returnVal.push(...this.getClassesToAdd(object[i]));
       }
-    } else {
+    } else if (object instanceof Object) {
       for (const property in object) {
         // Let non typical values also evaluate true so disable bool check
         // tslint:disable-next-line: strict-boolean-expressions
         if (!!object[property]) {
+          // We must do this in case object property has a space in the name which results in two classes
           returnVal.push(...this.splitClassString(property));
         }
       }

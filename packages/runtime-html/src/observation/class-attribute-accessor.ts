@@ -113,8 +113,10 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
   private getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
     const returnVal: string[] = [];
     if (typeof object === 'string') {
-      returnVal.push(...this.splitClassString(object));
-    } else if (object instanceof Array) {
+      return this.splitClassString(object);
+    }
+
+    if (object instanceof Array) {
       for (let i = 0; i < object.length; i++) {
         returnVal.push(...this.getClassesToAdd(object[i]));
       }
@@ -128,7 +130,7 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
         }
       }
     }
-    return returnVal !== null ? returnVal : [];
+    return returnVal;
   }
 
   private addClassesAndUpdateIndex(classes: string[]) {

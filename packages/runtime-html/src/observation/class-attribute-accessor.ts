@@ -62,17 +62,13 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
       const { currentValue, nameIndex } = this;
       let { version } = this;
       this.oldValue = currentValue;
-      if (currentValue instanceof Object) {
-        const classesToAdd = this.getClassesToAdd(currentValue as Record<string, unknown>);
-        if (classesToAdd.length > 0) {
-          this.addClassesAndUpdateIndex(classesToAdd);
-        }
-      } else if (typeof currentValue === 'string' && currentValue.length) {
-        // Get strings split on a space not including empties
-        const classNames = currentValue.match(/\S+/g);
-        if (classNames != null && classNames.length > 0) {
-          this.addClassesAndUpdateIndex(classNames);
-        }
+
+      // tslint:disable-next-line: no-any
+      const classesToAdd = this.getClassesToAdd(currentValue as any);
+
+      // Get strings split on a space not including empties
+      if (classesToAdd.length > 0) {
+        this.addClassesAndUpdateIndex(classesToAdd);
       }
 
       this.version += 1;
@@ -110,17 +106,28 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
     }
   }
 
-  private getClassesToAdd(object: Record<string, unknown>): string[] {
+  private splitClassString(classString: string): string[] {
+    return classString.match(/\S+/g) || [];
+  }
+
+  private getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
     const returnVal: string[] = [];
-    for (const property in object) {
-      // Let non typical values also evaluate true so disable bool check
-      // tslint:disable-next-line: strict-boolean-expressions
-      if (!!object[property]) {
-        returnVal.push(property);
-        continue;
+    if (typeof object === 'string') {
+      returnVal.push(...this.splitClassString(object));
+    } else if (object instanceof Array) {
+      for (let i = 0; i < object.length; i++) {
+        returnVal.push(...this.getClassesToAdd(object[i]));
+      }
+    } else {
+      for (const property in object) {
+        // Let non typical values also evaluate true so disable bool check
+        // tslint:disable-next-line: strict-boolean-expressions
+        if (!!object[property]) {
+          returnVal.push(...this.splitClassString(property));
+        }
       }
     }
-    return returnVal;
+    return returnVal !== null ? returnVal : [];
   }
 
   private addClassesAndUpdateIndex(classes: string[]) {

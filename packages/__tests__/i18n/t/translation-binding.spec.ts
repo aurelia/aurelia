@@ -1,12 +1,12 @@
 // tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationBinding } from '@aurelia/i18n';
 import { DI } from '@aurelia/kernel';
-import { BindingType, ensureExpression, IBindingTargetAccessor, IExpressionParser, IObserverLocator, IScope, LifecycleFlags, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { BindingType, ensureExpression, IBindingTargetAccessor, IExpressionParser, IObserverLocator, IScope, LifecycleFlags, RuntimeBasicConfiguration, IsExpression, CustomExpression } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, createSpy } from '@aurelia/testing';
 
 describe.only('TranslationBinding', function () {
-  async function setup(rawExpr: string, target: HTMLElement, parseExpr = false) {
+  async function setup(rawExpr: string | IsExpression, target: HTMLElement) {
     const translation = {
       simple: {
         text: 'simple text',
@@ -24,9 +24,7 @@ describe.only('TranslationBinding', function () {
     const getAccessorSpy = createSpy(observerLocator, 'getAccessor', true);
     const setValueSpy = createSpy(targetAccessor, 'setValue', true);
 
-    const expr = parseExpr
-      ? ensureExpression(container.get(IExpressionParser), rawExpr, BindingType.BindCommand)
-      : rawExpr;
+    const expr = ensureExpression(container.get(IExpressionParser), rawExpr, BindingType.BindCommand);
     const sut = new TranslationBinding(target, '', observerLocator, container);
     sut.expr = expr;
     await sut['i18n']['task'].wait();
@@ -35,7 +33,7 @@ describe.only('TranslationBinding', function () {
 
   it('$bind works for string literal expression as key', async function () {
     const target = DOM.createElement('span');
-    const { translation, getAccessorSpy, setValueSpy, sut } = await setup('simple.text', target);
+    const { translation, getAccessorSpy, setValueSpy, sut } = await setup(new CustomExpression('simple.text') as any, target);
 
     sut.$bind(LifecycleFlags.none, {} as IScope, '');
 
@@ -48,7 +46,7 @@ describe.only('TranslationBinding', function () {
 
   it('$bind works for member access expression as key', async function () {
     const target = DOM.createElement('span');
-    const { translation, getAccessorSpy, setValueSpy, sut } = await setup('obj.key', target, true);
+    const { translation, getAccessorSpy, setValueSpy, sut } = await setup('obj.key', target);
 
     sut.$bind(LifecycleFlags.none, { bindingContext: { obj: { key: 'simple.text' } } } as unknown as IScope, '');
 
@@ -61,7 +59,7 @@ describe.only('TranslationBinding', function () {
 
   it('$bind works for multiple targets', async function () {
     const target = DOM.createElement('span');
-    const { translation, getAccessorSpy, setValueSpy, sut } = await setup('simple.text;[title]simple.attr', target);
+    const { translation, getAccessorSpy, setValueSpy, sut } = await setup(new CustomExpression('simple.text;[title]simple.attr') as any, target);
 
     sut.$bind(LifecycleFlags.none, {} as IScope, '');
 
@@ -76,7 +74,7 @@ describe.only('TranslationBinding', function () {
 
   it('$bind img src by default', async function () {
     const target = DOM.createElement('img');
-    const { translation, getAccessorSpy, setValueSpy, sut } = await setup('simple.text', target);
+    const { translation, getAccessorSpy, setValueSpy, sut } = await setup(new CustomExpression('simple.text') as any, target);
 
     sut.$bind(LifecycleFlags.none, {} as IScope, '');
 

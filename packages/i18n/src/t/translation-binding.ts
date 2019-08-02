@@ -7,7 +7,7 @@ import { I18N, I18nService } from '../i18n';
 export class TranslationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State;
-  public expr?: string | IsExpression;
+  public expr?: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18nService;
 
@@ -23,7 +23,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
     if (!this.expr) { throw new Error('key expression is missing'); }
     // TODO if it is a interpolation expression then observe for changes too
-    const keyExpr = typeof this.expr === 'string' ? this.expr : this.expr.evaluate(flags, scope, this.locator, part) as string;
+    const keyExpr = this.expr.evaluate(flags, scope, this.locator, part) as string;
     const paramExpr = this.parametersExpr ? this.parametersExpr.evaluate(flags, scope, this.locator, part) : undefined;
 
     // if (this.parametersExpr) {

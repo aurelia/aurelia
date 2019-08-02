@@ -22,16 +22,13 @@ describe.only('TranslationAttributePattern', function () {
   it('registers the `t` attr. pattern by default', function () {
     const sut = setup();
     const pattern = 't';
-    const bindPattern = 't.bind';
 
     assert.instanceOf(sut, TranslationAttributePattern);
     assert.deepEqual(TranslationAttributePattern.prototype.$patternDefs, [
       { pattern: pattern, symbols: '' },
-      { pattern: bindPattern, symbols: '.' },
     ] as AttributePatternDefinition[]);
 
     assert.equal(typeof sut[pattern], 'function');
-    assert.equal(typeof sut[bindPattern], 'function');
   });
 
   it('registers alias attribute patterns when provided', function () {
@@ -43,14 +40,13 @@ describe.only('TranslationAttributePattern', function () {
       TranslationAttributePattern.prototype.$patternDefs,
       aliases.reduce(
         (acc, alias) => {
-          acc.push({ pattern: alias, symbols: '' }, { pattern: `${alias}.bind`, symbols: '.' });
+          acc.push({ pattern: alias, symbols: '' });
           return acc;
         },
         []));
 
     aliases.forEach((alias) => {
       assert.equal(typeof sut[alias], 'function');
-      assert.equal(typeof sut[`${alias}.bind`], 'function');
     });
   });
 
@@ -66,17 +62,17 @@ describe.only('TranslationAttributePattern', function () {
     assert.equal(actual.target, '');
   });
 
-  it('creates attribute syntax with `to` part when `T.bind="expr"` is used', function () {
-    const sut = setup();
-    const pattern = 't';
-    const value = 'simple.key';
+  // it('creates attribute syntax with `to` part when `T.bind="expr"` is used', function () {
+  //   const sut = setup();
+  //   const pattern = 't';
+  //   const value = 'simple.key';
 
-    const actual: AttrSyntax = sut[pattern](pattern, value, ['t', 'bind']);
-    assert.equal(actual.command, pattern);
-    assert.equal(actual.rawName, pattern);
-    assert.equal(actual.rawValue, value);
-    assert.equal(actual.target, 'bind');
-  });
+  //   const actual: AttrSyntax = sut[pattern](pattern, value, ['t', 'bind']);
+  //   assert.equal(actual.command, pattern);
+  //   assert.equal(actual.rawName, pattern);
+  //   assert.equal(actual.rawValue, value);
+  //   assert.equal(actual.target, 'bind');
+  // });
 });
 
 describe.only('TranslationBindingCommand', function () {
@@ -93,7 +89,6 @@ describe.only('TranslationBindingCommand', function () {
       (acc: TranslationBindingCommand[], alias) => {
         acc.push(
           container.get<TranslationBindingCommand>(BindingCommandResource.keyFrom(alias)),
-          container.get<TranslationBindingCommand>(BindingCommandResource.keyFrom(`${alias}.bind`)),
         );
         return acc;
       },
@@ -103,7 +98,7 @@ describe.only('TranslationBindingCommand', function () {
   it('registers the `t` command by default', function () {
     const suts = setup();
 
-    assert.equal(suts.length, 2);
+    assert.equal(suts.length, 1);
     assert.equal(
       suts.every((sut) => sut instanceof TranslationBindingCommand),
       true);
@@ -113,7 +108,7 @@ describe.only('TranslationBindingCommand', function () {
     const aliases = ['t', 'i18n'];
     const suts = setup(aliases);
 
-    assert.equal(suts.length, aliases.length * 2);
+    assert.equal(suts.length, aliases.length);
     assert.equal(
       suts.every((sut) => sut instanceof TranslationBindingCommand),
       true);

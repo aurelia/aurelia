@@ -46,6 +46,14 @@ describe('i18n', () => {
       suts: [{ selector: `#i18n-vm-bound`, expected: en.simple.text, expectedDe: de.simple.text }]
     },
     {
+      name: 'should work for nested translations',
+      suts: [{ selector: `#i18n-nested`, expected: `${en.simple.text} ${en.simple.attr}`, expectedDe: `${de.simple.text} ${de.simple.attr}` }]
+    },
+    {
+      name: 'should work interpolated key',
+      suts: [{ selector: `#i18n-interpolated-key-expr`, expected: en.simple.text, expectedDe: de.simple.text }]
+    },
+    {
       name: 'should work for interpolation',
       suts: [
         { selector: `#i18n-interpolation`, expected: enDeliveredText, expectedDe: deDeliveredText },
@@ -100,7 +108,7 @@ describe('i18n', () => {
   ];
 
   describe('translates via HTML that', () => {
-    for (const { name, suts, isHtmlContent } of specs) {
+    for (const { name, suts, isHtmlContent } of [...enSpecificTests, ...specs]) {
       it(name, () => {
         for (const sut of suts) {
           assertContent(sut.selector, sut.expected, isHtmlContent);

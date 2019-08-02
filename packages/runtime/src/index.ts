@@ -13,6 +13,7 @@ export {
   isLiteral,
   arePureLiterals,
   isPureLiteral,
+  CustomExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
   AssignExpression,

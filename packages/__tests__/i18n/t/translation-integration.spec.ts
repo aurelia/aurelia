@@ -140,4 +140,83 @@ describe.only('translation-integration', function () {
     const translation = await setup(host, new App());
     assert.equal((host as Element).querySelector('img').src.endsWith(translation.imgPath), true);
   });
+
+  it('can translate attributes - t=\'[title]simple.attr\'', async function () {
+
+    @customElement({ name: 'app', template: `<span t='[title]simple.attr'></span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+    assertTextContent(host, `span[title='${translation.simple.attr}']`, '');
+  });
+
+  it('works for a mixture of attribute targeted key and textContent targeted key - t=\'[title]simple.attr;simple.text\'', async function () {
+
+    @customElement({ name: 'app', template: `<span t='[title]simple.attr;simple.text'></span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+    assertTextContent(host, `span[title='${translation.simple.attr}']`, translation.simple.text);
+  });
+
+  it('works when multiple attributes are targeted by the same key - `t="[title,data-foo]simple.attr;simple.text"`', async function () {
+
+    @customElement({ name: 'app', template: `<span t='[title,data-foo]simple.attr;simple.text'></span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+    assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
+  });
+
+  it('works for interpolated keys are used - t="\${obj.key1}"', async function () {
+
+    @customElement({
+      name: 'app', template: `
+    <span id='a' t='\${obj.key1}'></span>
+    <span id='b' t='[title]\${obj.key2};simple.text'></span>
+    <span id='c' t='[title]\${obj.key2};\${obj.key1}'></span>
+    <span id='d' t='status_\${status}'></span>
+    ` })
+    class App {
+      private obj = { key1: 'simple.text', key2: 'simple.attr' };
+      private status = 'dispatched'
+    }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+    assertTextContent(host, `span#a`, translation.simple.text);
+    assertTextContent(host, `span#b[title='${translation.simple.attr}']`, translation.simple.text);
+    assertTextContent(host, `span#c[title='${translation.simple.attr}']`, translation.simple.text);
+    assertTextContent(host, `span#d`, 'dispatched on ');
+  });
+
+  it('works nested key - t="$t(simple.text) $t(simple.attr)"', async function () {
+
+    @customElement({ name: 'app', template: `<span t="$t(simple.text) $t(simple.attr)"></span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+    assertTextContent(host, `span`, `${translation.simple.text} ${translation.simple.attr}`);
+  });
+
+  it('works for explicit concatenation expression as key - `t.bind="string+string"`', async function () {
+
+    @customElement({
+      name: 'app', template: `
+    <span id='a' t.bind='"simple."+"text"'></span>
+    <span id='b' t.bind='"simple."+part'></span>
+    ` })
+    class App {
+      private part = 'text';
+    }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+    assertTextContent(host, `span#a`, translation.simple.text);
+    assertTextContent(host, `span#b`, translation.simple.text);
+  });
 });

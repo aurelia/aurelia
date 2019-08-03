@@ -5,6 +5,10 @@ import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } fr
 
 describe('blur.integration.spec.ts', () => {
 
+  if (!PLATFORM.isBrowserLike) {
+    return;
+  }
+
   interface IApp {
     hasFocus: boolean;
   }

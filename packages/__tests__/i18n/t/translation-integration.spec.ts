@@ -24,8 +24,10 @@ describe.only('translation-integration', function () {
       itemWithCount_plural: '{{count}} items',
 
       html: 'this is a <i>HTML</i> content',
-      pretest: 'Mr. ',
-      'post-test': ' Sky',
+      pre: 'tic ',
+      mid: 'tac',
+      midHtml: '<i>tac</i>',
+      post: ' toe',
 
       imgPath: 'foo.jpg'
     };
@@ -218,5 +220,131 @@ describe.only('translation-integration', function () {
     const translation = await setup(host, new App());
     assertTextContent(host, `span#a`, translation.simple.text);
     assertTextContent(host, `span#b`, translation.simple.text);
+  });
+
+  it('works for innerHTML replacement - `t="[html]key"`', async function () {
+
+    @customElement({
+      name: 'app', template: `<span id='a' t='[html]html'></span>`
+    })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const translation = await setup(host, new App());
+
+    assert.equal((host as Element).querySelector('span').innerHTML, translation.html);
+  });
+
+  describe('prepends/appends the translated value to the element content - `t="[prepend]key1;[append]key2"`', function () {
+    it('works for [prepend] only', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]pre'>tac</span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assertTextContent(host, 'span', 'tic tac');
+    });
+    it('works for [prepend] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]pre;mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assertTextContent(host, 'span', 'tic tac');
+    });
+    it('works for [prepend] + html', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]pre;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i>');
+    });
+
+    it('works for [append] only', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]post'>tac</span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assertTextContent(host, 'span', 'tac toe');
+    });
+    it('works for [append] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]post;mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assertTextContent(host, 'span', 'tac toe');
+    });
+    it('works for [append] + html', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]post;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> toe');
+    });
+
+    it('works for [prepend] and [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]pre;[append]post'>tac</span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assertTextContent(host, 'span', 'tic tac toe');
+    });
+    it('works for [prepend] + [append] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]pre;[append]post;mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assertTextContent(host, 'span', 'tic tac toe');
+    });
+    it('works for [prepend] + [append] + innerHtml', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]pre;[append]post;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i> toe');
+    });
   });
 });

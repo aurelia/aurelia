@@ -64,12 +64,12 @@ describe.only('TranslationBinding', function () {
     sut.$bind(LifecycleFlags.none, {} as IScope, '');
 
     assert.equal(getAccessorSpy.calls.length, 2);
-    assert.deepEqual(getAccessorSpy.calls[0], [LifecycleFlags.none, target, 'textContent']);
-    assert.deepEqual(getAccessorSpy.calls[1], [LifecycleFlags.none, target, 'title']);
+    assert.deepEqual(getAccessorSpy.calls[0], [LifecycleFlags.none, target, 'title']);
+    assert.deepEqual(getAccessorSpy.calls[1], [LifecycleFlags.none, target, 'textContent']);
 
     assert.equal(setValueSpy.calls.length, 2);
-    assert.deepEqual(setValueSpy.calls[0], [translation.simple.text, LifecycleFlags.none]);
-    assert.deepEqual(setValueSpy.calls[1], [translation.simple.attr, LifecycleFlags.none]);
+    assert.deepEqual(setValueSpy.calls[0], [translation.simple.attr, LifecycleFlags.none]);
+    assert.deepEqual(setValueSpy.calls[1], [translation.simple.text, LifecycleFlags.none]);
   });
 
   it('$bind img src by default', async function () {

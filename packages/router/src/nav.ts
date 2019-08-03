@@ -16,6 +16,7 @@ export interface INavRoute {
   route: NavInstruction | NavInstruction[] | ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
   consideredActive?: NavInstruction | NavInstruction[] | ((route: NavRoute) => boolean);
+  compareParameters?: boolean;
   link?: string;
   title: string;
   children?: INavRoute[];

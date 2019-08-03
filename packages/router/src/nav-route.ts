@@ -11,14 +11,12 @@ export class NavRoute {
   public execute?: ((route: NavRoute) => void);
   public linkVisible?: boolean | ((route: NavRoute) => boolean);
   public linkActive?: string | ((route: NavRoute) => boolean);
+  public compareParameters: boolean = false;
   public children?: NavRoute[];
   public meta?: Record<string, unknown>;
 
   public visible: boolean = true;
   public active: string = '';
-
-  private readonly observerLocator: IObserverLocator;
-  private readonly observer: IPropertyObserver<IRouter, 'activeComponents'>;
 
   constructor(nav: Nav, route?: INavRoute) {
     this.nav = nav;
@@ -44,6 +42,7 @@ export class NavRoute {
           : this._link(this.parseRoute(route.consideredActive))
         : this.link;
     }
+    this.compareParameters = !!route.compareParameters;
     this.linkVisible = route.condition === undefined ? true : route.condition;
     this.update();
   }
@@ -80,7 +79,7 @@ export class NavRoute {
     const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
     const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
     for (const component of components) {
-      if (!activeComponents.find((active) => active.sameComponent(component))) {
+      if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
         return '';
       }
     }

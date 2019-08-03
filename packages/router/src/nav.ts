@@ -13,7 +13,8 @@ export interface IViewportComponent {
 export type NavInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
 
 export interface INavRoute {
-  route: NavInstruction | NavInstruction[] | ((route: NavRoute) => void);
+  route?: NavInstruction | NavInstruction[];
+  execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
   consideredActive?: NavInstruction | NavInstruction[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;

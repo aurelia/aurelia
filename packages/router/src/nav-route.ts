@@ -26,22 +26,16 @@ export class NavRoute {
       meta: route.meta,
       active: '',
     });
-    if (route.route instanceof Function) {
-      this.execute = route.route;
-      this.linkActive = route.consideredActive
-        ? route.consideredActive instanceof Function
-          ? route.consideredActive
-          : this._link(this.parseRoute(route.consideredActive))
-        : '';
-    } else {
+    if (route.route) {
       this.instructions = this.parseRoute(route.route);
       this.link = this._link(this.instructions);
-      this.linkActive = route.consideredActive
-        ? route.consideredActive instanceof Function
-          ? route.consideredActive
-          : this._link(this.parseRoute(route.consideredActive))
-        : this.link;
     }
+    this.linkActive = route.consideredActive
+      ? route.consideredActive instanceof Function
+        ? route.consideredActive
+        : this._link(this.parseRoute(route.consideredActive))
+      : this.link;
+    this.execute = route.execute;
     this.compareParameters = !!route.compareParameters;
     this.linkVisible = route.condition === undefined ? true : route.condition;
     this.update();

@@ -8,6 +8,7 @@ export class NavRoute {
   public instructions: ViewportInstruction[];
   public title: string;
   public link?: string;
+  public execute?: ((route: NavRoute) => void);
   public linkVisible?: boolean | ((route: NavRoute) => boolean);
   public linkActive?: string | ((route: NavRoute) => boolean);
   public children?: NavRoute[];
@@ -27,30 +28,42 @@ export class NavRoute {
       meta: route.meta,
       active: '',
     });
-    this.instructions = this.parseRoute(route.route);
-    this.link = this._link(this.instructions);
+    if (route.route instanceof Function) {
+      this.execute = route.route;
+      this.linkActive = route.consideredActive
+        ? route.consideredActive instanceof Function
+          ? route.consideredActive
+          : this._link(this.parseRoute(route.consideredActive))
+        : '';
+    } else {
+      this.instructions = this.parseRoute(route.route);
+      this.link = this._link(this.instructions);
+      this.linkActive = route.consideredActive
+        ? route.consideredActive instanceof Function
+          ? route.consideredActive
+          : this._link(this.parseRoute(route.consideredActive))
+        : this.link;
+    }
     this.linkVisible = route.condition === undefined ? true : route.condition;
-    this.linkActive = route.consideredActive
-      ? route.consideredActive instanceof Function
-        ? route.consideredActive
-        : this._link(this.parseRoute(route.consideredActive))
-      : this.link;
-    this.observerLocator = this.nav.router.container.get(IObserverLocator);
-    this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<IRouter, 'activeComponents'>;
-    this.observer.subscribe(this);
+    this.update();
   }
 
   public get hasChildren(): string {
     return (this.children && this.children.length ? 'nav-has-children' : '');
   }
 
-  public handleChange(): void {
+  public update(): void {
     this.visible = this._visible();
-    if (this.link && this.link.length) {
+    if ((this.link && this.link.length) || this.execute) {
       this.active = this._active();
     } else {
       this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
     }
+  }
+
+  public executeAction(event: Event): void {
+    this.execute(this);
+    event.stopPropagation();
   }
 
   public _visible(): boolean {

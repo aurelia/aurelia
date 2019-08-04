@@ -1,7 +1,7 @@
-import { IServiceLocator } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
 import { connectable, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
 import i18next from 'i18next';
-import { I18N, I18nService } from '../i18n';
+import { I18N, I18nService, I18N_EA_CHANNEL } from '../i18n';
 
 type ContentAttribute = 'textContent' | 'innerHTML' | 'prepend' | 'append';
 interface ContentValue {
@@ -28,10 +28,12 @@ export class TranslationBinding implements IPartialConnectableBinding {
     public readonly target: HTMLElement,
     private readonly instruction: string,
     public observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
+    public locator: IServiceLocator
   ) {
     this.$state = State.none;
     this.i18n = this.locator.get(I18N);
+    const ea: IEventAggregator = this.locator.get(IEventAggregator);
+    ea.subscribe(I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
@@ -57,7 +59,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.updateTranslations(flags);
   }
-
   public $unbind(flags: LifecycleFlags): void { }
   public handleChange(newValue: string | Record<string, any>, _previousValue: string | Record<string, any>, flags: LifecycleFlags): void {
     if (typeof newValue === 'object') {
@@ -68,6 +69,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
         : newValue;
     }
     this.updateTranslations(flags);
+  }
+
+  private handleLocaleChange() {
+    this.updateTranslations(LifecycleFlags.none);
   }
 
   private updateTranslations(flags: LifecycleFlags) {

@@ -14,6 +14,8 @@ describe('i18n', () => {
     cy.get(selector).should(isHtmlContent ? 'have.html' : 'have.text', expected);
   };
 
+  const changeCurrentLocaleToDe = () => { cy.get('#locale-changer-de').click(); };
+
   const dispatchedOn = new Date(2020, 1, 10, 5, 15).toString(), deliveredOn = new Date(2021, 1, 10, 5, 15).toString(),
     enDeliveredText = en.status_delivered.replace('{{date}}', deliveredOn),
     deDeliveredText = de.status_delivered.replace('{{date}}', deliveredOn);
@@ -30,6 +32,20 @@ describe('i18n', () => {
     {
       name: 'should work when same key is used for multiple attributes',
       suts: [{ selector: `#i18n-multiple-attr-same-key[title="${en.simple.attr}"][data-foo="${en.simple.attr}"]`, expected: en.simple.text }]
+    },
+  ];
+  const deSpecificTests: Spec[] = [
+    {
+      name: 'should work for attribute translation',
+      suts: [{ selector: `#i18n-attr[title="${de.simple.attr}"]`, expectedDe: 'attribute test' }]
+    },
+    {
+      name: 'should work for semicolon delimited multiple attributes',
+      suts: [{ selector: `#i18n-multiple-attr[title="${de.simple.attr}"]`, expectedDe: de.simple.text }]
+    },
+    {
+      name: 'should work when same key is used for multiple attributes',
+      suts: [{ selector: `#i18n-multiple-attr-same-key[title="${de.simple.attr}"][data-foo="${de.simple.attr}"]`, expectedDe: de.simple.text }]
     },
   ];
   const specs: Spec[] = [
@@ -145,6 +161,19 @@ describe('i18n', () => {
       cy.get('#params-changer').click();
       assertContent('#i18n-ctx-bound-vm-params', `dispatched on ${deliveredOn}`);
     });
+  });
+
+  describe('updates translation on locale change that', () => {
+
+    beforeEach(() => { changeCurrentLocaleToDe(); });
+
+    for (const { name, suts, isHtmlContent } of [...deSpecificTests, ...specs]) {
+      it(name, () => {
+        for (const sut of suts) {
+          assertContent(sut.selector, sut.expectedDe as string, isHtmlContent);
+        }
+      });
+    }
   });
 
 });

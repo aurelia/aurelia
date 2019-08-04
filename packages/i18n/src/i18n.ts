@@ -1,9 +1,10 @@
-import { DI } from '@aurelia/kernel';
+import { DI, IEventAggregator } from '@aurelia/kernel';
 import { ILifecycleTask, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 
+export const I18N_EA_CHANNEL = 'i18n:locale:changed';
 export interface I18nKeyEvaluationResult {
   value: string;
   attributes: string[];
@@ -22,7 +23,9 @@ export class I18nService {
 
   constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
-    @I18nInitOptions options: I18nInitOptions) {
+    @I18nInitOptions options: I18nInitOptions,
+    @IEventAggregator private ea: IEventAggregator
+  ) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
   }
@@ -39,6 +42,15 @@ export class I18nService {
 
   public tr(key: string | string[], options?: i18nextCore.TOptions<object>) {
     return this.i18next.t(key, options);
+  }
+
+  public getLocale(): string {
+    return this.i18next.language;
+  }
+  public async setLocale(newLocale: string) {
+    const oldLocale = this.getLocale();
+    await this.i18next.changeLanguage(newLocale);
+    this.ea.publish(I18N_EA_CHANNEL, { oldLocale, newLocale });
   }
 
   private extractAttributesFromKey(key: string) {

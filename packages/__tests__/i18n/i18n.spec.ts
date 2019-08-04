@@ -14,7 +14,7 @@ describe.only('I18N', function () {
   async function setup(options: I18nInitOptions = {}) {
     let sut: I18nService, mockContext: Spy;
     mockContext = new Spy();
-    sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options);
+    sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options, undefined);
     await sut['task'].wait();
     return { mockContext, sut };
   }

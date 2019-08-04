@@ -1,4 +1,4 @@
-import { I18nConfiguration, TranslationAttributePattern, TranslationBindingCommand } from '@aurelia/i18n';
+import { I18nConfiguration, TranslationAttributePattern, TranslationBindingCommand, I18N } from '@aurelia/i18n';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, customElement, DOM, INode } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
@@ -31,17 +31,41 @@ describe.only('translation-integration', function () {
 
       imgPath: 'foo.jpg'
     };
-    await new Aurelia()
-      .register(
-        BasicConfiguration,
-        I18nConfiguration.customize((config) => {
-          config.initOptions = { resources: { en: { translation } } };
-          config.translationAttributeAliases = aliases;
-        }))
+    const deTranslation = {
+      simple: {
+        text: 'Einfacher Text',
+        attr: 'Einfaches Attribut'
+      },
+
+      status: 'Status ist unbekannt',
+      status_dispatched: 'Versand am {{date}}',
+      status_delivered: 'geliefert am {{date}}',
+      custom_interpolation_brace: 'geliefert am {date}',
+      custom_interpolation_es6_syntax: 'geliefert am ${date}',
+
+      itemWithCount: '{{count}} Artikel',
+      itemWithCount_plural: '{{count}} Artikel',
+      itemWithCount_interval: '(0)$t(itemWithCount_plural);(1)$t(itemWithCount);(2-7)$t(itemWithCount_plural);(7-inf){viele Artikel};',
+
+      html: 'Dies ist ein <i>HTML</i> Inhalt',
+      pre: 'Tic ',
+      mid: 'Tac',
+      midHtml: '<i>Tac</i>',
+      post: ' Toe',
+
+      imgPath: 'bar.jpg'
+    }
+    const au = new Aurelia();
+    await au.register(
+      BasicConfiguration,
+      I18nConfiguration.customize((config) => {
+        config.initOptions = { resources: { en: { translation }, de: { translation: deTranslation } } };
+        config.translationAttributeAliases = aliases;
+      }))
       .app({ host, component })
       .start()
       .wait();
-    return translation;
+    return { en: translation, de: deTranslation, container: au.container };
   }
   function assertTextContent(host: INode, selector: string, translation: string) {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
@@ -53,7 +77,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, 'span', translation.simple.text);
   });
 
@@ -63,7 +87,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App(), ['t', 'i18n']);
+    const { en: translation } = await setup(host, new App(), ['t', 'i18n']);
     assertTextContent(host, 'span#t', translation.simple.text);
     assertTextContent(host, 'span#i18n', translation.simple.text);
   });
@@ -76,7 +100,7 @@ describe.only('translation-integration', function () {
     }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, 'span', translation.simple.text);
   });
 
@@ -103,7 +127,7 @@ describe.only('translation-integration', function () {
       }
       const host = DOM.createElement('app');
       const app = new App();
-      const translation = await setup(host, app);
+      const { en: translation } = await setup(host, app);
       return { host, translation, app };
     }
 
@@ -139,7 +163,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assert.equal((host as Element).querySelector('img').src.endsWith(translation.imgPath), true);
   });
 
@@ -149,7 +173,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, `span[title='${translation.simple.attr}']`, '');
   });
 
@@ -159,7 +183,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, `span[title='${translation.simple.attr}']`, translation.simple.text);
   });
 
@@ -169,7 +193,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
   });
 
@@ -188,7 +212,7 @@ describe.only('translation-integration', function () {
     }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, `span#a`, translation.simple.text);
     assertTextContent(host, `span#b[title='${translation.simple.attr}']`, translation.simple.text);
     assertTextContent(host, `span#c[title='${translation.simple.attr}']`, translation.simple.text);
@@ -201,7 +225,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, `span`, `${translation.simple.text} ${translation.simple.attr}`);
   });
 
@@ -217,7 +241,7 @@ describe.only('translation-integration', function () {
     }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
     assertTextContent(host, `span#a`, translation.simple.text);
     assertTextContent(host, `span#b`, translation.simple.text);
   });
@@ -230,7 +254,7 @@ describe.only('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const translation = await setup(host, new App());
+    const { en: translation } = await setup(host, new App());
 
     assert.equal((host as Element).querySelector('span').innerHTML, translation.html);
   });
@@ -361,7 +385,7 @@ describe.only('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const translation = await setup(host, app);
+      const { en: translation } = await setup(host, app);
       app.obj.key = 'simple.attr';
       assertTextContent(host, `span`, translation.simple.attr);
     });
@@ -377,7 +401,7 @@ describe.only('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const translation = await setup(host, app);
+      const { en: translation } = await setup(host, app);
       assertTextContent(host, `span`, translation.simple.text);
       app.obj.base = 'simple';
       app.obj.key = '.attr';
@@ -395,7 +419,7 @@ describe.only('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const translation = await setup(host, app);
+      const { en: translation } = await setup(host, app);
       app.obj.key = 'simple.attr';
       assertTextContent(host, `span`, translation.simple.attr);
     });
@@ -412,10 +436,23 @@ describe.only('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const translation = await setup(host, app);
+      const { en: translation } = await setup(host, app);
       app.params = { ...app.params, context: 'dispatched' };
       assertTextContent(host, `span`, translation.status_dispatched.replace('{{date}}', app.deliveredOn.toString()));
     });
 
+    it('when the locale is changed', async function () {
+
+      @customElement({
+        name: 'app', template: `<span id='a' t='simple.text'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { de, container } = await setup(host, new App());
+      const i18n = container.get(I18N);
+      await i18n.setLocale('de');
+      assertTextContent(host, 'span', de.simple.text);
+    });
   });
 });

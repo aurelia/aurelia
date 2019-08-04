@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { connectable, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State, DOM } from '@aurelia/runtime';
+import { connectable, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N, I18nService } from '../i18n';
 
@@ -19,6 +19,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public parametersExpr?: IsExpression;
   private readonly i18n: I18nService;
   private readonly contentAttributes: ReadonlyArray<string> = ['textContent', 'innerHTML', 'prepend', 'append'];
+  private keyExpression!: string;
+  private translationParameters!: Record<string, any>;
+  private scope!: IScope;
+  private isInterpolatedSourceExpr!: boolean;
 
   constructor(
     public readonly target: HTMLElement,
@@ -29,19 +33,50 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.$state = State.none;
     this.i18n = this.locator.get(I18N);
   }
+
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
     if (!this.expr) { throw new Error('key expression is missing'); }
-    // TODO if it is a interpolation expression then observe for changes too
-    const keyExpr = this.expr.evaluate(flags, scope, this.locator, part) as string;
-    const paramExpr = this.parametersExpr ? this.parametersExpr.evaluate(flags, scope, this.locator, part) : undefined;
+    this.scope = scope;
+    this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
 
-    const results = this.i18n.evaluate(keyExpr, paramExpr as i18next.TOptions<object>);
+    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
+    if (this.parametersExpr) {
+      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as Record<string, any>;
+      this.parametersExpr.connect(flags, scope, this as any, part);
+    }
 
+    if (!(this.expr instanceof CustomExpression)) {
+      if (this.isInterpolatedSourceExpr) {
+        for (const expr of (this.expr as Interpolation).expressions) {
+          expr.connect(flags, scope, this as any, part);
+        }
+      } else {
+        this.expr.connect(flags, scope, this as any, part);
+      }
+    }
+
+    this.updateTranslations(flags);
+  }
+
+  public $unbind(flags: LifecycleFlags): void { }
+  public handleChange(newValue: string | Record<string, any>, _previousValue: string | Record<string, any>, flags: LifecycleFlags): void {
+    if (typeof newValue === 'object') {
+      this.translationParameters = newValue;
+    } else {
+      this.keyExpression = this.isInterpolatedSourceExpr
+        ? this.expr!.evaluate(flags, this.scope, this.locator, '') as string
+        : newValue;
+    }
+    this.updateTranslations(flags);
+  }
+
+  private updateTranslations(flags: LifecycleFlags) {
+    const results = this.i18n.evaluate(this.keyExpression, this.translationParameters as i18next.TOptions<object>);
     const content: ContentValue = Object.create(null);
+
     for (const item of results) {
       const value = item.value;
       const attributes = this.preprocessAttributes(item.attributes);
-
       for (const attribute of attributes) {
         if (!this.isContentAttribute(attribute)) {
           const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
@@ -51,14 +86,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
         }
       }
     }
-
     if (Object.keys(content).length) {
       this.updateContent(content, flags);
     }
   }
-
-  public $unbind(flags: LifecycleFlags): void { }
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void { }
 
   private preprocessAttributes(attributes: string[]) {
     if (attributes.length === 0) {

@@ -347,4 +347,75 @@ describe.only('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i> toe');
     });
   });
+
+  describe('updates translation', function () {
+
+    it('when the key expression changed - interpolation', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='\${obj.key}'></span>`
+      })
+      class App {
+        public obj = { key: 'simple.text' };
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const translation = await setup(host, app);
+      app.obj.key = 'simple.attr';
+      assertTextContent(host, `span`, translation.simple.attr);
+    });
+
+    it('when the key expression changed - multi-interpolation', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='\${obj.base}\${obj.key}'></span>`
+      })
+      class App {
+        public obj = { base: 'simple.', key: 'text' };
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const translation = await setup(host, app);
+      assertTextContent(host, `span`, translation.simple.text);
+      app.obj.base = 'simple';
+      app.obj.key = '.attr';
+      assertTextContent(host, `span`, translation.simple.attr);
+    });
+
+    it('when the key expression changed - access-member', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='obj.key'></span>`
+      })
+      class App {
+        public obj = { key: 'simple.text' };
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const translation = await setup(host, app);
+      app.obj.key = 'simple.attr';
+      assertTextContent(host, `span`, translation.simple.attr);
+    });
+
+    it('when the translation parameters changed', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t="status" t-params.bind="params"></span>`
+      })
+      class App {
+        public deliveredOn = new Date(2021, 1, 10, 5, 15);
+        public params = { context: 'delivered', date: this.deliveredOn };
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const translation = await setup(host, app);
+      app.params = { ...app.params, context: 'dispatched' };
+      assertTextContent(host, `span`, translation.status_dispatched.replace('{{date}}', app.deliveredOn.toString()));
+    });
+
+  });
 });

@@ -109,7 +109,7 @@ describe('i18n', () => {
 
   describe('translates via HTML that', () => {
     for (const { name, suts, isHtmlContent } of [...enSpecificTests, ...specs]) {
-      it(name, () => {
+      it(name, function () {
         for (const sut of suts) {
           assertContent(sut.selector, sut.expected, isHtmlContent);
         }
@@ -117,8 +117,22 @@ describe('i18n', () => {
     }
   });
 
-  it('sets the src attribute of img elements by default', () => {
+  it('sets the src attribute of img elements by default', function () {
     cy.get('#i18n-img').should('have.attr', 'src', en.imgPath);
+  });
+
+  describe('changes translation when', function () {
+
+    it('key changes', function () {
+      cy.get('#key-changer').click();
+      assertContent('#i18n-vm-bound', en.simple.attr);
+      assertContent('#i18n-interpolated-key-expr', en.simple.attr);
+    });
+
+    it('parameter changes', function () {
+      cy.get('#params-changer').click();
+      assertContent('#i18n-ctx-bound-vm-params', `dispatched on ${deliveredOn}`);
+    });
   });
 
 });

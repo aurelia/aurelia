@@ -105,6 +105,18 @@ describe('i18n', () => {
         { selector: `#i18n-interval-10`, expected: 'a lot of items', expectedDe: 'viele Artikel' },
       ]
     },
+    {
+      name: 'should work with html content', isHtmlContent: true,
+      suts: [{ selector: `#i18n-html`, expected: en.html, expectedDe: de.html }]
+    },
+    {
+      name: 'should work with prepend and append',
+      suts: [{
+        selector: `#i18n-prepend-append`,
+        expected: `${en.pretest}Blue${en['post-test']}`,
+        expectedDe: `${de.pretest}Blue${de['post-test']}`
+      }]
+    },
   ];
 
   describe('translates via HTML that', () => {

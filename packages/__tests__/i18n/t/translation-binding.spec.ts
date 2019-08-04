@@ -5,7 +5,7 @@ import { BindingType, ensureExpression, IBindingTargetAccessor, IExpressionParse
 import { DOM } from '@aurelia/runtime-html';
 import { assert, createSpy } from '@aurelia/testing';
 
-describe.only('TranslationBinding', function () {
+describe.skip('TranslationBinding', function () {
   async function setup(rawExpr: string | IsExpression, target: HTMLElement) {
     const translation = {
       simple: {

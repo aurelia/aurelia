@@ -37,7 +37,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     const results = this.i18n.evaluate(keyExpr, paramExpr as i18next.TOptions<object>);
 
-    const deferred: ContentValue = Object.create(null);
+    const content: ContentValue = Object.create(null);
     for (const item of results) {
       const value = item.value;
       const attributes = this.preprocessAttributes(item.attributes);
@@ -47,18 +47,16 @@ export class TranslationBinding implements IPartialConnectableBinding {
           const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
           observer.setValue(value, flags);
         } else {
-          deferred[attribute] = value;
+          content[attribute] = value;
         }
       }
     }
 
-    if (Object.keys(deferred).length) {
-      const isHtmlContent = !!deferred.innerHTML;
-      const value = `${deferred.prepend || ''}${deferred.innerHTML || deferred.textContent || this.target.innerHTML}${deferred.append || ''}`;
-      const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, isHtmlContent ? 'innerHTML' : 'textContent');
-      observer.setValue(value, flags);
+    if (Object.keys(content).length) {
+      this.updateContent(content, flags);
     }
   }
+
   public $unbind(flags: LifecycleFlags): void { }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void { }
 
@@ -75,5 +73,59 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
   private isContentAttribute(attribute: string): attribute is ContentAttribute {
     return this.contentAttributes.includes(attribute);
+  }
+  private updateContent(content: ContentValue, flags: LifecycleFlags) {
+    const children = Array.from(this.target.childNodes);
+    const fallBackContents = [];
+    const marker = 'au-i18n';
+
+    // extract the original content, not manipulate by au-i18n
+    for (const child of children) {
+      if (!Reflect.get(child, marker)) {
+        fallBackContents.push(child);
+      }
+    }
+
+    // build template and add marker
+    const template = DOM.createTemplate() as HTMLTemplateElement;
+
+    // prepend text if exists
+    if (content.prepend) {
+      const prepend: Node = DOM.createTextNode(content.prepend) as Node;
+      Reflect.set(prepend, marker, true);
+      template.content.append(prepend);
+    }
+    // build content: prioritize [html], then textContent, and falls back to original content
+    if (content.innerHTML) {
+      const fragment = DOM.createDocumentFragment(content.innerHTML) as DocumentFragment;
+      for (const child of Array.from(fragment.childNodes)) {
+        Reflect.set(child, marker, true);
+        template.content.append(child);
+      }
+    } else if (content.textContent) {
+      const textContent = DOM.createTextNode(content.textContent) as Text;
+      Reflect.set(textContent, marker, true);
+      template.content.append(textContent);
+    } else {
+      for (const fallbackContent of fallBackContents) {
+        template.content.append(fallbackContent);
+      }
+    }
+
+    // append text if exists
+    if (content.append) {
+      const appended: Node = DOM.createTextNode(content.append) as Node;
+      Reflect.set(appended, marker, true);
+      template.content.append(appended);
+    }
+
+    // difficult to use the set property approach in this case, as most of the properties of Node is readonly
+    // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
+    // observer.setValue(??, flags);
+
+    this.target.innerHTML = '';
+    for (const child of Array.from(template.content.childNodes)) {
+      this.target.appendChild(child);
+    }
   }
 }

@@ -4,6 +4,7 @@ import {
   LifecycleFlags,
   Priority,
 } from '@aurelia/runtime';
+import { PLATFORM } from '@aurelia/kernel';
 
 export class ClassAttributeAccessor implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
@@ -107,30 +108,46 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
   }
 
   private splitClassString(classString: string): string[] {
-    return classString.match(/\S+/g) || [];
+    const matches = classString.match(/\S+/g);
+    if (matches === null) {
+      return PLATFORM.emptyArray;
+    }
+    return matches;
   }
 
   private getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
-    const returnVal: string[] = [];
     if (typeof object === 'string') {
       return this.splitClassString(object);
     }
 
     if (object instanceof Array) {
-      for (let i = 0; i < object.length; i++) {
-        returnVal.push(...this.getClassesToAdd(object[i]));
+      const len = object.length;
+      if (len > 0) {
+        const classes: string[] = [];
+        for (let i = 0; i < len; ++i) {
+          classes.push(...this.getClassesToAdd(object[i]));
+        }
+        return classes;
+      } else {
+        return PLATFORM.emptyArray;
       }
     } else if (object instanceof Object) {
+      const classes: string[] = [];
       for (const property in object) {
         // Let non typical values also evaluate true so disable bool check
         // tslint:disable-next-line: strict-boolean-expressions
         if (!!object[property]) {
           // We must do this in case object property has a space in the name which results in two classes
-          returnVal.push(...this.splitClassString(property));
+          if (property.indexOf(' ') >= 0) {
+            classes.push(...this.splitClassString(property));
+          } else {
+            classes.push(property);
+          }
         }
       }
+      return classes;
     }
-    return returnVal;
+    return PLATFORM.emptyArray;
   }
 
   private addClassesAndUpdateIndex(classes: string[]) {

@@ -21,7 +21,7 @@ You can request a new feature by submitting an issue. If you would like to imple
 
 ## Developing
 
-Check out our [engineering-notes/README.md](engineering-notes/README.md) to get started with setting up the repo, building, testing and debugging.
+Check out our [building and testing Aurelia](../user-docs/6. community-contributions/building-and-testing-aurelia) to get started with setting up the repo, building, testing and debugging.
 
 ## Submission Guidelines
 
@@ -52,10 +52,10 @@ Before you submit your pull request consider the following guidelines:
 
   > Note: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
 
-* Build your changes locally to ensure all the tests pass
+* Build your changes locally and ensure all the tests in `__tests__` pass:
 
   ```shell
-  npm run test
+  npm run test-chrome
   ```
 
 * Push your branch to GitHub:
@@ -138,7 +138,7 @@ Please use one of the following:
 
 * **feat**: A new feature
 * **fix**: A bug fix
-* **doc**: Documentation only changes
+* **docs**: Documentation only changes
 * **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
 * **refactor**: A code change that neither fixes a bug or adds a feature
 * **perf**: A code change that improves performance

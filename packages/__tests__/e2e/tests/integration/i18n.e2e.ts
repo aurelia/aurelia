@@ -176,4 +176,23 @@ describe('i18n', () => {
     }
   });
 
+  describe('with custom elements', () => {
+    xit('can pass interpolated translations to custom elements bindables', () => {
+      assertContent('[data-test-id=\'custom-element-interpolated\'] div', en.simple.text);
+    });
+
+    it('can bind to custom elements attributes', () => {
+      assertContent('[data-test-id=\'custom-element-target-bindable\'] div', en.simple.text);
+    });
+
+    it('should support params', () => {
+      assertContent('[data-test-id=\'custom-element-with-params\'] div', en.itemWithCount_plural.replace('{{count}}', '0'));
+    });
+
+    it('should support locale changes', () => {
+      changeCurrentLocaleToDe();
+      assertContent('[data-test-id=\'custom-element-target-bindable\'] div', de.simple.text);
+    });
+  });
+
 });

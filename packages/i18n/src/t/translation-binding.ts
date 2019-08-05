@@ -1,5 +1,5 @@
 import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
-import { connectable, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
+import { connectable, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State, CustomElement } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N, I18nService, I18N_EA_CHANNEL } from '../i18n';
 
@@ -84,7 +84,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
       const attributes = this.preprocessAttributes(item.attributes);
       for (const attribute of attributes) {
         if (!this.isContentAttribute(attribute)) {
-          const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
+          const controller = CustomElement.behaviorFor(this.target);
+          const observer = controller && controller.viewModel
+            ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
+            : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
           observer.setValue(value, flags);
         } else {
           content[attribute] = value;

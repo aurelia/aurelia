@@ -1,6 +1,7 @@
-import { I18nConfiguration, TranslationAttributePattern, TranslationBindingCommand, I18N } from '@aurelia/i18n';
+import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindingCommand } from '@aurelia/i18n';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia, customElement, DOM, INode } from '@aurelia/runtime';
+import { IRegistration } from '@aurelia/kernel';
+import { Aurelia, bindable, customElement, DOM, INode } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe.only('translation-integration', function () {
@@ -8,6 +9,11 @@ describe.only('translation-integration', function () {
     TranslationBindingCommand.aliases = ['t'];
     TranslationAttributePattern.aliases = ['t'];
   });
+  @customElement({ name: 'custom-message', template: `<div>\${message}</div>` })
+  class CustomMessage {
+    @bindable public message: string;
+  }
+
   async function setup(host: INode, component: unknown, aliases?: string[]) {
     const translation = {
       simple: {
@@ -62,6 +68,7 @@ describe.only('translation-integration', function () {
         config.initOptions = { resources: { en: { translation }, de: { translation: deTranslation } } };
         config.translationAttributeAliases = aliases;
       }))
+      .register(CustomMessage as unknown as IRegistration)
       .app({ host, component })
       .start()
       .wait();
@@ -453,6 +460,51 @@ describe.only('translation-integration', function () {
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
       assertTextContent(host, 'span', de.simple.text);
+    });
+  });
+
+  describe('works with custom elements', function () {
+    it('can bind to custom elements attributes', async function () {
+      @customElement({
+        name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { en } = await setup(host, new App());
+      assertTextContent(host, 'custom-message div', en.simple.text);
+    });
+
+    it('should support params', async function () {
+      @customElement({
+        name: 'app', template: `<custom-message t="[message]itemWithCount" t-params.bind="{count: 0}">`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { en } = await setup(host, new App());
+      assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
+    });
+
+    it('should support locale changes', async function () {
+      @customElement({
+        name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { de, container } = await setup(host, new App());
+      const i18n = container.get(I18N);
+      await i18n.setLocale('de');
+
+      await new Promise((resolve) => {
+        setTimeout(
+          () => {
+            assertTextContent(host, 'custom-message div', de.simple.text);
+            resolve();
+          },
+          0);
+      });
     });
   });
 });

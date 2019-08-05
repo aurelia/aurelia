@@ -1,5 +1,9 @@
 # Engineering Documentation
 
+For initial instructions on setting up this repo, building, and running tests, see [building and testing Aurelia](../user-docs/community-contributions/building-and-testing-aurelia). Additional information can be found below but remember that these docs are a work in progress, so any information below is overridden by the most up to date documentation in the user documentation linked above.
+
+----
+
 These docs cover more detailed aspects of Aurelia which are useful for those implementing framework features and fixing bugs.
 
 - [Building and Testing](#building-and-testing)

@@ -21,7 +21,7 @@ You can request a new feature by submitting an issue. If you would like to imple
 
 ## Developing
 
-Check out [building and testing Aurelia](docs/user-docs/6.%20community-contributions/4.%20building-and-testing-aurelia.md) to get started with setting up the repo, building, testing and debugging.
+Check out [building and testing Aurelia](user-docs/6.%20community-contributions/4.%20building-and-testing-aurelia.md) to get started with setting up the repo, building, testing and debugging.
 
 ## Submission Guidelines
 

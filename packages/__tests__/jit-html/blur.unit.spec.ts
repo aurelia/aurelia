@@ -97,6 +97,15 @@ describe('[UNIT] blur.spec.ts', function() {
         assert.throws(() => sut.contains(imcompatValue as unknown as Element));
       }
     });
+
+    it('returns false when checking contains with element in different tree', function() {
+      const { ctx, target, sut } = setup();
+      target
+        .attachShadow({ mode: 'open' })
+        .innerHTML = '<button></button>';
+      assert.equal(sut.contains(target.shadowRoot.querySelector('button')), false);
+      assert.equal(sut.contains(target.shadowRoot as any), false);
+    });
   });
 
   describe('.triggerBlur()', function() {

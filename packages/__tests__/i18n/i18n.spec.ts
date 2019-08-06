@@ -10,7 +10,7 @@ const translation = {
   }
 };
 
-describe.only('I18N', function () {
+describe('I18N', function () {
   async function setup(options: I18nInitOptions = {}) {
     let sut: I18nService, mockContext: Spy;
     mockContext = new Spy();

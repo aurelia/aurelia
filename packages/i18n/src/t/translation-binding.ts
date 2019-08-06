@@ -1,5 +1,5 @@
 import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
-import { connectable, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State, CustomElement } from '@aurelia/runtime';
+import { connectable, CustomElement, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N, I18nService, I18N_EA_CHANNEL } from '../i18n';
 

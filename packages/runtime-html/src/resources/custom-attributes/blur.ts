@@ -1,3 +1,4 @@
+import { PLATFORM } from '@aurelia/kernel';
 import {
   bindable,
   customAttribute,
@@ -134,9 +135,8 @@ export class Blur {
   public linkedWith!: string | HasContains | (string | HasContains)[];
 
   /**
-   * Only used when linkedWith is a string.
-   * Used to determine whether to use querySelector / querySelectorAll to find all interactable elements without triggering blur
-   * Performace wise Consider using this only when necessary
+   * Only used when `linkedWith` is a string and searchSubTree is `true`.
+   * Used to determine whether to use querySelector / querySelectorAll to find all interactable elements without triggering blur.
    */
   @bindable()
   public linkedMultiple: boolean;
@@ -144,8 +144,8 @@ export class Blur {
   /**
    * Only used when linkedWith is a string, or an array containing some strings
    * During query for finding element to link with:
-   * - true: search all children, using `querySelectorAll`
-   * - false: search immediate children using for loop
+   * - `true`: search all descendants
+   * - `false`: search immediate children using for loop
    */
   @bindable()
   public searchSubTree: boolean;
@@ -204,10 +204,10 @@ export class Blur {
       return false;
     }
     let els: ArrayLike<Element>;
-    let el: string | Element | { contains(el: Element): boolean };
     let i: number, ii: number;
     let j: number, jj: number;
     let links: string | HasContains | (string | HasContains)[];
+    let link: string | HasContains;
     let contextNode: Element | null;
 
     if (this.element.contains(target)) {
@@ -221,6 +221,8 @@ export class Blur {
     const doc = this.dom.document;
     const linkedWith = this.linkedWith;
     const linkingContext = this.linkingContext;
+    const searchSubTree = this.searchSubTree;
+    const linkedMultiple = this.linkedMultiple;
 
     links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
     contextNode =
@@ -232,14 +234,20 @@ export class Blur {
 
     ii = links.length;
     for (i = 0; ii > i; ++i) {
-      el = links[i];
+      link = links[i];
       // When user specify to link with something by a string, it acts as a CSS selector
       // We need to do some querying stuff to determine if target above is contained.
-      if (typeof el === 'string') {
+      if (typeof link === 'string') {
         // Default behavior, search the whole tree, from context that user specified, which default to document body
         // Function `query` used will be similar to `querySelectorAll`, but optimized for performant
-        if (this.searchSubTree) {
-          els = contextNode.querySelectorAll(el);
+        if (searchSubTree) {
+          // todo: are there too many knobs?? Consider remove "linkedMultiple"??
+          if (!linkedMultiple) {
+            const el = contextNode.querySelector(link);
+            els = el !== null ? [el] : PLATFORM.emptyArray;
+          } else {
+            els = contextNode.querySelectorAll(link);
+          }
           jj = els.length;
           for (j = 0; jj > j; ++j) {
             if (els[j].contains(target)) {
@@ -253,7 +261,7 @@ export class Blur {
           els = contextNode.children;
           jj = els.length;
           for (j = 0; jj > j; ++j) {
-            if (els[j].matches(el)) {
+            if (els[j].matches(link)) {
               return true;
             }
           }
@@ -263,7 +271,7 @@ export class Blur {
         // simply check if has method `contains` (allow duck typing)
         // and call it against target.
         // This enables flexible usages
-        if (el && el.contains(target)) {
+        if (link && link.contains(target)) {
           return true;
         }
       }

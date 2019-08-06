@@ -12,7 +12,7 @@ Sometimes you will encounter an issue in your application, but when you try to r
 
 ## I'm trying to fix a bug or add a feature, but I'm not sure I'm doing it right
 
-We love it when Aurelia developers take the time to dive into the Aurelia codebase. Good on you! However, there's a lot of complicated code and we know firsthand how intimidating that can be. For quick questions and discussions that will help you get on the right path, head over to our official Discord and post your question in the appropriate channel. We'll do our best to keep you on the right track.
+We love it when Aurelia developers take the time to dive into the Aurelia codebase. Good on you! However, there's a lot of complicated code and we know firsthand how intimidating that can be. For quick questions and discussions that will help you get on the right path, head over to our [Aurelia discourse](https://discourse.aurelia.io) and post your question in the appropriate channel. We'll do our best to keep you on the right track.
 
 ## I want a bug fixed or a feature added but I don't think I can handle it
 

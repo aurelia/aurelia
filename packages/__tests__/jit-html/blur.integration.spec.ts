@@ -1,7 +1,7 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { Blur, BlurManager, Focus } from '@aurelia/runtime-html';
-import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { Blur, Focus } from '@aurelia/runtime-html';
+import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('blur.integration.spec.ts', () => {
 
@@ -244,30 +244,8 @@ describe('blur.integration.spec.ts', () => {
     };
   }
 
-  function defineCustomElement(name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
-    class CustomEl extends HTMLElement {
-      constructor() {
-        super();
-        if (mode !== null) {
-          this.attachShadow({ mode }).innerHTML = template;
-        } else {
-          this.innerHTML = template;
-        }
-        for (const p in props) {
-          this[p] = props[p];
-        }
-      }
-    }
-    customElements.define(name, CustomEl);
-    return CustomEl;
-  }
-
   function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {
     target.dispatchEvent(new ctx.Event(name, { bubbles }));
-  }
-
-  function waitForDelay(time = 0): Promise<void> {
-    return new Promise(r => setTimeout(r, time));
   }
 
   async function waitForFrames(ctx: HTMLTestContext, frameCount: number): Promise<void> {

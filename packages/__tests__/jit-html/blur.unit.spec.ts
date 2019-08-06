@@ -1,7 +1,5 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { Blur, BlurManager } from '@aurelia/runtime-html';
-import { assert, createSpy, eachCartesianJoin, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { Blur } from '@aurelia/runtime-html';
+import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('[UNIT] blur.spec.ts', function() {
 

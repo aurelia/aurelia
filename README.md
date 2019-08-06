@@ -17,24 +17,19 @@
 
 # Aurelia vNext
 
-This is the Aurelia vNext monorepo, containing core and plugin packages, examples, and documentation for the next major version of [Aurelia](http://www.aurelia.io/).
+This is the Aurelia 2 monorepo, containing core and plugin packages, examples, and documentation for the upcoming major version of everybody's favorite modern JavaScript framework, [Aurelia](http://www.aurelia.io/).
 
-> To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, look around our [Discourse forums](https://discourse.aurelia.io/), chat in our [community on Gitter](https://gitter.im/aurelia/discuss), or use [stack overflow](http://stackoverflow.com/search?q=aurelia).
-
+> To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, have a look around our [Discourse forum](https://discourse.aurelia.io/). For chat on Aurelia 2, [join our new Aurelia 2 community on Discord](https://discordapp.com/channels/448698263508615178/448698263508615180). If you'd like to join the growing list of Aurelia sponsors, please [back us on Open Collective](https://opencollective.com/aurelia).
 
 ## Getting Started
 
-> Please keep in mind that vNext is still in pre-alpha and by no means ready for production (or even development) yet. Many core features and use cases around the public API are still untested and there will be several breaking changes to come.
+Please keep in mind that Aurelia 2 is still in pre-alpha. Many core features and use cases around the public API are still untested and there will be several breaking changes to come.
 
 See [the examples folder](examples) for JIT setups with various loaders and bundlers.
 
 ## Contributing
 
-Please see our [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more information.
-
-## Developing
-
-Check out our [engineering-notes/README.md](docs/engineering-notes/README.md) to get started with setting up the repo, building, testing, and debugging.
+If you are interested in contributing to Aurelia, please see our [contributor documentation](docs/user-docs/6.%20community-contributions/1.%20joining-the-community.md) for more information. You'll learn how to build the code and run tests, how best to engage in our social channels, how to submit PRs, and even how to contribute to our documentation. We welcome you and thank you in advance for joining with us in this endeavor.
 
 ---
 

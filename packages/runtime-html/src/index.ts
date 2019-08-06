@@ -67,6 +67,10 @@ export {
 } from './resources/binding-behaviors/update-trigger';
 
 export {
+  Focus
+} from './resources/custom-attributes/focus';
+
+export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';

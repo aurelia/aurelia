@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
@@ -9,7 +9,7 @@ import { State } from './state';
 
 import { arrayRemove } from '../../../../../../router/src/utils';
 
-@inject(Router, AuthorsRepository, State)
+@inject(IRouter, AuthorsRepository, State)
 @customElement({
   name: 'app', template:
     `
@@ -21,12 +21,12 @@ import { arrayRemove } from '../../../../../../router/src/utils';
 <au-viewport name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
 ` })
 export class App {
-  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
+  constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
   public bound() {
-    this.router.activate({
+    // this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {
       //     return path;
@@ -64,7 +64,7 @@ export class App {
       //   }
       //   return parts.join('/');
       // }
-    }).catch(error => { throw error; });
+    // }).catch(error => { throw error; });
 
     this.router.guardian.addGuard((instructions) => {
       if (this.verifyLogin()) {

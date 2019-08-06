@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement, IViewModel } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { State } from '../state';
 import { wait } from '../utils';
 
@@ -35,9 +35,9 @@ In other words, I scroll you
 <br>
 <input data-test="about-inputbox">
 </template>` })
-@inject(State, Router)
+@inject(State, IRouter)
 export class About {
-  constructor(private readonly state: State, private readonly router: Router) { }
+  constructor(private readonly state: State, private readonly router: IRouter) { }
 
   public enter() {
     return wait(this.state.noDelay ? 0 : 4000);

@@ -1,5 +1,9 @@
 # Engineering Documentation
 
+For initial instructions on setting up this repo, building, and running tests, see [building and testing Aurelia](../user-docs/6.%20community-contributions/4.%20building-and-testing-aurelia.md). Additional information can be found below but remember that these docs are a work in progress, so any information below is overridden by the most up to date documentation in the user documentation linked above.
+
+----
+
 These docs cover more detailed aspects of Aurelia which are useful for those implementing framework features and fixing bugs.
 
 - [Building and Testing](#building-and-testing)
@@ -126,7 +130,7 @@ Ensure that you have the latest LTS version of [Node.js](https://nodejs.org/) an
 
 - Clone this repo
 - Run `npm ci && npm run bootstrap && npm run build`
-- Run `cd packages && cd examples && cd jit-browserify && npm ci`
+- Run `cd packages && cd examples && cd jit-webpack-ts && npm ci`
 
 ## Cross-package development workflow (manual browser testing)
 

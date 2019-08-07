@@ -31,8 +31,7 @@ export class ProfileArticleComponent {
       offset: this.limit * (this.currentPage - 1),
     };
     const response = await this.articleService.getList('all', queryParams);
-    this.articles.splice(0);
-    this.articles.push(...response.articles);
+    this.articles = [...response.articles];
     this.totalPages = getPages(response.articlesCount, this.limit);
   }
 

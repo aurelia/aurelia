@@ -20,6 +20,7 @@ export class HeaderLayout {
         ul: 'nav navbar-nav pull-xs-right',
         li: 'nav-item',
         a: 'nav-link',
+        span: 'nav-link',
         aActive: 'active',
       });
   }
@@ -31,38 +32,41 @@ export class HeaderLayout {
         title: 'Home',
       },
       {
+        condition: this.authenticated,
         route: `editor(type=new)`,
         title: '<i class="ion-compose"></i>&nbsp;New Post',
-        condition: this.authenticated
       },
       {
+        condition: this.authenticated,
         route: `settings`,
         title: '<i class="ion-gear-a"></i>&nbsp;Settings',
-        condition: this.authenticated
       },
       {
+        compareParameters: true,
+        condition: this.notAuthenticated,
         route: `auth(type=login)`,
         title: 'Sign in',
-        condition: !this.authenticated
       },
       {
-        consideredActive: (route: unknown) => { debugger; console.log('consideredActive', route); return true; },
+        compareParameters: true,
+        condition: this.notAuthenticated,
         route: `auth(type=register)`,
         title: 'Sign up',
-        condition: !this.authenticated
       },
       {
+        compareParameters: true,
+        condition: this.authenticated,
         route: `profile(${this.sharedState.currentUser.username})`,
         title: `${this.sharedState.currentUser.username}`,
-        condition: this.authenticated
       },
     ];
-    return routes
-      .filter((r) => r.condition === undefined || r.condition)
-      .map((r) => { return { route: r.route, title: r.title, consideredActive: r.consideredActive } });
+    return routes;
   }
 
-  public get authenticated() {
+  public authenticated = (): boolean => {
     return this.sharedState.currentUser && this.sharedState.isAuthenticated;
+  }
+  public notAuthenticated = (): boolean => {
+    return !this.authenticated();
   }
 }

@@ -145,6 +145,51 @@ describe('i18n', () => {
     }
   });
 
+  describe('facilitates translation via code', () => {
+    const tests = [
+      {
+        name: 'simple',
+        suts: [{ selector: '#i18n-code-simple', expected: 'simple text' }]
+      },
+      {
+        name: 'context-based',
+        suts: [{ selector: '#i18n-code-context', expected: `dispatched on ${dispatchedOn}` }]
+      },
+      {
+        name: 'plural',
+        suts: [{ selector: '#i18n-code-plural', expected: '10 items' }]
+      },
+      {
+        name: 'interval',
+        suts: [{ selector: '#i18n-code-interval', expected: 'a lot of items' }]
+      },
+      {
+        name: 'nf',
+        suts: [{ selector: '#i18n-code-num', expected: '123,456,789' }]
+      },
+      // ...['simple', 'locale', 'currency', 'text', 'minus'].map((part) => (
+      //   {
+      //     name: `uf - ${part}`,
+      //     suts: [{ selector: `#i18n-code-num-uf-${part}`, expected: part === 'minus' ? '-123456789.12' : '123456789.12' }]
+      //   })),
+      {
+        name: 'df',
+        suts: [{ selector: '#i18n-code-date', expected: '2/10/2021' }]
+      },
+      // {
+      //   name: 'relative time',
+      //   suts: [{ selector: '#i18n-code-rtime', expected: '2 hours ago' }]
+      // },
+    ];
+    for (const { name, suts } of tests) {
+      it(name, () => {
+        for (const sut of suts) {
+          assertContent(sut.selector, sut.expected);
+        }
+      });
+    }
+  });
+
   it('sets the src attribute of img elements by default', function () {
     cy.get('#i18n-img').should('have.attr', 'src', en.imgPath);
   });

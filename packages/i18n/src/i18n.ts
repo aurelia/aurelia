@@ -1,4 +1,4 @@
-import { DI, IEventAggregator } from '@aurelia/kernel';
+import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
 import { ILifecycleTask, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
@@ -20,17 +20,19 @@ export class I18nService {
   public i18next: i18nextCore.i18n;
   private options!: I18nInitOptions;
   private task: ILifecycleTask;
+  private intl: typeof Intl;
 
   constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
     @I18nInitOptions options: I18nInitOptions,
-    @IEventAggregator private ea: IEventAggregator
+    @IEventAggregator private readonly ea: IEventAggregator
   ) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
+    this.intl = PLATFORM.global.Intl;
   }
 
-  public evaluate(keyExpr: string, options?: i18nextCore.TOptions<object>): I18nKeyEvaluationResult[] {
+  public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
     const parts = keyExpr.split(';');
     const result: I18nKeyEvaluationResult[] = [];
     for (const part of parts) {
@@ -40,7 +42,7 @@ export class I18nService {
     return result;
   }
 
-  public tr(key: string | string[], options?: i18nextCore.TOptions<object>) {
+  public tr(key: string | string[], options?: i18nextCore.TOptions) {
     return this.i18next.t(key, options);
   }
 
@@ -51,6 +53,20 @@ export class I18nService {
     const oldLocale = this.getLocale();
     await this.i18next.changeLanguage(newLocale);
     this.ea.publish(I18N_EA_CHANNEL, { oldLocale, newLocale });
+  }
+
+  public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
+    return this.intl.NumberFormat(locales || this.getLocale(), options);
+  }
+  public nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string {
+    return this.createNumberFormat(options, locales).format(input);
+  }
+
+  public createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat {
+    return this.intl.DateTimeFormat(locales || this.getLocale(), options);
+  }
+  public df(input: Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
+    return this.createDateTimeFormat(options, locales).format(input);
   }
 
   private extractAttributesFromKey(key: string) {

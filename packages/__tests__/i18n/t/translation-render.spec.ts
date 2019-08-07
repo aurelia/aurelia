@@ -6,7 +6,7 @@ import { AnyBindingExpression, BindingType, IController, IExpressionParser, IIns
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe('TranslationAttributePattern', function () {
+describe.only('TranslationAttributePattern', function () {
   let originalAliases: string[];
   afterEach(function () {
     TranslationAttributePattern.aliases = originalAliases;
@@ -75,7 +75,7 @@ describe('TranslationAttributePattern', function () {
   // });
 });
 
-describe('TranslationBindingCommand', function () {
+describe.only('TranslationBindingCommand', function () {
   let originalAliases: string[];
   afterEach(function () {
     TranslationBindingCommand.aliases = originalAliases;
@@ -131,7 +131,7 @@ describe('TranslationBindingCommand', function () {
   });
 });
 
-describe('TranslationBindingRenderer', function () {
+describe.only('TranslationBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();

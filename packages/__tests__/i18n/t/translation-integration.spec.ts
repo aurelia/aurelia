@@ -4,7 +4,7 @@ import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, DOM, INode } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
-describe('translation-integration', function () {
+describe.only('translation-integration', function () {
   afterEach(function () {
     TranslationBindingCommand.aliases = ['t'];
     TranslationAttributePattern.aliases = ['t'];

@@ -6,7 +6,7 @@ import { AnyBindingExpression, BindingType, IController, IExpressionParser, IIns
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe('TranslationParametersAttributePattern', function () {
+describe.only('TranslationParametersAttributePattern', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(TranslationParametersAttributePattern);
@@ -38,7 +38,7 @@ describe('TranslationParametersAttributePattern', function () {
   });
 });
 
-describe('TranslationParametersBindingCommand', function () {
+describe.only('TranslationParametersBindingCommand', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(TranslationParametersBindingCommand);
@@ -67,7 +67,7 @@ describe('TranslationParametersBindingCommand', function () {
   });
 });
 
-describe('TranslationParametersBindingRenderer', function () {
+describe.only('TranslationParametersBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();

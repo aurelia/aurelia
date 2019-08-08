@@ -67,6 +67,10 @@ export {
 } from './resources/binding-behaviors/update-trigger';
 
 export {
+  ChildList
+} from './resources/custom-attributes/childlist';
+
+export {
   Focus
 } from './resources/custom-attributes/focus';
 

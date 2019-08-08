@@ -15,7 +15,7 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/5ac0e13689735698073a/test_coverage)](https://codeclimate.com/github/aurelia/aurelia/test_coverage)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-# Aurelia vNext
+# Aurelia 2
 
 This is the Aurelia 2 monorepo, containing core and plugin packages, examples, and documentation for the upcoming major version of everybody's favorite modern JavaScript framework, [Aurelia](http://www.aurelia.io/).
 

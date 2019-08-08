@@ -1,8 +1,7 @@
 import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindingCommand } from '@aurelia/i18n';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, DOM, INode } from '@aurelia/runtime';
-import { assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 describe.only('translation-integration', function () {
   afterEach(function () {
@@ -60,10 +59,10 @@ describe.only('translation-integration', function () {
       post: ' Toe',
 
       imgPath: 'bar.jpg'
-    }
-    const au = new Aurelia();
+    };
+    const ctx = TestContext.createHTMLTestContext();
+    const au = new Aurelia(ctx.container);
     await au.register(
-      BasicConfiguration,
       I18nConfiguration.customize((config) => {
         config.initOptions = { resources: { en: { translation }, de: { translation: deTranslation } } };
         config.translationAttributeAliases = aliases;

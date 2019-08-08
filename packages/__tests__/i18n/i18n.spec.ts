@@ -201,4 +201,99 @@ describe.only('I18N', function () {
       assert.equal(sut.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }, 'de'), '10.02.2020');
     });
   });
+
+  describe('rt', function () {
+
+    for (const multiplier of [1, -1]) {
+      for (const value of [1, 5]) {
+        it(`works for time difference in seconds - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setSeconds(input.getSeconds() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 1
+              ? multiplier > 0 ? 'in 5 seconds' : '5 seconds ago'
+              : multiplier > 0 ? 'in 1 second' : '1 second ago'
+          );
+        });
+
+        it(`works for time difference in minutes - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setMinutes(input.getMinutes() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 1
+              ? multiplier > 0 ? 'in 5 minutes' : '5 minutes ago'
+              : multiplier > 0 ? 'in 1 minute' : '1 minute ago'
+          );
+        });
+
+        it(`works for time difference in hours - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setHours(input.getHours() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 1
+              ? multiplier > 0 ? 'in 5 hours' : '5 hours ago'
+              : multiplier > 0 ? 'in 1 hour' : '1 hour ago'
+          );
+        });
+
+        it(`works for time difference in days - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setDate(input.getDate() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 1
+              ? multiplier > 0 ? 'in 5 days' : '5 days ago'
+              : multiplier > 0 ? 'in 1 day' : '1 day ago'
+          );
+        });
+
+        it(`works for time difference in months - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setMonth(input.getMonth() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 1
+              ? multiplier > 0 ? 'in 5 months' : '5 months ago'
+              : multiplier > 0 ? 'in 1 month' : '1 month ago'
+          );
+        });
+
+        it(`works for time difference in years - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setFullYear(input.getFullYear() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 1
+              ? multiplier > 0 ? 'in 5 years' : '5 years ago'
+              : multiplier > 0 ? 'in 1 year' : '1 year ago'
+          );
+        });
+      }
+    }
+
+    for (const multiplier of [1, -1]) {
+      for (const value of [7, 14]) {
+        it(`works for time difference in weeks - ${multiplier > 0 ? 'future' : 'past'} - ${value > 7 ? 'plural' : 'singular'}`, async function () {
+          const { sut } = await setup();
+          const input = new Date();
+          input.setDate(input.getDate() + multiplier * value);
+          assert.equal(
+            sut.rt(input),
+            value > 7
+              ? multiplier > 0 ? 'in 2 weeks' : '2 weeks ago'
+              : multiplier > 0 ? 'in 1 week' : '1 week ago'
+          );
+        });
+      }
+    }
+  });
 });

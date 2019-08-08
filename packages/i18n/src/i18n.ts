@@ -69,6 +69,54 @@ export class I18nService {
     return this.createDateTimeFormat(options, locales).format(input);
   }
 
+  public rt(input: Date): string {
+    let difference = input.getTime() - new Date().getTime();
+    const absDifference = Math.abs(difference);
+    const year = 31104000000, month = 2592000000, week = 604800000, day = 86400000, hour = 3600000, minute = 60000, second = 1000;
+    let unit: Intl.TimeUnit, divisor: number;
+    switch (true) {
+
+      case absDifference >= year:
+        divisor = year;
+        unit = 'year';
+        break;
+
+      case absDifference >= month:
+        divisor = month;
+        unit = 'month';
+        break;
+
+      case absDifference >= week:
+        divisor = week;
+        unit = 'week';
+        break;
+
+      case absDifference >= day:
+        divisor = day;
+        unit = 'day';
+        break;
+
+      case absDifference >= hour:
+        divisor = hour;
+        unit = 'hour';
+        break;
+
+      case absDifference >= minute:
+        divisor = minute;
+        unit = 'minute';
+        break;
+
+      case absDifference >= second:
+      default:
+        divisor = second;
+        unit = 'second';
+        difference = absDifference < second ? second : difference;
+        break;
+    }
+    const value = Math.round(difference / divisor);
+    return new Intl.RelativeTimeFormat(this.getLocale()).format(value, unit);
+  }
+
   private extractAttributesFromKey(key: string) {
     const re = /\[([a-z\-, ]*)\]/ig;
     let attributes: string[] = [];

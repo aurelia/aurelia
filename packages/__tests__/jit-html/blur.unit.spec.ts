@@ -1,7 +1,12 @@
+import { PLATFORM } from '@aurelia/kernel';
 import { Blur } from '@aurelia/runtime-html';
 import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('[UNIT] blur.spec.ts', function() {
+
+  if (!PLATFORM.isBrowserLike) {
+    return;
+  }
 
   const falsyPansyValues = [false, 0, '', undefined, null];
 

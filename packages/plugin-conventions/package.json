@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-conventions",
-  "version": "0.4.0-dev.201908062342",
+  "version": "0.4.0-dev.201908081653",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201908062342",
+    "@aurelia/kernel": "0.4.0-dev.201908081653",
     "modify-code": "^0.5.3",
     "parse5": "^5.1.0",
     "typescript": "^3.5.3"

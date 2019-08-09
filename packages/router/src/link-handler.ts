@@ -62,7 +62,15 @@ export class LinkHandler {
       return info;
     }
 
+    if (!target.hasAttribute('href')) {
+      return info;
+    }
+
     const href = target.getAttribute('href');
+    if (!href || !href.length) {
+      return info;
+    }
+
     info.anchor = target;
     info.href = href;
 

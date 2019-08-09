@@ -8,14 +8,15 @@ export class NavRoute {
   public instructions: ViewportInstruction[];
   public title: string;
   public link?: string;
-  public linkActive?: string;
+  public execute?: ((route: NavRoute) => void);
+  public linkVisible?: boolean | ((route: NavRoute) => boolean);
+  public linkActive?: string | ((route: NavRoute) => boolean);
+  public compareParameters: boolean = false;
   public children?: NavRoute[];
   public meta?: Record<string, unknown>;
 
+  public visible: boolean = true;
   public active: string = '';
-
-  private readonly observerLocator: IObserverLocator;
-  private readonly observer: IPropertyObserver<IRouter, 'activeComponents'>;
 
   constructor(nav: Nav, route?: INavRoute) {
     this.nav = nav;
@@ -25,43 +26,41 @@ export class NavRoute {
       meta: route.meta,
       active: '',
     });
-    this.instructions = this.parseRoute(route.route);
-    this.link = this._link(this.instructions);
-    this.linkActive = route.consideredActive ? this._link(this.parseRoute(route.consideredActive)) : this.link;
-    this.observerLocator = this.nav.router.container.get(IObserverLocator);
-    this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<IRouter, 'activeComponents'>;
-    this.observer.subscribe(this);
+    if (route.route) {
+      this.instructions = this.parseRoute(route.route);
+      this.link = this.computeLink(this.instructions);
+    }
+    this.linkActive = route.consideredActive
+      ? route.consideredActive instanceof Function
+        ? route.consideredActive
+        : this.computeLink(this.parseRoute(route.consideredActive))
+      : this.link;
+    this.execute = route.execute;
+    this.compareParameters = !!route.compareParameters;
+    this.linkVisible = route.condition === undefined ? true : route.condition;
+    this.update();
   }
 
   public get hasChildren(): string {
     return (this.children && this.children.length ? 'nav-has-children' : '');
   }
 
-  public handleChange(): void {
-    if (this.link && this.link.length) {
-      this.active = this._active();
+  public update(): void {
+    this.visible = this.computeVisible();
+    if ((this.link && this.link.length) || this.execute) {
+      this.active = this.computeActive();
     } else {
       this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
     }
   }
 
-  public _active(): string {
-    const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
-    const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
-    for (const component of components) {
-      if (!activeComponents.find((active) => active.sameComponent(component))) {
-        return '';
-      }
-    }
-    return 'nav-active';
+  public executeAction(event: Event): void {
+    this.execute(this);
+    event.stopPropagation();
   }
 
   public toggleActive(): void {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
-  }
-
-  public _link(instructions: ViewportInstruction[]): string {
-    return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
   }
 
   private parseRoute(routes: NavInstruction | NavInstruction[]): ViewportInstruction[] {
@@ -82,6 +81,31 @@ export class NavRoute {
       }
     }
     return instructions;
+  }
+
+  private computeVisible(): boolean {
+    if (this.linkVisible instanceof Function) {
+      return this.linkVisible(this);
+    }
+    return this.linkVisible;
+  }
+
+  private computeActive(): string {
+    if (this.linkActive instanceof Function) {
+      return this.linkActive(this) ? 'nav-active' : '';
+    }
+    const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
+    const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+    for (const component of components) {
+      if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
+        return '';
+      }
+    }
+    return 'nav-active';
+  }
+
+  private computeLink(instructions: ViewportInstruction[]): string {
+    return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
   }
 
   private activeChild(): boolean {

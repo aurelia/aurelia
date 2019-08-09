@@ -61,7 +61,9 @@ const routerConfiguration = {
 };
 export const RouterConfiguration = {
   /**
-   * Make it possible to specify options to Router activation
+   * Make it possible to specify options to Router activation.
+   * Parameter is either a config object that's passed to Router's activate
+   * or a config function that's called instead of Router's activate.
    */
   customize(config?: IRouterOptions | (() => void)) {
     if (config === undefined) {

@@ -35,6 +35,10 @@ export {
 } from './nav';
 
 export {
+  NavRoute,
+} from './nav-route';
+
+export {
   IStoredNavigationEntry,
   INavigationEntry,
   INavigatorOptions,

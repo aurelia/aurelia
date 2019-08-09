@@ -69,6 +69,7 @@ export interface IRouter {
 
   setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+  updateNav(name?: string): void;
   findNav(name: string): Nav;
 }
 
@@ -338,6 +339,7 @@ export class Router implements IRouter {
 
     await Promise.all(updatedViewports.map((value) => value.loadContent()));
     await this.replacePaths(instruction);
+    this.updateNav();
 
     // Remove history entry if no history viewports updated
     if (instruction.navigation.new && !instruction.navigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {
@@ -461,7 +463,17 @@ export class Router implements IRouter {
       nav = this.navs[name] = new Nav(this, name, [], classes);
     }
     nav.addRoutes(routes);
-    this.navs[name] = new Nav(nav.router, nav.name, nav.routes, nav.classes);
+    nav.update();
+  }
+  public updateNav(name?: string): void {
+    const navs = name
+      ? [name]
+      : Object.keys(this.navs);
+    for (const nav of navs) {
+      if (this.navs[nav]) {
+        this.navs[nav].update();
+      }
+    }
   }
   public findNav(name: string): Nav {
     return this.navs[name];

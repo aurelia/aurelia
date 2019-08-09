@@ -1,4 +1,5 @@
 import { inject } from '@aurelia/kernel';
+import { IRouter, NavRoute } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { Article } from 'models/article';
 import { ArticleRequest } from 'models/article-request';
@@ -8,7 +9,7 @@ import { TagService } from 'shared/services/tag-service';
 import { SharedState } from 'shared/state/shared-state';
 import template from './home.html';
 
-@inject(SharedState, ArticleService, TagService)
+@inject(SharedState, IRouter, ArticleService, TagService)
 @customElement({ name: 'home', template })
 export class HomeComponent {
   private articles: Article[] = [];
@@ -20,14 +21,16 @@ export class HomeComponent {
   private currentPage = 1;
   private limit = 10;
 
-  constructor(private readonly sharedState: SharedState,
-              private readonly articleService: ArticleService,
-              private readonly tagService: TagService) {
-  }
+  constructor(
+    private readonly sharedState: SharedState,
+    private readonly router: IRouter,
+    private readonly articleService: ArticleService,
+    private readonly tagService: TagService) { }
 
   public attached() {
     this.getArticles();
     this.getTags();
+    this.setupNav();
   }
 
   public async getArticles() {
@@ -48,6 +51,27 @@ export class HomeComponent {
   public async getTags() {
     const response = await this.tagService.getList();
     this.tags = response;
+  }
+
+  public setupNav(): void {
+    this.router.setNav('home', [
+      {
+        execute: (route: NavRoute): void => { this.setListTo('feed', ''); this.router.updateNav('home'); },
+        title: 'Your Feed',
+        condition: () => this.sharedState.isAuthenticated,
+        consideredActive: (): boolean => this.shownList === 'feed' && !this.filterTag,
+      },
+      {
+        execute: (route: NavRoute): void => { this.setListTo('all', ''); this.router.updateNav('home'); },
+        title: 'Global Feed',
+        consideredActive: () => this.shownList === 'all' && !this.filterTag,
+      },
+    ], {
+        ul: 'nav nav-pills outline-active',
+        li: 'nav-item',
+        a: 'nav-link',
+        aActive: 'active',
+      });
   }
 
   public setListTo(type: string, tag: string) {

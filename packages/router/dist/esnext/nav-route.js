@@ -1,7 +1,8 @@
-import { IObserverLocator } from '@aurelia/runtime';
 import { ViewportInstruction } from './viewport-instruction';
 export class NavRoute {
     constructor(nav, route) {
+        this.compareParameters = false;
+        this.visible = true;
         this.active = '';
         this.nav = nav;
         Object.assign(this, {
@@ -10,39 +11,38 @@ export class NavRoute {
             meta: route.meta,
             active: '',
         });
-        this.instructions = this.parseRoute(route.route);
-        this.link = this._link(this.instructions);
-        this.linkActive = route.consideredActive ? this._link(this.parseRoute(route.consideredActive)) : this.link;
-        this.observerLocator = this.nav.router.container.get(IObserverLocator);
-        this.observer = this.observerLocator.getObserver(0 /* none */, this.nav.router, 'activeComponents');
-        this.observer.subscribe(this);
+        if (route.route) {
+            this.instructions = this.parseRoute(route.route);
+            this.link = this.computeLink(this.instructions);
+        }
+        this.linkActive = route.consideredActive
+            ? route.consideredActive instanceof Function
+                ? route.consideredActive
+                : this.computeLink(this.parseRoute(route.consideredActive))
+            : this.link;
+        this.execute = route.execute;
+        this.compareParameters = !!route.compareParameters;
+        this.linkVisible = route.condition === undefined ? true : route.condition;
+        this.update();
     }
     get hasChildren() {
         return (this.children && this.children.length ? 'nav-has-children' : '');
     }
-    handleChange() {
-        if (this.link && this.link.length) {
-            this.active = this._active();
+    update() {
+        this.visible = this.computeVisible();
+        if ((this.link && this.link.length) || this.execute) {
+            this.active = this.computeActive();
         }
         else {
             this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
         }
     }
-    _active() {
-        const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
-        const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
-        for (const component of components) {
-            if (!activeComponents.find((active) => active.sameComponent(component))) {
-                return '';
-            }
-        }
-        return 'nav-active';
+    executeAction(event) {
+        this.execute(this);
+        event.stopPropagation();
     }
     toggleActive() {
         this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
-    }
-    _link(instructions) {
-        return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
     }
     parseRoute(routes) {
         if (!Array.isArray(routes)) {
@@ -65,6 +65,28 @@ export class NavRoute {
             }
         }
         return instructions;
+    }
+    computeVisible() {
+        if (this.linkVisible instanceof Function) {
+            return this.linkVisible(this);
+        }
+        return this.linkVisible;
+    }
+    computeActive() {
+        if (this.linkActive instanceof Function) {
+            return this.linkActive(this) ? 'nav-active' : '';
+        }
+        const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
+        const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+        for (const component of components) {
+            if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
+                return '';
+            }
+        }
+        return 'nav-active';
+    }
+    computeLink(instructions) {
+        return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
     }
     activeChild() {
         if (this.children) {

@@ -193,6 +193,7 @@
                 }
                 await Promise.all(updatedViewports.map((value) => value.loadContent()));
                 await this.replacePaths(instruction);
+                this.updateNav();
                 // Remove history entry if no history viewports updated
                 if (instruction.navigation.new && !instruction.navigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {
                     instruction.untracked = true;
@@ -346,7 +347,17 @@
                 nav = this.navs[name] = new nav_1.Nav(this, name, [], classes);
             }
             nav.addRoutes(routes);
-            this.navs[name] = new nav_1.Nav(nav.router, nav.name, nav.routes, nav.classes);
+            nav.update();
+        }
+        updateNav(name) {
+            const navs = name
+                ? [name]
+                : Object.keys(this.navs);
+            for (const nav of navs) {
+                if (this.navs[nav]) {
+                    this.navs[nav].update();
+                }
+            }
         }
         findNav(name) {
             return this.navs[name];

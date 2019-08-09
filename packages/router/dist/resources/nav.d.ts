@@ -5,6 +5,7 @@ export interface INavClasses {
     ul?: string;
     li?: string;
     a?: string;
+    span?: string;
     ulActive?: string;
     liActive?: string;
     aActive?: string;

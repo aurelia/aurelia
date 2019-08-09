@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./browser-navigation", "./link-handler", "./guard", "./guardian", "./nav", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
+        define(["require", "exports", "./browser-navigation", "./link-handler", "./guard", "./guardian", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -20,6 +20,8 @@
     exports.Guardian = guardian_1.Guardian;
     var nav_1 = require("./nav");
     exports.Nav = nav_1.Nav;
+    var nav_route_1 = require("./nav-route");
+    exports.NavRoute = nav_route_1.NavRoute;
     var navigator_1 = require("./navigator");
     exports.Navigator = navigator_1.Navigator;
     var queue_1 = require("./queue");

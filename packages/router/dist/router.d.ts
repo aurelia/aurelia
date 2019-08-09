@@ -52,6 +52,7 @@ export interface IRouter {
     forward(): Promise<void>;
     setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+    updateNav(name?: string): void;
     findNav(name: string): Nav;
 }
 export declare const IRouter: import("@aurelia/kernel").InterfaceSymbol<IRouter>;
@@ -96,6 +97,7 @@ export declare class Router implements IRouter {
     forward(): Promise<void>;
     setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+    updateNav(name?: string): void;
     findNav(name: string): Nav;
     private cancelNavigation;
     private ensureRootScope;

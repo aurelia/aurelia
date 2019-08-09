@@ -3,6 +3,7 @@ export { ILinkHandlerOptions, AnchorEventInfo, LinkHandler, } from './link-handl
 export { Guard, } from './guard';
 export { IGuardTarget, GuardTypes, GuardFunction, GuardTarget, GuardIdentity, IGuardOptions, Guardian, } from './guardian';
 export { IViewportComponent, NavInstruction, INavRoute, Nav, } from './nav';
+export { NavRoute, } from './nav-route';
 export { IStoredNavigationEntry, INavigationEntry, INavigatorOptions, INavigationFlags, INavigationInstruction, Navigator, } from './navigator';
 export { QueueItem, IQueueOptions, Queue, } from './queue';
 export { RouteHandler, ConfigurableRoute, HandlerEntry, RouteGenerator, TypesRecord, RecognizeResult, RecognizeResults, CharSpec, State, StaticSegment, DynamicSegment, StarSegment, EpsilonSegment, Segment, RouteRecognizer, } from './route-recognizer';

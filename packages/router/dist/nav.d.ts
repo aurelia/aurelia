@@ -10,8 +10,11 @@ export interface IViewportComponent {
 }
 export declare type NavInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
 export interface INavRoute {
-    route: NavInstruction | NavInstruction[];
-    consideredActive?: NavInstruction | NavInstruction[];
+    route?: NavInstruction | NavInstruction[];
+    execute?: ((route: NavRoute) => void);
+    condition?: boolean | ((route: NavRoute) => boolean);
+    consideredActive?: NavInstruction | NavInstruction[] | ((route: NavRoute) => boolean);
+    compareParameters?: boolean;
     link?: string;
     title: string;
     children?: INavRoute[];
@@ -24,6 +27,8 @@ export declare class Nav {
     router: IRouter;
     constructor(router: IRouter, name: string, routes?: NavRoute[], classes?: INavClasses);
     addRoutes(routes: INavRoute[]): void;
-    addRoute(routes: NavRoute[], route: INavRoute): void;
+    update(): void;
+    private addRoute;
+    private updateRoutes;
 }
 //# sourceMappingURL=nav.d.ts.map

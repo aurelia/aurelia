@@ -5,19 +5,23 @@ export declare class NavRoute {
     instructions: ViewportInstruction[];
     title: string;
     link?: string;
-    linkActive?: string;
+    execute?: ((route: NavRoute) => void);
+    linkVisible?: boolean | ((route: NavRoute) => boolean);
+    linkActive?: string | ((route: NavRoute) => boolean);
+    compareParameters: boolean;
     children?: NavRoute[];
     meta?: Record<string, unknown>;
+    visible: boolean;
     active: string;
-    private readonly observerLocator;
-    private readonly observer;
     constructor(nav: Nav, route?: INavRoute);
     readonly hasChildren: string;
-    handleChange(): void;
-    _active(): string;
+    update(): void;
+    executeAction(event: Event): void;
     toggleActive(): void;
-    _link(instructions: ViewportInstruction[]): string;
     private parseRoute;
+    private computeVisible;
+    private computeActive;
+    private computeLink;
     private activeChild;
 }
 //# sourceMappingURL=nav-route.d.ts.map

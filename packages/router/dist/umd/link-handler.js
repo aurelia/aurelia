@@ -46,7 +46,13 @@
             if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
                 return info;
             }
+            if (!target.hasAttribute('href')) {
+                return info;
+            }
             const href = target.getAttribute('href');
+            if (!href || !href.length) {
+                return info;
+            }
             info.anchor = target;
             info.href = href;
             const leftButtonClicked = event.which === 1;

@@ -71,6 +71,10 @@ export {
 } from './resources/custom-attributes/focus';
 
 export {
+  RectSize
+} from './resources/custom-attributes/rectsize';
+
+export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';

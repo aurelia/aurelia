@@ -19,8 +19,8 @@ export class I18nService {
 
   public i18next: i18nextCore.i18n;
   private options!: I18nInitOptions;
-  private task: ILifecycleTask;
-  private intl: typeof Intl;
+  private readonly task: ILifecycleTask;
+  private readonly intl: typeof Intl;
 
   constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
@@ -54,22 +54,76 @@ export class I18nService {
     await this.i18next.changeLanguage(newLocale);
     this.ea.publish(I18N_EA_CHANNEL, { oldLocale, newLocale });
   }
-
+  /**
+   * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.
+   * If the `locales` is skipped, then the `Intl.NumberFormat` instance is created using the currently active locale.
+   */
   public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
     return this.intl.NumberFormat(locales || this.getLocale(), options);
   }
+
+  /**
+   * Formats the given `input` number according to the given `[options]`, and `[locales]`.
+   * If the `locales` is skipped, then the number is formatted using the currently active locale.
+   * @returns Formatted number.
+   */
   public nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string {
     return this.createNumberFormat(options, locales).format(input);
   }
 
+  /**
+   * Returns `Intl.DateTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a date.
+   * If the `locales` is skipped, then the `Intl.DateTimeFormat` instance is created using the currently active locale.
+   */
   public createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat {
     return this.intl.DateTimeFormat(locales || this.getLocale(), options);
   }
+
+  /**
+   * Formats the given `input` date according to the given `[options]` and `[locales]`.
+   * If the `locales` is skipped, then the date is formatted using the currently active locale.
+   * @returns Formatted date.
+   */
   public df(input: Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
     return this.createDateTimeFormat(options, locales).format(input);
   }
 
-  public rt(input: Date): string {
+  public uf(numberLike: string, locale?: string): number {
+    // Unfortunately the Intl specs does not specify a way to get the thousand and decimal separators for a given locale.
+    // Only straightforward way would be to include the CLDR data and query for the separators, which certainly is a overkill.
+    const comparer = this.nf(10000 / 3, undefined, locale);
+
+    let thousandSeparator = comparer[1];
+    const decimalSeparator = comparer[5];
+
+    if (thousandSeparator === '.') {
+      thousandSeparator = '\\.';
+    }
+
+    // remove all thousand separators
+    const result = numberLike.replace(new RegExp(thousandSeparator, 'g'), '')
+      // remove non-numeric signs except -> , .
+      .replace(/[^\d.,-]/g, '')
+      // replace original decimalSeparator with english one
+      .replace(decimalSeparator, '.');
+
+    // return real number
+    return Number(result);
+  }
+
+  /**
+   * Returns `Intl.RelativeTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a value with associated time unit.
+   * If the `locales` is skipped, then the `Intl.RelativeTimeFormat` instance is created using the currently active locale.
+   */
+  public createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat {
+    return new this.intl.RelativeTimeFormat(locales || this.getLocale(), options);
+  }
+
+  /**
+   * Returns a relative time format of the given `input` date as per the given `[options]`, and `[locales]`.
+   * If the `locales` is skipped, then the currently active locale is used for formatting.
+   */
+  public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {
     let difference = input.getTime() - new Date().getTime();
     const absDifference = Math.abs(difference);
     const year = 31104000000, month = 2592000000, week = 604800000, day = 86400000, hour = 3600000, minute = 60000, second = 1000;
@@ -114,7 +168,7 @@ export class I18nService {
         break;
     }
     const value = Math.round(difference / divisor);
-    return new Intl.RelativeTimeFormat(this.getLocale()).format(value, unit);
+    return this.createRelativeTimeFormat(options, locales).format(value, unit);
   }
 
   private extractAttributesFromKey(key: string) {

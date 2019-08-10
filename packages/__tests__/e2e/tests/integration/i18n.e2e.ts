@@ -167,19 +167,19 @@ describe('i18n', () => {
         name: 'nf',
         suts: [{ selector: '#i18n-code-num', expected: '123,456,789' }]
       },
-      // ...['simple', 'locale', 'currency', 'text', 'minus'].map((part) => (
-      //   {
-      //     name: `uf - ${part}`,
-      //     suts: [{ selector: `#i18n-code-num-uf-${part}`, expected: part === 'minus' ? '-123456789.12' : '123456789.12' }]
-      //   })),
+      ...['simple', 'locale', 'currency', 'text', 'minus'].map((part) => (
+        {
+          name: `uf - ${part}`,
+          suts: [{ selector: `#i18n-code-num-uf-${part}`, expected: part === 'minus' ? '-123456789.12' : '123456789.12' }]
+        })),
       {
         name: 'df',
         suts: [{ selector: '#i18n-code-date', expected: '2/10/2021' }]
       },
-      // {
-      //   name: 'relative time',
-      //   suts: [{ selector: '#i18n-code-rtime', expected: '2 hours ago' }]
-      // },
+      {
+        name: 'relative time',
+        suts: [{ selector: '#i18n-code-rtime', expected: '2 hours ago' }]
+      },
     ];
     for (const { name, suts } of tests) {
       it(name, () => {

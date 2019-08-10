@@ -295,5 +295,38 @@ describe.only('I18N', function () {
         });
       }
     }
+
+    it(`respects given locale`, async function () {
+      const { sut } = await setup();
+      const input = new Date();
+      input.setSeconds(input.getSeconds() - 5);
+      assert.equal(sut.rt(input, undefined, 'de'), 'vor 5 Sekunden');
+    });
+
+    it(`respects given options`, async function () {
+      const { sut } = await setup();
+      const input = new Date();
+      input.setSeconds(input.getSeconds() - 5);
+      assert.equal(sut.rt(input, { style: 'short' }, 'de'), 'vor 5 Sek.');
+    });
+  });
+
+  describe('uf', function () {
+    const cases = [
+      { input: '123,456,789.12' },
+      { input: '123.456.789,12', locale: 'de' },
+      { input: '$ 123,456,789.12' },
+      { input: '123,456,789.12 foo bar' },
+      { input: '- 123,456,789.12' },
+    ];
+    for (const { input, locale } of cases) {
+      // tslint:disable-next-line: no-nested-template-literals
+      it(`returns 123456789.12 given ${input}${locale ? ` - ${locale}` : ''}`, async function () {
+        const { sut } = await setup();
+        assert.equal(
+          sut.uf(input, locale),
+          input[0] === '-' ? -123456789.12 : 123456789.12);
+      });
+    }
   });
 });

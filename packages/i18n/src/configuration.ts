@@ -4,7 +4,7 @@ import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
 import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
-import { TranslationValueConverter } from './t/value-converter';
+import { TranslationValueConverter } from './t/translation-value-converter';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 

@@ -3,7 +3,8 @@ import { I18N, I18nService } from './i18n';
 import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
-import { TranslationAttributePattern, TranslationBindingCommand, TranslationBindingRenderer, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer } from './t/translation-renderer';
+import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
+import { TranslationValueConverter } from './t/value-converter';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 
@@ -33,6 +34,7 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
         Registration.callback(I18nInitOptions, () => options.initOptions),
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
+        TranslationValueConverter
       );
     },
     customize(cb?: I18NConfigOptionsProvider) {

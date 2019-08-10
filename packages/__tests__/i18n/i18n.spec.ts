@@ -1,6 +1,6 @@
-import { I18N_EA_CHANNEL, I18nInitOptions, I18nModule, I18nService } from '@aurelia/i18n';
+import { I18N_EA_CHANNEL, I18nInitOptions, I18nModule, I18nService, I18N_SIGNAL } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
-import { assert } from '@aurelia/testing';
+import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
 import { Spy } from './Spy';
 
@@ -15,9 +15,15 @@ describe.only('I18N', function () {
   async function setup(options: I18nInitOptions = {}) {
     const i18nextSpy = new Spy();
     const eaSpy: Spy = new Spy();
-    const sut = new I18nService({ i18next: i18nextSpy.getMock(i18next) }, options, eaSpy.getMock(new EventAggregator()));
+    const mockSignaler = new MockSignaler();
+    const sut = new I18nService(
+      { i18next: i18nextSpy.getMock(i18next) },
+      options,
+      eaSpy.getMock(new EventAggregator()),
+      mockSignaler
+    );
     await sut['task'].wait();
-    return { i18nextSpy, sut, eaSpy };
+    return { i18nextSpy, sut, eaSpy, mockSignaler };
   }
 
   it('initializes i18next with default options on instantiation', async function () {
@@ -92,11 +98,15 @@ describe.only('I18N', function () {
   });
 
   it('setLocale changes the active language of i18next', async function () {
-    const { sut, eaSpy } = await setup();
+    const { sut, eaSpy, mockSignaler } = await setup();
 
     await sut.setLocale('de');
 
     eaSpy.methodCalledOnceWith('publish', [I18N_EA_CHANNEL, { newLocale: 'de', oldLocale: 'en' }]);
+    const dispatchCall = mockSignaler.calls.find((call) => call[0] === 'dispatchSignal');
+    assert.notEqual(dispatchCall, undefined);
+    const [, args] = dispatchCall;
+    assert.deepEqual(args, I18N_SIGNAL);
     assert.equal(sut.getLocale(), 'de');
   });
 

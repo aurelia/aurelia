@@ -1,10 +1,12 @@
 import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
-import { ILifecycleTask, PromiseTask } from '@aurelia/runtime';
+import { ILifecycleTask, ISignaler, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 
 export const I18N_EA_CHANNEL = 'i18n:locale:changed';
+export const I18N_SIGNAL = 'aurelia-translation-signal';
+
 export interface I18nKeyEvaluationResult {
   value: string;
   attributes: string[];
@@ -25,7 +27,8 @@ export class I18nService {
   constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
     @I18nInitOptions options: I18nInitOptions,
-    @IEventAggregator private readonly ea: IEventAggregator
+    @IEventAggregator private readonly ea: IEventAggregator,
+    @ISignaler private readonly signaler: ISignaler
   ) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
@@ -53,6 +56,7 @@ export class I18nService {
     const oldLocale = this.getLocale();
     await this.i18next.changeLanguage(newLocale);
     this.ea.publish(I18N_EA_CHANNEL, { oldLocale, newLocale });
+    this.signaler.dispatchSignal(I18N_SIGNAL);
   }
   /**
    * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.

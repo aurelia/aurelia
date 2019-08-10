@@ -133,6 +133,10 @@ describe('i18n', () => {
         expectedDe: `${de.pretest}Blue${de['post-test']}`
       }]
     },
+    {
+      name: 'should work with "t" value converter',
+      suts: [{ selector: `#i18n-t-vc`, expected: ' 10 items ', expectedDe: ' 10 Artikel ' }]
+    },
   ];
 
   describe('translates via HTML that', () => {

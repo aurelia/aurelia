@@ -2,7 +2,7 @@
   <button id="key-changer" click.delegate="changeKey()">Change key</button><br>
   <button id="params-changer" click.delegate="changeParams()">Change t-params</button><br>
   <button id="locale-changer-de" click.delegate="changeLocale('de')">DE</button><br>
-  <!-- <button id="rt-changer" click.delegate="changeMyDate()">Change my date</button> -->
+  <button id="rt-changer" click.delegate="changeMyDate()">Change my date</button>
 
   <span id="i18n-simple" t="simple.text"></span><br>
   <span id="i18n-vm-bound" t.bind="obj.key"></span><br>
@@ -64,10 +64,10 @@
   <span id="i18n-df-vc-iso"> ${ '2019-08-10T13:42:35.209Z' | df } </span>
   <span id="i18n-df-vc-int"> ${ 0 | df } </span>
   <span id="i18n-df-vc-int-str"> ${ '0' | df } </span>
-  <!-- <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span>
+  <!-- <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span>-->
 
   <span id="i18n-rt-vc"> ${ myDate | rt} </span>
-  <span id="i18n-rt-bb"> ${ myDate & rt} </span>-->
+  <!-- <span id="i18n-rt-bb"> ${ myDate & rt} </span>-->
 
   <!-- translations via code -->
   <div>

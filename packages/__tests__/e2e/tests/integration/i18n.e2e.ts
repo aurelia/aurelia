@@ -169,6 +169,10 @@ describe('i18n', () => {
     //   name: 'should work with "nf" binding behavior for currency',
     //   suts: [{ selector: `#i18n-nf-bb-cur`, expected: " $123,456,789.12 ", expectedDe: " 123.456.789,12\u{00a0}$ " },]
     // },
+    {
+      name: 'should work with "rt" value converter',
+      suts: [{ selector: `#i18n-rt-vc`, expected: ' 2 hours ago ', expectedDe: ' vor 2 Stunden ' }]
+    },
   ];
 
   describe('translates via HTML that', () => {
@@ -179,6 +183,12 @@ describe('i18n', () => {
         }
       });
     }
+    it('reacts to \'aurelia-relativetime-signal\' signal for relative time binding behavior', () => {
+      cy.get('#rt-changer').click();
+      // rt VC does not react to the signal, thus the content should stay same
+      assertContent('#i18n-rt-vc', ' 1 year ago ');
+      // assertContent('#i18n-rt-bb', ' 1 year ago ');
+    });
   });
 
   describe('facilitates translation via code', () => {

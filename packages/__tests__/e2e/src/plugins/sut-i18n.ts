@@ -1,5 +1,5 @@
-import { I18N, I18nService } from '@aurelia/i18n';
-import { customElement } from '@aurelia/runtime';
+import { I18N, I18nService, RT_SIGNAL } from '@aurelia/i18n';
+import { customElement, ISignaler } from '@aurelia/runtime';
 import template from './sut-i18n.html';
 
 @customElement({ name: 'sut-i18n', template })
@@ -10,7 +10,10 @@ export class SutI18N {
   public params = { context: 'delivered', date: this.deliveredOn };
   public translations: { [key: string]: string | number };
   private readonly myDate: Date;
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(
+    @I18N private readonly i18n: I18nService,
+    @ISignaler private readonly signaler: ISignaler
+  ) {
     this.myDate = new Date();
     this.myDate.setHours(this.myDate.getHours() - 2);
 
@@ -40,5 +43,10 @@ export class SutI18N {
   }
   public async changeLocale(locale) {
     await this.i18n.setLocale(locale);
+  }
+
+  public changeMyDate() {
+    this.myDate.setFullYear(this.myDate.getFullYear() - 1);
+    this.signaler.dispatchSignal(RT_SIGNAL);
   }
 }

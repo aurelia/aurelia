@@ -645,4 +645,63 @@ describe.only('translation-integration', function () {
       assertTextContent(host, 'span', '123.456.789,12\u00A0€');
     });
   });
+
+  describe('`rt` value-converter', function () {
+
+    for (const value of [undefined, null, 'chaos', 123, true]) {
+      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
+        class App { private readonly dt = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+    }
+
+    it('formats date by default as per current locale and default formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '2 hours ago');
+    });
+
+    it('formats a given number as per given locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | rt : undefined : 'de' }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', 'vor 2 Stunden');
+    });
+
+    it('formats a given number as per given locale and formating options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | rt : { style: 'short' } : 'de' }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', 'vor 2 Std.');
+    });
+  });
 });

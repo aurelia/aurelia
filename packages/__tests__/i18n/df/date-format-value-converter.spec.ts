@@ -30,6 +30,11 @@ describe.only('df', function () {
     assert.equal(sut.toView(new Date(2000, 0, 17, 0, 0, 1)), '17.1.2000');
   });
 
+  it('respects given locale', async function () {
+    const { sut } = await setup();
+    assert.equal(sut.toView(new Date(2000, 0, 17, 0, 0, 1), undefined, 'de'), '17.1.2000');
+  });
+
   it('displays date time when appropriate options are provided', async function () {
     const options = {
       year: 'numeric', month: '2-digit', day: '2-digit',

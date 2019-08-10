@@ -3,6 +3,7 @@ import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
 import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
+import { NumberFormatValueConverter } from './nf/number-format-value-converter';
 import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
 import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
@@ -36,7 +37,8 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
         TranslationValueConverter,
-        DateFormatValueConverter
+        DateFormatValueConverter,
+        NumberFormatValueConverter
       );
     },
     customize(cb?: I18NConfigOptionsProvider) {

@@ -153,6 +153,22 @@ describe('i18n', () => {
       name: 'should work with "df" value converter for integer string',
       suts: [{ selector: `#i18n-df-vc-int-str`, expected: ' 1/1/1970 ', expectedDe: ' 1.1.1970 ' }]
     },
+    {
+      name: 'should work with "nf" value converter',
+      suts: [{ selector: `#i18n-nf-vc`, expected: ' 123,456,789.12 ', expectedDe: ' 123.456.789,12 ' }]
+    },
+    // {
+    //   name: 'should work with "nf" binding behavior',
+    //   suts: [{ selector: `#i18n-nf-bb`, expected: " 123.456.789,12 ", expectedDe: " 123.456.789,12 " },]
+    // },
+    {
+      name: 'should work with "nf" value converter for currency',
+      suts: [{ selector: `#i18n-nf-vc-cur`, expected: ' 123.456.789,12\u{00a0}€ ', expectedDe: ' 123.456.789,12\u{00a0}€ ' }]
+    },
+    // {
+    //   name: 'should work with "nf" binding behavior for currency',
+    //   suts: [{ selector: `#i18n-nf-bb-cur`, expected: " $123,456,789.12 ", expectedDe: " 123.456.789,12\u{00a0}$ " },]
+    // },
   ];
 
   describe('translates via HTML that', () => {

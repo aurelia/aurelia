@@ -103,7 +103,7 @@ describe.only('translation-integration', function () {
 
     @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>` })
     class App {
-      private obj = { key: 'simple.text' };
+      private readonly obj = { key: 'simple.text' };
     }
 
     const host = DOM.createElement('app');
@@ -214,8 +214,8 @@ describe.only('translation-integration', function () {
     <span id='d' t='status_\${status}'></span>
     ` })
     class App {
-      private obj = { key1: 'simple.text', key2: 'simple.attr' };
-      private status = 'dispatched'
+      private readonly obj = { key1: 'simple.text', key2: 'simple.attr' };
+      private readonly status = 'dispatched'
     }
 
     const host = DOM.createElement('app');
@@ -244,7 +244,7 @@ describe.only('translation-integration', function () {
     <span id='b' t.bind='"simple."+part'></span>
     ` })
     class App {
-      private part = 'text';
+      private readonly part = 'text';
     }
 
     const host = DOM.createElement('app');
@@ -578,12 +578,71 @@ describe.only('translation-integration', function () {
     for (const { name, input, output } of cases) {
       it(name, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
-        class App { private dt = input; }
+        class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', output);
       });
     }
+
+    it('respects provided locale and formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | df : {year:'2-digit', month:'2-digit', day:'2-digit'} : 'de' }</span>` })
+      class App { private readonly dt = new Date(2019, 7, 20); }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '20.08.19');
+    });
+  });
+
+  describe('`nf` value-converter', function () {
+
+    for (const value of [undefined, null, 'chaos', new Date(), true]) {
+      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
+        class App { private readonly num = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+    }
+
+    it('formats number by default as per current locale and default formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '123,456,789.12');
+    });
+
+    it('formats a given number as per given formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num | nf : { style: 'currency', currency: 'EUR' } }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '€123,456,789.12');
+    });
+
+    it('formats a given number as per given locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num | nf : undefined : 'de' }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '123.456.789,12');
+    });
+
+    it('formats a given number as per given locale and formating options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num | nf : { style: 'currency', currency: 'EUR' } : 'de' }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '123.456.789,12\u00A0€');
+    });
   });
 });

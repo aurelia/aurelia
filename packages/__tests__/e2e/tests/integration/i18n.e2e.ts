@@ -137,6 +137,22 @@ describe('i18n', () => {
       name: 'should work with "t" value converter',
       suts: [{ selector: `#i18n-t-vc`, expected: ' 10 items ', expectedDe: ' 10 Artikel ' }]
     },
+    {
+      name: 'should work with "df" value converter',
+      suts: [{ selector: `#i18n-df-vc`, expected: ' 2/10/2020 ', expectedDe: ' 10.2.2020 ' }]
+    },
+    {
+      name: 'should work with "df" value converter for ISO date string',
+      suts: [{ selector: `#i18n-df-vc-iso`, expected: ' 8/10/2019 ', expectedDe: ' 10.8.2019 ' }]
+    },
+    {
+      name: 'should work with "df" value converter for integer',
+      suts: [{ selector: `#i18n-df-vc-int`, expected: ' 1/1/1970 ', expectedDe: ' 1.1.1970 ' }]
+    },
+    {
+      name: 'should work with "df" value converter for integer string',
+      suts: [{ selector: `#i18n-df-vc-int-str`, expected: ' 1/1/1970 ', expectedDe: ' 1.1.1970 ' }]
+    },
   ];
 
   describe('translates via HTML that', () => {
@@ -226,7 +242,7 @@ describe('i18n', () => {
   });
 
   describe('with custom elements', () => {
-    xit('can pass interpolated translations to custom elements bindables', () => {
+    it('can pass interpolated translations to custom elements bindables', () => {
       assertContent('[data-test-id=\'custom-element-interpolated\'] div', en.simple.text);
     });
 

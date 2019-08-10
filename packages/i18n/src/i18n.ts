@@ -88,7 +88,7 @@ export class I18nService {
    * If the `locales` is skipped, then the date is formatted using the currently active locale.
    * @returns Formatted date.
    */
-  public df(input: Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
+  public df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
     return this.createDateTimeFormat(options, locales).format(input);
   }
 

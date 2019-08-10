@@ -71,7 +71,8 @@ describe.only('translation-integration', function () {
       .app({ host, component })
       .start()
       .wait();
-    return { en: translation, de: deTranslation, container: au.container };
+    const i18n = au.container.get(I18N);
+    return { en: translation, de: deTranslation, container: au.container, i18n };
   }
   function assertTextContent(host: INode, selector: string, translation: string) {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
@@ -485,26 +486,26 @@ describe.only('translation-integration', function () {
       assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
     });
 
-    // it('should support locale changes', async function () {
-    //   @customElement({
-    //     name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
-    //   })
-    //   class App { }
+    it.skip('should support locale changes', async function () {
+      @customElement({
+        name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
+      })
+      class App { }
 
-    //   const host = DOM.createElement('app');
-    //   const { de, container } = await setup(host, new App());
-    //   const i18n = container.get(I18N);
-    //   await i18n.setLocale('de');
+      const host = DOM.createElement('app');
+      const { de, container } = await setup(host, new App());
+      const i18n = container.get(I18N);
+      await i18n.setLocale('de');
 
-    //   await new Promise((resolve) => {
-    //     setTimeout(
-    //       () => {
-    //         assertTextContent(host, 'custom-message div', de.simple.text);
-    //         resolve();
-    //       },
-    //       0);
-    //   });
-    // });
+      await new Promise((resolve) => {
+        setTimeout(
+          () => {
+            assertTextContent(host, 'custom-message div', de.simple.text);
+            resolve();
+          },
+          0);
+      });
+    });
   });
 
   describe('`t` value-converter works for', function () {
@@ -537,7 +538,8 @@ describe.only('translation-integration', function () {
     });
     it('attribute translation', async function () {
 
-      @customElement({ name: 'app', template: `
+      @customElement({
+        name: 'app', template: `
       <span id="a" title.bind="'simple.text' | t">t-vc-attr-target</span>
       <span id="b" title="\${'simple.text' | t}">t-vc-attr-target</span>
       ` })
@@ -548,5 +550,40 @@ describe.only('translation-integration', function () {
       assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
     });
+    it.skip('locale is changed', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${'simple.text' | t}</span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { i18n, de } = await setup(host, new App());
+
+      await i18n.setLocale('de');
+      assertTextContent(host, 'span', de.simple.text);
+    });
+  });
+
+  describe('`df` value-converter', function () {
+    const cases = [
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: '8/20/2019' },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: '8/20/2019' },
+      { name: 'works for integer', input: 0, output: '1/1/1970' },
+      { name: 'works for integer string', input: '0', output: '1/1/1970' },
+      { name: 'returns undefined for undefined', input: undefined, output: 'undefined' },
+      { name: 'returns null for null', input: null, output: 'null' },
+      { name: 'returns empty string for empty string', input: '', output: '' },
+      { name: 'returns whitespace for whitespace', input: '  ', output: '  ' },
+      { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
+    ];
+    for (const { name, input, output } of cases) {
+      it(name, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
+        class App { private dt = input; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', output);
+      });
+    }
   });
 });

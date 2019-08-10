@@ -187,28 +187,34 @@ describe.only('I18N', function () {
     });
   });
   describe('df', function () {
-    it('formats a given number as per default formatting options', async function () {
+    it('formats a given date as per default formatting options', async function () {
       const { sut } = await setup();
 
       assert.equal(sut.df(new Date(2020, 1, 10)), '2/10/2020');
     });
 
-    it('formats a given number as per given formatting options', async function () {
+    it('formats a given date as per given formatting options', async function () {
       const { sut } = await setup();
 
       assert.equal(sut.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }), '02/10/2020');
     });
 
-    it('formats a given number as per given locale', async function () {
+    it('formats a given date as per given locale', async function () {
       const { sut } = await setup();
 
       assert.equal(sut.df(new Date(2020, 1, 10), undefined, 'de'), '10.2.2020');
     });
 
-    it('formats a given number as per given locale and formating options', async function () {
+    it('formats a given date as per given locale and formating options', async function () {
       const { sut } = await setup();
 
       assert.equal(sut.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }, 'de'), '10.02.2020');
+    });
+
+    it('formats a given number considering it as UNIX timestamp', async function () {
+      const { sut } = await setup();
+
+      assert.equal(sut.df(0), '1/1/1970');
     });
   });
 

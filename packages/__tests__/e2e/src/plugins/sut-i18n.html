@@ -58,10 +58,13 @@
   <span id="i18n-nf-bb"> ${ 123456789.12 & nf : undefined : 'de'} </span>
 
   <span id="i18n-nf-vc-cur"> ${ 123456789.12 | nf: {style:'currency', currency: 'EUR' } : 'de' } </span>
-  <span id="i18n-nf-bb-cur"> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' } : locale } </span>
+  <span id="i18n-nf-bb-cur"> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' } : locale } </span>-->
 
-  <span id="i18n-df-vc"> ${ dispatchedOn | df : undefined : locale} </span>
-  <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span>
+  <span id="i18n-df-vc"> ${ dispatchedOn | df } </span>
+  <span id="i18n-df-vc-iso"> ${ '2019-08-10T13:42:35.209Z' | df } </span>
+  <span id="i18n-df-vc-int"> ${ 0 | df } </span>
+  <span id="i18n-df-vc-int-str"> ${ '0' | df } </span>
+  <!-- <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span>
 
   <span id="i18n-rt-vc"> ${ myDate | rt} </span>
   <span id="i18n-rt-bb"> ${ myDate & rt} </span>-->
@@ -84,7 +87,7 @@
     <span id="i18n-code-rtime">${translations.rtime}</span>
   </div>
 
-  <!-- <custom-message data-test-id="custom-element-interpolated" message="${'simple.text' | t}"></custom-message> -->
+  <custom-message data-test-id="custom-element-interpolated" message="${'simple.text' | t}"></custom-message>
   <custom-message data-test-id="custom-element-target-bindable" t="[message]simple.text"></custom-message>
   <custom-message data-test-id="custom-element-with-params" t="[message]itemWithCount" t-params.bind="{count: 0}">
   </custom-message>

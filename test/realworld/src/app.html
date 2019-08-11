@@ -1,8 +1,7 @@
-<template>
-  <require from="./shared/layouts/header-layout"></require>
-  <require from="./shared/layouts/footer-layout"></require>
+<import from="./shared/layouts/header-layout"></import>
+<import from="./shared/layouts/footer-layout"></import>
+<import from="./components/home/home"></import>
 
-  <header-layout router.bind="router"></header-layout>
-  <au-viewport name="main" default="home"></au-viewport>
-  <footer-layout></footer-layout>
-</template>
+<header-layout router.bind="router"></header-layout>
+<au-viewport name="main" default="home"></au-viewport>
+<footer-layout></footer-layout>

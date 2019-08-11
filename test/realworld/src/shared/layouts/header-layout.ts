@@ -1,11 +1,9 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
-import { customElement, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
+import { IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { SharedState } from 'shared/state/shared-state';
-import template from './header-layout.html';
 
 @inject(IRouter, SharedState)
-@customElement({ name: "header-layout", template })
 export class HeaderLayout {
   constructor(private readonly router: IRouter, private readonly sharedState: SharedState) {
     const observerLocator = this.router.container.get(IObserverLocator);

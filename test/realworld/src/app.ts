@@ -1,11 +1,9 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
-import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
-import template from './app.html';
+import { IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import { UserService } from './shared/services/user-service';
 import { SharedState } from './shared/state/shared-state';
 
-@customElement({ name: 'app', template })
 @inject(IRouter, UserService, SharedState)
 export class App implements IViewModel {
   private message: string;

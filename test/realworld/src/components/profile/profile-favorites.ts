@@ -1,12 +1,10 @@
 import { inject } from "@aurelia/kernel";
-import { customElement } from "@aurelia/runtime";
 import { Article } from "models/article";
 import { getPages } from "shared/get-pages";
 import { ArticleService } from "shared/services/article-service";
-import template from './profile-favorites.html';
+
 @inject(ArticleService)
-@customElement({ name: 'profile-favorites', template })
-export class ProfileFavoritesComponent {
+export class ProfileFavorites {
   public static parameters: string[] = ['name'];
 
   private articles: Article[] = [];

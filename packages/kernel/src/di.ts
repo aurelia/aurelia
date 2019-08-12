@@ -45,7 +45,7 @@ export interface IServiceLocator {
 }
 
 export interface IRegistry {
-  register(container: IContainer): void;
+  register(container: IContainer, ...params: any[]): void;
 }
 
 export interface IContainer extends IServiceLocator {
@@ -782,6 +782,14 @@ export const Registration = Object.freeze({
   alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
+  defer(key: Key, ...params: any[]): IRegistry {
+    return {
+      register(container: IContainer) {
+        const r = container.get<IRegistry>(key);
+        r.register(container, ...params);
+      }
+    };
+  }
 });
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {

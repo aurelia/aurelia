@@ -4,9 +4,13 @@ type HasAdoptedStyleSheets = ShadowRoot & {
   adoptedStyleSheets: CSSStyleSheet[];
 };
 
+export const noopShadowDOMStyleManager = Object.freeze({
+  applyTo: PLATFORM.noop
+});
+
 export const IShadowDOMStyleManager =
   DI.createInterface<IShadowDOMStyleManager>('IShadowDOMStyleManager')
-    .withDefault(x => x.instance({ applyTo: PLATFORM.noop }));
+    .withDefault(x => x.instance(noopShadowDOMStyleManager));
 
 export interface IShadowDOMStyleManager {
   applyTo(shadowRoot: ShadowRoot): void;
@@ -15,10 +19,20 @@ export interface IShadowDOMStyleManager {
 export class AdoptedStyleSheetsStyleManager implements IShadowDOMStyleManager {
   private readonly styleSheets: CSSStyleSheet[];
 
-  constructor(styles: string[], private parent: IShadowDOMStyleManager | null = null) {
+  constructor(
+    styles: string[],
+    cache: Map<string, CSSStyleSheet>,
+    private parent: IShadowDOMStyleManager | null = null
+  ) {
     this.styleSheets = styles.map(x => {
-      const sheet = new CSSStyleSheet();
-      (sheet as any).replaceSync(x);
+      let sheet = cache.get(x);
+
+      if (!sheet) {
+        sheet = new CSSStyleSheet();
+        (sheet as any).replaceSync(x);
+        cache.set(x, sheet);
+      }
+
       return sheet;
     });
   }
@@ -38,7 +52,10 @@ export class AdoptedStyleSheetsStyleManager implements IShadowDOMStyleManager {
 }
 
 export class StyleElementStyleManager implements IShadowDOMStyleManager {
-  constructor(private styles: string[], private parent: IShadowDOMStyleManager | null = null) {}
+  constructor(
+    private styles: string[],
+    private parent: IShadowDOMStyleManager | null = null
+  ) {}
 
   public applyTo(shadowRoot: ShadowRoot) {
     const styles = this.styles;

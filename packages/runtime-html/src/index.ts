@@ -139,3 +139,9 @@ export {
   HTMLProjectorLocator,
   ShadowDOMProjector
 } from './projectors';
+
+export {
+  StyleConfiguration,
+  styles,
+  IShadowDOMConfiguration
+} from './styles/style-configuration';

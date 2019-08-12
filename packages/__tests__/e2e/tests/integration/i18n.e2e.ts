@@ -138,6 +138,10 @@ describe('i18n', () => {
       suts: [{ selector: `#i18n-t-vc`, expected: ' 10 items ', expectedDe: ' 10 Artikel ' }]
     },
     {
+      name: 'should work with "t" binding behavior',
+      suts: [{ selector: `#i18n-t-bb`, expected: ' 100 items ', expectedDe: ' 100 Artikel ' },]
+    },
+    {
       name: 'should work with "df" value converter',
       suts: [{ selector: `#i18n-df-vc`, expected: ' 2/10/2020 ', expectedDe: ' 10.2.2020 ' }]
     },
@@ -154,24 +158,32 @@ describe('i18n', () => {
       suts: [{ selector: `#i18n-df-vc-int-str`, expected: ' 1/1/1970 ', expectedDe: ' 1.1.1970 ' }]
     },
     {
+      name: 'should work with "df" binding behavior',
+      suts: [{ selector: `#i18n-df-bb`, expected: " 10.2.2020 ", expectedDe: " 10.2.2020 " },]
+    },
+    {
       name: 'should work with "nf" value converter',
       suts: [{ selector: `#i18n-nf-vc`, expected: ' 123,456,789.12 ', expectedDe: ' 123.456.789,12 ' }]
     },
-    // {
-    //   name: 'should work with "nf" binding behavior',
-    //   suts: [{ selector: `#i18n-nf-bb`, expected: " 123.456.789,12 ", expectedDe: " 123.456.789,12 " },]
-    // },
+    {
+      name: 'should work with "nf" binding behavior',
+      suts: [{ selector: `#i18n-nf-bb`, expected: ' 123.456.789,12 ', expectedDe: ' 123.456.789,12 ' }]
+    },
     {
       name: 'should work with "nf" value converter for currency',
       suts: [{ selector: `#i18n-nf-vc-cur`, expected: ' 123.456.789,12\u{00a0}€ ', expectedDe: ' 123.456.789,12\u{00a0}€ ' }]
     },
-    // {
-    //   name: 'should work with "nf" binding behavior for currency',
-    //   suts: [{ selector: `#i18n-nf-bb-cur`, expected: " $123,456,789.12 ", expectedDe: " 123.456.789,12\u{00a0}$ " },]
-    // },
+    {
+      name: 'should work with "nf" binding behavior for currency',
+      suts: [{ selector: `#i18n-nf-bb-cur`, expected: ' $123,456,789.12 ', expectedDe: ' 123.456.789,12\u{00a0}$ ' }]
+    },
     {
       name: 'should work with "rt" value converter',
       suts: [{ selector: `#i18n-rt-vc`, expected: ' 2 hours ago ', expectedDe: ' vor 2 Stunden ' }]
+    },
+    {
+      name: 'should work with "rt" binding behavior',
+      suts: [{ selector: `#i18n-rt-bb`, expected: " 2 hours ago ", expectedDe: " vor 2 Stunden " },]
     },
   ];
 
@@ -185,9 +197,8 @@ describe('i18n', () => {
     }
     it('reacts to \'aurelia-relativetime-signal\' signal for relative time binding behavior', () => {
       cy.get('#rt-changer').click();
-      // rt VC does not react to the signal, thus the content should stay same
       assertContent('#i18n-rt-vc', ' 1 year ago ');
-      // assertContent('#i18n-rt-bb', ' 1 year ago ');
+      assertContent('#i18n-rt-bb', ' 1 year ago ');
     });
   });
 

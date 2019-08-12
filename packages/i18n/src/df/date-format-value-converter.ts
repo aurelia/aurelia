@@ -1,7 +1,9 @@
 import { valueConverter } from '@aurelia/runtime';
 import { I18N, I18N_SIGNAL, I18nService } from '../i18n';
 
-@valueConverter('df')
+export const dateFormatValueConverterName = 'df';
+
+@valueConverter(dateFormatValueConverterName)
 export class DateFormatValueConverter {
   public readonly signals: string[] = [I18N_SIGNAL];
 

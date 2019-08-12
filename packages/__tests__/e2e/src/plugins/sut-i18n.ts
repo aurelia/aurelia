@@ -10,10 +10,12 @@ export class SutI18N {
   public params = { context: 'delivered', date: this.deliveredOn };
   public translations: { [key: string]: string | number };
   private readonly myDate: Date;
+  private locale: string;
   constructor(
     @I18N private readonly i18n: I18nService,
     @ISignaler private readonly signaler: ISignaler
   ) {
+    this.locale = this.i18n.getLocale();
     this.myDate = new Date();
     this.myDate.setHours(this.myDate.getHours() - 2);
 
@@ -43,6 +45,7 @@ export class SutI18N {
   }
   public async changeLocale(locale) {
     await this.i18n.setLocale(locale);
+    this.locale = locale;
   }
 
   public changeMyDate() {

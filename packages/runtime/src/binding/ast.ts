@@ -160,7 +160,7 @@ export class CustomExpression {
 
 export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public readonly $kind: ExpressionKind.BindingBehavior;
-  public readonly expression: IsBindingBehavior;
+  public expression: IsBindingBehavior;
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
   public readonly behaviorKey: string;

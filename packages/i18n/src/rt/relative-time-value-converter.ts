@@ -1,9 +1,10 @@
 import { valueConverter } from '@aurelia/runtime';
 import { I18N, I18N_SIGNAL, I18nService } from '../i18n';
 
+export const relativeTimeValueConverterName = 'rt';
 export const RT_SIGNAL: string = 'aurelia-relativetime-signal';
 
-@valueConverter('rt')
+@valueConverter(relativeTimeValueConverterName)
 export class RelativeTimeValueConverter {
   public readonly signals: string[] = [I18N_SIGNAL, RT_SIGNAL];
 

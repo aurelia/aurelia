@@ -49,25 +49,26 @@
 
   <span id="i18n-prepend-append" t="[prepend]pretest;[append]post-test">Blue</span><br><br>
 
-  <img id="i18n-img" t="imgPath" />
+  <img id="i18n-img" t="imgPath" /><br><br>
 
-  <span id="i18n-t-vc"> ${'itemWithCount' | t : {count: 10}} </span>
-  <!--<span id="i18n-t-bb"> ${'itemWithCount' & t : {count: 100}} </span>-->
+  <span id="i18n-t-vc"> ${'itemWithCount' | t : {count: 10}} </span><br>
+  <span id="i18n-t-bb"> ${'itemWithCount' & t : {count: 100}} </span><br>
+  <span id="i18n-t-bb-attr" title.bind="'itemWithCount' & t : {count: 100}"></span><br><br>
 
-  <span id="i18n-nf-vc"> ${ 123456789.12 | nf } </span>
-  <!--<span id="i18n-nf-bb"> ${ 123456789.12 & nf : undefined : 'de'} </span>-->
+  <span id="i18n-nf-vc"> ${ 123456789.12 | nf } </span><br>
+  <span id="i18n-nf-bb"> ${ 123456789.12 & nf : undefined : 'de'} </span><br><br>
 
-  <span id="i18n-nf-vc-cur"> ${ 123456789.12 | nf: {style:'currency', currency: 'EUR' } : 'de' } </span>
-  <!--<span id="i18n-nf-bb-cur"> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' } : locale } </span>-->
+  <span id="i18n-nf-vc-cur"> ${ 123456789.12 | nf: {style:'currency', currency: 'EUR' } : 'de' } </span><br>
+  <span id="i18n-nf-bb-cur"> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' } : locale } </span><br><br>
 
-  <span id="i18n-df-vc"> ${ dispatchedOn | df } </span>
-  <span id="i18n-df-vc-iso"> ${ '2019-08-10T13:42:35.209Z' | df } </span>
-  <span id="i18n-df-vc-int"> ${ 0 | df } </span>
-  <span id="i18n-df-vc-int-str"> ${ '0' | df } </span>
-  <!-- <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span>-->
+  <span id="i18n-df-vc"> ${ dispatchedOn | df } </span><br>
+  <span id="i18n-df-vc-iso"> ${ '2019-08-10T13:42:35.209Z' | df } </span><br>
+  <span id="i18n-df-vc-int"> ${ 0 | df } </span><br>
+  <span id="i18n-df-vc-int-str"> ${ '0' | df } </span><br>
+  <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span><br><br>
 
-  <span id="i18n-rt-vc"> ${ myDate | rt} </span>
-  <!-- <span id="i18n-rt-bb"> ${ myDate & rt} </span>-->
+  <span id="i18n-rt-vc"> ${ myDate | rt} </span><br>
+  <span id="i18n-rt-bb"> ${ myDate & rt} </span><br><br>
 
   <!-- translations via code -->
   <div>

@@ -2,7 +2,9 @@ import { valueConverter } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N, I18N_SIGNAL, I18nService } from '../i18n';
 
-@valueConverter('t')
+export const translationValueConverterName = 't';
+
+@valueConverter(translationValueConverterName)
 export class TranslationValueConverter {
   public readonly signals: string[] = [I18N_SIGNAL];
 

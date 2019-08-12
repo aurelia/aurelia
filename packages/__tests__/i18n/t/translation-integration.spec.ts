@@ -542,6 +542,7 @@ describe.only('translation-integration', function () {
         name: 'app', template: `
       <span id="a" title.bind="'simple.text' | t">t-vc-attr-target</span>
       <span id="b" title="\${'simple.text' | t}">t-vc-attr-target</span>
+      <span id="c" title.bind="'itemWithCount' | t : {count:10}">t-vc-attr-target</span>
       ` })
       class App { }
 
@@ -549,10 +550,68 @@ describe.only('translation-integration', function () {
       const { en: translation } = await setup(host, new App());
       assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
+      assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
     });
     it.skip('locale is changed', async function () {
 
       @customElement({ name: 'app', template: `<span>\${'simple.text' | t}</span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { i18n, de } = await setup(host, new App());
+
+      await i18n.setLocale('de');
+      assertTextContent(host, 'span', de.simple.text);
+    });
+  });
+
+  describe('`t` binding-behavior works for', function () {
+    it('key as string literal', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${'simple.text' & t}</span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { en: translation } = await setup(host, new App());
+      assertTextContent(host, 'span', translation.simple.text);
+    });
+    it('key bound from vm property', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${key & t}</span>` })
+      class App { key = 'simple.text'; }
+
+      const host = DOM.createElement('app');
+      const { en: translation } = await setup(host, new App());
+      assertTextContent(host, 'span', translation.simple.text);
+    });
+    it('with `t-params`', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${'itemWithCount' & t : {count:10}}</span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { en: translation } = await setup(host, new App());
+      assertTextContent(host, 'span', translation.itemWithCount_plural.replace('{{count}}', '10'));
+    });
+    it('attribute translation', async function () {
+
+      @customElement({
+        name: 'app', template: `
+      <span id="a" title.bind="'simple.text' & t">t-vc-attr-target</span>
+      <span id="b" title="\${'simple.text' & t}">t-vc-attr-target</span>
+      <span id="c" title.bind="'itemWithCount' & t : {count:10}">t-vc-attr-target</span>
+      ` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      const { en: translation } = await setup(host, new App());
+      assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
+      assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
+      assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
+    });
+    it.skip('locale is changed', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${'simple.text' & t}</span>` })
       class App { }
 
       const host = DOM.createElement('app');

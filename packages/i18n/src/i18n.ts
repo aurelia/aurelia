@@ -129,50 +129,41 @@ export class I18nService {
    */
   public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {
     let difference = input.getTime() - new Date().getTime();
-    const absDifference = Math.abs(difference);
-    const year = 31104000000, month = 2592000000, week = 604800000, day = 86400000, hour = 3600000, minute = 60000, second = 1000;
-    let unit: Intl.TimeUnit, divisor: number;
-    switch (true) {
+    const formatter = this.createRelativeTimeFormat(options, locales);
 
-      case absDifference >= year:
-        divisor = year;
-        unit = 'year';
-        break;
-
-      case absDifference >= month:
-        divisor = month;
-        unit = 'month';
-        break;
-
-      case absDifference >= week:
-        divisor = week;
-        unit = 'week';
-        break;
-
-      case absDifference >= day:
-        divisor = day;
-        unit = 'day';
-        break;
-
-      case absDifference >= hour:
-        divisor = hour;
-        unit = 'hour';
-        break;
-
-      case absDifference >= minute:
-        divisor = minute;
-        unit = 'minute';
-        break;
-
-      case absDifference >= second:
-      default:
-        divisor = second;
-        unit = 'second';
-        difference = absDifference < second ? second : difference;
-        break;
+    let value: number = difference / 31104000000;
+    if (Math.abs(value) >= 1) {
+      return formatter.format(Math.round(value), 'year');
     }
-    const value = Math.round(difference / divisor);
-    return this.createRelativeTimeFormat(options, locales).format(value, unit);
+
+    value = difference / 2592000000;
+    if (Math.abs(value) >= 1) {
+      return formatter.format(Math.round(value), 'month');
+    }
+
+    value = difference / 604800000;
+    if (Math.abs(value) >= 1) {
+      return formatter.format(Math.round(value), 'week');
+    }
+
+    value = difference / 86400000;
+    if (Math.abs(value) >= 1) {
+      return formatter.format(Math.round(value), 'day');
+    }
+
+    value = difference / 3600000;
+    if (Math.abs(value) >= 1) {
+      return formatter.format(Math.round(value), 'hour');
+    }
+
+    value = difference / 60000;
+    if (Math.abs(value) >= 1) {
+      return formatter.format(Math.round(value), 'minute');
+    }
+
+    difference = Math.abs(difference) < 1000 ? 1000 : difference;
+    value = difference / 1000;
+    return formatter.format(Math.round(value), 'second');
   }
 
   private extractAttributesFromKey(key: string) {

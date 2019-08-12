@@ -655,6 +655,39 @@ describe.only('translation-integration', function () {
     });
   });
 
+  describe('`df` binding-behavior', function () {
+    const cases = [
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: '8/20/2019' },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: '8/20/2019' },
+      { name: 'works for integer', input: 0, output: '1/1/1970' },
+      { name: 'works for integer string', input: '0', output: '1/1/1970' },
+      { name: 'returns undefined for undefined', input: undefined, output: 'undefined' },
+      { name: 'returns null for null', input: null, output: 'null' },
+      { name: 'returns empty string for empty string', input: '', output: '' },
+      { name: 'returns whitespace for whitespace', input: '  ', output: '  ' },
+      { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
+    ];
+    for (const { name, input, output } of cases) {
+      it(name, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
+        class App { private readonly dt = input; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', output);
+      });
+    }
+
+    it('respects provided locale and formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & df : {year:'2-digit', month:'2-digit', day:'2-digit'} : 'de' }</span>` })
+      class App { private readonly dt = new Date(2019, 7, 20); }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '20.08.19');
+    });
+  });
+
   describe('`nf` value-converter', function () {
 
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
@@ -697,6 +730,56 @@ describe.only('translation-integration', function () {
 
     it('formats a given number as per given locale and formating options', async function () {
       @customElement({ name: 'app', template: `<span>\${ num | nf : { style: 'currency', currency: 'EUR' } : 'de' }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '123.456.789,12\u00A0€');
+    });
+  });
+
+  describe('`nf` binding-behavior', function () {
+
+    for (const value of [undefined, null, 'chaos', new Date(), true]) {
+      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
+        class App { private readonly num = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+    }
+
+    it('formats number by default as per current locale and default formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '123,456,789.12');
+    });
+
+    it('formats a given number as per given formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num & nf : { style: 'currency', currency: 'EUR' } }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '€123,456,789.12');
+    });
+
+    it('formats a given number as per given locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num & nf : undefined : 'de' }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '123.456.789,12');
+    });
+
+    it('formats a given number as per given locale and formating options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num & nf : { style: 'currency', currency: 'EUR' } : 'de' }</span>` })
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
@@ -750,6 +833,65 @@ describe.only('translation-integration', function () {
 
     it('formats a given number as per given locale and formating options', async function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : { style: 'short' } : 'de' }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', 'vor 2 Std.');
+    });
+  });
+
+  describe('`rt` binding-behavior', function () {
+
+    for (const value of [undefined, null, 'chaos', 123, true]) {
+      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
+        class App { private readonly dt = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+    }
+
+    it('formats date by default as per current locale and default formatting options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', '2 hours ago');
+    });
+
+    it('formats a given number as per given locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & rt : undefined : 'de' }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', 'vor 2 Stunden');
+    });
+
+    it('formats a given number as per given locale and formating options', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
         constructor() {

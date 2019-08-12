@@ -1,4 +1,4 @@
-import { bindingBehavior, BindingType, ensureExpression, IExpressionParser, IScope, IsValueConverter, LifecycleFlags, ValueConverterExpression } from '@aurelia/runtime';
+import { bindingBehavior, IExpressionParser, IScope, IsValueConverter, LifecycleFlags, ValueConverterExpression } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { BindingWithBehavior } from '../utils';
 import { translationValueConverterName } from './translation-value-converter';

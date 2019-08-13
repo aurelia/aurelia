@@ -2,7 +2,7 @@ import { IContainer, Registration } from '@aurelia/kernel';
 import {  IShadowDOMStyles } from './shadow-dom-styles';
 
 export type ShadowDOMStylesFactory =
-  (styles: string[], shared: IShadowDOMStyles | null) => IShadowDOMStyles;
+  (localStyles: string[], sharedStyles: IShadowDOMStyles | null) => IShadowDOMStyles;
 
 export class ShadowDOMRegistry {
   constructor(

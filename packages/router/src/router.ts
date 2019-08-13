@@ -161,10 +161,28 @@ export class Router implements IRouter {
   public linkCallback = (info: AnchorEventInfo): void => {
     let href = info.href;
     if (href.startsWith('#')) {
-      href = href.substring(1);
+      href = href.slice(1);
     }
+    // If it's not from scope root, figure out which scope
     if (!href.startsWith('/')) {
-      const scope = this.closestScope(info.anchor);
+      let scope = this.closestScope(info.anchor);
+      // No scope modifications, default to include current scope
+      // and replace content (by moving start one scope up)
+      if (!href.startsWith('.')) {
+        scope = scope.parent || scope;
+      } else {
+        // Start in current scope and look down (don't replace content)
+        if (href.startsWith('./')) {
+          href = href.slice(2);
+        } else { // Find out how many scopes upwards we should move
+          // First move up to include the current scope
+          scope = scope.parent || scope;
+          while (href.startsWith('../')) {
+            scope = scope.parent || scope;
+            href = href.slice(3);
+          }
+        }
+      }
       const context = scope.scopeContext();
       href = this.instructionResolver.buildScopedLink(context, href);
     }

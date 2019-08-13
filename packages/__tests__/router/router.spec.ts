@@ -10,7 +10,7 @@ describe('Router', function () {
     const { container, lifecycle } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-    const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="#baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
     const Bar = CustomElement.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
       public static parameters = ['id', 'name'];
       public id = 'no id';
@@ -39,7 +39,7 @@ describe('Router', function () {
       public leave() { return true; }
     });
     const Quux = CustomElement.define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
-    const Corge = CustomElement.define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
+    const Corge = CustomElement.define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport>Viewport: dummy<au-viewport name="dummy"></au-viewport></template>' });
 
     const Uier = CustomElement.define({ name: 'uier', template: '<template>Viewport: uier</template>' }, class {
       public async canEnter() {
@@ -371,7 +371,7 @@ describe('Router', function () {
     await $goto('corge@left', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-    await $goto('baz', router, lifecycle);
+    await $goto('corge@left/baz', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await tearDown();

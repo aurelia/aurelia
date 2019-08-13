@@ -1,25 +1,20 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import {  IShadowDOMStyleManager } from './shadow-dom-styles';
+import {  IShadowDOMStyles } from './shadow-dom-styles';
 
-export function adoptedStyleSheetsSupported(): boolean {
-  return 'adoptedStyleSheets' in ShadowRoot.prototype;
-}
-
-export type ShadowDOMStyleManagerFactory =
-  (styles: string[], parent: IShadowDOMStyleManager | null) => IShadowDOMStyleManager;
+export type ShadowDOMStylesFactory =
+  (styles: string[], shared: IShadowDOMStyles | null) => IShadowDOMStyles;
 
 export class ShadowDOMRegistry {
   constructor(
-    private parent: IShadowDOMStyleManager,
-    private factory: ShadowDOMStyleManagerFactory
-  ) {
-  }
+    private sharedStyles: IShadowDOMStyles,
+    private createStyles: ShadowDOMStylesFactory
+  ) { }
 
   public register(container: IContainer, ...params: any[]) {
     container.register(
       Registration.instance(
-        IShadowDOMStyleManager,
-        this.factory(params, this.parent)
+        IShadowDOMStyles,
+        this.createStyles(params, this.sharedStyles)
       )
     );
   }

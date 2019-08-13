@@ -4,42 +4,46 @@ type HasAdoptedStyleSheets = ShadowRoot & {
   adoptedStyleSheets: CSSStyleSheet[];
 };
 
-export const noopShadowDOMStyleManager = Object.freeze({
+export const noopShadowDOMStyles = Object.freeze({
   applyTo: PLATFORM.noop
 });
 
-export const IShadowDOMStyleManager =
-  DI.createInterface<IShadowDOMStyleManager>('IShadowDOMStyleManager')
-    .withDefault(x => x.instance(noopShadowDOMStyleManager));
+export const IShadowDOMStyles =
+  DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles')
+    .withDefault(x => x.instance(noopShadowDOMStyles));
 
-export interface IShadowDOMStyleManager {
+export interface IShadowDOMStyles {
   applyTo(shadowRoot: ShadowRoot): void;
 }
 
-export class AdoptedStyleSheetsStyleManager implements IShadowDOMStyleManager {
+export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];
 
   constructor(
-    styles: string[],
-    cache: Map<string, CSSStyleSheet>,
-    private parent: IShadowDOMStyleManager | null = null
+    localStyles: string[],
+    styleSheetCache: Map<string, CSSStyleSheet>,
+    private sharedStyles: IShadowDOMStyles | null = null
   ) {
-    this.styleSheets = styles.map(x => {
-      let sheet = cache.get(x);
+    this.styleSheets = localStyles.map(x => {
+      let sheet = styleSheetCache.get(x);
 
       if (!sheet) {
         sheet = new CSSStyleSheet();
         (sheet as any).replaceSync(x);
-        cache.set(x, sheet);
+        styleSheetCache.set(x, sheet);
       }
 
       return sheet;
     });
   }
 
+  public static supported(): boolean {
+    return 'adoptedStyleSheets' in ShadowRoot.prototype;
+  }
+
   public applyTo(shadowRoot: HasAdoptedStyleSheets) {
-    if (this.parent !== null) {
-      this.parent.applyTo(shadowRoot);
+    if (this.sharedStyles !== null) {
+      this.sharedStyles.applyTo(shadowRoot);
     }
 
     // https://wicg.github.io/construct-stylesheets/
@@ -51,14 +55,14 @@ export class AdoptedStyleSheetsStyleManager implements IShadowDOMStyleManager {
   }
 }
 
-export class StyleElementStyleManager implements IShadowDOMStyleManager {
+export class StyleElementStyles implements IShadowDOMStyles {
   constructor(
-    private styles: string[],
-    private parent: IShadowDOMStyleManager | null = null
+    private localStyles: string[],
+    private sharedStyles: IShadowDOMStyles | null = null
   ) {}
 
   public applyTo(shadowRoot: ShadowRoot) {
-    const styles = this.styles;
+    const styles = this.localStyles;
 
     for (let i = styles.length - 1; i > -1; --i) {
       const element = document.createElement('style');
@@ -66,8 +70,8 @@ export class StyleElementStyleManager implements IShadowDOMStyleManager {
       shadowRoot.prepend(element);
     }
 
-    if (this.parent !== null) {
-      this.parent.applyTo(shadowRoot);
+    if (this.sharedStyles !== null) {
+      this.sharedStyles.applyTo(shadowRoot);
     }
   }
 }

@@ -17,7 +17,7 @@ import {
   IProjectorLocator,
   TemplateDefinition
 } from '@aurelia/runtime';
-import { IShadowDOMStyleManager } from './styles/shadow-dom-styles';
+import { IShadowDOMStyles } from './styles/shadow-dom-styles';
 
 const slice = Array.prototype.slice;
 
@@ -90,8 +90,8 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 
   public project(nodes: INodeSequence<Node>): void {
     const context = this.$controller.context!;
-    const manager = context.get(IShadowDOMStyleManager);
-    manager.applyTo(this.shadowRoot);
+    const styles = context.get(IShadowDOMStyles);
+    styles.applyTo(this.shadowRoot);
     nodes.appendTo(this.shadowRoot);
   }
 

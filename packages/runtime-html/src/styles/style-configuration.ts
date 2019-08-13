@@ -1,11 +1,11 @@
 import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import { CSSModulesRegistry } from './css-modules-registry';
-import { adoptedStyleSheetsSupported, ShadowDOMRegistry, ShadowDOMStyleManagerFactory } from './shadow-dom-registry';
+import { ShadowDOMRegistry, ShadowDOMStylesFactory } from './shadow-dom-registry';
 import {
-  AdoptedStyleSheetsStyleManager,
-  IShadowDOMStyleManager,
-  noopShadowDOMStyleManager,
-  StyleElementStyleManager
+  AdoptedStyleSheetsStyles,
+  IShadowDOMStyles,
+  noopShadowDOMStyles,
+  StyleElementStyles
 } from './shadow-dom-styles';
 
 const ext = '.css';
@@ -32,37 +32,37 @@ export const StyleConfiguration = {
   shadowDOM(config?: IShadowDOMConfiguration): IRegistry {
     return {
       register(container: IContainer) {
-        let factory: ShadowDOMStyleManagerFactory;
+        let createStyles: ShadowDOMStylesFactory;
 
-        if (adoptedStyleSheetsSupported()) {
-          const cache = new Map();
-          factory = (s, parent) => {
-            return new AdoptedStyleSheetsStyleManager(
-              s,
-              cache,
-              parent
+        if (AdoptedStyleSheetsStyles.supported()) {
+          const styleSheetCache = new Map();
+          createStyles = (localStyles, sharedStyles) => {
+            return new AdoptedStyleSheetsStyles(
+              localStyles,
+              styleSheetCache,
+              sharedStyles
             );
           };
         } else {
-          factory = (s, parent) => {
-            return new StyleElementStyleManager(s, parent);
+          createStyles = (localStyles, sharedStyles) => {
+            return new StyleElementStyles(localStyles, sharedStyles);
           };
         }
 
-        let rootManager: IShadowDOMStyleManager;
+        let globalSharedStyles: IShadowDOMStyles;
 
         if (config && config.sharedStyles) {
-          rootManager = factory(config.sharedStyles, null);
+          globalSharedStyles = createStyles(config.sharedStyles, null);
         } else {
-          rootManager = noopShadowDOMStyleManager;
+          globalSharedStyles = noopShadowDOMStyles;
         }
 
         container.register(
           Registration.instance(
             ext,
             new ShadowDOMRegistry(
-              rootManager,
-              factory
+              globalSharedStyles,
+              createStyles
             )
           )
         );

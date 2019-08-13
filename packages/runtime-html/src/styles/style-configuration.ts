@@ -49,19 +49,19 @@ export const StyleConfiguration = {
           };
         }
 
-        let parent: IShadowDOMStyleManager;
+        let rootManager: IShadowDOMStyleManager;
 
         if (config && config.sharedStyles) {
-          parent = factory(config.sharedStyles, null);
+          rootManager = factory(config.sharedStyles, null);
         } else {
-          parent = noopShadowDOMStyleManager;
+          rootManager = noopShadowDOMStyleManager;
         }
 
         container.register(
           Registration.instance(
             ext,
             new ShadowDOMRegistry(
-              parent,
+              rootManager,
               factory
             )
           )

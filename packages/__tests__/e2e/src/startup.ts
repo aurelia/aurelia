@@ -10,6 +10,14 @@ import * as en from './locales/en/translations.json';
 import { CustomMessage } from './plugins/custom-message';
 import { SutI18N } from './plugins/sut-i18n';
 
+// Intl.RelativeTimeFormat polyfill is needed as Cypress uses electron and does not seems to work with puppeteer
+import RelativeTimeFormat from 'relative-time-format';
+import * as deRt from 'relative-time-format/locale/de.json';
+import * as enRt from 'relative-time-format/locale/en.json';
+RelativeTimeFormat.addLocale(enRt['default']);
+RelativeTimeFormat.addLocale(deRt['default']);
+Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
+
 window['au'] = new Aurelia()
   .register(
     BasicConfiguration,

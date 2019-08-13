@@ -1,7 +1,7 @@
 import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
-import { connectable, CustomElement, CustomExpression, DOM, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
+import { connectable, CustomElement, CustomExpression, DOM, IBindingTargetAccessor, IConnectableBinding, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
 import i18next from 'i18next';
-import { I18N, I18nService, I18N_EA_CHANNEL } from '../i18n';
+import { I18N, I18N_EA_CHANNEL, I18nService } from '../i18n';
 
 type ContentAttribute = 'textContent' | 'innerHTML' | 'prepend' | 'append';
 interface ContentValue {
@@ -15,18 +15,18 @@ interface ContentValue {
 export class TranslationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State;
-  public expr?: IsExpression;
+  public expr!: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18nService;
   private readonly contentAttributes: ReadonlyArray<string> = ['textContent', 'innerHTML', 'prepend', 'append'];
   private keyExpression!: string;
-  private translationParameters!: Record<string, any>;
+  private translationParameters!: Record<string, unknown>;
   private scope!: IScope;
   private isInterpolatedSourceExpr!: boolean;
+  private readonly targetObservers: Set<IBindingTargetAccessor>;
 
   constructor(
     public readonly target: HTMLElement,
-    private readonly instruction: string,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator
   ) {
@@ -34,6 +34,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.i18n = this.locator.get(I18N);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
     ea.subscribe(I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
+    this.targetObservers = new Set<IBindingTargetAccessor>();
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
@@ -43,7 +44,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
     if (this.parametersExpr) {
-      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as Record<string, any>;
+      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as Record<string, unknown>;
       this.parametersExpr.connect(flags, scope, this as any, part);
     }
 
@@ -58,14 +59,34 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.updateTranslations(flags);
+    this.$state = State.isBound;
   }
-  public $unbind(flags: LifecycleFlags): void { }
-  public handleChange(newValue: string | Record<string, any>, _previousValue: string | Record<string, any>, flags: LifecycleFlags): void {
+
+  public $unbind(flags: LifecycleFlags): void {
+    if (!(this.$state & State.isBound)) {
+      return;
+    }
+    this.$state |= State.isUnbinding;
+
+    if (this.expr.unbind) {
+      this.expr.unbind(flags, this.scope, this as any);
+    }
+
+    if (this.parametersExpr && this.parametersExpr.unbind) {
+      this.parametersExpr.unbind(flags, this.scope, this as any);
+    }
+    this.unobserveTargets(flags);
+
+    this.scope = (void 0)!;
+    (this as unknown as IConnectableBinding).unobserve(true);
+  }
+
+  public handleChange(newValue: string | Record<string, unknown>, _previousValue: string | Record<string, unknown>, flags: LifecycleFlags): void {
     if (typeof newValue === 'object') {
       this.translationParameters = newValue;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
-        ? this.expr!.evaluate(flags, this.scope, this.locator, '') as string
+        ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
         : newValue;
     }
     this.updateTranslations(flags);
@@ -78,6 +99,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this.keyExpression, this.translationParameters as i18next.TOptions<object>);
     const content: ContentValue = Object.create(null);
+    this.unobserveTargets(flags);
 
     for (const item of results) {
       const value = item.value;
@@ -89,6 +111,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
             ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
             : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
           observer.setValue(value, flags);
+          this.targetObservers.add(observer);
         } else {
           content[attribute] = value;
         }
@@ -113,12 +136,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private isContentAttribute(attribute: string): attribute is ContentAttribute {
     return this.contentAttributes.includes(attribute);
   }
+
   private updateContent(content: ContentValue, flags: LifecycleFlags) {
     const children = Array.from(this.target.childNodes);
     const fallBackContents = [];
     const marker = 'au-i18n';
 
-    // extract the original content, not manipulate by au-i18n
+    // extract the original content, not manipulated by au-i18n
     for (const child of children) {
       if (!Reflect.get(child, marker)) {
         fallBackContents.push(child);
@@ -166,5 +190,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
     for (const child of Array.from(template.content.childNodes)) {
       this.target.appendChild(child);
     }
+  }
+
+  private unobserveTargets(flags: LifecycleFlags) {
+    for (const observer of this.targetObservers) {
+      if (observer.unbind) {
+        observer.unbind(flags);
+      }
+    }
+    this.targetObservers.clear();
   }
 }

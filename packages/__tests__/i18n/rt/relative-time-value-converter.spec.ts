@@ -3,7 +3,7 @@ import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
 
-describe.only('rt', function () {
+describe('rt', function () {
   async function setup() {
     const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());
     await i18n['task'].wait();

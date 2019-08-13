@@ -11,7 +11,7 @@ const translation = {
   }
 };
 
-describe.only('I18N', function () {
+describe('I18N', function () {
   async function setup(options: I18nInitOptions = {}) {
     const i18nextSpy = new Spy();
     const eaSpy: Spy = new Spy();

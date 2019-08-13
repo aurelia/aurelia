@@ -92,6 +92,9 @@ export class I18nService {
     return this.createDateTimeFormat(options, locales).format(input);
   }
 
+  /**
+   * Unformats a given numeric string to a number.
+   */
   public uf(numberLike: string, locale?: string): number {
     // Unfortunately the Intl specs does not specify a way to get the thousand and decimal separators for a given locale.
     // Only straightforward way would be to include the CLDR data and query for the separators, which certainly is a overkill.

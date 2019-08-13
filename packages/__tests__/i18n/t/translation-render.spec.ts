@@ -6,7 +6,7 @@ import { AnyBindingExpression, BindingType, IController, IExpressionParser, IIns
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe.only('TranslationAttributePattern', function () {
+describe('TranslationAttributePattern', function () {
   let originalAliases: string[];
   afterEach(function () {
     TranslationAttributePattern.aliases = originalAliases;
@@ -75,7 +75,7 @@ describe.only('TranslationAttributePattern', function () {
   // });
 });
 
-describe.only('TranslationBindingCommand', function () {
+describe('TranslationBindingCommand', function () {
   let originalAliases: string[];
   afterEach(function () {
     TranslationBindingCommand.aliases = originalAliases;
@@ -131,7 +131,7 @@ describe.only('TranslationBindingCommand', function () {
   });
 });
 
-describe.only('TranslationBindingRenderer', function () {
+describe('TranslationBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
@@ -187,7 +187,7 @@ describe.only('TranslationBindingRenderer', function () {
     const sut: IInstructionRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');
-    const binding = new TranslationBinding(targetElement, '', {} as unknown as IObserverLocator, container);
+    const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
     const renderable = ({ bindings: [binding] } as unknown as IController);
 
     const expr = expressionParser.parse('simple.key', BindingType.BindCommand);

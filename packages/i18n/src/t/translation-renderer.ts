@@ -165,7 +165,7 @@ function createBinding(
   let binding: TranslationBinding | undefined = renderable.bindings &&
     renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
   if (!binding) {
-    binding = new TranslationBinding(target, instruction.to, observerLocator, context);
+    binding = new TranslationBinding(target, observerLocator, context);
     addBinding(renderable, binding);
   }
   binding.expr = interpolation || expr;

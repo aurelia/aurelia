@@ -3,7 +3,7 @@ import { bindable } from "@aurelia/runtime";
 import { SharedState } from "shared/state/shared-state";
 
 @inject(SharedState)
-export class CommentCustomElement {
+export class Comment {
   @bindable public comment: any;
   @bindable public deleteCb: any;
 

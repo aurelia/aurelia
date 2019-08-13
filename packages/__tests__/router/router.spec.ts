@@ -334,7 +334,8 @@ describe('Router', function () {
 
     const { lifecycle, host, router, tearDown } = await setup();
 
-    await $goto('foo@left+bar@right+baz@foo+qux@bar', router, lifecycle);
+    // await $goto('foo@left+bar@right+baz@foo+qux@bar', router, lifecycle);
+    await $goto('foo@left/baz@foo+bar@right/qux@bar', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);

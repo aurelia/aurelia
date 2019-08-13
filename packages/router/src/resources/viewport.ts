@@ -30,9 +30,9 @@ export class ViewportCustomElement {
   public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
 
   @bindable public name: string;
-  @bindable public scope: boolean;
   @bindable public usedBy: string;
   @bindable public default: string;
+  @bindable public noScope: boolean;
   @bindable public noLink: boolean;
   @bindable public noHistory: boolean;
   @bindable public stateful: boolean;
@@ -48,9 +48,9 @@ export class ViewportCustomElement {
 
   constructor(router: IRouter, element: Element, renderingEngine: IRenderingEngine) {
     this.name = 'default';
-    this.scope = null;
     this.usedBy = null;
     this.default = null;
+    this.noScope = null;
     this.noLink = null;
     this.noHistory = null;
     this.stateful = null;
@@ -105,7 +105,7 @@ export class ViewportCustomElement {
   }
 
   public connect(): void {
-    const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
+    const options: IViewportOptions = { scope: !this.element.hasAttribute('no-scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
     }

@@ -7,24 +7,6 @@ import {
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 
-function addListener(el: EventTarget, evt: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
-  el.addEventListener(evt, handler, options);
-}
-
-function removeListener(el: EventTarget, evt: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
-  el.removeEventListener(evt, handler, options);
-}
-
-const enum Listeners {
-  touch = 1,
-  mouse = 2,
-  pointer = 4,
-  blur = 8,
-  focus = 16,
-  wheel = 32,
-  all = 63
-}
-
 const unset = Symbol();
 
 // Using passive to help with performance
@@ -77,37 +59,33 @@ export class BlurManager {
   }
 
   private addListeners(): void {
-    const me = this;
-    const dom = me.dom;
+    const dom = this.dom;
     const doc = dom.document;
     const win = dom.window;
-    const handler = me.handler;
-    const fn = addListener;
+    const handler = this.handler;
     if (win.navigator.pointerEnabled) {
-      fn(doc, 'pointerdown', handler, defaultCaptureEventInit);
+      doc.addEventListener('pointerdown', handler, defaultCaptureEventInit);
     }
-    fn(doc, 'touchstart', handler, defaultCaptureEventInit);
-    fn(doc, 'mousedown', handler, defaultCaptureEventInit);
-    fn(doc, 'wheel', handler, defaultBubbleEventInit);
-    fn(doc, 'focus', handler, defaultCaptureEventInit);
-    fn(win, 'blur', handler, defaultBubbleEventInit);
+    doc.addEventListener('touchstart', handler, defaultCaptureEventInit);
+    doc.addEventListener('mousedown', handler, defaultCaptureEventInit);
+    doc.addEventListener('wheel', handler, defaultBubbleEventInit);
+    doc.addEventListener('focus', handler, defaultCaptureEventInit);
+    win.addEventListener('blur', handler, defaultBubbleEventInit);
   }
 
   private removeListeners(): void {
-    const me = this;
-    const dom = me.dom;
+    const dom = this.dom;
     const doc = dom.document;
     const win = dom.window;
-    const handler = me.handler;
-    const fn = removeListener;
+    const handler = this.handler;
     if (win.navigator.pointerEnabled) {
-      fn(doc, 'pointerdown', handler, defaultCaptureEventInit);
+      doc.addEventListener('pointerdown', handler, defaultCaptureEventInit);
     }
-    fn(doc, 'touchstart', handler, defaultCaptureEventInit);
-    fn(doc, 'mousedown', handler, defaultCaptureEventInit);
-    fn(doc, 'wheel', handler, defaultBubbleEventInit);
-    fn(doc, 'focus', handler, defaultCaptureEventInit);
-    fn(win, 'blur', handler, defaultBubbleEventInit);
+    doc.addEventListener('touchstart', handler, defaultCaptureEventInit);
+    doc.addEventListener('mousedown', handler, defaultCaptureEventInit);
+    doc.addEventListener('wheel', handler, defaultBubbleEventInit);
+    doc.addEventListener('focus', handler, defaultCaptureEventInit);
+    win.addEventListener('blur', handler, defaultBubbleEventInit);
   }
 }
 
@@ -239,7 +217,6 @@ export class Blur {
       // We need to do some querying stuff to determine if target above is contained.
       if (typeof link === 'string') {
         // Default behavior, search the whole tree, from context that user specified, which default to document body
-        // Function `query` used will be similar to `querySelectorAll`, but optimized for performant
         if (searchSubTree) {
           // todo: are there too many knobs?? Consider remove "linkedMultiple"??
           if (!linkedMultiple) {
@@ -316,19 +293,15 @@ const createHandler = (
   // ******************************
 
   let hasChecked: boolean = false;
-
-  const win = manager.dom.window;
-  const rAF = win.requestAnimationFrame;
-  const cancelRAF = win.cancelAnimationFrame;
   let rAFId: number;
   const revertCheckage = () => {
     hasChecked = false;
   };
   const cancelQueueRevertCheckage = () => {
-    cancelRAF(rAFId);
+    PLATFORM.cancelAnimationFrame(rAFId);
   };
   const queueRevertCheckage = () => {
-    rAFId = rAF(revertCheckage);
+    rAFId = PLATFORM.requestAnimationFrame(revertCheckage);
   };
 
   // method name are prefixed by a number to signal its order in event series
@@ -385,7 +358,7 @@ const createHandler = (
     // when the window itself got focus, reacting to it is quite unnecessary
     // as it doesn't really affect element inside the document
     // Do a simple check and bail immediately
-    const isWindow = e.target === win;
+    const isWindow = e.target === manager.dom.window;
     if (isWindow) {
       for (let i = 0, ii = checkTargets.length; ii > i; ++i) {
         checkTargets[i].triggerBlur();

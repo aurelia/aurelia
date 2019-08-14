@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { bindable, customAttribute } from '@aurelia/runtime';
+import { bindable, customAttribute, INode } from '@aurelia/runtime';
 
 export class CSSModulesRegistry {
   public register(container: IContainer, ...params: (Record<string, string>)[]) {
@@ -9,7 +9,7 @@ export class CSSModulesRegistry {
     class ClassCustomAttribute {
       @bindable public value!: string;
 
-      constructor(private element: HTMLElement) {}
+      constructor(@INode private element: HTMLElement) {}
 
       public binding() {
         this.valueChanged();

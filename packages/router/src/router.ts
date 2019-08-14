@@ -52,7 +52,10 @@ export interface IRouter {
   processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
   addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
 
-  // Called from the viewport custom element in attached()
+  // External API to get viewport by name
+  getViewport(name: string): Viewport;
+
+    // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;

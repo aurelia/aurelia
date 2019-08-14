@@ -1,5 +1,5 @@
 import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import { CSSModulesRegistry } from './css-modules-registry';
+import { CSSModulesProcessorRegistry } from './css-modules-registry';
 import { ShadowDOMRegistry, ShadowDOMStylesFactory } from './shadow-dom-registry';
 import {
   AdoptedStyleSheetsStyles,
@@ -19,11 +19,11 @@ export function styles(...styles: any[]) {
 }
 
 export const StyleConfiguration = {
-  cssModules(): IRegistry {
+  cssModulesProcessor(): IRegistry {
     return {
       register(container: IContainer) {
         container.register(
-          Registration.singleton(ext, CSSModulesRegistry)
+          Registration.singleton(ext, CSSModulesProcessorRegistry)
         );
       }
     };

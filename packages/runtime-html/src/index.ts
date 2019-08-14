@@ -146,7 +146,7 @@ export {
   IShadowDOMConfiguration
 } from './styles/style-configuration';
 export {
-  CSSModulesRegistry
+  CSSModulesProcessorRegistry
 } from './styles/css-modules-registry';
 export {
   ShadowDOMRegistry

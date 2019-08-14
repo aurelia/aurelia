@@ -1,26 +1,26 @@
 import { DI, PLATFORM, Registration } from '@aurelia/kernel';
 import { CustomAttribute, INode } from '@aurelia/runtime';
-import { AdoptedStyleSheetsStyles, CSSModulesRegistry, ShadowDOMRegistry, StyleConfiguration } from '@aurelia/runtime-html';
+import { AdoptedStyleSheetsStyles, CSSModulesProcessorRegistry, ShadowDOMRegistry, StyleConfiguration } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe.only('styles', () => {
-  describe('CSS Modules', () => {
+describe('styles', () => {
+  describe('CSS Modules Processor', () => {
     it('config adds correct registry for css', () => {
       const container = DI.createContainer();
 
       container.register(
-        StyleConfiguration.cssModules()
+        StyleConfiguration.cssModulesProcessor()
       );
 
       const registry = container.get('.css');
-      assert.instanceOf(registry, CSSModulesRegistry);
+      assert.instanceOf(registry, CSSModulesProcessorRegistry);
     });
 
     it('registry overrides class attribute', () => {
       const element = { className: '' };
       const container = DI.createContainer();
       container.register(Registration.instance(INode, element));
-      const registry = new CSSModulesRegistry();
+      const registry = new CSSModulesProcessorRegistry();
       const cssModulesLookup = {};
 
       registry.register(container, cssModulesLookup);
@@ -39,7 +39,7 @@ describe.only('styles', () => {
         'baz': 'qux'
       };
 
-      const registry = new CSSModulesRegistry();
+      const registry = new CSSModulesProcessorRegistry();
       registry.register(container, cssModulesLookup);
 
       const attr = container.get(CustomAttribute.keyFrom('class')) as any;

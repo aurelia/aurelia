@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { bindable, customAttribute, INode } from '@aurelia/runtime';
 
-export class CSSModulesRegistry {
+export class CSSModulesProcessorRegistry {
   public register(container: IContainer, ...params: (Record<string, string>)[]) {
     const classLookup = Object.assign({}, ...params) as Record<string, string>;
 

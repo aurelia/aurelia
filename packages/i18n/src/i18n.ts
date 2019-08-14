@@ -40,7 +40,13 @@ export class I18nService {
     const result: I18nKeyEvaluationResult[] = [];
     for (const part of parts) {
       const { attributes, key } = this.extractAttributesFromKey(part);
-      result.push({ attributes, value: this.tr(key, options) });
+      const translation = this.tr(key, options);
+      if (this.options.skipTranslationOnMissingKey && translation === key) {
+        // TODO change this once the logging infra is there.
+        console.warn(`Couldn't find translation for key: ${key}`);
+      } else {
+        result.push({ attributes, value: translation });
+      }
     }
     return result;
   }

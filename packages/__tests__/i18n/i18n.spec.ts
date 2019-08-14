@@ -1,4 +1,4 @@
-import { I18N_EA_CHANNEL, I18nInitOptions, I18nModule, I18nService, I18N_SIGNAL } from '@aurelia/i18n';
+import { I18N_EA_CHANNEL, I18N_SIGNAL, I18nInitOptions, I18nModule, I18nService } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
@@ -79,12 +79,16 @@ describe('I18N', function () {
     { input: '[foo]simple.text', output: [{ attributes: ['foo'], value: translation.simple.text }] },
     { input: '[foo,bar]simple.text', output: [{ attributes: ['foo', 'bar'], value: translation.simple.text }] },
     { input: '[foo,bar]simple.text;[baz]simple.attr', output: [{ attributes: ['foo', 'bar'], value: translation.simple.text }, { attributes: ['baz'], value: translation.simple.attr }] },
-  ].forEach(({ input, output }) =>
+    { input: 'non.existent.key', output: [{ attributes: [], value: 'non.existent.key' }] },
+    { input: 'non.existent.key', skipTranslationOnMissingKey: true, output: [] },
+    { input: '[foo,bar]non.existent.key;[baz]simple.attr', skipTranslationOnMissingKey: true, output: [{ attributes: ['baz'], value: translation.simple.attr }] },
+  ].forEach(({ input, skipTranslationOnMissingKey, output }) =>
     it(`'evaluate' resolves key expression ${input} to ${JSON.stringify(output)}`, async function () {
       const customization = {
         resources: {
           en: { translation }
-        }
+        },
+        skipTranslationOnMissingKey
       };
       const { sut } = await setup(customization);
 

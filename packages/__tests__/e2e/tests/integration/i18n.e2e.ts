@@ -159,7 +159,7 @@ describe('i18n', () => {
     },
     {
       name: 'should work with "df" binding behavior',
-      suts: [{ selector: `#i18n-df-bb`, expected: " 10.2.2020 ", expectedDe: " 10.2.2020 " },]
+      suts: [{ selector: `#i18n-df-bb`, expected: ' 10.2.2020 ', expectedDe: ' 10.2.2020 ' },]
     },
     {
       name: 'should work with "nf" value converter',
@@ -183,7 +183,7 @@ describe('i18n', () => {
     },
     {
       name: 'should work with "rt" binding behavior',
-      suts: [{ selector: `#i18n-rt-bb`, expected: " 2 hours ago ", expectedDe: " vor 2 Stunden " },]
+      suts: [{ selector: `#i18n-rt-bb`, expected: ' 2 hours ago ', expectedDe: ' vor 2 Stunden ' },]
     },
   ];
 
@@ -297,4 +297,19 @@ describe('i18n', () => {
     });
   });
 
+  describe('treating missing keys', () => {
+    it('should by default replace the content with the missing key name', () => {
+      assertContent('[data-test-id=\'missing-key\']', 'missing-key');
+    });
+
+    it('should allow to keep original content if key not found', () => {
+      cy.visit('/?skipkey=true');
+      cy.reload();
+
+      assertContent('[data-test-id=\'missing-key\']', 'non-translated text');
+
+      cy.visit('/');
+      cy.reload();
+    });
+  });
 });

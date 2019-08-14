@@ -29,7 +29,8 @@ window['au'] = new Aurelia()
         resources: {
           en: { translation: en['default'] },
           de: { translation: de['default'] },
-        }
+        },
+        skipTranslationOnMissingKey: !!new URL(location.href).searchParams.get('skipkey')
       };
     })
   )

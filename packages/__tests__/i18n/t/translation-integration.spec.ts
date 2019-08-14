@@ -13,7 +13,7 @@ describe('translation-integration', function () {
     @bindable public message: string;
   }
 
-  async function setup(host: INode, component: unknown, aliases?: string[]) {
+  async function setup(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
     const translation = {
       simple: {
         text: 'simple text',
@@ -64,7 +64,10 @@ describe('translation-integration', function () {
     const au = new Aurelia(ctx.container);
     await au.register(
       I18nConfiguration.customize((config) => {
-        config.initOptions = { resources: { en: { translation }, de: { translation: deTranslation } } };
+        config.initOptions = {
+          resources: { en: { translation }, de: { translation: deTranslation } },
+          skipTranslationOnMissingKey
+        };
         config.translationAttributeAliases = aliases;
       }))
       .register(CustomMessage as unknown as IRegistration)
@@ -903,6 +906,28 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       await setup(host, new App());
       assertTextContent(host, 'span', 'vor 2 Std.');
+    });
+  });
+
+  describe('`skipTranslationOnMissingKey`', function () {
+    it('is disabled by default, and the given key is rendered if the key is missing from i18next resource', async function () {
+      const key = 'lost-in-translation';
+      @customElement({ name: 'app', template: `<span t='${key}'></span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+      assertTextContent(host, 'span', key);
+    });
+
+    it('enables skipping translation when set', async function () {
+      const key = 'lost-in-translation', text = 'untranslated text';
+      @customElement({ name: 'app', template: `<span t='${key}'>${text}</span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App(), undefined, true);
+      assertTextContent(host, 'span', text);
     });
   });
 });

@@ -45,7 +45,12 @@ export const StyleConfiguration = {
           };
         } else {
           createStyles = (localStyles, sharedStyles) => {
-            return new StyleElementStyles(localStyles, sharedStyles);
+            if (localStyles.find(x => typeof x !== 'string')) {
+              // TODO: use reporter
+              throw new Error('Shadow DOM CSS must be a string.');
+            }
+
+            return new StyleElementStyles(localStyles as string[], sharedStyles);
           };
         }
 

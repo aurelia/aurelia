@@ -1,4 +1,4 @@
-import { DI, PLATFORM } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
 
 type HasAdoptedStyleSheets = ShadowRoot & {
   adoptedStyleSheets: CSSStyleSheet[];
@@ -63,23 +63,16 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
 export class StyleElementStyles implements IShadowDOMStyles {
   constructor(
-    private localStyles: (string | CSSStyleSheet)[],
+    private localStyles: string[],
     private sharedStyles: IShadowDOMStyles | null = null
-  ) {}
+  ) { }
 
   public applyTo(shadowRoot: ShadowRoot) {
     const styles = this.localStyles;
 
     for (let i = styles.length - 1; i > -1; --i) {
       const element = document.createElement('style');
-      const style = styles[i];
-
-      if (style instanceof CSSStyleSheet) {
-        element.innerHTML = style.cssText;
-      } else {
-        element.innerHTML = style;
-      }
-
+      element.innerHTML = styles[i];
       shadowRoot.prepend(element);
     }
 

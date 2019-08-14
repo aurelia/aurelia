@@ -64,6 +64,13 @@ export const StyleConfiguration = {
 
         container.register(
           Registration.instance(
+            IShadowDOMStyles,
+            globalSharedStyles
+          )
+        );
+
+        container.register(
+          Registration.instance(
             ext,
             new ShadowDOMRegistry(
               globalSharedStyles,

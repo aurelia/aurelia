@@ -10,7 +10,7 @@ describe('Router', function () {
     const { container, lifecycle } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-    const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="#baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
     const Bar = CustomElement.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
       public static parameters = ['id', 'name'];
       public id = 'no id';
@@ -443,10 +443,8 @@ describe('Router', function () {
 
     const { lifecycle, host, router, tearDown } = await setup();
 
-    await $goto('corge@left', router, lifecycle);
+    await $goto('corge@left/baz(123)', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
-
-    await $goto('baz(123)', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
@@ -458,10 +456,9 @@ describe('Router', function () {
 
     const { lifecycle, host, router, tearDown } = await setup();
 
-    await $goto('corge@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+    await $goto('corge@left/baz(id=123)', router, lifecycle);
 
-    await $goto('baz(id=123)', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
@@ -656,12 +653,12 @@ describe('Router', function () {
 
       (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-      await $goto('corge@grault', router, lifecycle);
+      await $goto('grault@left/corge@grault', router, lifecycle);
 
       assert.notIncludes(host.textContent, 'garply', `host.textContent`);
       assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-      await $goto('garply@grault', router, lifecycle);
+      await $goto('grault@left/garply@grault', router, lifecycle);
 
       assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
       assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -691,12 +688,12 @@ describe('Router', function () {
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await $goto('foo@waldo', router, lifecycle);
+    await $goto('waldo@left/foo@waldo', router, lifecycle);
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
 
-    await $goto('grault@waldo', router, lifecycle);
+    await $goto('waldo@left/grault@waldo', router, lifecycle);
 
     assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
@@ -800,7 +797,7 @@ describe('Router', function () {
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Local2] }, null);
       const { lifecycle, host, router, $teardown } = await $setup([Local1]);
 
-      await $goto('local1+local2', router, lifecycle);
+      await $goto('local1/local2', router, lifecycle);
 
       assert.match(host.textContent, /.*local1.*local2.*/, `host.textContent`);
 
@@ -814,7 +811,7 @@ describe('Router', function () {
       const { lifecycle, host, router, container, $teardown } = await $setup([Local1]);
       container.register(Global3);
 
-      await $goto('local1+local2+global3', router, lifecycle);
+      await $goto('local1/local2/global3', router, lifecycle);
 
       assert.match(host.textContent, /.*local1.*local2.*global3.*/, `host.textContent`);
 
@@ -828,7 +825,7 @@ describe('Router', function () {
       const { lifecycle, host, router, container, $teardown } = await $setup([Local1]);
       container.register(Global2);
 
-      await $goto('local1+global2+local3', router, lifecycle);
+      await $goto('local1/global2/local3', router, lifecycle);
 
       assert.match(host.textContent, /.*local1.*global2.*local3.*/, `host.textContent`);
 
@@ -842,7 +839,7 @@ describe('Router', function () {
       const { lifecycle, host, router, container, $teardown } = await $setup();
       container.register(Global1);
 
-      await $goto('global1+local2+local3', router, lifecycle);
+      await $goto('global1/local2/local3', router, lifecycle);
 
       assert.match(host.textContent, /.*global1.*local2.*local3.*/, `host.textContent`);
 
@@ -855,7 +852,7 @@ describe('Router', function () {
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
       const { lifecycle, host, router, $teardown } = await $setup([Local1]);
 
-      await $goto('local1+local2+local3', router, lifecycle);
+      await $goto('local1/local2/local3', router, lifecycle);
 
       assert.match(host.textContent, /.*local1.*local2.*local3.*/, `host.textContent`);
 
@@ -869,11 +866,11 @@ describe('Router', function () {
       const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
       const { lifecycle, host, router, $teardown } = await $setup([Local1, Local2]);
 
-      await $goto('local1@default+conflict@one', router, lifecycle);
+      await $goto('local1@default/conflict@one', router, lifecycle);
 
       assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
 
-      await $goto('local2@default+conflict@two', router, lifecycle);
+      await $goto('local2@default/conflict@two', router, lifecycle);
 
       assert.match(host.textContent, /.*local2.*conflict2.*/, `host.textContent`);
 
@@ -888,11 +885,11 @@ describe('Router', function () {
       const { lifecycle, host, router, container, $teardown } = await $setup();
       container.register(Global1, Global2);
 
-      await $goto('global1@default+conflict@one', router, lifecycle);
+      await $goto('global1@default/conflict@one', router, lifecycle);
 
       assert.match(host.textContent, /.*global1.*conflict1.*/, `host.textContent`);
 
-      await $goto('global2@default+conflict@two', router, lifecycle);
+      await $goto('global2@default/conflict@two', router, lifecycle);
 
       assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
 
@@ -907,11 +904,11 @@ describe('Router', function () {
       const { lifecycle, host, router, container, $teardown } = await $setup([Local1]);
       container.register(Global2);
 
-      await $goto('local1@default+conflict@one', router, lifecycle);
+      await $goto('local1@default/conflict@one', router, lifecycle);
 
       assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
 
-      await $goto('global2@default+conflict@two', router, lifecycle);
+      await $goto('global2@default/conflict@two', router, lifecycle);
 
       assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
 

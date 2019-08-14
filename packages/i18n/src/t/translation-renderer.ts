@@ -71,7 +71,7 @@ export class TranslationBindingRenderer implements IInstructionRenderer {
   ) { }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
-    createBinding(this.parser, this.observerLocator, context, renderable, target, instruction);
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
   }
 }
 

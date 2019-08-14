@@ -1,5 +1,5 @@
 import { attributePattern, AttrSyntax, bindingCommand, BindingSymbol, getTarget, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
-import { addBinding, BindingMode, BindingType, ensureExpression, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 
 export const TranslationParametersInstructionType = 'tpt';
@@ -38,13 +38,6 @@ export class TranslationParametersBindingRenderer implements IInstructionRendere
   ) { }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
-    const expr = ensureExpression(this.parser, instruction.from, BindingType.BindCommand);
-    let binding: TranslationBinding | undefined = renderable.bindings &&
-      renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
-    if (!binding) {
-      binding = new TranslationBinding(target, this.observerLocator, context);
-      addBinding(renderable, binding);
-    }
-    binding.parametersExpr = expr;
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction, isParameterContext: true });
   }
 }

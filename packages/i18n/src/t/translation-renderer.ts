@@ -1,6 +1,6 @@
 import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, BindingSymbol, getTarget, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { addBinding, BindingMode, BindingType, CustomExpression, ensureExpression, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 
 export const TranslationInstructionType = 'tt';
@@ -146,27 +146,6 @@ export class TranslationBindBindingRenderer implements IInstructionRenderer {
   ) { }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
-    createBinding(this.parser, this.observerLocator, context, renderable, target, instruction);
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
   }
-}
-
-function createBinding(
-  parser: IExpressionParser,
-  observerLocator: IObserverLocator,
-  context: IRenderContext,
-  renderable: IController,
-  target: HTMLElement,
-  instruction: ICallBindingInstruction
-) {
-  const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
-  const interpolation = expr instanceof CustomExpression
-    ? parser.parse(expr.value, BindingType.Interpolation)
-    : undefined;
-  let binding: TranslationBinding | undefined = renderable.bindings &&
-    renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
-  if (!binding) {
-    binding = new TranslationBinding(target, observerLocator, context);
-    addBinding(renderable, binding);
-  }
-  binding.expr = interpolation || expr;
 }

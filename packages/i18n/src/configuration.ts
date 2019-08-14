@@ -32,6 +32,26 @@ const translation = [
   TranslationBindingBehavior,
 ];
 
+function coreComponents(options: I18nConfigurationOptions) {
+  if (Array.isArray(options.translationAttributeAliases)) {
+    TranslationAttributePattern.aliases = options.translationAttributeAliases;
+    TranslationBindingCommand.aliases = options.translationAttributeAliases;
+    TranslationBindAttributePattern.aliases = options.translationAttributeAliases;
+    TranslationBindBindingCommand.aliases = options.translationAttributeAliases;
+  }
+  return {
+    register(container: IContainer) {
+      return container.register(
+        Registration.callback(I18nInitOptions, () => options.initOptions),
+        Registration.singleton(I18nWrapper, I18nextWrapper),
+        Registration.singleton(I18N, I18nService),
+
+        ...renderers,
+        ...translation);
+    }
+  };
+}
+
 const dateFormat = [
   DateFormatValueConverter,
   DateFormatBindingBehavior,
@@ -51,24 +71,11 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: I18nConfigurationOptions = {
-        initOptions: Object.create(null)
-      };
+      const options: I18nConfigurationOptions = { initOptions: Object.create(null) };
       optionsProvider(options);
-      if (Array.isArray(options.translationAttributeAliases)) {
-        TranslationAttributePattern.aliases = options.translationAttributeAliases;
-        TranslationBindingCommand.aliases = options.translationAttributeAliases;
-        TranslationBindAttributePattern.aliases = options.translationAttributeAliases;
-        TranslationBindBindingCommand.aliases = options.translationAttributeAliases;
-      }
 
       return container.register(
-        Registration.callback(I18nInitOptions, () => options.initOptions),
-        Registration.singleton(I18nWrapper, I18nextWrapper),
-        Registration.singleton(I18N, I18nService),
-
-        ...renderers,
-        ...translation,
+        coreComponents(options),
         ...dateFormat,
         ...numberFormat,
         ...relativeTimeFormat

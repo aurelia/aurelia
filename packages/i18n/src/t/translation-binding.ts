@@ -1,8 +1,17 @@
 import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
-import { connectable, CustomElement, CustomExpression, DOM, IBindingTargetAccessor, IConnectableBinding, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
+import { connectable, CustomElement, CustomExpression, DOM, IBindingTargetAccessor, IConnectableBinding, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State, IExpressionParser, IRenderContext, IController, ICallBindingInstruction, ensureExpression, BindingType, addBinding } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N, I18N_EA_CHANNEL, I18nService } from '../i18n';
 
+interface TranslationBindingCreationContext {
+  parser: IExpressionParser;
+  observerLocator: IObserverLocator;
+  context: IRenderContext;
+  renderable: IController;
+  target: HTMLElement;
+  instruction: ICallBindingInstruction;
+  isParameterContext?: boolean;
+}
 type ContentAttribute = 'textContent' | 'innerHTML' | 'prepend' | 'append';
 interface ContentValue {
   textContent?: string;
@@ -35,6 +44,24 @@ export class TranslationBinding implements IPartialConnectableBinding {
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
     ea.subscribe(I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
     this.targetObservers = new Set<IBindingTargetAccessor>();
+  }
+
+  public static create({ parser, observerLocator, context, renderable, target, instruction, isParameterContext }: TranslationBindingCreationContext) {
+    const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
+    let binding: TranslationBinding | undefined = renderable.bindings &&
+      renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+    if (!binding) {
+      binding = new TranslationBinding(target, observerLocator, context);
+      addBinding(renderable, binding);
+    }
+    if (!isParameterContext) {
+      const interpolation = expr instanceof CustomExpression
+        ? parser.parse(expr.value, BindingType.Interpolation)
+        : undefined;
+      binding.expr = interpolation || expr;
+    } else {
+      binding.parametersExpr = expr;
+    }
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {

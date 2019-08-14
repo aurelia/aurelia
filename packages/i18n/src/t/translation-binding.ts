@@ -180,12 +180,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     // build template and add marker
     const template = DOM.createTemplate() as HTMLTemplateElement;
 
-    // prepend text if exists
-    if (content.prepend) {
-      const prepend: Node = DOM.createTextNode(content.prepend) as Node;
-      Reflect.set(prepend, marker, true);
-      template.content.append(prepend);
-    }
+    this.addTextContentToTemplate(template, content.prepend, marker);
     // build content: prioritize [html], then textContent, and falls back to original content
     if (content.innerHTML) {
       const fragment = DOM.createDocumentFragment(content.innerHTML) as DocumentFragment;
@@ -193,22 +188,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
         Reflect.set(child, marker, true);
         template.content.append(child);
       }
-    } else if (content.textContent) {
-      const textContent = DOM.createTextNode(content.textContent) as Text;
-      Reflect.set(textContent, marker, true);
-      template.content.append(textContent);
-    } else {
+    } else if (!this.addTextContentToTemplate(template, content.textContent, marker)) {
       for (const fallbackContent of fallBackContents) {
         template.content.append(fallbackContent);
       }
     }
 
-    // append text if exists
-    if (content.append) {
-      const appended: Node = DOM.createTextNode(content.append) as Node;
-      Reflect.set(appended, marker, true);
-      template.content.append(appended);
-    }
+    this.addTextContentToTemplate(template, content.append, marker);
 
     // difficult to use the set property approach in this case, as most of the properties of Node is readonly
     // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
@@ -218,6 +204,16 @@ export class TranslationBinding implements IPartialConnectableBinding {
     for (const child of Array.from(template.content.childNodes)) {
       this.target.appendChild(child);
     }
+  }
+
+  private addTextContentToTemplate(template: HTMLTemplateElement, additionalText: string | undefined, marker: string) {
+    if (additionalText) {
+      const addendum: Node = DOM.createTextNode(additionalText) as Node;
+      Reflect.set(addendum, marker, true);
+      template.content.append(addendum);
+      return true;
+    }
+    return false;
   }
 
   private unobserveTargets(flags: LifecycleFlags) {

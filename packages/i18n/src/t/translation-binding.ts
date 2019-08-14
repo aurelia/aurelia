@@ -47,21 +47,22 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public static create({ parser, observerLocator, context, renderable, target, instruction, isParameterContext }: TranslationBindingCreationContext) {
+    const binding = this.getBinding({ observerLocator, context, renderable, target });
     const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
-    let binding: TranslationBinding | undefined = renderable.bindings &&
-      renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
-    if (!binding) {
-      binding = new TranslationBinding(target, observerLocator, context);
-      addBinding(renderable, binding);
-    }
     if (!isParameterContext) {
-      const interpolation = expr instanceof CustomExpression
-        ? parser.parse(expr.value, BindingType.Interpolation)
-        : undefined;
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
       binding.expr = interpolation || expr;
     } else {
       binding.parametersExpr = expr;
     }
+  }
+  private static getBinding({ observerLocator, context, renderable, target }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
+    let binding: TranslationBinding | undefined = renderable.bindings && renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+    if (!binding) {
+      binding = new TranslationBinding(target, observerLocator, context);
+      addBinding(renderable, binding);
+    }
+    return binding;
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {

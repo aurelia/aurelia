@@ -5,8 +5,8 @@
       <div class="col-md-6 offset-md-3 col-xs-12">
         <h1 class="text-xs-center">Sign ${type === 'login' ? 'in' : 'up'}</h1>
         <p class="text-xs-center">
-          <a href="auth(type=login)" if.bind="type === 'register'">Have an account?</a>
-          <a href="auth(type=register)" if.bind="type === 'login'">Need an account?</a>
+          <a href="/auth(type=login)" if.bind="type === 'register'">Have an account?</a>
+          <a href="/auth(type=register)" if.bind="type === 'login'">Need an account?</a>
         </p>
 
         <ul class="error-messages" if.bind="controller.errors">

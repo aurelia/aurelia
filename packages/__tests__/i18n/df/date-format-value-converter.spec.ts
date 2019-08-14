@@ -1,4 +1,4 @@
-import { DateFormatValueConverter, I18nInitOptions, I18nService } from '@aurelia/i18n';
+import { DateFormatValueConverter, I18nService } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';

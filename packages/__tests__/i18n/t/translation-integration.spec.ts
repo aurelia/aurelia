@@ -93,13 +93,19 @@ describe('translation-integration', function () {
 
   it('works with aliases', async function () {
 
-    @customElement({ name: 'app', template: `<span id='t' t='simple.text'></span><span id='i18n' i18n='simple.text'></span>` })
-    class App { }
+    @customElement({
+      name: 'app', template: `
+    <span id='t' t='simple.text'></span>
+    <span id='i18n' i18n='simple.text'></span>
+    <span id='i18n-bind' i18n.bind='key'></span>
+    ` })
+    class App { private readonly key = 'simple.text'; }
 
     const host = DOM.createElement('app');
     const { en: translation } = await setup(host, new App(), ['t', 'i18n']);
     assertTextContent(host, 'span#t', translation.simple.text);
     assertTextContent(host, 'span#i18n', translation.simple.text);
+    assertTextContent(host, 'span#i18n-bind', translation.simple.text);
   });
 
   it('works for bound key', async function () {

@@ -58,6 +58,8 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
       if (Array.isArray(options.translationAttributeAliases)) {
         TranslationAttributePattern.aliases = options.translationAttributeAliases;
         TranslationBindingCommand.aliases = options.translationAttributeAliases;
+        TranslationBindAttributePattern.aliases = options.translationAttributeAliases;
+        TranslationBindBindingCommand.aliases = options.translationAttributeAliases;
       }
 
       return container.register(

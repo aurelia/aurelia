@@ -11,7 +11,7 @@ import {
 const ext = '.css';
 
 export interface IShadowDOMConfiguration {
-  sharedStyles?: string[];
+  sharedStyles?: (string | CSSStyleSheet)[];
 }
 
 export function styles(...styles: any[]) {

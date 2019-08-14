@@ -20,17 +20,23 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];
 
   constructor(
-    localStyles: string[],
+    localStyles: (string | CSSStyleSheet)[],
     styleSheetCache: Map<string, CSSStyleSheet>,
     private sharedStyles: IShadowDOMStyles | null = null
   ) {
     this.styleSheets = localStyles.map(x => {
-      let sheet = styleSheetCache.get(x);
+      let sheet: CSSStyleSheet | undefined;
 
-      if (!sheet) {
-        sheet = new CSSStyleSheet();
-        (sheet as any).replaceSync(x);
-        styleSheetCache.set(x, sheet);
+      if (x instanceof CSSStyleSheet) {
+        sheet = x;
+      } else {
+        sheet = styleSheetCache.get(x);
+
+        if (!sheet) {
+          sheet = new CSSStyleSheet();
+          (sheet as any).replaceSync(x);
+          styleSheetCache.set(x, sheet);
+        }
       }
 
       return sheet;
@@ -57,7 +63,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
 export class StyleElementStyles implements IShadowDOMStyles {
   constructor(
-    private localStyles: string[],
+    private localStyles: (string | CSSStyleSheet)[],
     private sharedStyles: IShadowDOMStyles | null = null
   ) {}
 
@@ -66,7 +72,14 @@ export class StyleElementStyles implements IShadowDOMStyles {
 
     for (let i = styles.length - 1; i > -1; --i) {
       const element = document.createElement('style');
-      element.innerHTML = styles[i];
+      const style = styles[i];
+
+      if (style instanceof CSSStyleSheet) {
+        element.innerHTML = style.cssText;
+      } else {
+        element.innerHTML = style;
+      }
+
       shadowRoot.prepend(element);
     }
 

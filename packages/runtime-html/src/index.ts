@@ -151,3 +151,7 @@ export {
 export {
   ShadowDOMRegistry
 } from './styles/shadow-dom-registry';
+export {
+  AdoptedStyleSheetsStyles,
+  StyleElementStyles
+} from './styles/shadow-dom-styles';

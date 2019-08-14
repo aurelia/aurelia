@@ -1,9 +1,9 @@
 import { DI, PLATFORM, Registration } from '@aurelia/kernel';
 import { CustomAttribute, INode } from '@aurelia/runtime';
-import { CSSModulesRegistry, ShadowDOMRegistry, StyleConfiguration } from '@aurelia/runtime-html';
+import { AdoptedStyleSheetsStyles, CSSModulesRegistry, ShadowDOMRegistry, StyleConfiguration } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe('styles', () => {
+describe.only('styles', () => {
   describe('CSS Modules', () => {
     it('config adds correct registry for css', () => {
       const container = DI.createContainer();
@@ -16,7 +16,7 @@ describe('styles', () => {
       assert.instanceOf(registry, CSSModulesRegistry);
     });
 
-    it ('registry overrides class attribute', () => {
+    it('registry overrides class attribute', () => {
       const element = { className: '' };
       const container = DI.createContainer();
       container.register(Registration.instance(INode, element));
@@ -30,7 +30,7 @@ describe('styles', () => {
       assert.equal(CustomAttribute.isType(attr.constructor), true);
     });
 
-    it ('class attribute maps class names', () => {
+    it('class attribute maps class names', () => {
       const element = { className: '' };
       const container = DI.createContainer();
       container.register(Registration.instance(INode, element));
@@ -65,5 +65,13 @@ describe('styles', () => {
       const registry = container.get('.css');
       assert.instanceOf(registry, ShadowDOMRegistry);
     });
+
+    // TODO: style element style tests
+
+    if (!AdoptedStyleSheetsStyles.supported()) {
+      return;
+    }
+
+    // TODO: adopted styles tests
   });
 });

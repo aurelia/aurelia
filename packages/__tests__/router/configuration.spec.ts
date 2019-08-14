@@ -13,7 +13,7 @@ describe('Configuration', function () {
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host as any);
 
-    const au = ctx.wnd['au'] = new Aurelia(container)
+    const au = new Aurelia(container)
       .register(
         DebugConfiguration,
         !config ? RouterConfiguration : RouterConfiguration.customize(config),

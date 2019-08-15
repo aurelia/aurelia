@@ -32,6 +32,11 @@ export const DefaultResources: IRegistry[] = [
   NavCustomElement as unknown as IRegistry,
 ];
 
+let configurationOptions: IRouterOptions = {};
+let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
+  router.activate(configurationOptions);
+};
+
 /**
  * A DI configuration object containing router resource registrations.
  */
@@ -43,7 +48,7 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IRouter).beforeBind().call(router => router.activate()),
+      StartTask.with(IRouter).beforeBind().call(configurationCall),
       StartTask.with(IRouter).beforeAttach().call(router => router.loadUrl()),
     );
   },
@@ -56,9 +61,21 @@ const routerConfiguration = {
 };
 export const RouterConfiguration = {
   /**
-   * Make it possible to specify options to Router activation
+   * Make it possible to specify options to Router activation.
+   * Parameter is either a config object that's passed to Router's activate
+   * or a config function that's called instead of Router's activate.
    */
-  customize(config: IRouterOptions = {}) {
+  customize(config?: IRouterOptions | ((router: IRouter) => void)) {
+    if (config === undefined) {
+      configurationOptions = {};
+      configurationCall = (router: IRouter) => {
+        router.activate(configurationOptions);
+      };
+    } else if (config instanceof Function) {
+      configurationCall = config;
+    } else {
+      configurationOptions = config;
+    }
     return { ...routerConfiguration };
   },
   ...routerConfiguration,

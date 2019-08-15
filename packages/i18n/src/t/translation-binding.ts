@@ -29,7 +29,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private readonly i18n: I18nService;
   private readonly contentAttributes: ReadonlyArray<string> = ['textContent', 'innerHTML', 'prepend', 'append'];
   private keyExpression!: string;
-  private translationParameters!: Record<string, unknown>;
+  private translationParameters!: i18next.TOptions;
   private scope!: IScope;
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
@@ -72,18 +72,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
     if (this.parametersExpr) {
-      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as Record<string, unknown>;
+      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as i18next.TOptions;
       this.parametersExpr.connect(flags, scope, this as any, part);
     }
 
-    if (!(this.expr instanceof CustomExpression)) {
-      if (this.isInterpolatedSourceExpr) {
-        for (const expr of (this.expr as Interpolation).expressions) {
-          expr.connect(flags, scope, this as any, part);
-        }
-      } else {
-        this.expr.connect(flags, scope, this as any, part);
-      }
+    const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
+
+    for (const expr of expressions) {
+      expr.connect(flags, scope, this as any, part);
     }
 
     this.updateTranslations(flags);
@@ -109,7 +105,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     (this as unknown as IConnectableBinding).unobserve(true);
   }
 
-  public handleChange(newValue: string | Record<string, unknown>, _previousValue: string | Record<string, unknown>, flags: LifecycleFlags): void {
+  public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     if (typeof newValue === 'object') {
       this.translationParameters = newValue;
     } else {
@@ -125,7 +121,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateTranslations(flags: LifecycleFlags) {
-    const results = this.i18n.evaluate(this.keyExpression, this.translationParameters as i18next.TOptions<object>);
+    const results = this.i18n.evaluate(this.keyExpression, this.translationParameters);
     const content: ContentValue = Object.create(null);
     this.unobserveTargets(flags);
 
@@ -133,21 +129,25 @@ export class TranslationBinding implements IPartialConnectableBinding {
       const value = item.value;
       const attributes = this.preprocessAttributes(item.attributes);
       for (const attribute of attributes) {
-        if (!this.isContentAttribute(attribute)) {
-          const controller = CustomElement.behaviorFor(this.target);
-          const observer = controller && controller.viewModel
-            ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
-            : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
-          observer.setValue(value, flags);
-          this.targetObservers.add(observer);
-        } else {
+        if (this.isContentAttribute(attribute)) {
           content[attribute] = value;
+        } else {
+          this.updateAttribute(attribute, value, flags);
         }
       }
     }
     if (Object.keys(content).length) {
       this.updateContent(content, flags);
     }
+  }
+
+  private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
+    const controller = CustomElement.behaviorFor(this.target);
+    const observer = controller && controller.viewModel
+      ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
+      : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
+    observer.setValue(value, flags);
+    this.targetObservers.add(observer);
   }
 
   private preprocessAttributes(attributes: string[]) {
@@ -177,10 +177,23 @@ export class TranslationBinding implements IPartialConnectableBinding {
       }
     }
 
-    // build template and add marker
+    const template = this.prepareTemplate(content, marker, fallBackContents);
+
+    // difficult to use the set property approach in this case, as most of the properties of Node is readonly
+    // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
+    // observer.setValue(??, flags);
+
+    this.target.innerHTML = '';
+    for (const child of Array.from(template.content.childNodes)) {
+      this.target.appendChild(child);
+    }
+  }
+
+  private prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
     const template = DOM.createTemplate() as HTMLTemplateElement;
 
     this.addTextContentToTemplate(template, content.prepend, marker);
+
     // build content: prioritize [html], then textContent, and falls back to original content
     if (content.innerHTML) {
       const fragment = DOM.createDocumentFragment(content.innerHTML) as DocumentFragment;
@@ -195,15 +208,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.addTextContentToTemplate(template, content.append, marker);
-
-    // difficult to use the set property approach in this case, as most of the properties of Node is readonly
-    // const observer = this.observerLocator.getAccessor(LifecycleFlags.none, this.target, '??');
-    // observer.setValue(??, flags);
-
-    this.target.innerHTML = '';
-    for (const child of Array.from(template.content.childNodes)) {
-      this.target.appendChild(child);
-    }
+    return template;
   }
 
   private addTextContentToTemplate(template: HTMLTemplateElement, additionalText: string | undefined, marker: string) {

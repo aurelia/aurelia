@@ -1,4 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
+import { ILifecycle } from '@aurelia/runtime';
 import { Blur } from '@aurelia/runtime-html';
 import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
@@ -389,7 +390,8 @@ describe('[UNIT] blur.spec.ts', function() {
             typeof blurHost === 'string'
               ? host.querySelector(blurHost)
               : blurHost,
-            ctx.dom
+            ctx.dom,
+            ctx.container.get(ILifecycle)
           );
           sut.linkedWith = linkedWith;
           sut.linkingContext = linkingContext;
@@ -415,7 +417,7 @@ describe('[UNIT] blur.spec.ts', function() {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
     const target = ctx.doc.body.appendChild(ctx.createElement('div'));
-    const sut = new Blur(target, ctx.dom);
+    const sut = new Blur(target, ctx.dom, ctx.container.get(ILifecycle));
     return { ctx, target, sut };
   }
 

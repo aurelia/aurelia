@@ -33,7 +33,9 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.Node,
           this.jsdom.window.Element,
           this.jsdom.window.HTMLElement,
-          this.jsdom.window.CustomEvent
+          this.jsdom.window.CustomEvent,
+          this.jsdom.window.CSSStyleSheet,
+          class ShadowRoot {} as any
         );
       } else {
         if (config.host !== undefined) {
@@ -45,7 +47,9 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.Node,
           this.jsdom.window.Element,
           this.jsdom.window.HTMLElement,
-          this.jsdom.window.CustomEvent
+          this.jsdom.window.CustomEvent,
+          this.jsdom.window.CSSStyleSheet,
+          class ShadowRoot {} as any
         );
       }
     } else {
@@ -55,7 +59,9 @@ class JSDOMInitializer implements IDOMInitializer {
         this.jsdom.window.Node,
         this.jsdom.window.Element,
         this.jsdom.window.HTMLElement,
-        this.jsdom.window.CustomEvent
+        this.jsdom.window.CustomEvent,
+        this.jsdom.window.CSSStyleSheet,
+        class ShadowRoot {} as any
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

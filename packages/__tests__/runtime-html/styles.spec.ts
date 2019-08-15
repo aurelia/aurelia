@@ -1,5 +1,5 @@
 import { DI, PLATFORM, Registration } from '@aurelia/kernel';
-import { Controller, CustomAttribute, CustomElement, INode } from '@aurelia/runtime';
+import { Controller, CustomAttribute, CustomElement, INode, Aurelia } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
@@ -12,11 +12,23 @@ import {
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('Styles', () => {
-  describe('CSS Modules Processor', () => {
-    it('config adds correct registry for css', () => {
-      const container = DI.createContainer();
+  async function startApp(configure: (au: Aurelia) => void) {
+    const ctx = TestContext.createHTMLTestContext();
+    const au = new Aurelia(ctx.container);
+    configure(au);
+    const host = ctx.createElement('div');
+    class App { }
+    const component = CustomElement.define({ name: 'app', template: ' ' }, App);
+    au.app({ host, component });
+    await au.start().wait();
+    return { au, ctx, host, container: au.container };
+  }
 
-      container.register(StyleConfiguration.cssModulesProcessor());
+  describe('CSS Modules Processor', () => {
+    it('config adds correct registry for css', async () => {
+      const { container } = await startApp(au => {
+        au.register(StyleConfiguration.cssModulesProcessor());
+      });
 
       const registry = container.get('.css');
       assert.instanceOf(registry, CSSModulesProcessorRegistry);
@@ -79,45 +91,39 @@ describe('Styles', () => {
   });
 
   describe('Shadow DOM', () => {
-    if (!PLATFORM.isBrowserLike) {
-      return;
-    }
-
-    it('config adds correct registry for css', () => {
-      const container = DI.createContainer();
-
-      container.register(StyleConfiguration.shadowDOM());
+    it('config adds correct registry for css', async () => {
+      const { container } = await startApp(au => {
+        au.register(StyleConfiguration.shadowDOM());
+      });
 
       const registry = container.get('.css');
       assert.instanceOf(registry, ShadowDOMRegistry);
     });
 
-    it('registry provides root shadow dom styles', () => {
-      const container = DI.createContainer();
+    it('registry provides root shadow dom styles', async () => {
+      const { container } = await startApp(au => {
+        au.register(StyleConfiguration.shadowDOM());
+      });
+
       const childContainer = container.createChild();
-
-      container.register(StyleConfiguration.shadowDOM());
-
       const s = childContainer.get(IShadowDOMStyles);
 
       assert.instanceOf(s, Object);
       assert.equal(typeof s.applyTo, 'function');
     });
 
-    it('config passes root styles to container', () => {
-      const container = DI.createContainer();
-      const childContainer = container.createChild();
+    it('config passes root styles to container', async () => {
       const rootStyles = '.my-class { color: red }';
-
-      container.register(
-        StyleConfiguration.shadowDOM({
+      const { container, ctx } = await startApp(au => {
+        au.register(StyleConfiguration.shadowDOM({
           sharedStyles: [rootStyles]
-        })
-      );
+        }));
+      });
 
+      const childContainer = container.createChild();
       const s = childContainer.get(IShadowDOMStyles);
 
-      if (AdoptedStyleSheetsStyles.supported()) {
+      if (AdoptedStyleSheetsStyles.supported(ctx.dom)) {
         assert.instanceOf(s, AdoptedStyleSheetsStyles);
         assert.equal(s['styleSheets'].length, 1);
       } else {
@@ -127,19 +133,21 @@ describe('Styles', () => {
     });
 
     it('element styles apply parent styles', () => {
+      const ctx = TestContext.createHTMLTestContext();
       const root = { prepend() {} };
       const fake = {
         wasCalled: false,
         applyTo() { this.wasCalled = true; }
       };
 
-      const s = new StyleElementStyles([], fake);
+      const s = new StyleElementStyles(ctx.dom, [], fake);
       s.applyTo(root as any);
 
       assert.equal(fake.wasCalled, true);
     });
 
     it('element styles apply by prepending style elements to shadow root', () => {
+      const ctx = TestContext.createHTMLTestContext();
       const css = '.my-class { color: red }';
       const root = {
         element: null,
@@ -148,7 +156,7 @@ describe('Styles', () => {
         }
       };
 
-      const s = new StyleElementStyles([css], null);
+      const s = new StyleElementStyles(ctx.dom, [css], null);
       s.applyTo(root as any);
 
       assert.equal(root.element.tagName, 'STYLE');
@@ -156,13 +164,14 @@ describe('Styles', () => {
     });
 
     it('adopted styles apply parent styles', () => {
+      const ctx = TestContext.createHTMLTestContext();
       const root = { adoptedStyleSheets: [] };
       const fake = {
         wasCalled: false,
         applyTo() { this.wasCalled = true; }
       };
 
-      const s = new AdoptedStyleSheetsStyles([], new Map(), fake);
+      const s = new AdoptedStyleSheetsStyles(ctx.dom, [], new Map(), fake);
       s.applyTo(root as any);
 
       assert.equal(fake.wasCalled, true);
@@ -182,7 +191,7 @@ describe('Styles', () => {
       context.register(
         Registration.instance(
           IShadowDOMStyles,
-          new StyleElementStyles([css], null)
+          new StyleElementStyles(ctx.dom, [css], null)
         )
       );
 
@@ -199,29 +208,31 @@ describe('Styles', () => {
       assert.strictEqual(root.firstElementChild.innerHTML, css);
     });
 
-    if (!AdoptedStyleSheetsStyles.supported()) {
+    if (!AdoptedStyleSheetsStyles.supported(TestContext.createHTMLTestContext().dom)) {
       return;
     }
 
     it('adopted styles apply by setting adopted style sheets on shadow root', () => {
       const css = '.my-class { color: red }';
       const root = { adoptedStyleSheets: [] };
+      const ctx = TestContext.createHTMLTestContext();
 
-      const s = new AdoptedStyleSheetsStyles([css], new Map(), null);
+      const s = new AdoptedStyleSheetsStyles(ctx.dom, [css], new Map(), null);
       s.applyTo(root as any);
 
       assert.equal(root.adoptedStyleSheets.length, 1);
-      assert.instanceOf(root.adoptedStyleSheets[0], CSSStyleSheet);
+      assert.instanceOf(root.adoptedStyleSheets[0], ctx.dom.CSSStyleSheet);
     });
 
     it('adopted styles use cached style sheets', () => {
+      const ctx = TestContext.createHTMLTestContext();
       const css = '.my-class { color: red }';
       const root = { adoptedStyleSheets: [] };
       const cache = new Map();
-      const sheet = new CSSStyleSheet();
+      const sheet = new ctx.dom.CSSStyleSheet();
       cache.set(css, sheet);
 
-      const s = new AdoptedStyleSheetsStyles([css], cache, null);
+      const s = new AdoptedStyleSheetsStyles(ctx.dom, [css], cache, null);
       s.applyTo(root as any);
 
       assert.equal(root.adoptedStyleSheets.length, 1);
@@ -229,17 +240,18 @@ describe('Styles', () => {
     });
 
     it('adopted styles merge sheets from parent', () => {
+      const ctx = TestContext.createHTMLTestContext();
       const sharedCSS = '.my-class { color: red }';
       const localCSS = '.something-else { color: blue }';
       const root = { adoptedStyleSheets: [] };
       const cache = new Map();
-      const sharedSheet = new CSSStyleSheet();
-      const localSheet = new CSSStyleSheet();
+      const sharedSheet = new ctx.dom.CSSStyleSheet();
+      const localSheet = new ctx.dom.CSSStyleSheet();
       cache.set(sharedCSS, sharedSheet);
       cache.set(localCSS, localSheet);
 
-      const p = new AdoptedStyleSheetsStyles([sharedCSS], cache, null);
-      const s = new AdoptedStyleSheetsStyles([localCSS], cache, p);
+      const p = new AdoptedStyleSheetsStyles(ctx.dom, [sharedCSS], cache, null);
+      const s = new AdoptedStyleSheetsStyles(ctx.dom, [localCSS], cache, p);
       s.applyTo(root as any);
 
       assert.equal(root.adoptedStyleSheets.length, 2);

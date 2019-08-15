@@ -1,4 +1,6 @@
 import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { StartTask } from '@aurelia/runtime';
+import { HTMLDOM } from '../dom';
 import { CSSModulesProcessorRegistry } from './css-modules-registry';
 import { ShadowDOMRegistry, ShadowDOMStylesFactory } from './shadow-dom-registry';
 import {
@@ -30,55 +32,59 @@ export const StyleConfiguration = {
   },
 
   shadowDOM(config?: IShadowDOMConfiguration): IRegistry {
-    return {
-      register(container: IContainer) {
-        let createStyles: ShadowDOMStylesFactory;
+    return StartTask.with(IContainer).beforeCreate().call(container => {
+      const dom = container.get(HTMLDOM);
+      let createStyles: ShadowDOMStylesFactory;
 
-        if (AdoptedStyleSheetsStyles.supported()) {
-          const styleSheetCache = new Map();
-          createStyles = (localStyles, sharedStyles) => {
-            return new AdoptedStyleSheetsStyles(
-              localStyles,
-              styleSheetCache,
-              sharedStyles
-            );
-          };
-        } else {
-          createStyles = (localStyles, sharedStyles) => {
-            if (localStyles.find(x => typeof x !== 'string')) {
-              // TODO: use reporter
-              throw new Error('Shadow DOM CSS must be a string.');
-            }
+      if (AdoptedStyleSheetsStyles.supported(dom)) {
+        const styleSheetCache = new Map();
+        createStyles = (localStyles, sharedStyles) => {
+          return new AdoptedStyleSheetsStyles(
+            dom,
+            localStyles,
+            styleSheetCache,
+            sharedStyles
+          );
+        };
+      } else {
+        createStyles = (localStyles, sharedStyles) => {
+          if (localStyles.find(x => typeof x !== 'string')) {
+            // TODO: use reporter
+            throw new Error('Shadow DOM CSS must be a string.');
+          }
 
-            return new StyleElementStyles(localStyles as string[], sharedStyles);
-          };
-        }
-
-        let globalSharedStyles: IShadowDOMStyles;
-
-        if (config && config.sharedStyles) {
-          globalSharedStyles = createStyles(config.sharedStyles, null);
-        } else {
-          globalSharedStyles = noopShadowDOMStyles;
-        }
-
-        container.register(
-          Registration.instance(
-            IShadowDOMStyles,
-            globalSharedStyles
-          )
-        );
-
-        container.register(
-          Registration.instance(
-            ext,
-            new ShadowDOMRegistry(
-              globalSharedStyles,
-              createStyles
-            )
-          )
-        );
+          return new StyleElementStyles(
+            dom,
+            localStyles as string[],
+            sharedStyles
+          );
+        };
       }
-    };
+
+      let globalSharedStyles: IShadowDOMStyles;
+
+      if (config && config.sharedStyles) {
+        globalSharedStyles = createStyles(config.sharedStyles, null);
+      } else {
+        globalSharedStyles = noopShadowDOMStyles;
+      }
+
+      container.register(
+        Registration.instance(
+          IShadowDOMStyles,
+          globalSharedStyles
+        )
+      );
+
+      container.register(
+        Registration.instance(
+          ext,
+          new ShadowDOMRegistry(
+            globalSharedStyles,
+            createStyles
+          )
+        )
+      );
+    });
   }
 };

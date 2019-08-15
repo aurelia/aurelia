@@ -1,4 +1,5 @@
 import { DI, PLATFORM } from '@aurelia/kernel';
+import { HTMLDOM } from '../dom';
 
 type HasAdoptedStyleSheets = ShadowRoot & {
   adoptedStyleSheets: CSSStyleSheet[];
@@ -20,6 +21,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];
 
   constructor(
+    dom: HTMLDOM,
     localStyles: (string | CSSStyleSheet)[],
     styleSheetCache: Map<string, CSSStyleSheet>,
     private sharedStyles: IShadowDOMStyles | null = null
@@ -27,13 +29,13 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
     this.styleSheets = localStyles.map(x => {
       let sheet: CSSStyleSheet | undefined;
 
-      if (x instanceof CSSStyleSheet) {
+      if (x instanceof dom.CSSStyleSheet) {
         sheet = x;
       } else {
         sheet = styleSheetCache.get(x);
 
         if (!sheet) {
-          sheet = new CSSStyleSheet();
+          sheet = new dom.CSSStyleSheet();
           (sheet as any).replaceSync(x);
           styleSheetCache.set(x, sheet);
         }
@@ -43,8 +45,8 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
     });
   }
 
-  public static supported(): boolean {
-    return 'adoptedStyleSheets' in ShadowRoot.prototype;
+  public static supported(dom: HTMLDOM): boolean {
+    return 'adoptedStyleSheets' in dom.ShadowRoot.prototype;
   }
 
   public applyTo(shadowRoot: HasAdoptedStyleSheets) {
@@ -63,15 +65,17 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
 export class StyleElementStyles implements IShadowDOMStyles {
   constructor(
+    private dom: HTMLDOM,
     private localStyles: string[],
     private sharedStyles: IShadowDOMStyles | null = null
   ) { }
 
   public applyTo(shadowRoot: ShadowRoot) {
     const styles = this.localStyles;
+    const dom = this.dom;
 
     for (let i = styles.length - 1; i > -1; --i) {
-      const element = document.createElement('style');
+      const element = dom.createElement('style');
       element.innerHTML = styles[i];
       shadowRoot.prepend(element);
     }

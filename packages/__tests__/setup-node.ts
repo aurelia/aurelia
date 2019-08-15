@@ -28,7 +28,9 @@ function createJSDOMTestContext(): HTMLTestContext {
     jsdom.window.HTMLDivElement,
     jsdom.window.Text,
     jsdom.window.Comment,
-    jsdom.window.DOMParser
+    jsdom.window.DOMParser,
+    jsdom.window.CSSStyleSheet,
+    class ShadowRoot {} as any
   );
 }
 

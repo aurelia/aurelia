@@ -99,7 +99,7 @@ describe('blur.integration.spec.ts', () => {
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assertFn }: IBlurTestCase) => {
           it(title(command), async function() {
-            const { ctx, au, component, dispose } = setup<IApp>(
+            const { ctx, component, dispose } = setup<IApp>(
               template(command),
               app
             );
@@ -176,7 +176,7 @@ describe('blur.integration.spec.ts', () => {
         (command, abnormalCase, callIndex) => {
           const { title, template, app, assertFn } = abnormalCase;
           it(title(callIndex, command), async function() {
-            const { au, component, ctx, dispose } = setup<IApp>(
+            const { component, ctx, dispose } = setup<IApp>(
               template(command),
               app,
               CustomElement.define(

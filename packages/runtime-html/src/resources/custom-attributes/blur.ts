@@ -3,7 +3,9 @@ import {
   bindable,
   customAttribute,
   IDOM,
-  INode
+  ILifecycle,
+  INode,
+  Priority
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 
@@ -28,7 +30,8 @@ export class BlurManager {
   private handler: EventListenerObject;
 
   private constructor(
-    public readonly dom: HTMLDOM
+    public readonly dom: HTMLDOM,
+    public readonly lifecycle: ILifecycle
   ) {
     blurDocMap.set(dom.document, this);
     this.dom = dom;
@@ -36,8 +39,8 @@ export class BlurManager {
     this.handler = createHandler(this, this.blurs);
   }
 
-  public static createFor(dom: HTMLDOM): BlurManager {
-    return blurDocMap.get(dom.document) || new BlurManager(dom);
+  public static createFor(dom: HTMLDOM, lifecycle: ILifecycle): BlurManager {
+    return blurDocMap.get(dom.document) || new BlurManager(dom, lifecycle);
   }
 
   public register(blur: Blur): void {
@@ -79,13 +82,13 @@ export class BlurManager {
     const win = dom.window;
     const handler = this.handler;
     if (win.navigator.pointerEnabled) {
-      doc.addEventListener('pointerdown', handler, defaultCaptureEventInit);
+      doc.removeEventListener('pointerdown', handler, defaultCaptureEventInit);
     }
-    doc.addEventListener('touchstart', handler, defaultCaptureEventInit);
-    doc.addEventListener('mousedown', handler, defaultCaptureEventInit);
-    doc.addEventListener('wheel', handler, defaultBubbleEventInit);
-    doc.addEventListener('focus', handler, defaultCaptureEventInit);
-    win.addEventListener('blur', handler, defaultBubbleEventInit);
+    doc.removeEventListener('touchstart', handler, defaultCaptureEventInit);
+    doc.removeEventListener('mousedown', handler, defaultCaptureEventInit);
+    doc.removeEventListener('wheel', handler, defaultBubbleEventInit);
+    doc.removeEventListener('focus', handler, defaultCaptureEventInit);
+    win.removeEventListener('blur', handler, defaultBubbleEventInit);
   }
 }
 
@@ -143,7 +146,8 @@ export class Blur {
 
   constructor(
     @INode private readonly element: Element,
-    @IDOM private readonly dom: HTMLDOM
+    @IDOM private readonly dom: HTMLDOM,
+    @ILifecycle lifecycle: ILifecycle
   ) {
     /**
      * By default, the behavior should be least surprise possible, that:
@@ -155,7 +159,7 @@ export class Blur {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.createFor(dom);
+    this.manager = BlurManager.createFor(dom, lifecycle);
   }
 
   public attached(): void {
@@ -293,48 +297,42 @@ const createHandler = (
   // ******************************
 
   let hasChecked: boolean = false;
-  let rAFId: number;
+  const lifecycle = manager.lifecycle;
   const revertCheckage = () => {
     hasChecked = false;
-  };
-  const cancelQueueRevertCheckage = () => {
-    PLATFORM.cancelAnimationFrame(rAFId);
-  };
-  const queueRevertCheckage = () => {
-    rAFId = PLATFORM.requestAnimationFrame(revertCheckage);
   };
 
   // method name are prefixed by a number to signal its order in event series
   const _1__handlePointerDown = (e: PointerEvent): void => {
     handleEvent(e);
     hasChecked = true;
-    queueRevertCheckage();
+    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
   };
 
   const _2__handleTouchStart = (e: TouchEvent): void => {
     if (hasChecked) {
-      cancelQueueRevertCheckage();
-      queueRevertCheckage();
+      lifecycle.dequeueRAF(revertCheckage, null);
+      lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
       return;
     }
     handleEvent(e);
     hasChecked = true;
     // still queue revert change in case touch event is synthetic
     // but blur effect is still desired in such scenario
-    queueRevertCheckage();
+    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
   };
 
   const _3__handleMousedown = (e: MouseEvent): void => {
     if (hasChecked) {
-      cancelQueueRevertCheckage();
-      queueRevertCheckage();
+      lifecycle.dequeueRAF(revertCheckage, null);
+      lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
       return;
     }
     handleEvent(e);
     hasChecked = true;
     // still queue revert change in case mouse event is synthetic
     // but blur effect is still desired in such scenario
-    queueRevertCheckage();
+    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
   };
 
   /**
@@ -348,8 +346,8 @@ const createHandler = (
    */
   const _4__handleFocus = (e: FocusEvent): void => {
     if (hasChecked) {
-      cancelQueueRevertCheckage();
-      queueRevertCheckage();
+      lifecycle.dequeueRAF(revertCheckage, null);
+      lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
       return;
     }
     // there are two way a focus gets captured on window
@@ -367,7 +365,7 @@ const createHandler = (
       handleEvent(e);
     }
     hasChecked = true;
-    queueRevertCheckage();
+    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
   };
 
   const handleWindowBlur = (): void => {

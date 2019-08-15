@@ -1,7 +1,7 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
-import { IRouterOptions } from './router';
+import { IRouter, IRouterOptions } from './router';
 export declare const RouterRegistration: IRegistry;
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
@@ -26,9 +26,11 @@ export declare const RouterConfiguration: {
      */
     createContainer(): IContainer;
     /**
-     * Make it possible to specify options to Router activation
+     * Make it possible to specify options to Router activation.
+     * Parameter is either a config object that's passed to Router's activate
+     * or a config function that's called instead of Router's activate.
      */
-    customize(config?: IRouterOptions): {
+    customize(config?: IRouterOptions | ((router: IRouter) => void)): {
         /**
          * Apply this configuration to the provided container.
          */

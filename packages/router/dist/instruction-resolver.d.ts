@@ -3,16 +3,16 @@ export interface IInstructionResolverOptions {
     separators?: IRouteSeparators;
 }
 export interface IRouteSeparators {
-    viewport: string;
-    sibling: string;
-    scope: string;
-    ownsScope: string;
-    parameters: string;
-    parametersEnd: string;
-    parameter: string;
-    add: string;
-    clear: string;
-    action: string;
+    viewport?: string;
+    sibling?: string;
+    scope?: string;
+    ownsScope?: string;
+    parameters?: string;
+    parametersEnd?: string;
+    parameter?: string;
+    add?: string;
+    clear?: string;
+    action?: string;
 }
 export declare class InstructionResolver {
     separators: IRouteSeparators;

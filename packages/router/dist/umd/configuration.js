@@ -34,6 +34,10 @@
         viewport_1.ViewportCustomElement,
         nav_1.NavCustomElement,
     ];
+    let configurationOptions = {};
+    let configurationCall = (router) => {
+        router.activate(configurationOptions);
+    };
     /**
      * A DI configuration object containing router resource registrations.
      */
@@ -42,7 +46,7 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeBind().call(router => router.activate()), runtime_1.StartTask.with(router_1.IRouter).beforeAttach().call(router => router.loadUrl()));
+            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeBind().call(configurationCall), runtime_1.StartTask.with(router_1.IRouter).beforeAttach().call(router => router.loadUrl()));
         },
         /**
          * Create a new container with this configuration applied to it.
@@ -53,9 +57,23 @@
     };
     exports.RouterConfiguration = {
         /**
-         * Make it possible to specify options to Router activation
+         * Make it possible to specify options to Router activation.
+         * Parameter is either a config object that's passed to Router's activate
+         * or a config function that's called instead of Router's activate.
          */
-        customize(config = {}) {
+        customize(config) {
+            if (config === undefined) {
+                configurationOptions = {};
+                configurationCall = (router) => {
+                    router.activate(configurationOptions);
+                };
+            }
+            else if (config instanceof Function) {
+                configurationCall = config;
+            }
+            else {
+                configurationOptions = config;
+            }
             return { ...routerConfiguration };
         },
         ...routerConfiguration,

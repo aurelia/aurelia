@@ -1,5 +1,5 @@
-import { DI, PLATFORM, Registration } from '@aurelia/kernel';
-import { Controller, CustomAttribute, CustomElement, INode, Aurelia } from '@aurelia/runtime';
+import { DI, Registration } from '@aurelia/kernel';
+import { Aurelia, Controller, CustomAttribute, CustomElement, INode } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,

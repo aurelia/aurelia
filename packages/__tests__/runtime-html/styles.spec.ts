@@ -4,7 +4,6 @@ import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
   IShadowDOMStyles,
-  ShadowDOMProjector,
   ShadowDOMRegistry,
   StyleConfiguration,
   StyleElementStyles,

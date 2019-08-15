@@ -1,4 +1,4 @@
-import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import { DI, PLATFORM } from '@aurelia/kernel';
 
 type HasAdoptedStyleSheets = ShadowRoot & {
   adoptedStyleSheets: CSSStyleSheet[];

@@ -153,5 +153,6 @@ export {
 } from './styles/shadow-dom-registry';
 export {
   AdoptedStyleSheetsStyles,
-  StyleElementStyles
+  StyleElementStyles,
+  IShadowDOMStyles
 } from './styles/shadow-dom-styles';

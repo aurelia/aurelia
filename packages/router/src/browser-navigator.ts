@@ -1,36 +1,8 @@
 import { Key, Reporter } from '@aurelia/kernel';
 import { IDOM, ILifecycle } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { IStoredNavigationEntry } from './navigator';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerEvent } from './navigator';
 import { Queue, QueueItem } from './queue';
-
-export interface INavigationStore {
-  length: number;
-  state: Record<string, unknown>;
-  go(delta?: number, suppressPopstate?: boolean): Promise<void>;
-  pushNavigationState(state: INavigationState): Promise<void>;
-  replaceNavigationState(state: INavigationState): Promise<void>;
-  popNavigationState(): Promise<void>;
-}
-
-export interface INavigationViewer {
-  activate(callback: (ev?: INavigationViewerEvent) => void): void;
-  deactivate(): void;
-}
-
-export interface INavigationViewerEvent {
-  event: PopStateEvent;
-  state?: INavigationState;
-  path: string;
-  data: string;
-  hash: string;
-  instruction: string;
-}
-
-export interface INavigationState {
-  NavigationEntries: IStoredNavigationEntry[];
-  NavigationEntry: IStoredNavigationEntry;
-}
 
 interface Call {
   target: object;
@@ -44,7 +16,7 @@ interface ForwardedState {
   suppressPopstate?: boolean;
   resolve?: ((value?: void | PromiseLike<void>) => void);
 }
-export class BrowserNavigation implements INavigationStore, INavigationViewer {
+export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
 
   public readonly lifecycle: ILifecycle;
@@ -58,7 +30,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
 
   private readonly pendingCalls: Queue<Call>;
   private isActive: boolean;
-  private callback: (ev?: INavigationViewerEvent) => void;
+  private callback: (ev?: INavigatorViewerEvent) => void;
 
   private forwardedState: ForwardedState;
 
@@ -79,7 +51,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.forwardedState = {};
   }
 
-  public activate(callback: (ev?: INavigationViewerEvent) => void): void {
+  public activate(callback: (ev?: INavigatorViewerEvent) => void): void {
     if (this.isActive) {
       throw new Error('Browser navigation has already been activated');
     }
@@ -114,17 +86,17 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     return this.enqueue(this.history, 'go', [delta], suppressPopstate);
   }
 
-  public pushNavigationState(state: INavigationState): Promise<void> {
-    const { title, path } = state.NavigationEntry;
+  public pushNavigatorState(state: INavigatorState): Promise<void> {
+    const { title, path } = state.currentEntry;
     return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
   }
 
-  public replaceNavigationState(state: INavigationState): Promise<void> {
-    const { title, path } = state.NavigationEntry;
+  public replaceNavigatorState(state: INavigatorState): Promise<void> {
+    const { title, path } = state.currentEntry;
     return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
   }
 
-  public popNavigationState(): Promise<void> {
+  public popNavigatorState(): Promise<void> {
     return this.enqueue(this, 'popState', []);
   }
 
@@ -153,9 +125,9 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     await this.go(-1, true);
     const state = this.history.state;
     // TODO: Fix browser forward bug after pop on first entry
-    if (state && state.navigationEntry && !state.NavigationEntry.firstEntry) {
+    if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
       await this.go(-1, true);
-      return this.pushNavigationState(state);
+      return this.pushNavigatorState(state);
     }
     resolve();
   }

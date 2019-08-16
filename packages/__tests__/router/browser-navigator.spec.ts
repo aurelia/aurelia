@@ -1,9 +1,9 @@
-import { BrowserNavigation, INavigationState } from '@aurelia/router';
+import { BrowserNavigator, INavigatorState } from '@aurelia/router';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
-describe('BrowserNavigation', function () {
+describe('BrowserNavigator', function () {
   this.timeout(5000);
-  let browserNavigation;
+  let browserNavigator;
   let callbackCount = 0;
   const callback = ((info) => {
     callbackCount++;
@@ -40,7 +40,7 @@ describe('BrowserNavigation', function () {
     // (DOM as Writable<typeof DOM>).window = mockWnd;
 
     lifecycle.startTicking();
-    const sut = new BrowserNavigation(lifecycle, dom);
+    const sut = new BrowserNavigator(lifecycle, dom);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = sut.handlePopstate;
     sut.history = mockBrowserHistoryLocation as any;
@@ -123,13 +123,13 @@ describe('BrowserNavigation', function () {
         counter++;
       });
 
-    await sut.pushNavigationState(toNavigationState('one'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
-    await sut.pushNavigationState(toNavigationState('two'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', `sut.history.state.NavigationEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('one'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('two'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
     await sut.go(-1, true);
     await Promise.resolve();
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
     assert.strictEqual(counter, 0, `counter`); // Not the above 'go' (and no longer initial)
 
@@ -145,8 +145,8 @@ describe('BrowserNavigation', function () {
     await wait();
 
     const length = sut['pendingCalls'].length;
-    sut.pushNavigationState(toNavigationState('one')); // 1 item, cost 1
-    sut.replaceNavigationState(toNavigationState('two')); // 1 item, cost 1
+    sut.pushNavigatorState(toNavigatorState('one')); // 1 item, cost 1
+    sut.replaceNavigatorState(toNavigatorState('two')); // 1 item, cost 1
     sut.go(-1); // 2 items (forwardState + go), cost 0 + 1
     sut.go(1); // 2 items (forwardState + go), cost 0 + 1
     const noOfItems = 6;
@@ -169,13 +169,13 @@ describe('BrowserNavigation', function () {
         counter++;
       });
 
-    await sut.pushNavigationState(toNavigationState('one'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
-    await sut.pushNavigationState(toNavigationState('two'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', `sut.history.state.NavigationEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('one'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('two'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
     await sut.go(-1);
     await Promise.resolve();
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
     assert.strictEqual(counter, 1, `counter`);
 
@@ -185,10 +185,10 @@ describe('BrowserNavigation', function () {
   });
 });
 
-const toNavigationState = (instruction: string): INavigationState => {
+const toNavigatorState = (instruction: string): INavigatorState => {
   return {
-    NavigationEntries: [],
-    NavigationEntry: {
+    entries: [],
+    currentEntry: {
       instruction: instruction,
       fullStateInstruction: null,
       path: instruction,

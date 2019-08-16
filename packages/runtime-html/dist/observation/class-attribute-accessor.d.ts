@@ -17,6 +17,7 @@ export declare class ClassAttributeAccessor implements IAccessor<unknown> {
     flushRAF(flags: LifecycleFlags): void;
     bind(flags: LifecycleFlags): void;
     unbind(flags: LifecycleFlags): void;
+    private splitClassString;
     private getClassesToAdd;
     private addClassesAndUpdateIndex;
 }

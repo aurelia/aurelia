@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
+        define(["require", "exports", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const kernel_1 = require("@aurelia/kernel");
     class ClassAttributeAccessor {
         constructor(lifecycle, flags, obj) {
             this.lifecycle = lifecycle;
@@ -42,18 +43,11 @@
                 const { currentValue, nameIndex } = this;
                 let { version } = this;
                 this.oldValue = currentValue;
-                if (currentValue instanceof Object) {
-                    const classesToAdd = this.getClassesToAdd(currentValue);
-                    if (classesToAdd.length > 0) {
-                        this.addClassesAndUpdateIndex(classesToAdd);
-                    }
-                }
-                else if (typeof currentValue === 'string' && currentValue.length) {
-                    // Get strings split on a space not including empties
-                    const classNames = currentValue.match(/\S+/g);
-                    if (classNames != null && classNames.length > 0) {
-                        this.addClassesAndUpdateIndex(classNames);
-                    }
+                // tslint:disable-next-line: no-any
+                const classesToAdd = this.getClassesToAdd(currentValue);
+                // Get strings split on a space not including empties
+                if (classesToAdd.length > 0) {
+                    this.addClassesAndUpdateIndex(classesToAdd);
                 }
                 this.version += 1;
                 // First call to setValue?  We're done.
@@ -84,17 +78,48 @@
                 this.lifecycle.dequeueRAF(this.flushRAF, this);
             }
         }
+        splitClassString(classString) {
+            const matches = classString.match(/\S+/g);
+            if (matches === null) {
+                return kernel_1.PLATFORM.emptyArray;
+            }
+            return matches;
+        }
         getClassesToAdd(object) {
-            const returnVal = [];
-            for (const property in object) {
-                // Let non typical values also evaluate true so disable bool check
-                // tslint:disable-next-line: strict-boolean-expressions
-                if (!!object[property]) {
-                    returnVal.push(property);
-                    continue;
+            if (typeof object === 'string') {
+                return this.splitClassString(object);
+            }
+            if (object instanceof Array) {
+                const len = object.length;
+                if (len > 0) {
+                    const classes = [];
+                    for (let i = 0; i < len; ++i) {
+                        classes.push(...this.getClassesToAdd(object[i]));
+                    }
+                    return classes;
+                }
+                else {
+                    return kernel_1.PLATFORM.emptyArray;
                 }
             }
-            return returnVal;
+            else if (object instanceof Object) {
+                const classes = [];
+                for (const property in object) {
+                    // Let non typical values also evaluate true so disable bool check
+                    // tslint:disable-next-line: strict-boolean-expressions
+                    if (!!object[property]) {
+                        // We must do this in case object property has a space in the name which results in two classes
+                        if (property.indexOf(' ') >= 0) {
+                            classes.push(...this.splitClassString(property));
+                        }
+                        else {
+                            classes.push(property);
+                        }
+                    }
+                }
+                return classes;
+            }
+            return kernel_1.PLATFORM.emptyArray;
         }
         addClassesAndUpdateIndex(classes) {
             const node = this.obj;

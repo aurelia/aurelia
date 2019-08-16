@@ -52,7 +52,10 @@ export interface IRouter {
   processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
   addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
 
-  // Called from the viewport custom element in attached()
+  // External API to get viewport by name
+  getViewport(name: string): Viewport;
+
+    // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
@@ -161,10 +164,27 @@ export class Router implements IRouter {
   public linkCallback = (info: AnchorEventInfo): void => {
     let href = info.href;
     if (href.startsWith('#')) {
-      href = href.substring(1);
+      href = href.slice(1);
+      // '#' === '/' === '#/'
+      if (!href.startsWith('/')) {
+        href = `/${href}`;
+      }
     }
+    // If it's not from scope root, figure out which scope
     if (!href.startsWith('/')) {
-      const scope = this.closestScope(info.anchor);
+      let scope = this.closestScope(info.anchor);
+      // Scope modifications
+      if (href.startsWith('.')) {
+        // The same as no scope modification
+        if (href.startsWith('./')) {
+          href = href.slice(2);
+        }
+        // Find out how many scopes upwards we should move
+        while (href.startsWith('../')) {
+          scope = scope.parent || scope;
+          href = href.slice(3);
+        }
+      }
       const context = scope.scopeContext();
       href = this.instructionResolver.buildScopedLink(context, href);
     }

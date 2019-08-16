@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigatorStore, INavigatorViewer } from './browser-navigation';
+import { INavigatorStore, INavigatorViewer } from './browser-navigator';
 import { Queue, QueueItem } from './queue';
 
 export interface IStoredNavigatorEntry {

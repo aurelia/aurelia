@@ -1,6 +1,6 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { BrowserNavigator, INavigatorViewerEvent } from './browser-navigation';
+import { BrowserNavigator, INavigatorViewerEvent } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';

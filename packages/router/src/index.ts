@@ -3,7 +3,7 @@ export {
   INavigatorViewer,
   INavigatorViewerEvent,
   BrowserNavigator,
-} from './browser-navigation';
+} from './browser-navigator';
 
 export {
   ILinkHandlerOptions,

@@ -1,13 +1,10 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
 import { User } from 'shared/models/user';
 import { UserService } from 'shared/services/user-service';
-import template from './auth.html';
 
 @inject(UserService, IRouter)
-@customElement({ name: 'auth', template })
-export class AuthComponent {
+export class Auth {
   private user: User = {};
   private type: string = 'login';
   private errors?: string[];

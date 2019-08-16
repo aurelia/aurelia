@@ -1,17 +1,14 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter, NavRoute } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
 import { Article } from 'models/article';
 import { ArticleRequest } from 'models/article-request';
 import { getPages } from 'shared/get-pages';
 import { ArticleService } from "shared/services/article-service";
 import { TagService } from 'shared/services/tag-service';
 import { SharedState } from 'shared/state/shared-state';
-import template from './home.html';
 
 @inject(SharedState, IRouter, ArticleService, TagService)
-@customElement({ name: 'home', template })
-export class HomeComponent {
+export class Home {
   private articles: Article[] = [];
   private shownList = 'all';
   private tags: string[] = [];

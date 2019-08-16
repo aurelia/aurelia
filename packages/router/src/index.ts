@@ -1,7 +1,4 @@
 export {
-  INavigatorStore,
-  INavigatorViewer,
-  INavigatorViewerEvent,
   BrowserNavigator,
 } from './browser-navigator';
 
@@ -44,6 +41,9 @@ export {
   INavigatorFlags,
   INavigatorInstruction,
   INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerEvent,
   Navigator,
 } from './navigator';
 

@@ -1,6 +1,28 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigatorStore, INavigatorViewer } from './browser-navigator';
 import { Queue, QueueItem } from './queue';
+
+export interface INavigatorStore {
+  length: number;
+  state: Record<string, unknown>;
+  go(delta?: number, suppressPopstate?: boolean): Promise<void>;
+  pushNavigatorState(state: INavigatorState): Promise<void>;
+  replaceNavigatorState(state: INavigatorState): Promise<void>;
+  popNavigatorState(): Promise<void>;
+}
+
+export interface INavigatorViewer {
+  activate(callback: (ev?: INavigatorViewerEvent) => void): void;
+  deactivate(): void;
+}
+
+export interface INavigatorViewerEvent {
+  event: PopStateEvent;
+  state?: INavigatorState;
+  path: string;
+  data: string;
+  hash: string;
+  instruction: string;
+}
 
 export interface IStoredNavigatorEntry {
   instruction: string;

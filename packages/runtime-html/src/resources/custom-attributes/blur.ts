@@ -311,8 +311,6 @@ const createHandler = (
 
   const _2__handleTouchStart = (e: TouchEvent): void => {
     if (hasChecked) {
-      lifecycle.dequeueRAF(revertCheckage, null);
-      lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
       return;
     }
     handleEvent(e);
@@ -324,8 +322,6 @@ const createHandler = (
 
   const _3__handleMousedown = (e: MouseEvent): void => {
     if (hasChecked) {
-      lifecycle.dequeueRAF(revertCheckage, null);
-      lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
       return;
     }
     handleEvent(e);
@@ -346,8 +342,6 @@ const createHandler = (
    */
   const _4__handleFocus = (e: FocusEvent): void => {
     if (hasChecked) {
-      lifecycle.dequeueRAF(revertCheckage, null);
-      lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
       return;
     }
     // there are two way a focus gets captured on window

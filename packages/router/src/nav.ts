@@ -1,16 +1,6 @@
-import { ICustomElementType } from '@aurelia/runtime';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
-import { IRouter } from './router';
-import { ViewportInstruction } from './viewport-instruction';
-
-export interface IViewportComponent {
-  component: string | Partial<ICustomElementType>;
-  viewport?: string;
-  parameters?: Record<string, unknown> | string;
-}
-
-export type NavigationInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
+import { IRouter, NavigationInstruction } from './router';
 
 export interface INavRoute {
   route?: NavigationInstruction | NavigationInstruction[];

@@ -24,8 +24,6 @@ export {
 } from './guardian';
 
 export {
-  IViewportComponent,
-  NavigationInstruction as NavInstruction,
   INavRoute,
   Nav,
 } from './nav';
@@ -76,6 +74,8 @@ export {
   IRouterOptions,
   IRouteViewport,
   IRouter,
+  IViewportComponent,
+  NavigationInstruction,
   Router,
 } from './router';
 

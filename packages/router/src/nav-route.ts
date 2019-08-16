@@ -1,6 +1,6 @@
-import { ICustomElementType, IObserverLocator, IPropertyObserver, LifecycleFlags } from '@aurelia/runtime';
-import { INavRoute, IViewportComponent, Nav, NavigationInstruction } from './nav';
-import { IRouter } from './router';
+import { ICustomElementType } from '@aurelia/runtime';
+import { INavRoute, Nav } from './nav';
+import { IViewportComponent, NavigationInstruction } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 export class NavRoute {

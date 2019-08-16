@@ -32,6 +32,14 @@ export interface IRouteViewport {
   component: Partial<ICustomElementType> | string;
 }
 
+export interface IViewportComponent {
+  component: string | Partial<ICustomElementType>;
+  viewport?: string;
+  parameters?: Record<string, unknown> | string;
+}
+
+export type NavigationInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
+
 export interface IRouter {
   readonly isNavigating: boolean;
   activeComponents: string[];

@@ -1,9 +1,8 @@
 export {
-  INavigationStore,
-  INavigationViewer,
-  INavigationViewerEvent,
-  INavigationState,
-  BrowserNavigation,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerEvent,
+  BrowserNavigator,
 } from './browser-navigation';
 
 export {
@@ -39,11 +38,12 @@ export {
 } from './nav-route';
 
 export {
-  IStoredNavigationEntry,
-  INavigationEntry,
+  IStoredNavigatorEntry,
+  INavigatorEntry,
   INavigatorOptions,
-  INavigationFlags,
-  INavigationInstruction,
+  INavigatorFlags,
+  INavigatorInstruction,
+  INavigatorState,
   Navigator,
 } from './navigator';
 

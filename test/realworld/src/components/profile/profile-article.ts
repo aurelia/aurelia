@@ -1,12 +1,10 @@
 import { inject } from "@aurelia/kernel";
-import { customElement } from "@aurelia/runtime";
 import { getPages } from "shared/get-pages";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
-import template from './profile-article.html';
+
 @inject(ArticleService)
-@customElement({ name: 'profile-article', template })
-export class ProfileArticleComponent {
+export class ProfileArticle {
   public static parameters: string[] = ['name'];
 
   private articles: Article[] = [];

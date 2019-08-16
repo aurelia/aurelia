@@ -1,16 +1,13 @@
 import { inject } from "@aurelia/kernel";
-import { customElement } from "@aurelia/runtime";
-import { Article } from "shared/models/article";
+import { Article as ArticleModel} from "shared/models/article";
 import { Comment } from "shared/models/comment";
 import { ArticleService } from "shared/services/article-service";
 import { CommentService } from "shared/services/comment-service";
 import { SharedState } from "shared/state/shared-state";
-import template from './article.html';
 
 @inject(ArticleService, CommentService, SharedState)
-@customElement({ name: 'article', template })
-export class ArticleComponent {
-  private article?: Article;
+export class Article {
+  private article?: ArticleModel;
   private comments?: Comment[];
   private myComment: string = '';
   private slug: any;
@@ -40,5 +37,4 @@ export class ArticleComponent {
     await this.commentService.destroy(commentId, this.slug);
     await this.commentService.getList(this.slug);
   }
-
 }

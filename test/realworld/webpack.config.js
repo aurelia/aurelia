@@ -4,7 +4,7 @@ module.exports = function(env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
-    devtool: production ? 'source-maps' : 'eval',
+    devtool: production ? 'source-maps' : 'inline-source-map',
     entry: './src/main.ts',
     resolve: {
       extensions: ['.ts', '.js'],
@@ -19,8 +19,8 @@ module.exports = function(env, { mode }) {
     module: {
       rules: [
         { test: /\.css$/i, use: ["style-loader", "css-loader"] },
-        { test: /\.ts$/i, loader: 'ts-loader', exclude: /node_modules/ },
-        { test: /\.html$/i, loader: 'html-loader' }
+        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
+        { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]

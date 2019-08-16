@@ -34,8 +34,8 @@ export interface IRouteViewport {
 
 export interface IViewportComponent {
   component: string | Partial<ICustomElementType>;
-  viewport?: string;
-  parameters?: Record<string, unknown> | string;
+  viewport?: string | Viewport;
+  parameters?: Record<string, unknown> | string; // TODO: Allow unknown[] for parameters
 }
 
 export type NavigationInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;

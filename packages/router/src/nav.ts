@@ -10,13 +10,13 @@ export interface IViewportComponent {
   parameters?: Record<string, unknown> | string;
 }
 
-export type NavInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
+export type NavigationInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
 
 export interface INavRoute {
-  route?: NavInstruction | NavInstruction[];
+  route?: NavigationInstruction | NavigationInstruction[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavInstruction | NavInstruction[] | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;

@@ -25,7 +25,7 @@ export {
 
 export {
   IViewportComponent,
-  NavInstruction,
+  NavigationInstruction as NavInstruction,
   INavRoute,
   Nav,
 } from './nav';

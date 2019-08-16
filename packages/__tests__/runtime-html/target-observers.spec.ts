@@ -278,6 +278,13 @@ describe('ClassAccessor', function () {
       }
     }
 
+    if (secondClassList instanceof Array) {
+      for (const cls of secondClassList) {
+        assertClassChanges(initialClassList, classList, cls, secondUpdatedClassList);
+      }
+      return;
+    }
+
     if (secondClassList instanceof Object) {
       for (const cls in secondClassList) {
         if (!!secondClassList[cls]) {
@@ -285,7 +292,7 @@ describe('ClassAccessor', function () {
           continue;
         }
         if (!initialClasses.includes(cls)) {
-          assert.notIncludes(secondUpdatedClassList, cls, `secondUpdatedClassList does not exclude class from initial class prop but does if not secondClassList "${JSON.stringify(secondClassList)}"`);
+          assert.notIncludes(secondUpdatedClassList, cls, `secondUpdatedClassList ${JSON.stringify(secondUpdatedClassList)} does not exclude class ${cls} from initial class prop but does if not secondClassList "${JSON.stringify(secondClassList)}"`);
         }
       }
     }
@@ -295,10 +302,15 @@ describe('ClassAccessor', function () {
     '<div></div>',
     '<div class=""></div>',
     '<div class="foo"></div>',
-    '<div class="foo bar baz"></div>'
+    '<div class="foo bar baz"></div>',
+    '<div class="foo bar baz qux"></div>'
   ];
   const classListArr = ['', 'foo', 'foo bar   ', '    bar baz', 'qux', 'bar qux', 'qux quux'];
-  const secondClassListArr = ['', 'fooo  ', { fooo: true }, { fooo: 'true' }, { fooo: true, baaar: false }, { fooo: 'true', baaar: 'false' }, { foo: true, bar: false, fooo: true }, { foo: false, bar: false }];
+  const secondClassListArr = ['', 'fooo  ', { fooo: true }, { fooo: 'true' }, { fooo: true, baaar: false },
+    { fooo: 'true', baaar: 'false' }, { foo: true, bar: false, fooo: true }, { foo: false, bar: false },
+    { 'fooo baaar': true, 'baar': true, 'fono': false },
+    ['fooo', ['bar', { baz: true }], 'bazz'],
+    ['fooo', { baar: true }, 'bazz'], []]; //empty array test
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 

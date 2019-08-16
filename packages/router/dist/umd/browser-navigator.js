@@ -12,7 +12,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const queue_1 = require("./queue");
-    class BrowserNavigation {
+    class BrowserNavigator {
         constructor(lifecycle, dom) {
             this.handlePopstate = (ev) => {
                 return this.enqueue(this, 'popstate', [ev]);
@@ -74,15 +74,15 @@
         go(delta, suppressPopstate = false) {
             return this.enqueue(this.history, 'go', [delta], suppressPopstate);
         }
-        pushNavigationState(state) {
-            const { title, path } = state.NavigationEntry;
+        pushNavigatorState(state) {
+            const { title, path } = state.currentEntry;
             return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
         }
-        replaceNavigationState(state) {
-            const { title, path } = state.NavigationEntry;
+        replaceNavigatorState(state) {
+            const { title, path } = state.currentEntry;
             return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
         }
-        popNavigationState() {
+        popNavigatorState() {
             return this.enqueue(this, 'popState', []);
         }
         popstate(ev, resolve, suppressPopstate = false) {
@@ -105,9 +105,9 @@
             await this.go(-1, true);
             const state = this.history.state;
             // TODO: Fix browser forward bug after pop on first entry
-            if (state && state.navigationEntry && !state.NavigationEntry.firstEntry) {
+            if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
                 await this.go(-1, true);
-                return this.pushNavigationState(state);
+                return this.pushNavigatorState(state);
             }
             resolve();
         }
@@ -151,7 +151,7 @@
             return promises[0];
         }
     }
-    BrowserNavigation.inject = [runtime_1.ILifecycle, runtime_1.IDOM];
-    exports.BrowserNavigation = BrowserNavigation;
+    BrowserNavigator.inject = [runtime_1.ILifecycle, runtime_1.IDOM];
+    exports.BrowserNavigator = BrowserNavigator;
 });
-//# sourceMappingURL=browser-navigation.js.map
+//# sourceMappingURL=browser-navigator.js.map

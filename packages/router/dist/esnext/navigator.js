@@ -91,8 +91,8 @@ export class Navigator {
     }
     getState() {
         const state = { ...this.options.store.state };
-        const entries = (state.NavigationEntries || []);
-        const currentEntry = state.NavigationEntry;
+        const entries = (state.entries || []);
+        const currentEntry = state.currentEntry;
         return { state, entries, currentEntry };
     }
     loadState() {
@@ -104,14 +104,14 @@ export class Navigator {
         const storedEntry = this.toStorableEntry(this.currentEntry);
         this.entries[storedEntry.index] = storedEntry;
         const state = {
-            NavigationEntries: this.entries,
-            NavigationEntry: storedEntry,
+            entries: this.entries,
+            currentEntry: storedEntry,
         };
         if (push) {
-            return this.options.store.pushNavigationState(state);
+            return this.options.store.pushNavigatorState(state);
         }
         else {
-            return this.options.store.replaceNavigationState(state);
+            return this.options.store.replaceNavigatorState(state);
         }
     }
     toStorableEntry(entry) {
@@ -122,7 +122,7 @@ export class Navigator {
         this.currentEntry = instruction;
         if (this.currentEntry.untracked) {
             if (instruction.fromBrowser) {
-                await this.options.store.popNavigationState();
+                await this.options.store.popNavigatorState();
             }
             this.currentEntry.index--;
             this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
@@ -142,7 +142,7 @@ export class Navigator {
     async cancel(instruction) {
         if (instruction.fromBrowser) {
             if (instruction.navigation.new) {
-                await this.options.store.popNavigationState();
+                await this.options.store.popNavigatorState();
             }
             else {
                 await this.options.store.go(-instruction.historyMovement, true);

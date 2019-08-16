@@ -1,6 +1,6 @@
 import { DI, IContainer, Reporter } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
-import { BrowserNavigation } from './browser-navigation';
+import { BrowserNavigator } from './browser-navigator';
 import { Guardian } from './guardian';
 import { InstructionResolver } from './instruction-resolver';
 import { LinkHandler } from './link-handler';
@@ -25,10 +25,27 @@ export class Router {
         this.linkCallback = (info) => {
             let href = info.href;
             if (href.startsWith('#')) {
-                href = href.substring(1);
+                href = href.slice(1);
+                // '#' === '/' === '#/'
+                if (!href.startsWith('/')) {
+                    href = `/${href}`;
+                }
             }
+            // If it's not from scope root, figure out which scope
             if (!href.startsWith('/')) {
-                const scope = this.closestScope(info.anchor);
+                let scope = this.closestScope(info.anchor);
+                // Scope modifications
+                if (href.startsWith('.')) {
+                    // The same as no scope modification
+                    if (href.startsWith('./')) {
+                        href = href.slice(2);
+                    }
+                    // Find out how many scopes upwards we should move
+                    while (href.startsWith('../')) {
+                        scope = scope.parent || scope;
+                        href = href.slice(3);
+                    }
+                }
                 const context = scope.scopeContext();
                 href = this.instructionResolver.buildScopedLink(context, href);
             }
@@ -40,7 +57,7 @@ export class Router {
             this.processNavigations(instruction).catch(error => { throw error; });
         };
         this.navigationCallback = (navigation) => {
-            const entry = (navigation.state && navigation.state.NavigationEntry ? navigation.state.NavigationEntry : { instruction: null, fullStateInstruction: null });
+            const entry = (navigation.state && navigation.state.currentEntry ? navigation.state.currentEntry : { instruction: null, fullStateInstruction: null });
             entry.instruction = navigation.instruction;
             entry.fromBrowser = true;
             this.navigator.navigate(entry).catch(error => { throw error; });
@@ -425,5 +442,5 @@ export class Router {
         return Promise.resolve();
     }
 }
-Router.inject = [IContainer, Navigator, BrowserNavigation, IRouteTransformer, LinkHandler, InstructionResolver];
+Router.inject = [IContainer, Navigator, BrowserNavigator, IRouteTransformer, LinkHandler, InstructionResolver];
 //# sourceMappingURL=router.js.map

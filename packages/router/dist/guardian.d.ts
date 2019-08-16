@@ -1,6 +1,6 @@
 import { ICustomElementType } from '@aurelia/runtime';
 import { Guard } from './guard';
-import { INavigationInstruction } from './navigator';
+import { INavigatorInstruction } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export interface IGuardTarget {
@@ -12,7 +12,7 @@ export interface IGuardTarget {
 export declare const enum GuardTypes {
     Before = "before"
 }
-export declare type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigationInstruction) => boolean | ViewportInstruction[];
+export declare type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
 export declare type GuardTarget = IGuardTarget | Partial<ICustomElementType> | string;
 export declare type GuardIdentity = number;
 export interface IGuardOptions {
@@ -26,6 +26,6 @@ export declare class Guardian {
     constructor();
     addGuard(guardFunction: GuardFunction, options?: IGuardOptions): GuardIdentity;
     removeGuard(id: GuardIdentity): Guard;
-    passes(type: GuardTypes, viewportInstructions: ViewportInstruction[], navigationInstruction: INavigationInstruction): boolean | ViewportInstruction[];
+    passes(type: GuardTypes, viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[];
 }
 //# sourceMappingURL=guardian.d.ts.map

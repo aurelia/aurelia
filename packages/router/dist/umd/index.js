@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./browser-navigation", "./link-handler", "./guard", "./guardian", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
+        define(["require", "exports", "./browser-navigator", "./link-handler", "./guard", "./guardian", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var browser_navigation_1 = require("./browser-navigation");
-    exports.BrowserNavigation = browser_navigation_1.BrowserNavigation;
+    var browser_navigator_1 = require("./browser-navigator");
+    exports.BrowserNavigator = browser_navigator_1.BrowserNavigator;
     var link_handler_1 = require("./link-handler");
     exports.LinkHandler = link_handler_1.LinkHandler;
     var guard_1 = require("./guard");

@@ -14,6 +14,7 @@ export { ValueAttributeObserver } from './observation/value-attribute-observer';
 export { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 export { SelfBindingBehavior } from './resources/binding-behaviors/self';
 export { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
+export { Blur, BlurManager } from './resources/custom-attributes/blur';
 export { Focus } from './resources/custom-attributes/focus';
 export { Compose } from './resources/custom-elements/compose';
 export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration } from './configuration';

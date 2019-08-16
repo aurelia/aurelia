@@ -6,7 +6,7 @@ export interface IRouteSeparators {
     viewport?: string;
     sibling?: string;
     scope?: string;
-    ownsScope?: string;
+    noScope?: string;
     parameters?: string;
     parametersEnd?: string;
     parameter?: string;

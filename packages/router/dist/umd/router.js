@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./browser-navigation", "./guardian", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./parser", "./route-table", "./scope", "./utils", "./viewport-instruction"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./browser-navigator", "./guardian", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./parser", "./route-table", "./scope", "./utils", "./viewport-instruction"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const browser_navigation_1 = require("./browser-navigation");
+    const browser_navigator_1 = require("./browser-navigator");
     const guardian_1 = require("./guardian");
     const instruction_resolver_1 = require("./instruction-resolver");
     const link_handler_1 = require("./link-handler");
@@ -36,10 +36,27 @@
             this.linkCallback = (info) => {
                 let href = info.href;
                 if (href.startsWith('#')) {
-                    href = href.substring(1);
+                    href = href.slice(1);
+                    // '#' === '/' === '#/'
+                    if (!href.startsWith('/')) {
+                        href = `/${href}`;
+                    }
                 }
+                // If it's not from scope root, figure out which scope
                 if (!href.startsWith('/')) {
-                    const scope = this.closestScope(info.anchor);
+                    let scope = this.closestScope(info.anchor);
+                    // Scope modifications
+                    if (href.startsWith('.')) {
+                        // The same as no scope modification
+                        if (href.startsWith('./')) {
+                            href = href.slice(2);
+                        }
+                        // Find out how many scopes upwards we should move
+                        while (href.startsWith('../')) {
+                            scope = scope.parent || scope;
+                            href = href.slice(3);
+                        }
+                    }
                     const context = scope.scopeContext();
                     href = this.instructionResolver.buildScopedLink(context, href);
                 }
@@ -51,7 +68,7 @@
                 this.processNavigations(instruction).catch(error => { throw error; });
             };
             this.navigationCallback = (navigation) => {
-                const entry = (navigation.state && navigation.state.NavigationEntry ? navigation.state.NavigationEntry : { instruction: null, fullStateInstruction: null });
+                const entry = (navigation.state && navigation.state.currentEntry ? navigation.state.currentEntry : { instruction: null, fullStateInstruction: null });
                 entry.instruction = navigation.instruction;
                 entry.fromBrowser = true;
                 this.navigator.navigate(entry).catch(error => { throw error; });
@@ -436,7 +453,7 @@
             return Promise.resolve();
         }
     }
-    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_navigation_1.BrowserNavigation, exports.IRouteTransformer, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver];
+    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_navigator_1.BrowserNavigator, exports.IRouteTransformer, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver];
     exports.Router = Router;
 });
 //# sourceMappingURL=router.js.map

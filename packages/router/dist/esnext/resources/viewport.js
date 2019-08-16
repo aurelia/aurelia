@@ -4,9 +4,9 @@ import { IRouter, } from '../router';
 export class ViewportCustomElement {
     constructor(router, element, renderingEngine) {
         this.name = 'default';
-        this.scope = null;
         this.usedBy = null;
         this.default = null;
+        this.noScope = null;
         this.noLink = null;
         this.noHistory = null;
         this.stateful = null;
@@ -57,7 +57,7 @@ export class ViewportCustomElement {
         this.disconnect();
     }
     connect() {
-        const options = { scope: this.element.hasAttribute('scope') };
+        const options = { scope: !this.element.hasAttribute('no-scope') };
         if (this.usedBy && this.usedBy.length) {
             options.usedBy = this.usedBy;
         }
@@ -105,13 +105,13 @@ tslib_1.__decorate([
 ], ViewportCustomElement.prototype, "name", void 0);
 tslib_1.__decorate([
     bindable
-], ViewportCustomElement.prototype, "scope", void 0);
-tslib_1.__decorate([
-    bindable
 ], ViewportCustomElement.prototype, "usedBy", void 0);
 tslib_1.__decorate([
     bindable
 ], ViewportCustomElement.prototype, "default", void 0);
+tslib_1.__decorate([
+    bindable
+], ViewportCustomElement.prototype, "noScope", void 0);
 tslib_1.__decorate([
     bindable
 ], ViewportCustomElement.prototype, "noLink", void 0);

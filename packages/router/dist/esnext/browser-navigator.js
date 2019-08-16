@@ -1,7 +1,7 @@
 import { Reporter } from '@aurelia/kernel';
 import { IDOM, ILifecycle } from '@aurelia/runtime';
 import { Queue } from './queue';
-export class BrowserNavigation {
+export class BrowserNavigator {
     constructor(lifecycle, dom) {
         this.handlePopstate = (ev) => {
             return this.enqueue(this, 'popstate', [ev]);
@@ -63,15 +63,15 @@ export class BrowserNavigation {
     go(delta, suppressPopstate = false) {
         return this.enqueue(this.history, 'go', [delta], suppressPopstate);
     }
-    pushNavigationState(state) {
-        const { title, path } = state.NavigationEntry;
+    pushNavigatorState(state) {
+        const { title, path } = state.currentEntry;
         return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
     }
-    replaceNavigationState(state) {
-        const { title, path } = state.NavigationEntry;
+    replaceNavigatorState(state) {
+        const { title, path } = state.currentEntry;
         return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
     }
-    popNavigationState() {
+    popNavigatorState() {
         return this.enqueue(this, 'popState', []);
     }
     popstate(ev, resolve, suppressPopstate = false) {
@@ -94,9 +94,9 @@ export class BrowserNavigation {
         await this.go(-1, true);
         const state = this.history.state;
         // TODO: Fix browser forward bug after pop on first entry
-        if (state && state.navigationEntry && !state.NavigationEntry.firstEntry) {
+        if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
             await this.go(-1, true);
-            return this.pushNavigationState(state);
+            return this.pushNavigatorState(state);
         }
         resolve();
     }
@@ -140,5 +140,5 @@ export class BrowserNavigation {
         return promises[0];
     }
 }
-BrowserNavigation.inject = [ILifecycle, IDOM];
-//# sourceMappingURL=browser-navigation.js.map
+BrowserNavigator.inject = [ILifecycle, IDOM];
+//# sourceMappingURL=browser-navigator.js.map

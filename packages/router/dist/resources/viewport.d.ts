@@ -5,9 +5,9 @@ import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
     static readonly inject: readonly Key[];
     name: string;
-    scope: boolean;
     usedBy: string;
     default: string;
+    noScope: boolean;
     noLink: boolean;
     noHistory: boolean;
     stateful: boolean;

@@ -6,7 +6,7 @@ export class InstructionResolver {
                 viewport: '@',
                 sibling: '+',
                 scope: '/',
-                ownsScope: '!',
+                noScope: '!',
                 parameters: '(',
                 parametersEnd: ')',
                 parameter: '&',
@@ -119,11 +119,11 @@ export class InstructionResolver {
         return strings.join(this.separators.sibling);
     }
     parseAViewportInstruction(instruction) {
-        let scope;
-        // Scope is always at the end, regardless of anything else
-        if (instruction.endsWith(this.separators.ownsScope)) {
-            scope = true;
-            instruction = instruction.slice(0, -this.separators.ownsScope.length);
+        let scope = true;
+        // No scope is always at the end, regardless of anything else
+        if (instruction.endsWith(this.separators.noScope)) {
+            scope = false;
+            instruction = instruction.slice(0, -this.separators.noScope.length);
         }
         const [componentPart, viewport] = instruction.split(this.separators.viewport);
         const [component, ...parameters] = componentPart.split(this.separators.parameters);
@@ -148,8 +148,8 @@ export class InstructionResolver {
             if (instruction.viewportName !== null && !excludeViewport) {
                 instructionString += this.separators.viewport + instruction.viewportName;
             }
-            if (instruction.ownsScope) {
-                instructionString += this.separators.ownsScope;
+            if (!instruction.ownsScope) {
+                instructionString += this.separators.noScope;
             }
             return instructionString;
         }

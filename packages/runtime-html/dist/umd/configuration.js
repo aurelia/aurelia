@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./dom", "./html-renderer", "./observation/observer-locator", "./projectors", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/focus", "./resources/custom-elements/compose"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./dom", "./html-renderer", "./observation/observer-locator", "./projectors", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-elements/compose"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -18,6 +18,7 @@
     const attr_1 = require("./resources/binding-behaviors/attr");
     const self_1 = require("./resources/binding-behaviors/self");
     const update_trigger_1 = require("./resources/binding-behaviors/update-trigger");
+    const blur_1 = require("./resources/custom-attributes/blur");
     const focus_1 = require("./resources/custom-attributes/focus");
     const compose_1 = require("./resources/custom-elements/compose");
     exports.IProjectorLocatorRegistration = projectors_1.HTMLProjectorLocator;
@@ -42,6 +43,7 @@
     exports.UpdateTriggerBindingBehaviorRegistration = update_trigger_1.UpdateTriggerBindingBehavior;
     exports.ComposeRegistration = compose_1.Compose;
     exports.FocusRegistration = focus_1.Focus;
+    exports.BlurRegistration = blur_1.Blur;
     /**
      * Default HTML-specific (but environment-agnostic) resources:
      * - Binding Behaviors: `attr`, `self`, `updateTrigger`
@@ -52,7 +54,8 @@
         exports.SelfBindingBehaviorRegistration,
         exports.UpdateTriggerBindingBehaviorRegistration,
         exports.ComposeRegistration,
-        exports.FocusRegistration
+        exports.FocusRegistration,
+        exports.BlurRegistration
     ];
     exports.ListenerBindingRendererRegistration = html_renderer_1.ListenerBindingRenderer;
     exports.AttributeBindingRendererRegistration = html_renderer_1.AttributeBindingRenderer;

@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 export class ViewportInstruction {
-    constructor(component, viewport, parameters, ownsScope = false, nextScopeInstruction = null) {
+    constructor(component, viewport, parameters, ownsScope = true, nextScopeInstruction = null) {
         this.component = null;
         this.componentName = null;
         this.viewport = null;

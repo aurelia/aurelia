@@ -1,4 +1,4 @@
-export { BrowserNavigation, } from './browser-navigation';
+export { BrowserNavigator, } from './browser-navigator';
 export { LinkHandler, } from './link-handler';
 export { Guard, } from './guard';
 export { GuardTypes, Guardian, } from './guardian';

@@ -1,6 +1,6 @@
 import { ICustomElementType } from '@aurelia/runtime';
 import { GuardFunction, GuardIdentity, GuardTarget, GuardTypes, IGuardOptions } from './guardian';
-import { INavigationInstruction } from './navigator';
+import { INavigatorInstruction } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export declare class Guard {
@@ -11,7 +11,7 @@ export declare class Guard {
     id: GuardIdentity;
     constructor(guard: GuardFunction, options: IGuardOptions, id: GuardIdentity);
     matches(viewportInstructions: ViewportInstruction[]): boolean;
-    check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigationInstruction): boolean | ViewportInstruction[];
+    check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[];
 }
 declare class Target {
     component?: Partial<ICustomElementType>;

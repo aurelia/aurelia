@@ -7,6 +7,7 @@ import { HTMLProjectorLocator } from './projectors';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
+import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
 import { Compose } from './resources/custom-elements/compose';
 export const IProjectorLocatorRegistration = HTMLProjectorLocator;
@@ -31,6 +32,7 @@ export const SelfBindingBehaviorRegistration = SelfBindingBehavior;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
 export const ComposeRegistration = Compose;
 export const FocusRegistration = Focus;
+export const BlurRegistration = Blur;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `attr`, `self`, `updateTrigger`
@@ -41,7 +43,8 @@ export const DefaultResources = [
     SelfBindingBehaviorRegistration,
     UpdateTriggerBindingBehaviorRegistration,
     ComposeRegistration,
-    FocusRegistration
+    FocusRegistration,
+    BlurRegistration
 ];
 export const ListenerBindingRendererRegistration = ListenerBindingRenderer;
 export const AttributeBindingRendererRegistration = AttributeBindingRenderer;

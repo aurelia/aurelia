@@ -1,6 +1,25 @@
-import { INavigationStore, INavigationViewer } from './browser-navigation';
 import { QueueItem } from './queue';
-export interface IStoredNavigationEntry {
+export interface INavigatorStore {
+    length: number;
+    state: Record<string, unknown>;
+    go(delta?: number, suppressPopstate?: boolean): Promise<void>;
+    pushNavigatorState(state: INavigatorState): Promise<void>;
+    replaceNavigatorState(state: INavigatorState): Promise<void>;
+    popNavigatorState(): Promise<void>;
+}
+export interface INavigatorViewer {
+    activate(callback: (ev?: INavigatorViewerEvent) => void): void;
+    deactivate(): void;
+}
+export interface INavigatorViewerEvent {
+    event: PopStateEvent;
+    state?: INavigatorState;
+    path: string;
+    data: string;
+    hash: string;
+    instruction: string;
+}
+export interface IStoredNavigatorEntry {
     instruction: string;
     fullStateInstruction: string;
     index?: number;
@@ -12,7 +31,7 @@ export interface IStoredNavigationEntry {
     parameterList?: string[];
     data?: Record<string, unknown>;
 }
-export interface INavigationEntry extends IStoredNavigationEntry {
+export interface INavigatorEntry extends IStoredNavigatorEntry {
     fromBrowser?: boolean;
     replacing?: boolean;
     refreshing?: boolean;
@@ -23,11 +42,11 @@ export interface INavigationEntry extends IStoredNavigationEntry {
     reject?: ((value?: void | PromiseLike<void>) => void);
 }
 export interface INavigatorOptions {
-    viewer?: INavigationViewer;
-    store?: INavigationStore;
-    callback?(instruction: INavigationInstruction): void;
+    viewer?: INavigatorViewer;
+    store?: INavigatorStore;
+    callback?(instruction: INavigatorInstruction): void;
 }
-export interface INavigationFlags {
+export interface INavigatorFlags {
     first?: boolean;
     new?: boolean;
     refresh?: boolean;
@@ -35,19 +54,19 @@ export interface INavigationFlags {
     back?: boolean;
     replace?: boolean;
 }
-export interface INavigationInstruction extends INavigationEntry {
-    navigation?: INavigationFlags;
-    previous?: IStoredNavigationEntry;
+export interface INavigatorInstruction extends INavigatorEntry {
+    navigation?: INavigatorFlags;
+    previous?: IStoredNavigatorEntry;
     repeating?: boolean;
 }
-interface INavigatorState {
-    state: Record<string, unknown>;
-    entries: IStoredNavigationEntry[];
-    currentEntry: IStoredNavigationEntry;
+export interface INavigatorState {
+    state?: Record<string, unknown>;
+    entries: IStoredNavigatorEntry[];
+    currentEntry: IStoredNavigatorEntry;
 }
 export declare class Navigator {
-    currentEntry: INavigationInstruction;
-    entries: IStoredNavigationEntry[];
+    currentEntry: INavigatorInstruction;
+    entries: IStoredNavigatorEntry[];
     private readonly pendingNavigations;
     private options;
     private isActive;
@@ -55,8 +74,8 @@ export declare class Navigator {
     readonly queued: number;
     activate(options?: INavigatorOptions): void;
     deactivate(): void;
-    navigate(entry: INavigationEntry): Promise<void>;
-    processNavigations: (qEntry: QueueItem<INavigationInstruction>) => void;
+    navigate(entry: INavigatorEntry): Promise<void>;
+    processNavigations: (qEntry: QueueItem<INavigatorInstruction>) => void;
     refresh(): Promise<void>;
     go(movement: number): Promise<void>;
     setEntryTitle(title: string): Promise<void>;
@@ -64,10 +83,9 @@ export declare class Navigator {
     getState(): INavigatorState;
     loadState(): void;
     saveState(push?: boolean): Promise<void>;
-    toStorableEntry(entry: INavigationInstruction): IStoredNavigationEntry;
-    finalize(instruction: INavigationInstruction): Promise<void>;
-    cancel(instruction: INavigationInstruction): Promise<void>;
+    toStorableEntry(entry: INavigatorInstruction): IStoredNavigatorEntry;
+    finalize(instruction: INavigatorInstruction): Promise<void>;
+    cancel(instruction: INavigatorInstruction): Promise<void>;
     private invokeCallback;
 }
-export {};
 //# sourceMappingURL=navigator.d.ts.map

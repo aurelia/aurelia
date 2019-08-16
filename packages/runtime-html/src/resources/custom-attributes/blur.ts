@@ -71,7 +71,6 @@ export class BlurManager {
     }
     doc.addEventListener('touchstart', handler, defaultCaptureEventInit);
     doc.addEventListener('mousedown', handler, defaultCaptureEventInit);
-    doc.addEventListener('wheel', handler, defaultBubbleEventInit);
     doc.addEventListener('focus', handler, defaultCaptureEventInit);
     win.addEventListener('blur', handler, defaultBubbleEventInit);
   }
@@ -86,7 +85,6 @@ export class BlurManager {
     }
     doc.removeEventListener('touchstart', handler, defaultCaptureEventInit);
     doc.removeEventListener('mousedown', handler, defaultCaptureEventInit);
-    doc.removeEventListener('wheel', handler, defaultBubbleEventInit);
     doc.removeEventListener('focus', handler, defaultCaptureEventInit);
     win.removeEventListener('blur', handler, defaultBubbleEventInit);
   }
@@ -369,10 +367,6 @@ const createHandler = (
     }
   };
 
-  const handleMouseWheel = (e: WheelEvent): void => {
-    handleEvent(e);
-  };
-
   const handleEvent = (e: Event): void => {
     const target = e.target;
     if (target === null) {
@@ -389,7 +383,6 @@ const createHandler = (
     onmousedown: _3__handleMousedown as EventHandler,
     onfocus: _4__handleFocus as EventHandler,
     onblur: handleWindowBlur as EventHandler,
-    onwheel: handleMouseWheel as EventHandler,
     handleEvent(e: Event): void {
       this[`on${e.type}`](e);
     }

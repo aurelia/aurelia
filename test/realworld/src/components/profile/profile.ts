@@ -35,7 +35,7 @@ export class Profile {
         a: 'nav-link',
         aActive: 'active',
       });
-    this.router.goto(`profile-article(${this.username})`);
+    this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
     return this.profile = profile;
   }
 

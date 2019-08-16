@@ -67,6 +67,11 @@ export {
 } from './resources/binding-behaviors/update-trigger';
 
 export {
+  Blur,
+  BlurManager
+} from './resources/custom-attributes/blur';
+
+export {
   Focus
 } from './resources/custom-attributes/focus';
 

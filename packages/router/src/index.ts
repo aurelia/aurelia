@@ -1,10 +1,6 @@
 export {
-  INavigationStore,
-  INavigationViewer,
-  INavigationViewerEvent,
-  INavigationState,
-  BrowserNavigation,
-} from './browser-navigation';
+  BrowserNavigator,
+} from './browser-navigator';
 
 export {
   ILinkHandlerOptions,
@@ -28,8 +24,6 @@ export {
 } from './guardian';
 
 export {
-  IViewportComponent,
-  NavInstruction,
   INavRoute,
   Nav,
 } from './nav';
@@ -39,11 +33,15 @@ export {
 } from './nav-route';
 
 export {
-  IStoredNavigationEntry,
-  INavigationEntry,
+  IStoredNavigatorEntry,
+  INavigatorEntry,
   INavigatorOptions,
-  INavigationFlags,
-  INavigationInstruction,
+  INavigatorFlags,
+  INavigatorInstruction,
+  INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerEvent,
   Navigator,
 } from './navigator';
 
@@ -76,6 +74,8 @@ export {
   IRouterOptions,
   IRouteViewport,
   IRouter,
+  IViewportComponent,
+  NavigationInstruction,
   Router,
 } from './router';
 

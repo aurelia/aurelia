@@ -1,7 +1,7 @@
 import { ICustomElementType } from '@aurelia/runtime';
 
 import { Guard } from './guard';
-import { INavigationInstruction } from './navigator';
+import { INavigatorInstruction } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -17,7 +17,7 @@ export const enum GuardTypes {
   Before = 'before',
 }
 
-export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigationInstruction) => boolean | ViewportInstruction[];
+export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
 export type GuardTarget = IGuardTarget | Partial<ICustomElementType> | string;
 export type GuardIdentity = number;
 
@@ -54,7 +54,7 @@ export class Guardian {
     }
   }
 
-  public passes(type: GuardTypes, viewportInstructions: ViewportInstruction[], navigationInstruction: INavigationInstruction): boolean | ViewportInstruction[] {
+  public passes(type: GuardTypes, viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[] {
     let modified: boolean = false;
     for (const guard of this.guards[type]) {
       if (guard.matches(viewportInstructions)) {

@@ -1,22 +1,12 @@
-import { ICustomElementType } from '@aurelia/runtime';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
-import { IRouter } from './router';
-import { ViewportInstruction } from './viewport-instruction';
-
-export interface IViewportComponent {
-  component: string | Partial<ICustomElementType>;
-  viewport?: string;
-  parameters?: Record<string, unknown> | string;
-}
-
-export type NavInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
+import { IRouter, NavigationInstruction } from './router';
 
 export interface INavRoute {
-  route?: NavInstruction | NavInstruction[];
+  route?: NavigationInstruction | NavigationInstruction[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavInstruction | NavInstruction[] | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;

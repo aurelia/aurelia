@@ -1,5 +1,5 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { Aurelia, CustomElement, customElement, CustomElementConstructor, CustomElementHost } from '@aurelia/runtime';
 import { Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
@@ -113,7 +113,7 @@ describe('blur.integration.spec.ts', () => {
       );
     });
 
-    describe.skip('Abnormal scenarios', function() {
+    describe('Abnormal scenarios', function() {
       const blurAttrs = [
         // 'blur.bind=hasFocus',
         'blur.two-way=hasFocus',
@@ -141,32 +141,40 @@ describe('blur.integration.spec.ts', () => {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             input.blur();
-            dispatchEventWith(ctx, input, 'blur', false);
+            dispatchEventWith(ctx, input, EVENTS.Blur, false);
             assert.notEqual(input, ctx.doc.activeElement, 'child > input !== doc.activeElement');
             assert.equal(component.hasFocus, false, 'child > input@blur');
+            await waitForFrames(ctx, 1);
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document@mousedown');
+            await waitForFrames(ctx, 1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
             assert.equal(component.hasFocus, true, 'window@mousedown');
+            await waitForFrames(ctx, 1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document.body@mousedown');
+            await waitForFrames(ctx, 1);
 
             const button = ctx.doc.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, '+ button@mousedown');
+            await waitForFrames(ctx, 1);
 
             // this is quite convoluted
             component.hasFocus = true;
             input.focus();
-            dispatchEventWith(ctx, input, 'focus');
+            dispatchEventWith(ctx, input, EVENTS.Focus);
             assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement');
-            assert.equal(component.hasFocus, false, 'child > input@focus');
+            // child input got focus
+            // 1. blur got triggered -> hasFocus to false
+            // 2. focus got triggered -> hasFocus to true
+            assert.equal(component.hasFocus, true, 'child > input@focus');
           }
         },
       ];
@@ -182,21 +190,115 @@ describe('blur.integration.spec.ts', () => {
               CustomElement.define(
                 {
                   name: 'child',
-                  template: '<template><input focus.two-way="value" /></template>'
+                  template: '<template><input focus.two-way="value" /></template>',
+                  bindables: ['value']
                 },
-                class Child {
-                  public static bindables = {
-                    value: { property: 'value', attribute: 'value' }
-                  };
-                }
+                class Child {}
               )
             );
             await assertFn(ctx, component, null);
+            await waitForFrames(ctx, 2);
             await dispose();
           });
         }
       );
     });
+  });
+
+  describe('with shadowDOM', function() {
+    const testCases: IBlurTestCase[] = [
+      {
+        title: (...args) => `works with event originating inside shadow dom`,
+        template: () =>
+          `
+            <ce-a blur.two-way=aHasFocus><button class=slotted-btn>Slotted button</button></ce-a>
+            <ce-b blur.two-way=bHasFocus><button class=slotted-btn>Slotted button</button></ce-b>
+          `,
+        dependencies: [
+          CustomElement.define(
+            {
+              name: 'ce-a',
+              template:
+                `
+                  <div blur.two-way=hasFocus><button>ce-b button</button><slot></slot></div>
+                  <p>This is a p</p>
+                `,
+              shadowOptions: { mode: 'open' }
+            },
+            class CustomElementA {
+              public hasFocus = true;
+            }
+          ),
+          CustomElement.define(
+            {
+              name: 'ce-b',
+              template:
+                `
+                  <div blur.two-way=hasFocus><button>ce-b button</button><slot></slot></div>
+                  <p>this is a p</p>
+                `,
+              shadowOptions: { mode: 'open' }
+            },
+            class CustomElementB {
+              public hasFocus = true;
+            }
+          )
+        ],
+        app: class App {
+          public hasFocus: boolean = true;
+          public aHasFocus: boolean = true;
+          public bHasFocus: boolean = true;
+        },
+        assertFn: async (ctx, component: IApp & { aHasFocus: boolean; bHasFocus: boolean }, host) => {
+
+          const $ceA = host.querySelector('ce-a') as CustomElementHost & HTMLElement;
+          const $ceB = host.querySelector('ce-b') as CustomElementHost & HTMLElement;
+          const ceA = $ceA.$controller.viewModel as IApp;
+          const ceB = $ceB.$controller.viewModel as IApp;
+
+          dispatchEventWith(ctx, host.querySelector('ce-a'), EVENTS.MouseDown);
+          assert.equal(component.aHasFocus, true, '.aHasFocus === true');
+          assert.equal(component.bHasFocus, false, '.bHasFocus === false');
+          assert.equal(ceA.hasFocus, false, '<ce-a/>.hasFocus should have been false?');
+          assert.equal(ceB.hasFocus, false, '<ce-b/>.hasFocus should have been false?');
+
+          await waitForFrames(ctx, 1);
+
+          ceA.hasFocus = true;
+          dispatchEventWith(ctx, $ceA.shadowRoot.querySelector('button'), EVENTS.MouseDown);
+          assert.equal(ceA.hasFocus, true, '<ce-a/>.hasFocus should have been true?');
+          await waitForFrames(ctx, 1);
+
+          $ceA.dispatchEvent(mockComposedEvent({
+            ctx,
+            eventName: EVENTS.MouseDown,
+            target: $ceA,
+            composedPath: [$ceA.shadowRoot.querySelector('p')]
+          }));
+
+          assert.equal(ceA.hasFocus, false, '<ce-a/>.hasFocus should have been false?');
+          assert.equal(ceB.hasFocus, false, '<ce-b/>.hasFocus should have been false?');
+        }
+      }
+    ];
+
+    eachCartesianJoin(
+      [testCases],
+      ({ title, template, dependencies = [], app, assertFn }: IBlurTestCase) => {
+        it(title(), async function() {
+          const { ctx, component, host, dispose } = setup<IApp>(
+            template(''),
+            app,
+            ...dependencies
+          );
+          await assertFn(ctx, component, host);
+          // test cases could be sharing the same context document
+          // so wait a bit before running the next test
+          await waitForFrames(ctx, 2);
+          await dispose();
+        });
+      }
+    );
   });
 
   const enum EVENTS {
@@ -211,7 +313,8 @@ describe('blur.integration.spec.ts', () => {
     template: TemplateFn;
     app: Constructable<T>;
     assertFn: AssertionFn;
-    getFocusable: string | ((doc: Document) => HTMLElement);
+    getFocusable?: string | ((doc: Document) => HTMLElement);
+    dependencies?: CustomElementConstructor[];
     title(...args: unknown[]): string;
   }
 
@@ -220,8 +323,7 @@ describe('blur.integration.spec.ts', () => {
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
     container.register(...registrations);
-    const bodyEl = ctx.doc.body;
-    const host = bodyEl.appendChild(ctx.createElement('app'));
+    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
@@ -242,6 +344,19 @@ describe('blur.integration.spec.ts', () => {
         host.remove();
       }
     };
+  }
+
+  function mockComposedEvent<T = any>(
+    options: { ctx: HTMLTestContext; eventName: string; bubbles?: boolean; target: HTMLElement; composedPath: Node[] }
+  ): CustomEvent<T> {
+    const { ctx, eventName, target, composedPath, bubbles = true } = options;
+    const e = new ctx.CustomEvent<T>(eventName, { bubbles });
+    Object.defineProperties(e, {
+      target: { value: target },
+      composed: { value: true },
+      composedPath: { value: () => composedPath }
+    });
+    return e;
   }
 
   function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {

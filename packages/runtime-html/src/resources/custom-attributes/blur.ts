@@ -143,7 +143,7 @@ export class Blur {
   private manager: BlurManager;
 
   constructor(
-    @INode private readonly element: Element,
+    @INode private readonly element: HTMLElement,
     @IDOM private readonly dom: HTMLDOM,
     @ILifecycle lifecycle: ILifecycle
   ) {
@@ -190,7 +190,8 @@ export class Blur {
     let link: string | HasContains;
     let contextNode: Element | null;
 
-    if (this.element.contains(target)) {
+    const element = this.element;
+    if (containsElementOrShadowRoot(element, target)) {
       return true;
     }
 
@@ -266,6 +267,29 @@ export class Blur {
   }
 }
 
+const containsElementOrShadowRoot = (container: HTMLElement, target: Node): boolean => {
+  if (container.contains(target)) {
+    return true;
+  }
+  let parentNode: Node | null = null;
+  // tslint:disable-next-line:no-constant-condition
+  while (target != null) {
+
+    if (target === container) {
+      return true;
+    }
+
+    parentNode = target.parentNode;
+
+    if (parentNode === null && target.nodeType === 11) {
+      target = (target as ShadowRoot).host;
+      continue;
+    }
+    target = parentNode as Node;
+  }
+  return false;
+};
+
 type EventHandler = (e: Event) => void;
 
 const createHandler = (
@@ -299,34 +323,16 @@ const createHandler = (
   const revertCheckage = () => {
     hasChecked = false;
   };
-
-  // method name are prefixed by a number to signal its order in event series
-  const _1__handlePointerDown = (e: PointerEvent): void => {
-    handleEvent(e);
+  const markChecked = () => {
     hasChecked = true;
     lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
   };
 
-  const _2__handleTouchStart = (e: TouchEvent): void => {
-    if (hasChecked) {
-      return;
+  const handleMousedown = (e: MouseEvent): void => {
+    if (!hasChecked) {
+      handleEvent(e);
+      markChecked();
     }
-    handleEvent(e);
-    hasChecked = true;
-    // still queue revert change in case touch event is synthetic
-    // but blur effect is still desired in such scenario
-    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
-  };
-
-  const _3__handleMousedown = (e: MouseEvent): void => {
-    if (hasChecked) {
-      return;
-    }
-    handleEvent(e);
-    hasChecked = true;
-    // still queue revert change in case mouse event is synthetic
-    // but blur effect is still desired in such scenario
-    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
   };
 
   /**
@@ -338,7 +344,7 @@ const createHandler = (
    * User clicks on a non-focusable element
    * User clicks on the window, outside of the document
    */
-  const _4__handleFocus = (e: FocusEvent): void => {
+  const handleFocus = (e: FocusEvent): void => {
     if (hasChecked) {
       return;
     }
@@ -356,8 +362,7 @@ const createHandler = (
     } else {
       handleEvent(e);
     }
-    hasChecked = true;
-    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
+    markChecked();
   };
 
   const handleWindowBlur = (): void => {
@@ -368,7 +373,7 @@ const createHandler = (
   };
 
   const handleEvent = (e: Event): void => {
-    const target = e.target;
+    const target = e.composed ? e.composedPath()[0] : e.target;
     if (target === null) {
       return;
     }
@@ -378,10 +383,10 @@ const createHandler = (
   };
 
   return {
-    onpointerdown: _1__handlePointerDown as EventHandler,
-    ontouchstart: _2__handleTouchStart  as EventHandler,
-    onmousedown: _3__handleMousedown as EventHandler,
-    onfocus: _4__handleFocus as EventHandler,
+    onpointerdown: handleMousedown as EventHandler,
+    ontouchstart: handleMousedown  as EventHandler,
+    onmousedown: handleMousedown as EventHandler,
+    onfocus: handleFocus as EventHandler,
     onblur: handleWindowBlur as EventHandler,
     handleEvent(e: Event): void {
       this[`on${e.type}`](e);

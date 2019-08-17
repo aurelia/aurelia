@@ -42,7 +42,7 @@ export class ViewportContent {
   public fromCache: boolean;
   public reentry: boolean;
 
-  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
+  constructor(content: IRouteableComponentType | string = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;

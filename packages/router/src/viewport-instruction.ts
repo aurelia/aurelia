@@ -1,11 +1,11 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { IRouteableComponentType } from './viewport-content';
 
 export class ViewportInstruction {
-  public component?: Partial<ICustomElementType>;
+  public component?: IRouteableComponentType;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
@@ -15,7 +15,7 @@ export class ViewportInstruction {
   public ownsScope?: boolean;
   public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
+  constructor(component: IRouteableComponentType | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
     this.component = null;
     this.componentName = null;
     this.viewport = null;
@@ -32,7 +32,7 @@ export class ViewportInstruction {
     this.nextScopeInstruction = nextScopeInstruction;
   }
 
-  public setComponent(component: Partial<ICustomElementType> | string): void {
+  public setComponent(component: IRouteableComponentType | string): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;

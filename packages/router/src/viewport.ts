@@ -1,10 +1,10 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigatorInstruction } from './navigator';
 import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
-import { ReentryBehavior, ViewportContent } from './viewport-content';
+import { IRouteableComponentType, ReentryBehavior, ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IViewportOptions {
@@ -58,7 +58,7 @@ export class Viewport {
     this.enabled = true;
   }
 
-  public setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigatorInstruction): boolean {
+  public setNextContent(content: IRouteableComponentType | string, instruction: INavigatorInstruction): boolean {
     let parameters;
     this.clear = false;
     if (typeof content === 'string') {
@@ -279,7 +279,7 @@ export class Viewport {
   }
 
   // TODO: Deal with non-string components
-  public wantComponent(component: ICustomElementType | string): boolean {
+  public wantComponent(component: IRouteableComponentType | string): boolean {
     let usedBy = this.options.usedBy || [];
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
@@ -287,7 +287,7 @@ export class Viewport {
     return usedBy.indexOf(component as string) >= 0;
   }
   // TODO: Deal with non-string components
-  public acceptComponent(component: ICustomElementType | string): boolean {
+  public acceptComponent(component: IRouteableComponentType | string): boolean {
     if (component === '-' || component === null) {
       return true;
     }

@@ -1,7 +1,8 @@
-import { ICustomElementType } from '@aurelia/runtime';
 import { INavRoute, Nav } from './nav';
 import { IViewportComponent, NavigationInstruction } from './router';
+import { IRouteableComponentType } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
+
 
 export class NavRoute {
   public nav: Nav;
@@ -77,7 +78,7 @@ export class NavRoute {
         const viewportComponent = route as IViewportComponent;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {
-        instructions.push(new ViewportInstruction(route as Partial<ICustomElementType>));
+        instructions.push(new ViewportInstruction(route as IRouteableComponentType));
       }
     }
     return instructions;

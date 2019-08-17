@@ -1,12 +1,11 @@
-import { ICustomElementType } from '@aurelia/runtime';
-
 import { Guard } from './guard';
 import { INavigatorInstruction } from './navigator';
 import { Viewport } from './viewport';
+import { IRouteableComponentType } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IGuardTarget {
-  component?: Partial<ICustomElementType>;
+  component?: IRouteableComponentType;
   componentName?: string;
   viewport?: Viewport;
   viewportName?: string;
@@ -18,7 +17,7 @@ export const enum GuardTypes {
 }
 
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget = IGuardTarget | Partial<ICustomElementType> | string;
+export type GuardTarget = IGuardTarget | IRouteableComponentType | string;
 export type GuardIdentity = number;
 
 export interface IGuardOptions {

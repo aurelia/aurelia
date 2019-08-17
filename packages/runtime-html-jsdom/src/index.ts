@@ -35,7 +35,7 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.HTMLElement,
           this.jsdom.window.CustomEvent,
           this.jsdom.window.CSSStyleSheet,
-          class ShadowRoot {} as any
+          (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
         );
       } else {
         if (config.host !== undefined) {
@@ -49,7 +49,7 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.HTMLElement,
           this.jsdom.window.CustomEvent,
           this.jsdom.window.CSSStyleSheet,
-          class ShadowRoot {} as any
+          (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
         );
       }
     } else {
@@ -61,7 +61,7 @@ class JSDOMInitializer implements IDOMInitializer {
         this.jsdom.window.HTMLElement,
         this.jsdom.window.CustomEvent,
         this.jsdom.window.CSSStyleSheet,
-        class ShadowRoot {} as any
+        (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

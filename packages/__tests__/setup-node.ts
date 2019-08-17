@@ -30,7 +30,7 @@ function createJSDOMTestContext(): HTMLTestContext {
     jsdom.window.Comment,
     jsdom.window.DOMParser,
     jsdom.window.CSSStyleSheet,
-    class ShadowRoot {} as any
+    (jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
   );
 }
 

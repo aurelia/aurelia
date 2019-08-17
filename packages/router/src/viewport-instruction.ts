@@ -2,7 +2,7 @@ import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
-import { IRouteableCustomElementType } from './viewport-content';
+import { IRouteableComponentType } from './viewport-content';
 
 export class ViewportInstruction {
   public component?: Partial<ICustomElementType>;
@@ -72,12 +72,12 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
-  public componentType(context: IRenderContext): IRouteableCustomElementType {
+  public componentType(context: IRenderContext): IRouteableComponentType {
     if (this.component !== null) {
       return this.component;
     }
     const container = context.get(IContainer);
-    const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElement.keyFrom(this.componentName));
+    const resolver = container.getResolver<Constructable & IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
     if (resolver !== null) {
       return resolver.getFactory(container).Type;
     }

@@ -92,8 +92,8 @@ export {
 } from './viewport';
 
 export {
-  IRouteableCustomElement,
-  IRouteableCustomElementType,
+  IRouteableComponent,
+  IRouteableComponentType,
   ContentStatus,
   ReentryBehavior,
   ViewportContent,

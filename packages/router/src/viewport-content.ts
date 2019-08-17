@@ -5,11 +5,11 @@ import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
-export interface IRouteableCustomElementType extends Partial<ICustomElementType> {
+export interface IRouteableComponentType extends Partial<ICustomElementType> {
   parameters?: string[];
 }
 
-export interface IRouteableCustomElement<T extends INode = INode> extends IViewModel<T> {
+export interface IRouteableComponent<T extends INode = INode> extends IViewModel<T> {
   reentryBehavior?: ReentryBehavior;
   canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): void | Promise<void>;
@@ -33,10 +33,10 @@ export const enum ReentryBehavior {
 }
 
 export class ViewportContent {
-  public content: IRouteableCustomElementType | string;
+  public content: IRouteableComponentType | string;
   public parameters: string;
   public instruction: INavigatorInstruction;
-  public component: IRouteableCustomElement;
+  public component: IRouteableComponent;
   public contentStatus: ContentStatus;
   public entered: boolean;
   public fromCache: boolean;
@@ -108,7 +108,7 @@ export class ViewportContent {
       return Promise.resolve(true);
     }
 
-    const contentType: IRouteableCustomElementType = this.component !== null ? this.component.constructor : this.content as IRouteableCustomElementType;
+    const contentType: IRouteableComponentType = this.component !== null ? this.component.constructor : this.content as IRouteableComponentType;
     const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
     this.instruction.parameters = merged.namedParameters;
     this.instruction.parameterList = merged.parameterList;
@@ -141,7 +141,7 @@ export class ViewportContent {
       return;
     }
     if (this.component.enter) {
-      const contentType: IRouteableCustomElementType = this.component !== null ? this.component.constructor : this.content as IRouteableCustomElementType;
+      const contentType: IRouteableComponentType = this.component !== null ? this.component.constructor : this.content as IRouteableComponentType;
       const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
       this.instruction.parameters = merged.namedParameters;
       this.instruction.parameterList = merged.parameterList;
@@ -258,21 +258,21 @@ export class ViewportContent {
       return (this.content).description.name;
     }
   }
-  public componentType(context: IRenderContext | IContainer): IRouteableCustomElementType {
+  public componentType(context: IRenderContext | IContainer): IRouteableComponentType {
     if (this.content === null) {
       return null;
     } else if (typeof this.content !== 'string') {
       return this.content;
     } else {
       const container = context.get(IContainer);
-      const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElement.keyFrom(this.content));
+      const resolver = container.getResolver<Constructable & IRouteableComponentType>(CustomElement.keyFrom(this.content));
       if (resolver !== null) {
         return resolver.getFactory(container).Type;
       }
       return null;
     }
   }
-  public componentInstance(context: IRenderContext | IContainer): IRouteableCustomElement {
+  public componentInstance(context: IRenderContext | IContainer): IRouteableComponent {
     if (this.content === null) {
       return null;
     }
@@ -280,9 +280,9 @@ export class ViewportContent {
     const component = this.componentName();
     const container = context.get(IContainer);
     if (typeof component !== 'string') {
-      return container.get<IRouteableCustomElement>(component);
+      return container.get<IRouteableComponent>(component);
     } else {
-      return container.get<IRouteableCustomElement>(CustomElement.keyFrom(component));
+      return container.get<IRouteableComponent>(CustomElement.keyFrom(component));
     }
   }
 }

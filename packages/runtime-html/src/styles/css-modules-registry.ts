@@ -3,7 +3,7 @@ import { bindable, customAttribute, INode } from '@aurelia/runtime';
 
 export class CSSModulesProcessorRegistry {
   public register(container: IContainer, ...params: (Record<string, string>)[]) {
-    const classLookup = Object.assign({}, ...params) as Record<string, string>;
+    const classLookup = { ...params } as Record<string, string>;
 
     @customAttribute('class')
     class ClassCustomAttribute {

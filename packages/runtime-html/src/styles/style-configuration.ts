@@ -16,7 +16,7 @@ export interface IShadowDOMConfiguration {
   sharedStyles?: (string | CSSStyleSheet)[];
 }
 
-export function styles(...styles: any[]) {
+export function styles(...styles: unknown[]) {
   return Registration.defer(ext, ...styles);
 }
 

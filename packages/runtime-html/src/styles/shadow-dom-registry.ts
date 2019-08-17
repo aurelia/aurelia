@@ -1,16 +1,16 @@
-import { IContainer, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import {  IShadowDOMStyles } from './shadow-dom-styles';
 
 export type ShadowDOMStylesFactory =
   (localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null) => IShadowDOMStyles;
 
-export class ShadowDOMRegistry {
+export class ShadowDOMRegistry implements IRegistry {
   constructor(
     private sharedStyles: IShadowDOMStyles,
     private createStyles: ShadowDOMStylesFactory
   ) { }
 
-  public register(container: IContainer, ...params: any[]) {
+  public register(container: IContainer, ...params: (string | CSSStyleSheet)[]) {
     container.register(
       Registration.instance(
         IShadowDOMStyles,

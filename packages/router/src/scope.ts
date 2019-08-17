@@ -5,7 +5,7 @@ import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
-export interface IViewportCustomElementType extends ICustomElementType {
+export interface IViewportComponentType extends ICustomElementType {
   viewport?: string;
 }
 

@@ -80,7 +80,7 @@ export {
 } from './router';
 
 export {
-  IViewportCustomElementType,
+  IViewportComponentType,
   IFindViewportsResult,
   ChildContainer,
   Scope,

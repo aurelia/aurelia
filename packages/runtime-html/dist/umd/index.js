@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors"], factory);
+        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors", "./styles/style-configuration", "./styles/css-modules-registry", "./styles/shadow-dom-registry", "./styles/shadow-dom-styles"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -97,5 +97,16 @@
     exports.HostProjector = projectors_1.HostProjector;
     exports.HTMLProjectorLocator = projectors_1.HTMLProjectorLocator;
     exports.ShadowDOMProjector = projectors_1.ShadowDOMProjector;
+    var style_configuration_1 = require("./styles/style-configuration");
+    exports.StyleConfiguration = style_configuration_1.StyleConfiguration;
+    exports.styles = style_configuration_1.styles;
+    var css_modules_registry_1 = require("./styles/css-modules-registry");
+    exports.CSSModulesProcessorRegistry = css_modules_registry_1.CSSModulesProcessorRegistry;
+    var shadow_dom_registry_1 = require("./styles/shadow-dom-registry");
+    exports.ShadowDOMRegistry = shadow_dom_registry_1.ShadowDOMRegistry;
+    var shadow_dom_styles_1 = require("./styles/shadow-dom-styles");
+    exports.AdoptedStyleSheetsStyles = shadow_dom_styles_1.AdoptedStyleSheetsStyles;
+    exports.StyleElementStyles = shadow_dom_styles_1.StyleElementStyles;
+    exports.IShadowDOMStyles = shadow_dom_styles_1.IShadowDOMStyles;
 });
 //# sourceMappingURL=index.js.map

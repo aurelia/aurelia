@@ -18,14 +18,14 @@ class BrowserDOMInitializer {
                 dom = config.dom;
             }
             else if (config.host.ownerDocument !== null) {
-                dom = new HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent);
+                dom = new HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
             }
             else {
-                dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
+                dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
             }
         }
         else {
-            dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
+            dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
         }
         Registration.instance(IDOM, dom).register(this.container);
         return dom;

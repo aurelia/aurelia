@@ -54,7 +54,7 @@ export class HTMLTestContext {
         }
         return this._domParser;
     }
-    constructor(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType) {
+    constructor(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
         this.config = config;
         this.wnd = wnd;
         this.UIEvent = UIEventType;
@@ -68,7 +68,7 @@ export class HTMLTestContext {
         this.Comment = CommentType;
         this.DOMParser = DOMParserType;
         this.doc = wnd.document;
-        this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType);
+        this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
         this._container = void 0;
         this._templateCompiler = void 0;
         this._observerLocator = void 0;
@@ -78,8 +78,8 @@ export class HTMLTestContext {
         this._renderingEngine = void 0;
         this._domParser = void 0;
     }
-    static create(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType) {
-        return new HTMLTestContext(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType);
+    static create(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
+        return new HTMLTestContext(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType);
     }
     createElementFromMarkup(markup) {
         this.domParser.innerHTML = markup;

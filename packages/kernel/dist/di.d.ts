@@ -26,7 +26,7 @@ export interface IServiceLocator {
     getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
 }
 export interface IRegistry {
-    register(container: IContainer): void;
+    register(container: IContainer, ...params: unknown[]): void;
 }
 export interface IContainer extends IServiceLocator {
     register(...params: any[]): IContainer;
@@ -154,12 +154,24 @@ export declare function singleton<T extends Constructable>(target: T & Partial<R
 export declare const all: (key: any) => any;
 export declare const lazy: (key: any) => any;
 export declare const optional: (key: any) => any;
+/**
+ * An implementation of IRegistry that delegates registration to a
+ * separately registered class. The ParameterizedRegistry facilitates the
+ * passing of parameters to the final registry.
+ */
+export declare class ParameterizedRegistry implements IRegistry {
+    private readonly key;
+    private readonly params;
+    constructor(key: Key, params: unknown[]);
+    register(container: IContainer): void;
+}
 export declare const Registration: Readonly<{
     instance<T>(key: Key, value: T): IRegistration<T>;
     singleton<T extends Constructable<{}>>(key: Key, value: T): IRegistration<InstanceType<T>>;
     transient<T extends Constructable<{}>>(key: Key, value: T): IRegistration<InstanceType<T>>;
     callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<T extends InterfaceSymbol<infer T> ? T : T extends Constructable<{}> ? InstanceType<T> : T extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T>;
     alias<T>(originalKey: T, aliasKey: Key): IRegistration<T extends InterfaceSymbol<infer T> ? T : T extends Constructable<{}> ? InstanceType<T> : T extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T>;
+    defer(key: Key, ...params: unknown[]): IRegistry;
 }>;
 export declare class InstanceProvider<K extends Key> implements IResolver<K | null> {
     private instance;

@@ -23,4 +23,8 @@ export { HTMLTargetedInstructionType, isHTMLTargetedInstruction } from './defini
 export { NodeType, HTMLDOM, DOM, NodeSequenceFactory, FragmentNodeSequence } from './dom';
 export { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
 export { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from './projectors';
+export { StyleConfiguration, styles } from './styles/style-configuration';
+export { CSSModulesProcessorRegistry } from './styles/css-modules-registry';
+export { ShadowDOMRegistry } from './styles/shadow-dom-registry';
+export { AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles } from './styles/shadow-dom-styles';
 //# sourceMappingURL=index.js.map

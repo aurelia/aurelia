@@ -22,9 +22,11 @@ export declare class HTMLDOM implements IDOM {
     readonly Element: typeof Element;
     readonly HTMLElement: typeof HTMLElement;
     readonly CustomEvent: typeof CustomEvent;
+    readonly CSSStyleSheet: typeof CSSStyleSheet;
+    readonly ShadowRoot: typeof ShadowRoot;
     readonly window: Window;
     readonly document: Document;
-    constructor(window: Window, document: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement, TCustomEvent: typeof CustomEvent);
+    constructor(window: Window, document: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement, TCustomEvent: typeof CustomEvent, TCSSStyleSheet: typeof CSSStyleSheet, TShadowRoot: typeof ShadowRoot);
     static register(container: IContainer): IResolver<IDOM>;
     addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void;
     appendChild(parent: Node, child: Node): void;

@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./styles/shadow-dom-styles"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const shadow_dom_styles_1 = require("./styles/shadow-dom-styles");
     const slice = Array.prototype.slice;
     const defaultShadowOptions = {
         mode: 'open'
@@ -39,6 +40,7 @@
         constructor(dom, $controller, host, definition) {
             this.dom = dom;
             this.host = host;
+            this.$controller = $controller;
             let shadowOptions;
             if (definition.shadowOptions instanceof Object &&
                 'mode' in definition.shadowOptions) {
@@ -62,6 +64,9 @@
             return this.shadowRoot;
         }
         project(nodes) {
+            const context = this.$controller.context;
+            const styles = context.get(shadow_dom_styles_1.IShadowDOMStyles);
+            styles.applyTo(this.shadowRoot);
             nodes.appendTo(this.shadowRoot);
         }
         take(nodes) {

@@ -1,0 +1,1 @@
+{"version":3,"file":"css-modules-registry.d.ts","sourceRoot":"","sources":["../../src/styles/css-modules-registry.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,SAAS,EAAE,MAAM,iBAAiB,CAAC;AAGxD,qBAAa,2BAA4B,YAAW,SAAS;IACpD,QAAQ,CAAC,SAAS,EAAE,UAAU,EAAE,GAAG,MAAM,EAAE,CAAC,MAAM,CAAC,MAAM,EAAE,MAAM,CAAC,CAAC,EAAE;CA2B7E"}

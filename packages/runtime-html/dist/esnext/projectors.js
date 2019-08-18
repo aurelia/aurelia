@@ -1,5 +1,6 @@
 import { PLATFORM, Registration, Reporter, toArray } from '@aurelia/kernel';
 import { IProjectorLocator } from '@aurelia/runtime';
+import { IShadowDOMStyles } from './styles/shadow-dom-styles';
 const slice = Array.prototype.slice;
 const defaultShadowOptions = {
     mode: 'open'
@@ -27,6 +28,7 @@ export class ShadowDOMProjector {
     constructor(dom, $controller, host, definition) {
         this.dom = dom;
         this.host = host;
+        this.$controller = $controller;
         let shadowOptions;
         if (definition.shadowOptions instanceof Object &&
             'mode' in definition.shadowOptions) {
@@ -50,6 +52,9 @@ export class ShadowDOMProjector {
         return this.shadowRoot;
     }
     project(nodes) {
+        const context = this.$controller.context;
+        const styles = context.get(IShadowDOMStyles);
+        styles.applyTo(this.shadowRoot);
         nodes.appendTo(this.shadowRoot);
     }
     take(nodes) {

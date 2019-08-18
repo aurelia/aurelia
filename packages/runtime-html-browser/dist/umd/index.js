@@ -29,14 +29,14 @@
                     dom = config.dom;
                 }
                 else if (config.host.ownerDocument !== null) {
-                    dom = new runtime_html_1.HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent);
+                    dom = new runtime_html_1.HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
                 }
                 else {
-                    dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
+                    dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
                 }
             }
             else {
-                dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
+                dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
             }
             kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
             return dom;

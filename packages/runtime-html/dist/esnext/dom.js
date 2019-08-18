@@ -22,13 +22,15 @@ function isRenderLocation(node) {
  * IDOM implementation for Html.
  */
 export class HTMLDOM {
-    constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent) {
+    constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent, TCSSStyleSheet, TShadowRoot) {
         this.window = window;
         this.document = document;
         this.Node = TNode;
         this.Element = TElement;
         this.HTMLElement = THTMLElement;
         this.CustomEvent = TCustomEvent;
+        this.CSSStyleSheet = TCSSStyleSheet;
+        this.ShadowRoot = TShadowRoot;
         if (DOM.isInitialized) {
             Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
             DOM.destroy();

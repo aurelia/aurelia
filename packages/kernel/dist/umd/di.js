@@ -536,6 +536,22 @@
         }
     }
     exports.Container = Container;
+    /**
+     * An implementation of IRegistry that delegates registration to a
+     * separately registered class. The ParameterizedRegistry facilitates the
+     * passing of parameters to the final registry.
+     */
+    class ParameterizedRegistry {
+        constructor(key, params) {
+            this.key = key;
+            this.params = params;
+        }
+        register(container) {
+            const registry = container.get(this.key);
+            registry.register(container, ...this.params);
+        }
+    }
+    exports.ParameterizedRegistry = ParameterizedRegistry;
     exports.Registration = Object.freeze({
         instance(key, value) {
             return new Resolver(key, 0 /* instance */, value);
@@ -552,6 +568,9 @@
         alias(originalKey, aliasKey) {
             return new Resolver(aliasKey, 5 /* alias */, originalKey);
         },
+        defer(key, ...params) {
+            return new ParameterizedRegistry(key, params);
+        }
     });
     class InstanceProvider {
         constructor() {

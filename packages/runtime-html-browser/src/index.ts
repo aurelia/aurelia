@@ -30,7 +30,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
           Node,
           Element,
           HTMLElement,
-          CustomEvent
+          CustomEvent,
+          CSSStyleSheet,
+          ShadowRoot
         );
       } else {
         dom = new HTMLDOM(
@@ -39,7 +41,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
           Node,
           Element,
           HTMLElement,
-          CustomEvent
+          CustomEvent,
+          CSSStyleSheet,
+          ShadowRoot
         );
       }
     } else {
@@ -49,7 +53,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
         Node,
         Element,
         HTMLElement,
-        CustomEvent
+        CustomEvent,
+        CSSStyleSheet,
+        ShadowRoot
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

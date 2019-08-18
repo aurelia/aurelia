@@ -50,6 +50,8 @@ export class HTMLDOM implements IDOM {
   public readonly Element: typeof Element;
   public readonly HTMLElement: typeof HTMLElement;
   public readonly CustomEvent: typeof CustomEvent;
+  public readonly CSSStyleSheet: typeof CSSStyleSheet;
+  public readonly ShadowRoot: typeof ShadowRoot;
   public readonly window: Window;
   public readonly document: Document;
 
@@ -59,7 +61,9 @@ export class HTMLDOM implements IDOM {
     TNode: typeof Node,
     TElement: typeof Element,
     THTMLElement: typeof HTMLElement,
-    TCustomEvent: typeof CustomEvent
+    TCustomEvent: typeof CustomEvent,
+    TCSSStyleSheet: typeof CSSStyleSheet,
+    TShadowRoot: typeof ShadowRoot
   ) {
     this.window = window;
     this.document = document;
@@ -67,6 +71,8 @@ export class HTMLDOM implements IDOM {
     this.Element = TElement;
     this.HTMLElement = THTMLElement;
     this.CustomEvent = TCustomEvent;
+    this.CSSStyleSheet = TCSSStyleSheet;
+    this.ShadowRoot = TShadowRoot;
     if (DOM.isInitialized) {
       Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
       DOM.destroy();

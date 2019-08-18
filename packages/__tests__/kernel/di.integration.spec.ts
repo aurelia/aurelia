@@ -772,3 +772,37 @@ describe('DI.createInterface() -> container.get()', function () {
     });
   });
 });
+
+describe('defer registration', () => {
+  class FakeCSSService {
+    constructor(public data: any) {}
+  }
+
+  class FakeCSSHandler {
+    public register(container: IContainer, data) {
+      container.register(
+        Registration.instance(
+          FakeCSSService,
+          new FakeCSSService(data)
+        )
+      );
+    }
+  }
+
+  it(`enables the handler class to provide registrations for data`, () => {
+    const container = DI.createContainer();
+    const data = {};
+
+    container.register(
+      Registration.singleton('.css', FakeCSSHandler)
+    );
+
+    container.register(
+      Registration.defer('.css', data)
+    );
+
+    const service = container.get(FakeCSSService);
+
+    assert.strictEqual(service.data, data);
+  });
+});

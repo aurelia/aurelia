@@ -42,17 +42,17 @@ describe('blur.integration.spec.ts', () => {
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'component.hasFocus');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
             assert.equal(component.hasFocus, true, 'window@mousedown -> Shoulda leave "hasFocus" alone as window is not listened to.');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda set "hasFocus" to false when mousedown on doc body.');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             const button = ctx.doc.querySelector('button');
             component.hasFocus = true;
@@ -75,17 +75,17 @@ describe('blur.integration.spec.ts', () => {
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document@mousedown -> Shoulda set "hasFocus" to false when mousedown on document.');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
             assert.equal(component.hasFocus, true, 'window@mousedown -> It should have been true. Ignore interaction out of document.');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda been false. Interacted inside doc, outside element.');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             const button = ctx.doc.querySelector('button');
             component.hasFocus = true;
@@ -99,14 +99,14 @@ describe('blur.integration.spec.ts', () => {
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assertFn }: IBlurTestCase) => {
           it(title(command), async function() {
-            const { ctx, component, dispose } = setup<IApp>(
+            const { ctx, component, dispose } = await setup<IApp>(
               template(command),
               app
             );
             await assertFn(ctx, component, null);
             // test cases could be sharing the same context document
             // so wait a bit before running the next test
-            await waitForFrames(ctx, 2);
+            await waitForFrames(2);
             await dispose();
           });
         }
@@ -144,27 +144,27 @@ describe('blur.integration.spec.ts', () => {
             dispatchEventWith(ctx, input, EVENTS.Blur, false);
             assert.notEqual(input, ctx.doc.activeElement, 'child > input !== doc.activeElement');
             assert.equal(component.hasFocus, false, 'child > input@blur');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document@mousedown');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
             assert.equal(component.hasFocus, true, 'window@mousedown');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, 'document.body@mousedown');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             const button = ctx.doc.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, '+ button@mousedown');
-            await waitForFrames(ctx, 1);
+            await waitForFrames(1);
 
             // this is quite convoluted
             component.hasFocus = true;
@@ -184,7 +184,7 @@ describe('blur.integration.spec.ts', () => {
         (command, abnormalCase, callIndex) => {
           const { title, template, app, assertFn } = abnormalCase;
           it(title(callIndex, command), async function() {
-            const { component, ctx, dispose } = setup<IApp>(
+            const { component, ctx, dispose } = await setup<IApp>(
               template(command),
               app,
               CustomElement.define(
@@ -197,7 +197,7 @@ describe('blur.integration.spec.ts', () => {
               )
             );
             await assertFn(ctx, component, null);
-            await waitForFrames(ctx, 2);
+            await waitForFrames(2);
             await dispose();
           });
         }
@@ -262,12 +262,12 @@ describe('blur.integration.spec.ts', () => {
           assert.equal(ceA.hasFocus, false, '<ce-a/>.hasFocus should have been false?');
           assert.equal(ceB.hasFocus, false, '<ce-b/>.hasFocus should have been false?');
 
-          await waitForFrames(ctx, 1);
+          await waitForFrames(1);
 
           ceA.hasFocus = true;
           dispatchEventWith(ctx, $ceA.shadowRoot.querySelector('button'), EVENTS.MouseDown);
           assert.equal(ceA.hasFocus, true, '<ce-a/>.hasFocus should have been true?');
-          await waitForFrames(ctx, 1);
+          await waitForFrames(1);
 
           $ceA.dispatchEvent(mockComposedEvent({
             ctx,
@@ -286,7 +286,7 @@ describe('blur.integration.spec.ts', () => {
       [testCases],
       ({ title, template, dependencies = [], app, assertFn }: IBlurTestCase) => {
         it(title(), async function() {
-          const { ctx, component, host, dispose } = setup<IApp>(
+          const { ctx, component, host, dispose } = await setup<IApp>(
             template(''),
             app,
             ...dependencies
@@ -294,7 +294,7 @@ describe('blur.integration.spec.ts', () => {
           await assertFn(ctx, component, host);
           // test cases could be sharing the same context document
           // so wait a bit before running the next test
-          await waitForFrames(ctx, 2);
+          await waitForFrames(2);
           await dispose();
         });
       }
@@ -318,7 +318,7 @@ describe('blur.integration.spec.ts', () => {
     title(...args: unknown[]): string;
   }
 
-  function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  async function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
@@ -329,7 +329,7 @@ describe('blur.integration.spec.ts', () => {
     const component = new App();
 
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
 
     return {
       ctx: ctx,
@@ -363,9 +363,9 @@ describe('blur.integration.spec.ts', () => {
     target.dispatchEvent(new ctx.Event(name, { bubbles }));
   }
 
-  async function waitForFrames(ctx: HTMLTestContext, frameCount: number): Promise<void> {
+  async function waitForFrames(frameCount: number): Promise<void> {
     while (frameCount-- > 0) {
-      await new Promise(r => ctx.wnd.requestAnimationFrame(r));
+      await new Promise(PLATFORM.requestAnimationFrame);
     }
   }
 

@@ -251,8 +251,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     describe('string/string[] scenarios', function() {
-      const { doc } = TestContext.createHTMLTestContext();
-      doc.body.insertAdjacentHTML('beforeend', `
+      const template = `
         <some-el><div data-query="some-el"></div></some-el>,
         <div class="some-css-class">
           <div data-query=".some-css-class"></div>
@@ -265,7 +264,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
           </div>
           <button data-query="#some-complex-selector > .some-nested-complex-selector + button">Click me</button>
         </div>
-      `);
+      `;
       const linkedWithValues = [
         'some-el',
         '.some-css-class',
@@ -274,8 +273,10 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       ];
       for (const linkWith of linkedWithValues) {
         it(`works when linkedWith is a string: ${linkWith}`, function() {
-          const { sut, dispose } = setup();
+          const { sut, ctx: { doc }, dispose } = setup();
           sut.linkedWith = linkWith;
+          const linkedWithTargetsCt = doc.body.insertAdjacentElement('afterbegin', doc.createElement('div'));
+          linkedWithTargetsCt.innerHTML = template;
           const interactWith = doc.querySelector(`[data-query="${linkWith}"]`);
           assert.notEqual(
             interactWith,
@@ -283,13 +284,16 @@ describe('[UNIT] blur.unit.spec.ts', function() {
             `querySelector[data-query=${linkWith}]`
           );
           assert.equal(sut.contains(interactWith), true);
+          linkedWithTargetsCt.remove();
           dispose();
         });
       }
 
       it('works when linkedWith is an array of string', function() {
-        const { sut, dispose } = setup();
+        const { sut, ctx: { doc }, dispose } = setup();
         sut.linkedWith = linkedWithValues;
+        const linkedWithTargetsCt = doc.body.insertAdjacentElement('afterbegin', doc.createElement('div'));
+        linkedWithTargetsCt.innerHTML = template;
         for (const linkWith of linkedWithValues) {
           const interactWith = doc.querySelector(`[data-query="${linkWith}"]`);
           assert.notEqual(
@@ -299,6 +303,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
           );
           assert.equal(sut.contains(interactWith), true);
         }
+        linkedWithTargetsCt.remove();
         dispose();
       });
     });

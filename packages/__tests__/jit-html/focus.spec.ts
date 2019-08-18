@@ -22,7 +22,7 @@ describe('focus.spec.ts', function() {
       it('focuses when there is tabindex attribute', async function() {
         const { startPromise, dispose, component, ctx } = setup<IApp>(
           `<template>
-            <div focus.bind="hasFocus" id="blurred" tabindex="-1"></div>
+            <div focus.two-way="hasFocus" id="blurred" tabindex="-1"></div>
           </template>`,
           class App {
             public hasFocus = true;
@@ -50,7 +50,7 @@ describe('focus.spec.ts', function() {
 
       const { startPromise, dispose, component, ctx } = setup<IApp>(
         `<template>
-          <div focus.bind="hasFocus" id="blurred"></div>
+          <div focus.two-way="hasFocus" id="blurred"></div>
         </template>`,
         class App {
           public hasFocus = true;
@@ -73,13 +73,13 @@ describe('focus.spec.ts', function() {
     });
 
     for (const [desc, template] of [
-      ['<div/>', '<div contenteditable focus.bind=hasFocus id=blurred></div>'],
-      ['<input/>', `<input focus.bind=hasFocus id=blurred>`],
-      ['<select/>', `<select focus.bind=hasFocus id=blurred></select>`],
-      ['<button/>', '<button focus.bind=hasFocus id=blurred></button>'],
-      ['<video/>', '<video tabindex=1 focus.bind=hasFocus id=blurred></video>'],
-      ['<select/> + <option/>', `<select focus.bind=hasFocus id=blurred><option tabindex=1>Hello</option></select>`],
-      ['<textarea/>', `<textarea focus.bind=hasFocus id=blurred></textarea>`]
+      ['<div/>', '<div contenteditable focus.two-way=hasFocus id=blurred></div>'],
+      ['<input/>', `<input focus.two-way=hasFocus id=blurred>`],
+      ['<select/>', `<select focus.two-way=hasFocus id=blurred></select>`],
+      ['<button/>', '<button focus.two-way=hasFocus id=blurred></button>'],
+      ['<video/>', '<video tabindex=1 focus.two-way=hasFocus id=blurred></video>'],
+      ['<select/> + <option/>', `<select focus.two-way=hasFocus id=blurred><option tabindex=1>Hello</option></select>`],
+      ['<textarea/>', `<textarea focus.two-way=hasFocus id=blurred></textarea>`]
     ]) {
       describe(`with ${desc}`, function() {
         it('Works in basic scenario', async function() {
@@ -144,7 +144,7 @@ describe('focus.spec.ts', function() {
 
           it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function() {
             const { start, dispose, component, ctx } = setup<IApp>(
-              `<template><${ceName} focus.bind=hasFocus></${ceName}></template>`,
+              `<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`,
               class App {
                 public hasFocus = true;
               },
@@ -153,22 +153,25 @@ describe('focus.spec.ts', function() {
             const CustomEl = defineCustomElement(ctx, ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
             let callCount = 0;
             // only track call, virtually no different without this layer
-            CustomEl.prototype['focus'] = function focus(options?: FocusOptions): void {
-              callCount++;
-              if (hasShadowRoot) {
-                return HTMLElement.prototype.focus.call(this, options);
-              } else {
-                const focusableEl = this.querySelector('input')
-                  || this.querySelector('textarea')
-                  || this.querySelector('select')
-                  || this.querySelector('[contenteditable]')
-                  || this.querySelector('[tabindex]');
-                if (focusableEl) {
-                  return (focusableEl as HTMLElement).focus();
+            Object.defineProperty(CustomEl.prototype, 'focus', {
+              configurable: true,
+              value: function focus(options?: FocusOptions): void {
+                callCount++;
+                if (hasShadowRoot) {
+                  return HTMLElement.prototype.focus.call(this, options);
+                } else {
+                  const focusableEl = this.querySelector('input')
+                    || this.querySelector('textarea')
+                    || this.querySelector('select')
+                    || this.querySelector('[contenteditable]')
+                    || this.querySelector('[tabindex]');
+                  if (focusableEl) {
+                    return (focusableEl as HTMLElement).focus();
+                  }
+                  return HTMLElement.prototype.focus.call(this, options);
                 }
-                return HTMLElement.prototype.focus.call(this, options);
               }
-            };
+            });
             await start();
 
             const activeElement = ctx.doc.activeElement;
@@ -199,18 +202,18 @@ describe('focus.spec.ts', function() {
   describe('Interactive scenarios', function() {
     const focusAttrs = [
       'focus.two-way=hasFocus',
-      // 'focus.bind=hasFocus',
+      // 'focus.two-way=hasFocus',
       // 'focus="value.two-way: hasFocus"',
       // 'focus="value.bind: hasFocus"'
     ];
     const templates: IFocusTestCase[] = [
       {
         title: focusAttr => `Works when shifting focus away from <input/> [${focusAttr}]`,
-        template: (focusAttr) => `<template>
+        template: (focusAttr) => `
           <input ${focusAttr} />
           <div></div>
           <button>Click me</button>
-        </template>`,
+        `,
         getFocusable: 'input',
         app: class App {
           public hasFocus = true;
@@ -220,14 +223,16 @@ describe('focus.spec.ts', function() {
           const win = ctx.wnd;
           const button = doc.querySelector('button');
           button.focus();
+          dispatchEventWith(ctx, focusable, 'blur', false);
           assert.equal(doc.activeElement, button);
           assert.equal(component.hasFocus, false, '+ button@focus');
 
           focusable.focus();
+          dispatchEventWith(ctx, focusable, 'focus', false);
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'input@focus');
 
-          win.dispatchEvent(new CustomEvent('blur'));
+          dispatchEventWith(ctx, win, 'blur', false);
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'window@blur');
         }
@@ -251,20 +256,21 @@ describe('focus.spec.ts', function() {
           const win = ctx.wnd;
           const button = doc.querySelector('button');
           button.focus();
-          await waitForFrames(5);
+          dispatchEventWith(ctx, focusable, 'blur', false);
           assert.equal(doc.activeElement, button);
           assert.equal(component.hasFocus, false, '> button@focus');
 
           focusable.focus();
+          dispatchEventWith(ctx, focusable, 'focus', false);
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@focus');
 
-          win.dispatchEvent(new CustomEvent('blur'));
+          win.blur();
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          await waitForFrames(5);
+          await waitForFrames(1);
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }
@@ -273,7 +279,7 @@ describe('focus.spec.ts', function() {
         title: focusAttr => `Multiple focus bindings and focus stealing between <input/> [${focusAttr}]`,
         template: (focusAttr) => `<template>
           <input ${focusAttr} id=input1>
-          <input focus.bind="isFocused2" id=input2>
+          <input focus.two-way="isFocused2" id=input2>
           <button>Click me</button>
         </template>`,
         getFocusable: 'input',
@@ -285,7 +291,8 @@ describe('focus.spec.ts', function() {
           const input2 = ctx.doc.querySelector('#input2') as HTMLInputElement;
           assert.notEqual(focusable, input2, '@setup: focusable === #input2');
           input2.focus();
-          await waitForFrames(5);
+          dispatchEventWith(ctx, input2, 'focus', false);
+          dispatchEventWith(ctx, focusable, 'blur', false);
           assert.equal(document.activeElement, input2, '#input2@focus -> document.activeElement === #input2');
           assert.equal(component.isFocused2, true, '#input2@focus -> component.isFocused2 === true');
           assert.equal(component.hasFocus, false, '#input2@focus -> component.hasFocus === false');
@@ -297,11 +304,13 @@ describe('focus.spec.ts', function() {
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
         it(title(command), async function() {
-          const { startPromise, dispose, component, ctx } = setup<IApp>(
+          const { start, dispose, component, ctx } = await setup<IApp>(
             template(command),
-            app
+            app,
+            false
           );
-          await startPromise;
+
+          await start();
           const doc = ctx.doc;
           const activeElement = doc.activeElement;
           const focusable = typeof getFocusable === 'string'
@@ -315,7 +324,7 @@ describe('focus.spec.ts', function() {
           assert.equal(activeElement, focusable, '@setup -> document.activeElement === focusable');
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
           await assertionFn(ctx, component, focusable);
-
+          await waitForFrames(1);
           await dispose();
         });
       }
@@ -334,7 +343,7 @@ describe('focus.spec.ts', function() {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations, Focus);
-    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
+    const host = ctx.doc.body.appendChild(ctx.doc.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
@@ -385,8 +394,12 @@ describe('focus.spec.ts', function() {
 
   async function waitForFrames(frameCount: number): Promise<void> {
     while (frameCount-- >= 0) {
-      await new Promise(requestAnimationFrame);
+      await new Promise(PLATFORM.requestAnimationFrame);
     }
+  }
+
+  function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {
+    target.dispatchEvent(new ctx.CustomEvent(name, { bubbles }));
   }
 
   type TemplateFn = (focusAttrBindingCommand: string) => string;

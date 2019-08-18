@@ -319,13 +319,12 @@ const createHandler = (
   // ******************************
 
   let hasChecked: boolean = false;
-  const lifecycle = manager.lifecycle;
   const revertCheckage = () => {
     hasChecked = false;
   };
   const markChecked = () => {
     hasChecked = true;
-    lifecycle.enqueueRAF(revertCheckage, null, Priority.preempt, true);
+    PLATFORM.requestAnimationFrame(revertCheckage);
   };
 
   const handleMousedown = (e: MouseEvent): void => {

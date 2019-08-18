@@ -45,7 +45,7 @@ export interface IServiceLocator {
 }
 
 export interface IRegistry {
-  register(container: IContainer): void;
+  register(container: IContainer, ...params: unknown[]): void;
 }
 
 export interface IContainer extends IServiceLocator {
@@ -766,6 +766,23 @@ export class Container implements IContainer {
   }
 }
 
+/**
+ * An implementation of IRegistry that delegates registration to a
+ * separately registered class. The ParameterizedRegistry facilitates the
+ * passing of parameters to the final registry.
+ */
+export class ParameterizedRegistry implements IRegistry {
+  constructor(
+    private readonly key: Key,
+    private readonly params: unknown[]
+  ) {}
+
+  public register(container: IContainer): void {
+    const registry = container.get<IRegistry>(this.key);
+    registry.register(container, ...this.params);
+  }
+}
+
 export const Registration = Object.freeze({
   instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
@@ -782,6 +799,9 @@ export const Registration = Object.freeze({
   alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
+  defer(key: Key, ...params: unknown[]): IRegistry {
+    return new ParameterizedRegistry(key, params);
+  }
 });
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {

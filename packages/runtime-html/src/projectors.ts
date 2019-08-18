@@ -17,6 +17,7 @@ import {
   IProjectorLocator,
   TemplateDefinition
 } from '@aurelia/runtime';
+import { IShadowDOMStyles } from './styles/shadow-dom-styles';
 
 const slice = Array.prototype.slice;
 
@@ -53,10 +54,12 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
   public shadowRoot: CustomElementHost<ShadowRoot>;
   public dom: IDOM<Node>;
+  private $controller: IController<Node>;
 
   constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
     this.dom = dom;
     this.host = host;
+    this.$controller = $controller;
 
     let shadowOptions: ShadowRootInit;
     if (
@@ -86,6 +89,9 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
+    const context = this.$controller.context!;
+    const styles = context.get(IShadowDOMStyles);
+    styles.applyTo(this.shadowRoot);
     nodes.appendTo(this.shadowRoot);
   }
 

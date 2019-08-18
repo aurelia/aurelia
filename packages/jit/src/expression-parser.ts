@@ -141,9 +141,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   TPrec extends Precedence.LogicalAND ? IsBinary :
   TPrec extends Precedence.LogicalOR ? IsBinary :
   TPrec extends Precedence.Variadic ?
-  TType extends BindingType.Interpolation ? IInterpolationExpression :
-  TType extends BindingType.ForCommand ? IForOfStatement :
-  never : never {
+    TType extends BindingType.Interpolation ? IInterpolationExpression :
+    TType extends BindingType.ForCommand ? IForOfStatement :
+    never : never {
 
   if (bindingType === BindingType.CustomCommand) {
     return new CustomExpression(state.input) as any;
@@ -212,89 +212,89 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      *   2 = true
      */
     primary: switch (state.currentToken) {
-      case Token.ParentScope: // $parent
-        state.assignable = false;
-        do {
-          nextToken(state);
-          access++; // ancestor
-          if (consumeOpt(state, Token.Dot)) {
-            if ((state.currentToken as Token) === Token.Dot) {
-              throw Reporter.error(SyntaxError.DoubleDot, { state });
-            } else if ((state.currentToken as Token) === Token.EOF) {
-              throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
-            }
-          } else if (state.currentToken & Token.AccessScopeTerminal) {
-            const ancestor = access & Access.Ancestor;
-            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
-            access = Access.This;
-            break primary;
-          } else {
-            throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
+    case Token.ParentScope: // $parent
+      state.assignable = false;
+      do {
+        nextToken(state);
+        access++; // ancestor
+        if (consumeOpt(state, Token.Dot)) {
+          if ((state.currentToken as Token) === Token.Dot) {
+            throw Reporter.error(SyntaxError.DoubleDot, { state });
+          } else if ((state.currentToken as Token) === Token.EOF) {
+            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
-        } while (state.currentToken === Token.ParentScope);
-      // falls through
-      case Token.Identifier: // identifier
-        if (bindingType & BindingType.IsIterator) {
-          result = new BindingIdentifier(state.tokenValue as string);
+        } else if (state.currentToken & Token.AccessScopeTerminal) {
+          const ancestor = access & Access.Ancestor;
+          result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
+          access = Access.This;
+          break primary;
         } else {
-          result = new AccessScopeExpression(state.tokenValue as string, access & Access.Ancestor);
-          access = Access.Scope;
+          throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
         }
-        state.assignable = true;
-        nextToken(state);
-        break;
-      case Token.ThisScope: // $this
-        state.assignable = false;
-        nextToken(state);
-        result = $this;
-        access = Access.This;
-        break;
-      case Token.OpenParen: // parenthesized expression
-        nextToken(state);
-        result = parse(state, Access.Reset, Precedence.Assign, bindingType);
-        consume(state, Token.CloseParen);
-        access = Access.Reset;
-        break;
-      case Token.OpenBracket:
-        result = parseArrayLiteralExpression(state, access, bindingType);
-        access = Access.Reset;
-        break;
-      case Token.OpenBrace:
-        result = parseObjectLiteralExpression(state, bindingType);
-        access = Access.Reset;
-        break;
-      case Token.TemplateTail:
-        result = new TemplateExpression([state.tokenValue as string]);
-        state.assignable = false;
-        nextToken(state);
-        access = Access.Reset;
-        break;
-      case Token.TemplateContinuation:
-        result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
-        access = Access.Reset;
-        break;
-      case Token.StringLiteral:
-      case Token.NumericLiteral:
-        result = new PrimitiveLiteralExpression(state.tokenValue);
-        state.assignable = false;
-        nextToken(state);
-        access = Access.Reset;
-        break;
-      case Token.NullKeyword:
-      case Token.UndefinedKeyword:
-      case Token.TrueKeyword:
-      case Token.FalseKeyword:
-        result = TokenValues[state.currentToken & Token.Type] as IPrimitiveLiteralExpression;
-        state.assignable = false;
-        nextToken(state);
-        access = Access.Reset;
-        break;
-      default:
-        if (state.index >= state.length) {
-          throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
-        } else {
-          throw Reporter.error(SyntaxError.UnconsumedToken, { state });
-        }
+      } while (state.currentToken === Token.ParentScope);
+    // falls through
+    case Token.Identifier: // identifier
+      if (bindingType & BindingType.IsIterator) {
+        result = new BindingIdentifier(state.tokenValue as string);
+      } else {
+        result = new AccessScopeExpression(state.tokenValue as string, access & Access.Ancestor);
+        access = Access.Scope;
+      }
+      state.assignable = true;
+      nextToken(state);
+      break;
+    case Token.ThisScope: // $this
+      state.assignable = false;
+      nextToken(state);
+      result = $this;
+      access = Access.This;
+      break;
+    case Token.OpenParen: // parenthesized expression
+      nextToken(state);
+      result = parse(state, Access.Reset, Precedence.Assign, bindingType);
+      consume(state, Token.CloseParen);
+      access = Access.Reset;
+      break;
+    case Token.OpenBracket:
+      result = parseArrayLiteralExpression(state, access, bindingType);
+      access = Access.Reset;
+      break;
+    case Token.OpenBrace:
+      result = parseObjectLiteralExpression(state, bindingType);
+      access = Access.Reset;
+      break;
+    case Token.TemplateTail:
+      result = new TemplateExpression([state.tokenValue as string]);
+      state.assignable = false;
+      nextToken(state);
+      access = Access.Reset;
+      break;
+    case Token.TemplateContinuation:
+      result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
+      access = Access.Reset;
+      break;
+    case Token.StringLiteral:
+    case Token.NumericLiteral:
+      result = new PrimitiveLiteralExpression(state.tokenValue);
+      state.assignable = false;
+      nextToken(state);
+      access = Access.Reset;
+      break;
+    case Token.NullKeyword:
+    case Token.UndefinedKeyword:
+    case Token.TrueKeyword:
+    case Token.FalseKeyword:
+      result = TokenValues[state.currentToken & Token.Type] as IPrimitiveLiteralExpression;
+      state.assignable = false;
+      nextToken(state);
+      access = Access.Reset;
+      break;
+    default:
+      if (state.index >= state.length) {
+        throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
+      } else {
+        throw Reporter.error(SyntaxError.UnconsumedToken, { state });
+      }
     }
 
     if (bindingType & BindingType.IsIterator) {
@@ -757,7 +757,7 @@ function scanIdentifier(state: ParserState): Token {
   // run to the next non-idPart
   while (IdParts[nextChar(state)]);
 
-  const token: Token | undefined = KeywordLookup[state.tokenValue = state.tokenRaw];
+  const token: Token|undefined = KeywordLookup[state.tokenValue = state.tokenRaw];
   return token === undefined ? Token.Identifier : token;
 }
 
@@ -993,9 +993,9 @@ decompress(CharScanners, null, codes.IdStart, scanIdentifier);
 decompress(CharScanners, null, codes.Digit, s => scanNumber(s, false));
 
 CharScanners[Char.DoubleQuote] =
-  CharScanners[Char.SingleQuote] = s => {
-    return scanString(s);
-  };
+CharScanners[Char.SingleQuote] = s => {
+  return scanString(s);
+};
 CharScanners[Char.Backtick] = s => {
   return scanTemplate(s);
 };
@@ -1013,7 +1013,7 @@ CharScanners[Char.Exclamation] = s => {
 };
 
 // =, ==, ===
-CharScanners[Char.Equals] = s => {
+CharScanners[Char.Equals] =  s => {
   if (nextChar(s) !== Char.Equals) {
     return Token.Equals;
   }
@@ -1051,7 +1051,7 @@ CharScanners[Char.Dot] = s => {
 };
 
 // <, <=
-CharScanners[Char.LessThan] = s => {
+CharScanners[Char.LessThan] =  s => {
   if (nextChar(s) !== Char.Equals) {
     return Token.LessThan;
   }
@@ -1060,7 +1060,7 @@ CharScanners[Char.LessThan] = s => {
 };
 
 // >, >=
-CharScanners[Char.GreaterThan] = s => {
+CharScanners[Char.GreaterThan] =  s => {
   if (nextChar(s) !== Char.Equals) {
     return Token.GreaterThan;
   }
@@ -1068,17 +1068,17 @@ CharScanners[Char.GreaterThan] = s => {
   return Token.GreaterThanEquals;
 };
 
-CharScanners[Char.Percent] = returnToken(Token.Percent);
-CharScanners[Char.OpenParen] = returnToken(Token.OpenParen);
-CharScanners[Char.CloseParen] = returnToken(Token.CloseParen);
-CharScanners[Char.Asterisk] = returnToken(Token.Asterisk);
-CharScanners[Char.Plus] = returnToken(Token.Plus);
-CharScanners[Char.Comma] = returnToken(Token.Comma);
-CharScanners[Char.Minus] = returnToken(Token.Minus);
-CharScanners[Char.Slash] = returnToken(Token.Slash);
-CharScanners[Char.Colon] = returnToken(Token.Colon);
-CharScanners[Char.Question] = returnToken(Token.Question);
-CharScanners[Char.OpenBracket] = returnToken(Token.OpenBracket);
+CharScanners[Char.Percent]      = returnToken(Token.Percent);
+CharScanners[Char.OpenParen]    = returnToken(Token.OpenParen);
+CharScanners[Char.CloseParen]   = returnToken(Token.CloseParen);
+CharScanners[Char.Asterisk]     = returnToken(Token.Asterisk);
+CharScanners[Char.Plus]         = returnToken(Token.Plus);
+CharScanners[Char.Comma]        = returnToken(Token.Comma);
+CharScanners[Char.Minus]        = returnToken(Token.Minus);
+CharScanners[Char.Slash]        = returnToken(Token.Slash);
+CharScanners[Char.Colon]        = returnToken(Token.Colon);
+CharScanners[Char.Question]     = returnToken(Token.Question);
+CharScanners[Char.OpenBracket]  = returnToken(Token.OpenBracket);
 CharScanners[Char.CloseBracket] = returnToken(Token.CloseBracket);
-CharScanners[Char.OpenBrace] = returnToken(Token.OpenBrace);
-CharScanners[Char.CloseBrace] = returnToken(Token.CloseBrace);
+CharScanners[Char.OpenBrace]    = returnToken(Token.OpenBrace);
+CharScanners[Char.CloseBrace]   = returnToken(Token.CloseBrace);

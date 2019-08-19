@@ -1,9 +1,9 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags } from '@aurelia/runtime';
+import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-import { IRouteableComponentType, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
 
 export const enum ContentStatus {
   none = 0,

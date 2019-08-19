@@ -3,6 +3,7 @@ import { Aurelia, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
+import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
@@ -14,7 +15,6 @@ import { Scope } from './scope';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
 
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];

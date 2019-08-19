@@ -1,7 +1,6 @@
 import { Guard } from './guard';
-import { Viewport } from './viewport';
+import { GuardFunction, GuardTarget, INavigatorInstruction } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
-import { INavigatorInstruction, IRouteableComponentType, GuardTarget, GuardFunction } from './interfaces';
 
 // Only one so far, but it's easier to support more from the start
 export const enum GuardTypes {

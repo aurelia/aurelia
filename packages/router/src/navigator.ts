@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
-import { Queue, QueueItem } from './queue';
 import { INavigatorInstruction } from './interfaces';
+import { Queue, QueueItem } from './queue';
 
 export interface INavigatorStore {
   length: number;

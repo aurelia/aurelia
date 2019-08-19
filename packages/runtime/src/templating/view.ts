@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter, Constructable, DI, Writable } from '@aurelia/kernel';
+import { Constructable, DI, PLATFORM, Reporter } from '@aurelia/kernel';
 import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
@@ -7,11 +7,11 @@ import {
   ILifecycle,
   IViewFactory
 } from '../lifecycle';
-import { ITemplate } from '../rendering-engine';
-import { Controller } from './controller';
-import { CustomElement } from '../resources/custom-element';
-import { Scope } from '../observation/binding-context';
 import { IScope } from '../observation';
+import { Scope } from '../observation/binding-context';
+import { ITemplate } from '../rendering-engine';
+import { CustomElement } from '../resources/custom-element';
+import { Controller } from './controller';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;

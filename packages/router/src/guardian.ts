@@ -10,8 +10,17 @@ export const enum GuardTypes {
 export type GuardIdentity = number;
 
 export interface IGuardOptions {
+  /**
+   * What event/when to guard. Defaults to Before
+   */
   type?: GuardTypes;
+  /**
+   * What to guard. If omitted, everything is included
+   */
   include?: GuardTarget[];
+  /**
+   * What not to guard. If omitted, nothing is excluded
+   */
   exclude?: GuardTarget[];
 }
 

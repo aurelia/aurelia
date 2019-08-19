@@ -1,4 +1,4 @@
-import { IRouteableComponentType, IViewportComponent, NavigationInstruction } from './interfaces';
+import { IRouteableComponentType, IViewportInstruction, NavigationInstruction } from './interfaces';
 import { INavRoute, Nav } from './nav';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -74,7 +74,7 @@ export class NavRoute {
       } else if (route as ViewportInstruction instanceof ViewportInstruction) {
         instructions.push(route as ViewportInstruction);
       } else if (route['component']) {
-        const viewportComponent = route as IViewportComponent;
+        const viewportComponent = route as IViewportInstruction;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {
         instructions.push(new ViewportInstruction(route as IRouteableComponentType));

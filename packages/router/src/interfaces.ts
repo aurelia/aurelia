@@ -4,20 +4,13 @@
 * of the API.
 */
 
+import { Constructable } from '@aurelia/kernel';
 import { ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
-export interface IComponent {
-
-}
-
-export interface IViewport {
-
-}
-
-export interface IRouteableComponentType extends Partial<ICustomElementType> {
+export interface IRouteableComponentType<C extends Constructable = Constructable> extends Partial<ICustomElementType<C>> {
   parameters?: string[];
 }
 
@@ -42,10 +35,10 @@ export interface INavigatorInstruction extends INavigatorEntry {
   repeating?: boolean;
 }
 
-export interface IViewportComponent {
-  component: string | IRouteableComponentType;
-  viewport?: string | Viewport;
-  parameters?: Record<string, unknown> | string; // TODO: Allow unknown[] for parameters
+export interface IViewportInstruction {
+  component: ComponentAppellation;
+  viewport?: ViewportAppellation;
+  parameters?: string | Record<string, unknown>; // TODO: | unknown[];
 }
 
 export interface IGuardTarget {
@@ -55,8 +48,15 @@ export interface IGuardTarget {
   viewportName?: string;
 }
 
-
-export type NavigationInstruction = string | IRouteableComponentType | IViewportComponent | ViewportInstruction;
+export type NavigationInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
 
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget = IGuardTarget | IRouteableComponentType | string;
+export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
+
+export type ComponentAppellation<C extends Constructable = Constructable, T extends INode = INode> = string | IRouteableComponentType<C>; // TODO: | IRouteableComponent<T>;
+export type ViewportAppellation = string | Viewport;
+
+export interface IComponentAndOrViewportOrNothing<C extends Constructable = Constructable> {
+  component?: ComponentAppellation<C>;
+  viewport?: ViewportAppellation;
+}

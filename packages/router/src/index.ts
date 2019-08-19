@@ -27,7 +27,7 @@ export {
   INavigatorInstruction,
   IRouteableComponent,
   IRouteableComponentType,
-  IViewportComponent,
+  IViewportInstruction,
   NavigationInstruction,
   ReentryBehavior,
 } from './interfaces';

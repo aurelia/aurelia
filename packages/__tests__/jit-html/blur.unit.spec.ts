@@ -3,7 +3,7 @@ import { ILifecycle } from '@aurelia/runtime';
 import { Blur } from '@aurelia/runtime-html';
 import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
-describe('[UNIT] blur.spec.ts', function() {
+describe('[UNIT] blur.unit.spec.ts', function() {
 
   if (!PLATFORM.isBrowserLike) {
     return;
@@ -14,7 +14,7 @@ describe('[UNIT] blur.spec.ts', function() {
   describe('contains()', function() {
     for (const value of falsyPansyValues) {
       it(`bails when value is already falsy: "${value}"`, function() {
-        const { ctx, target, sut } = setup();
+        const { ctx, sut, dispose } = setup();
         const accessed: Record<string, number> = {};
         sut.value = value as unknown as boolean;
         sut.contains = (originalFn => {
@@ -33,25 +33,29 @@ describe('[UNIT] blur.spec.ts', function() {
         assert.equal(result, false);
         assert.equal(Object.keys(accessed)[0], 'value', 'It should have accessed "value"');
         assert.equal(Object.keys(accessed).length, 1, 'It should not have accessed any other properties beside "value".');
+
+        dispose();
       });
     }
 
     it('returns true when invoked on child element', function() {
-      const { ctx, target, sut } = setup();
+      const { ctx, target, sut, dispose } = setup();
       const child = target.appendChild(ctx.createElement('div'));
       sut.value = true;
       const result = sut.contains(child);
       assert.equal(result, true);
+      dispose();
     });
 
     it('returns true when invoked on the its own element', function() {
-      const { ctx, target, sut } = setup();
+      const { target, sut, dispose } = setup();
       sut.value = true;
       assert.equal(sut.contains(target), true);
+      dispose();
     });
 
     it('bails when there is no thing linked and the hosting element does not contain the target', function() {
-      const { ctx, target, sut } = setup();
+      const { ctx, sut, dispose } = setup();
       let accessed: Record<string, number> = {};
       sut.value = true;
       sut.contains = (originalFn => {
@@ -82,7 +86,7 @@ describe('[UNIT] blur.spec.ts', function() {
         ctx.doc.createAttribute('asd')
       ]) {
         const result = sut.contains(testValue as unknown as Element);
-        assert.equal(result, false);
+        assert.equal(result, false, `Should have been false for ${String(testValue)}`);
         const accessedProps = Object.keys(accessed);
         assert.equal(accessedProps.length, 3);
         assert.equal(
@@ -92,38 +96,75 @@ describe('[UNIT] blur.spec.ts', function() {
         );
         accessed = {};
       }
+      dispose();
     });
 
     it('throws when given anything not a Node but also not null/undefined', function() {
-      const { ctx, target, sut } = setup();
+      const { sut } = setup();
       sut.value = true;
       for (const imcompatValue of [true, false, 'a', 5, Symbol(), Number, new Date(), {}, [], new Proxy({}, {})]) {
         assert.throws(() => sut.contains(imcompatValue as unknown as Element));
       }
     });
 
-    it('returns false when checking contains with element in different tree', function() {
-      const { ctx, target, sut } = setup();
+    it('returns "true" when checking contains with element in different tree', function() {
+      const { target, sut, dispose } = setup();
       target
         .attachShadow({ mode: 'open' })
         .innerHTML = '<button></button>';
-      assert.equal(sut.contains(target.shadowRoot.querySelector('button')), false);
-      assert.equal(sut.contains(target.shadowRoot as any), false);
+      assert.equal(
+        sut.contains(target.shadowRoot.querySelector('button')),
+        true,
+        'should have returned true to element inside shadow root'
+      );
+      assert.equal(
+        sut.contains(target.shadowRoot as any),
+        true,
+        'should have returned true to a shadow root'
+      );
+      dispose();
     });
+
+    for (let i = 1; 10 > i; ++i) {
+      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, async function() {
+        const { ctx, target, sut, dispose } = setup();
+        const { rootShadowRoot, lastShadowRoot } = createNestingShadowRoot(ctx, i, target);
+        assert.notEqual(rootShadowRoot, lastShadowRoot, 'root #ShadowRoot !== leaf #ShadowRoot');
+        assert.equal(
+          sut.contains(lastShadowRoot.querySelector('button')),
+          true,
+          'should have returned true to element inside shadow root'
+        );
+        dispose();
+      });
+    }
+
+    function createNestingShadowRoot(ctx: HTMLTestContext, level: number, rootEl: HTMLElement) {
+      const rootShadowRoot = rootEl.attachShadow({ mode: 'open' });
+      let currentShadowRoot = rootShadowRoot;
+      currentShadowRoot.appendChild(ctx.createElement('button'));
+      while (level-- > 0) {
+        const div = currentShadowRoot.appendChild(ctx.createElement('div'));
+        currentShadowRoot = div.attachShadow({ mode: 'open' });
+        currentShadowRoot.appendChild(ctx.createElement('button'));
+      }
+      return { rootShadowRoot, lastShadowRoot: currentShadowRoot };
+    }
   });
 
   describe('.triggerBlur()', function() {
     it('sets value to false', function() {
-      const { ctx, target, sut } = setup();
+      const { dispose, sut } = setup();
       for (const value of [true, 'a', 5, Symbol(), Number, new Date(), null, undefined, {}, [], new Proxy({}, {})]) {
         sut.value = value as unknown as boolean;
         sut.triggerBlur();
         assert.equal(sut.value, false);
       }
+      dispose();
     });
 
     it('calls onBlur() if present', function() {
-      const { ctx, target, sut } = setup();
+      const { dispose, sut } = setup();
       let count = 0;
       const onBlurSpy = createSpy(function() {
         count++;
@@ -138,10 +179,12 @@ describe('[UNIT] blur.spec.ts', function() {
         onBlurSpy.reset();
       }
       assert.equal(count, testValues.length);
+      dispose();
     });
 
     it('does not call onBlur if value is not a function', function() {
-      let { sut } = setup();
+      // tslint:disable-next-line:prefer-const
+      let { sut, dispose } = setup();
       const testValues = [true, 'a', 5, Symbol(), new Date(), null, undefined, {}, [], new Proxy({}, {})];
       let onBlurValue: any;
       let accessCount = 0;
@@ -158,6 +201,7 @@ describe('[UNIT] blur.spec.ts', function() {
         sut.triggerBlur();
       }
       assert.equal(accessCount, testValues.length);
+      dispose();
     });
   });
 
@@ -194,20 +238,20 @@ describe('[UNIT] blur.spec.ts', function() {
       ];
       for (const linkedWith of linkedWithValues) {
         it('invokes contains on linkedWith object', function() {
-          const { ctx, target, sut } = setup();
+          const { sut, dispose } = setup();
           sut.linkedWith = linkedWith;
           assert.equal(
             sut.contains(fakeEl),
             true,
             `contains + linkedWith + ${linkedWith['name'] || typeof linkedWith}`
           );
+          dispose();
         });
       }
     });
 
     describe('string/string[] scenarios', function() {
-      const { doc } = TestContext.createHTMLTestContext();
-      doc.body.insertAdjacentHTML('beforeend', `
+      const template = `
         <some-el><div data-query="some-el"></div></some-el>,
         <div class="some-css-class">
           <div data-query=".some-css-class"></div>
@@ -220,7 +264,7 @@ describe('[UNIT] blur.spec.ts', function() {
           </div>
           <button data-query="#some-complex-selector > .some-nested-complex-selector + button">Click me</button>
         </div>
-      `);
+      `;
       const linkedWithValues = [
         'some-el',
         '.some-css-class',
@@ -229,8 +273,10 @@ describe('[UNIT] blur.spec.ts', function() {
       ];
       for (const linkWith of linkedWithValues) {
         it(`works when linkedWith is a string: ${linkWith}`, function() {
-          const { ctx, target, sut } = setup();
+          const { sut, ctx: { doc }, dispose } = setup();
           sut.linkedWith = linkWith;
+          const linkedWithTargetsCt = doc.body.insertAdjacentElement('afterbegin', doc.createElement('div'));
+          linkedWithTargetsCt.innerHTML = template;
           const interactWith = doc.querySelector(`[data-query="${linkWith}"]`);
           assert.notEqual(
             interactWith,
@@ -238,12 +284,16 @@ describe('[UNIT] blur.spec.ts', function() {
             `querySelector[data-query=${linkWith}]`
           );
           assert.equal(sut.contains(interactWith), true);
+          linkedWithTargetsCt.remove();
+          dispose();
         });
       }
 
       it('works when linkedWith is an array of string', function() {
-        const { ctx, target, sut } = setup();
+        const { sut, ctx: { doc }, dispose } = setup();
         sut.linkedWith = linkedWithValues;
+        const linkedWithTargetsCt = doc.body.insertAdjacentElement('afterbegin', doc.createElement('div'));
+        linkedWithTargetsCt.innerHTML = template;
         for (const linkWith of linkedWithValues) {
           const interactWith = doc.querySelector(`[data-query="${linkWith}"]`);
           assert.notEqual(
@@ -253,6 +303,8 @@ describe('[UNIT] blur.spec.ts', function() {
           );
           assert.equal(sut.contains(interactWith), true);
         }
+        linkedWithTargetsCt.remove();
+        dispose();
       });
     });
   });
@@ -418,7 +470,7 @@ describe('[UNIT] blur.spec.ts', function() {
     const ctx = TestContext.createHTMLTestContext();
     const target = ctx.doc.body.appendChild(ctx.createElement('div'));
     const sut = new Blur(target, ctx.dom, ctx.container.get(ILifecycle));
-    return { ctx, target, sut };
+    return { ctx, target, sut, dispose: () => { target.remove(); } };
   }
 
   function assertContain(sut: Blur, checks: [HTMLElement, boolean, string?][]): void {

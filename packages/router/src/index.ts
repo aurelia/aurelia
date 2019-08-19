@@ -86,7 +86,6 @@ export {
 } from './router';
 
 export {
-  IViewportComponentType,
   IFindViewportsResult,
   ChildContainer,
   Scope,

@@ -39,6 +39,7 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { ViewValueConverter } from './resources/value-converters/view';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -67,6 +68,7 @@ export const RepeatRegistration = Repeat as IRegistry;
 export const ReplaceableRegistration = Replaceable as unknown as IRegistry;
 export const WithRegistration = With as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
+export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
 export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
@@ -92,6 +94,7 @@ export const DefaultResources = [
   ReplaceableRegistration,
   WithRegistration,
   SanitizeValueConverterRegistration,
+  ViewValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,

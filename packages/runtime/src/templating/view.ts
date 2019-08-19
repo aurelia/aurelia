@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { PLATFORM, Reporter, Constructable, DI, Writable } from '@aurelia/kernel';
 import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
@@ -9,6 +9,9 @@ import {
 } from '../lifecycle';
 import { ITemplate } from '../rendering-engine';
 import { Controller } from './controller';
+import { CustomElement } from '../resources/custom-element';
+import { Scope } from '../observation/binding-context';
+import { IScope } from '../observation';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -93,5 +96,155 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     } else {
       Object.assign(this.parts, parts);
     }
+  }
+}
+
+type HasAssociatedViews = {
+  $views: ITemplateDefinition[];
+};
+
+export function view(v: ITemplateDefinition) {
+  return function<T extends Constructable>(target: T & Partial<HasAssociatedViews>) {
+    const views = target.$views || (target.$views = []);
+    views.push(v);
+  };
+}
+
+function hasAssociatedViews<T>(object: T): object is T & HasAssociatedViews {
+  return object && '$views' in object;
+}
+
+export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
+  .withDefault(x => x.singleton(ViewLocator));
+
+export interface IViewLocator {
+  getViewComponentForModelInstance(model: object, requestedViewName?: string): Constructable | null;
+}
+
+const lifecycleCallbacks = [
+  'binding',
+  'bound',
+  'attaching',
+  'attached',
+  'detaching',
+  'caching',
+  'detached',
+  'unbinding',
+  'unbound'
+];
+
+export class ViewLocator implements IViewLocator {
+  private modelInstanceToBoundComponent: WeakMap<object, Record<string, Constructable>> = new WeakMap();
+  private modelTypeToUnboundComponent: Map<object, Record<string, Constructable>> = new Map();
+
+  public getViewComponentForModelInstance(model: object, viewName?: string) {
+    if (model && hasAssociatedViews(model.constructor)) {
+      const availableViews = model.constructor.$views;
+      const resolvedViewName = this.getViewName(availableViews, viewName);
+
+      return this.getOrCreateBoundComponent(
+        model,
+        availableViews,
+        resolvedViewName
+      );
+    }
+
+    return null;
+  }
+
+  private getOrCreateBoundComponent(model: object, availableViews: ITemplateDefinition[], resolvedViewName: string) {
+    let lookup = this.modelInstanceToBoundComponent.get(model);
+    let BoundComponent;
+
+    if (!lookup) {
+      lookup = {};
+      this.modelInstanceToBoundComponent.set(model, lookup);
+    } else {
+      BoundComponent = lookup[resolvedViewName];
+    }
+
+    if (!BoundComponent) {
+      const UnboundComponent = this.getOrCreateUnboundComponent(
+        model,
+        availableViews,
+        resolvedViewName
+      );
+
+      BoundComponent = class extends UnboundComponent {
+        constructor() {
+          super(model);
+        }
+      };
+
+      lookup[resolvedViewName] = BoundComponent;
+    }
+
+    return BoundComponent;
+  }
+
+  private getOrCreateUnboundComponent(model: object, availableViews: ITemplateDefinition[], resolvedViewName: string) {
+    let lookup = this.modelTypeToUnboundComponent.get(model.constructor);
+    let UnboundComponent;
+
+    if (!lookup) {
+      lookup = {};
+      this.modelTypeToUnboundComponent.set(model.constructor, lookup);
+    } else {
+      UnboundComponent = lookup[resolvedViewName];
+    }
+
+    if (!UnboundComponent) {
+      UnboundComponent = CustomElement.define(
+        this.getView(availableViews, resolvedViewName),
+        class {
+          protected $scope!: IScope;
+
+          constructor(protected viewModel: any) {}
+
+          public created() {
+            this.$scope = Scope.fromParent(0, this.$scope, this.viewModel);
+
+            if ('created' in this.viewModel) {
+              this.viewModel.created();
+            }
+          }
+        }
+      );
+
+      const proto = UnboundComponent.prototype as any;
+
+      lifecycleCallbacks.forEach(x => {
+        if (x in model) {
+          proto[x] = function() { return this.viewModel[x](); };
+        }
+      });
+
+      lookup[resolvedViewName] = UnboundComponent;
+    }
+
+    return UnboundComponent;
+  }
+
+  private getViewName(views: ITemplateDefinition[], requestedName?: string) {
+    if (requestedName) {
+      return requestedName;
+    }
+
+    if (views.length === 1) {
+      return views[0].name;
+    }
+
+    return 'default';
+  }
+
+  private getView(views: ITemplateDefinition[], name: string): ITemplateDefinition {
+    const v = views.find(x => x.name === name);
+
+    if (!v) {
+      // TODO: user Reporter
+      throw new Error(`Could not find view: ${name}`);
+    }
+
+    return v;
   }
 }

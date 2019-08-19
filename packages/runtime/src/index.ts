@@ -290,6 +290,9 @@ export {
 } from './templating/controller';
 export {
   ViewFactory,
+  IViewLocator,
+  ViewLocator,
+  view
 } from './templating/view';
 
 export {

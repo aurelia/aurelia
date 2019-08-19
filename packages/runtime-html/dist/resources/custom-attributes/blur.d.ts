@@ -43,7 +43,7 @@ export declare class Blur {
      * Determine from which node/ nodes, search for elements
      */
     linkingContext: string | Element | null;
-    constructor(element: Element, dom: HTMLDOM, lifecycle: ILifecycle);
+    constructor(element: HTMLElement, dom: HTMLDOM, lifecycle: ILifecycle);
     attached(): void;
     detaching(): void;
     handleEventTarget(target: EventTarget): void;

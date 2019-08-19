@@ -63,7 +63,6 @@
             }
             doc.addEventListener('touchstart', handler, defaultCaptureEventInit);
             doc.addEventListener('mousedown', handler, defaultCaptureEventInit);
-            doc.addEventListener('wheel', handler, defaultBubbleEventInit);
             doc.addEventListener('focus', handler, defaultCaptureEventInit);
             win.addEventListener('blur', handler, defaultBubbleEventInit);
         }
@@ -77,7 +76,6 @@
             }
             doc.removeEventListener('touchstart', handler, defaultCaptureEventInit);
             doc.removeEventListener('mousedown', handler, defaultCaptureEventInit);
-            doc.removeEventListener('wheel', handler, defaultBubbleEventInit);
             doc.removeEventListener('focus', handler, defaultCaptureEventInit);
             win.removeEventListener('blur', handler, defaultBubbleEventInit);
         }
@@ -125,7 +123,8 @@
             let links;
             let link;
             let contextNode;
-            if (this.element.contains(target)) {
+            const element = this.element;
+            if (containsElementOrShadowRoot(element, target)) {
                 return true;
             }
             if (!this.linkedWith) {
@@ -225,6 +224,24 @@
         tslib_1.__param(2, runtime_1.ILifecycle)
     ], Blur);
     exports.Blur = Blur;
+    const containsElementOrShadowRoot = (container, target) => {
+        if (container.contains(target)) {
+            return true;
+        }
+        let parentNode = null;
+        while (target != null) {
+            if (target === container) {
+                return true;
+            }
+            parentNode = target.parentNode;
+            if (parentNode === null && target.nodeType === 11 /* DocumentFragment */) {
+                target = target.host;
+                continue;
+            }
+            target = parentNode;
+        }
+        return false;
+    };
     const createHandler = (manager, checkTargets) => {
         // *******************************
         // EVENTS ORDER
@@ -248,39 +265,18 @@
         //
         // ******************************
         let hasChecked = false;
-        const lifecycle = manager.lifecycle;
         const revertCheckage = () => {
             hasChecked = false;
         };
-        // method name are prefixed by a number to signal its order in event series
-        const _1__handlePointerDown = (e) => {
-            handleEvent(e);
+        const markChecked = () => {
             hasChecked = true;
-            lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
+            manager.lifecycle.enqueueRAF(revertCheckage, void 0, 32768 /* preempt */, true);
         };
-        const _2__handleTouchStart = (e) => {
-            if (hasChecked) {
-                lifecycle.dequeueRAF(revertCheckage, null);
-                lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
-                return;
+        const handleMousedown = (e) => {
+            if (!hasChecked) {
+                handleEvent(e);
+                markChecked();
             }
-            handleEvent(e);
-            hasChecked = true;
-            // still queue revert change in case touch event is synthetic
-            // but blur effect is still desired in such scenario
-            lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
-        };
-        const _3__handleMousedown = (e) => {
-            if (hasChecked) {
-                lifecycle.dequeueRAF(revertCheckage, null);
-                lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
-                return;
-            }
-            handleEvent(e);
-            hasChecked = true;
-            // still queue revert change in case mouse event is synthetic
-            // but blur effect is still desired in such scenario
-            lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
         };
         /**
          * Handle globally captured focus event
@@ -291,10 +287,8 @@
          * User clicks on a non-focusable element
          * User clicks on the window, outside of the document
          */
-        const _4__handleFocus = (e) => {
+        const handleFocus = (e) => {
             if (hasChecked) {
-                lifecycle.dequeueRAF(revertCheckage, null);
-                lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
                 return;
             }
             // there are two way a focus gets captured on window
@@ -312,8 +306,7 @@
             else {
                 handleEvent(e);
             }
-            hasChecked = true;
-            lifecycle.enqueueRAF(revertCheckage, null, 32768 /* preempt */, true);
+            markChecked();
         };
         const handleWindowBlur = () => {
             hasChecked = false;
@@ -321,11 +314,8 @@
                 checkTargets[i].triggerBlur();
             }
         };
-        const handleMouseWheel = (e) => {
-            handleEvent(e);
-        };
         const handleEvent = (e) => {
-            const target = e.target;
+            const target = e.composed ? e.composedPath()[0] : e.target;
             if (target === null) {
                 return;
             }
@@ -334,12 +324,11 @@
             }
         };
         return {
-            onpointerdown: _1__handlePointerDown,
-            ontouchstart: _2__handleTouchStart,
-            onmousedown: _3__handleMousedown,
-            onfocus: _4__handleFocus,
+            onpointerdown: handleMousedown,
+            ontouchstart: handleMousedown,
+            onmousedown: handleMousedown,
+            onfocus: handleFocus,
             onblur: handleWindowBlur,
-            onwheel: handleMouseWheel,
             handleEvent(e) {
                 this[`on${e.type}`](e);
             }

@@ -54,7 +54,7 @@ describe('blur.integration.spec.ts', () => {
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda set "hasFocus" to false when mousedown on doc body.');
             await waitForFrames(1);
 
-            const button = ctx.doc.querySelector('button');
+            const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, '+ button@mousedown -> Shoulda set "hasFocus" to false when clicking element outside.');
@@ -135,13 +135,14 @@ describe('blur.integration.spec.ts', () => {
             public hasFocus = true;
           },
           async assertFn(ctx, testHost, component) {
-            const input = ctx.doc.querySelector('input');
+            const input = testHost.querySelector('input');
             assert.equal(input.isConnected, true);
-            assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement');
+            assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement (1)');
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             input.blur();
             dispatchEventWith(ctx, input, EVENTS.Blur, false);
+            await waitForFrames(1);
             assert.notEqual(input, ctx.doc.activeElement, 'child > input !== doc.activeElement');
             assert.equal(component.hasFocus, false, 'child > input@blur');
             await waitForFrames(1);
@@ -167,10 +168,12 @@ describe('blur.integration.spec.ts', () => {
             await waitForFrames(1);
 
             // this is quite convoluted
+            // and failing unexpectedly, commented out for good
             component.hasFocus = true;
             input.focus();
-            dispatchEventWith(ctx, input, EVENTS.Focus);
-            assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement');
+            dispatchEventWith(ctx, input, EVENTS.Focus, false);
+            await waitForFrames(10);
+            assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement (2)');
             // child input got focus
             // 1. blur got triggered -> hasFocus to false
             // 2. focus got triggered -> hasFocus to true
@@ -332,6 +335,7 @@ describe('blur.integration.spec.ts', () => {
 
     au.app({ host: appHost, component });
     await au.start().wait();
+    await waitForFrames(2);
 
     return {
       ctx: ctx,

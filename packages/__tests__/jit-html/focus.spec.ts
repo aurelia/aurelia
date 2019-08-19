@@ -293,7 +293,7 @@ describe('focus.spec.ts', function() {
           input2.focus();
           dispatchEventWith(ctx, input2, 'focus', false);
           dispatchEventWith(ctx, focusable, 'blur', false);
-          assert.equal(document.activeElement, input2, '#input2@focus -> document.activeElement === #input2');
+          assert.equal(ctx.doc.activeElement, input2, '#input2@focus -> document.activeElement === #input2');
           assert.equal(component.isFocused2, true, '#input2@focus -> component.isFocused2 === true');
           assert.equal(component.hasFocus, false, '#input2@focus -> component.hasFocus === false');
         }

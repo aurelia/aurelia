@@ -1,6 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponentType, ReentryBehavior } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, ReentryBehavior } from './interfaces';
 import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
@@ -58,7 +58,7 @@ export class Viewport {
     this.enabled = true;
   }
 
-  public setNextContent(content: IRouteableComponentType | string, instruction: INavigatorInstruction): boolean {
+  public setNextContent(content: ComponentAppellation, instruction: INavigatorInstruction): boolean {
     let parameters;
     this.clear = false;
     if (typeof content === 'string') {
@@ -279,7 +279,7 @@ export class Viewport {
   }
 
   // TODO: Deal with non-string components
-  public wantComponent(component: IRouteableComponentType | string): boolean {
+  public wantComponent(component: ComponentAppellation): boolean {
     let usedBy = this.options.usedBy || [];
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
@@ -287,7 +287,7 @@ export class Viewport {
     return usedBy.indexOf(component as string) >= 0;
   }
   // TODO: Deal with non-string components
-  public acceptComponent(component: IRouteableComponentType | string): boolean {
+  public acceptComponent(component: ComponentAppellation): boolean {
     if (component === '-' || component === null) {
       return true;
     }

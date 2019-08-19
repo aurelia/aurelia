@@ -1,4 +1,5 @@
-import { IRouteableComponentType, IViewportInstruction, NavigationInstruction } from './interfaces';
+import { Constructable } from '@aurelia/kernel';
+import { ComponentAppellationResolver, IRouteableComponentType, NavigationInstruction, NavigationInstructionResolver } from './interfaces';
 import { INavRoute, Nav } from './nav';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -10,7 +11,7 @@ export class NavRoute {
   public link?: string;
   public execute?: ((route: NavRoute) => void);
   public linkVisible?: boolean | ((route: NavRoute) => boolean);
-  public linkActive?: string | ((route: NavRoute) => boolean);
+  public linkActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
   public compareParameters: boolean = false;
   public children?: NavRoute[];
   public meta?: Record<string, unknown>;
@@ -30,11 +31,10 @@ export class NavRoute {
       this.instructions = this.parseRoute(route.route);
       this.link = this.computeLink(this.instructions);
     }
-    this.linkActive = route.consideredActive
-      ? route.consideredActive instanceof Function
-        ? route.consideredActive
-        : this.computeLink(this.parseRoute(route.consideredActive))
-      : this.link;
+    this.linkActive = route.consideredActive ? route.consideredActive : this.link;
+    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as IRouteableComponentType<Constructable>)) {
+      this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction | NavigationInstruction[]);
+    }
     this.execute = route.execute;
     this.compareParameters = !!route.compareParameters;
     this.linkVisible = route.condition === undefined ? true : route.condition;
@@ -63,24 +63,8 @@ export class NavRoute {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
   }
 
-  private parseRoute(routes: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
-    if (!Array.isArray(routes)) {
-      return this.parseRoute([routes]);
-    }
-    const instructions: ViewportInstruction[] = [];
-    for (const route of routes) {
-      if (typeof route === 'string') {
-        instructions.push(this.nav.router.instructionResolver.parseViewportInstruction(route));
-      } else if (route as ViewportInstruction instanceof ViewportInstruction) {
-        instructions.push(route as ViewportInstruction);
-      } else if (route['component']) {
-        const viewportComponent = route as IViewportInstruction;
-        instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
-      } else {
-        instructions.push(new ViewportInstruction(route as IRouteableComponentType));
-      }
-    }
-    return instructions;
+  private parseRoute<C extends Constructable>(routes: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
+    return NavigationInstructionResolver.toViewportInstructions<C>(this.nav.router, routes);
   }
 
   private computeVisible(): boolean {
@@ -91,10 +75,10 @@ export class NavRoute {
   }
 
   private computeActive(): string {
-    if (this.linkActive instanceof Function) {
-      return this.linkActive(this) ? 'nav-active' : '';
+    if (!Array.isArray(this.linkActive)) {
+      return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
-    const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
+    const components = this.linkActive as ViewportInstruction[];
     const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {

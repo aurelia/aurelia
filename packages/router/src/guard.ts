@@ -1,12 +1,13 @@
+import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { GuardFunction, GuardTarget, IGuardTarget, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { GuardFunction, GuardTarget, IGuardTarget, INavigatorInstruction, IRouteableComponentType, ComponentAppellationResolver, ViewportAppellationResolver, IComponentAndOrViewportOrNothing } from './interfaces';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export class Guard {
   public type: GuardTypes;
-  public includeTargets: Target[];
-  public excludeTargets: Target[];
+  public includeTargets: Target<Constructable>[];
+  public excludeTargets: Target<Constructable>[];
   public guard: GuardFunction;
   public id: GuardIdentity;
 
@@ -40,23 +41,24 @@ export class Guard {
   }
 }
 
-class Target {
-  public component?: IRouteableComponentType;
+class Target<C extends Constructable> {
+  public component?: IRouteableComponentType<C>;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
 
   constructor(target: GuardTarget) {
-    const { component, componentName, viewport, viewportName } = target as IGuardTarget;
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (component || componentName || viewport || viewportName) {
-      this.component = component;
-      this.componentName = componentName;
-      this.viewport = viewport;
-      this.viewportName = viewportName;
+    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType<C>)) {
+      this.component = target as IRouteableComponentType<C>;
+      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType<C>);
     } else {
-      this.component = target as IRouteableComponentType;
+      const cvTarget = target as IComponentAndOrViewportOrNothing;
+      this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as IRouteableComponentType<C>) : null;
+      this.componentName = ComponentAppellationResolver.getName(cvTarget.component)
+      this.viewport = ViewportAppellationResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
+      this.viewportName = ViewportAppellationResolver.getName(cvTarget.viewport);
     }
   }
 

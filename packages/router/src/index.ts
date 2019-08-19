@@ -23,7 +23,6 @@ export {
 export {
   GuardFunction,
   GuardTarget,
-  IGuardTarget,
   INavigatorInstruction,
   IRouteableComponent,
   IRouteableComponentType,

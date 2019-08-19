@@ -3,7 +3,7 @@ import { Aurelia, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, ViewportAppellation } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
@@ -46,7 +46,7 @@ export interface IRouter {
   linkCallback(info: AnchorEventInfo): void;
 
   processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
-  addProcessingViewport(componentOrInstruction: string | IRouteableComponentType | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
+  addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportAppellation, onlyIfProcessingStatus?: boolean): void;
 
   // External API to get viewport by name
   getViewport(name: string): Viewport;
@@ -373,7 +373,7 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   }
 
-  public addProcessingViewport(componentOrInstruction: string | IRouteableComponentType | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void {
+  public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportAppellation, onlyIfProcessingStatus?: boolean): void {
     if (this.processingNavigation && (onlyIfProcessingStatus === undefined || onlyIfProcessingStatus)) {
       if (componentOrInstruction instanceof ViewportInstruction) {
         if (!componentOrInstruction.viewport) {

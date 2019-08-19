@@ -1,6 +1,6 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
+import { Controller, CustomElement, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -14,7 +14,7 @@ export const enum ContentStatus {
 }
 
 export class ViewportContent {
-  public content: IRouteableComponentType | string;
+  public content: ComponentAppellation;
   public parameters: string;
   public instruction: INavigatorInstruction;
   public component: IRouteableComponent;
@@ -23,7 +23,7 @@ export class ViewportContent {
   public fromCache: boolean;
   public reentry: boolean;
 
-  constructor(content: IRouteableComponentType | string = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
+  constructor(content: ComponentAppellation = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;
@@ -89,7 +89,7 @@ export class ViewportContent {
       return Promise.resolve(true);
     }
 
-    const contentType: IRouteableComponentType = this.component !== null ? this.component.constructor : this.content as IRouteableComponentType;
+    const contentType: IRouteableComponentType<Constructable> = this.component !== null ? this.component.constructor as IRouteableComponentType<Constructable> : this.content as IRouteableComponentType<Constructable>;
     const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
     this.instruction.parameters = merged.namedParameters;
     this.instruction.parameterList = merged.parameterList;
@@ -122,7 +122,7 @@ export class ViewportContent {
       return;
     }
     if (this.component.enter) {
-      const contentType: IRouteableComponentType = this.component !== null ? this.component.constructor : this.content as IRouteableComponentType;
+      const contentType: IRouteableComponentType<Constructable> = this.component !== null ? this.component.constructor as IRouteableComponentType<Constructable> : this.content as IRouteableComponentType<Constructable>;
       const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
       this.instruction.parameters = merged.namedParameters;
       this.instruction.parameterList = merged.parameterList;
@@ -239,14 +239,14 @@ export class ViewportContent {
       return (this.content).description.name;
     }
   }
-  public componentType(context: IRenderContext | IContainer): IRouteableComponentType {
+  public componentType(context: IRenderContext | IContainer): IRouteableComponentType<Constructable> {
     if (this.content === null) {
       return null;
     } else if (typeof this.content !== 'string') {
       return this.content;
     } else {
       const container = context.get(IContainer);
-      const resolver = container.getResolver<Constructable & IRouteableComponentType>(CustomElement.keyFrom(this.content));
+      const resolver = container.getResolver<Constructable & IRouteableComponentType<Constructable>>(CustomElement.keyFrom(this.content));
       if (resolver !== null) {
         return resolver.getFactory(container).Type;
       }

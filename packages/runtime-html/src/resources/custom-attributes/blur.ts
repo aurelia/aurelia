@@ -7,7 +7,7 @@ import {
   INode,
   Priority
 } from '@aurelia/runtime';
-import { HTMLDOM } from '../../dom';
+import { HTMLDOM, NodeType } from '../../dom';
 
 const unset = Symbol();
 
@@ -272,7 +272,6 @@ const containsElementOrShadowRoot = (container: HTMLElement, target: Node): bool
     return true;
   }
   let parentNode: Node | null = null;
-  // tslint:disable-next-line:no-constant-condition
   while (target != null) {
 
     if (target === container) {
@@ -281,7 +280,7 @@ const containsElementOrShadowRoot = (container: HTMLElement, target: Node): bool
 
     parentNode = target.parentNode;
 
-    if (parentNode === null && target.nodeType === 11) {
+    if (parentNode === null && target.nodeType === NodeType.DocumentFragment) {
       target = (target as ShadowRoot).host;
       continue;
     }

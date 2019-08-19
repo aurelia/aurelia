@@ -5,7 +5,7 @@ import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorEntry, INavigatorInstruction, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
+import { INavigatorEntry, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
@@ -13,8 +13,8 @@ import { RouteTable } from './route-table';
 import { Scope } from './scope';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
-import { IRouteableComponentType } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
+import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
 
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];

@@ -1,11 +1,11 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigatorInstruction } from './navigator';
 import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
-import { IRouteableComponentType, ReentryBehavior, ViewportContent } from './viewport-content';
+import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
+import { IRouteableComponentType, INavigatorInstruction, ReentryBehavior } from './interfaces';
 
 export interface IViewportOptions {
   scope?: boolean;

@@ -1,21 +1,9 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags } from '@aurelia/runtime';
-import { INavigatorInstruction } from './navigator';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-
-export interface IRouteableComponentType extends Partial<ICustomElementType> {
-  parameters?: string[];
-}
-
-export interface IRouteableComponent<T extends INode = INode> extends IViewModel<T> {
-  reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): void | Promise<void>;
-  canLeave?(nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): void | Promise<void>;
-}
+import { IRouteableComponentType, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
 
 export const enum ContentStatus {
   none = 0,
@@ -23,13 +11,6 @@ export const enum ContentStatus {
   loaded = 2,
   initialized = 3,
   added = 4,
-}
-
-export const enum ReentryBehavior {
-  default = 'default',
-  disallow = 'disallow',
-  enter = 'enter',
-  refresh = 'refresh',
 }
 
 export class ViewportContent {

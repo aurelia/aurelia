@@ -2,7 +2,7 @@ import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
-import { IRouteableComponentType } from './viewport-content';
+import { IRouteableComponentType } from './interfaces';
 
 export class ViewportInstruction {
   public component?: IRouteableComponentType;

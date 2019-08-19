@@ -1,8 +1,7 @@
 import { Guard } from './guard';
-import { INavigatorInstruction } from './navigator';
 import { Viewport } from './viewport';
-import { IRouteableComponentType } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
+import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
 
 export interface IGuardTarget {
   component?: IRouteableComponentType;

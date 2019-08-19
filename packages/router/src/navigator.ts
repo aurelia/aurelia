@@ -1,5 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
 import { Queue, QueueItem } from './queue';
+import { INavigatorInstruction } from './interfaces';
 
 export interface INavigatorStore {
   length: number;
@@ -61,12 +62,6 @@ export interface INavigatorFlags {
   forward?: boolean;
   back?: boolean;
   replace?: boolean;
-}
-
-export interface INavigatorInstruction extends INavigatorEntry {
-  navigation?: INavigatorFlags;
-  previous?: IStoredNavigatorEntry;
-  repeating?: boolean;
 }
 
 export interface INavigatorState {

@@ -24,6 +24,13 @@ export {
 } from './guardian';
 
 export {
+  INavigatorInstruction,
+  IRouteableComponent,
+  IRouteableComponentType,
+  ReentryBehavior,
+} from './interfaces';
+
+export {
   INavRoute,
   Nav,
 } from './nav';
@@ -37,7 +44,6 @@ export {
   INavigatorEntry,
   INavigatorOptions,
   INavigatorFlags,
-  INavigatorInstruction,
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
@@ -92,10 +98,7 @@ export {
 } from './viewport';
 
 export {
-  IRouteableComponent,
-  IRouteableComponentType,
   ContentStatus,
-  ReentryBehavior,
   ViewportContent,
 } from './viewport-content';
 

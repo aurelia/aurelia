@@ -78,7 +78,6 @@ export {
 export {
   IRouteTransformer,
   IRouterOptions,
-  IRouteViewport,
   IRouter,
   IViewportComponent,
   NavigationInstruction,

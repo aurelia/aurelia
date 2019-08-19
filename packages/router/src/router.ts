@@ -28,11 +28,6 @@ export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
-export interface IRouteViewport {
-  name: string;
-  component: IRouteableComponentType | string;
-}
-
 export interface IViewportComponent {
   component: string | IRouteableComponentType;
   viewport?: string | Viewport;

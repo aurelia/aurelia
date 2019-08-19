@@ -19,3 +19,40 @@ For our nightly builds:
 ```bash
 npm install --save @aurelia/plugin-gulp@dev
 ```
+
+## Usage
+
+In gulp file:
+
+```js
+const au2 = require('@aurelia/plugin-gulp').default;
+
+// For js or ts files
+gulp.src('src/**/*.js')
+  .pipe(au2()) // inject aurelia conventions
+  .pipe(babel()); // demo js file with babel here
+
+// For html files
+// For apps want to use ShadowDOM
+// available defaultShadowOptions are { mode: 'open' }, or { mode: 'closed' }, or null (default).
+gulp.src('src/**/*.html')
+  .pipe(au2({defaultShadowOptions: {mode: 'open'}}));
+
+// For apps don't want to use ShadowDOM
+gulp.src('src/**/*.html')
+  .pipe(au2());
+```
+
+For apps in TypeScript, an extra typing definition is required for html module. You can add following file to your typing folder.
+
+`html.d.ts`
+```ts
+declare module '*.html' {
+  export const name: string;
+  export const template: string;
+  export default template;
+  export const dependencies: string[];
+  export const shadowOptions: { mode: 'open' | 'closed'};
+  export function getHTMLOnlyElement();
+}
+```

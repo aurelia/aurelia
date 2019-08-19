@@ -1,11 +1,11 @@
 import { parseFragment, DefaultTreeElement, ElementLocation } from 'parse5';
 
-interface strippedHtml {
+interface IStrippedHtml {
   html: string,
   deps: string[]
 }
 
-export function stripHtmlImport(rawHtml: string): strippedHtml {
+export function stripHtmlImport(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
   const toRemove: [number, number][] = [];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });

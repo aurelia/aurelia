@@ -4,28 +4,43 @@ import * as path from 'path';
 import { fileBase } from './file-base';
 import { stripHtmlImport } from './strip-html-import';
 
-export function preprocessHtmlTemplate(filePath: string, rawHtml: string, ts: boolean = false) {
+// stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
+// For webpack:
+//   import d0 from 'raw-loader!./foo.css';
+// For dumber/requirejs:
+//   import d0 from 'text!./foo.css';
+// We cannot use
+//   import d0 from './foo.css';
+// because most bundler by default will inject that css into HTML head.
+export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaultShadowOptions?: { mode: 'open' | 'closed' }, stringModuleWrap?: (id: string) => string) {
   const { html, deps } = stripHtmlImport(rawHtml);
 
   const viewDeps: string[] = [];
   const importStatements: string[] = [];
+  let registrationImported = false;
 
   deps.forEach((d, i) => {
     const ext = path.extname(d);
-    let importStatement: string;
 
     if (isCss(ext)) {
-      importStatement = `import ${s(d)};\n`;
+      if (defaultShadowOptions) {
+        if (!registrationImported) {
+          importStatements.push(`import { Registration } from '@aurelia/kernel';\n`);
+          registrationImported = true;
+        }
+        const stringModuleId = stringModuleWrap ? stringModuleWrap(d) : d;
+        importStatements.push(`import d${i} from ${s(stringModuleId)};\n`);
+        viewDeps.push(`Registration.defer('.css', d${i})`);
+      } else {
+        importStatements.push(`import ${s(d)};\n`);
+      }
     } else if (ext === '.html') {
-      importStatement = `import * as h${i} from ${s(d)};\n`;
-      importStatement += `const d${i} = h${i}.getHTMLOnlyElement();\n`;
+      importStatements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
       viewDeps.push(`d${i}`);
     } else {
-      importStatement = `import * as d${i} from ${s(d)};\n`;
+      importStatements.push(`import * as d${i} from ${s(d)};\n`);
       viewDeps.push(`d${i}`);
     }
-
-    importStatements.push(importStatement);
   });
 
   const name = kebabCase(fileBase(filePath));
@@ -35,11 +50,17 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, ts: bo
   m.append(`export const name = ${s(name)};
 export const template = ${s(html)};
 export default template;
-export const dependencies${ts ? ': any[]' : ''} = [ ${viewDeps.join(', ')} ];
-let _e${ts ? ': any' : ''};
-export function getHTMLOnlyElement()${ts ? ': any' : ''} {
+export const dependencies = [ ${viewDeps.join(', ')} ];
+`);
+
+  if (defaultShadowOptions) {
+    m.append(`export const shadowOptions = ${JSON.stringify(defaultShadowOptions)};\n`);
+  }
+
+  m.append(`let _e;
+export function getHTMLOnlyElement() {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies });
+    _e = CustomElement.define({ name, template, dependencies${defaultShadowOptions ? ', shadowOptions' : ''} });
   }
   return _e;
 }

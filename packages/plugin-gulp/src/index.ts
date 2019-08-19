@@ -2,13 +2,16 @@ import { Transform } from 'stream';
 import * as Vinyl from 'vinyl';
 import { preprocess } from '@aurelia/plugin-conventions';
 
-export default function(opts: any = {}) {
-  const ts = !!opts.ts;
-  return plugin(ts);
+export default function(options: any = {}) {
+  let shadowOptions;
+  if (options && options.defaultShadowOptions) {
+    shadowOptions = options.defaultShadowOptions as { mode: 'open' | 'closed' };
+  }
+  return plugin(shadowOptions);
 }
 
 export function plugin(
-  ts: boolean = false,
+  shadowOptions?: { mode: 'open' | 'closed' } | null,
   _preprocess = preprocess // for testing
 ) {
   return new Transform({
@@ -20,7 +23,7 @@ export function plugin(
         const { extname } = file;
         if (extname === '.html' || extname === '.js' || extname === '.ts') {
           // Rewrite foo.html to foo.html.js
-          const result = _preprocess(file.relative, file.contents.toString(), ts, file.base);
+          const result = _preprocess(file.relative, file.contents.toString(), file.base, shadowOptions, stringModuleWrap);
           if (extname === '.html') {
             file.basename += '.js';
           }
@@ -35,4 +38,8 @@ export function plugin(
       cb(undefined, file);
     }
   });
+}
+
+function stringModuleWrap(id: string) {
+  return 'text!' + id;
 }

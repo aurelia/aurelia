@@ -23,36 +23,42 @@ export function getHTMLOnlyElement() {
     assert.equal(result.map.version, 3);
   });
 
-  it('transforms html file in ts mode', function () {
-    const html = '<template></template>';
+  it('transforms html file with shadowOptions', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import * as h0 from "./hello-world.html";
+const d0 = h0.getHTMLOnlyElement();
+import * as d1 from "foo";
+import { Registration } from '@aurelia/kernel';
+import d2 from "raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies: any[] = [  ];
-let _e: any;
-export function getHTMLOnlyElement(): any {
+export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const shadowOptions = {"mode":"open"};
+let _e;
+export function getHTMLOnlyElement() {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies });
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
   }
   return _e;
 }
 `;
-    const result = preprocess('src/foo-bar.html', html, true);
+    const result = preprocess('src/foo-bar.html', html, '', { mode: 'open' }, id => `raw-loader!${id}`);
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
 
   it('does not touch js/ts file without html pair', function () {
     const js = `export class Foo {}\n`;
-    const result = preprocess('src/foo.js', js, false, '', () => false);
+    const result = preprocess('src/foo.js', js, '', null, null, () => false);
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
 
   it('does not touch js/ts file with html pair but wrong resource name', function () {
     const js = `export class Foo {}\n`;
-    const result = preprocess('src/bar.js', js, false, '', () => true);
+    const result = preprocess('src/bar.js', js, '', null, null, () => true);
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
@@ -67,8 +73,9 @@ export class FooBar {}
     const result = preprocess(
       path.join('src', 'foo-bar.ts'),
       js,
-      false,
       'base',
+      null,
+      null,
       (filePath: string) => filePath === path.join('base', 'src', 'foo-bar.html')
     );
     assert.equal(result.code, expected);
@@ -150,7 +157,7 @@ export class AbcBindingCommand {
 @customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
 export class FooBar {}
 `;
-    const result = preprocess('src/foo-bar.js', js, true, '', () => true);
+    const result = preprocess('src/foo-bar.js', js, '', null, null, () => true);
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });

@@ -20,13 +20,16 @@ export function loader(
   this.cacheable && this.cacheable();
   const cb = this.async() as webpack.loader.loaderCallback;
   const options = getOptions(this);
-  const ts = options && options.ts as boolean;
+  let shadowOptions;
+  if (options && options.defaultShadowOptions) {
+    shadowOptions = options.defaultShadowOptions as { mode: 'open' | 'closed' };
+  }
   const filePath = this.resourcePath;
   const ext = path.extname(filePath);
 
   try {
     if (ext === '.html' || ext === '.js' || ext === '.ts') {
-      const result = _preprocess(filePath, contents, ts);
+      const result = _preprocess(filePath, contents, '', shadowOptions, stringModuleWrap);
 
       // webpack uses source-map 0.6.1 typings for RawSourceMap which
       // contains typing error version: string (should be number).
@@ -40,4 +43,8 @@ export function loader(
   } catch (e) {
     cb(e);
   }
+}
+
+function stringModuleWrap(id: string) {
+  return 'raw-loader!' + id;
 }

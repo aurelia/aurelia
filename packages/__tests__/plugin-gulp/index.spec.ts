@@ -5,9 +5,16 @@ import * as v from 'vinyl';
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 
-function preprocess(filePath: string, contents: string, ts: boolean = false) {
+function preprocess(
+  filePath: string,
+  contents: string,
+  basePath: string = '',
+  defaultShadowOptions: { mode: 'open' | 'closed' } | null = null,
+  stringModuleWrap: ((id: string) => string) | null = null
+) {
   return {
-    code: (ts ? 'ts ' : '') + 'processed ' + filePath + ' ' + contents,
+    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
+          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(filePath) : filePath) + ' ' + contents,
     map: { version: 3 }
   };
 }
@@ -15,7 +22,7 @@ function preprocess(filePath: string, contents: string, ts: boolean = false) {
 describe('plugin-gulp', function () {
   it('complains about stream mode', function (done) {
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, null, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -38,7 +45,7 @@ describe('plugin-gulp', function () {
   it('ignores non js/ts/html file', function (done) {
     const css = '.a { color: red; }';
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, null, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -66,7 +73,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, null, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -89,13 +96,12 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in ts mode', function(done) {
+  it('transforms html file in shadowDOM mode', function(done) {
     const content = 'content';
-    const expected = 'ts processed src/foo-bar.html content';
-
+    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, true, preprocess);
+    const t = plugin.call(undefined, { mode: 'open' }, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -124,7 +130,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.js content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, null, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -152,7 +158,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.ts content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, null, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {

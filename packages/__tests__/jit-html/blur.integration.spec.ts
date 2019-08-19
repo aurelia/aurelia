@@ -37,7 +37,7 @@ describe('blur.integration.spec.ts', () => {
           app: class App {
             public hasFocus = true;
           },
-          async assertFn(ctx, component) {
+          async assertFn(ctx, testHost, component) {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
@@ -70,7 +70,7 @@ describe('blur.integration.spec.ts', () => {
           app: class App {
             public hasFocus = true;
           },
-          async assertFn(ctx, component) {
+          async assertFn(ctx, testHost, component) {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
@@ -87,7 +87,7 @@ describe('blur.integration.spec.ts', () => {
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda been false. Interacted inside doc, outside element.');
             await waitForFrames(1);
 
-            const button = ctx.doc.querySelector('button');
+            const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, '+ button@mousedown -> Shoulda been false. Interacted outside element.');
@@ -99,11 +99,11 @@ describe('blur.integration.spec.ts', () => {
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assertFn }: IBlurTestCase) => {
           it(title(command), async function() {
-            const { ctx, component, dispose } = await setup<IApp>(
+            const { ctx, component, testHost, dispose } = await setup<IApp>(
               template(command),
               app
             );
-            await assertFn(ctx, component, null);
+            await assertFn(ctx, testHost, component, null);
             // test cases could be sharing the same context document
             // so wait a bit before running the next test
             await waitForFrames(2);
@@ -134,7 +134,7 @@ describe('blur.integration.spec.ts', () => {
           app: class App {
             public hasFocus = true;
           },
-          async assertFn(ctx, component) {
+          async assertFn(ctx, testHost, component) {
             const input = ctx.doc.querySelector('input');
             assert.equal(input.isConnected, true);
             assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement');
@@ -160,7 +160,7 @@ describe('blur.integration.spec.ts', () => {
             assert.equal(component.hasFocus, false, 'document.body@mousedown');
             await waitForFrames(1);
 
-            const button = ctx.doc.querySelector('button');
+            const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
             assert.equal(component.hasFocus, false, '+ button@mousedown');
@@ -184,7 +184,7 @@ describe('blur.integration.spec.ts', () => {
         (command, abnormalCase, callIndex) => {
           const { title, template, app, assertFn } = abnormalCase;
           it(title(callIndex, command), async function() {
-            const { component, ctx, dispose } = await setup<IApp>(
+            const { component, testHost, ctx, dispose } = await setup<IApp>(
               template(command),
               app,
               CustomElement.define(
@@ -196,7 +196,7 @@ describe('blur.integration.spec.ts', () => {
                 class Child {}
               )
             );
-            await assertFn(ctx, component, null);
+            await assertFn(ctx, testHost, component, null);
             await waitForFrames(2);
             await dispose();
           });
@@ -249,7 +249,7 @@ describe('blur.integration.spec.ts', () => {
           public aHasFocus: boolean = true;
           public bHasFocus: boolean = true;
         },
-        assertFn: async (ctx, component: IApp & { aHasFocus: boolean; bHasFocus: boolean }, host) => {
+        assertFn: async (ctx, testHost, component: IApp & { aHasFocus: boolean; bHasFocus: boolean }, host) => {
 
           const $ceA = host.querySelector('ce-a') as CustomElementHost & HTMLElement;
           const $ceB = host.querySelector('ce-b') as CustomElementHost & HTMLElement;
@@ -286,12 +286,12 @@ describe('blur.integration.spec.ts', () => {
       [testCases],
       ({ title, template, dependencies = [], app, assertFn }: IBlurTestCase) => {
         it(title(), async function() {
-          const { ctx, component, host, dispose } = await setup<IApp>(
+          const { ctx, component, testHost, dispose } = await setup<IApp>(
             template(''),
             app,
             ...dependencies
           );
-          await assertFn(ctx, component, host);
+          await assertFn(ctx, testHost, component, testHost);
           // test cases could be sharing the same context document
           // so wait a bit before running the next test
           await waitForFrames(2);
@@ -323,12 +323,13 @@ describe('blur.integration.spec.ts', () => {
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
     container.register(...registrations);
-    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
+    const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
+    const appHost = testHost.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
-    au.app({ host, component });
+    au.app({ host: appHost, component });
     await au.start().wait();
 
     return {
@@ -336,12 +337,13 @@ describe('blur.integration.spec.ts', () => {
       au,
       container,
       lifecycle,
-      host,
+      testHost: testHost,
+      appHost,
       component: component as T,
       observerLocator,
       dispose: async () => {
         await au.stop().wait();
-        host.remove();
+        testHost.remove();
       }
     };
   }
@@ -373,6 +375,6 @@ describe('blur.integration.spec.ts', () => {
 
   interface AssertionFn<T extends IApp = IApp> {
     // tslint:disable-next-line:callable-types
-    (ctx: HTMLTestContext, component: T, focusable: HTMLElement): void | Promise<void>;
+    (ctx: HTMLTestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

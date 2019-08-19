@@ -324,7 +324,7 @@ const createHandler = (
   };
   const markChecked = () => {
     hasChecked = true;
-    PLATFORM.requestAnimationFrame(revertCheckage);
+    manager.lifecycle.enqueueRAF(revertCheckage, void 0, Priority.preempt, true);
   };
 
   const handleMousedown = (e: MouseEvent): void => {

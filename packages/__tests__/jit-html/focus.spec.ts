@@ -20,7 +20,7 @@ describe('focus.spec.ts', function() {
 
     describe('with non-focusable element', function() {
       it('focuses when there is tabindex attribute', async function() {
-        const { startPromise, dispose, component, ctx } = setup<IApp>(
+        const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
           `<template>
             <div focus.two-way="hasFocus" id="blurred" tabindex="-1"></div>
           </template>`,
@@ -31,7 +31,7 @@ describe('focus.spec.ts', function() {
         await startPromise;
 
         const activeElement = ctx.doc.activeElement;
-        const div = ctx.doc.querySelector('app div');
+        const div = testHost.querySelector('app div');
         assert.notEqual(div, null, '<app/> <div/> not null');
         assert.equal(activeElement.tagName, 'DIV', 'activeElement === <div/>');
         assert.equal(activeElement, div, 'activeElement === <div/>');
@@ -48,7 +48,7 @@ describe('focus.spec.ts', function() {
         return HTMLElement.prototype.focus.call(this);
       };
 
-      const { startPromise, dispose, component, ctx } = setup<IApp>(
+      const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
         `<template>
           <div focus.two-way="hasFocus" id="blurred"></div>
         </template>`,
@@ -59,7 +59,7 @@ describe('focus.spec.ts', function() {
       await startPromise;
 
       const activeElement = ctx.doc.activeElement;
-      const div = ctx.doc.querySelector('app div');
+      const div = testHost.querySelector('app div');
       assert.equal(callCount, 1, 'It should have invoked focus on DIV element prototype');
       assert.notEqual(div, null, '<app/> <div/> should not be null');
       assert.notEqual(activeElement.tagName, 'DIV');
@@ -83,7 +83,7 @@ describe('focus.spec.ts', function() {
     ]) {
       describe(`with ${desc}`, function() {
         it('Works in basic scenario', async function() {
-          const { startPromise, dispose, component, ctx } = setup<IApp>(
+          const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
             `<template>
               ${template}
             </template>`,
@@ -95,7 +95,7 @@ describe('focus.spec.ts', function() {
 
           const elName = desc.replace(/^<|\/>.*$/g, '');
           const activeElement = ctx.doc.activeElement;
-          const focusable = ctx.doc.querySelector(`app ${elName}`);
+          const focusable = testHost.querySelector(`app ${elName}`);
           assert.notEqual(focusable, null, `focusable el (<${elName}/>) is not null`);
           assert.equal(activeElement.tagName, elName.toUpperCase());
           assert.equal(activeElement, focusable);
@@ -143,7 +143,7 @@ describe('focus.spec.ts', function() {
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
 
           it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function() {
-            const { start, dispose, component, ctx } = setup<IApp>(
+            const { testHost, start, dispose, component, ctx } = setup<IApp>(
               `<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`,
               class App {
                 public hasFocus = true;
@@ -175,7 +175,7 @@ describe('focus.spec.ts', function() {
             await start();
 
             const activeElement = ctx.doc.activeElement;
-            const ceEl = ctx.doc.querySelector(`app ${ceName}`);
+            const ceEl = testHost.querySelector(`app ${ceName}`);
             assert.equal(callCount, 1, 'It should have called focus()');
             assert.notEqual(ceEl, null);
             if (isFocusable) {
@@ -218,10 +218,10 @@ describe('focus.spec.ts', function() {
         app: class App {
           public hasFocus = true;
         },
-        assertionFn: async (ctx, component, focusable) => {
+        assertionFn: async (ctx, testHost, component, focusable) => {
           const doc = ctx.doc;
           const win = ctx.wnd;
-          const button = doc.querySelector('button');
+          const button = testHost.querySelector('button');
           button.focus();
           dispatchEventWith(ctx, focusable, 'blur', false);
           assert.equal(doc.activeElement, button);
@@ -251,10 +251,10 @@ describe('focus.spec.ts', function() {
           public hasFocus = true;
           public selectedOption: '1' | '2' = '1';
         },
-        assertionFn: async (ctx, component, focusable) => {
+        assertionFn: async (ctx, testHost, component, focusable) => {
           const doc = ctx.doc;
           const win = ctx.wnd;
-          const button = doc.querySelector('button');
+          const button = testHost.querySelector('button');
           button.focus();
           dispatchEventWith(ctx, focusable, 'blur', false);
           assert.equal(doc.activeElement, button);
@@ -287,8 +287,8 @@ describe('focus.spec.ts', function() {
           public hasFocus = true;
           public isFocused2 = false;
         },
-        async assertionFn(ctx, component, focusable) {
-          const input2 = ctx.doc.querySelector('#input2') as HTMLInputElement;
+        async assertionFn(ctx, testHost, component, focusable) {
+          const input2 = testHost.querySelector('#input2') as HTMLInputElement;
           assert.notEqual(focusable, input2, '@setup: focusable === #input2');
           input2.focus();
           dispatchEventWith(ctx, input2, 'focus', false);
@@ -304,7 +304,7 @@ describe('focus.spec.ts', function() {
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
         it(title(command), async function() {
-          const { start, dispose, component, ctx } = await setup<IApp>(
+          const { testHost, start, dispose, component, ctx } = await setup<IApp>(
             template(command),
             app,
             false
@@ -314,8 +314,8 @@ describe('focus.spec.ts', function() {
           const doc = ctx.doc;
           const activeElement = doc.activeElement;
           const focusable = typeof getFocusable === 'string'
-            ? doc.querySelector(getFocusable) as HTMLElement
-            : getFocusable(doc);
+            ? testHost.querySelector(getFocusable) as HTMLElement
+            : getFocusable(testHost);
           assert.notEqual(focusable, null);
           if (typeof getFocusable === 'string') {
             const parts = getFocusable.split(' ');
@@ -323,7 +323,7 @@ describe('focus.spec.ts', function() {
           }
           assert.equal(activeElement, focusable, '@setup -> document.activeElement === focusable');
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
-          await assertionFn(ctx, component, focusable);
+          await assertionFn(ctx, testHost, component, focusable);
           await waitForFrames(1);
           await dispose();
         });
@@ -334,7 +334,7 @@ describe('focus.spec.ts', function() {
       template: TemplateFn;
       app: Constructable<T>;
       assertionFn: AssertionFn;
-      getFocusable: string | ((doc: Document) => HTMLElement);
+      getFocusable: string | ((testHost: HTMLElement) => HTMLElement);
       title(focusAttr: string): string;
     }
   });
@@ -343,14 +343,15 @@ describe('focus.spec.ts', function() {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations, Focus);
-    const host = ctx.doc.body.appendChild(ctx.doc.createElement('app'));
+    const testHost = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
+    const appHost = testHost.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
     let startPromise: Promise<unknown>;
     if (autoStart) {
-      au.app({ host, component });
+      au.app({ host: appHost, component });
       startPromise = au.start().wait();
     }
 
@@ -359,17 +360,18 @@ describe('focus.spec.ts', function() {
       ctx,
       container,
       lifecycle,
-      host,
+      testHost,
+      appHost,
       au,
       component,
       observerLocator,
       start: async () => {
-        au.app({ host, component });
+        au.app({ host: appHost, component });
         await au.start().wait();
       },
       dispose: async () => {
         await au.stop().wait();
-        host.remove();
+        testHost.remove();
       }
     };
   }
@@ -406,6 +408,6 @@ describe('focus.spec.ts', function() {
 
   interface AssertionFn<T extends IApp = IApp> {
     // tslint:disable-next-line:callable-types
-    (ctx: HTMLTestContext, component: T, focusable: HTMLElement): void | Promise<void>;
+    (ctx: HTMLTestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

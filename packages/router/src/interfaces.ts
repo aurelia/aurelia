@@ -43,13 +43,6 @@ export interface IViewportInstruction {
   parameters?: ComponentParameters;
 }
 
-export interface IGuardTarget<C extends Constructable> {
-  component?: IRouteableComponentType<C>;
-  componentName?: string;
-  viewport?: Viewport;
-  viewportName?: string;
-}
-
 export interface IComponentAndOrViewportOrNothing<C extends Constructable = Constructable> {
   component?: ComponentAppellation<C>;
   viewport?: ViewportAppellation;

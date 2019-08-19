@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { GuardFunction, GuardTarget, IGuardTarget, INavigatorInstruction, IRouteableComponentType, ComponentAppellationResolver, ViewportAppellationResolver, IComponentAndOrViewportOrNothing } from './interfaces';
+import { GuardFunction, GuardTarget, INavigatorInstruction, IRouteableComponentType, ComponentAppellationResolver, ViewportAppellationResolver, IComponentAndOrViewportOrNothing } from './interfaces';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 

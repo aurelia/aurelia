@@ -50,7 +50,7 @@ export class App implements IViewModel {
         this.router.goto(`auth(type=login)`);
         return [];
       }
-      , { include: [{ componentName: 'editor' }, { componentName: 'settings' }] },
+      , { include: [{ component: 'editor' }, { component: 'settings' }] },
     );
     const observerLocator = this.router.container.get(IObserverLocator);
     const observer = observerLocator.getObserver(LifecycleFlags.none, this.state, 'isAuthenticated') as any;

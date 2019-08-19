@@ -14,19 +14,21 @@ export {
 } from './guard';
 
 export {
-  IGuardTarget,
   GuardTypes,
-  GuardFunction,
-  GuardTarget,
   GuardIdentity,
   IGuardOptions,
   Guardian,
 } from './guardian';
 
 export {
+  GuardFunction,
+  GuardTarget,
+  IGuardTarget,
   INavigatorInstruction,
   IRouteableComponent,
   IRouteableComponentType,
+  IViewportComponent,
+  NavigationInstruction,
   ReentryBehavior,
 } from './interfaces';
 
@@ -79,8 +81,6 @@ export {
   IRouteTransformer,
   IRouterOptions,
   IRouter,
-  IViewportComponent,
-  NavigationInstruction,
   Router,
 } from './router';
 

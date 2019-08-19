@@ -1,7 +1,6 @@
 import { INavRoute, Nav } from './nav';
-import { IViewportComponent, NavigationInstruction } from './router';
 import { ViewportInstruction } from './viewport-instruction';
-import { IRouteableComponentType } from './interfaces';
+import { IRouteableComponentType, NavigationInstruction, IViewportComponent } from './interfaces';
 
 
 export class NavRoute {

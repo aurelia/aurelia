@@ -1,7 +1,7 @@
-import { GuardFunction, GuardIdentity, GuardTarget, GuardTypes, IGuardOptions, IGuardTarget } from './guardian';
+import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { INavigatorInstruction, IRouteableComponentType, GuardTarget, IGuardTarget, GuardFunction } from './interfaces';
 
 export class Guard {
   public type: GuardTypes;

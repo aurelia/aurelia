@@ -1,22 +1,13 @@
 import { Guard } from './guard';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-import { INavigatorInstruction, IRouteableComponentType } from './interfaces';
-
-export interface IGuardTarget {
-  component?: IRouteableComponentType;
-  componentName?: string;
-  viewport?: Viewport;
-  viewportName?: string;
-}
+import { INavigatorInstruction, IRouteableComponentType, GuardTarget, GuardFunction } from './interfaces';
 
 // Only one so far, but it's easier to support more from the start
 export const enum GuardTypes {
   Before = 'before',
 }
 
-export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget = IGuardTarget | IRouteableComponentType | string;
 export type GuardIdentity = number;
 
 export interface IGuardOptions {

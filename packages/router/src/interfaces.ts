@@ -1,5 +1,12 @@
+/*
+* Contains interfaces and types that aren't strongly connected
+* to component(s) or that are considered an essential part
+* of the API.
+*/
+
 import { ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
+import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IComponent {
@@ -35,3 +42,21 @@ export interface INavigatorInstruction extends INavigatorEntry {
   repeating?: boolean;
 }
 
+export interface IViewportComponent {
+  component: string | IRouteableComponentType;
+  viewport?: string | Viewport;
+  parameters?: Record<string, unknown> | string; // TODO: Allow unknown[] for parameters
+}
+
+export interface IGuardTarget {
+  component?: IRouteableComponentType;
+  componentName?: string;
+  viewport?: Viewport;
+  viewportName?: string;
+}
+
+
+export type NavigationInstruction = string | IRouteableComponentType | IViewportComponent | ViewportInstruction;
+
+export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
+export type GuardTarget = IGuardTarget | IRouteableComponentType | string;

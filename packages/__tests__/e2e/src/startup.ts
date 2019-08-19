@@ -4,7 +4,7 @@ import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
-import { App } from './app';
+import { App as component } from './app';
 import * as de from './locales/de/translations.json';
 import * as en from './locales/en/translations.json';
 import { CustomMessage } from './plugins/custom-message';
@@ -18,24 +18,27 @@ RelativeTimeFormat.addLocale(enRt['default']);
 RelativeTimeFormat.addLocale(deRt['default']);
 Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
 
-window['au'] = new Aurelia()
-  .register(
-    BasicConfiguration,
-    DebugConfiguration,
-    I18nConfiguration.customize((options) => {
-      options.translationAttributeAliases = ['t', 'i18n'];
-      options.initOptions = {
-        plugins: [intervalPlural.default],
-        resources: {
-          en: { translation: en['default'] },
-          de: { translation: de['default'] },
-        },
-        skipTranslationOnMissingKey: !!new URL(location.href).searchParams.get('skipkey')
-      };
-    })
-  )
-  .register(...[
-    SutI18N, CustomMessage
-  ] as unknown as IRegistration[])
-  .app({ host: document.querySelector('app'), component: new App() })
-  .start();
+(async function () {
+  const host = document.querySelector('app');
+
+  const au = new Aurelia()
+    .register(
+      BasicConfiguration,
+      DebugConfiguration,
+      I18nConfiguration.customize((options) => {
+        options.translationAttributeAliases = ['t', 'i18n'];
+        options.initOptions = {
+          plugins: [intervalPlural.default],
+          resources: {
+            en: { translation: en['default'] },
+            de: { translation: de['default'] },
+          },
+          skipTranslationOnMissingKey: !!new URL(location.href).searchParams.get('skipkey')
+        };
+      })
+    );
+  au.container.register(SutI18N, CustomMessage);
+  au.app({ host, component });
+
+  await au.start().wait();
+})().catch(console.error);

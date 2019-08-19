@@ -139,6 +139,7 @@ describe('I18N', function () {
       assert.equal(options.style, 'currency');
     });
   });
+
   describe('nf', function () {
     it('formats a given number as per default formatting options', async function () {
       const { sut } = await setup();
@@ -190,6 +191,7 @@ describe('I18N', function () {
       assert.equal(options.timeZoneName, 'long');
     });
   });
+
   describe('df', function () {
     it('formats a given date as per default formatting options', async function () {
       const { sut } = await setup();

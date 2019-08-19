@@ -4,7 +4,7 @@ import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
 import { AnyBindingExpression, BindingType, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, ITargetedInstruction, LifecycleFlags, RuntimeBasicConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
-import { assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 describe('TranslationParametersAttributePattern', function () {
   function setup() {
@@ -70,20 +70,20 @@ describe('TranslationParametersBindingCommand', function () {
 describe('TranslationParametersBindingRenderer', function () {
 
   function setup() {
-    const container = DI.createContainer();
+    const { container } = TestContext.createHTMLTestContext();
     container.register(RuntimeBasicConfiguration, I18nConfiguration);
     return container;
   }
 
   it('instantiated with instruction type', function () {
     const container = setup();
-    const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     assert.equal(sut.instructionType, TranslationParametersInstructionType);
   });
 
   it('#render instantiates TranslationBinding if there are none existing', function () {
     const container = setup();
-    const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const renderable = ({} as unknown as IController);
 
@@ -100,10 +100,10 @@ describe('TranslationParametersBindingRenderer', function () {
 
   it('#render add the paramExpr to the existing TranslationBinding for the target element', function () {
     const container = setup();
-    const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');
-    const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
+    const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
     const renderable = ({ bindings: [binding] } as unknown as IController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
 

@@ -7,14 +7,14 @@ interface Spec {
   isHtmlContent?: boolean;
 }
 
-describe('i18n', () => {
-  beforeEach(() => { cy.visit('/'); });
+describe('i18n', function () {
+  beforeEach(function () { cy.visit('/'); });
 
   const assertContent = (selector: string, expected: string, isHtmlContent: boolean | undefined = false) => {
     cy.get(selector).should(isHtmlContent ? 'have.html' : 'have.text', expected);
   };
 
-  const changeCurrentLocaleToDe = () => { cy.get('#locale-changer-de').click(); };
+  const changeCurrentLocaleToDe = function () { cy.get('#locale-changer-de').click(); };
 
   const dispatchedOn = new Date(2020, 1, 10, 5, 15).toString(), deliveredOn = new Date(2021, 1, 10, 5, 15).toString(),
     enDeliveredText = en.status_delivered.replace('{{date}}', deliveredOn),
@@ -187,7 +187,7 @@ describe('i18n', () => {
     },
   ];
 
-  describe('translates via HTML that', () => {
+  describe('translates via HTML that', function () {
     for (const { name, suts, isHtmlContent } of [...enSpecificTests, ...specs]) {
       it(name, function () {
         for (const sut of suts) {
@@ -195,14 +195,14 @@ describe('i18n', () => {
         }
       });
     }
-    it('reacts to \'aurelia-relativetime-signal\' signal for relative time binding behavior', () => {
+    it('reacts to \'aurelia-relativetime-signal\' signal for relative time binding behavior', function () {
       cy.get('#rt-changer').click();
       assertContent('#i18n-rt-vc', ' 1 year ago ');
       assertContent('#i18n-rt-bb', ' 1 year ago ');
     });
   });
 
-  describe('facilitates translation via code', () => {
+  describe('facilitates translation via code', function () {
     const tests = [
       {
         name: 'simple',
@@ -239,7 +239,7 @@ describe('i18n', () => {
       },
     ];
     for (const { name, suts } of tests) {
-      it(name, () => {
+      it(name, function () {
         for (const sut of suts) {
           assertContent(sut.selector, sut.expected);
         }
@@ -265,12 +265,12 @@ describe('i18n', () => {
     });
   });
 
-  describe('updates translation on locale change that', () => {
+  describe('updates translation on locale change that', function () {
 
-    beforeEach(() => { changeCurrentLocaleToDe(); });
+    beforeEach(function () { changeCurrentLocaleToDe(); });
 
     for (const { name, suts, isHtmlContent } of [...deSpecificTests, ...specs]) {
-      it(name, () => {
+      it(name, function () {
         for (const sut of suts) {
           assertContent(sut.selector, sut.expectedDe as string, isHtmlContent);
         }
@@ -278,31 +278,31 @@ describe('i18n', () => {
     }
   });
 
-  describe('with custom elements', () => {
-    it('can pass interpolated translations to custom elements bindables', () => {
+  describe('with custom elements', function () {
+    it('can pass interpolated translations to custom elements bindables', function () {
       assertContent('[data-test-id=\'custom-element-interpolated\'] div', en.simple.text);
     });
 
-    it('can bind to custom elements attributes', () => {
+    it('can bind to custom elements attributes', function () {
       assertContent('[data-test-id=\'custom-element-target-bindable\'] div', en.simple.text);
     });
 
-    it('should support params', () => {
+    it('should support params', function () {
       assertContent('[data-test-id=\'custom-element-with-params\'] div', en.itemWithCount_plural.replace('{{count}}', '0'));
     });
 
-    it('should support locale changes', () => {
+    it('should support locale changes', function () {
       changeCurrentLocaleToDe();
       assertContent('[data-test-id=\'custom-element-target-bindable\'] div', de.simple.text);
     });
   });
 
-  describe('treating missing keys', () => {
-    it('should by default replace the content with the missing key name', () => {
+  describe('treating missing keys', function () {
+    it('should by default replace the content with the missing key name', function () {
       assertContent('[data-test-id=\'missing-key\']', 'missing-key');
     });
 
-    it('should allow to keep original content if key not found', () => {
+    it('should allow to keep original content if key not found', function () {
       cy.visit('/?skipkey=true');
       cy.reload();
 

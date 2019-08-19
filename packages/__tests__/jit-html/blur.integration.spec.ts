@@ -319,6 +319,7 @@ describe('blur.integration.spec.ts', () => {
   }
 
   async function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+    await waitForFrames(1);
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
@@ -343,6 +344,7 @@ describe('blur.integration.spec.ts', () => {
       observerLocator,
       dispose: async () => {
         await au.stop().wait();
+        await waitForFrames(2);
         testHost.remove();
       }
     };

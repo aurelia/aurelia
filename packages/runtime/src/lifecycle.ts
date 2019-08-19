@@ -1024,6 +1024,9 @@ export class Lifecycle {
   }
 
   public stopTicking(): void {
+    // todo: API for stopping without processing the RAF queue
+    // todo: tests for flushing when stopping
+    this.processRAFQueue(LifecycleFlags.none);
     if (this.isTicking) {
       this.isTicking = false;
       if (this.rafRequestId !== -1) {

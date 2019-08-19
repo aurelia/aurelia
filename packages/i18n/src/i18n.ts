@@ -20,8 +20,8 @@ export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
 export class I18nService {
 
   public i18next: i18nextCore.i18n;
+  public readonly task: ILifecycleTask;
   private options!: I18nInitOptions;
-  private readonly task: ILifecycleTask;
   private readonly intl: typeof Intl;
 
   constructor(

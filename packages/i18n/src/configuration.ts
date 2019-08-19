@@ -1,4 +1,5 @@
 import { IContainer, Registration } from '@aurelia/kernel';
+import { StartTask } from '@aurelia/runtime';
 import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
@@ -43,6 +44,7 @@ function coreComponents(options: I18nConfigurationOptions) {
     register(container: IContainer) {
       return container.register(
         Registration.callback(I18nInitOptions, () => options.initOptions),
+        StartTask.with(I18N).beforeBind().call(i18n => i18n.task),
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
 

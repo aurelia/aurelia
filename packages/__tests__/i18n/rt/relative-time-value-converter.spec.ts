@@ -6,7 +6,6 @@ import i18next from 'i18next';
 describe('rt', function () {
   async function setup() {
     const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());
-    await i18n['task'].wait();
     const sut = new RelativeTimeValueConverter(i18n);
     return { i18n, sut };
   }

@@ -1,13 +1,11 @@
 import { inject } from "@aurelia/kernel";
 import { IRouter } from "@aurelia/router";
-import { bindable, BindingMode, customElement } from "@aurelia/runtime";
+import { bindable, BindingMode } from "@aurelia/runtime";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
-import template from './editor.html';
 
 @inject(ArticleService, IRouter)
-@customElement({ name: 'editor', template })
-export class EditorComponent {
+export class Editor {
   @bindable({ mode: BindingMode.twoWay }) public tag?: string;
   private article?: Article;
   private slug?: string;

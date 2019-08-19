@@ -25,7 +25,9 @@ function createBrowserTestContext(): HTMLTestContext {
     HTMLDivElement,
     Text,
     Comment,
-    DOMParser
+    DOMParser,
+    CSSStyleSheet,
+    ShadowRoot
   );
 }
 

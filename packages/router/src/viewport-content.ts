@@ -1,6 +1,6 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags } from '@aurelia/runtime';
-import { INavigationInstruction } from './navigator';
+import { INavigatorInstruction } from './navigator';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -11,10 +11,10 @@ export interface IRouteableCustomElementType extends Partial<ICustomElementType>
 
 export interface IRouteableCustomElement<T extends INode = INode> extends IViewModel<T> {
   reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
-  canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
+  canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): void | Promise<void>;
+  canLeave?(nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): boolean | Promise<boolean>;
+  leave?(nextInstruction?: INavigatorInstruction, instruction?: INavigatorInstruction): void | Promise<void>;
 }
 
 export const enum ContentStatus {
@@ -35,14 +35,14 @@ export const enum ReentryBehavior {
 export class ViewportContent {
   public content: IRouteableCustomElementType | string;
   public parameters: string;
-  public instruction: INavigationInstruction;
+  public instruction: INavigatorInstruction;
   public component: IRouteableCustomElement;
   public contentStatus: ContentStatus;
   public entered: boolean;
   public fromCache: boolean;
   public reentry: boolean;
 
-  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext | IContainer = null) {
+  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;
@@ -99,7 +99,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.none;
   }
 
-  public canEnter(viewport: Viewport, previousInstruction: INavigationInstruction): Promise<boolean | ViewportInstruction[]> {
+  public canEnter(viewport: Viewport, previousInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]> {
     if (!this.component) {
       return Promise.resolve(false);
     }
@@ -122,7 +122,7 @@ export class ViewportContent {
     }
     return result as Promise<ViewportInstruction[]>;
   }
-  public canLeave(nextInstruction: INavigationInstruction): Promise<boolean> {
+  public canLeave(nextInstruction: INavigatorInstruction): Promise<boolean> {
     if (!this.component || !this.component.canLeave) {
       return Promise.resolve(true);
     }
@@ -136,7 +136,7 @@ export class ViewportContent {
     return result;
   }
 
-  public async enter(previousInstruction: INavigationInstruction): Promise<void> {
+  public async enter(previousInstruction: INavigatorInstruction): Promise<void> {
     if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
       return;
     }
@@ -149,7 +149,7 @@ export class ViewportContent {
     }
     this.entered = true;
   }
-  public async leave(nextInstruction: INavigationInstruction): Promise<void> {
+  public async leave(nextInstruction: INavigatorInstruction): Promise<void> {
     if (this.contentStatus !== ContentStatus.added || !this.entered) {
       return;
     }
@@ -235,7 +235,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.initialized;
   }
 
-  public async freeContent(element: Element, nextInstruction: INavigationInstruction, stateful: boolean = false): Promise<void> {
+  public async freeContent(element: Element, nextInstruction: INavigatorInstruction, stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatus.added:
         await this.leave(nextInstruction);

@@ -67,6 +67,11 @@ export {
 } from './resources/binding-behaviors/update-trigger';
 
 export {
+  Blur,
+  BlurManager
+} from './resources/custom-attributes/blur';
+
+export {
   Focus
 } from './resources/custom-attributes/focus';
 
@@ -139,3 +144,20 @@ export {
   HTMLProjectorLocator,
   ShadowDOMProjector
 } from './projectors';
+
+export {
+  StyleConfiguration,
+  styles,
+  IShadowDOMConfiguration
+} from './styles/style-configuration';
+export {
+  CSSModulesProcessorRegistry
+} from './styles/css-modules-registry';
+export {
+  ShadowDOMRegistry
+} from './styles/shadow-dom-registry';
+export {
+  AdoptedStyleSheetsStyles,
+  StyleElementStyles,
+  IShadowDOMStyles
+} from './styles/shadow-dom-styles';

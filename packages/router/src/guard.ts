@@ -1,7 +1,7 @@
 import { ICustomElementType } from '@aurelia/runtime';
 
 import { GuardFunction, GuardIdentity, GuardTarget, GuardTypes, IGuardOptions, IGuardTarget } from './guardian';
-import { INavigationInstruction } from './navigator';
+import { INavigatorInstruction } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -37,7 +37,7 @@ export class Guard {
     return true;
   }
 
-  public check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigationInstruction): boolean | ViewportInstruction[] {
+  public check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[] {
     return this.guard(viewportInstructions, navigationInstruction);
   }
 }

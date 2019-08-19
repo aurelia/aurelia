@@ -1,6 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigationInstruction } from './navigator';
+import { INavigatorInstruction } from './navigator';
 import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
@@ -58,7 +58,7 @@ export class Viewport {
     this.enabled = true;
   }
 
-  public setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigationInstruction): boolean {
+  public setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigatorInstruction): boolean {
     let parameters;
     this.clear = false;
     if (typeof content === 'string') {

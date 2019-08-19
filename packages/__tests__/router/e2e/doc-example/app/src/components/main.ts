@@ -45,12 +45,12 @@ export class Main {
       {
         title: 'Authors',
         route: [Authors, About],
-        consideredActive: [Authors],
+        consideredActive: ['authors'],
       },
       {
         title: 'Books',
         route: [Books, About],
-        consideredActive: Books,
+        consideredActive: 'books',
       },
       {
         route: About,

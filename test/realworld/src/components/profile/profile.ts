@@ -1,18 +1,15 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
-import { Profile } from 'shared/models/profile';
+import { Profile as ProfileModel } from 'shared/models/profile';
 import { ProfileService } from "shared/services/profile-service";
 import { SharedState } from 'shared/state/shared-state';
-import template from './profile.html';
 
 @inject(SharedState, ProfileService, IRouter)
-@customElement({ name: 'profile', template })
-export class ProfileComponent {
+export class Profile {
   public static parameters: string[] = ['name'];
 
   private username?: string;
-  private profile?: Profile;
+  private profile?: ProfileModel;
 
   constructor(
     private readonly sharedState: SharedState,
@@ -38,7 +35,7 @@ export class ProfileComponent {
         a: 'nav-link',
         aActive: 'active',
       });
-    this.router.goto(`profile-article(${this.username})`);
+    this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
     return this.profile = profile;
   }
 

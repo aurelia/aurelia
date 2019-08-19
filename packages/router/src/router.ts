@@ -1,11 +1,11 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
+import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigationEntry, INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
+import { INavigatorEntry, INavigatorInstruction, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
@@ -24,13 +24,21 @@ export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTr
 
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
-  reportCallback?(instruction: INavigationInstruction): void;
+  reportCallback?(instruction: INavigatorInstruction): void;
 }
 
 export interface IRouteViewport {
   name: string;
   component: Partial<ICustomElementType> | string;
 }
+
+export interface IViewportComponent {
+  component: string | Partial<ICustomElementType>;
+  viewport?: string | Viewport;
+  parameters?: Record<string, unknown> | string; // TODO: Allow unknown[] for parameters
+}
+
+export type NavigationInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
 
 export interface IRouter {
   readonly isNavigating: boolean;
@@ -39,7 +47,7 @@ export interface IRouter {
   readonly scopes: Scope[];
   readonly instructionResolver: InstructionResolver;
   navigator: Navigator;
-  readonly navigation: BrowserNavigation;
+  readonly navigation: BrowserNavigator;
   readonly guardian: Guardian;
   readonly navs: Readonly<Record<string, Nav>>;
 
@@ -49,10 +57,13 @@ export interface IRouter {
 
   linkCallback(info: AnchorEventInfo): void;
 
-  processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
+  processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
   addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
 
-  // Called from the viewport custom element in attached()
+  // External API to get viewport by name
+  getViewport(name: string): Viewport;
+
+    // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
@@ -76,7 +87,7 @@ export interface IRouter {
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigation, IRouteTransformer, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, IRouteTransformer, LinkHandler, InstructionResolver];
 
   public readonly container: IContainer;
 
@@ -84,7 +95,7 @@ export class Router implements IRouter {
   public scopes: Scope[] = [];
 
   public navigator: Navigator;
-  public navigation: BrowserNavigation;
+  public navigation: BrowserNavigator;
 
   public linkHandler: LinkHandler;
   public instructionResolver: InstructionResolver;
@@ -99,13 +110,13 @@ export class Router implements IRouter {
   private isActive: boolean = false;
 
   private readonly routeTransformer: IRouteTransformer;
-  private processingNavigation: INavigationInstruction = null;
-  private lastNavigation: INavigationInstruction = null;
+  private processingNavigation: INavigatorInstruction = null;
+  private lastNavigation: INavigatorInstruction = null;
 
   constructor(
     container: IContainer,
     navigator: Navigator,
-    navigation: BrowserNavigation,
+    navigation: BrowserNavigator,
     routeTransformer: IRouteTransformer,
     linkHandler: LinkHandler,
     instructionResolver: InstructionResolver
@@ -161,10 +172,27 @@ export class Router implements IRouter {
   public linkCallback = (info: AnchorEventInfo): void => {
     let href = info.href;
     if (href.startsWith('#')) {
-      href = href.substring(1);
+      href = href.slice(1);
+      // '#' === '/' === '#/'
+      if (!href.startsWith('/')) {
+        href = `/${href}`;
+      }
     }
+    // If it's not from scope root, figure out which scope
     if (!href.startsWith('/')) {
-      const scope = this.closestScope(info.anchor);
+      let scope = this.closestScope(info.anchor);
+      // Scope modifications
+      if (href.startsWith('.')) {
+        // The same as no scope modification
+        if (href.startsWith('./')) {
+          href = href.slice(2);
+        }
+        // Find out how many scopes upwards we should move
+        while (href.startsWith('../')) {
+          scope = scope.parent || scope;
+          href = href.slice(3);
+        }
+      }
       const context = scope.scopeContext();
       href = this.instructionResolver.buildScopedLink(context, href);
     }
@@ -172,19 +200,19 @@ export class Router implements IRouter {
     this.goto(href).catch(error => { throw error; });
   }
 
-  public navigatorCallback = (instruction: INavigationInstruction): void => {
+  public navigatorCallback = (instruction: INavigatorInstruction): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   }
-  public navigationCallback = (navigation: INavigationViewerEvent): void => {
-    const entry = (navigation.state && navigation.state.NavigationEntry ? navigation.state.NavigationEntry as INavigationEntry : { instruction: null, fullStateInstruction: null });
+  public navigationCallback = (navigation: INavigatorViewerEvent): void => {
+    const entry = (navigation.state && navigation.state.currentEntry ? navigation.state.currentEntry as INavigatorEntry : { instruction: null, fullStateInstruction: null });
     entry.instruction = navigation.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
   }
 
-  public processNavigations = async (qInstruction: QueueItem<INavigationInstruction>): Promise<void> => {
-    const instruction = this.processingNavigation = qInstruction as INavigationInstruction;
+  public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction>): Promise<void> => {
+    const instruction = this.processingNavigation = qInstruction as INavigatorInstruction;
 
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
@@ -418,7 +446,7 @@ export class Router implements IRouter {
   }
 
   public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>, replace: boolean = false): Promise<void> {
-    const entry: INavigationEntry = {
+    const entry: INavigatorEntry = {
       instruction: pathOrViewports as string,
       fullStateInstruction: null,
       title: title,
@@ -479,12 +507,12 @@ export class Router implements IRouter {
     return this.navs[name];
   }
 
-  private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigationInstruction>): Promise<void> {
+  private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedViewports.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
-    await this.navigator.cancel(qInstruction as INavigationInstruction);
+    await this.navigator.cancel(qInstruction as INavigatorInstruction);
     this.processingNavigation = null;
     qInstruction.resolve();
   }
@@ -540,7 +568,7 @@ export class Router implements IRouter {
     // }
   }
 
-  private replacePaths(instruction: INavigationInstruction): Promise<void> {
+  private replacePaths(instruction: INavigatorInstruction): Promise<void> {
     this.activeComponents = this.rootScope.viewportStates(true, true);
     this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);
 

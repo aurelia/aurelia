@@ -11,7 +11,7 @@ import { ViewportInstruction } from './viewport-instruction';
 * of the API.
 */
 
-export interface IRouteableComponentType<C extends Constructable> extends ICustomElementType<C> {
+export interface IRouteableComponentType<C extends Constructable = Constructable> extends ICustomElementType<C> {
   parameters?: string[];
 }
 
@@ -36,22 +36,22 @@ export interface INavigatorInstruction extends INavigatorEntry {
   repeating?: boolean;
 }
 
-export interface IViewportInstruction<C extends Constructable> {
-  component: ComponentAppellation<C>;
+export interface IViewportInstruction {
+  component: ComponentAppellation;
   viewport?: ViewportHandle;
   parameters?: ComponentParameters;
 }
 
-export interface IComponentAndOrViewportOrNothing<C extends Constructable = Constructable> {
-  component?: ComponentAppellation<C>;
+export interface IComponentAndOrViewportOrNothing {
+  component?: ComponentAppellation;
   viewport?: ViewportHandle;
 }
 
-export type NavigationInstruction<C extends Constructable = Constructable> = ComponentAppellation<C> | IViewportInstruction<C> | ViewportInstruction;
+export type NavigationInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
 
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget<C extends Constructable = Constructable> = ComponentAppellation<C> | IComponentAndOrViewportOrNothing;
+export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation<C extends Constructable = Constructable> = string | IRouteableComponentType<C> | Constructable; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
+export type ComponentAppellation = string | IRouteableComponentType | Constructable; // TODO: | IRouteableComponent;
 export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];

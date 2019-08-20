@@ -4,8 +4,8 @@ import { ComponentAppellation, ComponentParameters, IRouteableComponentType, Vie
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 
-export class ViewportInstruction<C extends Constructable = Constructable> {
-  public component?: IRouteableComponentType<Constructable>;
+export class ViewportInstruction {
+  public component?: IRouteableComponentType;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
@@ -15,7 +15,7 @@ export class ViewportInstruction<C extends Constructable = Constructable> {
   public ownsScope?: boolean;
   public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: ComponentAppellation<C>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
+  constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
     this.component = null;
     this.componentName = null;
     this.viewport = null;
@@ -32,12 +32,12 @@ export class ViewportInstruction<C extends Constructable = Constructable> {
     this.nextScopeInstruction = nextScopeInstruction;
   }
 
-  public setComponent(component: ComponentAppellation<C>): void {
+  public setComponent(component: ComponentAppellation): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;
     } else {
-      this.component = component as IRouteableComponentType<C>;
+      this.component = component as IRouteableComponentType;
       this.componentName = (component as ICustomElementType).description.name;
     }
   }
@@ -72,12 +72,12 @@ export class ViewportInstruction<C extends Constructable = Constructable> {
     // TODO: Deal with parametersList
   }
 
-  public componentType(context: IRenderContext): IRouteableComponentType<Constructable> {
+  public componentType(context: IRenderContext): IRouteableComponentType {
     if (this.component !== null) {
       return this.component;
     }
     const container = context.get(IContainer);
-    const resolver = container.getResolver<Constructable & IRouteableComponentType<Constructable>>(CustomElement.keyFrom(this.componentName));
+    const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
     if (resolver !== null) {
       return resolver.getFactory(container).Type;
     }

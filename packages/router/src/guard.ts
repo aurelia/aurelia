@@ -7,8 +7,8 @@ import { ViewportInstruction } from './viewport-instruction';
 
 export class Guard {
   public type: GuardTypes;
-  public includeTargets: Target<Constructable>[];
-  public excludeTargets: Target<Constructable>[];
+  public includeTargets: Target[];
+  public excludeTargets: Target[];
   public guard: GuardFunction;
   public id: GuardIdentity;
 
@@ -42,8 +42,8 @@ export class Guard {
   }
 }
 
-class Target<C extends Constructable> {
-  public component?: IRouteableComponentType<C>;
+class Target {
+  public component?: IRouteableComponentType;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
@@ -51,9 +51,9 @@ class Target<C extends Constructable> {
   constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType<C>)) {
-      this.component = target as IRouteableComponentType<C>;
-      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType<C>);
+    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {
+      this.component = target as IRouteableComponentType;
+      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as Constructable) : null;

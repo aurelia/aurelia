@@ -4,11 +4,11 @@ import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
 import { IRouter } from './router';
 
-export interface INavRoute<C extends Constructable = Constructable> {
-  route?: NavigationInstruction<C> | NavigationInstruction<C>[];
+export interface INavRoute {
+  route?: NavigationInstruction | NavigationInstruction[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavigationInstruction<C> | NavigationInstruction<C>[] | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;

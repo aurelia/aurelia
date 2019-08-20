@@ -6,17 +6,17 @@ import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export const ComponentAppellationResolver = {
-  isName: function <T>(component: T & ComponentAppellation<Constructable>): component is T & ComponentAppellation<Constructable> {
+  isName: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation {
     return typeof component === 'string';
   },
-  isType: function <T>(component: T & ComponentAppellation<Constructable>): component is T & ComponentAppellation<Constructable> & IRouteableComponentType<Constructable> {
+  isType: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & IRouteableComponentType {
     return CustomElement.isType(component);
   },
-  isInstance: function <T>(component: T & ComponentAppellation<Constructable>): component is T & ComponentAppellation<Constructable> & IRouteableComponent<Constructable> {
+  isInstance: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & IRouteableComponent {
     return !ComponentAppellationResolver.isName(component) && !ComponentAppellationResolver.isType(component);
   },
 
-  getName: function <T>(component: T & ComponentAppellation<Constructable>): string {
+  getName: function <T>(component: T & ComponentAppellation): string {
     if (ComponentAppellationResolver.isName(component)) {
       return component as string;
     } else if (ComponentAppellationResolver.isType(component)) {
@@ -25,16 +25,16 @@ export const ComponentAppellationResolver = {
       return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
     }
   },
-  getType: function <T extends Constructable>(component: T & ComponentAppellation<Constructable>): IRouteableComponentType<T> {
+  getType: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponentType {
     if (ComponentAppellationResolver.isName(component)) {
       return null;
     } else if (ComponentAppellationResolver.isType(component)) {
       return component;
     } else {
-      return ((component as IRouteableComponent).constructor as IRouteableComponentType<T>);
+      return ((component as IRouteableComponent).constructor as IRouteableComponentType);
     }
   },
-  getInstance: function <T extends Constructable>(component: T & ComponentAppellation<Constructable>): IRouteableComponent<T> {
+  getInstance: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponent {
     if (ComponentAppellationResolver.isName(component) || ComponentAppellationResolver.isType(component)) {
       return null;
     } else {
@@ -56,11 +56,18 @@ export const ViewportHandleResolver = {
     } else {
       return viewport ? (viewport as Viewport).name : null;
     }
-  }
+  },
+  getInstance: function <T>(viewport: T & ViewportHandle): Viewport {
+    if (ViewportHandleResolver.isName(viewport)) {
+      return null;
+    } else {
+      return viewport;
+    }
+  },
 };
 
 export const NavigationInstructionResolver = {
-  toViewportInstructions: function <C extends Constructable>(router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
+  toViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
     if (!Array.isArray(navigationInstructions)) {
       return NavigationInstructionResolver.toViewportInstructions(router, [navigationInstructions]);
     }
@@ -71,10 +78,10 @@ export const NavigationInstructionResolver = {
       } else if (instruction as ViewportInstruction instanceof ViewportInstruction) {
         instructions.push(instruction as ViewportInstruction);
       } else if (instruction['component']) {
-        const viewportComponent = instruction as IViewportInstruction<C>;
+        const viewportComponent = instruction as IViewportInstruction;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {
-        instructions.push(new ViewportInstruction(instruction as IRouteableComponentType<C>));
+        instructions.push(new ViewportInstruction(instruction as IRouteableComponentType));
       }
     }
     return instructions;

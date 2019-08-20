@@ -33,7 +33,7 @@ export class NavRoute {
       this.link = this.computeLink(this.instructions);
     }
     this.linkActive = route.consideredActive ? route.consideredActive : this.link;
-    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as IRouteableComponentType<Constructable>)) {
+    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as IRouteableComponentType)) {
       this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction | NavigationInstruction[]);
     }
     this.execute = route.execute;
@@ -65,7 +65,7 @@ export class NavRoute {
   }
 
   private parseRoute<C extends Constructable>(routes: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
-    return NavigationInstructionResolver.toViewportInstructions<C>(this.nav.router, routes);
+    return NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
   }
 
   private computeVisible(): boolean {

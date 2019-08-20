@@ -89,7 +89,7 @@ export class ViewportContent {
       return Promise.resolve(true);
     }
 
-    const contentType: IRouteableComponentType<Constructable> = this.component !== null ? this.component.constructor as IRouteableComponentType<Constructable> : this.content as IRouteableComponentType<Constructable>;
+    const contentType: IRouteableComponentType = this.component !== null ? this.component.constructor as IRouteableComponentType : this.content as IRouteableComponentType;
     const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
     this.instruction.parameters = merged.namedParameters;
     this.instruction.parameterList = merged.parameterList;
@@ -122,7 +122,7 @@ export class ViewportContent {
       return;
     }
     if (this.component.enter) {
-      const contentType: IRouteableComponentType<Constructable> = this.component !== null ? this.component.constructor as IRouteableComponentType<Constructable> : this.content as IRouteableComponentType<Constructable>;
+      const contentType: IRouteableComponentType = this.component !== null ? this.component.constructor as IRouteableComponentType : this.content as IRouteableComponentType;
       const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
       this.instruction.parameters = merged.namedParameters;
       this.instruction.parameterList = merged.parameterList;
@@ -239,14 +239,14 @@ export class ViewportContent {
       return (this.content as ICustomElementType<Constructable>).description.name;
     }
   }
-  public componentType(context: IRenderContext | IContainer): IRouteableComponentType<Constructable> {
+  public componentType(context: IRenderContext | IContainer): IRouteableComponentType {
     if (this.content === null) {
       return null;
     } else if (typeof this.content !== 'string') {
-      return this.content as IRouteableComponentType<Constructable>;
+      return this.content as IRouteableComponentType;
     } else {
       const container = context.get(IContainer);
-      const resolver = container.getResolver<Constructable & IRouteableComponentType<Constructable>>(CustomElement.keyFrom(this.content));
+      const resolver = container.getResolver<Constructable & IRouteableComponentType>(CustomElement.keyFrom(this.content));
       if (resolver !== null) {
         return resolver.getFactory(container).Type;
       }

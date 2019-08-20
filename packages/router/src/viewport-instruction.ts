@@ -37,7 +37,7 @@ export class ViewportInstruction<C extends Constructable = Constructable> {
       this.componentName = component;
       this.component = null;
     } else {
-      this.component = component;
+      this.component = component as IRouteableComponentType<C>;
       this.componentName = (component as ICustomElementType).description.name;
     }
   }

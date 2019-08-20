@@ -1,5 +1,5 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, CustomElement, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
@@ -236,14 +236,14 @@ export class ViewportContent {
     } else if (typeof this.content === 'string') {
       return this.content;
     } else {
-      return (this.content).description.name;
+      return (this.content as ICustomElementType<Constructable>).description.name;
     }
   }
   public componentType(context: IRenderContext | IContainer): IRouteableComponentType<Constructable> {
     if (this.content === null) {
       return null;
     } else if (typeof this.content !== 'string') {
-      return this.content;
+      return this.content as IRouteableComponentType<Constructable>;
     } else {
       const container = context.get(IContainer);
       const resolver = container.getResolver<Constructable & IRouteableComponentType<Constructable>>(CustomElement.keyFrom(this.content));

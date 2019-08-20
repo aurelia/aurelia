@@ -75,7 +75,7 @@ export class App implements IViewModel {
   public get routes() {
     return [
       {
-        route: Home as unknown as IRouteableComponentType<Constructable>,
+        route: Home,
         title: 'Home',
       },
       {
@@ -85,7 +85,7 @@ export class App implements IViewModel {
       },
       {
         condition: this.authenticated,
-        route: Settings as unknown as IRouteableComponentType<Constructable>,
+        route: Settings,
         title: '<i class="ion-gear-a"></i>&nbsp;Settings',
       },
       {

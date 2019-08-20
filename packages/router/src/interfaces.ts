@@ -53,7 +53,7 @@ export type NavigationInstruction<C extends Constructable = Constructable> = Com
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
 export type GuardTarget<C extends Constructable = Constructable> = ComponentAppellation<C> | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation<C extends Constructable = Constructable> = string | IRouteableComponentType<C>; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
+export type ComponentAppellation<C extends Constructable = Constructable> = string | IRouteableComponentType<C> | Constructable; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
 export type ViewportAppellation = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];
 

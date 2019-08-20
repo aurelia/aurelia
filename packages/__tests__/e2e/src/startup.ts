@@ -4,10 +4,9 @@ import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
 import { App as component } from './app';
-import * as de from './locales/de/translations.json';
-import * as en from './locales/en/translations.json';
 import { CustomMessage } from './plugins/custom-message';
 import { SutI18N } from './plugins/sut-i18n';
+import { resources } from './plugins/translation-resources';
 
 // Intl.RelativeTimeFormat polyfill is needed as Cypress uses electron and does not seems to work with puppeteer
 import RelativeTimeFormat from 'relative-time-format';
@@ -28,10 +27,7 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
         options.translationAttributeAliases = ['t', 'i18n'];
         options.initOptions = {
           plugins: [intervalPlural.default],
-          resources: {
-            en: { translation: en['default'] },
-            de: { translation: de['default'] },
-          },
+          resources,
           skipTranslationOnMissingKey: !!new URL(location.href).searchParams.get('skipkey')
         };
       })

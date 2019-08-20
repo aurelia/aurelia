@@ -1,5 +1,5 @@
-import { Constructable, inject } from '@aurelia/kernel';
-import { IRouteableComponentType, IRouter } from '@aurelia/router';
+import { inject } from '@aurelia/kernel';
+import { INavRoute, IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import { UserService } from './shared/services/user-service';
 import { SharedState } from './shared/state/shared-state';
@@ -72,7 +72,7 @@ export class App implements IViewModel {
     this.router.updateNav();
   }
 
-  public get routes() {
+  public get routes(): INavRoute[] {
     return [
       {
         route: Home,

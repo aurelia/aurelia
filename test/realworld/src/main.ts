@@ -23,10 +23,15 @@ const globalResources = [
 
   SharedState,
   HttpClient,
-] as unknown as IRegistry[];
+] as any;
 
 (global as any).au = new Aurelia()
-  .register(BasicConfiguration, DebugConfiguration, RouterConfiguration, ...globalResources)
+  .register(
+    BasicConfiguration,
+    DebugConfiguration,
+    RouterConfiguration,
+    ...globalResources,
+  )
   .app({
     component: App,
     host: document.querySelector('app')!,

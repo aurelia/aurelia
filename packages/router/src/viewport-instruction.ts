@@ -1,5 +1,6 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
+import { ICustomElementType } from './../../runtime/src/resources/custom-element';
 import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportAppellation } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
@@ -38,7 +39,7 @@ export class ViewportInstruction {
       this.component = null;
     } else {
       this.component = component;
-      this.componentName = component.description.name;
+      this.componentName = (component as ICustomElementType).description.name;
     }
   }
 

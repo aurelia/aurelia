@@ -1,5 +1,5 @@
-import { inject } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
+import { Constructable, inject } from '@aurelia/kernel';
+import { IRouteableComponentType, IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import { UserService } from './shared/services/user-service';
 import { SharedState } from './shared/state/shared-state';
@@ -74,20 +74,20 @@ export class App implements IViewModel {
 
   public get routes() {
     return [
-      {
-        route: Home,
-        title: 'Home',
-      },
+      // {
+      //   route: Home as unknown as  IRouteableComponentType<Constructable>,
+      //   title: 'Home',
+      // },
       {
         condition: this.authenticated,
         route: `editor(type=new)`,
         title: '<i class="ion-compose"></i>&nbsp;New Post',
       },
-      {
-        condition: this.authenticated,
-        route: Settings,
-        title: '<i class="ion-gear-a"></i>&nbsp;Settings',
-      },
+      // {
+      //   condition: this.authenticated,
+      //   route: Settings,
+      //   title: '<i class="ion-gear-a"></i>&nbsp;Settings',
+      // },
       {
         compareParameters: true,
         condition: this.notAuthenticated,

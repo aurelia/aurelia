@@ -30,15 +30,15 @@
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^4.1.0",
     "@types/node": "^10.14.13",
-    "cypress": "^3.4.0",
+    "cypress": "^3.4.1",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",
     "rimraf": "latest",
-    "start-server-and-test": "^1.9.1",
+    "start-server-and-test": "^1.10.0",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
-    "webpack": "^4.37.0",
+    "webpack": "^4.39.2",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"
   }

@@ -89,12 +89,10 @@ export class TemplateBinder {
   }
 
   public bind(node: HTMLTemplateElement): PlainElementSymbol {
-
     const surrogateSave = this.surrogate;
     const parentManifestRootSave = this.parentManifestRoot;
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
-
     const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
 
     const attributes = node.attributes;
@@ -149,6 +147,9 @@ export class TemplateBinder {
 
     // get the part name to override the name of the compiled definition
     this.partName = node.getAttribute('part');
+    if (this.partName === '' || (this.partName === null && node.hasAttribute('replaceable'))) {
+      this.partName = 'default';
+    }
 
     let manifestRoot: CustomElementSymbol = (void 0)!;
     let name = node.getAttribute('as-element');
@@ -222,7 +223,7 @@ export class TemplateBinder {
     // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
     let manifestProxy: IParentNodeSymbol = manifest!;
 
-    const replacePart = this.declareReplacePart(node);
+    let replacePart = this.declareReplacePart(node);
 
     let previousController: TemplateControllerSymbol = (void 0)!;
     let currentController: TemplateControllerSymbol = (void 0)!;
@@ -359,15 +360,23 @@ export class TemplateBinder {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
     } else {
-      // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
-      // instead of to the childNodes
-      replacePart.parent = parentManifest;
-      replacePart.template = manifestProxy;
 
       // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
       // element, so add the part to the parent wrapping custom element instead
       const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
-      partOwner!.parts.push(replacePart);
+
+      // Tried a replace part with place to put it (process normal)
+      if (!partOwner) {
+        replacePart = (void 0)!;
+        parentManifest.childNodes.push(manifestProxy);
+        return;
+      }
+
+      // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
+      // instead of to the childNodes
+      replacePart.parent = parentManifest;
+      replacePart.template = manifestProxy;
+      partOwner.parts.push(replacePart);
 
       if (parentManifest.templateController != null) {
         parentManifest.templateController.parts.push(replacePart);
@@ -378,11 +387,22 @@ export class TemplateBinder {
 
   }
 
-  private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
 
+  private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
     let childNode: ChildNode;
     if (node.nodeName === 'TEMPLATE') {
       childNode = (node as HTMLTemplateElement).content.firstChild!;
+    } else if (node.nodeName === 'REPLACE') {
+      const parent = node.parentNode;
+      if (parent === null) {
+        childNode = node.firstChild!;
+      } else {
+        const template = this.dom.createTemplate() as HTMLTemplateElement;
+        template.toggleAttribute('replaceable');
+        template.setAttribute('part', 'default');
+        parent.replaceChild(template, node);
+        childNode = template;
+      }
     } else {
       childNode = node.firstChild!;
     }
@@ -535,17 +555,19 @@ export class TemplateBinder {
 
   }
 
-  private declareReplacePart(node: HTMLTemplateElement | HTMLElement): ReplacePartSymbol {
-
+  private declareReplacePart(node: HTMLTemplateElement | HTMLElement): ReplacePartSymbol | null {
     const name = node.getAttribute('replace-part');
     if (name == null) {
-      return null!;
+      const root = this.manifestRoot || this.parentManifestRoot;
+      if (root && root.flags & 16 /* isCustomElement */ && root.isTarget && root.isContainerless) {
+        const physicalNode = root.physicalNode as typeof node;
+        if (physicalNode.childElementCount === 1) {
+          return new ReplacePartSymbol('default');
+        }
+      }
+      return null;
     }
-    node.removeAttribute('replace-part');
-
-    const symbol = new ReplacePartSymbol(name);
-
-    return symbol;
+    return name === '' ? new ReplacePartSymbol('default') : new ReplacePartSymbol(name);
   }
 }
 
@@ -593,21 +615,21 @@ function processTemplateControllers(dom: IDOM, manifestProxy: IParentNodeSymbol,
 }
 
 function processReplacePart(dom: IDOM, replacePart: ReplacePartSymbol, manifestProxy: IParentNodeSymbol | ISymbolWithMarker): void {
-    let proxyNode: HTMLElement;
-    let currentTemplate: HTMLTemplateElement;
-    if (manifestProxy.flags & SymbolFlags.hasMarker) {
-      proxyNode = (manifestProxy as ISymbolWithMarker).marker as HTMLElement;
-    } else {
-      proxyNode = manifestProxy.physicalNode as HTMLElement;
-    }
-    if (proxyNode.nodeName === 'TEMPLATE') {
-      // if it's a template element, no need to do anything special, just assign it to the replacePart
-      replacePart.physicalNode = proxyNode as HTMLTemplateElement;
-    } else {
-      // otherwise wrap the replace-part in a template
-      currentTemplate = replacePart.physicalNode = dom.createTemplate() as HTMLTemplateElement;
-      currentTemplate.content.appendChild(proxyNode);
-    }
+  let proxyNode: HTMLElement;
+  let currentTemplate: HTMLTemplateElement;
+  if (manifestProxy.flags & SymbolFlags.hasMarker) {
+    proxyNode = (manifestProxy as ISymbolWithMarker).marker as HTMLElement;
+  } else {
+    proxyNode = manifestProxy.physicalNode as HTMLElement;
+  }
+  if (proxyNode.nodeName === 'TEMPLATE') {
+    // if it's a template element, no need to do anything special, just assign it to the replacePart
+    replacePart.physicalNode = proxyNode as HTMLTemplateElement;
+  } else {
+    // otherwise wrap the replace-part in a template
+    currentTemplate = replacePart.physicalNode = dom.createTemplate() as HTMLTemplateElement;
+    currentTemplate.content.appendChild(proxyNode);
+  }
 }
 
 interface IAttrLike {
@@ -662,11 +684,11 @@ function scanAttributeName(state: ParserState): string {
 }
 
 const enum Char {
-  DoubleQuote    = 0x22,
-  SingleQuote    = 0x27,
-  Slash          = 0x2F,
-  Semicolon      = 0x3B,
-  Colon          = 0x3A
+  DoubleQuote = 0x22,
+  SingleQuote = 0x27,
+  Slash = 0x2F,
+  Semicolon = 0x3B,
+  Colon = 0x3A
 }
 
 function scanAttributeValue(state: ParserState): string {

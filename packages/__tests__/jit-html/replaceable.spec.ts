@@ -28,8 +28,8 @@ describe('replaceable', function () {
   ]) {
     it(`replaceable - ${title}`, function () {
 
-      const App = CustomElement.define({ name: 'app', template: `<template><foo>${appMarkup}</foo></template>` }, class {});
-      const Foo = CustomElement.define({ name: 'foo', template: `<template>${ceMarkup}</template>` }, class {});
+      const App = CustomElement.define({ name: 'app', template: `<template><foo>${appMarkup}</foo></template>` }, class { });
+      const Foo = CustomElement.define({ name: 'foo', template: `<template>${ceMarkup}</template>` }, class { });
 
       const ctx = TestContext.createHTMLTestContext();
       ctx.container.register(Foo);
@@ -64,6 +64,405 @@ describe('replaceable', function () {
     au.start();
 
     assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless replace element full`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div>\${baz}</div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace></replace></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless replace element with part replaceable empty`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div>\${baz}</div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template part replaceable></replace></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless replace element short`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div>\${baz}</div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace/></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless template element no name short`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div>\${baz}</div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable></template></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless replace element full NO TEMPLATE WRAPPER`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<foo><div>\${baz}</div></foo>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<replace></replace>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless replace element short NO TEMPLATE WRAPPER`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<foo><div>\${baz}</div></foo>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<replace/>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  // TODO: run this case with more combinations
+  it(`replaceable - bind to parent scope when binding inside replace-part has multiple template controllers in between`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to target containerless replace element full`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part='default'>\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace></replace></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to target containerless replace element short`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part>\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace/></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to target containerless template element short`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part>\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+
+  });
+
+
+  it(`replaceable - default bind to parent containerless no element short template`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element long template`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable></template></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element short template`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace/></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element long template`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace></replace></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element long replace NESTED`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><foo><foo>\${baz}</foo></foo></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace></replace></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element short replace NESTED`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><foo><foo>\${baz}</foo></foo></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace /></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to target containerless template element no name short replace NESTED`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><foo><foo><template replace-part>\${baz}</template></foo></foo></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><replace /></template>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element short template no wrapper`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<replace/>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  it(`replaceable - default bind to parent containerless no element long template no wrapper`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<replace></replace>` }, class { public baz = 'abc'; });
+    Foo.containerless = true;
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
 
   });
 
@@ -117,7 +516,7 @@ describe('replaceable', function () {
   it(`replaceable - bind to parent scope`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class {});
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -157,7 +556,7 @@ describe('replaceable', function () {
   it(`replaceable/template - bind to parent scope`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -177,7 +576,7 @@ describe('replaceable', function () {
   it(`replaceable/template - uses last on name conflict`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -295,8 +694,8 @@ describe('replaceable', function () {
 
   });
 
-  describe('Difficult cases', function() {
-    describe('with multiple nested replaceable from 1 -> 10 levels', function() {
+  describe('Difficult cases', function () {
+    describe('with multiple nested replaceable from 1 -> 10 levels', function () {
       const createReplaceableDiv = (level: number) => {
         let currentLevel = 0;
         let template = '';
@@ -324,14 +723,14 @@ describe('replaceable', function () {
       };
 
       for (let i = 1; 11 > i; ++i) {
-        it(`works with replaceable on normal <div/> with. Nesting level: ${i}`, function() {
+        it(`works with replaceable on normal <div/> with. Nesting level: ${i}`, function () {
           const App = CustomElement.define(
             { name: 'app', template: `<template><foo><template replace-part="p-${i}"><span>replace-part-p</span></template></foo></template>` },
-            class App {}
+            class App { }
           );
           const Foo = CustomElement.define(
             { name: 'foo', template: `<template>${createReplaceableDiv(i)}</template>` },
-            class Foo {}
+            class Foo { }
           );
 
           const ctx = TestContext.createHTMLTestContext();
@@ -351,7 +750,7 @@ describe('replaceable', function () {
       }
     });
 
-    describe('with multiple replaceables + all no nested replaceable + From 1 -> 10 siblings', function() {
+    describe('with multiple replaceables + all no nested replaceable + From 1 -> 10 siblings', function () {
       const buildReplacementTemplate = (count: number) => {
         let template = '';
         let i = 0;
@@ -371,16 +770,17 @@ describe('replaceable', function () {
         return template;
       };
       for (let i = 1; 11 > i; ++i) {
-        it(`works with replaceable on normal <div/>. Siblings count: ${i}`, function() {
+        it(`works with replaceable on normal <div/>. Siblings count: ${i}`, function () {
           const App = CustomElement.define(
-            { name: 'app', template:
-              `<template><foo>${buildReplacementTemplate(i)}</foo></template>`
+            {
+              name: 'app', template:
+                `<template><foo>${buildReplacementTemplate(i)}</foo></template>`
             },
-            class App {}
+            class App { }
           );
           const Foo = CustomElement.define(
             { name: 'foo', template: `<template>${buildReplaceableDiv(i)}</template>` },
-            class Foo {}
+            class Foo { }
           );
 
           const ctx = TestContext.createHTMLTestContext();

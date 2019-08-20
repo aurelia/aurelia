@@ -20,6 +20,10 @@ export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
 export class I18nService {
 
   public i18next: i18nextCore.i18n;
+  /**
+   * This is used for i18next initialization and awaited for before the bind phase.
+   * If need be (usually there is none), this task can be awaited for explicitly in client code.
+   */
   public readonly task: ILifecycleTask;
   private options!: I18nInitOptions;
   private readonly intl: typeof Intl;
@@ -35,6 +39,18 @@ export class I18nService {
     this.intl = PLATFORM.global.Intl;
   }
 
+  /**
+   * Evaluates the `keyExpr` to translated values.
+   * Example:
+   * ```typescript
+   *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
+   *    {attributes:[], value: 'translated_value_of_key1'}
+   *    {attributes:['attr'], value: 'translated_value_of_key2'}
+   *    {attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
+   *  ]
+   * ```
+   * For a single key, `I18nService#tr` method can also be easily used.
+   */
   public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
     const parts = keyExpr.split(';');
     const result: I18nKeyEvaluationResult[] = [];

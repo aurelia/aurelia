@@ -1,7 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { I18nConfiguration } from '@aurelia/i18n';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { IRegistration } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
 import { App as component } from './app';

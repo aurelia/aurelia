@@ -1,5 +1,26 @@
 import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
-import { connectable, CustomElement, CustomExpression, DOM, IBindingTargetAccessor, IConnectableBinding, Interpolation, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, State, IExpressionParser, IRenderContext, IController, ICallBindingInstruction, ensureExpression, BindingType, addBinding } from '@aurelia/runtime';
+import {
+  addBinding,
+  BindingType,
+  connectable,
+  CustomElement,
+  CustomExpression,
+  DOM,
+  ensureExpression,
+  IBindingTargetAccessor,
+  ICallBindingInstruction,
+  IConnectableBinding,
+  IController,
+  IExpressionParser,
+  Interpolation,
+  IObserverLocator,
+  IPartialConnectableBinding,
+  IRenderContext,
+  IScope,
+  IsExpression,
+  LifecycleFlags,
+  State
+} from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N, I18N_EA_CHANNEL, I18nService } from '../i18n';
 
@@ -12,7 +33,8 @@ interface TranslationBindingCreationContext {
   instruction: ICallBindingInstruction;
   isParameterContext?: boolean;
 }
-type ContentAttribute = 'textContent' | 'innerHTML' | 'prepend' | 'append';
+const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'] as const;
+type ContentAttribute = typeof contentAttributes[number];
 interface ContentValue {
   textContent?: string;
   innerHTML?: string;
@@ -27,7 +49,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18nService;
-  private readonly contentAttributes: ReadonlyArray<string> = ['textContent', 'innerHTML', 'prepend', 'append'];
+  private readonly contentAttributes: ReadonlyArray<string> = contentAttributes;
   private keyExpression!: string;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
@@ -66,7 +88,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
-    if (!this.expr) { throw new Error('key expression is missing'); }
+    if (!this.expr) { throw new Error('key expression is missing'); } // TODO replace with error code
     this.scope = scope;
     this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
 
@@ -213,7 +235,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
   private addTextContentToTemplate(template: HTMLTemplateElement, additionalText: string | undefined, marker: string) {
     if (additionalText) {
-      const addendum: Node = DOM.createTextNode(additionalText) as Node;
+      const addendum = DOM.createTextNode(additionalText) as Node;
       Reflect.set(addendum, marker, true);
       template.content.append(addendum);
       return true;

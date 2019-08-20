@@ -10,8 +10,19 @@ import { NumberFormatValueConverter } from './nf/number-format-value-converter';
 import { RelativeTimeBindingBehavior } from './rt/relative-time-binding-behavior';
 import { RelativeTimeValueConverter } from './rt/relative-time-value-converter';
 import { TranslationBindingBehavior } from './t/translation-binding-behavior';
-import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
-import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
+import {
+  TranslationParametersAttributePattern,
+  TranslationParametersBindingCommand,
+  TranslationParametersBindingRenderer
+} from './t/translation-parameters-renderer';
+import {
+  TranslationAttributePattern,
+  TranslationBindAttributePattern,
+  TranslationBindBindingCommand,
+  TranslationBindBindingRenderer,
+  TranslationBindingCommand,
+  TranslationBindingRenderer
+} from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
@@ -89,4 +100,4 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
   };
 }
 
-export const I18nConfiguration = createI18nConfiguration(() => {/* noop */ });
+export const I18nConfiguration = createI18nConfiguration(() => { /* noop */ });

@@ -1,6 +1,28 @@
-import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, BindingSymbol, getTarget, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
+import {
+  AttributePatternDefinition,
+  AttrSyntax,
+  BindingCommandResource,
+  BindingSymbol,
+  getTarget,
+  IAttributePattern,
+  IBindingCommand,
+  PlainAttributeSymbol
+} from '@aurelia/jit';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, instructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import {
+  BindingMode,
+  BindingType,
+  ICallBindingInstruction,
+  IController,
+  IDOM,
+  IExpressionParser,
+  IInstructionRenderer,
+  instructionRenderer,
+  IObserverLocator,
+  IRenderContext,
+  IsBindingBehavior,
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 
 export const TranslationInstructionType = 'tt';

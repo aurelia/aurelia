@@ -79,7 +79,8 @@ export class NavRoute {
       return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
     const components = this.linkActive as ViewportInstruction[];
-    const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+    let activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+    activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(activeComponents);
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
         return '';

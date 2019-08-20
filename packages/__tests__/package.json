@@ -55,7 +55,7 @@
     "@types/karma": "^3.0.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^10.14.13",
-    "@types/webpack": "^4.32.1",
+    "@types/webpack": "^4.39.0",
     "@types/webpack-env": "^1.14.0",
     "@types/vinyl": "^2.0.3",
     "chalk": "^2.4.2",
@@ -65,10 +65,10 @@
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "^3.0.1",
     "jsdom": "^15.1.1",
-    "karma-chrome-launcher": "^3.0.0",
+    "karma-chrome-launcher": "^3.1.0",
     "karma-coverage-istanbul-reporter": "^2.1.0",
-    "karma-coverage": "^1.1.2",
-    "karma-firefox-launcher": "^1.1.0",
+    "karma-coverage": "^2.0.0",
+    "karma-firefox-launcher": "^1.2.0",
     "karma-junit-reporter": "^1.2.0",
     "karma-min-reporter": "^0.1.0",
     "karma-mocha-reporter": "^2.2.5",
@@ -86,9 +86,6 @@
     "tslib": "^1.10.0",
     "typescript": "^3.5.3",
     "vinyl": "^2.2.0",
-    "webpack": "^4.37.0"
-  },
-  "main": "dist/umd/index.js",
-  "module": "dist/esnext/index.js",
-  "version": "0.4.0-dev.201908192330"
+    "webpack": "^4.39.2"
+  }
 }

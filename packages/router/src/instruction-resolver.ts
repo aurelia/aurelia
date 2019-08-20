@@ -146,6 +146,17 @@ export class InstructionResolver {
     return unique;
   }
 
+  public flattenViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[] {
+    const flat: ViewportInstruction[] = [];
+    for (const instruction of instructions) {
+      flat.push(instruction);
+      if (instruction.nextScopeInstruction) {
+        flat.push(...this.flattenViewportInstructions([instruction.nextScopeInstruction]));
+      }
+    }
+    return flat;
+  }
+
   public stateStringsToString(stateStrings: string[], clear: boolean = false): string {
     const strings = stateStrings.slice();
     if (clear) {

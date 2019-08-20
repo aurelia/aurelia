@@ -56,7 +56,7 @@ class Target<C extends Constructable> {
       this.componentName = ComponentHandleResolver.getName(target as IRouteableComponentType<C>);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
-      this.component = ComponentHandleResolver.isType(cvTarget.component) ? ComponentHandleResolver.getType(cvTarget.component as IRouteableComponentType<C>) : null;
+      this.component = ComponentHandleResolver.isType(cvTarget.component) ? ComponentHandleResolver.getType(cvTarget.component as Constructable) : null;
       this.componentName = ComponentHandleResolver.getName(cvTarget.component)
       this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
       this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);

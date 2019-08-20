@@ -9,9 +9,13 @@ export const ComponentHandleResolver = {
   isName: function <T>(component: T & ComponentHandle<Constructable>): component is T & ComponentHandle<Constructable> {
     return typeof component === 'string';
   },
-  isType: function <T>(component: T & ComponentHandle<Constructable>): component is T & ComponentHandle<Constructable> {
+  isType: function <T>(component: T & ComponentHandle<Constructable>): component is T & ComponentHandle<Constructable> & IRouteableComponentType<Constructable> {
     return CustomElement.isType(component);
   },
+  isInstance: function <T>(component: T & ComponentHandle<Constructable>): component is T & ComponentHandle<Constructable> & IRouteableComponent<Constructable> {
+    return !ComponentHandleResolver.isName(component) && !ComponentHandleResolver.isType(component);
+  },
+
   getName: function <T>(component: T & ComponentHandle<Constructable>): string {
     if (ComponentHandleResolver.isName(component)) {
       return component as string;
@@ -21,16 +25,21 @@ export const ComponentHandleResolver = {
       return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
     }
   },
-  getType: function <T extends Constructable>(component: T & ComponentHandle<Constructable>): ICustomElementType<T> {
+  getType: function <T extends Constructable>(component: T & ComponentHandle<Constructable>): IRouteableComponentType<T> {
     if (ComponentHandleResolver.isName(component)) {
       return null;
     } else if (ComponentHandleResolver.isType(component)) {
       return component;
+    } else {
+      return ((component as IRouteableComponent).constructor as IRouteableComponentType<T>);
     }
-    // TODO: Fix resolve for instance
-    // else {
-    //   return (component as ICustomElementType).constructor;
-    // }
+  },
+  getInstance: function <T extends Constructable>(component: T & ComponentHandle<Constructable>): IRouteableComponent<T> {
+    if (ComponentHandleResolver.isName(component) || ComponentHandleResolver.isType(component)) {
+      return null;
+    } else {
+      return component;
+    }
   },
 };
 

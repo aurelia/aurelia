@@ -16,6 +16,7 @@ import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
+
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
   transformToUrl?(instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[];

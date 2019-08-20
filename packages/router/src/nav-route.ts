@@ -1,7 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
-import { ComponentHandleResolver, IRouteableComponentType, NavigationInstruction, NavigationInstructionResolver } from './interfaces';
+import { IRouteableComponentType, NavigationInstruction } from './interfaces';
 import { INavRoute, Nav } from './nav';
 import { ViewportInstruction } from './viewport-instruction';
+import { ComponentHandleResolver, NavigationInstructionResolver } from './type-resolvers';
 
 
 export class NavRoute {

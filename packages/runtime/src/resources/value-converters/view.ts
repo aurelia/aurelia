@@ -5,9 +5,9 @@ import { valueConverter } from '../value-converter';
 export class ViewValueConverter {
   constructor(@IViewLocator private readonly viewLocator: IViewLocator) {}
 
-  public toView(subject: ComposableObject | null | undefined, viewName?: string) {
-    return this.viewLocator.getViewComponentForModelInstance(
-      subject,
+  public toView(object: ComposableObject | null | undefined, viewName?: string) {
+    return this.viewLocator.getViewComponentForObject(
+      object,
       viewName
     );
   }

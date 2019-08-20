@@ -1,7 +1,6 @@
-import { Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElement, customElement, IViewModel } from '@aurelia/runtime';
-import { assert, eachCartesianJoin, eachCartesianJoinAsync, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
-import { childrenQuerySelector, childrenQuerySelectorAll } from './html-extensions';
+import { Constructable, IRegistry } from '@aurelia/kernel';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { assert, eachCartesianJoin, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
 
@@ -104,7 +103,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           assert.notEqual(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
             null,
-            /* message when failed */'<div.divdiv> should have been portaled'
+            '<div.divdiv> should have been portaled'/* message when failed */
           );
           assert.equal(
             childrenQuerySelector(ctx.doc.body, '.divdiv').textContent,
@@ -220,19 +219,11 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
         } = testCase;
 
         it(typeof title === 'string' ? title : title(), async function() {
-
-          const ctx = TestContext.createHTMLTestContext();
-          const au = new Aurelia(ctx.container);
-
-          const host = ctx.doc.body.appendChild(ctx.createElement('div'));
-          const component = new rootVm();
-
-          au.app({ host, component });
-          au.start();
+          const { ctx, component, host, dispose } = setup({ root: rootVm });
 
           await assertionFn(ctx, host, component);
 
-          tearDown(au);
+          await dispose();
 
           if (postTeardownAssertionFn) {
             await postTeardownAssertionFn(ctx, host, component);
@@ -255,14 +246,38 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     localDiv?: HTMLElement;
   }
 
-  function tearDown(au: Aurelia) {
-    au.stop();
-    (au.root.host as Element).remove();
+  function setup<T>(options: { root: Constructable<T>; resources?: IRegistry[] }) {
+    const {root: Root, resources = []} = options;
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(...resources);
+
+    const au = new Aurelia(ctx.container);
+    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
+    const component = new Root();
+
+    au.app({ host, component });
+    au.start();
+
+    return {
+      ctx,
+      component,
+      host,
+      dispose: async () => {
+        await au.stop().wait();
+        host.remove();
+      }
+    };
   }
 
-  function createItems(count: number, baseName: string = 'item') {
-    return Array.from({ length: count }, (_, idx) => {
-      return { idx, name: `${baseName}-${idx}` };
-    });
-  }
+  const childrenQuerySelector = (node: HTMLElement, selector: string): HTMLElement => {
+    return Array
+      .from(node.children)
+      .find(el => el.matches(selector)) as HTMLElement;
+  };
+
+  const childrenQuerySelectorAll = (node: HTMLElement, selector: string): HTMLElement[] => {
+    return Array
+      .from(node.children)
+      .filter(el => el.matches(selector)) as HTMLElement[];
+  };
 });

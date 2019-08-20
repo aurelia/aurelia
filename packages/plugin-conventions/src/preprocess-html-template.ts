@@ -2,7 +2,7 @@ import { kebabCase } from '@aurelia/kernel';
 import modifyCode from 'modify-code';
 import * as path from 'path';
 import { fileBase } from './file-base';
-import { stripHtmlImport } from './strip-html-import';
+import { stripMetaData } from './strip-meta-data';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
@@ -13,7 +13,11 @@ import { stripHtmlImport } from './strip-html-import';
 //   import d0 from './foo.css';
 // because most bundler by default will inject that css into HTML head.
 export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaultShadowOptions?: { mode: 'open' | 'closed' }, stringModuleWrap?: (id: string) => string) {
-  const { html, deps } = stripHtmlImport(rawHtml);
+  let { html, shadowMode, deps } = stripMetaData(rawHtml);
+
+  if (defaultShadowOptions && !shadowMode) {
+    shadowMode = defaultShadowOptions.mode;
+  }
 
   const viewDeps: string[] = [];
   const importStatements: string[] = [];
@@ -23,7 +27,7 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaul
     const ext = path.extname(d);
 
     if (isCss(ext)) {
-      if (defaultShadowOptions) {
+      if (shadowMode) {
         if (!registrationImported) {
           importStatements.push(`import { Registration } from '@aurelia/kernel';\n`);
           registrationImported = true;
@@ -53,14 +57,14 @@ export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
 `);
 
-  if (defaultShadowOptions) {
-    m.append(`export const shadowOptions = ${JSON.stringify(defaultShadowOptions)};\n`);
+  if (shadowMode) {
+    m.append(`export const shadowOptions = { mode: '${shadowMode}' };\n`);
   }
 
   m.append(`let _e;
 export function getHTMLOnlyElement() {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${defaultShadowOptions ? ', shadowOptions' : ''} });
+    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''} });
   }
   return _e;
 }

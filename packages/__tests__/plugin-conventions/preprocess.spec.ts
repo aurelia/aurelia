@@ -35,7 +35,7 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
-export const shadowOptions = {"mode":"open"};
+export const shadowOptions = { mode: 'open' };
 let _e;
 export function getHTMLOnlyElement() {
   if (!_e) {

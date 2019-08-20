@@ -13,6 +13,7 @@ import { stripMetaData } from './strip-meta-data';
 //   import d0 from './foo.css';
 // because most bundler by default will inject that css into HTML head.
 export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaultShadowOptions?: { mode: 'open' | 'closed' }, stringModuleWrap?: (id: string) => string) {
+  const name = kebabCase(fileBase(filePath));
   let { html, shadowMode, deps } = stripMetaData(rawHtml);
 
   if (defaultShadowOptions && !shadowMode) {
@@ -20,8 +21,16 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaul
   }
 
   const viewDeps: string[] = [];
-  const importStatements: string[] = [];
+  const statements: string[] = [];
   let registrationImported = false;
+
+  // Turn off ShadowDOM for invalid element
+  if (!name.includes('-') && shadowMode) {
+    shadowMode = null;
+    const error = `WARN: ShadowDOM is disabled for ${filePath}. ShadowDOM requires element name to contain a dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
+    console.warn(error);
+    statements.push(`console.warn(${JSON.stringify(error)});\n`);
+  }
 
   deps.forEach((d, i) => {
     const ext = path.extname(d);
@@ -29,28 +38,27 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaul
     if (isCss(ext)) {
       if (shadowMode) {
         if (!registrationImported) {
-          importStatements.push(`import { Registration } from '@aurelia/kernel';\n`);
+          statements.push(`import { Registration } from '@aurelia/kernel';\n`);
           registrationImported = true;
         }
         const stringModuleId = stringModuleWrap ? stringModuleWrap(d) : d;
-        importStatements.push(`import d${i} from ${s(stringModuleId)};\n`);
+        statements.push(`import d${i} from ${s(stringModuleId)};\n`);
         viewDeps.push(`Registration.defer('.css', d${i})`);
       } else {
-        importStatements.push(`import ${s(d)};\n`);
+        statements.push(`import ${s(d)};\n`);
       }
     } else if (ext === '.html') {
-      importStatements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
+      statements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
       viewDeps.push(`d${i}`);
     } else {
-      importStatements.push(`import * as d${i} from ${s(d)};\n`);
+      statements.push(`import * as d${i} from ${s(d)};\n`);
       viewDeps.push(`d${i}`);
     }
   });
 
-  const name = kebabCase(fileBase(filePath));
   const m = modifyCode('', filePath);
   m.append("import { CustomElement } from '@aurelia/runtime';\n");
-  importStatements.forEach(s => m.append(s));
+  statements.forEach(s => m.append(s));
   m.append(`export const name = ${s(name)};
 export const template = ${s(html)};
 export default template;

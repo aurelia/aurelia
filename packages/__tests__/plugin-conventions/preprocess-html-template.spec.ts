@@ -118,4 +118,28 @@ export function getHTMLOnlyElement() {
     const result = preprocessHtmlTemplate('lo\\FooBar.html', html, { mode: 'closed' }, id => `raw-loader!${id}`);
     assert.equal(result.code, expected);
   });
+
+  it('turn off shadowDOM mode for one word element', function () {
+    const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+console.warn("WARN: ShadowDOM is disabled for lo\\\\foo.html. ShadowDOM requires element name to contain a dash (-), you have to refactor <foo> to something like <lorem-foo>.");
+import * as h0 from "./hello-world.html";
+const d0 = h0.getHTMLOnlyElement();
+import * as d1 from "foo";
+import "./foo-bar.scss";
+export const name = "foo";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1 ];
+let _e;
+export function getHTMLOnlyElement() {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  return _e;
+}
+`;
+    const result = preprocessHtmlTemplate('lo\\foo.html', html, { mode: 'closed' }, id => `raw-loader!${id}`);
+    assert.equal(result.code, expected);
+  });
 });

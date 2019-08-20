@@ -119,10 +119,10 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
   .withDefault(x => x.singleton(ViewLocator));
 
 export interface IViewLocator {
-  getViewComponentForModelInstance(model: ComposedObject | null | undefined, requestedViewName?: string): Constructable | null;
+  getViewComponentForModelInstance(model: ComposableObject | null | undefined, requestedViewName?: string): Constructable | null;
 }
 
-export type ComposedObject = Omit<IViewModel, '$controller'>;
+export type ComposableObject = Omit<IViewModel, '$controller'>;
 
 const lifecycleCallbacks = [
   'binding',
@@ -134,13 +134,13 @@ const lifecycleCallbacks = [
   'detached',
   'unbinding',
   'unbound'
-] as (keyof Omit<ComposedObject, 'created'>)[];
+] as (keyof Omit<ComposableObject, 'created'>)[];
 
 export class ViewLocator implements IViewLocator {
   private modelInstanceToBoundComponent: WeakMap<object, Record<string, Constructable>> = new WeakMap();
   private modelTypeToUnboundComponent: Map<object, Record<string, Constructable>> = new Map();
 
-  public getViewComponentForModelInstance(object: ComposedObject | null | undefined, viewName?: string) {
+  public getViewComponentForModelInstance(object: ComposableObject | null | undefined, viewName?: string) {
     if (object && hasAssociatedViews(object.constructor)) {
       const availableViews = object.constructor.$views;
       const resolvedViewName = this.getViewName(availableViews, viewName);
@@ -155,7 +155,7 @@ export class ViewLocator implements IViewLocator {
     return null;
   }
 
-  private getOrCreateBoundComponent(model: ComposedObject, availableViews: ITemplateDefinition[], resolvedViewName: string) {
+  private getOrCreateBoundComponent(model: ComposableObject, availableViews: ITemplateDefinition[], resolvedViewName: string) {
     let lookup = this.modelInstanceToBoundComponent.get(model);
     let BoundComponent: Constructable | undefined;
 
@@ -185,7 +185,7 @@ export class ViewLocator implements IViewLocator {
     return BoundComponent;
   }
 
-  private getOrCreateUnboundComponent(model: ComposedObject, availableViews: ITemplateDefinition[], resolvedViewName: string) {
+  private getOrCreateUnboundComponent(model: ComposableObject, availableViews: ITemplateDefinition[], resolvedViewName: string) {
     let lookup = this.modelTypeToUnboundComponent.get(model.constructor);
     let UnboundComponent: Constructable | undefined;
 
@@ -202,7 +202,7 @@ export class ViewLocator implements IViewLocator {
         class {
           protected $scope!: IScope;
 
-          constructor(protected viewModel: ComposedObject) {}
+          constructor(protected viewModel: ComposableObject) {}
 
           public created(flags: LifecycleFlags) {
             this.$scope = Scope.fromParent(flags, this.$scope, this.viewModel);

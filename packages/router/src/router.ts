@@ -16,7 +16,6 @@ import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
-
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
   transformToUrl?(instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[];
@@ -52,7 +51,7 @@ export interface IRouter {
   // External API to get viewport by name
   getViewport(name: string): Viewport;
 
-    // Called from the viewport custom element in attached()
+  // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;

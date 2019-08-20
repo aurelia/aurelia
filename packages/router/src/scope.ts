@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IController, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { IController, IRenderContext } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';

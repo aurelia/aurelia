@@ -1,30 +1,7 @@
-import {
-  Key,
-  Writable
-} from '@aurelia/kernel';
-
-import {
-  bindable,
-  createRenderContext,
-  CustomElement,
-  IController,
-  ICustomElementType,
-  IDOM,
-  INode,
-  IRenderContext,
-  IRenderingEngine,
-  ITemplate,
-  LifecycleFlags,
-  TemplateDefinition
-} from '@aurelia/runtime';
-
-import {
-  IRouter,
-} from '../router';
-import {
-  IViewportOptions,
-  Viewport
-} from '../viewport';
+import { Key, Writable } from '@aurelia/kernel';
+import { bindable, createRenderContext, CustomElement, IController, ICustomElementType, IDOM, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { IRouter } from '../router';
+import { IViewportOptions, Viewport } from '../viewport';
 
 export class ViewportCustomElement {
   public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];

@@ -1,4 +1,4 @@
-import { Constructable, IContainer } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';

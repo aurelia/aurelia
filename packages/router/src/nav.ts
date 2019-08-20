@@ -1,4 +1,3 @@
-import { Constructable } from '@aurelia/kernel';
 import { NavigationInstruction } from './interfaces';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';

@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
-import { ComponentHandle } from './interfaces';
+import { ComponentAppellation } from './interfaces';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -37,21 +37,21 @@ export interface INavigatorInstruction extends INavigatorEntry {
 }
 
 export interface IViewportInstruction<C extends Constructable> {
-  component: ComponentHandle<C>;
+  component: ComponentAppellation<C>;
   viewport?: ViewportHandle;
   parameters?: ComponentParameters;
 }
 
 export interface IComponentAndOrViewportOrNothing<C extends Constructable = Constructable> {
-  component?: ComponentHandle<C>;
+  component?: ComponentAppellation<C>;
   viewport?: ViewportHandle;
 }
 
-export type NavigationInstruction<C extends Constructable = Constructable> = ComponentHandle<C> | IViewportInstruction<C> | ViewportInstruction;
+export type NavigationInstruction<C extends Constructable = Constructable> = ComponentAppellation<C> | IViewportInstruction<C> | ViewportInstruction;
 
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget<C extends Constructable = Constructable> = ComponentHandle<C> | IComponentAndOrViewportOrNothing;
+export type GuardTarget<C extends Constructable = Constructable> = ComponentAppellation<C> | IComponentAndOrViewportOrNothing;
 
-export type ComponentHandle<C extends Constructable = Constructable> = string | IRouteableComponentType<C> | Constructable; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
+export type ComponentAppellation<C extends Constructable = Constructable> = string | IRouteableComponentType<C> | Constructable; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
 export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];

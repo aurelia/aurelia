@@ -1,6 +1,6 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { ComponentHandle, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -14,7 +14,7 @@ export const enum ContentStatus {
 }
 
 export class ViewportContent {
-  public content: ComponentHandle;
+  public content: ComponentAppellation;
   public parameters: string;
   public instruction: INavigatorInstruction;
   public component: IRouteableComponent;
@@ -23,7 +23,7 @@ export class ViewportContent {
   public fromCache: boolean;
   public reentry: boolean;
 
-  constructor(content: ComponentHandle = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
+  constructor(content: ComponentAppellation = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;

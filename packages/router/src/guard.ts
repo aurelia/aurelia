@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
 import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
-import { ComponentHandleResolver, ViewportHandleResolver } from './type-resolvers';
+import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -51,13 +51,13 @@ class Target<C extends Constructable> {
   constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (ComponentHandleResolver.isType(target as IRouteableComponentType<C>)) {
+    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType<C>)) {
       this.component = target as IRouteableComponentType<C>;
-      this.componentName = ComponentHandleResolver.getName(target as IRouteableComponentType<C>);
+      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType<C>);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
-      this.component = ComponentHandleResolver.isType(cvTarget.component) ? ComponentHandleResolver.getType(cvTarget.component as Constructable) : null;
-      this.componentName = ComponentHandleResolver.getName(cvTarget.component)
+      this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as Constructable) : null;
+      this.componentName = ComponentAppellationResolver.getName(cvTarget.component)
       this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
       this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
     }

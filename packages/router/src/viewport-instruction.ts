@@ -1,6 +1,6 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { ComponentHandle, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
+import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 
@@ -15,7 +15,7 @@ export class ViewportInstruction<C extends Constructable = Constructable> {
   public ownsScope?: boolean;
   public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: ComponentHandle<C>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
+  constructor(component: ComponentAppellation<C>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
     this.component = null;
     this.componentName = null;
     this.viewport = null;
@@ -32,7 +32,7 @@ export class ViewportInstruction<C extends Constructable = Constructable> {
     this.nextScopeInstruction = nextScopeInstruction;
   }
 
-  public setComponent(component: ComponentHandle<C>): void {
+  public setComponent(component: ComponentAppellation<C>): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;

@@ -1,6 +1,5 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { CustomElement, IRenderContext } from '@aurelia/runtime';
-import { ICustomElementType } from './../../runtime/src/resources/custom-element';
+import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportAppellation } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';

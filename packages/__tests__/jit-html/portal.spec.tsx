@@ -1,7 +1,7 @@
-import { Aurelia, CustomElementResource, IViewModel, customElement } from '@aurelia/runtime';
-import { TestContext, HTMLTestContext, hJsx, assert, eachCartesianJoinAsync, eachCartesianJoin } from '@aurelia/testing';
-import { childrenQuerySelector, childrenQuerySelectorAll } from './html-extensions';
 import { Constructable } from '@aurelia/kernel';
+import { Aurelia, CustomElement, customElement, IViewModel } from '@aurelia/runtime';
+import { assert, eachCartesianJoin, eachCartesianJoinAsync, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { childrenQuerySelector, childrenQuerySelectorAll } from './html-extensions';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
 
@@ -10,17 +10,17 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     const basicTestCases: IPortalTestCase<IPortalTestRootVm>[] = [
       {
         title: 'basic usage',
-        rootVm: CustomElementResource.define(
+        rootVm: CustomElement.define(
           {
             name: 'app',
-            template: <template><div portal class="portaled"></div></template>
+            template: <template><div portal class='portaled'></div></template>
           },
           class App {
-            message = 'Aurelia';
-            items: any[];
+            public message = 'Aurelia';
+            public items: any[];
           }
         ),
-        assertionFn: (ctx, host, component) => {    
+        assertionFn: (ctx, host, component) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.notEqual(
             childrenQuerySelector(ctx.doc.body, '.portaled'),
@@ -31,12 +31,12 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       },
       {
         title: 'Portal custom elements',
-        rootVm: CustomElementResource.define(
+        rootVm: CustomElement.define(
           {
             name: 'app',
             template: <template><c-e portal></c-e></template>,
             dependencies: [
-              CustomElementResource.define(
+              CustomElement.define(
                 {
                   name: 'c-e',
                   template: <template>C-E</template>
@@ -45,8 +45,8 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             ]
           },
           class App {
-            message = 'Aurelia';
-            items: any[];
+            public message = 'Aurelia';
+            public items: any[];
           }
         ),
         assertionFn: (ctx, host, comp) => {
@@ -61,15 +61,15 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       },
       {
         title: 'portals nested template controller',
-        rootVm: CustomElementResource.define(
+        rootVm: CustomElement.define(
           {
             name: 'app',
-            template: <template><div portal if$="showCe" class="divdiv">{"${message}"}</div></template>
+            template: <template><div portal if$='showCe' class='divdiv'>{'${message}'}</div></template>
           },
           class App {
-            message = 'Aurelia';
-            showCe = true;
-            items: any[];
+            public message = 'Aurelia';
+            public showCe = true;
+            public items: any[];
           }
         ),
         assertionFn: (ctx, host, comp) => {
@@ -88,15 +88,15 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       },
       {
         title: 'portals when nested inside template controller',
-        rootVm: CustomElementResource.define(
+        rootVm: CustomElement.define(
           {
             name: 'app',
-            template: <template><div if$="showCe" portal class="divdiv">{"${message}"}</div></template>
+            template: <template><div if$='showCe' portal class='divdiv'>{'${message}'}</div></template>
           },
           class App {
-            message = 'Aurelia';
-            showCe = true;
-            items: any[];
+            public message = 'Aurelia';
+            public showCe = true;
+            public items: any[];
           }
         ),
         assertionFn: (ctx, host, comp) => {
@@ -110,20 +110,20 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             childrenQuerySelector(ctx.doc.body, '.divdiv').textContent,
             'Aurelia',
             'It shoulda rendered ${message}'
-          )
+          );
         }
       },
       {
         title: 'works with repeat',
-        rootVm: CustomElementResource.define(
+        rootVm: CustomElement.define(
           {
             name: 'app',
-            template: <template><div portal repeat$for="item of items" class="divdiv">{"${message}"}</div></template>
+            template: <template><div portal repeat$for='item of items' class='divdiv'>{'${message}'}</div></template>
           },
           class App {
-            message = 'Aurelia';
-            showCe = true;
-            items = Array.from({ length: 5 }, (_, idx) => ({ idx }));
+            public message = 'Aurelia';
+            public showCe = true;
+            public items = Array.from({ length: 5 }, (_, idx) => ({ idx }));
           }
         ),
         assertionFn: async (ctx, host) => {
@@ -142,12 +142,12 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       },
       {
         title: 'removes portaled target after torndown',
-        rootVm: CustomElementResource.define(
+        rootVm: CustomElement.define(
           {
             name: 'app',
-            template: <div portal class="divdiv">{"${message}"}</div>
+            template: <div portal class='divdiv'>{'${message}'}</div>
           },
-          class App { items: any[] }
+          class App { public items: any[]; }
         ),
         assertionFn: async (ctx, host) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
@@ -167,7 +167,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       },
       // {
       //   title: 'it understand render context 1 (render context available before binding)',
-      //   rootVm: CustomElementResource.define(
+      //   rootVm: CustomElement.define(
       //     {
       //       name: 'app',
       //       template: <template>
@@ -188,7 +188,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       // },
       // {
       //   title: 'it understand render context 2 (render context available after binding)',
-      //   rootVm: CustomElementResource.define(
+      //   rootVm: CustomElement.define(
       //     {
       //       name: 'app',
       //       template: <template>
@@ -219,14 +219,14 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           postTeardownAssertionFn
         } = testCase;
 
-        it(typeof title=== 'string' ? title : title(), async function() {
+        it(typeof title === 'string' ? title : title(), async function() {
 
           const ctx = TestContext.createHTMLTestContext();
           const au = new Aurelia(ctx.container);
-    
+
           const host = ctx.doc.body.appendChild(ctx.createElement('div'));
           const component = new rootVm();
-    
+
           au.app({ host, component });
           au.start();
 
@@ -246,8 +246,8 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     title: string | (() => string);
     rootVm: Constructable<K>;
     deps?: any[];
-    assertionFn: (ctx: HTMLTestContext, host: HTMLElement, component: K) => void | Promise<void>;
-    postTeardownAssertionFn?: (ctx: HTMLTestContext, host: HTMLElement, component: K) => void | Promise<void>;
+    assertionFn(ctx: HTMLTestContext, host: HTMLElement, component: K): void | Promise<void>;
+    postTeardownAssertionFn?(ctx: HTMLTestContext, host: HTMLElement, component: K): void | Promise<void>;
   }
 
   interface IPortalTestRootVm {
@@ -262,7 +262,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
 
   function createItems(count: number, baseName: string = 'item') {
     return Array.from({ length: count }, (_, idx) => {
-      return { idx, name: `${baseName}-${idx}` }
+      return { idx, name: `${baseName}-${idx}` };
     });
   }
 });

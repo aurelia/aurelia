@@ -12,7 +12,7 @@ import {
   BindingMode,
   BindingStrategy,
   ContinuationTask,
-  CustomAttributeResource,
+  CustomAttribute,
   HooksDefinition,
   IAccessor,
   IAttributeDefinition,
@@ -57,7 +57,7 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
 export class Portal<T extends ParentNode = ParentNode> {
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation, IDOM];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'portal',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],

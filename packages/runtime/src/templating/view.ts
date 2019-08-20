@@ -199,7 +199,7 @@ export class ViewLocator implements IViewLocator {
         class {
           protected $scope!: IScope;
 
-          constructor(protected viewModel: any) {}
+          constructor(protected viewModel: IViewModel) {}
 
           public created() {
             this.$scope = Scope.fromParent(0, this.$scope, this.viewModel);

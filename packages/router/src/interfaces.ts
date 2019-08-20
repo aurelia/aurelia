@@ -1,16 +1,16 @@
+import { Constructable } from '@aurelia/kernel';
+import { CustomElement, ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
 import { ComponentAppellation } from './interfaces';
+import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
+import { IRouter } from './router';
+import { Viewport } from './viewport';
+import { ViewportInstruction } from './viewport-instruction';
+
 /*
 * Contains interfaces and types that aren't strongly connected
 * to component(s) or that are considered an essential part
 * of the API.
 */
-
-import { Constructable } from '@aurelia/kernel';
-import { CustomElement, ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
-import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
-import { IRouter } from './router';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
 
 export interface IRouteableComponentType<C extends Constructable> extends ICustomElementType<C> {
   parameters?: string[];
@@ -37,8 +37,8 @@ export interface INavigatorInstruction extends INavigatorEntry {
   repeating?: boolean;
 }
 
-export interface IViewportInstruction {
-  component: ComponentAppellation;
+export interface IViewportInstruction<C extends Constructable> {
+  component: ComponentAppellation<C>;
   viewport?: ViewportAppellation;
   parameters?: ComponentParameters;
 }
@@ -48,12 +48,12 @@ export interface IComponentAndOrViewportOrNothing<C extends Constructable = Cons
   viewport?: ViewportAppellation;
 }
 
-export type NavigationInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
+export type NavigationInstruction<C extends Constructable = Constructable> = ComponentAppellation<C> | IViewportInstruction<C> | ViewportInstruction;
 
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
+export type GuardTarget<C extends Constructable = Constructable> = ComponentAppellation<C> | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation<C extends Constructable = Constructable, T extends INode = INode> = string | IRouteableComponentType<C>; // TODO: | IRouteableComponent<T>;
+export type ComponentAppellation<C extends Constructable = Constructable> = string | IRouteableComponentType<C>; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
 export type ViewportAppellation = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];
 
@@ -97,7 +97,7 @@ export const ViewportAppellationResolver = {
     if (ViewportAppellationResolver.isName(viewport)) {
       return viewport as string;
     } else {
-      return (viewport as Viewport).name;
+      return viewport ? (viewport as Viewport).name : null;
     }
   }
 };
@@ -114,7 +114,7 @@ export const NavigationInstructionResolver = {
       } else if (instruction as ViewportInstruction instanceof ViewportInstruction) {
         instructions.push(instruction as ViewportInstruction);
       } else if (instruction['component']) {
-        const viewportComponent = instruction as IViewportInstruction;
+        const viewportComponent = instruction as IViewportInstruction<C>;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {
         instructions.push(new ViewportInstruction(instruction as IRouteableComponentType<C>));

@@ -74,20 +74,20 @@ export class App implements IViewModel {
 
   public get routes() {
     return [
-      // {
-      //   route: Home as unknown as  IRouteableComponentType<Constructable>,
-      //   title: 'Home',
-      // },
+      {
+        route: Home as unknown as IRouteableComponentType<Constructable>,
+        title: 'Home',
+      },
       {
         condition: this.authenticated,
         route: `editor(type=new)`,
         title: '<i class="ion-compose"></i>&nbsp;New Post',
       },
-      // {
-      //   condition: this.authenticated,
-      //   route: Settings,
-      //   title: '<i class="ion-gear-a"></i>&nbsp;Settings',
-      // },
+      {
+        condition: this.authenticated,
+        route: Settings as unknown as IRouteableComponentType<Constructable>,
+        title: '<i class="ion-gear-a"></i>&nbsp;Settings',
+      },
       {
         compareParameters: true,
         condition: this.notAuthenticated,

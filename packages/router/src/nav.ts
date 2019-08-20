@@ -1,13 +1,14 @@
+import { Constructable } from '@aurelia/kernel';
 import { NavigationInstruction } from './interfaces';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
 import { IRouter } from './router';
 
-export interface INavRoute {
-  route?: NavigationInstruction | NavigationInstruction[];
+export interface INavRoute<C extends Constructable = Constructable> {
+  route?: NavigationInstruction<C> | NavigationInstruction<C>[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction<C> | NavigationInstruction<C>[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;

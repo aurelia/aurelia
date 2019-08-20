@@ -4,7 +4,7 @@ import { ComponentAppellation, ComponentParameters, IRouteableComponentType, Vie
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 
-export class ViewportInstruction {
+export class ViewportInstruction<C extends Constructable = Constructable> {
   public component?: IRouteableComponentType<Constructable>;
   public componentName?: string;
   public viewport?: Viewport;
@@ -15,7 +15,7 @@ export class ViewportInstruction {
   public ownsScope?: boolean;
   public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: ComponentAppellation, viewport?: ViewportAppellation, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
+  constructor(component: ComponentAppellation<C>, viewport?: ViewportAppellation, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
     this.component = null;
     this.componentName = null;
     this.viewport = null;
@@ -32,7 +32,7 @@ export class ViewportInstruction {
     this.nextScopeInstruction = nextScopeInstruction;
   }
 
-  public setComponent(component: ComponentAppellation): void {
+  public setComponent(component: ComponentAppellation<C>): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;

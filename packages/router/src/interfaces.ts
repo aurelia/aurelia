@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
-import { ComponentAppellation } from './interfaces';
+import { ComponentHandle } from './interfaces';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
@@ -38,45 +38,45 @@ export interface INavigatorInstruction extends INavigatorEntry {
 }
 
 export interface IViewportInstruction<C extends Constructable> {
-  component: ComponentAppellation<C>;
-  viewport?: ViewportAppellation;
+  component: ComponentHandle<C>;
+  viewport?: ViewportHandle;
   parameters?: ComponentParameters;
 }
 
 export interface IComponentAndOrViewportOrNothing<C extends Constructable = Constructable> {
-  component?: ComponentAppellation<C>;
-  viewport?: ViewportAppellation;
+  component?: ComponentHandle<C>;
+  viewport?: ViewportHandle;
 }
 
-export type NavigationInstruction<C extends Constructable = Constructable> = ComponentAppellation<C> | IViewportInstruction<C> | ViewportInstruction;
+export type NavigationInstruction<C extends Constructable = Constructable> = ComponentHandle<C> | IViewportInstruction<C> | ViewportInstruction;
 
 export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget<C extends Constructable = Constructable> = ComponentAppellation<C> | IComponentAndOrViewportOrNothing;
+export type GuardTarget<C extends Constructable = Constructable> = ComponentHandle<C> | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation<C extends Constructable = Constructable> = string | IRouteableComponentType<C> | Constructable; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
-export type ViewportAppellation = string | Viewport;
+export type ComponentHandle<C extends Constructable = Constructable> = string | IRouteableComponentType<C> | Constructable; // TODO: , T extends INode = INode    | IRouteableComponent<T>;
+export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];
 
-export const ComponentAppellationResolver = {
-  isName: function <T>(component: T & ComponentAppellation<Constructable>): component is T & ComponentAppellation<Constructable> {
+export const ComponentHandleResolver = {
+  isName: function <T>(component: T & ComponentHandle<Constructable>): component is T & ComponentHandle<Constructable> {
     return typeof component === 'string';
   },
-  isType: function <T>(component: T & ComponentAppellation<Constructable>): component is T & ComponentAppellation<Constructable> {
+  isType: function <T>(component: T & ComponentHandle<Constructable>): component is T & ComponentHandle<Constructable> {
     return CustomElement.isType(component);
   },
-  getName: function <T>(component: T & ComponentAppellation<Constructable>): string {
-    if (ComponentAppellationResolver.isName(component)) {
+  getName: function <T>(component: T & ComponentHandle<Constructable>): string {
+    if (ComponentHandleResolver.isName(component)) {
       return component as string;
-    } else if (ComponentAppellationResolver.isType(component)) {
+    } else if (ComponentHandleResolver.isType(component)) {
       return (component as ICustomElementType).description.name;
     } else {
       return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
     }
   },
-  getType: function <T extends Constructable>(component: T & ComponentAppellation<Constructable>): ICustomElementType<T> {
-    if (ComponentAppellationResolver.isName(component)) {
+  getType: function <T extends Constructable>(component: T & ComponentHandle<Constructable>): ICustomElementType<T> {
+    if (ComponentHandleResolver.isName(component)) {
       return null;
-    } else if (ComponentAppellationResolver.isType(component)) {
+    } else if (ComponentHandleResolver.isType(component)) {
       return component;
     }
     // TODO: Fix resolve for instance
@@ -86,15 +86,15 @@ export const ComponentAppellationResolver = {
   },
 };
 
-export const ViewportAppellationResolver = {
-  isName: function <T>(viewport: T & ViewportAppellation): viewport is T & ViewportAppellation {
+export const ViewportHandleResolver = {
+  isName: function <T>(viewport: T & ViewportHandle): viewport is T & ViewportHandle {
     return typeof viewport === 'string';
   },
-  isInstance: function <T>(viewport: T & ViewportAppellation): viewport is T & ViewportAppellation {
+  isInstance: function <T>(viewport: T & ViewportHandle): viewport is T & ViewportHandle {
     return viewport instanceof Viewport;
   },
-  getName: function <T>(viewport: T & ViewportAppellation): string {
-    if (ViewportAppellationResolver.isName(viewport)) {
+  getName: function <T>(viewport: T & ViewportHandle): string {
+    if (ViewportHandleResolver.isName(viewport)) {
       return viewport as string;
     } else {
       return viewport ? (viewport as Viewport).name : null;

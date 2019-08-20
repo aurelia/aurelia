@@ -392,7 +392,7 @@ export class TemplateBinder {
     let childNode: ChildNode;
     if (node.nodeName === 'TEMPLATE') {
       childNode = (node as HTMLTemplateElement).content.firstChild!;
-    } else if (node.nodeName === 'REPLACE') {
+    } else if (node.nodeName === 'AU-REPLACE') {
       const parent = node.parentNode;
       if (parent === null) {
         childNode = node.firstChild!;
@@ -559,7 +559,7 @@ export class TemplateBinder {
     const name = node.getAttribute('replace-part');
     if (name == null) {
       const root = this.manifestRoot || this.parentManifestRoot;
-      if (root && root.flags & 16 /* isCustomElement */ && root.isTarget && root.isContainerless) {
+      if (root && root.flags & SymbolFlags.isCustomElement /* isCustomElement */ && root.isTarget && root.isContainerless) {
         const physicalNode = root.physicalNode as typeof node;
         if (physicalNode.childElementCount === 1) {
           return new ReplacePartSymbol('default');

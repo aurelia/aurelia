@@ -410,6 +410,18 @@ export function equal(actual: any, expected: any, message?: string): void {
   }
 }
 
+export function typeOf(actual: any, expected: any, message?: string): void {
+  if (typeof actual !== expected) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'typeof' as any,
+      stackStartFn: typeOf
+    });
+  }
+}
+
 export function instanceOf(actual: any, expected: any, message?: string): void {
   if (!(actual instanceof expected)) {
     innerFail({
@@ -650,6 +662,7 @@ const assert = Object_freeze({
   ok,
   fail,
   equal,
+  typeOf,
   instanceOf,
   notInstanceOf,
   includes,

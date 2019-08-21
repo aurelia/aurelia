@@ -17,6 +17,7 @@ import {
   CallMemberExpression,
   CallScopeExpression,
   ConditionalExpression,
+  CustomExpression,
   ExpressionKind,
   ForOfStatement,
   IForOfStatement,
@@ -143,6 +144,10 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     TType extends BindingType.Interpolation ? IInterpolationExpression :
     TType extends BindingType.ForCommand ? IForOfStatement :
     never : never {
+
+  if (bindingType === BindingType.CustomCommand) {
+    return new CustomExpression(state.input) as any;
+  }
 
   if (state.index === 0) {
     if (bindingType & BindingType.Interpolation) {

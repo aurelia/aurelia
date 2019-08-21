@@ -103,6 +103,10 @@ export interface MockSignaler extends ISignaler {}
 export class MockSignaler {
   public calls: [keyof MockSignaler, ...any[]][] = [];
 
+  public dispatchSignal(...args: any[]): void {
+    this.trace('dispatchSignal', ...args);
+  }
+
   public addSignalListener(...args: any[]): void {
     this.trace('addSignalListener', ...args);
   }

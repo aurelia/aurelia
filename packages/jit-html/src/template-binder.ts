@@ -392,17 +392,6 @@ export class TemplateBinder {
     let childNode: ChildNode;
     if (node.nodeName === 'TEMPLATE') {
       childNode = (node as HTMLTemplateElement).content.firstChild!;
-    } else if (node.nodeName === 'AU-REPLACE') {
-      const parent = node.parentNode;
-      if (parent === null) {
-        childNode = node.firstChild!;
-      } else {
-        const template = this.dom.createTemplate() as HTMLTemplateElement;
-        template.toggleAttribute('replaceable');
-        template.setAttribute('part', 'default');
-        parent.replaceChild(template, node);
-        childNode = template;
-      }
     } else {
       childNode = node.firstChild!;
     }

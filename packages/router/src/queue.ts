@@ -21,22 +21,16 @@ export interface IQueueOptions {
  * a specific amount of execution cost per RAF/tick.
  */
 export class Queue<T> {
-  public isActive: boolean;
-  public readonly pending: QueueItem<T>[];
-  public processing: QueueItem<T>;
-  public allowedExecutionCostWithinTick: number;
-  public currentExecutionCostInCurrentTick: number;
-  private readonly callback: (item?: QueueItem<T>) => void;
+  public isActive: boolean = false;
+  public readonly pending: QueueItem<T>[] = [];
+  public processing: QueueItem<T> = null;
+  public allowedExecutionCostWithinTick: number = null;
+  public currentExecutionCostInCurrentTick: number = 0;
   private lifecycle: ILifecycle;
 
-  constructor(callback: (item?: QueueItem<T>) => void) {
-    this.pending = [];
-    this.processing = null;
-    this.callback = callback;
-    this.allowedExecutionCostWithinTick = null;
-    this.currentExecutionCostInCurrentTick = 0;
-    this.isActive = false;
-  }
+  constructor(
+    private readonly callback: (item?: QueueItem<T>) => void
+  ) { }
 
   public get length(): number {
     return this.pending.length;

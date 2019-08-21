@@ -13,31 +13,20 @@ export interface IFindViewportsResult {
 export type ChildContainer = IContainer & { parent?: ChildContainer };
 
 export class Scope {
-  public element: Element;
-  public context: IRenderContext | IContainer;
-  public parent: Scope;
+  public viewport: Viewport = null;
 
-  public viewport: Viewport;
-
-  public children: Scope[];
-  public viewports: Viewport[];
-
-  private readonly router: IRouter;
+  public children: Scope[] = [];
+  public viewports: Viewport[] = [];
 
   private viewportInstructions: ViewportInstruction[];
-  private availableViewports: Record<string, Viewport>;
+  private availableViewports: Record<string, Viewport> = null;
 
-  constructor(router: IRouter, element: Element, context: IRenderContext | IContainer, parent: Scope) {
-    this.router = router;
-    this.element = element;
-    this.context = context;
-    this.parent = parent;
-
-    this.viewport = null;
-    this.children = [];
-    this.viewports = [];
-    this.availableViewports = null;
-
+  constructor(
+    private readonly router: IRouter,
+    public element: Element,
+    public context: IRenderContext | IContainer,
+    public parent: Scope
+  ) {
     if (this.parent) {
       this.parent.addChild(this);
     }

@@ -14,26 +14,19 @@ export const enum ContentStatus {
 }
 
 export class ViewportContent {
-  public content: ComponentAppellation;
-  public parameters: string;
-  public instruction: INavigatorInstruction;
-  public component: IRouteableComponent;
-  public contentStatus: ContentStatus;
-  public entered: boolean;
-  public fromCache: boolean;
-  public reentry: boolean;
+  public component: IRouteableComponent = null;
+  public contentStatus: ContentStatus = ContentStatus.none;
+  public entered: boolean = false;
+  public fromCache: boolean = false;
+  public reentry: boolean = false;
 
-  constructor(content: ComponentAppellation = null, parameters: string = null, instruction: INavigatorInstruction = null, context: IRenderContext | IContainer = null) {
+  constructor(
     // Can be a (resolved) type or a string (to be resolved later)
-    this.content = content;
-    this.parameters = parameters;
-    this.instruction = instruction;
-    this.component = null;
-    this.contentStatus = ContentStatus.none;
-    this.entered = false;
-    this.fromCache = false;
-    this.reentry = false;
-
+    public content: ComponentAppellation = null,
+    public parameters: string = null,
+    public instruction: INavigatorInstruction = null,
+    context: IRenderContext | IContainer = null
+  ) {
     // If we've got a container, we're good to resolve type
     if (this.content !== null && typeof this.content === 'string' && context !== null) {
       this.content = this.componentType(context);

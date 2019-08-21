@@ -16,17 +16,13 @@ export interface INavRoute {
 }
 
 export class Nav {
-  public name: string;
-  public routes: NavRoute[];
-  public classes: INavClasses;
 
-  public router: IRouter;
-
-  constructor(router: IRouter, name: string, routes: NavRoute[] = [], classes: INavClasses = {}) {
-    this.router = router;
-    this.name = name;
-    this.routes = routes;
-    this.classes = classes;
+  constructor(
+    public router: IRouter,
+    public name: string,
+    public routes: NavRoute[] = [],
+    public classes: INavClasses = {}
+  ) {
     this.update();
   }
 

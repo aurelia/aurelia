@@ -71,21 +71,16 @@ export interface INavigatorState {
 }
 
 export class Navigator {
-  public currentEntry: INavigatorInstruction;
-  public entries: IStoredNavigatorEntry[];
+  public currentEntry: INavigatorInstruction = null;
+  public entries: IStoredNavigatorEntry[] = null;
 
   private readonly pendingNavigations: Queue<INavigatorInstruction>;
 
-  private options: INavigatorOptions;
-  private isActive: boolean;
+  private options: INavigatorOptions = null;
+  private isActive: boolean = false;
 
   constructor() {
-    this.currentEntry = null;
-    this.entries = null;
     this.pendingNavigations = new Queue<INavigatorInstruction>(this.processNavigations);
-
-    this.options = null;
-    this.isActive = false;
   }
 
   public get queued(): number {

@@ -5,39 +5,32 @@ import { IRouter } from './router';
 import { Viewport } from './viewport';
 
 export class ViewportInstruction {
-  public component?: IRouteableComponentType;
+  public componentType?: IRouteableComponentType;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
   public parametersString?: string;
   public parameters?: Record<string, unknown>;
   public parametersList?: string[];
-  public ownsScope?: boolean;
-  public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
-    this.component = null;
-    this.componentName = null;
-    this.viewport = null;
-    this.viewportName = null;
-    this.parametersString = null;
-    this.parameters = null;
-    this.parametersList = null;
-
+  constructor(
+    component: ComponentAppellation,
+    viewport?: ViewportHandle,
+    parameters?: ComponentParameters,
+    public ownsScope: boolean = true,
+    public nextScopeInstruction?: ViewportInstruction,
+  ) {
     this.setComponent(component);
     this.setViewport(viewport);
     this.setParameters(parameters);
-
-    this.ownsScope = ownsScope;
-    this.nextScopeInstruction = nextScopeInstruction;
   }
 
   public setComponent(component: ComponentAppellation): void {
     if (typeof component === 'string') {
       this.componentName = component;
-      this.component = null;
+      this.componentType = null;
     } else {
-      this.component = component as IRouteableComponentType;
+      this.componentType = component as IRouteableComponentType;
       this.componentName = (component as ICustomElementType).description.name;
     }
   }
@@ -72,9 +65,9 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
-  public componentType(context: IRenderContext): IRouteableComponentType {
-    if (this.component !== null) {
-      return this.component;
+  public toComponentType(context: IRenderContext): IRouteableComponentType {
+    if (this.componentType !== null) {
+      return this.componentType;
     }
     const container = context.get(IContainer);
     const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
@@ -84,7 +77,7 @@ export class ViewportInstruction {
     return null;
   }
 
-  public viewportInstance(router: IRouter): Viewport {
+  public toViewportInstance(router: IRouter): Viewport {
     if (this.viewport !== null) {
       return this.viewport;
     }
@@ -95,7 +88,7 @@ export class ViewportInstruction {
     if (compareParameters && this.parametersString !== other.parametersString) {
       return false;
     }
-    return compareType ? this.component === other.component : this.componentName === other.componentName;
+    return compareType ? this.componentType === other.componentType : this.componentName === other.componentName;
   }
 
   public sameViewport(other: ViewportInstruction): boolean {

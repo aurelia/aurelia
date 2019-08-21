@@ -19,23 +19,21 @@ export interface IRouteSeparators {
 
 export class InstructionResolver {
 
-  public separators: IRouteSeparators;
+  public separators: IRouteSeparators = {
+    viewport: '@', // ':',
+    sibling: '+', // '/',
+    scope: '/', // '+',
+    noScope: '!',
+    parameters: '(', // '='
+    parametersEnd: ')', // ''
+    parameter: '&',
+    add: '+',
+    clear: '-',
+    action: '.',
+  };
 
   public activate(options?: IInstructionResolverOptions): void {
-    this.separators = {
-      ... {
-        viewport: '@', // ':',
-        sibling: '+', // '/',
-        scope: '/', // '+',
-        noScope: '!',
-        parameters: '(', // '='
-        parametersEnd: ')', // ''
-        parameter: '&',
-        add: '+',
-        clear: '-',
-        action: '.',
-      }, ...options.separators
-    };
+    this.separators = { ...this.separators, ...options.separators };
   }
 
   public get clearViewportInstruction(): string {

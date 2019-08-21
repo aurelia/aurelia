@@ -18,44 +18,28 @@ export interface IViewportOptions {
 }
 
 export class Viewport {
-  public name: string;
-  public element: Element;
-  public context: IRenderContext | IContainer;
-  public owningScope: Scope;
-  public scope: Scope;
-  public options?: IViewportOptions;
-
   public content: ViewportContent;
-  public nextContent: ViewportContent;
+  public nextContent: ViewportContent = null;
 
-  public enabled: boolean;
+  public enabled: boolean = true;
 
-  private readonly router: IRouter;
+  private clear: boolean = false;
+  private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
 
-  private clear: boolean;
-  private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
+  private previousViewportState?: Viewport = null;
 
-  private previousViewportState?: Viewport;
+  private cache: ViewportContent[] = [];
 
-  private cache: ViewportContent[];
-
-  constructor(router: IRouter, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
-    this.router = router;
-    this.name = name;
-    this.element = element;
-    this.context = context;
-    this.owningScope = owningScope;
-    this.scope = scope;
-    this.options = options;
-
-    this.clear = false;
-
+  constructor(
+    private readonly router: IRouter,
+    public name: string,
+    public element: Element,
+    public context: IRenderContext | IContainer,
+    public owningScope: Scope,
+    public scope: Scope,
+    public options?: IViewportOptions
+  ) {
     this.content = new ViewportContent();
-    this.nextContent = null;
-    this.elementResolve = null;
-    this.previousViewportState = null;
-    this.cache = [];
-    this.enabled = true;
   }
 
   public setNextContent(content: ComponentAppellation, instruction: INavigatorInstruction): boolean {

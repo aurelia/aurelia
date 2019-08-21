@@ -13,54 +13,34 @@ export interface ConfigurableRoute {
 }
 
 export class HandlerEntry {
-  public handler: RouteHandler;
-  public names: string[];
-
-  constructor(handler: RouteHandler, names: string[]) {
-    this.handler = handler;
-    this.names = names;
-  }
+  constructor(
+    public handler: RouteHandler,
+    public names: string[]
+  ) { }
 }
 
 /*
 * An object that is indexed and used for route generation, particularly for dynamic routes.
 */
 export class RouteGenerator {
-  public segments: Segment[];
-  public handlers: HandlerEntry[];
-
-  constructor(segments: Segment[], handlers: HandlerEntry[]) {
-    this.segments = segments;
-    this.handlers = handlers;
-  }
+  constructor(
+    public segments: Segment[],
+    public handlers: HandlerEntry[]
+  ) { }
 }
 
 export class TypesRecord {
-  public statics: number;
-  public dynamics: number;
-  public stars: number;
-
-  constructor() {
-    this.statics = 0;
-    this.dynamics = 0;
-    this.stars = 0;
-  }
+  public statics: number = 0;
+  public dynamics: number = 0;
+  public stars: number = 0;
 }
 
 export class RecognizeResult {
-  public handler: RouteHandler;
-  public params: Record<string, string>;
-  public isDynamic: boolean;
-
   constructor(
-    handler: RouteHandler,
-    params: Record<string, string>,
-    isDynamic: boolean
-  ) {
-    this.handler = handler;
-    this.params = params;
-    this.isDynamic = isDynamic;
-  }
+    public handler: RouteHandler,
+    public params: Record<string, string>,
+    public isDynamic: boolean
+  ) { }
 }
 
 export interface RecognizeResults extends Array<RecognizeResult> {
@@ -68,19 +48,11 @@ export interface RecognizeResults extends Array<RecognizeResult> {
 }
 
 export class CharSpec {
-  public invalidChars: string | null;
-  public validChars: string | null;
-  public repeat: boolean;
-
   constructor(
-    invalidChars: string | null,
-    validChars: string | null,
-    repeat: boolean
-  ) {
-    this.invalidChars = invalidChars;
-    this.validChars = validChars;
-    this.repeat = repeat;
-  }
+    public invalidChars: string | null,
+    public validChars: string | null,
+    public repeat: boolean
+  ) { }
 
   public equals(other: CharSpec): boolean {
     return this.validChars === other.validChars && this.invalidChars === other.invalidChars;
@@ -91,13 +63,11 @@ export class State {
   public handlers: HandlerEntry[];
   public regex: RegExp;
   public types: TypesRecord;
-  public charSpec: CharSpec;
-  public nextStates: State[];
+  public nextStates: State[] = [];
 
-  constructor(charSpec?: CharSpec) {
-    this.charSpec = charSpec;
-    this.nextStates = [];
-  }
+  constructor(
+    public charSpec?: CharSpec
+  ) { }
 
   public put(charSpec: CharSpec): State {
     let state = this.nextStates.find(s => s.charSpec.equals(charSpec));
@@ -141,14 +111,14 @@ const escapeRegex = new RegExp(`(\\${specials.join('|\\')})`, 'g');
 export class StaticSegment {
   public name: string;
   public string: string;
-  public optional: boolean;
-  public caseSensitive: boolean;
+  public optional: boolean = false;
 
-  constructor(str: string, caseSensitive: boolean) {
+  constructor(
+    str: string,
+    public caseSensitive: boolean
+  ) {
     this.name = str;
     this.string = str;
-    this.caseSensitive = caseSensitive;
-    this.optional = false;
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
@@ -179,13 +149,10 @@ export class StaticSegment {
 }
 
 export class DynamicSegment {
-  public name: string;
-  public optional: boolean;
-
-  constructor(name: string, optional: boolean) {
-    this.name = name;
-    this.optional = optional;
-  }
+  constructor(
+    public name: string,
+    public optional: boolean
+  ) { }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     callback(new CharSpec('/', null, true));
@@ -202,13 +169,11 @@ export class DynamicSegment {
 }
 
 export class StarSegment {
-  public name: string;
-  public optional: boolean;
+  public optional: boolean = false;
 
-  constructor(name: string) {
-    this.name = name;
-    this.optional = false;
-  }
+  constructor(
+    public name: string
+  ) { }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     callback(new CharSpec('', null, true));
@@ -247,13 +212,11 @@ export type Segment = StaticSegment | DynamicSegment | StarSegment | EpsilonSegm
  */
 export class RouteRecognizer {
   public rootState: State;
-  public names: Record<string, RouteGenerator>;
-  public routes: Map<RouteHandler, RouteGenerator>;
+  public names: Record<string, RouteGenerator> = {};
+  public routes: Map<RouteHandler, RouteGenerator> = new Map();
 
   constructor() {
     this.rootState = new State();
-    this.names = {};
-    this.routes = new Map();
   }
 
   /**
@@ -261,7 +224,7 @@ export class RouteRecognizer {
    *
    * @param route The route to add.
    */
-  public add(route: ConfigurableRoute|ConfigurableRoute[]): State | undefined {
+  public add(route: ConfigurableRoute | ConfigurableRoute[]): State | undefined {
     if (Array.isArray(route)) {
       route.forEach(r => {
         this.add(r);
@@ -336,8 +299,8 @@ export class RouteRecognizer {
         skippableStates.push(nextState);
         regex += `(?:/${segment.regex()})?`;
 
-      // Otherwise, we fast forward to the end of the segment and remove any
-      // references to skipped segments since we don't need them anymore.
+        // Otherwise, we fast forward to the end of the segment and remove any
+        // references to skipped segments since we don't need them anymore.
       } else {
         currentState = nextState;
         regex += `/${segment.regex()}`;
@@ -387,7 +350,7 @@ export class RouteRecognizer {
    * @returns The RouteGenerator for that route.
    */
   public getRoute(nameOrRoute: string | RouteHandler): RouteGenerator {
-    return typeof(nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute);
+    return typeof (nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute);
   }
 
   /**
@@ -434,7 +397,7 @@ export class RouteRecognizer {
       return handler.href;
     }
 
-    const routeParams = {...params};
+    const routeParams = { ...params };
     const segments = route.segments;
     const consumed = {};
     let output = '';
@@ -518,7 +481,7 @@ export class RouteRecognizer {
             }
           } else if (nextState.charSpec.invalidChars !== null
             && nextState.charSpec.invalidChars.indexOf(ch) === -1) {
-              nextStates.push(nextState);
+            nextStates.push(nextState);
           }
         });
       });

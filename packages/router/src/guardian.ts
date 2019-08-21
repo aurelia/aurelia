@@ -25,14 +25,9 @@ export interface IGuardOptions {
 }
 
 export class Guardian {
-  public guards: Record<GuardTypes, Guard[]>;
+  public guards: Record<GuardTypes, Guard[]> = { before: [] };
 
-  private lastIdentity: number;
-
-  constructor() {
-    this.guards = { before: [] };
-    this.lastIdentity = 0;
-  }
+  private lastIdentity: number = 0;
 
   public addGuard(guardFunction: GuardFunction, options?: IGuardOptions): GuardIdentity {
     const guard = new Guard(guardFunction, options || {}, ++this.lastIdentity);

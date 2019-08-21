@@ -77,16 +77,9 @@ export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x
 export class Router implements IRouter {
   public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, IRouteTransformer, LinkHandler, InstructionResolver];
 
-  public readonly container: IContainer;
-
   public rootScope: Scope;
   public scopes: Scope[] = [];
 
-  public navigator: Navigator;
-  public navigation: BrowserNavigator;
-
-  public linkHandler: LinkHandler;
-  public instructionResolver: InstructionResolver;
   public guardian: Guardian;
 
   public navs: Record<string, Nav> = {};
@@ -97,24 +90,17 @@ export class Router implements IRouter {
   private options: IRouterOptions;
   private isActive: boolean = false;
 
-  private readonly routeTransformer: IRouteTransformer;
   private processingNavigation: INavigatorInstruction = null;
   private lastNavigation: INavigatorInstruction = null;
 
   constructor(
-    container: IContainer,
-    navigator: Navigator,
-    navigation: BrowserNavigator,
-    routeTransformer: IRouteTransformer,
-    linkHandler: LinkHandler,
-    instructionResolver: InstructionResolver
+    public readonly container: IContainer,
+    public navigator: Navigator,
+    public navigation: BrowserNavigator,
+    private readonly routeTransformer: IRouteTransformer,
+    public linkHandler: LinkHandler,
+    public instructionResolver: InstructionResolver
   ) {
-    this.container = container;
-    this.navigator = navigator;
-    this.navigation = navigation;
-    this.routeTransformer = routeTransformer;
-    this.linkHandler = linkHandler;
-    this.instructionResolver = instructionResolver;
     this.guardian = new Guardian();
   }
 

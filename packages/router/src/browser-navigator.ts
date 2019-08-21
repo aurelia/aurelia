@@ -19,36 +19,27 @@ interface ForwardedState {
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
 
-  public readonly lifecycle: ILifecycle;
-
   public window: Window;
   public history: History;
   public location: Location;
 
-  public useHash: boolean;
-  public allowedExecutionCostWithinTick: number; // Limit no of executed actions within the same RAF (due to browser limitation)
+  public useHash: boolean = true;
+  public allowedExecutionCostWithinTick: number = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: Queue<Call>;
-  private isActive: boolean;
-  private callback: (ev?: INavigatorViewerEvent) => void;
+  private isActive: boolean = false;
+  private callback: (ev?: INavigatorViewerEvent) => void = null;
 
-  private forwardedState: ForwardedState;
+  private forwardedState: ForwardedState = {};
 
   constructor(
-    lifecycle: ILifecycle,
+    public readonly lifecycle: ILifecycle,
     dom: HTMLDOM
   ) {
-    this.lifecycle = lifecycle;
-
     this.window = dom.window;
     this.history = dom.window.history;
     this.location = dom.window.location;
-    this.useHash = true;
-    this.allowedExecutionCostWithinTick = 2;
     this.pendingCalls = new Queue<Call>(this.processCalls);
-    this.isActive = false;
-    this.callback = null;
-    this.forwardedState = {};
   }
 
   public activate(callback: (ev?: INavigatorViewerEvent) => void): void {

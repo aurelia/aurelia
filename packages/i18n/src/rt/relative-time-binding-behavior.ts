@@ -1,11 +1,10 @@
 import { bindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
-import { BindingWithBehavior, createIntlFormatValueConverterExpression } from '../utils';
-import { relativeTimeValueConverterName } from './relative-time-value-converter';
+import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils';
 
-@bindingBehavior(relativeTimeValueConverterName)
+@bindingBehavior(ValueConverters.relativeTimeValueConverterName)
 export class RelativeTimeBindingBehavior {
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
-    createIntlFormatValueConverterExpression(relativeTimeValueConverterName, binding);
+    createIntlFormatValueConverterExpression(ValueConverters.relativeTimeValueConverterName, binding);
   }
 }

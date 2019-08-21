@@ -1,5 +1,18 @@
 import { BindingBehaviorExpression, IBinding, IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
 
+export const enum Signals {
+  I18N_EA_CHANNEL = 'i18n:locale:changed',
+  I18N_SIGNAL = 'aurelia-translation-signal',
+  RT_SIGNAL = 'aurelia-relativetime-signal'
+}
+
+export const enum ValueConverters {
+  translationValueConverterName = 't',
+  dateFormatValueConverterName = 'df',
+  numberFormatValueConverterName = 'nf',
+  relativeTimeValueConverterName = 'rt'
+}
+
 export type BindingWithBehavior = IBinding & {
   sourceExpression: BindingBehaviorExpression;
 };

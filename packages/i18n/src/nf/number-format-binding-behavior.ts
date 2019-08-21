@@ -1,11 +1,10 @@
 import { bindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
-import { BindingWithBehavior, createIntlFormatValueConverterExpression } from '../utils';
-import { numberFormatValueConverterName } from './number-format-value-converter';
+import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils';
 
-@bindingBehavior(numberFormatValueConverterName)
+@bindingBehavior(ValueConverters.numberFormatValueConverterName)
 export class NumberFormatBindingBehavior {
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
-    createIntlFormatValueConverterExpression(numberFormatValueConverterName, binding);
+    createIntlFormatValueConverterExpression(ValueConverters.numberFormatValueConverterName, binding);
   }
 }

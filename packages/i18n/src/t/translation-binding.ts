@@ -1,4 +1,4 @@
-import { IEventAggregator, IServiceLocator } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, PLATFORM, toArray } from '@aurelia/kernel';
 import {
   addBinding,
   BindingType,
@@ -22,7 +22,8 @@ import {
   State
 } from '@aurelia/runtime';
 import i18next from 'i18next';
-import { I18N, I18N_EA_CHANNEL, I18nService } from '../i18n';
+import { I18N, I18nService } from '../i18n';
+import { Signals } from '../utils';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -64,7 +65,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.$state = State.none;
     this.i18n = this.locator.get(I18N);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
-    ea.subscribe(I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
+    ea.subscribe(Signals.I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
     this.targetObservers = new Set<IBindingTargetAccessor>();
   }
 
@@ -188,7 +189,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateContent(content: ContentValue, flags: LifecycleFlags) {
-    const children = Array.from(this.target.childNodes);
+    const children = toArray(this.target.childNodes);
     const fallBackContents = [];
     const marker = 'au-i18n';
 
@@ -206,7 +207,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     // observer.setValue(??, flags);
 
     this.target.innerHTML = '';
-    for (const child of Array.from(template.content.childNodes)) {
+    for (const child of toArray(template.content.childNodes)) {
       this.target.appendChild(child);
     }
   }
@@ -219,7 +220,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     // build content: prioritize [html], then textContent, and falls back to original content
     if (content.innerHTML) {
       const fragment = DOM.createDocumentFragment(content.innerHTML) as DocumentFragment;
-      for (const child of Array.from(fragment.childNodes)) {
+      for (const child of toArray(fragment.childNodes)) {
         Reflect.set(child, marker, true);
         template.content.append(child);
       }

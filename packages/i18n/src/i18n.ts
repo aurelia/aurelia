@@ -3,13 +3,35 @@ import { ILifecycleTask, ISignaler, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
+import { Signals } from './utils';
 
-export const I18N_EA_CHANNEL = 'i18n:locale:changed';
-export const I18N_SIGNAL = 'aurelia-translation-signal';
+const enum TimeSpan {
+  Second = 1000,
+  Minute = Second * 60,
+  Hour = Minute * 60,
+  Day = Hour * 24,
+  Week = Day * 7,
+  Month = Day * 30,
+  Year = Day * 365
+}
 
-export interface I18nKeyEvaluationResult {
-  value: string;
-  attributes: string[];
+export class I18nKeyEvaluationResult {
+  public key: string;
+  public value: string = (void 0)!;
+  public attributes: string[];
+
+  constructor(keyExpr: string) {
+    const re = /\[([a-z\-, ]*)\]/ig;
+    this.attributes = [];
+
+    // check if a attribute was specified in the key
+    const matches = re.exec(keyExpr);
+    if (matches) {
+      keyExpr = keyExpr.replace(matches[0], '');
+      this.attributes = matches[1].split(',');
+    }
+    this.key = keyExpr;
+  }
 }
 
 export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
@@ -53,18 +75,20 @@ export class I18nService {
    */
   public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
     const parts = keyExpr.split(';');
-    const result: I18nKeyEvaluationResult[] = [];
+    const results: I18nKeyEvaluationResult[] = [];
     for (const part of parts) {
-      const { attributes, key } = this.extractAttributesFromKey(part);
+      const result = new I18nKeyEvaluationResult(part);
+      const key = result.key;
       const translation = this.tr(key, options);
       if (this.options.skipTranslationOnMissingKey && translation === key) {
         // TODO change this once the logging infra is there.
         console.warn(`Couldn't find translation for key: ${key}`);
       } else {
-        result.push({ attributes, value: translation });
+        result.value = translation;
+        results.push(result);
       }
     }
-    return result;
+    return results;
   }
 
   public tr(key: string | string[], options?: i18nextCore.TOptions) {
@@ -77,8 +101,8 @@ export class I18nService {
   public async setLocale(newLocale: string) {
     const oldLocale = this.getLocale();
     await this.i18next.changeLanguage(newLocale);
-    this.ea.publish(I18N_EA_CHANNEL, { oldLocale, newLocale });
-    this.signaler.dispatchSignal(I18N_SIGNAL);
+    this.ea.publish(Signals.I18N_EA_CHANNEL, { oldLocale, newLocale });
+    this.signaler.dispatchSignal(Signals.I18N_SIGNAL);
   }
   /**
    * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.
@@ -156,53 +180,39 @@ export class I18nService {
     let difference = input.getTime() - new Date().getTime();
     const formatter = this.createRelativeTimeFormat(options, locales);
 
-    let value: number = difference / 31104000000;
+    let value: number = difference / TimeSpan.Year;
     if (Math.abs(value) >= 1) {
       return formatter.format(Math.round(value), 'year');
     }
 
-    value = difference / 2592000000;
+    value = difference / TimeSpan.Month;
     if (Math.abs(value) >= 1) {
       return formatter.format(Math.round(value), 'month');
     }
 
-    value = difference / 604800000;
+    value = difference / TimeSpan.Week;
     if (Math.abs(value) >= 1) {
       return formatter.format(Math.round(value), 'week');
     }
 
-    value = difference / 86400000;
+    value = difference / TimeSpan.Day;
     if (Math.abs(value) >= 1) {
       return formatter.format(Math.round(value), 'day');
     }
 
-    value = difference / 3600000;
+    value = difference / TimeSpan.Hour;
     if (Math.abs(value) >= 1) {
       return formatter.format(Math.round(value), 'hour');
     }
 
-    value = difference / 60000;
+    value = difference / TimeSpan.Minute;
     if (Math.abs(value) >= 1) {
       return formatter.format(Math.round(value), 'minute');
     }
 
-    difference = Math.abs(difference) < 1000 ? 1000 : difference;
-    value = difference / 1000;
+    difference = Math.abs(difference) < TimeSpan.Second ? TimeSpan.Second : difference;
+    value = difference / TimeSpan.Second;
     return formatter.format(Math.round(value), 'second');
-  }
-
-  private extractAttributesFromKey(key: string) {
-    const re = /\[([a-z\-, ]*)\]/ig;
-    let attributes: string[] = [];
-
-    // check if a attribute was specified in the key
-    const matches = re.exec(key);
-    if (matches) {
-      key = key.replace(matches[0], '');
-      attributes = matches[1].split(',');
-    }
-
-    return { attributes, key };
   }
 
   private async initializeI18next(options: I18nInitOptions) {

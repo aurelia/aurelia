@@ -1,11 +1,10 @@
 import { bindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
-import { BindingWithBehavior, createIntlFormatValueConverterExpression } from '../utils';
-import { dateFormatValueConverterName } from './date-format-value-converter';
+import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils';
 
-@bindingBehavior(dateFormatValueConverterName)
+@bindingBehavior(ValueConverters.dateFormatValueConverterName)
 export class DateFormatBindingBehavior {
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
-    createIntlFormatValueConverterExpression(dateFormatValueConverterName, binding);
+    createIntlFormatValueConverterExpression(ValueConverters.dateFormatValueConverterName, binding);
   }
 }

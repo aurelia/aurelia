@@ -23,7 +23,7 @@ describe('TranslationParametersAttributePattern', function () {
       (TranslationParametersAttributePattern.prototype as unknown as IAttributePattern).$patternDefs,
       [{ pattern, symbols: '' }] as AttributePatternDefinition[]);
 
-    assert.equal(typeof sut[pattern], 'function');
+    assert.typeOf(sut[pattern], 'function');
   });
 
   it('creates attribute syntax without `to`', function () {

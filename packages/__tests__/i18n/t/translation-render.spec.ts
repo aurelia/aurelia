@@ -29,7 +29,7 @@ describe('TranslationAttributePattern', function () {
       { pattern: pattern, symbols: '' },
     ] as AttributePatternDefinition[]);
 
-    assert.equal(typeof sut[pattern], 'function');
+    assert.typeOf(sut[pattern], 'function');
   });
 
   it('registers alias attribute patterns when provided', function () {
@@ -40,7 +40,7 @@ describe('TranslationAttributePattern', function () {
 
     const patternDefs = [];
     for (const alias of aliases) {
-      assert.equal(typeof sut[alias], 'function');
+      assert.typeOf(sut[alias], 'function');
       patternDefs.push({ pattern: alias, symbols: '' });
     }
 
@@ -189,7 +189,7 @@ describe('TranslationBindAttributePattern', function () {
       { pattern: pattern, symbols: '.' },
     ] as AttributePatternDefinition[]);
 
-    assert.equal(typeof sut[pattern], 'function');
+    assert.typeOf(sut[pattern], 'function');
   });
 
   it('registers alias attribute patterns when provided', function () {
@@ -207,7 +207,7 @@ describe('TranslationBindAttributePattern', function () {
         []));
 
     aliases.forEach((alias) => {
-      assert.equal(typeof sut[`${alias}.bind`], 'function');
+      assert.typeOf(sut[`${alias}.bind`], 'function');
     });
   });
 

@@ -4,22 +4,23 @@ export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;
 }
 
-export interface IRouteSeparators {
-  viewport?: string;
-  sibling?: string;
-  scope?: string;
-  noScope?: string;
-  parameters?: string;
-  parametersEnd?: string;
+export interface IRouteSeparators extends Partial<ISeparators> { }
+
+interface ISeparators {
+  viewport: string;
+  sibling: string;
+  scope: string;
+  noScope: string;
+  parameters: string;
+  parametersEnd: string;
   parameter?: string;
-  add?: string;
-  clear?: string;
-  action?: string;
+  add: string;
+  clear: string;
+  action: string;
 }
 
 export class InstructionResolver {
-
-  public separators: IRouteSeparators = {
+  public separators: ISeparators = {
     viewport: '@', // ':',
     sibling: '+', // '/',
     scope: '/', // '+',
@@ -33,6 +34,7 @@ export class InstructionResolver {
   };
 
   public activate(options?: IInstructionResolverOptions): void {
+    options = options || {};
     this.separators = { ...this.separators, ...options.separators };
   }
 
@@ -67,7 +69,7 @@ export class InstructionResolver {
       return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
       const instructions = [instruction];
-      while (instruction = instruction.nextScopeInstruction) {
+      while (instruction = instruction.nextScopeInstruction as ViewportInstruction) {
         instructions.push(instruction);
       }
       return instructions.map((scopeInstruction) => this.stringifyAViewportInstruction(scopeInstruction, excludeViewport)).join(this.separators.scope);
@@ -128,10 +130,13 @@ export class InstructionResolver {
 
     let unique: string[] = [];
     if (sorted.length) {
-      unique.push(sorted.shift());
+      const s = sorted.shift();
+      if (s) {
+        unique.push(s);
+      }
       while (sorted.length) {
         const state = sorted.shift();
-        if (unique.every(value => {
+        if (state && unique.every(value => {
           return value.indexOf(state) === -1;
         })) {
           unique.push(state);
@@ -199,7 +204,7 @@ export class InstructionResolver {
       if (!instruction.ownsScope) {
         instructionString += this.separators.noScope;
       }
-      return instructionString;
+      return instructionString || '';
     }
   }
 }

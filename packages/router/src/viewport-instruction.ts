@@ -5,13 +5,13 @@ import { IRouter } from './router';
 import { Viewport } from './viewport';
 
 export class ViewportInstruction {
-  public componentType?: IRouteableComponentType;
-  public componentName?: string;
-  public viewport?: Viewport;
-  public viewportName?: string;
-  public parametersString?: string;
-  public parameters?: Record<string, unknown>;
-  public parametersList?: string[];
+  public componentType: IRouteableComponentType | null = null;
+  public componentName: string | null = null;
+  public viewport: Viewport | null = null;
+  public viewportName: string | null = null;
+  public parametersString: string | null = null;
+  public parameters: Record<string, unknown> | null = null;
+  public parametersList: string[] | null = null;
 
   constructor(
     component: ComponentAppellation,
@@ -35,7 +35,7 @@ export class ViewportInstruction {
     }
   }
 
-  public setViewport(viewport: ViewportHandle): void {
+  public setViewport(viewport?: ViewportHandle | null): void {
     if (viewport === undefined || viewport === '') {
       viewport = null;
     }
@@ -50,7 +50,7 @@ export class ViewportInstruction {
     }
   }
 
-  public setParameters(parameters: ComponentParameters): void {
+  public setParameters(parameters?: ComponentParameters | null): void {
     if (parameters === undefined || parameters === '') {
       parameters = null;
     }
@@ -65,19 +65,23 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
-  public toComponentType(context: IRenderContext): IRouteableComponentType {
+  public toComponentType(context: IRenderContext): IRouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
     }
-    const container = context.get(IContainer);
-    const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
-    if (resolver !== null) {
-      return resolver.getFactory(container).Type;
+    if (this.componentName !== null) {
+      const container = context.get(IContainer);
+      if (container) {
+        const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
+        if (resolver) {
+          return resolver.getFactory(container).Type;
+        }
+      }
     }
     return null;
   }
 
-  public toViewportInstance(router: IRouter): Viewport {
+  public toViewportInstance(router: IRouter): Viewport | null {
     if (this.viewport !== null) {
       return this.viewport;
     }

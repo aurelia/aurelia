@@ -150,9 +150,17 @@ const enum RuntimeError {
   NilScope = 250,
 }
 
+export class CustomExpression {
+  constructor(public readonly value: string) { }
+
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
+    return this.value;
+  }
+}
+
 export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public readonly $kind: ExpressionKind.BindingBehavior;
-  public readonly expression: IsBindingBehavior;
+  public expression: IsBindingBehavior;
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
   public readonly behaviorKey: string;

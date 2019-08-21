@@ -80,6 +80,9 @@ export class TemplateBinder {
         const partNameSave = this.partName;
         // get the part name to override the name of the compiled definition
         this.partName = node.getAttribute('part');
+        if (this.partName === '' || (this.partName === null && node.hasAttribute('replaceable'))) {
+            this.partName = 'default';
+        }
         let manifestRoot = (void 0);
         let name = node.getAttribute('as-element');
         if (name == null) {
@@ -143,7 +146,7 @@ export class TemplateBinder {
         // If there are no template controllers or replace-parts, it is always the manifest itself.
         // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
         let manifestProxy = manifest;
-        const replacePart = this.declareReplacePart(node);
+        let replacePart = this.declareReplacePart(node);
         let previousController = (void 0);
         let currentController = (void 0);
         const attributes = node.attributes;
@@ -277,13 +280,19 @@ export class TemplateBinder {
             parentManifest.childNodes.push(manifestProxy);
         }
         else {
+            // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
+            // element, so add the part to the parent wrapping custom element instead
+            const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+            // Tried a replace part with place to put it (process normal)
+            if (!partOwner) {
+                replacePart = (void 0);
+                parentManifest.childNodes.push(manifestProxy);
+                return;
+            }
             // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
             // instead of to the childNodes
             replacePart.parent = parentManifest;
             replacePart.template = manifestProxy;
-            // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
-            // element, so add the part to the parent wrapping custom element instead
-            const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
             partOwner.parts.push(replacePart);
             if (parentManifest.templateController != null) {
                 parentManifest.templateController.parts.push(replacePart);
@@ -437,11 +446,16 @@ export class TemplateBinder {
     declareReplacePart(node) {
         const name = node.getAttribute('replace-part');
         if (name == null) {
+            const root = this.manifestRoot || this.parentManifestRoot;
+            if (root && root.flags & 16 /* isCustomElement */ /* isCustomElement */ && root.isTarget && root.isContainerless) {
+                const physicalNode = root.physicalNode;
+                if (physicalNode.childElementCount === 1) {
+                    return new ReplacePartSymbol('default');
+                }
+            }
             return null;
         }
-        node.removeAttribute('replace-part');
-        const symbol = new ReplacePartSymbol(name);
-        return symbol;
+        return name === '' ? new ReplacePartSymbol('default') : new ReplacePartSymbol(name);
     }
 }
 function processInterpolationText(symbol) {

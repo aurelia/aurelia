@@ -130,10 +130,7 @@ export class InstructionResolver {
 
     let unique: string[] = [];
     if (sorted.length) {
-      const s = sorted.shift();
-      if (s) {
-        unique.push(s);
-      }
+      unique.push(sorted.shift() as string);
       while (sorted.length) {
         const state = sorted.shift();
         if (state && unique.every(value => {

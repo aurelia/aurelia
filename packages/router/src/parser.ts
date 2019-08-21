@@ -10,24 +10,24 @@ export interface IMergedParameters {
 }
 
 export function parseQuery(query: string | null | undefined): IParsedQuery {
-  const parameters = {};
-  const list = [];
+  const parameters: Record<Exclude<string, '-unnamed'>, string> | (Record<Exclude<string, '-unnamed'>, string> & Record<'-unnamed', string[]>) = {};
+  const list: string[] = [];
   if (!query || !query.length) {
     return { parameters: parameters, list: list };
   }
   const params = query.replace('+', ' ').split('&');
   for (const param of params) {
     const kv = param.split('=');
-    const key = decodeURIComponent(kv.shift());
+    const key = decodeURIComponent(kv.shift() as string);
     if (!kv.length) {
       list.push(key);
       continue;
     }
-    const value = decodeURIComponent(kv.shift());
+    const value = decodeURIComponent(kv.shift() as string);
     parameters[key] = value;
     // TODO: Deal with complex parameters such as lists and objects
   }
-  return { parameters: parameters, list: list };
+  return { parameters, list };
 }
 
 export function mergeParameters(parameters: string, query: string | null | undefined, specifiedParameters: string[] | null | undefined): IMergedParameters {
@@ -39,7 +39,7 @@ export function mergeParameters(parameters: string, query: string | null | undef
   if (list.length && specifiedParameters && specifiedParameters.length) {
     for (const param of specifiedParameters) {
       // TODO: Support data types
-      params[param] = list.shift();
+      params[param] = list.shift() as string;
     }
   }
 

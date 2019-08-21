@@ -1,6 +1,6 @@
 import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand } from '@aurelia/i18n';
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('translation-integration', function () {
@@ -77,7 +77,7 @@ describe('translation-integration', function () {
       .start()
       .wait();
     const i18n = au.container.get(I18N);
-    return { en: translation, de: deTranslation, container: au.container, i18n };
+    return { en: translation, de: deTranslation, container: au.container, i18n, ctx };
   }
   function assertTextContent(host: INode, selector: string, translation: string) {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
@@ -497,25 +497,19 @@ describe('translation-integration', function () {
       assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
     });
 
-    it.skip('should support locale changes', async function () {
+    it('should support locale changes', async function () {
       @customElement({
         name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
       })
       class App { }
 
       const host = DOM.createElement('app');
-      const { de, container } = await setup(host, new App());
+      const { de, container, ctx } = await setup(host, new App());
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            assertTextContent(host, 'custom-message div', de.simple.text);
-            resolve();
-          },
-          0);
-      });
+      assertTextContent(host, 'custom-message div', de.simple.text);
     });
   });
 
@@ -563,15 +557,16 @@ describe('translation-integration', function () {
       assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
     });
-    it.skip('locale is changed', async function () {
+    it('change of locale', async function () {
 
       @customElement({ name: 'app', template: `<span>\${'simple.text' | t}</span>` })
       class App { }
 
       const host = DOM.createElement('app');
-      const { i18n, de } = await setup(host, new App());
+      const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
       assertTextContent(host, 'span', de.simple.text);
     });
   });
@@ -620,15 +615,17 @@ describe('translation-integration', function () {
       assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
     });
-    it.skip('locale is changed', async function () {
+    it('change of locale', async function () {
 
       @customElement({ name: 'app', template: `<span>\${'simple.text' & t}</span>` })
       class App { }
 
       const host = DOM.createElement('app');
-      const { i18n, de } = await setup(host, new App());
+      const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
       assertTextContent(host, 'span', de.simple.text);
     });
   });
@@ -664,6 +661,19 @@ describe('translation-integration', function () {
       await setup(host, new App());
       assertTextContent(host, 'span', '20.08.19');
     });
+
+    it('works for change of locale', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
+      class App { private readonly dt = new Date(2019, 7, 20); }
+
+      const host = DOM.createElement('app');
+      const { i18n, ctx } = await setup(host, new App());
+
+      await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      assertTextContent(host, 'span', '20.8.2019');
+    });
   });
 
   describe('`df` binding-behavior', function () {
@@ -696,6 +706,19 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       await setup(host, new App());
       assertTextContent(host, 'span', '20.08.19');
+    });
+
+    it('works for change of locale', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
+      class App { private readonly dt = new Date(2019, 7, 20); }
+
+      const host = DOM.createElement('app');
+      const { i18n, ctx } = await setup(host, new App());
+
+      await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      assertTextContent(host, 'span', '20.8.2019');
     });
   });
 
@@ -747,6 +770,18 @@ describe('translation-integration', function () {
       await setup(host, new App());
       assertTextContent(host, 'span', '123.456.789,12\u00A0€');
     });
+
+    it('works for change of locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      const { ctx, i18n } = await setup(host, new App());
+      await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '123.456.789,12');
+    });
   });
 
   describe('`nf` binding-behavior', function () {
@@ -796,6 +831,18 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       await setup(host, new App());
       assertTextContent(host, 'span', '123.456.789,12\u00A0€');
+    });
+
+    it('works for change of locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
+      class App { private readonly num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      const { ctx, i18n } = await setup(host, new App());
+      await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '123.456.789,12');
     });
   });
 
@@ -856,6 +903,24 @@ describe('translation-integration', function () {
       await setup(host, new App());
       assertTextContent(host, 'span', 'vor 2 Std.');
     });
+
+    it('works for change of locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      const { i18n, ctx } = await setup(host, new App());
+      await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', 'vor 2 Stunden');
+    });
   });
 
   describe('`rt` binding-behavior', function () {
@@ -914,6 +979,24 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       await setup(host, new App());
       assertTextContent(host, 'span', 'vor 2 Std.');
+    });
+
+    it('works for change of locale', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
+      class App {
+        private readonly dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      const { i18n, ctx } = await setup(host, new App());
+      await i18n.setLocale('de');
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', 'vor 2 Stunden');
     });
   });
 

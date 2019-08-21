@@ -29,7 +29,7 @@ export class Queue<T> {
   private lifecycle: ILifecycle;
 
   constructor(
-    private readonly callback: (item?: QueueItem<T>) => void
+    private readonly callback: (item: QueueItem<T>) => void
   ) { }
 
   public get length(): number {

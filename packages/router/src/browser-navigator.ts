@@ -14,7 +14,7 @@ interface Call {
 
 interface ForwardedState {
   suppressPopstate?: boolean;
-  resolve?: ((value?: void | PromiseLike<void>) => void);
+  resolve?: ((value: void | PromiseLike<void>) => void) | null;
 }
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
@@ -28,7 +28,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   private readonly pendingCalls: Queue<Call>;
   private isActive: boolean = false;
-  private callback: (ev?: INavigatorViewerEvent) => void = null;
+  private callback: ((ev: INavigatorViewerEvent) => void) | null = null;
 
   private forwardedState: ForwardedState = {};
 
@@ -91,21 +91,23 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     return this.enqueue(this, 'popState', []);
   }
 
-  public readonly handlePopstate = (ev: PopStateEvent): Promise<void> => {
+  public readonly handlePopstate = (ev: PopStateEvent | null): Promise<void> => {
     return this.enqueue(this, 'popstate', [ev]);
   }
 
   private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
     if (!suppressPopstate) {
       const { pathname, search, hash } = this.location;
-      this.callback({
-        event: ev,
-        state: this.history.state,
-        path: pathname,
-        data: search,
-        hash,
-        instruction: this.useHash ? hash.slice(1) : pathname,
-      });
+      if (this.callback) {
+        this.callback({
+          event: ev,
+          state: this.history.state,
+          path: pathname,
+          data: search,
+          hash,
+          instruction: this.useHash ? hash.slice(1) : pathname,
+        });
+      }
     }
     if (resolve) {
       resolve();
@@ -136,7 +138,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
     if (suppressPopstate !== undefined) {
       // Due to (browser) events not having a promise, we create and propagate one
-      let resolve: ((value?: void | PromiseLike<void>) => void);
+      let resolve: ((value: void | PromiseLike<void>) => void) | null = null;
       // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise(_resolve => {
         resolve = _resolve;

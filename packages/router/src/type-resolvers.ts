@@ -25,7 +25,7 @@ export const ComponentAppellationResolver = {
       return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
     }
   },
-  getType: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponentType {
+  getType: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponentType | null {
     if (ComponentAppellationResolver.isName(component)) {
       return null;
     } else if (ComponentAppellationResolver.isType(component)) {
@@ -34,7 +34,7 @@ export const ComponentAppellationResolver = {
       return ((component as IRouteableComponent).constructor as IRouteableComponentType);
     }
   },
-  getInstance: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponent {
+  getInstance: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponent | null {
     if (ComponentAppellationResolver.isName(component) || ComponentAppellationResolver.isType(component)) {
       return null;
     } else {
@@ -50,14 +50,14 @@ export const ViewportHandleResolver = {
   isInstance: function <T>(viewport: T & ViewportHandle): viewport is T & ViewportHandle {
     return viewport instanceof Viewport;
   },
-  getName: function <T>(viewport: T & ViewportHandle): string {
+  getName: function <T>(viewport: T & ViewportHandle): string | null {
     if (ViewportHandleResolver.isName(viewport)) {
       return viewport as string;
     } else {
       return viewport ? (viewport as Viewport).name : null;
     }
   },
-  getInstance: function <T>(viewport: T & ViewportHandle): Viewport {
+  getInstance: function <T>(viewport: T & ViewportHandle): Viewport | null {
     if (ViewportHandleResolver.isName(viewport)) {
       return null;
     } else {
@@ -77,7 +77,7 @@ export const NavigationInstructionResolver = {
         instructions.push(router.instructionResolver.parseViewportInstruction(instruction));
       } else if (instruction as ViewportInstruction instanceof ViewportInstruction) {
         instructions.push(instruction as ViewportInstruction);
-      } else if (instruction['component']) {
+      } else if ((instruction as IViewportInstruction).component) {
         const viewportComponent = instruction as IViewportInstruction;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {

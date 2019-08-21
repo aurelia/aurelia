@@ -406,6 +406,7 @@ export {
   ILifecycle,
   IViewModel,
   IController,
+  IControllerHoldOptions,
   IRenderContext,
   IViewCache,
   IViewFactory,

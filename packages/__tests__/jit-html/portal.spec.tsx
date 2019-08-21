@@ -1,4 +1,4 @@
-import { Constructable, IRegistry } from '@aurelia/kernel';
+import { Constructable, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, eachCartesianJoin, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
 
@@ -164,46 +164,58 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           );
         }
       },
-      // {
-      //   title: 'it understand render context 1 (render context available before binding)',
-      //   rootVm: CustomElement.define(
-      //     {
-      //       name: 'app',
-      //       template: <template>
-      //         <div ref="localDiv"></div>
-      //         <div portal="render-context.bind=localDiv" class="divdiv">{"${message}"}</div>
-      //       </template>
-      //     },
-      //     class App {
-      //       localDiv: HTMLElement;
-      //       items: any[];
-      //     }
-      //   ),
-      //   assertionFn: (ctx, host, comp) => {
-      //     // should work, or should work after a small waiting time for binding to update
-      //     assert.equal(host.querySelector('.localDiv'), comp.localDiv);
-      //     assert.notEqual(comp.localDiv!.querySelector('.divdiv'), null);
-      //   }
-      // },
+      {
+        title: 'it understand render context 1 (render context available before binding)',
+        rootVm: CustomElement.define(
+          {
+            name: 'app',
+            template: <template>
+              <div ref='localDiv'></div>
+              <div portal='value.bind: localDiv' class='divdiv'>{'${message}'}</div>
+            </template>
+          },
+          class App {
+            public localDiv: HTMLElement;
+            public items: any[];
+          }
+        ),
+        assertionFn: (ctx, host, comp) => {
+          // should work, or should work after a small waiting time for binding to update
+          assert.notEqual(
+            childrenQuerySelector(comp.localDiv, '.divdiv'),
+            null,
+            'comp.localDiv should have contained .divdiv directly'
+          );
+        }
+      },
       // {
       //   title: 'it understand render context 2 (render context available after binding)',
       //   rootVm: CustomElement.define(
       //     {
       //       name: 'app',
       //       template: <template>
-      //         <div portal="render-context.bind=localDiv" class="divdiv">{"${message}"}</div>
-      //         <div ref="localDiv"></div>
+      //         <div portal='value.bind: localDiv' class='divdiv'>{'${message}'}</div>
+      //         <div ref='localDiv'></div>
       //       </template>
       //     },
       //     class App {
-      //       localDiv: HTMLElement;
-      //       items: any[];
+      //       public localDiv: HTMLElement;
+      //       public items: any[];
       //     }
       //   ),
-      //   assertionFn: (ctx, host, comp) => {
+      //   assertionFn: async (ctx, host, comp) => {
       //     // should work, or should work after a small waiting time for binding to update
-      //     assert.equal(host.querySelector('.localDiv'), comp.localDiv);
-      //     assert.notEqual(comp.localDiv!.querySelector('.divdiv'), null);
+      //     // assert.equal(
+      //     //   childrenQuerySelector(comp.localDiv, '.divdiv'),
+      //     //   null,
+      //     //   'comp.localDiv should not have contained .divdiv'
+      //     // );
+      //     await waitForFrames(40);
+      //     assert.notEqual(
+      //       childrenQuerySelector(comp.localDiv, '.divdiv'),
+      //       null,
+      //       'comp.localDiv should have contained .divdiv'
+      //     );
       //   }
       // }
     ];
@@ -212,13 +224,14 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       [basicTestCases],
       (testCase) => {
         const {
+          only,
           title,
           rootVm,
           assertionFn,
           postTeardownAssertionFn
         } = testCase;
 
-        it(typeof title === 'string' ? title : title(), async function() {
+        async function testFn() {
           const { ctx, component, host, dispose } = setup({ root: rootVm });
 
           await assertionFn(ctx, host, component);
@@ -228,12 +241,17 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           if (postTeardownAssertionFn) {
             await postTeardownAssertionFn(ctx, host, component);
           }
-        });
+        }
+
+        only
+          ? it.only(typeof title === 'string' ? title : title(), testFn)
+          : it(typeof title === 'string' ? title : title(), testFn);
       }
     );
   });
 
   interface IPortalTestCase<K> {
+    only?: boolean;
     title: string | (() => string);
     rootVm: Constructable<K>;
     deps?: any[];
@@ -247,7 +265,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
   }
 
   function setup<T>(options: { root: Constructable<T>; resources?: IRegistry[] }) {
-    const {root: Root, resources = []} = options;
+    const { root: Root, resources = []} = options;
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(...resources);
 
@@ -269,10 +287,16 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     };
   }
 
+  const waitForFrames = async (frameCount: number): Promise<void> => {
+    while (frameCount-- > 0) {
+      await new Promise(PLATFORM.requestAnimationFrame);
+    }
+  };
+
   const childrenQuerySelector = (node: HTMLElement, selector: string): HTMLElement => {
     return Array
       .from(node.children)
-      .find(el => el.matches(selector)) as HTMLElement;
+      .find(el => el.matches(selector)) as HTMLElement || null;
   };
 
   const childrenQuerySelectorAll = (node: HTMLElement, selector: string): HTMLElement[] => {

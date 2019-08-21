@@ -1,33 +1,21 @@
 import {
-  IContainer,
-  IIndexable,
-  Key,
   nextId,
-  PLATFORM,
-  Registration,
 } from '@aurelia/kernel';
 
 import {
-  Bindable,
-  BindingMode,
-  BindingStrategy,
+  bindable,
   ContinuationTask,
-  CustomAttribute,
-  HooksDefinition,
-  IAccessor,
-  IAttributeDefinition,
   IController,
-  ICustomAttributeResource,
+  IControllerHoldOptions,
   IDOM,
   ILifecycleTask,
-  InlineObserversLookup,
   IRenderLocation,
   IViewFactory,
   LifecycleFlags,
   LifecycleTask,
-  PropertyAccessor,
   State,
-  TerminalTask,
+  templateController,
+  TerminalTask
 } from '@aurelia/runtime';
 
 import {
@@ -51,153 +39,71 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
   return maybePromiseOrTask as ILifecycleTask;
 }
 
-/**
- * Portal class
- */
-export class Portal<T extends ParentNode = ParentNode> {
-  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation, IDOM];
+const defaultPortalLocationHoldOptions: IControllerHoldOptions = {
+  isContainer: true,
+  strategy: 'append'
+};
 
-  public static readonly kind: ICustomAttributeResource = CustomAttribute;
-  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
-    name: 'portal',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({
-      bindables: [
-        'target',
-        'renderContext',
-        'strict',
-        'deactivating',
-        'activating',
-        'deactivated',
-        'activated',
-        'callbackContext',
-      ],
-    }).get()),
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(Portal.prototype)),
-  });
+@templateController({
+  name: 'portal',
+  hasDynamicOptions: true
+})
+export class Portal<T extends ParentNode = ParentNode> {
 
   public readonly id: number;
 
-  public get target(): PortalTarget<T> {
-    return this._target;
-  }
+  @bindable()
+  public value: PortalTarget<T>;
 
-  public set target(newValue: PortalTarget<T>) {
-    const oldValue = this._target;
-    if (oldValue !== newValue) {
-      this._target = newValue;
-      this.targetChanged(newValue, oldValue, this.$controller.flags);
-    }
-  }
+  @bindable({ callback: 'targetChanged' })
+  public renderContext: PortalTarget<T>;
 
-  public get renderContext(): PortalTarget<T> {
-    return this._renderContext;
-  }
-
-  public set renderContext(newValue: PortalTarget<T>) {
-    const oldValue = this._renderContext;
-    if (oldValue !== newValue) {
-      this._renderContext = newValue;
-      this.targetChanged(newValue, oldValue, this.$controller.flags);
-    }
-  }
-
+  @bindable()
   public strict: boolean;
+
+  @bindable()
   public deactivating?: PortalLifecycleCallback<T>;
+
+  @bindable()
   public activating?: PortalLifecycleCallback<T>;
+
+  @bindable()
   public deactivated?: PortalLifecycleCallback<T>;
+
+  @bindable()
   public activated?: PortalLifecycleCallback<T>;
+
+  @bindable()
   public callbackContext: unknown;
 
   public readonly view: IController<T>;
-  private readonly factory: IViewFactory<T>;
-  private readonly dom: HTMLDOM;
-  private readonly originalLoc: IRenderLocation;
 
   private task: ILifecycleTask;
+
+  private currentTarget?: PortalTarget;
 
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;
 
-  private _target: PortalTarget<T>;
-  private _renderContext: PortalTarget<T>;
-
-  private readonly _targetObserver: IAccessor = (() => {
-    const $this = this;
-    return {
-      getValue(): PortalTarget<T> {
-        return $this._target;
-      },
-      setValue(newValue: PortalTarget<T>, flags: LifecycleFlags): void {
-        const oldValue = $this._target;
-        if (oldValue !== newValue) {
-          $this._target = newValue;
-          $this.targetChanged(newValue, oldValue, flags | $this.$controller.flags);
-        }
-      },
-    };
-  })();
-  private readonly _renderContextObserver: IAccessor = (() => {
-    const $this = this;
-    return {
-      getValue(): PortalTarget<T> {
-        return $this._renderContext;
-      },
-      setValue(newValue: PortalTarget<T>, flags: LifecycleFlags): void {
-        const oldValue = $this._renderContext;
-        if (oldValue !== newValue) {
-          $this._renderContext = newValue;
-          $this.targetChanged(newValue, oldValue, flags | $this.$controller.flags);
-        }
-      },
-    };
-  })();
-
-  // tslint:disable-next-line: member-ordering
-  public readonly $observers: InlineObserversLookup<IAccessor> = Object.freeze({
-    target: this._targetObserver,
-    renderContext: this._renderContextObserver,
-    // Use simple accessors for the bindables that don't need change handlers
-    strict: new PropertyAccessor(this as IIndexable, 'strict'),
-    deactivating: new PropertyAccessor(this as IIndexable, 'deactivating'),
-    activating: new PropertyAccessor(this as IIndexable, 'activating'),
-    deactivated: new PropertyAccessor(this as IIndexable, 'deactivated'),
-    activated: new PropertyAccessor(this as IIndexable, 'activated'),
-    callbackContext: new PropertyAccessor(this as IIndexable, 'callbackContext'),
-  });
-
   constructor(
-    factory: IViewFactory<T>,
-    location: IRenderLocation<T>,
-    dom: HTMLDOM,
+    @IViewFactory private readonly factory: IViewFactory<T>,
+    @IRenderLocation private readonly originalLoc: IRenderLocation<T>,
+    @IDOM private readonly dom: HTMLDOM,
   ) {
     this.id = nextId('au$component');
 
     this.factory = factory;
     this.originalLoc = location;
     this.dom = dom;
+    // to make the shape of this object consistent.
+    // todo: is this necessary
+    this.currentTarget = dom.createElement('div');
 
     this.task = LifecycleTask.done;
     this.view = this.factory.create();
     this.view.hold(location);
 
-    this._target = void 0;
-    this._renderContext = void 0;
     this.strict = false;
-    this.deactivating = void 0;
-    this.activating = void 0;
-    this.deactivated = void 0;
-    this.activated = void 0;
-    this.callbackContext = void 0;
-  }
-
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:portal', this));
-    container.register(Registration.transient(this, this));
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
@@ -208,9 +114,8 @@ export class Portal<T extends ParentNode = ParentNode> {
     return this.view.bind(flags, this.$controller.scope);
   }
 
-  public attaching(flags: LifecycleFlags): void {
-    const newTarget = this.target = this.resolveTarget();
-    this.task = this.activate(newTarget, flags);
+  public attached(flags: LifecycleFlags): void {
+    this.valueChanged();
   }
 
   public detaching(flags: LifecycleFlags): void {
@@ -222,17 +127,18 @@ export class Portal<T extends ParentNode = ParentNode> {
     return this.view.unbind(flags);
   }
 
-  public targetChanged(newValue: PortalTarget<T>, oldValue: PortalTarget<T>, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isBound) === 0) {
+  public valueChanged(): void {
+    const $controller = this.$controller;
+    if (($controller.state & State.isBound) === 0) {
       return;
     }
 
-    this.project(flags);
+    this.project($controller.flags);
   }
 
   private project(flags: LifecycleFlags): void {
-    const oldTarget = this.target;
-    const newTarget = this.target = this.resolveTarget();
+    const oldTarget = this.currentTarget;
+    const newTarget = this.currentTarget = this.resolveTarget();
 
     if (oldTarget === newTarget) {
       return;
@@ -246,7 +152,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     const { activating, activated, callbackContext, view } = this;
     let task = this.task;
 
-    (view as IController & { hold(location: T, locationIsContainer?: boolean): void }).hold(target, true);
+    view.hold(target, defaultPortalLocationHoldOptions);
 
     if ((this.$controller.state & State.isAttachedOrAttaching) === 0) {
       return task;
@@ -280,7 +186,7 @@ export class Portal<T extends ParentNode = ParentNode> {
   }
 
   private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const { deactivating, deactivated, callbackContext, view, target } = this;
+    const { deactivating, deactivated, callbackContext, view, value: target } = this;
     let task = this.task;
 
     if (typeof deactivating === 'function') {
@@ -309,21 +215,23 @@ export class Portal<T extends ParentNode = ParentNode> {
   }
 
   private resolveTarget(): T {
-    let target = this._target;
-    let context = this._renderContext;
+    const dom = this.dom;
+    const document = dom.document;
+    let target = this.value;
+    let context = this.renderContext;
 
     if (typeof target === 'string') {
-      let queryContext: ParentNode = this.dom.document;
+      let queryContext: ParentNode = document;
       if (typeof context === 'string') {
-        context = this.dom.document.querySelector(context) as ResolvedTarget<T>;
+        context = document.querySelector(context) as ResolvedTarget<T>;
       }
-      if (this.dom.isNodeInstance(context)) {
+      if (dom.isNodeInstance(context)) {
         queryContext = context;
       }
       target = queryContext.querySelector(target) as ResolvedTarget<T>;
     }
 
-    if (this.dom.isNodeInstance(target)) {
+    if (dom.isNodeInstance(target)) {
       return target;
     }
 
@@ -331,7 +239,7 @@ export class Portal<T extends ParentNode = ParentNode> {
       if (this.strict) {
         throw new Error('Render target not found');
       } else {
-        target = this.dom.document.body as unknown as ResolvedTarget<T>;
+        target = document.body as unknown as ResolvedTarget<T>;
       }
     }
 

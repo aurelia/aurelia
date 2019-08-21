@@ -232,11 +232,11 @@ export class Router implements IRouter {
 
     // TODO: Fetch title (probably when done)
 
-    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.component !== null) : []);
+    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
     const doneDefaultViewports: Viewport[] = [];
     let defaultViewports = this.allViewports().filter(viewport =>
       viewport.options.default
-      && viewport.content.component === null
+      && viewport.content.componentInstance === null
       && doneDefaultViewports.every(done => done !== viewport)
     );
     const updatedViewports: Viewport[] = [];
@@ -329,7 +329,7 @@ export class Router implements IRouter {
       viewportsRemaining = remaining.viewportsRemaining;
       defaultViewports = this.allViewports().filter(viewport =>
         viewport.options.default
-        && viewport.content.component === null
+        && viewport.content.componentInstance === null
         && doneDefaultViewports.every(done => done !== viewport)
         && updatedViewports.every(updated => updated !== viewport)
       );

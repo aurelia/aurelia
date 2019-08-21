@@ -9,7 +9,7 @@ export interface IMergedParameters {
   merged: string[] | Record<string, string>;
 }
 
-export function parseQuery(query: string): IParsedQuery {
+export function parseQuery(query: string | null | undefined): IParsedQuery {
   const parameters = {};
   const list = [];
   if (!query || !query.length) {
@@ -30,7 +30,7 @@ export function parseQuery(query: string): IParsedQuery {
   return { parameters: parameters, list: list };
 }
 
-export function mergeParameters(parameters: string, query: string, specifiedParameters: string[]): IMergedParameters {
+export function mergeParameters(parameters: string, query: string | null | undefined, specifiedParameters: string[] | null | undefined): IMergedParameters {
   const parsedQuery = parseQuery(query);
   const parsedParameters = parseQuery(parameters);
   const params = { ...parsedQuery.parameters, ...parsedParameters.parameters };

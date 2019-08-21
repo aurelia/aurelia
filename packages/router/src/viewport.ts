@@ -19,14 +19,14 @@ export interface IViewportOptions {
 
 export class Viewport {
   public content: ViewportContent;
-  public nextContent: ViewportContent = null;
+  public nextContent: ViewportContent | null = null;
 
   public enabled: boolean = true;
 
   private clear: boolean = false;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
 
-  private previousViewportState?: Viewport = null;
+  private previousViewportState: Viewport | null = null;
 
   private cache: ViewportContent[] = [];
 
@@ -37,7 +37,7 @@ export class Viewport {
     public context: IRenderContext | IContainer,
     public owningScope: Scope,
     public scope: Scope,
-    public options?: IViewportOptions
+    public options: IViewportOptions = {}
   ) {
     this.content = new ViewportContent();
   }
@@ -48,16 +48,15 @@ export class Viewport {
     if (typeof content === 'string') {
       if (content === this.router.instructionResolver.clearViewportInstruction) {
         this.clear = true;
-        content = null;
       } else {
         const viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
-        content = viewportInstruction.componentName;
+        content = viewportInstruction.componentName ? viewportInstruction.componentName : content; // TODO: fix this!
         parameters = viewportInstruction.parametersString;
       }
     }
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(content, parameters, instruction, this.context);
+    this.nextContent = new ViewportContent(!this.clear ? content : null, parameters, instruction, this.context);
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
       const cached = this.cache.find((item) => this.nextContent.isCacheEqual(item));
@@ -88,7 +87,7 @@ export class Viewport {
       this.content.reentry = true;
 
       this.nextContent.content = this.content.content;
-      this.nextContent.component = this.content.component;
+      this.nextContent.componentInstance = this.content.componentInstance;
       this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.reentry = this.content.reentry;
       return true;
@@ -136,14 +135,14 @@ export class Viewport {
       this.context = context;
     }
 
-    if (!this.content.component && (!this.nextContent || !this.nextContent.component) && this.options.default) {
+    if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
       this.router.addProcessingViewport(this.options.default, this, false);
     }
   }
 
   public remove(element: Element, context: IRenderContext | IContainer): boolean {
     if (this.element === element && this.context === context) {
-      if (this.content.component) {
+      if (this.content.componentInstance) {
         this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });
       }
       return true;
@@ -178,7 +177,7 @@ export class Viewport {
       return true;
     }
 
-    if (!this.nextContent || !this.nextContent.component) {
+    if (!this.nextContent || !this.nextContent.componentInstance) {
       return false;
     }
 
@@ -192,7 +191,7 @@ export class Viewport {
     Reporter.write(10000, 'Viewport loadContent', this.name);
 
     // No need to wait for next component activation
-    if (this.content.component && !this.nextContent.component) {
+    if (this.content.componentInstance && !this.nextContent.componentInstance) {
       await this.content.leave(this.nextContent.instruction);
       this.content.removeComponent(this.element, this.options.stateful);
       this.content.terminateComponent(this.options.stateful);
@@ -200,11 +199,11 @@ export class Viewport {
       this.content.destroyComponent();
     }
 
-    if (this.nextContent.component) {
+    if (this.nextContent.componentInstance) {
       this.nextContent.addComponent(this.element);
 
       // Only when next component activation is done
-      if (this.content.component) {
+      if (this.content.componentInstance) {
         await this.content.leave(this.nextContent.instruction);
         if (!this.content.reentry) {
           this.content.removeComponent(this.element, this.options.stateful);
@@ -239,7 +238,7 @@ export class Viewport {
 
   public description(full: boolean = false): string {
     if (this.content.content) {
-      const component = this.content.componentName();
+      const component = this.content.toComponentName();
       if (full || this.options.forceDescription) {
         return this.router.instructionResolver.stringifyViewportInstruction(
           new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
@@ -292,7 +291,7 @@ export class Viewport {
   }
 
   public binding(flags: LifecycleFlags): void {
-    if (this.content.component) {
+    if (this.content.componentInstance) {
       this.content.initializeComponent();
     }
   }
@@ -300,21 +299,21 @@ export class Viewport {
   public attaching(flags: LifecycleFlags): void {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.enabled = true;
-    if (this.content.component) {
+    if (this.content.componentInstance) {
       this.content.addComponent(this.element);
     }
   }
 
   public detaching(flags: LifecycleFlags): void {
     Reporter.write(10000, 'DETACHING viewport', this.name);
-    if (this.content.component) {
+    if (this.content.componentInstance) {
       this.content.removeComponent(this.element, this.options.stateful);
     }
     this.enabled = false;
   }
 
   public unbinding(flags: LifecycleFlags): void {
-    if (this.content.component) {
+    if (this.content.componentInstance) {
       this.content.terminateComponent(this.options.stateful);
     }
   }

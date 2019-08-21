@@ -23,10 +23,10 @@ export interface IQueueOptions {
 export class Queue<T> {
   public isActive: boolean = false;
   public readonly pending: QueueItem<T>[] = [];
-  public processing: QueueItem<T> = null;
-  public allowedExecutionCostWithinTick: number = null;
+  public processing: QueueItem<T> | null = null;
+  public allowedExecutionCostWithinTick: number | null = null;
   public currentExecutionCostInCurrentTick: number = 0;
-  private lifecycle: ILifecycle;
+  private lifecycle: ILifecycle | null = null;
 
   constructor(
     private readonly callback: (item: QueueItem<T>) => void
@@ -49,7 +49,9 @@ export class Queue<T> {
     if (!this.isActive) {
       throw new Error('Queue has not been activated');
     }
-    this.lifecycle.dequeueRAF(this.dequeue, this);
+    if (this.lifecycle) {
+      this.lifecycle.dequeueRAF(this.dequeue, this);
+    }
     this.allowedExecutionCostWithinTick = null;
     this.clear();
     this.isActive = false;
@@ -97,12 +99,14 @@ export class Queue<T> {
     if (!this.pending.length) {
       return;
     }
-    if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + this.pending[0].cost > this.allowedExecutionCostWithinTick) {
+    if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
       return;
     }
-    this.processing = this.pending.shift();
-    this.currentExecutionCostInCurrentTick += this.processing.cost;
-    this.callback(this.processing);
+    this.processing = this.pending.shift() || null;
+    if (this.processing) {
+      this.currentExecutionCostInCurrentTick += this.processing.cost || 0;
+      this.callback(this.processing);
+    }
   }
 
   public clear(): void {

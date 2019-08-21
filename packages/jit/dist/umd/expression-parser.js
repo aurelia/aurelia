@@ -78,6 +78,9 @@
     // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
     // tslint:disable-next-line:no-big-function cognitive-complexity
     function parse(state, access, minPrecedence, bindingType) {
+        if (bindingType === 284 /* CustomCommand */) {
+            return new runtime_1.CustomExpression(state.input);
+        }
         if (state.index === 0) {
             if (bindingType & 2048 /* Interpolation */) {
                 // tslint:disable-next-line:no-any

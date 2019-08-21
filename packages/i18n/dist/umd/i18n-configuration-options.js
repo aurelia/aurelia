@@ -10,6 +10,6 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
-    exports.I18nConfigurationOptions = kernel_1.DI.createInterface('I18nConfigurationOptions');
+    exports.I18nInitOptions = kernel_1.DI.createInterface('I18nInitOptions');
 });
 //# sourceMappingURL=i18n-configuration-options.js.map

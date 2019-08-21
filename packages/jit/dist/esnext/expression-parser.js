@@ -1,5 +1,5 @@
 import { Profiler, Reporter } from '@aurelia/kernel';
-import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression } from '@aurelia/runtime';
+import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, CustomExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression } from '@aurelia/runtime';
 import { unescapeCode } from './common';
 const { enter, leave } = Profiler.createTimer('ExpressionParser');
 const $false = PrimitiveLiteralExpression.$false;
@@ -65,6 +65,9 @@ export function parseExpression(input, bindingType) {
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // tslint:disable-next-line:no-big-function cognitive-complexity
 export function parse(state, access, minPrecedence, bindingType) {
+    if (bindingType === 284 /* CustomCommand */) {
+        return new CustomExpression(state.input);
+    }
     if (state.index === 0) {
         if (bindingType & 2048 /* Interpolation */) {
             // tslint:disable-next-line:no-any

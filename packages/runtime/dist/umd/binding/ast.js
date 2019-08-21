@@ -98,6 +98,15 @@
         RuntimeError[RuntimeError["UnknownOperator"] = 208] = "UnknownOperator";
         RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";
     })(RuntimeError || (RuntimeError = {}));
+    class CustomExpression {
+        constructor(value) {
+            this.value = value;
+        }
+        evaluate(flags, scope, locator, part) {
+            return this.value;
+        }
+    }
+    exports.CustomExpression = CustomExpression;
     class BindingBehaviorExpression {
         constructor(expression, name, args) {
             this.$kind = 38962 /* BindingBehavior */;

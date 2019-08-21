@@ -294,6 +294,18 @@
         }
     }
     exports.equal = equal;
+    function typeOf(actual, expected, message) {
+        if (typeof actual !== expected) {
+            innerFail({
+                actual,
+                expected,
+                message,
+                operator: 'typeof',
+                stackStartFn: typeOf
+            });
+        }
+    }
+    exports.typeOf = typeOf;
     function instanceOf(actual, expected, message) {
         if (!(actual instanceof expected)) {
             innerFail({
@@ -530,6 +542,7 @@
         ok,
         fail,
         equal,
+        typeOf,
         instanceOf,
         notInstanceOf,
         includes,

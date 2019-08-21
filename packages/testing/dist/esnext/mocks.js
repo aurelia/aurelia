@@ -62,6 +62,9 @@ export class MockSignaler {
     constructor() {
         this.calls = [];
     }
+    dispatchSignal(...args) {
+        this.trace('dispatchSignal', ...args);
+    }
     addSignalListener(...args) {
         this.trace('addSignalListener', ...args);
     }

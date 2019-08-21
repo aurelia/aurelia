@@ -18,9 +18,14 @@ export declare function hasUnbind(expr: IsExpressionOrStatement): expr is HasUnb
 export declare function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral;
 export declare function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement> | undefined): expressions is IsLiteral[];
 export declare function isPureLiteral(expr: IsExpressionOrStatement): expr is IsLiteral;
+export declare class CustomExpression {
+    readonly value: string;
+    constructor(value: string);
+    evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string;
+}
 export declare class BindingBehaviorExpression implements IBindingBehaviorExpression {
     readonly $kind: ExpressionKind.BindingBehavior;
-    readonly expression: IsBindingBehavior;
+    expression: IsBindingBehavior;
     readonly name: string;
     readonly args: ReadonlyArray<IsAssign>;
     readonly behaviorKey: string;

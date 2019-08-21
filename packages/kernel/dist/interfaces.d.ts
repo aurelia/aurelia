@@ -34,6 +34,7 @@ export interface IWindowOrWorkerGlobalScope {
     process?: NodeJS.Process;
     readonly performance: IPerformance;
     readonly localStorage?: IStorage;
+    readonly Intl: typeof Intl;
     clearInterval(handle?: number): void;
     clearTimeout(handle?: number): void;
     setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;

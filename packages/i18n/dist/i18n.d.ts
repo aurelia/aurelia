@@ -1,23 +1,83 @@
-import { IDOM, ILifecycleTask } from '@aurelia/runtime';
+import { IEventAggregator } from '@aurelia/kernel';
+import { ILifecycleTask, ISignaler } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
-import { I18nConfigurationOptions } from './i18n-configuration-options';
+import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper } from './i18next-wrapper';
+export declare class I18nKeyEvaluationResult {
+    key: string;
+    value: string;
+    attributes: string[];
+    constructor(keyExpr: string);
+}
 export declare const I18N: import("@aurelia/kernel").InterfaceSymbol<I18nService>;
 /**
  * Translation service class.
  * @export
  */
 export declare class I18nService {
-    private readonly dom;
+    private readonly ea;
+    private readonly signaler;
     i18next: i18nextCore.i18n;
+    /**
+     * This is used for i18next initialization and awaited for before the bind phase.
+     * If need be (usually there is none), this task can be awaited for explicitly in client code.
+     */
+    readonly task: ILifecycleTask;
     private options;
-    private task;
-    constructor(i18nextWrapper: I18nextWrapper, options: I18nConfigurationOptions, dom: IDOM<Node>);
-    tr(key: string | string[], options?: i18nextCore.TOptions<object>): string;
-    updateValue(node: Node, value: string, params?: i18nextCore.TOptions<object>): ILifecycleTask<unknown>;
-    private updateValueCore;
-    private extractAttributesFromKey;
-    private applyTranslations;
+    private readonly intl;
+    constructor(i18nextWrapper: I18nextWrapper, options: I18nInitOptions, ea: IEventAggregator, signaler: ISignaler);
+    /**
+     * Evaluates the `keyExpr` to translated values.
+     * Example:
+     * ```typescript
+     *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
+     *    {attributes:[], value: 'translated_value_of_key1'}
+     *    {attributes:['attr'], value: 'translated_value_of_key2'}
+     *    {attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
+     *  ]
+     * ```
+     * For a single key, `I18nService#tr` method can also be easily used.
+     */
+    evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[];
+    tr(key: string | string[], options?: i18nextCore.TOptions): string;
+    getLocale(): string;
+    setLocale(newLocale: string): Promise<void>;
+    /**
+     * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.
+     * If the `locales` is skipped, then the `Intl.NumberFormat` instance is created using the currently active locale.
+     */
+    createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat;
+    /**
+     * Formats the given `input` number according to the given `[options]`, and `[locales]`.
+     * If the `locales` is skipped, then the number is formatted using the currently active locale.
+     * @returns Formatted number.
+     */
+    nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string;
+    /**
+     * Returns `Intl.DateTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a date.
+     * If the `locales` is skipped, then the `Intl.DateTimeFormat` instance is created using the currently active locale.
+     */
+    createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat;
+    /**
+     * Formats the given `input` date according to the given `[options]` and `[locales]`.
+     * If the `locales` is skipped, then the date is formatted using the currently active locale.
+     * @returns Formatted date.
+     */
+    df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string;
+    /**
+     * Unformats a given numeric string to a number.
+     */
+    uf(numberLike: string, locale?: string): number;
+    /**
+     * Returns `Intl.RelativeTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a value with associated time unit.
+     * If the `locales` is skipped, then the `Intl.RelativeTimeFormat` instance is created using the currently active locale.
+     */
+    createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat;
+    /**
+     * Returns a relative time format of the given `input` date as per the given `[options]`, and `[locales]`.
+     * If the `locales` is skipped, then the currently active locale is used for formatting.
+     */
+    rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
     private initializeI18next;
 }
 //# sourceMappingURL=i18n.d.ts.map

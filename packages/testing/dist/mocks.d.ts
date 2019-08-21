@@ -38,6 +38,7 @@ export interface MockSignaler extends ISignaler {
 }
 export declare class MockSignaler {
     calls: [keyof MockSignaler, ...any[]][];
+    dispatchSignal(...args: any[]): void;
     addSignalListener(...args: any[]): void;
     removeSignalListener(...args: any[]): void;
     trace(fnName: keyof MockSignaler, ...args: any[]): void;

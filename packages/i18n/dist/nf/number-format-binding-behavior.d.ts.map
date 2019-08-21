@@ -1,0 +1,1 @@
+{"version":3,"file":"number-format-binding-behavior.d.ts","sourceRoot":"","sources":["../../src/nf/number-format-binding-behavior.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,MAAM,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAC3E,OAAO,EAAE,mBAAmB,EAA6D,MAAM,UAAU,CAAC;AAE1G,qBACa,2BAA2B;IAE/B,IAAI,CAAC,KAAK,EAAE,cAAc,EAAE,KAAK,EAAE,MAAM,EAAE,OAAO,EAAE,mBAAmB;CAG/E"}

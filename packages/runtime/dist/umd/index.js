@@ -24,6 +24,7 @@
     exports.isLiteral = ast_1.isLiteral;
     exports.arePureLiterals = ast_1.arePureLiterals;
     exports.isPureLiteral = ast_1.isPureLiteral;
+    exports.CustomExpression = ast_1.CustomExpression;
     exports.BindingBehaviorExpression = ast_1.BindingBehaviorExpression;
     exports.ValueConverterExpression = ast_1.ValueConverterExpression;
     exports.AssignExpression = ast_1.AssignExpression;

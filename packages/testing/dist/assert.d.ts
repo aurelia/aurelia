@@ -9,6 +9,7 @@ export declare function ok(...args: [any, string | Error]): void;
 export declare function fail(message?: string | Error): never;
 export declare function visibleTextEqual(root: CompositionRoot, expectedText: string, message?: string): void;
 export declare function equal(actual: any, expected: any, message?: string): void;
+export declare function typeOf(actual: any, expected: any, message?: string): void;
 export declare function instanceOf(actual: any, expected: any, message?: string): void;
 export declare function notInstanceOf(actual: any, expected: any, message?: string): void;
 export declare function includes(outer: any[], inner: any, message?: string): void;
@@ -38,6 +39,7 @@ declare const assert: Readonly<{
     ok: typeof ok;
     fail: typeof fail;
     equal: typeof equal;
+    typeOf: typeof typeOf;
     instanceOf: typeof instanceOf;
     notInstanceOf: typeof notInstanceOf;
     includes: typeof includes;

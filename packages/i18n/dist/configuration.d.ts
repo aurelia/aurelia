@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
-export declare type I18NConfigOptionsProvider = () => I18nConfigurationOptions;
+export declare type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 export declare const I18nConfiguration: {
     optionsProvider: I18NConfigOptionsProvider;
     register(container: IContainer): IContainer;

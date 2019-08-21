@@ -1,3 +1,3 @@
 import { DI } from '@aurelia/kernel';
-export const I18nConfigurationOptions = DI.createInterface('I18nConfigurationOptions');
+export const I18nInitOptions = DI.createInterface('I18nInitOptions');
 //# sourceMappingURL=i18n-configuration-options.js.map

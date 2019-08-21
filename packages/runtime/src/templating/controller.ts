@@ -39,7 +39,8 @@ import {
   IRenderContext,
   IViewCache,
   IViewModel,
-  ViewModelKind
+  ViewModelKind,
+  IControllerHoldOptions
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -103,6 +104,11 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<
   }
 >;
 
+const defaultControllerHoldOptions: IControllerHoldOptions = {
+  isContainer: false,
+  strategy: 'append'
+};
+
 export class Controller<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>
@@ -155,6 +161,7 @@ export class Controller<
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
   public locationIsContainer?: boolean;
+  public locationContentStrategy?: 'append' | 'prepend';
 
   constructor(
     flags: LifecycleFlags,
@@ -392,10 +399,12 @@ export class Controller<
     this.state |= State.hasLockedScope;
   }
 
-  public hold(location: IRenderLocation<T>, locationIsContainer: boolean = false): void {
+  public hold(location: IRenderLocation<T>, options: IControllerHoldOptions): void {
+    options = options || defaultControllerHoldOptions;
     this.state = (this.state | State.canBeCached) ^ State.canBeCached;
     this.location = location;
-    this.locationIsContainer = locationIsContainer;
+    this.locationIsContainer = !!options.isContainer;
+    this.locationContentStrategy = options.strategy || 'append';
   }
 
   public release(flags: LifecycleFlags): boolean {
@@ -935,9 +944,12 @@ export class Controller<
 
     this.state |= State.isMounted;
     if (this.locationIsContainer) {
-      nodes.appendTo(location as T);
-    }
-    else {
+      if (this.locationContentStrategy === 'append') {
+        nodes.appendTo(location as T);
+      } else {
+        nodes.prependTo(location as T);
+      }
+    } else {
       // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
       nodes.insertBefore(location!);
     }

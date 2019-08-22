@@ -6,7 +6,7 @@ import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export const ComponentAppellationResolver = {
-  isName: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation {
+  isName: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & string{
     return typeof component === 'string';
   },
   isType: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & IRouteableComponentType {
@@ -16,7 +16,7 @@ export const ComponentAppellationResolver = {
     return !ComponentAppellationResolver.isName(component) && !ComponentAppellationResolver.isType(component);
   },
 
-  getName: function <T>(component: T & ComponentAppellation): string {
+  getName: function (component: ComponentAppellation): string {
     if (ComponentAppellationResolver.isName(component)) {
       return component as string;
     } else if (ComponentAppellationResolver.isType(component)) {
@@ -25,7 +25,7 @@ export const ComponentAppellationResolver = {
       return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
     }
   },
-  getType: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponentType | null {
+  getType: function (component: ComponentAppellation): IRouteableComponentType | null {
     if (ComponentAppellationResolver.isName(component)) {
       return null;
     } else if (ComponentAppellationResolver.isType(component)) {
@@ -34,11 +34,11 @@ export const ComponentAppellationResolver = {
       return ((component as IRouteableComponent).constructor as IRouteableComponentType);
     }
   },
-  getInstance: function <T extends Constructable>(component: T & ComponentAppellation): IRouteableComponent | null {
+  getInstance: function (component: ComponentAppellation): IRouteableComponent | null {
     if (ComponentAppellationResolver.isName(component) || ComponentAppellationResolver.isType(component)) {
       return null;
     } else {
-      return component;
+      return component as IRouteableComponent;
     }
   },
 };

@@ -1,6 +1,5 @@
-import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { ComponentAppellation, GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -43,10 +42,10 @@ export class Guard {
 }
 
 class Target {
-  public componentType?: IRouteableComponentType;
-  public componentName?: string;
-  public viewport?: Viewport;
-  public viewportName?: string;
+  public componentType: IRouteableComponentType | null = null;
+  public componentName: string | null = null;
+  public viewport: Viewport | null = null;
+  public viewportName: string | null = null;
 
   constructor(target: GuardTarget) {
     if (typeof target === 'string') {
@@ -56,10 +55,10 @@ class Target {
       this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
-      this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as Constructable) : null;
-      this.componentName = ComponentAppellationResolver.getName(cvTarget.component)
-      this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
-      this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
+      this.componentType = ComponentAppellationResolver.isType(cvTarget.component as ComponentAppellation) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
+      this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation)
+      this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as ViewportHandle) ? cvTarget.viewport as Viewport : null;
+      this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as ViewportHandle);
     }
   }
 

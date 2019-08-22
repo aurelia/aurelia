@@ -52,6 +52,6 @@ export type NavigationInstruction = ComponentAppellation | IViewportInstruction 
 export type GuardFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => boolean | ViewportInstruction[];
 export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation = string | IRouteableComponentType | Constructable; // TODO: | IRouteableComponent;
+export type ComponentAppellation = string | IRouteableComponentType | IRouteableComponent | Constructable; // TODO: | IRouteableComponent;
 export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];

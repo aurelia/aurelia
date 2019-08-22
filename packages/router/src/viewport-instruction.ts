@@ -85,7 +85,7 @@ export class ViewportInstruction {
     if (this.viewport !== null) {
       return this.viewport;
     }
-    return router.allViewports()[this.viewportName];
+    return router.getViewport(this.viewportName as string);
   }
 
   public sameComponent(other: ViewportInstruction, compareParameters: boolean = false, compareType: boolean = false): boolean {

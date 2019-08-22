@@ -44,7 +44,7 @@ export class RecognizeResult {
 }
 
 export interface RecognizeResults extends Array<RecognizeResult> {
-  queryParams: IQueryParams;
+  queryParams?: IQueryParams;
 }
 
 export class CharSpec {
@@ -60,9 +60,9 @@ export class CharSpec {
 }
 
 export class State {
-  public handlers: HandlerEntry[];
-  public regex: RegExp;
-  public types: TypesRecord;
+  public handlers: HandlerEntry[] = [];
+  public regex: RegExp = new RegExp('');
+  public types: TypesRecord = new TypesRecord();
   public nextStates: State[] = [];
 
   constructor(
@@ -70,7 +70,7 @@ export class State {
   ) { }
 
   public put(charSpec: CharSpec): State {
-    let state = this.nextStates.find(s => s.charSpec.equals(charSpec));
+    let state = this.nextStates.find(s => (s.charSpec as CharSpec).equals(charSpec));
 
     if (state === undefined) {
       state = new State(charSpec);
@@ -274,7 +274,7 @@ export class RouteRecognizer {
           segments.push(new EpsilonSegment());
           continue;
         } else {
-          segments.push(segment = new StaticSegment(part, route.caseSensitive));
+          segments.push(segment = new StaticSegment(part, !!route.caseSensitive));
           types.statics++;
         }
       }
@@ -350,7 +350,7 @@ export class RouteRecognizer {
    * @returns The RouteGenerator for that route.
    */
   public getRoute(nameOrRoute: string | RouteHandler): RouteGenerator {
-    return typeof (nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute);
+    return typeof (nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute) as RouteGenerator;
   }
 
   /**
@@ -394,7 +394,7 @@ export class RouteRecognizer {
 
     const handler = route.handlers[0].handler;
     if (handler.generationUsesHref) {
-      return handler.href;
+      return handler.href as string;
     }
 
     const routeParams = { ...params };
@@ -409,7 +409,7 @@ export class RouteRecognizer {
         continue;
       }
 
-      const segmentValue = segment.generate(routeParams, consumed);
+      const segmentValue = segment.generate(routeParams as Record<string, string>, consumed);
       if (segmentValue == null) {
         if (!segment.optional) {
           throw new Error(`A value is required for route parameter '${segment.name}' in route '${nameOrRoute}'.`);
@@ -429,7 +429,7 @@ export class RouteRecognizer {
       Reflect.deleteProperty(routeParams, param);
     }
 
-    const queryString = buildQueryString(routeParams);
+    const queryString = buildQueryString(routeParams as IQueryParams);
     output += queryString ? `?${queryString}` : '';
 
     return output;
@@ -475,12 +475,12 @@ export class RouteRecognizer {
 
       states.forEach(state => {
         state.nextStates.forEach(nextState => {
-          if (nextState.charSpec.validChars !== null) {
-            if (nextState.charSpec.validChars.indexOf(ch) !== -1) {
+          if ((nextState.charSpec as CharSpec).validChars !== null) {
+            if (((nextState.charSpec as CharSpec).validChars as string).indexOf(ch) !== -1) {
               nextStates.push(nextState);
             }
-          } else if (nextState.charSpec.invalidChars !== null
-            && nextState.charSpec.invalidChars.indexOf(ch) === -1) {
+          } else if ((nextState.charSpec as CharSpec).invalidChars !== null
+            && ((nextState.charSpec as CharSpec).invalidChars as string).indexOf(ch) === -1) {
             nextStates.push(nextState);
           }
         });
@@ -544,12 +544,13 @@ export class RouteRecognizer {
       solution.handlers.forEach(handler => {
         const params: Record<string, string> = {};
         handler.names.forEach(name => {
-          params[name] = captures[currentCapture++];
+          params[name] = (captures as RegExpMatchArray)[currentCapture++];
         });
         result.push(new RecognizeResult(handler.handler, params, handler.names.length > 0));
       });
 
       return result;
     }
+    return [] as RecognizeResults;
   }
 }

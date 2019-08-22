@@ -145,7 +145,7 @@ describe('route sut', function () {
     }
   ];
 
-  it('should reject unknown routes', function () {
+  xit('should reject unknown routes', function () {
     const sut = new RouteRecognizer();
 
     assert.strictEqual(sut.hasRoute('static'), false, `sut.hasRoute('static')`);
@@ -169,7 +169,7 @@ describe('route sut', function () {
   });
 
   eachCartesianJoin([routeSpecs], function(routeSpec) {
-    it(`should recognize - ${routeSpec.t}`, function () {
+    xit(`should recognize - ${routeSpec.t}`, function () {
       const { route, path, isDynamic, params } = routeSpec;
       const sut = new RouteRecognizer();
       sut.add([route]);
@@ -182,7 +182,7 @@ describe('route sut', function () {
       assert.deepStrictEqual(result[0].params, params, `result[0].params`);
     });
 
-    it(`is case insensitive by default - ${routeSpec.t}`, function () {
+    xit(`is case insensitive by default - ${routeSpec.t}`, function () {
       const { route, path, isDynamic, params } = routeSpec;
       const sut = new RouteRecognizer();
       sut.add([route]);
@@ -218,7 +218,7 @@ describe('route sut', function () {
     assert.throws(() => sut.generate('dynamic', { id: null }), void 0, `() => sut.generate('dynamic', { id: null })`);
   });
 
-  it('should generate URIs with extra parameters added to the query string', function () {
+  xit('should generate URIs with extra parameters added to the query string', function () {
     const sut = new RouteRecognizer();
     sut.add([staticRoute]);
     sut.add([dynamicRoute]);
@@ -259,7 +259,7 @@ describe('route sut', function () {
     assert.strictEqual(result[0].handler.name, 'similar', `result[0].handler.name`);
   });
 
-  it('can set case sensitive route and fails', function () {
+  xit('can set case sensitive route and fails', function () {
     const sut = new RouteRecognizer();
     const routeTest = {
       t: 'case sensitive route',

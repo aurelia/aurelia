@@ -142,10 +142,10 @@ export class Viewport {
     }
   }
 
-  public remove(element: Element, context: IRenderContext | IContainer): boolean {
+  public remove(element: Element | null, context: IRenderContext | IContainer | null): boolean {
     if (this.element === element && this.context === context) {
       if (this.content.componentInstance) {
-        this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });
+        this.content.freeContent(this.element as Element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });
       }
       return true;
     }

@@ -1,8 +1,8 @@
 import { ILifecycle, Priority } from '@aurelia/runtime';
 
 export interface QueueItem<T> {
-  resolve?: ((value?: void | PromiseLike<void>) => void);
-  reject?: ((value?: void | PromiseLike<void>) => void);
+  resolve?: ((value: void | PromiseLike<void>) => void);
+  reject?: ((value: void | PromiseLike<void>) => void);
   cost?: number;
 }
 

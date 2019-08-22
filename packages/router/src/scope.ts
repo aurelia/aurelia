@@ -24,7 +24,7 @@ export class Scope {
     private readonly router: IRouter,
     public element: Element | null,
     public context: IRenderContext | IContainer | null,
-    public parent: Scope
+    public parent: Scope | null,
   ) {
     if (this.parent) {
       this.parent.addChild(this);
@@ -173,7 +173,7 @@ export class Scope {
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): number {
+  public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | IContainer | null): number {
     if ((!element && !context) || viewport.remove(element, context)) {
       if (viewport.scope) {
         this.router.removeScope(viewport.scope);

@@ -42,7 +42,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     this.pendingCalls = new Queue<Call>(this.processCalls);
   }
 
-  public activate(callback: (ev?: INavigatorViewerEvent) => void): void {
+  public activate(callback: (ev: INavigatorViewerEvent) => void): void {
     if (this.isActive) {
       throw new Error('Browser navigation has already been activated');
     }

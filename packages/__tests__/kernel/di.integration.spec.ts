@@ -805,4 +805,20 @@ describe('defer registration', () => {
 
     assert.strictEqual(service.data, data);
   });
+
+  it(`passes the params to the container's register method if no handler is found`, () => {
+    const container = DI.createContainer();
+    const data = {
+      wasCalled: false,
+      register() {
+        this.wasCalled = true;
+      }
+    };
+
+    container.register(
+      Registration.defer('.css', data)
+    );
+
+    assert.strictEqual(data.wasCalled, true);
+  });
 });

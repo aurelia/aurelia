@@ -782,7 +782,7 @@ export class ParameterizedRegistry implements IRegistry {
       const registry = container.get<IRegistry>(this.key);
       registry.register(container, ...this.params);
     } else  {
-      this.params.forEach(x => container.register(x));
+      container.register(...this.params);
     }
   }
 }

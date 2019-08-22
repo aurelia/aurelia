@@ -119,10 +119,11 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
   .withDefault(x => x.singleton(ViewLocator));
 
 export interface IViewLocator {
-  getViewComponentForObject(object: ComposableObject | null | undefined, requestedViewName?: string): Constructable | null;
+  getViewComponentForObject(object: ComposableObject | null | undefined, viewNameOrSelector?: string | ViewSelector): Constructable | null;
 }
 
 export type ComposableObject = Omit<IViewModel, '$controller'>;
+export type ViewSelector = (object: ComposableObject, views: ITemplateDefinition[]) => string;
 
 const lifecycleCallbacks = [
   'binding',
@@ -140,10 +141,14 @@ export class ViewLocator implements IViewLocator {
   private modelInstanceToBoundComponent: WeakMap<object, Record<string, Constructable>> = new WeakMap();
   private modelTypeToUnboundComponent: Map<object, Record<string, Constructable>> = new Map();
 
-  public getViewComponentForObject(object: ComposableObject | null | undefined, viewName?: string) {
-    if (object && hasAssociatedViews(object.constructor)) {
-      const availableViews = object.constructor.$views;
-      const resolvedViewName = this.getViewName(availableViews, viewName);
+  public getViewComponentForObject(object: ComposableObject | null | undefined, viewNameOrSelector?: string | ViewSelector) {
+    if (object) {
+      const availableViews = hasAssociatedViews(object.constructor)
+        ? object.constructor.$views
+        : [];
+      const resolvedViewName = typeof viewNameOrSelector === 'function'
+        ? viewNameOrSelector(object, availableViews)
+        : this.getViewName(availableViews, viewNameOrSelector);
 
       return this.getOrCreateBoundComponent(
         object,

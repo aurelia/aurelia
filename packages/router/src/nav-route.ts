@@ -5,14 +5,14 @@ import { ComponentAppellationResolver, NavigationInstructionResolver } from './t
 import { ViewportInstruction } from './viewport-instruction';
 
 export class NavRoute {
-  public instructions: ViewportInstruction[];
+  public instructions: ViewportInstruction[] = [];
   public title: string;
-  public link?: string;
+  public link: string | null = null;
   public execute?: ((route: NavRoute) => void);
-  public linkVisible?: boolean | ((route: NavRoute) => boolean);
-  public linkActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
+  public linkVisible: boolean | ((route: NavRoute) => boolean) | null = null;
+  public linkActive: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean) | null = null;
   public compareParameters: boolean = false;
-  public children?: NavRoute[] = null;
+  public children: NavRoute[] | null = null;
   public meta?: Record<string, unknown>;
 
   public visible: boolean = true;
@@ -20,7 +20,7 @@ export class NavRoute {
 
   constructor(
     public nav: Nav,
-    route?: INavRoute
+    route: INavRoute
   ) {
     this.title = route.title;
     this.meta = route.meta;
@@ -53,7 +53,9 @@ export class NavRoute {
   }
 
   public executeAction(event: Event): void {
-    this.execute(this);
+    if (this.execute) {
+      this.execute(this);
+    }
     event.stopPropagation();
   }
 
@@ -69,7 +71,7 @@ export class NavRoute {
     if (this.linkVisible instanceof Function) {
       return this.linkVisible(this);
     }
-    return this.linkVisible;
+    return !!this.linkVisible;
   }
 
   private computeActive(): string {

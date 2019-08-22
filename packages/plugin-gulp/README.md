@@ -33,12 +33,14 @@ gulp.src('src/**/*.js')
   .pipe(babel()); // demo js file with babel here
 
 // For html files
-// For apps want to use ShadowDOM
+// For apps want to use ShadowDOM or CSSModule
 // available defaultShadowOptions are { mode: 'open' }, or { mode: 'closed' }, or null (default).
+// by default, option useCSSModule is false. https://github.com/css-modules/css-modules
+// Normally you would not use ShadowDOM and CSSModule together, but our tooling doesn't prevent you doing that.
 gulp.src('src/**/*.html')
-  .pipe(au2({defaultShadowOptions: {mode: 'open'}}));
+  .pipe(au2({defaultShadowOptions: {mode: 'open'}, useCSSModule: false}));
 
-// For apps don't want to use ShadowDOM
+// For apps don't want to use ShadowDOM or CSSModule
 gulp.src('src/**/*.html')
   .pipe(au2());
 ```
@@ -56,3 +58,7 @@ declare module '*.html' {
   export function getHTMLOnlyElement();
 }
 ```
+
+Note: for CSSModule, there are more configuration to be done in webpack config and app main entry.
+
+TODO: add more info for using CSSModule

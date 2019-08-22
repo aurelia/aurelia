@@ -34,22 +34,19 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaul
 
   deps.forEach((d, i) => {
     const ext = path.extname(d);
-
-    if (isCss(ext)) {
-      if (shadowMode) {
-        if (!registrationImported) {
-          statements.push(`import { Registration } from '@aurelia/kernel';\n`);
-          registrationImported = true;
-        }
-        const stringModuleId = stringModuleWrap ? stringModuleWrap(d) : d;
-        statements.push(`import d${i} from ${s(stringModuleId)};\n`);
-        viewDeps.push(`Registration.defer('.css', d${i})`);
-      } else {
-        statements.push(`import ${s(d)};\n`);
-      }
-    } else if (ext === '.html') {
+    if (ext === '.html') {
       statements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
       viewDeps.push(`d${i}`);
+    } else if (ext && ext !== '.js' && ext !== '.ts') {
+      // Wrap all other unknown resources (including .css, .scss) in defer.
+      if (!registrationImported) {
+        statements.push(`import { Registration } from '@aurelia/kernel';\n`);
+        registrationImported = true;
+      }
+      const isCssResource = isCss(ext);
+      const stringModuleId = isCssResource && shadowMode && stringModuleWrap ? stringModuleWrap(d) : d;
+      statements.push(`import d${i} from ${s(stringModuleId)};\n`);
+      viewDeps.push(`Registration.defer('${isCssResource ? '.css' : ext}', d${i})`);
     } else {
       statements.push(`import * as d${i} from ${s(d)};\n`);
       viewDeps.push(`d${i}`);

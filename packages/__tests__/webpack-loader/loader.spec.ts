@@ -57,6 +57,47 @@ describe('webpack-loader', function () {
     loader.call(context, content, preprocess);
   });
 
+  it('transforms html file in CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed src/foo-bar.html content';
+
+    const context = {
+      async: () => function(err, code, map) {
+        if (err) {
+          done(err);
+          return;
+        }
+        assert.equal(code, expected);
+        assert.equal(map.version, 3);
+        done();
+      },
+      query: { useCSSModule: true },
+      resourcePath: 'src/foo-bar.html'
+    };
+
+    loader.call(context, content, preprocess);
+  });
+  it('transforms html file in shadowDOM mode + CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+
+    const context = {
+      async: () => function(err, code, map) {
+        if (err) {
+          done(err);
+          return;
+        }
+        assert.equal(code, expected);
+        assert.equal(map.version, 3);
+        done();
+      },
+      query: { defaultShadowOptions: { mode: 'open' }, useCSSModule: true },
+      resourcePath: 'src/foo-bar.html'
+    };
+
+    loader.call(context, content, preprocess);
+  });
+
   it('transforms js file', function(done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.js content';

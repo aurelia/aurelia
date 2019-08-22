@@ -31,11 +31,23 @@ module: {
     { test: /\.js$/i, use: ['babel-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
     // For apps in TypeScript with ts-loader
     { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
-    // For apps don't want to use ShadowDOM
+    // For apps don't want to use ShadowDOM or CSSModule
     { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
-    // For apps want to use ShadowDOM
+    // For apps want to use ShadowDOM or CSSModule
     // available defaultShadowOptions are { mode: 'open' }, or { mode: 'closed' }, or null (default).
-    { test: /\.html$/i, use: { loader: '@aurelia/webpack-loader', options: { defaultShadowOptions: { mode: 'open' } } }, exclude: /node_modules/ }
+    // by default, option useCSSModule is false. https://github.com/css-modules/css-modules
+    // Normally you would not use ShadowDOM and CSSModule together, but our tooling doesn't prevent you doing that.
+    {
+      test: /\.html$/i,
+      use: {
+        loader: '@aurelia/webpack-loader',
+        options: {
+          defaultShadowOptions: { mode: 'open' },
+          useCSSModule: false
+        }
+      },
+      exclude: /node_modules/
+    }
   ]
 }
 ```
@@ -53,3 +65,8 @@ declare module '*.html' {
   export function getHTMLOnlyElement();
 }
 ```
+
+Note: for CSSModule, there are more configuration to be done in webpack config and app main entry.
+
+TODO: add more info for using CSSModule
+

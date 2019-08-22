@@ -4,14 +4,19 @@ import { preprocess } from '@aurelia/plugin-conventions';
 
 export default function(options: any = {}) {
   let shadowOptions;
+  let useCSSModule = false;
   if (options && options.defaultShadowOptions) {
     shadowOptions = options.defaultShadowOptions as { mode: 'open' | 'closed' };
   }
-  return plugin(shadowOptions);
+  if (options && options.useCSSModule) {
+    useCSSModule = options.useCSSModule;
+  }
+  return plugin(shadowOptions, useCSSModule);
 }
 
 export function plugin(
-  shadowOptions?: { mode: 'open' | 'closed' } | null,
+  shadowOptions?: { mode: 'open' | 'closed' },
+  useCSSModule?: boolean,
   _preprocess = preprocess // for testing
 ) {
   return new Transform({
@@ -23,7 +28,14 @@ export function plugin(
         const { extname } = file;
         if (extname === '.html' || extname === '.js' || extname === '.ts') {
           // Rewrite foo.html to foo.html.js
-          const result = _preprocess(file.relative, file.contents.toString(), file.base, shadowOptions, stringModuleWrap);
+          // Don't wrap css module id when using CSSModule
+          const result = _preprocess(
+            file.relative,
+            file.contents.toString(),
+            file.base,
+            shadowOptions,
+            useCSSModule ? undefined : stringModuleWrap
+          );
           if (extname === '.html') {
             file.basename += '.js';
           }

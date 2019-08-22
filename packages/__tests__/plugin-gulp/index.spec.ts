@@ -22,7 +22,7 @@ function preprocess(
 describe('plugin-gulp', function () {
   it('complains about stream mode', function (done) {
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, null, preprocess);
+    const t = plugin.call(undefined, null, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -45,7 +45,7 @@ describe('plugin-gulp', function () {
   it('ignores non js/ts/html file', function (done) {
     const css = '.a { color: red; }';
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, null, preprocess);
+    const t = plugin.call(undefined, null, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -73,7 +73,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, null, preprocess);
+    const t = plugin.call(undefined, null, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -101,7 +101,65 @@ describe('plugin-gulp', function () {
     const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, { mode: 'open' }, preprocess);
+    const t = plugin.call(undefined, { mode: 'open' }, false, preprocess);
+    t.pipe(new Writable({
+      objectMode: true,
+      write(file: Vinyl, enc, cb) {
+        files.push(file);
+        cb();
+      }
+    }));
+    t.on('error', done);
+    t.on('end', () => {
+      assert.equal(files.length, 1);
+      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].contents.toString(), expected);
+      assert.equal(files[0].sourceMap.version, 3);
+      done();
+    });
+
+    t.end(new Vinyl({
+      path: 'src/foo-bar.html',
+      contents: Buffer.from(content),
+      sourceMap: {}
+    }));
+  });
+
+  it('transforms html file in CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed src/foo-bar.html content';
+
+    const files: Vinyl[] = [];
+    const t = plugin.call(undefined, null, true, preprocess);
+    t.pipe(new Writable({
+      objectMode: true,
+      write(file: Vinyl, enc, cb) {
+        files.push(file);
+        cb();
+      }
+    }));
+    t.on('error', done);
+    t.on('end', () => {
+      assert.equal(files.length, 1);
+      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].contents.toString(), expected);
+      assert.equal(files[0].sourceMap.version, 3);
+      done();
+    });
+
+    t.end(new Vinyl({
+      path: 'src/foo-bar.html',
+      contents: Buffer.from(content),
+      sourceMap: {}
+    }));
+  });
+
+  it('transforms html file in shadowDOM mode + CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+
+    const files: Vinyl[] = [];
+    const t = plugin.call(undefined, { mode: 'open' }, true, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -130,7 +188,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.js content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, null, preprocess);
+    const t = plugin.call(undefined, null, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -158,7 +216,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.ts content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, null, preprocess);
+    const t = plugin.call(undefined, null, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {

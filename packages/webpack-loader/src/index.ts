@@ -21,16 +21,26 @@ export function loader(
   const cb = this.async() as webpack.loader.loaderCallback;
   const options = getOptions(this);
   let shadowOptions;
+  let useCSSModule = false;
   if (options && options.defaultShadowOptions) {
     shadowOptions = options.defaultShadowOptions as { mode: 'open' | 'closed' };
+  }
+  if (options && options.useCSSModule) {
+    useCSSModule = options.useCSSModule;
   }
   const filePath = this.resourcePath;
   const ext = path.extname(filePath);
 
   try {
     if (ext === '.html' || ext === '.js' || ext === '.ts') {
-      const result = _preprocess(filePath, contents, '', shadowOptions, stringModuleWrap);
-
+      // Don't wrap css module id when using CSSModule
+      const result = _preprocess(
+        filePath,
+        contents,
+        '',
+        shadowOptions,
+        useCSSModule ? undefined : stringModuleWrap
+      );
       // webpack uses source-map 0.6.1 typings for RawSourceMap which
       // contains typing error version: string (should be number).
       // use result.map as any to bypass the typing issue.

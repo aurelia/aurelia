@@ -34,10 +34,10 @@ export class Viewport {
   constructor(
     private readonly router: IRouter,
     public name: string,
-    public element: Element,
-    public context: IRenderContext | IContainer,
+    public element: Element | null,
+    public context: IRenderContext | IContainer | null,
     public owningScope: Scope,
-    public scope: Scope,
+    public scope: Scope | null,
     public options: IViewportOptions = {}
   ) {
     this.content = new ViewportContent();
@@ -167,7 +167,7 @@ export class Viewport {
 
     await this.waitForElement();
 
-    (this.nextContent as ViewportContent).createComponent(this.context);
+    (this.nextContent as ViewportContent).createComponent(this.context as IRenderContext);
 
     return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
   }
@@ -184,7 +184,7 @@ export class Viewport {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    await this.nextContent.loadComponent(this.context, this.element);
+    await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element);
     this.nextContent.initializeComponent();
     return true;
   }
@@ -195,20 +195,20 @@ export class Viewport {
     // No need to wait for next component activation
     if (this.content.componentInstance && !(this.nextContent as ViewportContent).componentInstance) {
       await this.content.leave((this.nextContent as ViewportContent).instruction);
-      this.content.removeComponent(this.element, this.options.stateful);
+      this.content.removeComponent(this.element as Element, this.options.stateful);
       this.content.terminateComponent(this.options.stateful);
       this.content.unloadComponent();
       this.content.destroyComponent();
     }
 
     if ((this.nextContent as ViewportContent).componentInstance) {
-      (this.nextContent as ViewportContent).addComponent(this.element);
+      (this.nextContent as ViewportContent).addComponent(this.element as Element);
 
       // Only when next component activation is done
       if (this.content.componentInstance) {
         await this.content.leave((this.nextContent as ViewportContent).instruction);
         if (!this.content.reentry) {
-          this.content.removeComponent(this.element, this.options.stateful);
+          this.content.removeComponent(this.element as Element, this.options.stateful);
           this.content.terminateComponent(this.options.stateful);
           this.content.unloadComponent();
           this.content.destroyComponent();
@@ -232,7 +232,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    await (this.nextContent as ViewportContent).freeContent(this.element, (this.nextContent as ViewportContent).instruction, this.options.stateful);
+    await (this.nextContent as ViewportContent).freeContent(this.element as Element, (this.nextContent as ViewportContent).instruction, this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -303,14 +303,14 @@ export class Viewport {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.enabled = true;
     if (this.content.componentInstance) {
-      this.content.addComponent(this.element);
+      this.content.addComponent(this.element as Element);
     }
   }
 
   public detaching(flags: LifecycleFlags): void {
     Reporter.write(10000, 'DETACHING viewport', this.name);
     if (this.content.componentInstance) {
-      this.content.removeComponent(this.element, this.options.stateful);
+      this.content.removeComponent(this.element as Element, this.options.stateful);
     }
     this.enabled = false;
   }

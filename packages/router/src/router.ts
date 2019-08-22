@@ -54,7 +54,7 @@ export interface IRouter {
   // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
+  removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
 
   allViewports(): Viewport[];
   findScope(element: Element): Scope;
@@ -397,7 +397,7 @@ export class Router implements IRouter {
     return parentScope.addViewport(name, element, context, options);
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void {
+  public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
     if (!scope.removeViewport(viewport, element, context)) {

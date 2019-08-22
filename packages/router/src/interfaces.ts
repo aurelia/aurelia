@@ -19,8 +19,8 @@ export interface IRouteableComponent<T extends INode = INode> extends IViewModel
   reentryBehavior?: ReentryBehavior;
   canEnter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
-  canLeave?(nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
+  canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
+  leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
 }
 
 export const enum ReentryBehavior {

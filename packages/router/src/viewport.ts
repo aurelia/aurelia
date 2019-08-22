@@ -1,6 +1,7 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, ReentryBehavior } from './interfaces';
+import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
@@ -56,10 +57,10 @@ export class Viewport {
     }
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(!this.clear ? content : null, parameters, instruction, this.context);
+    this.nextContent = new ViewportContent(!this.clear ? content : null, parameters as string, instruction, this.context);
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
-      const cached = this.cache.find((item) => this.nextContent.isCacheEqual(item));
+      const cached = this.cache.find((item) => (this.nextContent as ViewportContent).isCacheEqual(item));
       if (cached) {
         this.nextContent = cached;
         this.nextContent.fromCache = true;
@@ -70,14 +71,14 @@ export class Viewport {
 
     // ReentryBehavior 'refresh' takes precedence
     if (!this.content.equalComponent(this.nextContent) ||
-      instruction.navigation.refresh ||
+      (instruction.navigation as INavigatorFlags).refresh ||
       this.content.reentryBehavior() === ReentryBehavior.refresh) {
       return true;
     }
 
     // Explicitly don't allow navigation back to the same component again
     if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
-      return;
+      return false;
     }
 
     // ReentryBehavior is now 'enter' or 'default'
@@ -128,9 +129,10 @@ export class Viewport {
         this.elementResolve();
       }
     }
-    if (context) {
-      context['viewportName'] = this.name;
-    }
+    // TODO: Might not need this? Figure it out
+    // if (context) {
+    //   context['viewportName'] = this.name;
+    // }
     if (this.context !== context) {
       this.context = context;
     }
@@ -151,7 +153,7 @@ export class Viewport {
   }
 
   public async canLeave(): Promise<boolean> {
-    return this.content.canLeave(this.nextContent.instruction);
+    return this.content.canLeave(this.nextContent ? this.nextContent.instruction : null);
   }
 
   public async canEnter(): Promise<boolean | ViewportInstruction[]> {
@@ -159,15 +161,15 @@ export class Viewport {
       return true;
     }
 
-    if (!this.nextContent.content) {
+    if (!(this.nextContent as ViewportContent).content) {
       return false;
     }
 
     await this.waitForElement();
 
-    this.nextContent.createComponent(this.context);
+    (this.nextContent as ViewportContent).createComponent(this.context);
 
-    return this.nextContent.canEnter(this, this.content.instruction);
+    return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
   }
 
   public async enter(): Promise<boolean> {
@@ -191,20 +193,20 @@ export class Viewport {
     Reporter.write(10000, 'Viewport loadContent', this.name);
 
     // No need to wait for next component activation
-    if (this.content.componentInstance && !this.nextContent.componentInstance) {
-      await this.content.leave(this.nextContent.instruction);
+    if (this.content.componentInstance && !(this.nextContent as ViewportContent).componentInstance) {
+      await this.content.leave((this.nextContent as ViewportContent).instruction);
       this.content.removeComponent(this.element, this.options.stateful);
       this.content.terminateComponent(this.options.stateful);
       this.content.unloadComponent();
       this.content.destroyComponent();
     }
 
-    if (this.nextContent.componentInstance) {
-      this.nextContent.addComponent(this.element);
+    if ((this.nextContent as ViewportContent).componentInstance) {
+      (this.nextContent as ViewportContent).addComponent(this.element);
 
       // Only when next component activation is done
       if (this.content.componentInstance) {
-        await this.content.leave(this.nextContent.instruction);
+        await this.content.leave((this.nextContent as ViewportContent).instruction);
         if (!this.content.reentry) {
           this.content.removeComponent(this.element, this.options.stateful);
           this.content.terminateComponent(this.options.stateful);
@@ -213,12 +215,12 @@ export class Viewport {
         }
       }
 
-      this.content = this.nextContent;
+      this.content = (this.nextContent as ViewportContent);
       this.content.reentry = false;
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(null, null, this.nextContent.instruction);
+      this.content = new ViewportContent(null, undefined, (this.nextContent as ViewportContent).instruction);
     }
 
     this.nextContent = null;
@@ -230,7 +232,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    await this.nextContent.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful);
+    await (this.nextContent as ViewportContent).freeContent(this.element, (this.nextContent as ViewportContent).instruction, this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -238,7 +240,7 @@ export class Viewport {
 
   public description(full: boolean = false): string {
     if (this.content.content) {
-      const component = this.content.toComponentName();
+      const component: string = this.content.toComponentName() as string;
       if (full || this.options.forceDescription) {
         return this.router.instructionResolver.stringifyViewportInstruction(
           new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
@@ -251,9 +253,10 @@ export class Viewport {
         );
       }
       return this.router.instructionResolver.stringifyViewportInstruction(
-        new ViewportInstruction(component, null, this.content.parameters, this.scope !== null)
+        new ViewportInstruction(component, undefined, this.content.parameters, this.scope !== null)
       );
     }
+    return '';
   }
 
   public scopedDescription(full: boolean = false): string {

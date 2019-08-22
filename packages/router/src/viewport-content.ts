@@ -1,5 +1,5 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags, IController } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
@@ -103,12 +103,12 @@ export class ViewportContent {
     }
     return result as Promise<ViewportInstruction[]>;
   }
-  public canLeave(nextInstruction: INavigatorInstruction): Promise<boolean> {
+  public canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
     if (!this.componentInstance || !this.componentInstance.canLeave) {
       return Promise.resolve(true);
     }
 
-    const result = this.componentInstance.canLeave(this.instruction, nextInstruction);
+    const result = this.componentInstance.canLeave(nextInstruction, this.instruction);
     Reporter.write(10000, 'viewport canLeave', result);
 
     if (typeof result === 'boolean') {
@@ -130,12 +130,12 @@ export class ViewportContent {
     }
     this.entered = true;
   }
-  public async leave(nextInstruction: INavigatorInstruction): Promise<void> {
+  public async leave(nextInstruction: INavigatorInstruction | null): Promise<void> {
     if (this.contentStatus !== ContentStatus.added || !this.entered) {
       return;
     }
     if (this.componentInstance && this.componentInstance.leave) {
-      await this.componentInstance.leave(this.instruction, nextInstruction);
+      await this.componentInstance.leave(nextInstruction, this.instruction);
     }
     this.entered = false;
   }
@@ -163,31 +163,31 @@ export class ViewportContent {
   }
 
   public initializeComponent(): void {
-    if (this.contentStatus !== ContentStatus.loaded || !this.componentInstance || !this.componentInstance.$controller) {
+    if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
     // Don't initialize cached content
     if (!this.fromCache) {
-      this.componentInstance.$controller.bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+      ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     }
     this.contentStatus = ContentStatus.initialized;
   }
   public terminateComponent(stateful: boolean = false): void {
-    if (this.contentStatus !== ContentStatus.initialized || !this.componentInstance || !this.componentInstance.$controller) {
+    if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
     // Don't terminate cached content
     if (!stateful) {
-      this.componentInstance.$controller.unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       this.contentStatus = ContentStatus.loaded;
     }
   }
 
   public addComponent(element: Element): void {
-    if (this.contentStatus !== ContentStatus.initialized || !this.componentInstance || !this.componentInstance.$controller) {
+    if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
-    this.componentInstance.$controller.attach(LifecycleFlags.fromStartTask);
+    ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
     if (this.fromCache) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -202,7 +202,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.added;
   }
   public removeComponent(element: Element, stateful: boolean = false): void {
-    if (this.contentStatus !== ContentStatus.added || this.entered || !this.componentInstance || !this.componentInstance.$controller) {
+    if (this.contentStatus !== ContentStatus.added || this.entered) {
       return;
     }
     if (stateful) {
@@ -213,11 +213,11 @@ export class ViewportContent {
         }
       }
     }
-    this.componentInstance.$controller.detach(LifecycleFlags.fromStopTask);
+    ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
     this.contentStatus = ContentStatus.initialized;
   }
 
-  public async freeContent(element: Element, nextInstruction: INavigatorInstruction, stateful: boolean = false): Promise<void> {
+  public async freeContent(element: Element, nextInstruction: INavigatorInstruction | null, stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatus.added:
         await this.leave(nextInstruction);

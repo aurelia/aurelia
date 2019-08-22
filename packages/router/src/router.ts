@@ -1,12 +1,12 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, IRenderContext, IController } from '@aurelia/runtime';
+import { Aurelia, IController, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { ComponentAppellation, INavigatorInstruction, ViewportHandle } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorEntry, INavigatorOptions, INavigatorViewerEvent, Navigator, INavigatorFlags } from './navigator';
+import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';

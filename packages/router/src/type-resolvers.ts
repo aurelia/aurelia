@@ -1,4 +1,3 @@
-import { Constructable } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, IRouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
@@ -6,7 +5,7 @@ import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export const ComponentAppellationResolver = {
-  isName: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & string{
+  isName: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & string {
     return typeof component === 'string';
   },
   isType: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & IRouteableComponentType {

@@ -1,5 +1,5 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags, IController } from '@aurelia/runtime';
+import { Controller, CustomElement, IController, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';

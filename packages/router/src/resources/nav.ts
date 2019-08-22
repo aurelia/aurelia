@@ -33,29 +33,20 @@ export interface INavClasses {
   </ul>
 </template>` })
 export class NavCustomElement {
-  @bindable public name: string;
-  @bindable public routes: NavRoute[];
-  @bindable public level: number;
-  @bindable public classes: INavClasses;
+  @bindable public name: string | null = null;
+  @bindable public routes: NavRoute[] | null = null;
+  @bindable public level: number = 0;
+  @bindable public classes: INavClasses = {};
 
-  private readonly router: IRouter;
-
-  constructor(router: IRouter) {
-    this.router = router;
-
-    this.name = null;
-    this.routes = null;
-    this.level = 0;
-    this.classes = {};
-  }
+  constructor(private readonly router: IRouter) { }
 
   get navRoutes(): NavRoute[] {
-    const nav = this.router.navs[this.name];
+    const nav = this.router.navs[this.name as string];
     return (nav ? nav.routes : []);
   }
 
   get navClasses(): INavClasses {
-    const nav = this.router.navs[this.name];
+    const nav = this.router.navs[this.name as string];
     const navClasses = (nav ? nav.classes : {});
     return {
       ... {

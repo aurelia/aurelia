@@ -249,8 +249,11 @@ export class ViewportContent {
       const container = context.get(IContainer);
       if (container) {
         const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.content));
-        if (resolver) {
-          return resolver.getFactory(container).Type;
+        if (resolver && resolver.getFactory) {
+          const factory = resolver.getFactory(container);
+          if (factory) {
+            return factory.Type;
+          }
         }
       }
       return null;

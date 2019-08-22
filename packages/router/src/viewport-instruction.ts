@@ -65,16 +65,19 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
-  public toComponentType(context: IRenderContext): IRouteableComponentType | null {
+  public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
     }
-    if (this.componentName !== null) {
+    if (this.componentName !== null && typeof this.componentName === 'string') {
       const container = context.get(IContainer);
       if (container) {
         const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
-        if (resolver) {
-          return resolver.getFactory(container).Type;
+        if (resolver && resolver.getFactory) {
+          const factory = resolver.getFactory(container);
+          if (factory) {
+            return factory.Type;
+          }
         }
       }
     }

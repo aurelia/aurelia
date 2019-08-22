@@ -1,4 +1,7 @@
 export {
+  IHtmlAttributeSyntaxModifier
+} from './attribute-mapper';
+export {
   TriggerBindingCommand,
   DelegateBindingCommand,
   CaptureBindingCommand,

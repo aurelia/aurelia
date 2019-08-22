@@ -55,6 +55,7 @@ import {
 } from '@aurelia/runtime-html';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
+import { IHtmlAttributeSyntaxModifier } from './attribute-mapper';
 
 const buildNotRequired: IBuildInstruction = Object.freeze({
   required: false,
@@ -69,11 +70,17 @@ const { enter, leave } = Profiler.createTimer('TemplateCompiler');
  * @internal
  */
 export class TemplateCompiler implements ITemplateCompiler {
-  public static readonly inject: readonly Key[] = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
+  public static readonly inject: readonly Key[] = [
+    ITemplateElementFactory,
+    IAttributeParser,
+    IExpressionParser,
+    IHtmlAttributeSyntaxModifier
+  ];
 
   private readonly factory: ITemplateElementFactory;
   private readonly attrParser: IAttributeParser;
   private readonly exprParser: IExpressionParser;
+  private readonly attrSyntaxModifier: IHtmlAttributeSyntaxModifier;
 
   /**
    * The instructions array for the currently instruction-collecting `ITemplateDefinition`
@@ -87,10 +94,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     return 'default';
   }
 
-  constructor(factory: ITemplateElementFactory, attrParser: IAttributeParser, exprParser: IExpressionParser) {
+  constructor(
+    factory: ITemplateElementFactory,
+    attrParser: IAttributeParser,
+    exprParser: IExpressionParser,
+    attrSyntaxModifier: IHtmlAttributeSyntaxModifier
+  ) {
     this.factory = factory;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
+    this.attrSyntaxModifier = attrSyntaxModifier;
     this.instructionRows = null!;
     this.parts = null!;
     this.scopeParts = null!;
@@ -101,7 +114,13 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
-    const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
+    const binder = new TemplateBinder(
+      dom,
+      new ResourceModel(descriptions),
+      this.attrParser,
+      this.exprParser,
+      this.attrSyntaxModifier
+    );
     const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
     if (definition.instructions === undefined || definition.instructions === (PLATFORM.emptyArray as typeof definition.instructions & typeof PLATFORM.emptyArray)) {

@@ -107,23 +107,6 @@ export class TwoWayBindingInstruction implements IPropertyBindingInstruction {
   }
 }
 
-export class BindBindingInstruction implements IPropertyBindingInstruction {
-
-  public type: TargetedInstructionType.propertyBinding;
-  public mode: BindingMode.default;
-
-  constructor(
-    public from: string | IsBindingBehavior,
-    public to: string
-  ) {
-    this.type = TargetedInstructionType.propertyBinding;
-    this.mode = BindingMode.default;
-
-    this.from = from;
-    this.to = to;
-  }
-}
-
 export class IteratorBindingInstruction implements IIteratorBindingInstruction {
   public type: TargetedInstructionType.iteratorBinding;
 

@@ -34,13 +34,13 @@ describe('I18N', function () {
       fallbackLng: ['en'],
       debug: false,
       plugins: [],
-      attributes: ['t', 'i18n'],
+      rtEpsilon: 0.01,
       skipTranslationOnMissingKey: false,
     }]);
   });
 
   it('respects user-defined config options', async function () {
-    const customization = { lng: 'de', attributes: ['foo'] };
+    const customization = { lng: 'de', rtEpsilon: 0.001 };
     const { i18nextSpy } = await setup(customization);
 
     i18nextSpy.methodCalledOnceWith('init', [{
@@ -48,7 +48,7 @@ describe('I18N', function () {
       fallbackLng: ['en'],
       debug: false,
       plugins: [],
-      attributes: customization.attributes,
+      rtEpsilon: customization.rtEpsilon,
       skipTranslationOnMissingKey: false,
     }]);
   });
@@ -227,7 +227,7 @@ describe('I18N', function () {
   describe('rt', function () {
 
     for (const multiplier of [1, -1]) {
-      for (const value of [/* 1, */ 5]) {
+      for (const value of [1, 5]) {
         it(`works for time difference in seconds - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
           const { sut } = await setup();
           const input = new Date();
@@ -303,7 +303,7 @@ describe('I18N', function () {
     }
 
     for (const multiplier of [1, -1]) {
-      for (const value of [/* 7, */ 14]) {
+      for (const value of [7, 14]) {
         it(`works for time difference in weeks - ${multiplier > 0 ? 'future' : 'past'} - ${value > 7 ? 'plural' : 'singular'}`, async function () {
           const { sut } = await setup();
           const input = new Date();

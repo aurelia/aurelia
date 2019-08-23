@@ -270,6 +270,9 @@ export {
   ISanitizer,
   SanitizeValueConverter
 } from './resources/value-converters/sanitize';
+export {
+  ViewValueConverter
+} from './resources/value-converters/view';
 
 export {
   bindable,

@@ -249,7 +249,7 @@ export class ViewLocator implements IViewLocator {
     const v = views.find(x => x.name === name);
 
     if (!v) {
-      // TODO: user Reporter
+      // TODO: Use Reporter
       throw new Error(`Could not find view: ${name}`);
     }
 

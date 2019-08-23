@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0",
+    "@aurelia/kernel": "^0.3.0",
     "@aurelia/runtime": "^0.3.0",
     "rxjs": "^6.5.2"
   },

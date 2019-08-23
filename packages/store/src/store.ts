@@ -69,7 +69,7 @@ export class Store<T> {
   public readonly state: Observable<T>;
 
   private devToolsAvailable: boolean = false;
-  private devTools: IReduxConnect;
+  private devTools?: IReduxConnect;
   private actions: Map<Reducer<T>, Action<string>> = new Map();
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement; settings?: unknown }> = new Map();
   private _state: BehaviorSubject<T>;
@@ -108,6 +108,7 @@ export class Store<T> {
 
   public registerAction(name: string, reducer: Reducer<T>): void {
     if (reducer.length === 0) {
+      // The reducer is expected to have one or more parameters, where the first will be the present state
       Reporter.error(508);
     }
 
@@ -175,6 +176,7 @@ export class Store<T> {
 
   private async internalDispatch(reducer: Reducer<T>, ...params: unknown[]): Promise<void> {
     if (!this.actions.has(reducer)) {
+      // Tried to dispatch an unregistered action
       Reporter.error(505, reducer ? reducer.name : '');
     }
 
@@ -186,6 +188,7 @@ export class Store<T> {
     };
 
     if (this.options.logDispatchedActions) {
+      // Dispatching:
       Reporter.write(504, action.type);
     }
 

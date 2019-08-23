@@ -20,6 +20,7 @@ const defaultSelector = <T>(store: Store<T>) => store.state;
 // tslint:disable-next-line:cognitive-complexity
 export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>): (target: unknown) => void {
   if (!Object.entries) {
+    // You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill
     throw Reporter.error(507);
   }
 
@@ -97,6 +98,7 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
     target.prototype[typeof settings === 'object' && settings.setup ? settings.setup : 'bind'] = function (): any {
       if (typeof settings === 'object' &&
         typeof settings.onChanged === 'string' && !(settings.onChanged in this)) {
+          // Provided onChanged handler does not exist on target VM
           throw Reporter.error(510);
         }
 

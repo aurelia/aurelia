@@ -1,6 +1,16 @@
-import { Constructable, PLATFORM, Reporter } from '@aurelia/kernel';
-import { BindableSource, IBindableDescription } from '../definitions';
-import { BindingMode } from '../flags';
+import {
+  Constructable,
+  kebabCase,
+  Reporter,
+} from '@aurelia/kernel';
+
+import {
+  BindableSource,
+  IBindableDescription,
+} from '../definitions';
+import {
+  BindingMode,
+} from '../flags';
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
@@ -30,13 +40,13 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
       // - @bindable({...opts})
       config.property = $prop;
     }
-    Bindable.for($target.constructor).add(config);
+    Bindable.for($target.constructor as Partial<WithBindables>).add(config);
   };
   if (arguments.length > 1) {
     // Non invocation:
     // - @bindable
     config = {};
-    decorator(configOrTarget as T, prop);
+    decorator(configOrTarget as T, prop!);
     return;
   } else if (typeof configOrTarget === 'string') {
     // ClassDecorator
@@ -64,8 +74,8 @@ export const Bindable = {
   for<T extends Partial<WithBindables>>(obj: T): IFluentBindableBuilder {
     const builder: IFluentBindableBuilder = {
       add(nameOrConfig: string | IBindableDescription): typeof builder {
-        let description: IBindableDescription;
-        if (nameOrConfig !== null && typeof nameOrConfig === 'object') {
+        let description: IBindableDescription = (void 0)!;
+        if (nameOrConfig instanceof Object) {
           description = nameOrConfig;
         } else if (typeof nameOrConfig === 'string') {
           description = {
@@ -77,7 +87,7 @@ export const Bindable = {
           throw Reporter.error(0); // TODO: create error code (must provide a property name)
         }
         if (!description.attribute) {
-          description.attribute = PLATFORM.kebabCase(prop);
+          description.attribute = kebabCase(prop);
         }
         if (!description.callback) {
           description.callback = `${prop}Changed`;
@@ -85,7 +95,7 @@ export const Bindable = {
         if (description.mode === undefined) {
           description.mode = BindingMode.toView;
         }
-        obj.bindables[prop] = description;
+        (obj.bindables as Record<string, IBindableDescription>)[prop] = description;
         return this;
       },
       get(): Record<string, IBindableDescription> {

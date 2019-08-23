@@ -1,9 +1,13 @@
-import { IResourceDescriptions, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  IResourceDescriptions,
+  kebabCase,
+  Reporter,
+} from '@aurelia/kernel';
 import {
   AttributeDefinition,
   BindingMode,
-  CustomAttributeResource,
-  CustomElementResource,
+  CustomAttribute,
+  CustomElement,
   IBindableDescription,
   TemplateDefinition
 } from '@aurelia/runtime';
@@ -36,10 +40,10 @@ export class ResourceModel {
    */
   public getElementInfo(name: string): ElementInfo | null {
     let result = this.elementLookup[name];
-    if (result === undefined) {
-      const def = this.resources.find(CustomElementResource, name);
-      if (def === null) {
-        result = null;
+    if (result === void 0) {
+      const def = this.resources.find(CustomElement, name);
+      if (def == null) {
+        result = null!;
       } else {
         result = createElementInfo(def);
       }
@@ -56,16 +60,15 @@ export class ResourceModel {
    * @returns The resource information if the attribute exists, or `null` if it does not exist.
    */
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
-    const name = PLATFORM.camelCase(syntax.target);
-    let result = this.attributeLookup[name];
-    if (result === undefined) {
-      const def = this.resources.find(CustomAttributeResource, name);
-      if (def === null) {
-        result = null;
+    let result = this.attributeLookup[syntax.target];
+    if (result === void 0) {
+      const def = this.resources.find(CustomAttribute, syntax.target);
+      if (def == null) {
+        result = null!;
       } else {
         result = createAttributeInfo(def);
       }
-      this.attributeLookup[name] = result;
+      this.attributeLookup[syntax.target] = result;
     }
     return result;
   }
@@ -83,9 +86,9 @@ export class ResourceModel {
       return null;
     }
     let result = this.commandLookup[name];
-    if (result === undefined) {
-      result = this.resources.create(BindingCommandResource, name);
-      if (result === null) {
+    if (result === void 0) {
+      result = this.resources.create(BindingCommandResource, name)!;
+      if (result == null) {
         // unknown binding command
         throw Reporter.error(0); // TODO: create error code
       }
@@ -97,7 +100,7 @@ export class ResourceModel {
 
 function createElementInfo(def: TemplateDefinition): ElementInfo {
   const info = new ElementInfo(def.name, def.containerless);
-  const bindables = def.bindables;
+  const bindables = def.bindables as Record<string, IBindableDescription>;
   const defaultBindingMode = BindingMode.toView;
 
   let bindable: IBindableDescription;
@@ -108,17 +111,17 @@ function createElementInfo(def: TemplateDefinition): ElementInfo {
   for (prop in bindables) {
     bindable = bindables[prop];
     // explicitly provided property name has priority over the implicit property name
-    if (bindable.property !== undefined) {
+    if (bindable.property !== void 0) {
       prop = bindable.property;
     }
     // explicitly provided attribute name has priority over the derived implicit attribute name
-    if (bindable.attribute !== undefined) {
+    if (bindable.attribute !== void 0) {
       attr = bindable.attribute;
     } else {
       // derive the attribute name from the resolved property name
-      attr = PLATFORM.kebabCase(prop);
+      attr = kebabCase(prop);
     }
-    if (bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
+    if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
       mode = bindable.mode;
     } else {
       mode = defaultBindingMode;
@@ -129,10 +132,10 @@ function createElementInfo(def: TemplateDefinition): ElementInfo {
 }
 
 function createAttributeInfo(def: AttributeDefinition): AttrInfo {
-  const info = new AttrInfo(def.name, def.isTemplateController);
-  const bindables = def.bindables;
-  const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
-    ? def.defaultBindingMode
+  const info = new AttrInfo(def!.name, def!.isTemplateController);
+  const bindables = def!.bindables as Record<string, IBindableDescription>;
+  const defaultBindingMode = def!.defaultBindingMode !== void 0 && def!.defaultBindingMode !== BindingMode.default
+    ? def!.defaultBindingMode
     : BindingMode.toView;
 
   let bindable: IBindableDescription;
@@ -144,10 +147,10 @@ function createAttributeInfo(def: AttributeDefinition): AttrInfo {
     ++bindableCount;
     bindable = bindables[prop];
     // explicitly provided property name has priority over the implicit property name
-    if (bindable.property !== undefined) {
+    if (bindable.property !== void 0) {
       prop = bindable.property;
     }
-    if (bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
+    if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
       mode = bindable.mode;
     } else {
       mode = defaultBindingMode;
@@ -162,7 +165,7 @@ function createAttributeInfo(def: AttributeDefinition): AttrInfo {
   if (info.bindable === null) {
     info.bindable = new BindableInfo('value', defaultBindingMode);
   }
-  if (def.hasDynamicOptions || bindableCount > 1) {
+  if (def!.hasDynamicOptions || bindableCount > 1) {
     info.hasDynamicOptions = true;
   }
   return info;
@@ -247,7 +250,7 @@ export class AttrInfo {
   constructor(name: string, isTemplateController: boolean) {
     this.name = name;
     this.bindables = {};
-    this.bindable = null;
+    this.bindable = null!;
     this.isTemplateController = isTemplateController;
     this.hasDynamicOptions = false;
   }

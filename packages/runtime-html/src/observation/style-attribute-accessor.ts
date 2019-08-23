@@ -1,35 +1,109 @@
-import { IBindingTargetAccessor, ILifecycle, targetObserver } from '@aurelia/runtime';
+import {
+  IAccessor,
+  ILifecycle,
+  LifecycleFlags,
+  Priority,
+} from '@aurelia/runtime';
 
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | Record<string, string>> {}
+export class StyleAttributeAccessor implements IAccessor<unknown> {
+  public readonly lifecycle: ILifecycle;
 
-@targetObserver()
-export class StyleAttributeAccessor implements StyleAttributeAccessor {
-  public readonly isDOMObserver: true;
+  public readonly obj: HTMLElement;
   public currentValue: string | Record<string, string>;
-  public defaultValue: string | Record<string, string>;
-  public lifecycle: ILifecycle;
-  public obj: HTMLElement;
   public oldValue: string | Record<string, string>;
-  public styles: object;
+
+  public readonly persistentFlags: LifecycleFlags;
+
+  public styles: Record<string, number>;
   public version: number;
 
-  constructor(lifecycle: ILifecycle, obj: HTMLElement) {
-    this.isDOMObserver = true;
-    this.oldValue = this.currentValue = obj.style.cssText;
+  public hasChanges: boolean;
+  public priority: Priority;
+
+  constructor(
+    lifecycle: ILifecycle,
+    flags: LifecycleFlags,
+    obj: HTMLElement,
+  ) {
     this.lifecycle = lifecycle;
+
     this.obj = obj;
-    this.styles = null;
+    this.currentValue = '';
+    this.oldValue = '';
+
+    this.styles = {};
     this.version = 0;
+
+    this.hasChanges = false;
+    this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): string {
     return this.obj.style.cssText;
   }
 
-  public _setProperty(style: string, value: string): void {
+  public setValue(newValue: string | Record<string, string>, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+  }
+
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue } = this;
+      this.oldValue = currentValue;
+      const styles = this.styles;
+      let style: string;
+      let version = this.version;
+
+      if (currentValue instanceof Object) {
+        let value: string;
+        for (style in currentValue) {
+          if (currentValue.hasOwnProperty(style)) {
+            value = currentValue[style];
+            style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
+            styles[style] = version;
+            this.setProperty(style, value);
+          }
+        }
+      } else if (typeof currentValue === 'string') {
+        const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+        let pair: RegExpExecArray;
+        while ((pair = rx.exec(currentValue)!) != null) {
+          style = pair[1];
+          if (!style) { continue; }
+
+          styles[style] = version;
+          this.setProperty(style, pair[2]);
+        }
+      }
+
+      this.styles = styles;
+      this.version += 1;
+      if (version === 0) {
+        return;
+      }
+
+      version -= 1;
+      for (style in styles) {
+        if (!styles.hasOwnProperty(style) || styles[style] !== version) {
+          continue;
+        }
+        this.obj.style.removeProperty(style);
+      }
+    }
+  }
+
+  public setProperty(style: string, value: string): void {
     let priority = '';
 
-    if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+    if (value != null && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
       priority = 'important';
       value = value.replace('!important', '');
     }
@@ -37,47 +111,16 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     this.obj.style.setProperty(style, value, priority);
   }
 
-  public setValueCore(newValue: string | Record<string, string>): void {
-    const styles = this.styles || {};
-    let style: string;
-    let version = this.version;
-
-    if (newValue !== null) {
-      if (newValue instanceof Object) {
-        let value: string;
-        for (style in newValue) {
-          if (newValue.hasOwnProperty(style)) {
-            value = newValue[style];
-            style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
-            styles[style] = version;
-            this._setProperty(style, value);
-          }
-        }
-      } else if (newValue.length) {
-        const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-        let pair: RegExpExecArray;
-        while ((pair = rx.exec(newValue)) !== null) {
-          style = pair[1];
-          if (!style) { continue; }
-
-          styles[style] = version;
-          this._setProperty(style, pair[2]);
-        }
-      }
+  public bind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
     }
+    this.oldValue = this.currentValue = this.obj.style.cssText;
+  }
 
-    this.styles = styles;
-    this.version += 1;
-    if (version === 0) {
-      return;
-    }
-
-    version -= 1;
-    for (style in styles) {
-      if (!styles.hasOwnProperty(style) || styles[style] !== version) {
-        continue;
-      }
-      this.obj.style.removeProperty(style);
+  public unbind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
     }
   }
 }

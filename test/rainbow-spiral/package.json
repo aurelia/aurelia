@@ -1,0 +1,29 @@
+{
+  "name": "fractals-tree",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 ."
+  },
+  "dependencies": {
+    "@aurelia/jit-html": "file:../../packages/jit-html",
+    "@aurelia/jit-html-browser": "file:../../packages/jit-html-browser",
+    "@aurelia/jit": "file:../../packages/jit",
+    "@aurelia/kernel": "file:../../packages/kernel",
+    "@aurelia/runtime-html": "file:../../packages/runtime-html",
+    "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser",
+    "@aurelia/runtime": "file:../../packages/runtime",
+    "@aurelia/plugin-svg": "file:../../packages/plugin-svg",
+    "perf-monitor": "latest"
+  },
+  "devDependencies": {
+    "http-server": "latest",
+    "webpack-cli": "latest",
+    "webpack": "latest"
+  }
+}

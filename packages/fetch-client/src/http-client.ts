@@ -1,4 +1,4 @@
-import { InterfaceSymbol, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, Key, PLATFORM } from '@aurelia/kernel';
 import { DOM, IDOM } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
@@ -11,7 +11,7 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  * An HTTP client based on the Fetch API.
  */
 export class HttpClient {
-  public static readonly inject: InterfaceSymbol[] = [IDOM];
+  public static readonly inject: readonly Key[] = [IDOM];
 
   /**
    * The current number of active requests.
@@ -37,7 +37,7 @@ export class HttpClient {
   /**
    * The default request init to merge with values specified at request time.
    */
-  public defaults: RequestInit;
+  public defaults: RequestInit | null;
 
   /**
    * The interceptors to be run during requests.
@@ -92,7 +92,7 @@ export class HttpClient {
     }
 
     const defaults = normalizedConfig.defaults;
-    if (defaults && Headers.prototype.isPrototypeOf(defaults.headers)) {
+    if (defaults !== undefined && Headers.prototype.isPrototypeOf(defaults.headers as HeadersInit)) {
       // Headers instances are not iterable in all browsers. Require a plain
       // object here to allow default headers to be merged into request headers.
       throw new Error('Default headers must be a plain object.');
@@ -100,7 +100,7 @@ export class HttpClient {
 
     const interceptors = normalizedConfig.interceptors;
 
-    if (interceptors && interceptors.length) {
+    if (interceptors !== undefined && interceptors.length) {
       // find if there is a RetryInterceptor
       if (interceptors.filter(x => RetryInterceptor.prototype.isPrototypeOf(x)).length > 1) {
         throw new Error('Only one RetryInterceptor is allowed.');
@@ -115,7 +115,7 @@ export class HttpClient {
 
     this.baseUrl = normalizedConfig.baseUrl;
     this.defaults = defaults;
-    this.interceptors = normalizedConfig.interceptors || [];
+    this.interceptors = normalizedConfig.interceptors !== undefined ? normalizedConfig.interceptors : [];
     this.isConfigured = true;
 
     return this;
@@ -171,13 +171,13 @@ export class HttpClient {
       );
   }
 
-  public buildRequest(input: string | Request, init: RequestInit): Request {
-    const defaults = this.defaults || {};
+  public buildRequest(input: string | Request, init: RequestInit | undefined): Request {
+    const defaults = this.defaults !== null ? this.defaults : {};
     let request: Request;
     let body: unknown;
-    let requestContentType: string;
+    let requestContentType: string | null;
 
-    const parsedDefaultHeaders = parseHeaderValues(defaults.headers) as HeadersInit;
+    const parsedDefaultHeaders = parseHeaderValues(defaults.headers as IIndexable);
     if (Request.prototype.isPrototypeOf(input)) {
       request = input as Request;
       requestContentType = new Headers(request.headers).get('Content-Type');
@@ -186,20 +186,20 @@ export class HttpClient {
         init = {};
       }
       body = init.body;
-      const bodyObj = body ? { body: body as BodyInit } : null;
+      const bodyObj = body !== undefined ? { body: body as BodyInit } : null;
       const requestInit: RequestInit = { ...defaults, headers: {}, ...init, ...bodyObj };
       requestContentType = new Headers(requestInit.headers as Headers).get('Content-Type');
       request = new Request(getRequestUrl(this.baseUrl, input as string), requestInit);
     }
     if (!requestContentType) {
       if (new Headers(parsedDefaultHeaders).has('content-type')) {
-        request.headers.set('Content-Type', new Headers(parsedDefaultHeaders).get('content-type'));
-      } else if (body && isJSON(body)) {
+        request.headers.set('Content-Type', new Headers(parsedDefaultHeaders).get('content-type') as string);
+      } else if (body !== undefined && isJSON(body)) {
         request.headers.set('Content-Type', 'application/json');
       }
     }
     setDefaultHeaders(request.headers, parsedDefaultHeaders);
-    if (body && Blob.prototype.isPrototypeOf(body as Blob) && (body as Blob).type) {
+    if (body !== undefined && Blob.prototype.isPrototypeOf(body as Blob) && (body as Blob).type) {
       // work around bug in IE & Edge where the Blob type is ignored in the request
       // https://connect.microsoft.com/IE/feedback/details/2136163
       request.headers.set('Content-Type', (body as Blob).type);
@@ -300,22 +300,23 @@ export class HttpClient {
     return this.applyInterceptors(response, interceptors, 'response', 'responseError', request, this);
   }
 
-  private applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[], successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: unknown[]): Promise<Request | Response> {
-    return (interceptors || [])
+  private applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[] | undefined, successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: unknown[]): Promise<Request | Response> {
+    return (interceptors !== undefined ? interceptors : [])
       .reduce(
         (chain, interceptor) => {
           const successHandler = interceptor[successName];
           const errorHandler = interceptor[errorName];
 
+          // TODO: Fix this, as it violates `strictBindCallApply`.
           return chain.then(
-            successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity,
-            errorHandler && (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) || thrower);
+            successHandler ? (value => successHandler.call(interceptor, value, ...interceptorArgs)) : identity,
+            errorHandler ? (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) : thrower);
         },
         Promise.resolve(input)
       );
   }
 
-  private callFetch(input: string | Request, body: BodyInit, init: RequestInit, method: string): Promise<Response> {
+  private callFetch(input: string | Request, body: BodyInit | undefined, init: RequestInit | undefined, method: string): Promise<Response> {
     if (!init) {
       init = {};
     }
@@ -327,11 +328,14 @@ export class HttpClient {
   }
 }
 
-function parseHeaderValues(headers: object): object {
-  const parsedHeaders = {};
-  for (const name in headers || {}) {
-    if (headers.hasOwnProperty(name)) {
-      parsedHeaders[name] = (typeof headers[name] === 'function') ? headers[name]() : headers[name];
+function parseHeaderValues(headers: Record<string, unknown> | undefined): Record<string, string>  {
+  const parsedHeaders: Record<string, string> = {};
+  const $headers = headers !== undefined ? headers : {};
+  for (const name in $headers) {
+    if ($headers.hasOwnProperty(name)) {
+      parsedHeaders[name] = (typeof $headers[name] === 'function')
+        ? ($headers[name] as () => string)()
+        : $headers[name] as string;
     }
   }
   return parsedHeaders;
@@ -345,10 +349,11 @@ function getRequestUrl(baseUrl: string, url: string): string {
   return (baseUrl !== undefined ? baseUrl : '') + url;
 }
 
-function setDefaultHeaders(headers: Headers, defaultHeaders: object): void {
-  for (const name in defaultHeaders || {}) {
-    if (defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
-      headers.set(name, defaultHeaders[name]);
+function setDefaultHeaders(headers: Headers, defaultHeaders?: Record<string, string>): void {
+  const $defaultHeaders = defaultHeaders !== undefined ? defaultHeaders : {};
+  for (const name in $defaultHeaders) {
+    if ($defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
+      headers.set(name, $defaultHeaders[name]);
     }
   }
 }
@@ -367,6 +372,6 @@ function identity(x: unknown): unknown {
   return x;
 }
 
-function thrower(x: unknown): unknown {
+function thrower(x: unknown): never {
   throw x;
 }

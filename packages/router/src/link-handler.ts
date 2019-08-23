@@ -1,3 +1,5 @@
+import { DOM } from '@aurelia/runtime-html';
+
 /**
  * Provides information about how to handle an anchor event.
  */
@@ -30,17 +32,11 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
-  private static readonly window: Window;
-
   private options: ILinkHandlerOptions;
   private isActive: boolean = false;
 
   // private handler: EventListener;
-  private readonly document: Document;
 
-  constructor() {
-    this.document = document;
-  }
   /**
    * Gets the href and a "should handle" recommendation, given an Event.
    *
@@ -66,7 +62,15 @@ export class LinkHandler {
       return info;
     }
 
+    if (!target.hasAttribute('href')) {
+      return info;
+    }
+
     const href = target.getAttribute('href');
+    if (!href || !href.length) {
+      return info;
+    }
+
     info.anchor = target;
     info.href = href;
 
@@ -99,7 +103,7 @@ export class LinkHandler {
    */
   private static targetIsThisWindow(target: Element): boolean {
     const targetWindow = target.getAttribute('target');
-    const win = LinkHandler.window;
+    const win = DOM.window;
 
     return !targetWindow ||
       targetWindow === win.name ||
@@ -112,20 +116,23 @@ export class LinkHandler {
    */
   public activate(options: ILinkHandlerOptions): void {
     if (this.isActive) {
-      throw new Error('LinkHandler has already been activated.');
+      throw new Error('Link handler has already been activated');
     }
 
     this.isActive = true;
     this.options = { ...options };
 
-    this.document.addEventListener('click', this.handler, true);
+    DOM.document.addEventListener('click', this.handler, true);
   }
 
   /**
    * Deactivate the instance. Event handlers and other resources should be cleaned up here.
    */
   public deactivate(): void {
-    this.document.removeEventListener('click', this.handler, true);
+    if (!this.isActive) {
+      throw new Error('Link handler has not been activated');
+    }
+    DOM.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 

@@ -1,17 +1,13 @@
-import { ICustomElementType } from '@aurelia/runtime';
 import { NavRoute } from './nav-route';
-import { Router } from './router';
-
-export interface IViewportComponent {
-  viewport?: string;
-  component: string | Partial<ICustomElementType>;
-}
-
-export type NavComponent = string | Partial<ICustomElementType> | IViewportComponent;
+import { INavClasses } from './resources/nav';
+import { IRouter, NavigationInstruction } from './router';
 
 export interface INavRoute {
-  components: NavComponent | NavComponent[];
-  consideredActive?: NavComponent | NavComponent[];
+  route?: NavigationInstruction | NavigationInstruction[];
+  execute?: ((route: NavRoute) => void);
+  condition?: boolean | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
+  compareParameters?: boolean;
   link?: string;
   title: string;
   children?: INavRoute[];
@@ -21,29 +17,46 @@ export interface INavRoute {
 export class Nav {
   public name: string;
   public routes: NavRoute[];
+  public classes: INavClasses;
 
-  public router: Router;
+  public router: IRouter;
 
-  constructor(router: Router, name: string) {
+  constructor(router: IRouter, name: string, routes: NavRoute[] = [], classes: INavClasses = {}) {
     this.router = router;
     this.name = name;
-
-    this.routes = [];
+    this.routes = routes;
+    this.classes = classes;
+    this.update();
   }
 
   public addRoutes(routes: INavRoute[]): void {
     for (const route of routes) {
       this.addRoute(this.routes, route);
     }
+    this.update();
   }
 
-  public addRoute(routes: NavRoute[], route: INavRoute): void {
+  public update(): void {
+    this.updateRoutes(this.routes);
+    this.routes = this.routes.slice();
+  }
+
+  private addRoute(routes: NavRoute[], route: INavRoute): void {
     const newRoute = new NavRoute(this, route);
     routes.push(newRoute);
     if (route.children) {
       newRoute.children = [];
       for (const child of route.children) {
         this.addRoute(newRoute.children, child);
+      }
+    }
+  }
+
+  private updateRoutes(routes: NavRoute[]): void {
+    for (const route of routes) {
+      route.update();
+      if (route.children && route.children.length) {
+        this.updateRoutes(route.children);
       }
     }
   }

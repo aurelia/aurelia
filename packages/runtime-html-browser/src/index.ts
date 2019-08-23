@@ -1,9 +1,9 @@
-import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 
 class BrowserDOMInitializer implements IDOMInitializer {
-  public static inject: unknown[] = [IContainer];
+  public static readonly inject: readonly Key[] = [IContainer];
 
   private readonly container: IContainer;
 
@@ -30,7 +30,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
           Node,
           Element,
           HTMLElement,
-          CustomEvent
+          CustomEvent,
+          CSSStyleSheet,
+          ShadowRoot
         );
       } else {
         dom = new HTMLDOM(
@@ -39,7 +41,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
           Node,
           Element,
           HTMLElement,
-          CustomEvent
+          CustomEvent,
+          CSSStyleSheet,
+          ShadowRoot
         );
       }
     } else {
@@ -49,7 +53,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
         Node,
         Element,
         HTMLElement,
-        CustomEvent
+        CustomEvent,
+        CSSStyleSheet,
+        ShadowRoot
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

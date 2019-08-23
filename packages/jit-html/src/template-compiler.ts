@@ -17,7 +17,16 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { IContainer, InterfaceSymbol, IResolver, IResourceDescriptions, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
+import {
+  IContainer,
+  IResolver,
+  IResourceDescriptions,
+  Key,
+  mergeDistinct,
+  PLATFORM,
+  Profiler,
+  Registration,
+} from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -60,7 +69,7 @@ const { enter, leave } = Profiler.createTimer('TemplateCompiler');
  * @internal
  */
 export class TemplateCompiler implements ITemplateCompiler {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
+  public static readonly inject: readonly Key[] = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
   private readonly factory: ITemplateElementFactory;
   private readonly attrParser: IAttributeParser;
@@ -71,6 +80,9 @@ export class TemplateCompiler implements ITemplateCompiler {
    */
   private instructionRows: HTMLInstructionRow[];
 
+  private scopeParts: string[];
+  private parts: Record<string, ITemplateDefinition>;
+
   public get name(): string {
     return 'default';
   }
@@ -79,7 +91,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.factory = factory;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
-    this.instructionRows = null;
+    this.instructionRows = null!;
+    this.parts = null!;
+    this.scopeParts = null!;
   }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -87,24 +101,28 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
-    if (Profiler.enabled) { enter(); }
     const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
-    if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
+    if (definition.instructions === undefined || definition.instructions === (PLATFORM.emptyArray as typeof definition.instructions & typeof PLATFORM.emptyArray)) {
       definition.instructions = [];
     }
     if (surrogate.hasSlots === true) {
       definition.hasSlots = true;
     }
+    if (definition.scopeParts === void 0 || definition.scopeParts === PLATFORM.emptyArray) {
+      definition.scopeParts = [];
+    }
 
     this.instructionRows = definition.instructions as HTMLInstructionRow[];
+    this.parts = {};
+    this.scopeParts = definition.scopeParts as (readonly string[]) & string[];
 
     const attributes = surrogate.attributes;
     const len = attributes.length;
     if (len > 0) {
       let surrogates: ITargetedInstruction[];
-      if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
+      if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
         definition.surrogates = Array(len);
       }
       surrogates = definition.surrogates;
@@ -115,9 +133,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     this.compileChildNodes(surrogate);
 
-    this.instructionRows = null;
+    this.instructionRows = null!;
+    this.parts = null!;
+    this.scopeParts = null!;
 
-    if (Profiler.enabled) { leave(); }
+    definition.build = buildNotRequired;
+
     return definition as TemplateDefinition;
   }
 
@@ -157,6 +178,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     );
 
     this.instructionRows.push(instructionRow);
+
+    this.compileChildNodes(symbol);
   }
 
   private compilePlainElement(symbol: PlainElementSymbol): void {
@@ -164,6 +187,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (attributes.length > 0) {
       this.instructionRows.push(attributes as HTMLInstructionRow);
     }
+
     this.compileChildNodes(symbol);
   }
 
@@ -183,17 +207,30 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileTemplateController(symbol: TemplateControllerSymbol): void {
     const bindings = this.compileBindings(symbol);
     const instructionRowsSave = this.instructionRows;
+    const scopePartsSave = this.scopeParts;
     const controllerInstructions = this.instructionRows = [];
+    const scopeParts = this.scopeParts = [];
     this.compileParentNode(symbol.template);
     this.instructionRows = instructionRowsSave;
+    this.scopeParts = mergeDistinct(scopePartsSave, scopeParts, false);
 
-    const def = {
-      name: symbol.partName === null ? symbol.res : symbol.partName,
+    const def: ITemplateDefinition = {
+      scopeParts,
+      name: symbol.partName == null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions,
       build: buildNotRequired
     };
-    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
+
+    let parts: Record<string, ITemplateDefinition> | undefined = void 0;
+    if ((symbol.flags & SymbolFlags.hasParts) > 0) {
+      parts = {};
+      for (const part of symbol.parts) {
+        parts[part.name] = this.parts[part.name];
+      }
+    }
+
+    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else', parts)]);
   }
 
   private compileBindings(symbol: ISymbolWithBindings): HTMLAttributeInstruction[] {
@@ -209,15 +246,15 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      bindingInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
+      bindingInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
     }
     return bindingInstructions;
   }
 
   private compileBinding(symbol: BindingSymbol): HTMLAttributeInstruction {
-    if (symbol.command === null) {
+    if (symbol.command == null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
-      if (symbol.expression === null) {
+      if (symbol.expression == null) {
         // the template binder already filtered out non-bindables, so we know we need a setProperty here
         return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
@@ -244,7 +281,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
     } else {
-      attributeInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
+      attributeInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
     }
     return attributeInstructions;
   }
@@ -256,8 +293,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
-    if (symbol.command === null) {
-      if (symbol.expression === null) {
+    if (symbol.command == null) {
+      if (symbol.expression == null) {
         // a plain attribute on a surrogate
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
       } else {
@@ -289,20 +326,29 @@ export class TemplateCompiler implements ITemplateCompiler {
       const replaceParts = symbol.parts;
       const ii = replaceParts.length;
       let instructionRowsSave: HTMLInstructionRow[];
+      let partScopesSave: string[];
+      let scopeParts: string[];
       let partInstructions: HTMLInstructionRow[];
       let replacePart: ReplacePartSymbol;
       for (let i = 0; i < ii; ++i) {
         replacePart = replaceParts[i];
         instructionRowsSave = this.instructionRows;
+        partScopesSave = this.scopeParts;
+        if (partScopesSave.indexOf(replacePart.name) === -1) {
+          partScopesSave.push(replacePart.name);
+        }
+        scopeParts = this.scopeParts = [];
         partInstructions = this.instructionRows = [];
         this.compileParentNode(replacePart.template);
-        parts[replacePart.name] = {
+        this.parts[replacePart.name] = parts[replacePart.name] = {
+          scopeParts,
           name: replacePart.name,
           template: replacePart.physicalNode,
           instructions: partInstructions,
-          build: buildNotRequired
+          build: buildNotRequired,
         };
         this.instructionRows = instructionRowsSave;
+        this.scopeParts = partScopesSave;
       }
     } else {
       parts = PLATFORM.emptyObject;

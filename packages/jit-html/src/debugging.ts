@@ -107,7 +107,7 @@ export function stringifyTemplateDefinition(def: ITemplateDefinition, depth: num
   output += `TemplateDefinition: ${def.name}\n`;
   output += stringifyDOM(def.template as Node, depth + 1);
   output += `${indent} Instructions:\n`;
-  def.instructions.forEach(row => {
+  def.instructions!.forEach(row => {
     output += `${indent}  Row:\n`;
     row.forEach(i => {
       output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 3);

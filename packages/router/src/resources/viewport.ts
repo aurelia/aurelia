@@ -1,41 +1,68 @@
-import { Constructable, IContainer, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { bindable, createRenderContext, CustomElementResource, ICustomElement, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
-import { Router } from '../router';
-import { IViewportOptions, Viewport } from '../viewport';
+import {
+  Key,
+  Writable
+} from '@aurelia/kernel';
 
-export interface ViewportCustomElement extends ICustomElement<Element> { }
+import {
+  bindable,
+  createRenderContext,
+  CustomElement,
+  IController,
+  ICustomElementType,
+  IDOM,
+  INode,
+  IRenderContext,
+  IRenderingEngine,
+  ITemplate,
+  LifecycleFlags,
+  TemplateDefinition
+} from '@aurelia/runtime';
+
+import {
+  IRouter,
+} from '../router';
+import {
+  IViewportOptions,
+  Viewport
+} from '../viewport';
+
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode, IRenderingEngine];
+  public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
 
   @bindable public name: string;
-  @bindable public scope: boolean;
   @bindable public usedBy: string;
   @bindable public default: string;
+  @bindable public noScope: boolean;
   @bindable public noLink: boolean;
   @bindable public noHistory: boolean;
+  @bindable public stateful: boolean;
 
   public viewport: Viewport;
 
-  private readonly router: Router;
+  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
+  public $controller!: IController;
+
+  private readonly router: IRouter;
   private readonly element: Element;
   private readonly renderingEngine: IRenderingEngine;
 
-  constructor(router: Router, element: Element, renderingEngine: IRenderingEngine) {
+  constructor(router: IRouter, element: Element, renderingEngine: IRenderingEngine) {
+    this.name = 'default';
+    this.usedBy = null;
+    this.default = null;
+    this.noScope = null;
+    this.noLink = null;
+    this.noHistory = null;
+    this.stateful = null;
+    this.viewport = null;
+
     this.router = router;
     this.element = element;
     this.renderingEngine = renderingEngine;
-
-    this.name = 'default';
-    this.scope = null;
-    this.usedBy = null;
-    this.default = null;
-    this.noLink = null;
-    this.noHistory = null;
-    this.viewport = null;
   }
 
-  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
-    const Type = this.constructor as any;
+  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
+    const Type = this.constructor as ICustomElementType;
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
     (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
@@ -70,9 +97,15 @@ export class ViewportCustomElement {
   //   }
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
-
   public bound(): void {
-    const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
+    this.connect();
+  }
+  public unbound(): void {
+    this.disconnect();
+  }
+
+  public connect(): void {
+    const options: IViewportOptions = { scope: !this.element.hasAttribute('no-scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
     }
@@ -85,10 +118,13 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('no-history')) {
       options.noHistory = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
+    if (this.element.hasAttribute('stateful')) {
+      options.stateful = true;
+    }
+    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
   }
-  public unbound(): void {
-    this.router.removeViewport(this.viewport, this.element, this.$context);
+  public disconnect(): void {
+    this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
   }
 
   public binding(flags: LifecycleFlags): void {
@@ -116,4 +152,4 @@ export class ViewportCustomElement {
   }
 }
 // tslint:disable-next-line:no-invalid-template-strings
-CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);
+CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);

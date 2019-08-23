@@ -1,0 +1,23 @@
+<template>
+  <!-- <require from="bootstrap/dist/css/bootstrap.min.css"></require>
+  <require from="font-awesome/css/font-awesome.min.css"></require>
+  <require from="./styles.css"></require> -->
+
+  <!-- <require from="./nav-bar.html"></require> -->
+
+  <nav-bar router.bind="router"></nav-bar>
+
+  <div class="page-host">
+    <div>
+      Amount of "windows":
+      <!-- <select value.two-way="count">
+      <option repeat.for="index of maxWindows" model.one-time="index + 1">${index + 1}</option>
+    </select>  -->
+      ${count}
+    </div>
+    <div class="window" repeat.for="index of count">
+      <au-nav name="app-menu-${index + 1}"></au-nav>
+      <au-viewport name="app-viewport-${index + 1}" scope></au-viewport>
+    </div>
+  </div>
+</template>

@@ -17,6 +17,7 @@
     * Security Rules. The following rules should be turned on because they find security issues
     * or are recommended in the Microsoft Secure Development Lifecycle (SDL)
     */
+    "function-constructor": true,
     "insecure-random": true,
     "no-banned-terms": true,
     "no-cookies": true,
@@ -26,8 +27,8 @@
     "no-document-write": true,
     "no-eval": true,
     "no-exec-script": true,
-    "no-function-constructor-with-string-args": true,
-      "no-http-string": [true,
+    "no-function-constructor-with-string-args": false, // Deprecated, superseded by `function-constructor`
+    "no-http-string": [true,
       "http://localhost:?.*",
       // https://infra.spec.whatwg.org/#namespaces
       "http://www.w3.org/1999/xhtml",
@@ -92,7 +93,7 @@
     "no-string-literal": false,
     "no-string-throw": true,
     "no-submodule-imports": false,
-    "no-unnecessary-bind": true,
+    "no-unnecessary-bind": false, // Deprecated, superseded by `unnecessary-bind`
     "no-unnecessary-callback-wrapper": true,
     "no-unnecessary-initializer": true,
     "no-unnecessary-override": true,
@@ -116,8 +117,9 @@
       "allow-mix"
     ],
     "switch-default": false,
-    "switch-final-break": true,
-    "triple-equals": [true, "allow-null-check"],
+    "switch-final-break": false,
+    "triple-equals": [false],
+    "unnecessary-bind": true,
     "use-isnan": true,
     "use-named-parameter": true,
 
@@ -135,10 +137,7 @@
     "chai-vague-errors": false,
     "class-name": false,
     "comment-format": true,
-    "completed-docs": {
-      "severity": "warning",
-      "options": "classes"
-    },
+    "completed-docs": false,
     "export-name": false,
     "function-name": false,
     "import-name": true,
@@ -172,10 +171,10 @@
     "no-this-assignment": false,
     "no-typeof-undefined": false,
     "no-unnecessary-class": false,
-    "no-unnecessary-field-initialization": true,
+    "no-unnecessary-field-initialization": false,
     "no-unnecessary-local-variable": true,
     "no-unnecessary-qualifier": true,
-    "no-unnecessary-type-assertion": true,
+    "no-unnecessary-type-assertion": { "severity": "warning" }, // Gives false positives on CircleCI, so keep them as warning for now
     "no-unsupported-browser-code": true,
     "no-useless-files": true,
     "no-var-keyword": true,
@@ -191,13 +190,13 @@
     "prefer-for-of": false,
     "prefer-method-signature": true,
     "prefer-object-spread": true,
-    "prefer-template": true,
+    "prefer-template": false,
     "type-literal-delimiter": true,
     "typedef": [
       true,
-      "call-signature",
+      //"call-signature",
       //"arrow-call-signature",
-      "parameter",
+      //"parameter",
       //"arrow-parameter",
       "property-declaration",
       //"variable-declaration",
@@ -205,7 +204,7 @@
     ],
     "underscore-consistent-invocation": true,
     "unified-signatures": false,
-    "use-default-type-parameter": true,
+    "use-default-type-parameter": false,
     "variable-name": [true, "ban-keywords", "allow-leading-underscore", "allow-pascal-case"],
 
   /**
@@ -295,6 +294,7 @@
     "max-union-size": [true, 5],
     "no-extra-semicolon": false,
     "no-identical-functions": false,
-    "no-duplicate-string": false
+    "no-duplicate-string": false,
+    "no-useless-cast": false
   }
 }

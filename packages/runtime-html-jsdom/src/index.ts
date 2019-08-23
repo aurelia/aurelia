@@ -1,10 +1,10 @@
-import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 class JSDOMInitializer implements IDOMInitializer {
-  public static inject: unknown[] = [IContainer];
+  public static readonly inject: readonly Key[] = [IContainer];
 
   private readonly container: IContainer;
   private readonly jsdom: JSDOM;
@@ -33,10 +33,12 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.Node,
           this.jsdom.window.Element,
           this.jsdom.window.HTMLElement,
-          this.jsdom.window.CustomEvent
+          this.jsdom.window.CustomEvent,
+          this.jsdom.window.CSSStyleSheet,
+          (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
         );
       } else {
-        if (config.host) {
+        if (config.host !== undefined) {
           this.jsdom.window.document.body.appendChild(config.host);
         }
         dom = new HTMLDOM(
@@ -45,7 +47,9 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.Node,
           this.jsdom.window.Element,
           this.jsdom.window.HTMLElement,
-          this.jsdom.window.CustomEvent
+          this.jsdom.window.CustomEvent,
+          this.jsdom.window.CSSStyleSheet,
+          (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
         );
       }
     } else {
@@ -55,7 +59,9 @@ class JSDOMInitializer implements IDOMInitializer {
         this.jsdom.window.Node,
         this.jsdom.window.Element,
         this.jsdom.window.HTMLElement,
-        this.jsdom.window.CustomEvent
+        this.jsdom.window.CustomEvent,
+        this.jsdom.window.CSSStyleSheet,
+        (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

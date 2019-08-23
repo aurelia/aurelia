@@ -56,8 +56,8 @@ export class MockBrowserHistoryLocation {
     // } else {
     const part = parts.shift();
     if (part !== undefined) {
-        path += `?${part}`;
-      }
+      path += `?${part}`;
+    }
     parts.shift();
     path += `#${value}`;
     // }
@@ -65,6 +65,9 @@ export class MockBrowserHistoryLocation {
     this.pushState({}, null, path);
     this.notifyChange();
   }
+
+  public activate(callback: Function): void { }
+  public deactivate(): void { }
 
   // TODO: Fix a better split
   private get parts(): string[] {
@@ -102,11 +105,13 @@ export class MockBrowserHistoryLocation {
     this.paths[this.index] = path;
   }
 
-  public go(movement: number) {
+  public go(movement: number, suppressPopstate: boolean = false) {
     const newIndex = this.index + movement;
     if (newIndex >= 0 && newIndex < this.states.length) {
       this.index = newIndex;
-      this.notifyChange();
+      // if (!suppressPopstate) {
+        this.notifyChange();
+      // }
     }
   }
 

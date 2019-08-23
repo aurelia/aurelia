@@ -1,19 +1,24 @@
-import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  PLATFORM,
+  Reporter,
+} from '@aurelia/kernel';
+
 import {
   AnyBindingExpression,
   IForOfStatement,
   IInterpolationExpression,
-  IsBindingBehavior
+  IsBindingBehavior,
 } from '../ast';
 import { ExpressionKind } from '../flags';
 import {
-  AccessMember,
-  AccessScope,
-  CallMember,
-  CallScope,
+  AccessMemberExpression,
+  AccessScopeExpression,
+  CallMemberExpression,
+  CallScopeExpression,
   ForOfStatement,
   Interpolation,
-  PrimitiveLiteral
+  PrimitiveLiteralExpression,
 } from './ast';
 
 export interface IExpressionParser {
@@ -45,14 +50,14 @@ export class ExpressionParser implements IExpressionParser {
     switch (bindingType) {
       case BindingType.Interpolation: {
         let found = this.interpolationLookup[expression];
-        if (found === undefined) {
+        if (found === void 0) {
           found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
       }
       case BindingType.ForCommand: {
         let found = this.forOfLookup[expression];
-        if (found === undefined) {
+        if (found === void 0) {
           found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
@@ -61,10 +66,10 @@ export class ExpressionParser implements IExpressionParser {
         // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
         // But don't cache it, because empty strings are always invalid for any other type of binding
         if (expression.length === 0 && (bindingType & (BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand))) {
-          return PrimitiveLiteral.$empty;
+          return PrimitiveLiteralExpression.$empty;
         }
         let found = this.expressionLookup[expression];
-        if (found === undefined) {
+        if (found === void 0) {
           found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
@@ -99,9 +104,9 @@ export class ExpressionParser implements IExpressionParser {
       let current: AnyBindingExpression;
 
       if (firstPart.endsWith('()')) {
-        current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
+        current = new CallScopeExpression(firstPart.replace('()', ''), PLATFORM.emptyArray);
       } else {
-        current = new AccessScope(parts[0]);
+        current = new AccessScopeExpression(parts[0]);
       }
 
       let index = 1;
@@ -110,9 +115,9 @@ export class ExpressionParser implements IExpressionParser {
         const currentPart = parts[index];
 
         if (currentPart.endsWith('()')) {
-          current = new CallMember(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
+          current = new CallMemberExpression(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
         } else {
-          current = new AccessMember(current, parts[index]);
+          current = new AccessMemberExpression(current, parts[index]);
         }
 
         index++;

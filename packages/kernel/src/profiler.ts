@@ -12,7 +12,7 @@ export interface IProfile {
   totalCount: number;
 }
 
-export const Profiler = (function(): {
+export const Profiler = (function (): {
   createTimer: typeof createTimer;
   enable: typeof enable;
   disable: typeof disable;

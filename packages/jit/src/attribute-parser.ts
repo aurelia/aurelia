@@ -1,4 +1,4 @@
-import { all, DI, InterfaceSymbol, Profiler } from '@aurelia/kernel';
+import { all, DI, Key, Profiler } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 
@@ -12,7 +12,8 @@ const { enter, leave } = Profiler.createTimer('AttributeParser');
 
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ISyntaxInterpreter, all(IAttributePattern)];
+  // @ts-ignore
+  public static readonly inject: readonly Key[] = [ISyntaxInterpreter, all(IAttributePattern)];
 
   private readonly interpreter: ISyntaxInterpreter;
   private readonly cache: Record<string, Interpretation>;
@@ -32,17 +33,14 @@ export class AttributeParser implements IAttributeParser {
   }
 
   public parse(name: string, value: string): AttrSyntax {
-    if (Profiler.enabled) { enter(); }
     let interpretation = this.cache[name];
-    if (interpretation === undefined) {
+    if (interpretation == null) {
       interpretation = this.cache[name] = this.interpreter.interpret(name);
     }
     const pattern = interpretation.pattern;
-    if (pattern === null) {
-      if (Profiler.enabled) { leave(); }
+    if (pattern == null) {
       return new AttrSyntax(name, value, name, null);
     } else {
-      if (Profiler.enabled) { leave(); }
       return this.patterns[pattern][pattern](name, value, interpretation.parts);
     }
   }

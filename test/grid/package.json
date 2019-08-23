@@ -1,0 +1,42 @@
+{
+  "name": "grid",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "watch": "webpack-dev-server",
+    "build": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 dist"
+  },
+  "dependencies": {
+    "bulma": "latest",
+    "faker": "latest",
+    "@aurelia/jit-html": "file:../../packages/jit-html",
+    "@aurelia/jit-html-browser": "file:../../packages/jit-html-browser",
+    "@aurelia/jit": "file:../../packages/jit",
+    "@aurelia/kernel": "file:../../packages/kernel",
+    "@aurelia/runtime-html": "file:../../packages/runtime-html",
+    "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser",
+    "@aurelia/runtime": "file:../../packages/runtime"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/faker": "latest",
+    "autoprefixer": "latest",
+    "html-loader": "latest",
+    "http-server": "latest",
+    "node-sass": "latest",
+    "postcss-loader": "latest",
+    "rimraf": "latest",
+    "sass-loader": "latest",
+    "style-loader": "latest",
+    "ts-loader": "latest",
+    "typescript": "latest",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest",
+    "webpack": "latest"
+  }
+}

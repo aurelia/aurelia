@@ -10,7 +10,6 @@ import {
   ElseRegistration,
   RepeatRegistration,
   ReplaceableRegistration,
-  KeyedBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
   CustomElementRendererRegistration,
@@ -19,7 +18,7 @@ import {
   PropertyBindingRendererRegistration,
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
-  ValueConverterResource,
+  ValueConverter,
 } from '@aurelia/runtime';
 import {
   IProjectorLocatorRegistration,
@@ -54,7 +53,7 @@ import {
   Router
 } from '@aurelia/router';
 import { App } from './app';
-import { DI, PLATFORM, Tracer } from '@aurelia/kernel';
+import { DI, Tracer, camelCase } from '@aurelia/kernel';
 
 window['faker'] = faker;
 
@@ -86,7 +85,6 @@ const container = DI.createContainer().register(
   RepeatRegistration,
   ReplaceableRegistration,
 
-  KeyedBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
 
@@ -141,13 +139,13 @@ const container = DI.createContainer().register(
   Router as any,
 
   // custom inline registrations
-  ValueConverterResource.define('pascal', class {
+  ValueConverter.define('pascal', class {
     public toView(input: string): string {
-      const camel = PLATFORM.camelCase(input);
+      const camel = camelCase(input);
       return camel.slice(0, 1).toUpperCase() + camel.slice(1);
     }
   }),
-  ValueConverterResource.define('sort', class {
+  ValueConverter.define('sort', class {
     public toView(arr: unknown[], prop?: string, dir: 'asc' | 'desc' = 'asc'): unknown[] {
       if (Array.isArray(arr)) {
         const factor = dir === 'asc' ? 1 : -1;

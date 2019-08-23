@@ -1,6 +1,6 @@
 export {
-  IHtmlAttributeSyntaxModifier
-} from './attribute-mapper';
+  IAttrSyntaxTransformer
+} from './attribute-syntax-transformer';
 export {
   TriggerBindingCommand,
   DelegateBindingCommand,

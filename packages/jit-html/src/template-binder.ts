@@ -34,7 +34,7 @@ import {
 import {
   NodeType,
 } from '@aurelia/runtime-html';
-import { IHtmlAttributeSyntaxModifier } from './attribute-mapper';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 
 const slice = Array.prototype.slice;
 
@@ -60,7 +60,7 @@ export class TemplateBinder {
   public resources: ResourceModel;
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
-  public attrSyntaxModifier: IHtmlAttributeSyntaxModifier;
+  public attrSyntaxTransformer: IAttrSyntaxTransformer;
 
   private surrogate: PlainElementSymbol | null;
 
@@ -83,13 +83,13 @@ export class TemplateBinder {
     resources: ResourceModel,
     attrParser: IAttributeParser,
     exprParser: IExpressionParser,
-    attrSyntaxModifier: IHtmlAttributeSyntaxModifier
+    attrSyntaxModifier: IAttrSyntaxTransformer
   ) {
     this.dom = dom;
     this.resources = resources;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
-    this.attrSyntaxModifier = attrSyntaxModifier;
+    this.attrSyntaxTransformer = attrSyntaxModifier;
     this.surrogate = null;
     this.manifest = null;
     this.manifestRoot = null;
@@ -251,7 +251,7 @@ export class TemplateBinder {
 
       if (attrInfo == null) {
         // map special html attributes to their corresponding properties
-        this.attrSyntaxModifier.process(node, attrSyntax);
+        this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
@@ -308,9 +308,7 @@ export class TemplateBinder {
 
       processReplacePart(this.dom, replacePart, manifestProxy);
     }
-
   }
-
 
   private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
     let childNode: ChildNode;

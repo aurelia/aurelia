@@ -1,25 +1,30 @@
 import { AttrSyntax } from '@aurelia/jit';
 import { DI } from '@aurelia/kernel';
 
-export interface IHtmlAttributeSyntaxModifier {
-  process(node: HTMLElement, attrSyntax: AttrSyntax): void;
+export interface IAttrSyntaxTransformer {
+  transform(node: HTMLElement, attrSyntax: AttrSyntax): void;
+  map(tagName: string, attr: string): string;
 }
 
-export const IHtmlAttributeSyntaxModifier =
+export const IAttrSyntaxTransformer =
   DI
-    .createInterface<IHtmlAttributeSyntaxModifier>('IAttributeMapper')
-    .withDefault(x => x.singleton(DefaultHtmlAttributeSyntaxModifier));
+    .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
+    .withDefault(x => x.singleton(HtmlAttrSyntaxTransformer));
 
-export class DefaultHtmlAttributeSyntaxModifier implements IHtmlAttributeSyntaxModifier {
+export class HtmlAttrSyntaxTransformer implements IAttrSyntaxTransformer {
 
-  public process(node: HTMLElement, attrSyntax: AttrSyntax): void {
+  public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
 
     if (attrSyntax.command === 'bind') {
-      this.determineBindingCommand(node, attrSyntax);
+      this.transformBindingCommand(node, attrSyntax);
     }
 
-    let target = attrSyntax.target;
-    switch (node.tagName) {
+    attrSyntax.target = this.map(node.tagName, attrSyntax.target);
+  }
+
+  public map(tagName: string, attr: string): string {
+    let target = attr;
+    switch (tagName) {
       case 'LABEL':
         switch (target) {
           case 'for':
@@ -106,10 +111,10 @@ export class DefaultHtmlAttributeSyntaxModifier implements IHtmlAttributeSyntaxM
         }
         break;
     }
-    attrSyntax.target = target;
+    return target;
   }
 
-  private determineBindingCommand(element: HTMLElement, attrSyntax: AttrSyntax): void {
+  private transformBindingCommand(element: HTMLElement, attrSyntax: AttrSyntax): void {
     const tagName = element.tagName;
     const target = attrSyntax.target;
     let command = attrSyntax.command;

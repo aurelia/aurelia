@@ -53,9 +53,9 @@ import {
   SetAttributeInstruction,
   TextBindingInstruction
 } from '@aurelia/runtime-html';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
-import { IHtmlAttributeSyntaxModifier } from './attribute-mapper';
 
 const buildNotRequired: IBuildInstruction = Object.freeze({
   required: false,
@@ -74,13 +74,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     ITemplateElementFactory,
     IAttributeParser,
     IExpressionParser,
-    IHtmlAttributeSyntaxModifier
+    IAttrSyntaxTransformer
   ];
 
   private readonly factory: ITemplateElementFactory;
   private readonly attrParser: IAttributeParser;
   private readonly exprParser: IExpressionParser;
-  private readonly attrSyntaxModifier: IHtmlAttributeSyntaxModifier;
+  private readonly attrSyntaxModifier: IAttrSyntaxTransformer;
 
   /**
    * The instructions array for the currently instruction-collecting `ITemplateDefinition`
@@ -98,7 +98,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     factory: ITemplateElementFactory,
     attrParser: IAttributeParser,
     exprParser: IExpressionParser,
-    attrSyntaxModifier: IHtmlAttributeSyntaxModifier
+    attrSyntaxModifier: IAttrSyntaxTransformer
   ) {
     this.factory = factory;
     this.attrParser = attrParser;

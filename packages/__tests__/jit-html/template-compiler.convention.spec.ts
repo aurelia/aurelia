@@ -1,7 +1,4 @@
 import {
-  IAttrSyntaxTransformer
-} from '@aurelia/jit-html';
-import {
   RuntimeCompilationResources
 } from '@aurelia/kernel';
 import {
@@ -16,28 +13,28 @@ import {
 
 describe('html convention', function () {
 
-  type IConventionCombo = [string, string, Record<string, string>?];
+  type IAttrMappingConventionCombo = [string, string, string?, Record<string, string>?];
 
-  const combos: IConventionCombo[] = [
+  const bindToTwoWayCombos: IAttrMappingConventionCombo[] = [
     ['input', 'value'],
     ['input', 'files'],
-    ['input', 'files', { types: 'file' }],
-    ...(['date', 'datetime', 'password', 'email', 'color'].map(type => ['input', 'value', { type }] as IConventionCombo)),
+    ['input', 'files', 'files', { types: 'file' }],
+    ...(['date', 'datetime', 'password', 'email', 'color'].map(type => ['input', 'value', 'value', { type }] as IAttrMappingConventionCombo)),
     ['select', 'value'],
-    ['input', 'checked', { type: 'checkbox' }],
-    ['input', 'checked', { type: 'radio' }],
-    ['div', 'textcontent', { contenteditable: 'true' }],
-    ['div', 'innerhtml', { contenteditable: 'true' }],
-    ['div', 'textcontent', { contenteditable: 'true' }],
-    ['p', 'innerhtml', { contenteditable: 'true' }],
+    ['input', 'checked', 'checked', { type: 'checkbox' }],
+    ['input', 'checked', 'checked', { type: 'radio' }],
+    ['div', 'textcontent', 'textContent', { contenteditable: 'true' }],
+    ['div', 'innerhtml', 'innerHTML', { contenteditable: 'true' }],
+    ['div', 'textcontent', 'textContent', { contenteditable: 'true' }],
+    ['p', 'innerhtml', 'innerHTML', { contenteditable: 'true' }],
     ['textarea', 'value'],
-    ['div', 'scrollleft'],
-    ['div', 'scrolltop'],
-    ['p', 'scrollleft'],
-    ['span', 'scrollleft'],
+    ['div', 'scrollleft', 'scrollLeft'],
+    ['div', 'scrolltop', 'scrollTop'],
+    ['p', 'scrollleft', 'scrollLeft'],
+    ['span', 'scrollleft', 'scrollLeft'],
   ];
 
-  for (const [el, bindingAttr, elAttrs = {}] of combos) {
+  for (const [el, bindingAttr, bindingProp = bindingAttr, elAttrs = {}] of bindToTwoWayCombos) {
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}=${value}`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
       const ctx = TestContext.createHTMLTestContext();
@@ -48,10 +45,56 @@ describe('html convention', function () {
         { name: '', template, surrogates: [], instructions: [] },
         new RuntimeCompilationResources(ctx.container)
       );
-      const attrTransformer = ctx.container.get(IAttrSyntaxTransformer);
 
       const expectedElInstructions: IExpectedInstruction[] = [
-        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: attrTransformer.map(el, bindingAttr), type: TT.propertyBinding }
+        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: bindingProp, type: TT.propertyBinding }
+      ];
+      verifyInstructions(rootInstructions[0], expectedElInstructions);
+    });
+  }
+
+  const attrToPropCombos: IAttrMappingConventionCombo[] = [
+    ['label', 'for', 'htmlFor'],
+    ['img', 'usemap', 'useMap'],
+    ['input', 'maxlength', 'maxLength'],
+    ['input', 'minlength', 'minLength'],
+    ['input', 'formaction', 'formAction'],
+    ['input', 'formenctype', 'formEncType'],
+    ['input', 'formmethod', 'formMethod'],
+    ['input', 'formnovalidate', 'formNoValidate'],
+    ['input', 'formtarget', 'formTarget'],
+    ['textarea', 'maxlength', 'maxLength'],
+    ['td', 'rowspan', 'rowSpan'],
+    ['td', 'colspan', 'colSpan'],
+    ['th', 'rowspan', 'rowSpan'],
+    ['th', 'colspan', 'colSpan'],
+    ...(['div', 'p', 'span', 'custom-el'].reduce(
+      (arr, el) => arr.concat([
+        [el, 'accesskey', 'accessKey'],
+        [el, 'contenteditable', 'contentEditable'],
+        [el, 'tabindex', 'tabIndex'],
+        [el, 'textcontent', 'textContent'],
+        [el, 'innerhtml', 'innerHTML'],
+        [el, 'readonly', 'readOnly'],
+      ] as IAttrMappingConventionCombo[]),
+      [] as IAttrMappingConventionCombo[]
+    ))
+  ];
+
+  for (const [el, bindingAttr, bindingProp, elAttrs = {}] of attrToPropCombos) {
+    const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}=${value}`).join(' ');
+    it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
+      const ctx = TestContext.createHTMLTestContext();
+      const compiler = ctx.container.get(ITemplateCompiler);
+      const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
+      const { instructions: rootInstructions } = compiler.compile(
+        ctx.dom,
+        { name: '', template, surrogates: [], instructions: [] },
+        new RuntimeCompilationResources(ctx.container)
+      );
+
+      const expectedElInstructions: IExpectedInstruction[] = [
+        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.toView, to: bindingProp, type: TT.propertyBinding }
       ];
       verifyInstructions(rootInstructions[0], expectedElInstructions);
     });

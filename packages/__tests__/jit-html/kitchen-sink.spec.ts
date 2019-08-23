@@ -1,6 +1,6 @@
 import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import {
-  IHtmlAttributeSyntaxModifier,
+  IAttrSyntaxTransformer,
   TemplateBinder
 } from '@aurelia/jit-html';
 import { RuntimeCompilationResources } from '@aurelia/kernel';

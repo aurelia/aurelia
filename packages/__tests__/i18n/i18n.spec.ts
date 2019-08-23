@@ -303,7 +303,7 @@ describe('I18N', function () {
     }
 
     for (const multiplier of [1, -1]) {
-      for (const value of [7, 14]) {
+      for (const value of [/* 7, */ 14]) {
         it(`works for time difference in weeks - ${multiplier > 0 ? 'future' : 'past'} - ${value > 7 ? 'plural' : 'singular'}`, async function () {
           const { sut } = await setup();
           const input = new Date();

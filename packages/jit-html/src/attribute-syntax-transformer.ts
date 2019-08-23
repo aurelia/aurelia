@@ -129,7 +129,7 @@ export class HtmlAttrSyntaxTransformer implements IAttrSyntaxTransformer {
       }
     } else if (
       (tagName === 'TEXTAREA' || tagName === 'SELECT') && target === 'value'
-      || (target === 'textcontent' || target === 'innerhtml') && element.contentEditable === 'true'
+      || (target === 'textcontent' || target === 'innerhtml') && element.hasAttribute('contenteditable')
       || target === 'scrolltop'
       || target === 'scrollleft'
     ) {

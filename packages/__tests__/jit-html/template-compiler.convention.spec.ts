@@ -35,7 +35,7 @@ describe('html convention', function () {
   ];
 
   for (const [el, bindingAttr, bindingProp = bindingAttr, elAttrs = {}] of bindToTwoWayCombos) {
-    const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}=${value}`).join(' ');
+    const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
       const ctx = TestContext.createHTMLTestContext();
       const compiler = ctx.container.get(ITemplateCompiler);
@@ -82,7 +82,7 @@ describe('html convention', function () {
   ];
 
   for (const [el, bindingAttr, bindingProp, elAttrs = {}] of attrToPropCombos) {
-    const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}=${value}`).join(' ');
+    const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
       const ctx = TestContext.createHTMLTestContext();
       const compiler = ctx.container.get(ITemplateCompiler);

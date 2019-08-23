@@ -225,6 +225,51 @@ const codeLookup: Record<string, IMessageInfo> = {
     level: LogLevel.warn,
     message: `AttributePattern handler for '%s' is not a function.`
   },
+  // packages/store messages
+  500: {
+    level: LogLevel.info,
+    message: 'Total duration %i of dispatched action %s:'
+  },
+  501: {
+    level: LogLevel.info,
+    message: 'Total duration %i of dispatched action %s:'
+  },
+  502: {
+    level: LogLevel.info,
+    message: 'DevTools are available'
+  },
+  503: {
+    level: LogLevel.info,
+    message: 'DevTools sent change %s'
+  },
+  504: {
+    level: LogLevel.info,
+    message: 'Dispatching: %s'
+  },
+  505: {
+    level: LogLevel.info,
+    message: 'Tried to dispatch an unregistered action %s'
+  },
+  506: {
+    level: LogLevel.info,
+    message: 'initialState must be provided via options'
+  },
+  507: {
+    level: LogLevel.info,
+    message: 'You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill'
+  },
+  508: {
+    level: LogLevel.info,
+    message: 'The reducer is expected to have one or more parameters, where the first will be the present state'
+  },
+  509: {
+    level: LogLevel.info,
+    message: 'The reducer has to return a new state'
+  },
+  510: {
+    level: LogLevel.info,
+    message: 'Provided onChanged handler does not exist on target VM'
+  },
   800: {
     level: LogLevel.error,
     message: `Property '%s' is being dirty-checked.`
@@ -232,6 +277,14 @@ const codeLookup: Record<string, IMessageInfo> = {
   801: {
     level: LogLevel.warn,
     message: `Property '%s' is being dirty-checked.`
+  },
+  10000: {
+    level: LogLevel.debug,
+    message: '%s'
+  },
+  1001: {
+    level: LogLevel.info,
+    message: 'DOM already initialized. Destroying and re-initializing..'
   },
   2000: {
     level: LogLevel.error,
@@ -252,58 +305,5 @@ const codeLookup: Record<string, IMessageInfo> = {
   2004: {
     level: LogLevel.error,
     message: 'LinkHandler has already been activated.'
-  },
-  1001: {
-    level: LogLevel.info,
-    message: 'DOM already initialized. Destroying and re-initializing..'
-  },
-  // packages/store messages
-  500: {
-    type: MessageType.info,
-    message: 'Total duration %i of dispatched action %s:'
-  },
-  501: {
-    type: MessageType.info,
-    message: 'Total duration %i of dispatched action %s:'
-  },
-  502: {
-    type: MessageType.debug,
-    message: 'DevTools are available'
-  },
-  503: {
-    type: MessageType.debug,
-    message: 'DevTools sent change %s'
-  },
-  504: {
-    type: MessageType.info,
-    message: 'Dispatching: %s'
-  },
-  505: {
-    type: MessageType.error,
-    message: 'Tried to dispatch an unregistered action %s'
-  },
-  506: {
-    type: MessageType.error,
-    message: 'initialState must be provided via options'
-  },
-  507: {
-    type: MessageType.error,
-    message: 'You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill'
-  },
-  508: {
-    type: MessageType.error,
-    message: 'The reducer is expected to have one or more parameters, where the first will be the present state'
-  },
-  509: {
-    type: MessageType.error,
-    message: 'The reducer has to return a new state'
-  },
-  510: {
-    type: MessageType.error,
-    message: 'Provided onChanged handler does not exist on target VM'
-  },
-  10000: {
-    level: LogLevel.debug,
-    message: '%s'
   },
 };

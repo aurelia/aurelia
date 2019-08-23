@@ -1,5 +1,4 @@
 import { Reporter } from '@aurelia/kernel';
-import { IView } from '@aurelia/runtime';
 import { Observable, Subscription } from 'rxjs';
 
 import { Store, STORE } from './store';
@@ -82,14 +81,14 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
 
     // only override if prototype callback is a function
     if (typeof originalCreated === 'function' || originalCreated === undefined) {
-      target.prototype.created = function created(_: IView, view: IView): void {
+      target.prototype.created = function created(): void {
         // here we relies on the fact that the class Store
         // has not been registered somewhere in one of child containers, instead of root container
         // if there is any issue with this approach, needs to walk all the way up to resolve from root
         // typically like invoking from global Container.instance
         $store = this.$context.get(Store);
         if (originalCreated !== undefined) {
-          return originalCreated.call(this, _, view);
+          return originalCreated.call(this);
         }
       };
     }

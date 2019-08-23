@@ -174,7 +174,7 @@ describe('xml node compiler tests', function () {
         new ResourceModel(new RuntimeCompilationResources(ctx.container)),
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
-        ctx.container.get(IHtmlAttributeSyntaxModifier)
+        ctx.container.get(IAttrSyntaxTransformer)
       );
 
       const result = binder.bind(fakeSurrogate as any);

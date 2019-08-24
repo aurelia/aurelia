@@ -168,7 +168,7 @@ export class ViewLocator implements IViewLocator {
     let lookup = this.modelInstanceToBoundComponent.get(object);
     let BoundComponent: Constructable | undefined;
 
-    if (!lookup) {
+    if (lookup === void 0) {
       lookup = {};
       this.modelInstanceToBoundComponent.set(object, lookup);
     } else {

@@ -31,9 +31,9 @@ export declare class I18nService {
      * Example:
      * ```typescript
      *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
-     *    {attributes:[], value: 'translated_value_of_key1'}
-     *    {attributes:['attr'], value: 'translated_value_of_key2'}
-     *    {attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
+     *    {key: 'key1', attributes:[], value: 'translated_value_of_key1'}
+     *    {key: 'key2', attributes:['attr'], value: 'translated_value_of_key2'}
+     *    {key: 'key3', attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
      *  ]
      * ```
      * For a single key, `I18nService#tr` method can also be easily used.

@@ -45,9 +45,9 @@ let I18nService = class I18nService {
      * Example:
      * ```typescript
      *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
-     *    {attributes:[], value: 'translated_value_of_key1'}
-     *    {attributes:['attr'], value: 'translated_value_of_key2'}
-     *    {attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
+     *    {key: 'key1', attributes:[], value: 'translated_value_of_key1'}
+     *    {key: 'key2', attributes:['attr'], value: 'translated_value_of_key2'}
+     *    {key: 'key3', attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
      *  ]
      * ```
      * For a single key, `I18nService#tr` method can also be easily used.
@@ -146,29 +146,30 @@ let I18nService = class I18nService {
      */
     rt(input, options, locales) {
         let difference = input.getTime() - new Date().getTime();
+        const epsilon = this.options.rtEpsilon * (difference > 0 ? 1 : 0);
         const formatter = this.createRelativeTimeFormat(options, locales);
         let value = difference / 31536000000 /* Year */;
-        if (Math.abs(value) >= 1) {
+        if (Math.abs(value + epsilon) >= 1) {
             return formatter.format(Math.round(value), 'year');
         }
         value = difference / 2592000000 /* Month */;
-        if (Math.abs(value) >= 1) {
+        if (Math.abs(value + epsilon) >= 1) {
             return formatter.format(Math.round(value), 'month');
         }
         value = difference / 604800000 /* Week */;
-        if (Math.abs(value) >= 1) {
+        if (Math.abs(value + epsilon) >= 1) {
             return formatter.format(Math.round(value), 'week');
         }
         value = difference / 86400000 /* Day */;
-        if (Math.abs(value) >= 1) {
+        if (Math.abs(value + epsilon) >= 1) {
             return formatter.format(Math.round(value), 'day');
         }
         value = difference / 3600000 /* Hour */;
-        if (Math.abs(value) >= 1) {
+        if (Math.abs(value + epsilon) >= 1) {
             return formatter.format(Math.round(value), 'hour');
         }
         value = difference / 60000 /* Minute */;
-        if (Math.abs(value) >= 1) {
+        if (Math.abs(value + epsilon) >= 1) {
             return formatter.format(Math.round(value), 'minute');
         }
         difference = Math.abs(difference) < 1000 /* Second */ ? 1000 /* Second */ : difference;
@@ -181,7 +182,7 @@ let I18nService = class I18nService {
             fallbackLng: ['en'],
             debug: false,
             plugins: [],
-            attributes: ['t', 'i18n'],
+            rtEpsilon: 0.01,
             skipTranslationOnMissingKey: false,
         };
         this.options = { ...defaultOptions, ...options };

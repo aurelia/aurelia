@@ -227,7 +227,9 @@ export class ViewLocator implements IViewLocator {
 
       lifecycleCallbacks.forEach(x => {
         if (x in object) {
-          proto[x] = function() { return this.viewModel[x](); };
+          const fn = function () { return this.viewModel[x](); };
+          Reflect.defineProperty(fn, 'name', { configurable: true, value: x });
+          proto[x] = fn;
         }
       });
 

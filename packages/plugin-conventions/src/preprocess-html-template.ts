@@ -14,7 +14,7 @@ import { stripMetaData } from './strip-meta-data';
 // because most bundler by default will inject that css into HTML head.
 export function preprocessHtmlTemplate(filePath: string, rawHtml: string, defaultShadowOptions?: { mode: 'open' | 'closed' }, stringModuleWrap?: (id: string) => string) {
   const name = kebabCase(fileBase(filePath));
-  let { html, shadowMode, deps } = stripMetaData(rawHtml);
+  let { html, deps, shadowMode, containerless, bindables } = stripMetaData(rawHtml);
 
   if (defaultShadowOptions && !shadowMode) {
     shadowMode = defaultShadowOptions.mode;
@@ -66,10 +66,18 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const shadowOptions = { mode: '${shadowMode}' };\n`);
   }
 
+  if (containerless) {
+    m.append(`export const containerless = true;\n`);
+  }
+
+  if (Object.keys(bindables).length) {
+    m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
+  }
+
   m.append(`let _e;
 export function getHTMLOnlyElement() {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''} });
+    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''} });
   }
   return _e;
 }

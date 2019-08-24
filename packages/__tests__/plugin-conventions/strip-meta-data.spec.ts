@@ -1,3 +1,4 @@
+import { BindingMode } from '@aurelia/runtime';
 import { stripMetaData } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
 
@@ -6,7 +7,9 @@ describe('stripMetaData', function () {
     assert.deepEqual(stripMetaData(' '), {
       html: ' ',
       shadowMode: null,
-      deps: []
+      deps: [],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -25,7 +28,9 @@ describe('stripMetaData', function () {
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: null,
-      deps: ['./a']
+      deps: ['./a'],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -48,7 +53,9 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: null,
-      deps: ['./a', 'b', './c.css']
+      deps: ['./a', 'b', './c.css'],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -67,7 +74,9 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: null,
-      deps: ['./a']
+      deps: ['./a'],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -90,7 +99,9 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: null,
-      deps: ['./a', 'foo', 'b', './c.css']
+      deps: ['./a', 'foo', 'b', './c.css'],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -106,7 +117,9 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: 'open',
-      deps: []
+      deps: [],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -124,7 +137,9 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: 'closed',
-      deps: ['./a']
+      deps: ['./a'],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -138,7 +153,9 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: 'open',
-      deps: []
+      deps: [],
+      containerless: false,
+      bindables: {}
     });
   });
 
@@ -154,7 +171,161 @@ ${'  ' /* leading space is untouched */}
     assert.deepEqual(stripMetaData(html), {
       html: expected,
       shadowMode: 'closed',
-      deps: ['./a']
+      deps: ['./a'],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips containerless tag', function() {
+    const html = `<containerless></containerless>
+<template>
+</template>
+`;
+    const expected = `
+<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: true,
+      bindables: {}
+    });
+  });
+
+  it('strips containerless tag without closing tag', function() {
+    const html = `<containerless>
+<template>
+</template>
+`;
+    const expected = `
+<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: true,
+      bindables: {}
+    });
+  });
+
+  it('strips containerless attribute', function() {
+    const html = `<template containerless>
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: true,
+      bindables: {}
+    });
+  });
+
+  it('strips bindable tag', function() {
+    const html = `<bindable name="firstName"></bindable>
+<template>
+</template>
+`;
+    const expected = `
+<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: { firstName: {} }
+    });
+  });
+
+  it('strips bindable tag with more attrs', function() {
+    const html = `<bindable name="firstName" mode="one-way">
+<bindable name="lastName" mode="TwoWay" attribute="surname">
+<bindable name="foo" mode="one-time"></bindable>
+<bindable name="bar" mode="toView">
+<bindable name="lo" mode="from-view"></bindable>
+<template>
+</template>
+`;
+    const expected = `
+
+
+
+
+<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {
+        firstName: { mode: BindingMode.toView },
+        lastName: { mode: BindingMode.twoWay, attribute: 'surname' },
+        foo: { mode: BindingMode.oneTime },
+        bar: { mode: BindingMode.toView },
+        lo: { mode: BindingMode.fromView}
+      }
+    });
+  });
+
+  it('strips bindable attribute', function() {
+    const html = `<template bindable="firstName">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {firstName: {}}
+    });
+  });
+
+  it('strips bindable attribute with multiple names', function() {
+    const html = `<template bindable="firstName,lastName">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {firstName: {}, lastName: {}}
+    });
+  });
+
+  it('strips bindable attribute with multiple names with spaces', function() {
+    const html = `<template bindable="firstName,
+                                      lastName,
+                                      age">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {firstName: {}, lastName: {}, age: {}}
     });
   });
 });

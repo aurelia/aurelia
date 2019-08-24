@@ -1,26 +1,40 @@
+import { kebabCase } from '@aurelia/kernel';
+import { IBindableDescription, BindingMode } from '@aurelia/runtime';
 import { parseFragment, DefaultTreeElement, ElementLocation } from 'parse5';
 
 interface IStrippedHtml {
   html: string,
+  deps: string[],
   shadowMode: 'open' | 'closed' | null,
-  deps: string[]
+  containerless: boolean,
+  bindables: Record<string, IBindableDescription>;
 }
 
 export function stripMetaData(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
   let shadowMode: 'open' | 'closed' | null = null;
+  let containerless: boolean = false;
+  const bindables: Record<string, IBindableDescription> = {};
   const toRemove: [number, number][] = [];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
   traverse(tree, node => {
-    stripImport(node, (value, ranges) => {
-      if (value) deps.push(value);
+    stripImport(node, (dep, ranges) => {
+      if (dep) deps.push(dep);
       toRemove.push(...ranges);
-    });
+    }) ||
     stripUseShadowDom(node, (mode, ranges) => {
       if (mode) shadowMode = mode;
       toRemove.push(...ranges);
-    })
+    }) ||
+    stripContainerlesss(node, ranges => {
+      containerless = true;
+      toRemove.push(...ranges);
+    }) ||
+    stripBindable(node, (bs, ranges) => {
+      Object.assign(bindables, bs);
+      toRemove.push(...ranges);
+    });
   });
 
   let html = '';
@@ -31,7 +45,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, shadowMode, deps };
+  return { html, deps, shadowMode, containerless, bindables};
 }
 
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
@@ -43,41 +57,107 @@ function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
   });
 }
 
-function stripImport(node: DefaultTreeElement, cb: (value: string | undefined, ranges: [number, number][]) => void) {
-  if (node.tagName === 'import' || node.tagName === 'require') {
-    const attr = node.attrs.find(a => a.name === 'from')
-    const value = attr && attr.value;
-    const toRemove: [number, number][] = [];
-
+function stripTag(node: DefaultTreeElement, tagNames: string[] | string, cb: (attrs: Record<string, string>, ranges: [number, number][]) => void): boolean {
+  if (!Array.isArray(tagNames)) tagNames = [tagNames];
+  if (tagNames.indexOf(node.tagName) !== -1) {
+    const attrs: Record<string, string> = {};
+    node.attrs.forEach(attr => attrs[attr.name] = attr.value);
     const loc = node.sourceCodeLocation as ElementLocation;
+    const toRemove: [number, number][] = [];
     if (loc.endTag) {
       toRemove.push([loc.endTag.startOffset, loc.endTag.endOffset]);
     }
     toRemove.push([loc.startTag.startOffset, loc.startTag.endOffset]);
-
-    cb(value, toRemove);
+    cb(attrs, toRemove);
+    return true;
   }
+  return false;
 }
 
+function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName: string, cb: (value: string, range: [number, number][]) => void): boolean {
+  if (node.tagName === tagName) {
+    const attr = node.attrs.find(a => a.name === attributeName);
+    if (attr) {
+      const loc = node.sourceCodeLocation as ElementLocation;
+      cb(attr.value, [[loc.attrs[attributeName].startOffset, loc.attrs[attributeName].endOffset]]);
+      return true;
+    }
+  }
+  return false;
+}
+
+// <import from="./foo">
+// <require from="./foo">
+// <import from="./foo"></import>
+// <require from="./foo"></require>
+function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, ranges: [number, number][]) => void) {
+  return stripTag(node, ['import', 'require'], (attrs, ranges) => {
+    cb(attrs.from, ranges);
+  });
+}
+
+// <use-shadow-dom>
+// <use-shadow-dom></use-shadow-dom>
+// <use-shadow-dom mode="open">
+// <use-shadow-dom mode="closed"></use-shadow-dom>
+// <template use-shadow-dom>
+// <template use-shadow-dom="open">
 function stripUseShadowDom(node: DefaultTreeElement, cb: (mode: 'open' | 'closed', ranges: [number, number][]) => void) {
   let mode: 'open' | 'closed' = 'open';
-  const toRemove: [number, number][] = [];
-  const loc = node.sourceCodeLocation as ElementLocation;
 
-  if (node.tagName === 'use-shadow-dom') {
-    const attr = node.attrs.find(a => a.name === 'mode');
-    if (attr && attr.value === 'closed') mode = 'closed';
-    if (loc.endTag) {
-      toRemove.push([loc.endTag.startOffset, loc.endTag.endOffset]);
+  return stripTag(node, 'use-shadow-dom', (attrs, ranges) => {
+    if (attrs.mode === 'closed') mode = 'closed';
+    cb(mode, ranges);
+  }) || stripAttribute(node, 'template', 'use-shadow-dom', (value, ranges) => {
+    if (value === 'closed') mode = 'closed';
+    cb(mode, ranges);
+  });
+}
+
+// <containerless>
+// <containerless></containerless>
+// <template containerless>
+function stripContainerlesss(node: DefaultTreeElement, cb: (ranges: [number, number][]) => void) {
+  return stripTag(node, 'containerless', (attrs, ranges) => {
+    cb(ranges);
+  }) || stripAttribute(node, 'template', 'containerless', (value, ranges) => {
+    cb(ranges);
+  });
+}
+
+// <bindable name="firstName">
+// <bindable name="lastName" attribute="surname" mode="two-way"></bindable>
+// <bindable name="lastName" attribute="surname" mode="TwoWay"></bindable>
+// <template bindable="firstName">
+// <template bindable="firstName,lastName">
+// <template bindable="firstName,
+//                     lastName">
+function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, IBindableDescription>, ranges: [number, number][]) => void) {
+  return stripTag(node, 'bindable', (attrs, ranges) => {
+    const { name, mode, attribute } = attrs;
+    const bindables: Record<string, IBindableDescription> = {};
+    if (name) {
+      const description: IBindableDescription = {};
+      if (attribute) description.attribute = attribute;
+      const bindingMode = toBindingMode(mode);
+      if (bindingMode) description.mode = bindingMode;
+      bindables[name] = description;
     }
-    toRemove.push([loc.startTag.startOffset, loc.startTag.endOffset]);
-    cb(mode, toRemove);
-  } else if (node.tagName === 'template') {
-    const attr = node.attrs.find(a => a.name === 'use-shadow-dom');
-    if (attr) {
-      if (attr.value === 'closed') mode = 'closed';
-      toRemove.push([loc.attrs['use-shadow-dom'].startOffset, loc.attrs['use-shadow-dom'].endOffset]);
-      cb(mode, toRemove);
-    }
+    cb(bindables, ranges);
+  }) || stripAttribute(node, 'template', 'bindable', (value, ranges) => {
+    const bindables: Record<string, IBindableDescription> = {};
+    const names = value.split(',').map(s => s.trim()).filter(s => s);
+    names.forEach(name => bindables[name] = {});
+    cb(bindables, ranges);
+  });
+}
+
+function toBindingMode(mode?: string): BindingMode | undefined {
+  if (mode) {
+    const normalizedMode = kebabCase(mode);
+    if (normalizedMode === 'one-time') return BindingMode.oneTime;
+    if (normalizedMode === 'one-way' || normalizedMode === 'to-view') return BindingMode.toView;
+    if (normalizedMode === 'from-view') return BindingMode.fromView;
+    if (normalizedMode === 'two-way') return BindingMode.twoWay;
   }
 }

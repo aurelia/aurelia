@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@aurelia/kernel": "0.3.0",
+    "@aurelia/runtime": "0.3.0",
     "modify-code": "^0.5.3",
     "parse5": "^5.1.0",
     "typescript": "^3.5.3"

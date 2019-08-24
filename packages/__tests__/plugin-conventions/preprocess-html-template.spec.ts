@@ -193,4 +193,25 @@ export function getHTMLOnlyElement() {
     const result = preprocessHtmlTemplate('lo\\foo.html', html, { mode: 'closed' }, id => `raw-loader!${id}`);
     assert.equal(result.code, expected);
   });
+
+  it('processes template with containerless and bindables', function() {
+    const html = '<bindable name="age" mode="one-way"><containerless><template bindable="firstName, lastName"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+export const name = "foo";
+export const template = "<template ></template>";
+export default template;
+export const dependencies = [  ];
+export const containerless = true;
+export const bindables = {"age":{"mode":2},"firstName":{},"lastName":{}};
+let _e;
+export function getHTMLOnlyElement() {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, containerless, bindables });
+  }
+  return _e;
+}
+`;
+    const result = preprocessHtmlTemplate('lo\\foo.html', html, null, id => `raw-loader!${id}`);
+    assert.equal(result.code, expected);
+  })
 });

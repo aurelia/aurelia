@@ -1,4 +1,4 @@
-import { Constructable, DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import { Constructable, DI, PLATFORM, Reporter, IContainer, Registration, IResolver } from '@aurelia/kernel';
 import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
@@ -116,7 +116,7 @@ function hasAssociatedViews<T>(object: T): object is T & HasAssociatedViews {
 }
 
 export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
-  .withDefault(x => x.singleton(ViewLocator));
+  .noDefault();
 
 export interface IViewLocator {
   getViewComponentForObject(object: ComposableObject | null | undefined, viewNameOrSelector?: string | ViewSelector): Constructable | null;
@@ -140,6 +140,10 @@ const lifecycleCallbacks = [
 export class ViewLocator implements IViewLocator {
   private modelInstanceToBoundComponent: WeakMap<object, Record<string, Constructable>> = new WeakMap();
   private modelTypeToUnboundComponent: Map<object, Record<string, Constructable>> = new Map();
+
+  public static register(container: IContainer): IResolver<IViewLocator> {
+    return Registration.singleton(IViewLocator, this).register(container);
+  }
 
   public getViewComponentForObject(object: ComposableObject | null | undefined, viewNameOrSelector?: string | ViewSelector) {
     if (object) {

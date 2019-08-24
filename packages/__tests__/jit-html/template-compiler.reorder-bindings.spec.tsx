@@ -79,7 +79,7 @@ describe('bindings reordering', function () {
 
   for (const testCase of testCases) {
     const { title, template, assertFn } = testCase;
-    it.only(title, async function() {
+    it(title, async function() {
       const ctx = TestContext.createHTMLTestContext();
 
       const au = new Aurelia(ctx.container);

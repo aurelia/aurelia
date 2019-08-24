@@ -1,7 +1,7 @@
-import { ICustomElementType } from '@aurelia/runtime';
-
-import { GuardFunction, GuardIdentity, GuardTarget, GuardTypes, IGuardOptions, IGuardTarget } from './guardian';
-import { INavigatorInstruction } from './navigator';
+import { Constructable } from '@aurelia/kernel';
+import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
+import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -43,22 +43,23 @@ export class Guard {
 }
 
 class Target {
-  public component?: Partial<ICustomElementType>;
+  public component?: IRouteableComponentType;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
 
   constructor(target: GuardTarget) {
-    const { component, componentName, viewport, viewportName } = target as IGuardTarget;
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (component || componentName || viewport || viewportName) {
-      this.component = component;
-      this.componentName = componentName;
-      this.viewport = viewport;
-      this.viewportName = viewportName;
+    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {
+      this.component = target as IRouteableComponentType;
+      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
     } else {
-      this.component = target as Partial<ICustomElementType>;
+      const cvTarget = target as IComponentAndOrViewportOrNothing;
+      this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as Constructable) : null;
+      this.componentName = ComponentAppellationResolver.getName(cvTarget.component)
+      this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
+      this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
     }
   }
 

@@ -252,7 +252,7 @@ export class ViewLocator implements IViewLocator {
   private getView(views: ITemplateDefinition[], name: string): ITemplateDefinition {
     const v = views.find(x => x.name === name);
 
-    if (!v) {
+    if (v === void 0) {
       // TODO: Use Reporter
       throw new Error(`Could not find view: ${name}`);
     }

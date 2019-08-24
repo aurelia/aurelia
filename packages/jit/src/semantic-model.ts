@@ -291,7 +291,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymbolWithMarker {
   public flags: SymbolFlags;
   public physicalNode: INode;
-  public toViewModel: boolean;
+  public toBindingContext: boolean;
   public marker: INode;
 
   private _bindings: BindingSymbol[] | null;
@@ -306,7 +306,7 @@ export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymb
   constructor(dom: IDOM, node: INode) {
     this.flags = SymbolFlags.isLetElement | SymbolFlags.hasMarker;
     this.physicalNode = node;
-    this.toViewModel = false;
+    this.toBindingContext = false;
     this.marker = createMarker(dom);
     this._bindings = null;
   }

@@ -18,6 +18,7 @@ import {
   hasBind,
   hasUnbind,
 } from './ast';
+import { BindingOrder } from './binding-order';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
@@ -28,6 +29,7 @@ export class RefBinding implements IBinding {
   public $scope?: IScope;
   public part?: string;
 
+  public readonly order: number;
   public locator: IServiceLocator;
   public sourceExpression: IsBindingBehavior;
   public target: IObservable;
@@ -40,6 +42,7 @@ export class RefBinding implements IBinding {
     this.$state = State.none;
     this.$scope = void 0;
 
+    this.order = BindingOrder.Ref;
     this.locator = locator;
     this.sourceExpression = sourceExpression;
     this.target = target as IObservable;

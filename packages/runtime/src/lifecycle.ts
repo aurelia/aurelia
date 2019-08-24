@@ -40,6 +40,7 @@ import {
 const slice = Array.prototype.slice;
 
 export interface IBinding {
+  readonly order: number;
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
   readonly part?: string;
@@ -120,6 +121,7 @@ export interface IController<
   mount(flags: LifecycleFlags): void;
   unmount(flags: LifecycleFlags): void;
   cache(flags: LifecycleFlags): void;
+  reorderBindings(): void;
   getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
 }
 

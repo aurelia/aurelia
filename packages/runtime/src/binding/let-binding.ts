@@ -18,6 +18,7 @@ import {
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { BindingOrder } from './binding-order';
 import {
   connectable,
   IConnectableBinding,
@@ -36,33 +37,35 @@ export class LetBinding implements IPartialConnectableBinding {
   public $scope?: IScope;
   public part?: string;
 
+  public readonly order: number;
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
   public target: (IObservable & IIndexable) | null;
   public targetProperty: string;
 
-  private readonly toViewModel: boolean;
+  private readonly toBindingContext: boolean;
 
   constructor(
     sourceExpression: IExpression,
     targetProperty: string,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,
-    toViewModel: boolean = false,
+    toBindingContext: boolean = false,
   ) {
     connectable.assignIdTo(this);
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
     this.$scope = void 0;
 
+    this.order = BindingOrder.Let;
     this.locator = locator;
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;
     this.target = null;
     this.targetProperty = targetProperty;
 
-    this.toViewModel = toViewModel;
+    this.toBindingContext = toBindingContext;
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -95,7 +98,7 @@ export class LetBinding implements IPartialConnectableBinding {
 
     this.$scope = scope;
     this.part = part;
-    this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {

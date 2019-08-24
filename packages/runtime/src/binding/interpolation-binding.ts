@@ -16,6 +16,7 @@ import {
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { BindingOrder } from './binding-order';
 import {
   connectable,
   IConnectableBinding,
@@ -32,6 +33,7 @@ export class MultiInterpolationBinding implements IBinding {
   public interpolation: IInterpolationExpression;
   public observerLocator: IObserverLocator;
   public locator: IServiceLocator;
+  public readonly order: number;
   public mode: BindingMode;
   public parts: InterpolationBinding[];
   public target: IObservable;
@@ -50,6 +52,7 @@ export class MultiInterpolationBinding implements IBinding {
 
     this.interpolation = interpolation;
     this.locator = locator;
+    this.order = BindingOrder.Normal;
     this.mode = mode;
     this.observerLocator = observerLocator;
     this.target = target as IObservable;
@@ -108,6 +111,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public interpolation: IInterpolationExpression;
   public isFirst: boolean;
   public locator: IServiceLocator;
+  public readonly order: number;
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
@@ -132,6 +136,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     this.interpolation = interpolation;
     this.isFirst = isFirst;
+    this.order = BindingOrder.Normal;
     this.mode = mode;
     this.locator = locator;
     this.observerLocator = observerLocator;

@@ -9,7 +9,8 @@ import {
   IsBindingBehavior,
   IScope,
   LifecycleFlags,
-  State
+  State,
+  BindingOrder
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
@@ -26,6 +27,7 @@ export class Listener implements IBinding {
   public $scope!: IScope;
   public part?: string;
 
+  public readonly order: number;
   public delegationStrategy: DelegationStrategy;
   public locator: IServiceLocator;
   public preventDefault: boolean;
@@ -50,6 +52,7 @@ export class Listener implements IBinding {
     this.dom = dom;
     this.$state = State.none;
 
+    this.order = BindingOrder.Normal;
     this.delegationStrategy = delegationStrategy;
     this.locator = locator;
     this.preventDefault = preventDefault;

@@ -17,6 +17,7 @@ import {
   hasBind,
   hasUnbind,
 } from './ast';
+import { BindingOrder } from './binding-order';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
@@ -27,6 +28,7 @@ export class CallBinding {
   public $scope?: IScope;
   public part?: string;
 
+  public readonly order: number;
   public locator: IServiceLocator;
   public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
@@ -40,6 +42,7 @@ export class CallBinding {
   ) {
     this.$state = State.none;
 
+    this.order = BindingOrder.Normal;
     this.locator = locator;
     this.sourceExpression = sourceExpression;
     this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);

@@ -89,6 +89,9 @@ export {
   UnaryOperator
 } from './ast';
 export {
+  BindingOrder
+} from './binding/binding-order';
+export {
   PropertyBinding
 } from './binding/property-binding';
 export {

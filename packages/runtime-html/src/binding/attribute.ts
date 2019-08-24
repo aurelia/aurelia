@@ -1,5 +1,23 @@
 import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, connectable, ExpressionKind, hasBind, hasUnbind, IBindingTargetObserver, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
+import {
+  AccessorOrObserver,
+  BindingMode,
+  BindingOrder,
+  connectable,
+  ExpressionKind,
+  hasBind,
+  hasUnbind,
+  IBindingTargetObserver,
+  IConnectableBinding,
+  IForOfStatement,
+  ILifecycle,
+  IObserverLocator,
+  IPartialConnectableBinding,
+  IsBindingBehavior,
+  IScope,
+  LifecycleFlags,
+  State
+} from '@aurelia/runtime';
 import { AttributeObserver } from '../observation/element-attribute-observer';
 
 const slice = Array.prototype.slice;
@@ -23,6 +41,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public $scope: IScope;
   public part?: string;
 
+  public readonly order: number;
   public locator: IServiceLocator;
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
@@ -58,6 +77,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.$scope = null!;
 
     this.locator = locator;
+    this.order = BindingOrder.Normal;
     this.mode = mode;
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;

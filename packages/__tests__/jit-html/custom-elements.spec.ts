@@ -72,9 +72,9 @@
 //     tearDown(au, lifecycle, host);
 //   });
 
-//   //<let [to-view-model] />
+//   //<let [to-binding-context] />
 //   it('04.', function () {
-//     const { au, lifecycle, host, component } = setupAndStart(ctx, '<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
+//     const { au, lifecycle, host, component } = setupAndStart(ctx, '<template><let to-binding-context full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
 //     component.firstName = 'bi';
 //     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
 //     component.lastName = 'go';

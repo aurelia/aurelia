@@ -26,6 +26,7 @@ import {
   hasBind,
   hasUnbind,
 } from './ast';
+import { BindingOrder } from './binding-order';
 import {
   connectable,
   IConnectableBinding,
@@ -51,6 +52,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public part?: string;
 
   public locator: IServiceLocator;
+  public readonly order: number;
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
   public sourceExpression: IsBindingBehavior | IForOfStatement;
@@ -75,6 +77,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.$scope = void 0;
 
     this.locator = locator;
+    this.order = BindingOrder.Normal;
     this.mode = mode;
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;

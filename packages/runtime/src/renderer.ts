@@ -139,6 +139,8 @@ export class Renderer implements IRenderer {
         instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
       }
     }
+
+    renderable.reorderBindings();
   }
 }
 
@@ -203,6 +205,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
       instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
     }
 
+    controller.reorderBindings();
     addComponent(renderable, controller);
 
     operation.dispose();
@@ -293,7 +296,7 @@ export class LetElementRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateLetElementInstruction): void {
     dom.remove(target);
     const childInstructions = instruction.instructions;
-    const toViewModel = instruction.toViewModel;
+    const toViewModel = instruction.toBindingContext;
 
     let childInstruction: ILetBindingInstruction;
     let expr: AnyBindingExpression;

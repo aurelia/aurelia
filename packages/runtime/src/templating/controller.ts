@@ -15,12 +15,12 @@ import {
   HooksDefinition,
   IAttributeDefinition,
   IBindableDescription,
+  IChildrenObserverDescription,
   IElementHydrationOptions,
   IHydrateElementInstruction,
   IHydrateTemplateController,
   ITemplateDefinition,
-  TemplateDefinition,
-  IChildrenObserverDescription
+  TemplateDefinition
 } from '../definitions';
 import {
   IDOM,
@@ -35,12 +35,12 @@ import {
 import {
   IBinding,
   IController,
+  IControllerHoldOptions,
   ILifecycle,
   IRenderContext,
   IViewCache,
   IViewModel,
-  ViewModelKind,
-  IControllerHoldOptions
+  ViewModelKind
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -64,13 +64,16 @@ import {
   SelfObserver,
 } from '../observation/self-observer';
 import {
-  IRenderingEngine, ITemplate, ChildrenObserver,
+  ChildrenObserver,
+  IRenderingEngine,
+  ITemplate,
 } from '../rendering-engine';
 import {
   ICustomElementType,
   IElementProjector,
   IProjectorLocator
 } from '../resources/custom-element';
+import { BindingOrder } from '../binding/binding-order';
 
 type Description = Required<IAttributeDefinition> | Required<ITemplateDefinition>;
 type Kind = { name: string };
@@ -108,6 +111,15 @@ const defaultControllerHoldOptions: IControllerHoldOptions = {
   isContainer: false,
   strategy: 'append'
 };
+
+function bindingSorter(b1: IBinding, b2: IBinding): number {
+  const b1Order = typeof b1.order === 'number' ? b1.order || 0 : 0;
+  const b2Order = typeof b2.order === 'number' ? b2.order || 0 : 0;
+  // the behavior of ECMA sort with 0 return value is undefined
+  // so treating 0 as -1, which should mean keeping the same order
+  // todo: should this be normalize to only 1 | -1 for better browser JIT optimization?
+  return b1Order !== 0 && b2Order !== 0 ? (b1Order - b2Order) || -1 : -1;
+}
 
 export class Controller<
   T extends INode = INode,
@@ -536,6 +548,13 @@ export class Controller<
         break;
       case ViewModelKind.synthetic:
         this.cacheSynthetic(flags);
+    }
+  }
+
+  public reorderBindings(): void {
+    if (this.bindings !== void 0) {
+      (this as any)['sorted'] = true;
+      this.bindings.sort(bindingSorter);
     }
   }
 

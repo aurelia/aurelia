@@ -188,36 +188,36 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           );
         }
       },
-      // {
-      //   title: 'it understand render context 2 (render context available after binding)',
-      //   rootVm: CustomElement.define(
-      //     {
-      //       name: 'app',
-      //       template: <template>
-      //         <div portal='value.bind: localDiv' class='divdiv'>{'${message}'}</div>
-      //         <div ref='localDiv'></div>
-      //       </template>
-      //     },
-      //     class App {
-      //       public localDiv: HTMLElement;
-      //       public items: any[];
-      //     }
-      //   ),
-      //   assertionFn: async (ctx, host, comp) => {
-      //     // should work, or should work after a small waiting time for binding to update
-      //     // assert.equal(
-      //     //   childrenQuerySelector(comp.localDiv, '.divdiv'),
-      //     //   null,
-      //     //   'comp.localDiv should not have contained .divdiv'
-      //     // );
-      //     await waitForFrames(40);
-      //     assert.notEqual(
-      //       childrenQuerySelector(comp.localDiv, '.divdiv'),
-      //       null,
-      //       'comp.localDiv should have contained .divdiv'
-      //     );
-      //   }
-      // }
+      {
+        title: 'it understand render context 2 (render context available after binding)',
+        rootVm: CustomElement.define(
+          {
+            name: 'app',
+            template: <template>
+              <div portal='value.bind: localDiv' class='divdiv'>{'${message}'}</div>
+              <div ref='localDiv'></div>
+            </template>
+          },
+          class App {
+            public localDiv: HTMLElement;
+            public items: any[];
+          }
+        ),
+        assertionFn: (ctx, host, comp) => {
+          // debugger
+          // should work, or should work after a small waiting time for binding to update
+          // assert.equal(
+          //   childrenQuerySelector(comp.localDiv, '.divdiv'),
+          //   null,
+          //   'comp.localDiv should not have contained .divdiv'
+          // );
+          assert.notEqual(
+            childrenQuerySelector(comp.localDiv, '.divdiv'),
+            null,
+            'comp.localDiv should have contained .divdiv'
+          );
+        }
+      }
     ];
 
     eachCartesianJoin(

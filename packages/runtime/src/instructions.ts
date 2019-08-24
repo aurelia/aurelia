@@ -90,7 +90,7 @@ export class FromViewBindingInstruction implements IPropertyBindingInstruction {
 }
 
 export class TwoWayBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: TargetedInstructionType.propertyBinding;
 
   public from: string | IsBindingBehavior;
   public mode: BindingMode.twoWay;

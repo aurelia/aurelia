@@ -1,4 +1,8 @@
 import { IAttributeParser, ResourceModel } from '@aurelia/jit';
+import {
+  IAttrSyntaxTransformer,
+  TemplateBinder
+} from '@aurelia/jit-html';
 import { RuntimeCompilationResources } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -8,8 +12,7 @@ import {
   ISignaler,
   LifecycleFlags } from '@aurelia/runtime';
 import { NodeSequenceFactory } from '@aurelia/runtime-html';
-import { TemplateBinder } from '@aurelia/jit-html';
-import { TestContext, assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
 
@@ -33,12 +36,15 @@ describe(spec, function () {
   it.skip('signaler', async function () {
 
     const items = [0, 1, 2];
-    const App = CustomElement.define({
-      name: 'app',
-      template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem'}</div></template>`
-    },                                       class {
-      public items = items;
-    });
+    const App = CustomElement.define(
+      {
+        name: 'app',
+        template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem'}</div></template>`
+      },
+      class {
+        public items = items;
+      }
+    );
 
     const ctx = TestContext.createHTMLTestContext();
     const signaler = ctx.container.get(ISignaler);
@@ -167,7 +173,8 @@ describe('xml node compiler tests', function () {
         ctx.dom,
         new ResourceModel(new RuntimeCompilationResources(ctx.container)),
         ctx.container.get(IAttributeParser),
-        ctx.container.get(IExpressionParser)
+        ctx.container.get(IExpressionParser),
+        ctx.container.get(IAttrSyntaxTransformer)
       );
 
       const result = binder.bind(fakeSurrogate as any);

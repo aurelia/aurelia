@@ -49,9 +49,7 @@ export class Queue<T> {
     if (!this.isActive) {
       throw new Error('Queue has not been activated');
     }
-    if (this.lifecycle) {
-      this.lifecycle.dequeueRAF(this.dequeue, this);
-    }
+    this.lifecycle!.dequeueRAF(this.dequeue, this);
     this.allowedExecutionCostWithinTick = null;
     this.clear();
     this.isActive = false;

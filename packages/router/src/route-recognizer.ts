@@ -60,9 +60,9 @@ export class CharSpec {
 }
 
 export class State {
-  public handlers: HandlerEntry[] = [];
-  public regex: RegExp = new RegExp('');
-  public types: TypesRecord = new TypesRecord();
+  public handlers!: HandlerEntry[];
+  public regex!: RegExp;
+  public types!: TypesRecord;
   public nextStates: State[] = [];
 
   constructor(
@@ -274,7 +274,7 @@ export class RouteRecognizer {
           segments.push(new EpsilonSegment());
           continue;
         } else {
-          segments.push(segment = new StaticSegment(part, !!route.caseSensitive));
+          segments.push(segment = new StaticSegment(part, route.caseSensitive === true));
           types.statics++;
         }
       }
@@ -350,7 +350,7 @@ export class RouteRecognizer {
    * @returns The RouteGenerator for that route.
    */
   public getRoute(nameOrRoute: string | RouteHandler): RouteGenerator {
-    return typeof (nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute) as RouteGenerator;
+    return typeof nameOrRoute === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute) as RouteGenerator;
   }
 
   /**

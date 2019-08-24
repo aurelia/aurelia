@@ -1,4 +1,4 @@
-import { I18N, I18nService, RT_SIGNAL } from '@aurelia/i18n';
+import { I18N, I18nService, Signals } from '@aurelia/i18n';
 import { customElement, ISignaler } from '@aurelia/runtime';
 import template from './sut-i18n.html';
 import { Locale } from './translation-resources';
@@ -51,6 +51,6 @@ export class SutI18N {
 
   public changeMyDate() {
     this.myDate.setFullYear(this.myDate.getFullYear() - 1);
-    this.signaler.dispatchSignal(RT_SIGNAL);
+    this.signaler.dispatchSignal(Signals.RT_SIGNAL);
   }
 }

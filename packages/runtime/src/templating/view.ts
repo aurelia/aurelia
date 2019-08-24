@@ -119,7 +119,10 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
   .noDefault();
 
 export interface IViewLocator {
-  getViewComponentForObject(object: ComposableObject | null | undefined, viewNameOrSelector?: string | ViewSelector): Constructable | null;
+  getViewComponentForObject<T extends ComposableObject>(
+    object: T | null | undefined,
+    viewNameOrSelector?: string | ViewSelector,
+  ): ConstructableClass<T> | null;
 }
 
 export type ComposableObject = Omit<IViewModel, '$controller'>;

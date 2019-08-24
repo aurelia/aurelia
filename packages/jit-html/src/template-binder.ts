@@ -34,6 +34,7 @@ import {
 import {
   NodeType,
 } from '@aurelia/runtime-html';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 
 const slice = Array.prototype.slice;
 
@@ -59,6 +60,7 @@ export class TemplateBinder {
   public resources: ResourceModel;
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
+  public attrSyntaxTransformer: IAttrSyntaxTransformer;
 
   private surrogate: PlainElementSymbol | null;
 
@@ -76,11 +78,18 @@ export class TemplateBinder {
 
   private partName: string | null;
 
-  constructor(dom: IDOM, resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
+  constructor(
+    dom: IDOM,
+    resources: ResourceModel,
+    attrParser: IAttributeParser,
+    exprParser: IExpressionParser,
+    attrSyntaxModifier: IAttrSyntaxTransformer
+  ) {
     this.dom = dom;
     this.resources = resources;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
+    this.attrSyntaxTransformer = attrSyntaxModifier;
     this.surrogate = null;
     this.manifest = null;
     this.manifestRoot = null;
@@ -241,93 +250,8 @@ export class TemplateBinder {
       const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
       if (attrInfo == null) {
-        switch (node.tagName) {
-          case 'LABEL':
-            switch (attrSyntax.target) {
-              case 'for':
-                attrSyntax.target = 'htmlFor';
-                break;
-            }
-            break;
-          case 'IMG':
-            switch (attrSyntax.target) {
-              case 'usemap':
-                attrSyntax.target = 'useMap';
-                break;
-            }
-            break;
-          case 'INPUT':
-            switch (attrSyntax.target) {
-              case 'maxlength':
-                attrSyntax.target = 'maxLength';
-                break;
-              case 'minlength':
-                attrSyntax.target = 'minLength';
-                break;
-              case 'formaction':
-                attrSyntax.target = 'formAction';
-                break;
-              case 'formenctype':
-                attrSyntax.target = 'formEncType';
-                break;
-              case 'formmethod':
-                attrSyntax.target = 'formMethod';
-                break;
-              case 'formnovalidate':
-                attrSyntax.target = 'formNoValidate';
-                break;
-              case 'formtarget':
-                attrSyntax.target = 'formTarget';
-                break;
-            }
-            break;
-          case 'TEXTAREA':
-            switch (attrSyntax.target) {
-              case 'maxlength':
-                attrSyntax.target = 'maxLength';
-                break;
-            }
-            break;
-          case 'TD':
-          case 'TH':
-            switch (attrSyntax.target) {
-              case 'rowspan':
-                attrSyntax.target = 'rowSpan';
-                break;
-              case 'colspan':
-                attrSyntax.target = 'colSpan';
-                break;
-            }
-            break;
-          default:
-            switch (attrSyntax.target) {
-              case 'accesskey':
-                attrSyntax.target = 'accessKey';
-                break;
-              case 'contenteditable':
-                attrSyntax.target = 'contentEditable';
-                break;
-              case 'tabindex':
-                attrSyntax.target = 'tabIndex';
-                break;
-              case 'textcontent':
-                attrSyntax.target = 'textContent';
-                break;
-              case 'innerhtml':
-                attrSyntax.target = 'innerHTML';
-                break;
-              case 'scrolltop':
-                attrSyntax.target = 'scrollTop';
-                break;
-              case 'scrollleft':
-                attrSyntax.target = 'scrollLeft';
-                break;
-              case 'readonly':
-                attrSyntax.target = 'readOnly';
-                break;
-            }
-            break;
-        }
+        // map special html attributes to their corresponding properties
+        this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
@@ -384,9 +308,7 @@ export class TemplateBinder {
 
       processReplacePart(this.dom, replacePart, manifestProxy);
     }
-
   }
-
 
   private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
     let childNode: ChildNode;

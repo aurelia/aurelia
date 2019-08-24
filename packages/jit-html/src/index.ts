@@ -1,4 +1,7 @@
 export {
+  IAttrSyntaxTransformer
+} from './attribute-syntax-transformer';
+export {
   TriggerBindingCommand,
   DelegateBindingCommand,
   CaptureBindingCommand,
@@ -9,6 +12,7 @@ export {
 export {
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
 
   DefaultComponents,
 

@@ -202,6 +202,23 @@ describe('the view locator', () => {
     assert.equal(template1.name, template.name);
   });
 
+  it('locates views that are defined statically, without a decorator', () => {
+    class MyModel {
+      public static readonly $views = [{
+        name: 'view-1'
+      }];
+    }
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model);
+    const template = (Component as any).description;
+
+    assert.isCustomElementType(Component);
+    assert.equal('view-1', template.name);
+  });
+
   [
     'created',
     'binding',

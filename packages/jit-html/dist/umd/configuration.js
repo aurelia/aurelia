@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime-html", "./attribute-patterns", "./binding-commands", "./template-compiler", "./template-element-factory"], factory);
+        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime-html", "./attribute-patterns", "./binding-commands", "./html-attribute-syntax-transformer", "./template-compiler", "./template-element-factory"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,10 +14,12 @@
     const runtime_html_1 = require("@aurelia/runtime-html");
     const attribute_patterns_1 = require("./attribute-patterns");
     const binding_commands_1 = require("./binding-commands");
+    const html_attribute_syntax_transformer_1 = require("./html-attribute-syntax-transformer");
     const template_compiler_1 = require("./template-compiler");
     const template_element_factory_1 = require("./template-element-factory");
     exports.ITemplateCompilerRegistration = template_compiler_1.TemplateCompiler;
     exports.ITemplateElementFactoryRegistration = template_element_factory_1.HTMLTemplateElementFactory;
+    exports.IAttrSyntaxTransformerRegistation = html_attribute_syntax_transformer_1.HtmlAttrSyntaxTransformer;
     /**
      * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
      * - `ITemplateCompiler`
@@ -25,7 +27,8 @@
      */
     exports.DefaultComponents = [
         exports.ITemplateCompilerRegistration,
-        exports.ITemplateElementFactoryRegistration
+        exports.ITemplateElementFactoryRegistration,
+        exports.IAttrSyntaxTransformerRegistation
     ];
     /**
      * Default HTML-specific (but environment-agnostic) implementations for style binding

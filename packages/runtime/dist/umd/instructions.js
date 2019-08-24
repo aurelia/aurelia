@@ -51,7 +51,6 @@
     class TwoWayBindingInstruction {
         constructor(from, to) {
             this.type = "rg" /* propertyBinding */;
-            this.type = "rg" /* propertyBinding */;
             this.from = from;
             this.mode = flags_1.BindingMode.twoWay;
             this.oneTime = false;

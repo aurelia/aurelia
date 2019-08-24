@@ -1,7 +1,9 @@
+import * as tslib_1 from "tslib";
 import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import { mergeDistinct, PLATFORM, Profiler, Registration, } from '@aurelia/kernel';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IExpressionParser, InterpolationInstruction, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, RefBindingInstruction, SetPropertyInstruction } from '@aurelia/runtime';
 import { SetAttributeInstruction, TextBindingInstruction } from '@aurelia/runtime-html';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
 const buildNotRequired = Object.freeze({
@@ -14,11 +16,12 @@ const { enter, leave } = Profiler.createTimer('TemplateCompiler');
  *
  * @internal
  */
-export class TemplateCompiler {
-    constructor(factory, attrParser, exprParser) {
+let TemplateCompiler = class TemplateCompiler {
+    constructor(factory, attrParser, exprParser, attrSyntaxModifier) {
         this.factory = factory;
         this.attrParser = attrParser;
         this.exprParser = exprParser;
+        this.attrSyntaxModifier = attrSyntaxModifier;
         this.instructionRows = null;
         this.parts = null;
         this.scopeParts = null;
@@ -30,7 +33,7 @@ export class TemplateCompiler {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
     compile(dom, definition, descriptions) {
-        const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
+        const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser, this.attrSyntaxModifier);
         const template = definition.template = this.factory.createTemplate(definition.template);
         const surrogate = binder.bind(template);
         if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
@@ -267,6 +270,12 @@ export class TemplateCompiler {
         }
         return parts;
     }
-}
-TemplateCompiler.inject = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
+};
+TemplateCompiler = tslib_1.__decorate([
+    tslib_1.__param(0, ITemplateElementFactory),
+    tslib_1.__param(1, IAttributeParser),
+    tslib_1.__param(2, IExpressionParser),
+    tslib_1.__param(3, IAttrSyntaxTransformer)
+], TemplateCompiler);
+export { TemplateCompiler };
 //# sourceMappingURL=template-compiler.js.map

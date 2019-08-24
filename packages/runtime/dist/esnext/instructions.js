@@ -36,7 +36,6 @@ export class FromViewBindingInstruction {
 export class TwoWayBindingInstruction {
     constructor(from, to) {
         this.type = "rg" /* propertyBinding */;
-        this.type = "rg" /* propertyBinding */;
         this.from = from;
         this.mode = BindingMode.twoWay;
         this.oneTime = false;

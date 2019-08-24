@@ -2,6 +2,7 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
 export declare const ITemplateCompilerRegistration: IRegistry;
 export declare const ITemplateElementFactoryRegistration: IRegistry;
+export declare const IAttrSyntaxTransformerRegistation: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`

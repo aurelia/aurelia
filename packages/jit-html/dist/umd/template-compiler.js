@@ -4,15 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "./template-binder", "./template-element-factory"], factory);
+        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "./attribute-syntax-transformer", "./template-binder", "./template-element-factory"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const jit_1 = require("@aurelia/jit");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
+    const attribute_syntax_transformer_1 = require("./attribute-syntax-transformer");
     const template_binder_1 = require("./template-binder");
     const template_element_factory_1 = require("./template-element-factory");
     const buildNotRequired = Object.freeze({
@@ -25,11 +27,12 @@
      *
      * @internal
      */
-    class TemplateCompiler {
-        constructor(factory, attrParser, exprParser) {
+    let TemplateCompiler = class TemplateCompiler {
+        constructor(factory, attrParser, exprParser, attrSyntaxModifier) {
             this.factory = factory;
             this.attrParser = attrParser;
             this.exprParser = exprParser;
+            this.attrSyntaxModifier = attrSyntaxModifier;
             this.instructionRows = null;
             this.parts = null;
             this.scopeParts = null;
@@ -41,7 +44,7 @@
             return kernel_1.Registration.singleton(runtime_1.ITemplateCompiler, this).register(container);
         }
         compile(dom, definition, descriptions) {
-            const binder = new template_binder_1.TemplateBinder(dom, new jit_1.ResourceModel(descriptions), this.attrParser, this.exprParser);
+            const binder = new template_binder_1.TemplateBinder(dom, new jit_1.ResourceModel(descriptions), this.attrParser, this.exprParser, this.attrSyntaxModifier);
             const template = definition.template = this.factory.createTemplate(definition.template);
             const surrogate = binder.bind(template);
             if (definition.instructions === undefined || definition.instructions === kernel_1.PLATFORM.emptyArray) {
@@ -278,8 +281,13 @@
             }
             return parts;
         }
-    }
-    TemplateCompiler.inject = [template_element_factory_1.ITemplateElementFactory, jit_1.IAttributeParser, runtime_1.IExpressionParser];
+    };
+    TemplateCompiler = tslib_1.__decorate([
+        tslib_1.__param(0, template_element_factory_1.ITemplateElementFactory),
+        tslib_1.__param(1, jit_1.IAttributeParser),
+        tslib_1.__param(2, runtime_1.IExpressionParser),
+        tslib_1.__param(3, attribute_syntax_transformer_1.IAttrSyntaxTransformer)
+    ], TemplateCompiler);
     exports.TemplateCompiler = TemplateCompiler;
 });
 //# sourceMappingURL=template-compiler.js.map

@@ -3,10 +3,12 @@ import { DI } from '@aurelia/kernel';
 import { BasicConfiguration as RuntimeHtmlBasicConfiguration } from '@aurelia/runtime-html';
 import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
 import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-commands';
+import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
 export const ITemplateCompilerRegistration = TemplateCompiler;
 export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory;
+export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
@@ -14,7 +16,8 @@ export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory;
  */
 export const DefaultComponents = [
     ITemplateCompilerRegistration,
-    ITemplateElementFactoryRegistration
+    ITemplateElementFactoryRegistration,
+    IAttrSyntaxTransformerRegistation
 ];
 /**
  * Default HTML-specific (but environment-agnostic) implementations for style binding

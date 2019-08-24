@@ -4,11 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding-commands", "./configuration", "./debugging", "./template-binder", "./template-element-factory"], factory);
+        define(["require", "exports", "./attribute-syntax-transformer", "./binding-commands", "./configuration", "./debugging", "./template-binder", "./template-element-factory"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var attribute_syntax_transformer_1 = require("./attribute-syntax-transformer");
+    exports.IAttrSyntaxTransformer = attribute_syntax_transformer_1.IAttrSyntaxTransformer;
     var binding_commands_1 = require("./binding-commands");
     exports.TriggerBindingCommand = binding_commands_1.TriggerBindingCommand;
     exports.DelegateBindingCommand = binding_commands_1.DelegateBindingCommand;
@@ -19,6 +21,7 @@
     var configuration_1 = require("./configuration");
     exports.ITemplateCompilerRegistration = configuration_1.ITemplateCompilerRegistration;
     exports.ITemplateElementFactoryRegistration = configuration_1.ITemplateElementFactoryRegistration;
+    exports.IAttrSyntaxTransformerRegistation = configuration_1.IAttrSyntaxTransformerRegistation;
     exports.DefaultComponents = configuration_1.DefaultComponents;
     exports.TriggerBindingCommandRegistration = configuration_1.TriggerBindingCommandRegistration;
     exports.DelegateBindingCommandRegistration = configuration_1.DelegateBindingCommandRegistration;

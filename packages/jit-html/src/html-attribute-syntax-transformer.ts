@@ -131,7 +131,7 @@ function shouldDefaultToTwoWay(element: HTMLElement, attr: AttrSyntax): boolean 
         case 'innerhtml':
           return element.hasAttribute('contenteditable');
         case 'scrolltop':
-        case 'scrolleft':
+        case 'scrollleft':
           return true;
         default:
           return false;

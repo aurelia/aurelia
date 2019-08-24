@@ -49,12 +49,13 @@ export class ViewportCustomElement {
 
   public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
     const Type = this.constructor as ICustomElementType;
-    if (parentContext) {
-      const dom = parentContext.get(IDOM);
-      const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-      (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
-      template.render(this, host, parts);
+    if (!parentContext) {
+      parentContext = this.$controller.context as IRenderContext;
     }
+    const dom = parentContext.get(IDOM);
+    const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
+    (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
+    template.render(this, host, parts);
   }
 
   // public created(...rest): void {

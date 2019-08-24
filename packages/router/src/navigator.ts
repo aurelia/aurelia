@@ -182,7 +182,7 @@ export class Navigator {
     if (this.currentEntry == this.uninitializedEntry) {
       return [];
     }
-    const index = this.currentEntry.index !== undefined ? this.currentEntry.index : 0;
+    const index = this.currentEntry.index !== void 0 ? this.currentEntry.index : 0;
     return this.entries.slice(0, index + 1).filter((value) => !!value.title).map((value) => value.title ? value.title : '');
   }
 

@@ -183,9 +183,11 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         this.forwardedState.suppressPopstate = false;
       }
     }
-    const method = (call.target as { [key: string]: Function })[call.methodName];
+    const method = (call.target as { [key: string]: Function | undefined })[call.methodName];
     Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
-    method.apply(call.target, call.parameters);
+    if (method) {
+      method.apply(call.target, call.parameters);
+    }
     (qCall.resolve as ((value: void | PromiseLike<void>) => void))();
   }
 }

@@ -3,7 +3,7 @@ import { CustomElementHost } from '@aurelia/runtime';
 export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost | null {
   let el: CustomElementHost<Element> | null = element;
   while (el) {
-    if ((el).$controller) {
+    if (el.$controller) {
       break;
     }
     el = el.parentElement;

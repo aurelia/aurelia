@@ -220,7 +220,7 @@ export class Viewport {
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(null, undefined, (this.nextContent as ViewportContent).instruction);
+      this.content = new ViewportContent(null, void 0, (this.nextContent as ViewportContent).instruction);
     }
 
     this.nextContent = null;
@@ -240,7 +240,7 @@ export class Viewport {
 
   public description(full: boolean = false): string {
     if (this.content.content) {
-      const component: string = this.content.toComponentName() as string;
+      const component = this.content.toComponentName() as string;
       if (full || this.options.forceDescription) {
         return this.router.instructionResolver.stringifyViewportInstruction(
           new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
@@ -253,7 +253,7 @@ export class Viewport {
         );
       }
       return this.router.instructionResolver.stringifyViewportInstruction(
-        new ViewportInstruction(component, undefined, this.content.parameters, this.scope !== null)
+        new ViewportInstruction(component, void 0, this.content.parameters, this.scope !== null)
       );
     }
     return '';

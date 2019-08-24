@@ -145,7 +145,7 @@ describe('route sut', function () {
     }
   ];
 
-  xit('should reject unknown routes', function () {
+  it('should reject unknown routes', function () {
     const sut = new RouteRecognizer();
 
     assert.strictEqual(sut.hasRoute('static'), false, `sut.hasRoute('static')`);
@@ -259,7 +259,7 @@ describe('route sut', function () {
     assert.strictEqual(result[0].handler.name, 'similar', `result[0].handler.name`);
   });
 
-  xit('can set case sensitive route and fails', function () {
+  it('can set case sensitive route and fails', function () {
     const sut = new RouteRecognizer();
     const routeTest = {
       t: 'case sensitive route',

@@ -551,6 +551,6 @@ export class RouteRecognizer {
 
       return result;
     }
-    return [] as RecognizeResults;
+    return void 0 as unknown as RecognizeResults;
   }
 }

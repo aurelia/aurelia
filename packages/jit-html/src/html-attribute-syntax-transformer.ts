@@ -90,26 +90,6 @@ export class HtmlAttrSyntaxTransformer implements IAttrSyntaxTransformer {
         }
     }
   }
-
-  private transformBindingCommand(element: HTMLElement, attrSyntax: AttrSyntax): void {
-    const tagName = element.tagName;
-    const target = attrSyntax.target;
-    let command = attrSyntax.command;
-    if (tagName === 'INPUT') {
-      const inputType = (element as HTMLInputElement).type;
-      if ((target === 'value' || target === 'files') && inputType !== 'checkbox' && inputType !== 'radio'
-        || target === 'checked' && (inputType === 'checkbox' || inputType === 'radio')) {
-        command = 'two-way';
-      }
-    }
-    else if ((tagName === 'TEXTAREA' || tagName === 'SELECT') && target === 'value'
-      || (target === 'textcontent' || target === 'innerhtml') && element.hasAttribute('contenteditable')
-      || target === 'scrolltop'
-      || target === 'scrollleft') {
-      command = 'two-way';
-    }
-    attrSyntax.command = command;
-  }
 }
 
 function shouldDefaultToTwoWay(element: HTMLElement, attr: AttrSyntax): boolean {

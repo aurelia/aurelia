@@ -1,4 +1,4 @@
-import { ViewValueConverter, view, ViewLocator, CustomElement } from '@aurelia/runtime';
+import { view, ViewLocator, ViewValueConverter } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('the view value converter', () => {
@@ -7,9 +7,9 @@ describe('the view value converter', () => {
     const fakeViewLocator = {
       object: null,
       viewName: null,
-      getViewComponentForObject(object, viewName) {
-        this.object = object;
-        this.viewName = viewName;
+      getViewComponentForObject(o: any, vn: any): any {
+        this.object = o;
+        this.viewName = vn;
         return fakeResult;
       }
     };
@@ -61,7 +61,7 @@ describe('the view locator', () => {
     const Component = locator.getViewComponentForObject(model);
     const instance: any = new Component();
 
-    assert.equal(CustomElement.isType(Component), true);
+    assert.isCustomElementType(Component);
     assert.equal(instance.viewModel, model);
   });
 
@@ -76,8 +76,8 @@ describe('the view locator', () => {
     const Component1 = locator.getViewComponentForObject(model);
     const Component2 = locator.getViewComponentForObject(model);
 
-    assert.equal(CustomElement.isType(Component1), true);
-    assert.equal(CustomElement.isType(Component2), true);
+    assert.isCustomElementType(Component1);
+    assert.isCustomElementType(Component2);
     assert.equal(Component1, Component2);
   });
 
@@ -96,8 +96,8 @@ describe('the view locator', () => {
       Object.getPrototypeOf(Component1)
     ).constructor;
 
-    assert.equal(CustomElement.isType(Component1), true);
-    assert.equal(CustomElement.isType(Component2), true);
+    assert.isCustomElementType(Component1);
+    assert.isCustomElementType(Component2);
     assert.instanceOf(Component1, BaseComponent);
     assert.instanceOf(Component2, BaseComponent);
   });
@@ -114,7 +114,7 @@ describe('the view locator', () => {
     const Component = locator.getViewComponentForObject(model);
     const template = (Component as any).description;
 
-    assert.equal(CustomElement.isType(Component), true);
+    assert.isCustomElementType(Component);
     assert.equal('view-1', template.name);
   });
 
@@ -132,7 +132,7 @@ describe('the view locator', () => {
     const Component = locator.getViewComponentForObject(model, 'view-2');
     const template = (Component as any).description;
 
-    assert.equal(CustomElement.isType(Component), true);
+    assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
   });
 
@@ -150,7 +150,7 @@ describe('the view locator', () => {
     const Component = locator.getViewComponentForObject(model);
     const template = (Component as any).description;
 
-    assert.equal(CustomElement.isType(Component), true);
+    assert.isCustomElementType(Component);
     assert.equal('default-view', template.name);
   });
 
@@ -177,7 +177,7 @@ describe('the view locator', () => {
     const Component = locator.getViewComponentForObject(model, selectView);
     const template = (Component as any).description;
 
-    assert.equal(CustomElement.isType(Component), true);
+    assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
     assert.equal(receivedObject, model);
     assert.equal(receivedViews, (MyModel as any).$views);
@@ -215,7 +215,7 @@ describe('the view locator', () => {
       instance.$scope = {};
       instance[lifecycleHook]();
 
-      assert.equal(CustomElement.isType(Component), true);
+      assert.isCustomElementType(Component);
       assert.equal(model.invoked, true);
     });
   });

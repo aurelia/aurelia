@@ -183,6 +183,25 @@ describe('the view locator', () => {
     assert.equal(receivedViews, (MyModel as any).$views);
   });
 
+  it('can return a component based on a dynamic view when selector used with model without associated views', () => {
+    const template1 = { name: 'view-1' };
+    class MyModel {}
+
+    function selectView(object, views) {
+      views.push(template1);
+      return template1.name;
+    }
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model, selectView);
+    const template = (Component as any).description;
+
+    assert.isCustomElementType(Component);
+    assert.equal(template1.name, template.name);
+  });
+
   [
     'created',
     'binding',

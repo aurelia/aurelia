@@ -14,14 +14,22 @@ export {
 } from './guard';
 
 export {
-  IGuardTarget,
   GuardTypes,
-  GuardFunction,
-  GuardTarget,
   GuardIdentity,
   IGuardOptions,
   Guardian,
 } from './guardian';
+
+export {
+  GuardFunction,
+  GuardTarget,
+  INavigatorInstruction,
+  IRouteableComponent,
+  IRouteableComponentType,
+  IViewportInstruction,
+  NavigationInstruction,
+  ReentryBehavior,
+} from './interfaces';
 
 export {
   INavRoute,
@@ -37,7 +45,6 @@ export {
   INavigatorEntry,
   INavigatorOptions,
   INavigatorFlags,
-  INavigatorInstruction,
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
@@ -72,15 +79,11 @@ export {
 export {
   IRouteTransformer,
   IRouterOptions,
-  IRouteViewport,
   IRouter,
-  IViewportComponent,
-  NavigationInstruction,
   Router,
 } from './router';
 
 export {
-  IViewportCustomElementType,
   IFindViewportsResult,
   ChildContainer,
   Scope,
@@ -92,10 +95,7 @@ export {
 } from './viewport';
 
 export {
-  IRouteableCustomElement,
-  IRouteableCustomElementType,
   ContentStatus,
-  ReentryBehavior,
   ViewportContent,
 } from './viewport-content';
 

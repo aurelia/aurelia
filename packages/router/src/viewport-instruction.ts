@@ -1,11 +1,11 @@
-import { Constructable, IContainer } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
-import { IRouteableCustomElementType } from './viewport-content';
 
 export class ViewportInstruction {
-  public component?: Partial<ICustomElementType>;
+  public component?: IRouteableComponentType;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
@@ -15,7 +15,7 @@ export class ViewportInstruction {
   public ownsScope?: boolean;
   public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
+  constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstruction: ViewportInstruction = null) {
     this.component = null;
     this.componentName = null;
     this.viewport = null;
@@ -32,17 +32,17 @@ export class ViewportInstruction {
     this.nextScopeInstruction = nextScopeInstruction;
   }
 
-  public setComponent(component: Partial<ICustomElementType> | string): void {
+  public setComponent(component: ComponentAppellation): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;
     } else {
-      this.component = component;
-      this.componentName = component.description.name;
+      this.component = component as IRouteableComponentType;
+      this.componentName = (component as ICustomElementType).description.name;
     }
   }
 
-  public setViewport(viewport: Viewport | string): void {
+  public setViewport(viewport: ViewportHandle): void {
     if (viewport === undefined || viewport === '') {
       viewport = null;
     }
@@ -57,7 +57,7 @@ export class ViewportInstruction {
     }
   }
 
-  public setParameters(parameters: Record<string, unknown> | string): void {
+  public setParameters(parameters: ComponentParameters): void {
     if (parameters === undefined || parameters === '') {
       parameters = null;
     }
@@ -72,12 +72,12 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
-  public componentType(context: IRenderContext): IRouteableCustomElementType {
+  public componentType(context: IRenderContext): IRouteableComponentType {
     if (this.component !== null) {
       return this.component;
     }
     const container = context.get(IContainer);
-    const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElement.keyFrom(this.componentName));
+    const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
     if (resolver !== null) {
       return resolver.getFactory(container).Type;
     }

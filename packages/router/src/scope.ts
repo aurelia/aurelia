@@ -1,13 +1,9 @@
 import { IContainer } from '@aurelia/kernel';
-import { IController, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { IController, IRenderContext } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-
-export interface IViewportCustomElementType extends ICustomElementType {
-  viewport?: string;
-}
 
 export interface IFindViewportsResult {
   viewportInstructions?: ViewportInstruction[];

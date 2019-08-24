@@ -138,7 +138,7 @@ const lifecycleCallbacks = [
   'detached',
   'unbinding',
   'unbound'
-] as (keyof Omit<ComposableObject, 'created'>)[];
+] as const;
 
 export class ViewLocator implements IViewLocator {
   private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, Constructable>> = new WeakMap();

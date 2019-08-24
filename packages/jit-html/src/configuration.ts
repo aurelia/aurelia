@@ -18,11 +18,13 @@ import {
   StyleBindingCommand,
   TriggerBindingCommand
 } from './binding-commands';
+import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
 export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as IRegistry;
+export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -31,7 +33,8 @@ export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as
  */
 export const DefaultComponents = [
   ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration
+  ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation
 ];
 
 /**

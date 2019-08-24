@@ -12,6 +12,7 @@ export {
 export {
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
 
   DefaultComponents,
 

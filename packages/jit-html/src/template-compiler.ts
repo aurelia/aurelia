@@ -70,17 +70,6 @@ const { enter, leave } = Profiler.createTimer('TemplateCompiler');
  * @internal
  */
 export class TemplateCompiler implements ITemplateCompiler {
-  public static readonly inject: readonly Key[] = [
-    ITemplateElementFactory,
-    IAttributeParser,
-    IExpressionParser,
-    IAttrSyntaxTransformer
-  ];
-
-  private readonly factory: ITemplateElementFactory;
-  private readonly attrParser: IAttributeParser;
-  private readonly exprParser: IExpressionParser;
-  private readonly attrSyntaxModifier: IAttrSyntaxTransformer;
 
   /**
    * The instructions array for the currently instruction-collecting `ITemplateDefinition`
@@ -95,15 +84,11 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   constructor(
-    factory: ITemplateElementFactory,
-    attrParser: IAttributeParser,
-    exprParser: IExpressionParser,
-    attrSyntaxModifier: IAttrSyntaxTransformer
+    @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
+    @IAttributeParser private readonly attrParser: IAttributeParser,
+    @IExpressionParser private readonly exprParser: IExpressionParser,
+    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer
   ) {
-    this.factory = factory;
-    this.attrParser = attrParser;
-    this.exprParser = exprParser;
-    this.attrSyntaxModifier = attrSyntaxModifier;
     this.instructionRows = null!;
     this.parts = null!;
     this.scopeParts = null!;

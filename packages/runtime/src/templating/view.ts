@@ -139,7 +139,7 @@ const lifecycleCallbacks = [
 
 export class ViewLocator implements IViewLocator {
   private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, Constructable>> = new WeakMap();
-  private modelTypeToUnboundComponent: Map<object, Record<string, Constructable>> = new Map();
+  private readonly modelTypeToUnboundComponent: Map<object, Record<string, Constructable>> = new Map();
 
   public static register(container: IContainer): IResolver<IViewLocator> {
     return Registration.singleton(IViewLocator, this).register(container);

@@ -1,3 +1,4 @@
+import { NavigationInstruction } from './interfaces';
 import { INavRoute, Nav } from './nav';
 import { ViewportInstruction } from './viewport-instruction';
 export declare class NavRoute {
@@ -7,7 +8,7 @@ export declare class NavRoute {
     link?: string;
     execute?: ((route: NavRoute) => void);
     linkVisible?: boolean | ((route: NavRoute) => boolean);
-    linkActive?: string | ((route: NavRoute) => boolean);
+    linkActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
     compareParameters: boolean;
     children?: NavRoute[];
     meta?: Record<string, unknown>;

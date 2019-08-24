@@ -33,6 +33,7 @@ export declare class InstructionResolver {
     };
     mergeViewportInstructions(instructions: (string | ViewportInstruction)[]): ViewportInstruction[];
     removeStateDuplicates(states: string[]): string[];
+    flattenViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[];
     stateStringsToString(stateStrings: string[], clear?: boolean): string;
     private parseAViewportInstruction;
     private stringifyAViewportInstruction;

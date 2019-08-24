@@ -21,13 +21,6 @@
         ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
         ContentStatus[ContentStatus["added"] = 4] = "added";
     })(ContentStatus = exports.ContentStatus || (exports.ContentStatus = {}));
-    var ReentryBehavior;
-    (function (ReentryBehavior) {
-        ReentryBehavior["default"] = "default";
-        ReentryBehavior["disallow"] = "disallow";
-        ReentryBehavior["enter"] = "enter";
-        ReentryBehavior["refresh"] = "refresh";
-    })(ReentryBehavior = exports.ReentryBehavior || (exports.ReentryBehavior = {}));
     class ViewportContent {
         constructor(content = null, parameters = null, instruction = null, context = null) {
             // Can be a (resolved) type or a string (to be resolved later)
@@ -227,7 +220,7 @@
                 return this.content;
             }
             else {
-                return (this.content).description.name;
+                return this.content.description.name;
             }
         }
         componentType(context) {

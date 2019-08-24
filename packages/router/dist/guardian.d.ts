@@ -1,23 +1,22 @@
-import { ICustomElementType } from '@aurelia/runtime';
 import { Guard } from './guard';
-import { INavigatorInstruction } from './navigator';
-import { Viewport } from './viewport';
+import { GuardFunction, GuardTarget, INavigatorInstruction } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
-export interface IGuardTarget {
-    component?: Partial<ICustomElementType>;
-    componentName?: string;
-    viewport?: Viewport;
-    viewportName?: string;
-}
 export declare const enum GuardTypes {
     Before = "before"
 }
-export declare type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigatorInstruction) => boolean | ViewportInstruction[];
-export declare type GuardTarget = IGuardTarget | Partial<ICustomElementType> | string;
 export declare type GuardIdentity = number;
 export interface IGuardOptions {
+    /**
+     * What event/when to guard. Defaults to Before
+     */
     type?: GuardTypes;
+    /**
+     * What to guard. If omitted, everything is included
+     */
     include?: GuardTarget[];
+    /**
+     * What not to guard. If omitted, nothing is excluded
+     */
     exclude?: GuardTarget[];
 }
 export declare class Guardian {

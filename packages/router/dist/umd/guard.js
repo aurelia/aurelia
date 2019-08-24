@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./viewport-instruction"], factory);
+        define(["require", "exports", "./type-resolvers", "./viewport-instruction"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const type_resolvers_1 = require("./type-resolvers");
     const viewport_instruction_1 = require("./viewport-instruction");
     class Guard {
         constructor(guard, options, id) {
@@ -40,18 +41,19 @@
     exports.Guard = Guard;
     class Target {
         constructor(target) {
-            const { component, componentName, viewport, viewportName } = target;
             if (typeof target === 'string') {
                 this.componentName = target;
             }
-            else if (component || componentName || viewport || viewportName) {
-                this.component = component;
-                this.componentName = componentName;
-                this.viewport = viewport;
-                this.viewportName = viewportName;
+            else if (type_resolvers_1.ComponentAppellationResolver.isType(target)) {
+                this.component = target;
+                this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(target);
             }
             else {
-                this.component = target;
+                const cvTarget = target;
+                this.component = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component) ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component) : null;
+                this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(cvTarget.component);
+                this.viewport = type_resolvers_1.ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+                this.viewportName = type_resolvers_1.ViewportHandleResolver.getName(cvTarget.viewport);
             }
         }
         matches(viewportInstructions) {

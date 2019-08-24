@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./viewport-instruction"], factory);
+        define(["require", "exports", "./type-resolvers"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const viewport_instruction_1 = require("./viewport-instruction");
+    const type_resolvers_1 = require("./type-resolvers");
     class NavRoute {
         constructor(nav, route) {
             this.compareParameters = false;
@@ -26,11 +26,10 @@
                 this.instructions = this.parseRoute(route.route);
                 this.link = this.computeLink(this.instructions);
             }
-            this.linkActive = route.consideredActive
-                ? route.consideredActive instanceof Function
-                    ? route.consideredActive
-                    : this.computeLink(this.parseRoute(route.consideredActive))
-                : this.link;
+            this.linkActive = route.consideredActive ? route.consideredActive : this.link;
+            if (!(this.linkActive instanceof Function) || type_resolvers_1.ComponentAppellationResolver.isType(this.linkActive)) {
+                this.linkActive = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive);
+            }
             this.execute = route.execute;
             this.compareParameters = !!route.compareParameters;
             this.linkVisible = route.condition === undefined ? true : route.condition;
@@ -56,26 +55,7 @@
             this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
         }
         parseRoute(routes) {
-            if (!Array.isArray(routes)) {
-                return this.parseRoute([routes]);
-            }
-            const instructions = [];
-            for (const route of routes) {
-                if (typeof route === 'string') {
-                    instructions.push(this.nav.router.instructionResolver.parseViewportInstruction(route));
-                }
-                else if (route instanceof viewport_instruction_1.ViewportInstruction) {
-                    instructions.push(route);
-                }
-                else if (route['component']) {
-                    const viewportComponent = route;
-                    instructions.push(new viewport_instruction_1.ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
-                }
-                else {
-                    instructions.push(new viewport_instruction_1.ViewportInstruction(route));
-                }
-            }
-            return instructions;
+            return type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
         }
         computeVisible() {
             if (this.linkVisible instanceof Function) {
@@ -84,11 +64,12 @@
             return this.linkVisible;
         }
         computeActive() {
-            if (this.linkActive instanceof Function) {
+            if (!Array.isArray(this.linkActive)) {
                 return this.linkActive(this) ? 'nav-active' : '';
             }
-            const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
-            const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+            const components = this.linkActive;
+            let activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+            activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(activeComponents);
             for (const component of components) {
                 if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
                     return '';

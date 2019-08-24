@@ -10,13 +10,6 @@ export var ContentStatus;
     ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
     ContentStatus[ContentStatus["added"] = 4] = "added";
 })(ContentStatus || (ContentStatus = {}));
-export var ReentryBehavior;
-(function (ReentryBehavior) {
-    ReentryBehavior["default"] = "default";
-    ReentryBehavior["disallow"] = "disallow";
-    ReentryBehavior["enter"] = "enter";
-    ReentryBehavior["refresh"] = "refresh";
-})(ReentryBehavior || (ReentryBehavior = {}));
 export class ViewportContent {
     constructor(content = null, parameters = null, instruction = null, context = null) {
         // Can be a (resolved) type or a string (to be resolved later)
@@ -216,7 +209,7 @@ export class ViewportContent {
             return this.content;
         }
         else {
-            return (this.content).description.name;
+            return this.content.description.name;
         }
     }
     componentType(context) {

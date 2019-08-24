@@ -122,6 +122,16 @@
             unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
             return unique;
         }
+        flattenViewportInstructions(instructions) {
+            const flat = [];
+            for (const instruction of instructions) {
+                flat.push(instruction);
+                if (instruction.nextScopeInstruction) {
+                    flat.push(...this.flattenViewportInstructions([instruction.nextScopeInstruction]));
+                }
+            }
+            return flat;
+        }
         stateStringsToString(stateStrings, clear = false) {
             const strings = stateStrings.slice();
             if (clear) {

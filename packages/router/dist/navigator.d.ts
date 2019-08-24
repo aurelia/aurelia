@@ -1,3 +1,4 @@
+import { INavigatorInstruction } from './interfaces';
 import { QueueItem } from './queue';
 export interface INavigatorStore {
     length: number;
@@ -53,11 +54,6 @@ export interface INavigatorFlags {
     forward?: boolean;
     back?: boolean;
     replace?: boolean;
-}
-export interface INavigatorInstruction extends INavigatorEntry {
-    navigation?: INavigatorFlags;
-    previous?: IStoredNavigatorEntry;
-    repeating?: boolean;
 }
 export interface INavigatorState {
     state?: Record<string, unknown>;

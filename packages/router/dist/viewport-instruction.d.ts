@@ -1,9 +1,9 @@
-import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { IRenderContext } from '@aurelia/runtime';
+import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
-import { IRouteableCustomElementType } from './viewport-content';
 export declare class ViewportInstruction {
-    component?: Partial<ICustomElementType>;
+    component?: IRouteableComponentType;
     componentName?: string;
     viewport?: Viewport;
     viewportName?: string;
@@ -12,11 +12,11 @@ export declare class ViewportInstruction {
     parametersList?: string[];
     ownsScope?: boolean;
     nextScopeInstruction?: ViewportInstruction;
-    constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope?: boolean, nextScopeInstruction?: ViewportInstruction);
-    setComponent(component: Partial<ICustomElementType> | string): void;
-    setViewport(viewport: Viewport | string): void;
-    setParameters(parameters: Record<string, unknown> | string): void;
-    componentType(context: IRenderContext): IRouteableCustomElementType;
+    constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstruction?: ViewportInstruction);
+    setComponent(component: ComponentAppellation): void;
+    setViewport(viewport: ViewportHandle): void;
+    setParameters(parameters: ComponentParameters): void;
+    componentType(context: IRenderContext): IRouteableComponentType;
     viewportInstance(router: IRouter): Viewport;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;
     sameViewport(other: ViewportInstruction): boolean;

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./browser-navigator", "./link-handler", "./guard", "./guardian", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
+        define(["require", "exports", "./browser-navigator", "./link-handler", "./guard", "./guardian", "./interfaces", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -18,6 +18,8 @@
     var guardian_1 = require("./guardian");
     exports.GuardTypes = guardian_1.GuardTypes;
     exports.Guardian = guardian_1.Guardian;
+    var interfaces_1 = require("./interfaces");
+    exports.ReentryBehavior = interfaces_1.ReentryBehavior;
     var nav_1 = require("./nav");
     exports.Nav = nav_1.Nav;
     var nav_route_1 = require("./nav-route");
@@ -48,7 +50,6 @@
     exports.Viewport = viewport_1.Viewport;
     var viewport_content_1 = require("./viewport-content");
     exports.ContentStatus = viewport_content_1.ContentStatus;
-    exports.ReentryBehavior = viewport_content_1.ReentryBehavior;
     exports.ViewportContent = viewport_content_1.ViewportContent;
     var viewport_instruction_1 = require("./viewport-instruction");
     exports.ViewportInstruction = viewport_instruction_1.ViewportInstruction;

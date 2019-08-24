@@ -1,3 +1,4 @@
+import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { ViewportInstruction } from './viewport-instruction';
 export class Guard {
     constructor(guard, options, id) {
@@ -28,18 +29,19 @@ export class Guard {
 }
 class Target {
     constructor(target) {
-        const { component, componentName, viewport, viewportName } = target;
         if (typeof target === 'string') {
             this.componentName = target;
         }
-        else if (component || componentName || viewport || viewportName) {
-            this.component = component;
-            this.componentName = componentName;
-            this.viewport = viewport;
-            this.viewportName = viewportName;
+        else if (ComponentAppellationResolver.isType(target)) {
+            this.component = target;
+            this.componentName = ComponentAppellationResolver.getName(target);
         }
         else {
-            this.component = target;
+            const cvTarget = target;
+            this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component) : null;
+            this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
+            this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+            this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
         }
     }
     matches(viewportInstructions) {

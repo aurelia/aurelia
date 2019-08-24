@@ -1,6 +1,7 @@
+import { NavigationInstruction } from './interfaces';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
-import { IRouter, NavigationInstruction } from './router';
+import { IRouter } from './router';
 export interface INavRoute {
     route?: NavigationInstruction | NavigationInstruction[];
     execute?: ((route: NavRoute) => void);

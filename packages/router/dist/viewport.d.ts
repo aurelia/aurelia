@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigatorInstruction } from './navigator';
+import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
@@ -31,7 +31,7 @@ export declare class Viewport {
     private previousViewportState?;
     private cache;
     constructor(router: IRouter, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions);
-    setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigatorInstruction): boolean;
+    setNextContent(content: ComponentAppellation, instruction: INavigatorInstruction): boolean;
     setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void;
     remove(element: Element, context: IRenderContext | IContainer): boolean;
     canLeave(): Promise<boolean>;
@@ -42,8 +42,8 @@ export declare class Viewport {
     abortContentChange(): Promise<void>;
     description(full?: boolean): string;
     scopedDescription(full?: boolean): string;
-    wantComponent(component: ICustomElementType | string): boolean;
-    acceptComponent(component: ICustomElementType | string): boolean;
+    wantComponent(component: ComponentAppellation): boolean;
+    acceptComponent(component: ComponentAppellation): boolean;
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;

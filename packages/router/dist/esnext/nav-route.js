@@ -1,4 +1,4 @@
-import { ViewportInstruction } from './viewport-instruction';
+import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
 export class NavRoute {
     constructor(nav, route) {
         this.compareParameters = false;
@@ -15,11 +15,10 @@ export class NavRoute {
             this.instructions = this.parseRoute(route.route);
             this.link = this.computeLink(this.instructions);
         }
-        this.linkActive = route.consideredActive
-            ? route.consideredActive instanceof Function
-                ? route.consideredActive
-                : this.computeLink(this.parseRoute(route.consideredActive))
-            : this.link;
+        this.linkActive = route.consideredActive ? route.consideredActive : this.link;
+        if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive)) {
+            this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive);
+        }
         this.execute = route.execute;
         this.compareParameters = !!route.compareParameters;
         this.linkVisible = route.condition === undefined ? true : route.condition;
@@ -45,26 +44,7 @@ export class NavRoute {
         this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
     }
     parseRoute(routes) {
-        if (!Array.isArray(routes)) {
-            return this.parseRoute([routes]);
-        }
-        const instructions = [];
-        for (const route of routes) {
-            if (typeof route === 'string') {
-                instructions.push(this.nav.router.instructionResolver.parseViewportInstruction(route));
-            }
-            else if (route instanceof ViewportInstruction) {
-                instructions.push(route);
-            }
-            else if (route['component']) {
-                const viewportComponent = route;
-                instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
-            }
-            else {
-                instructions.push(new ViewportInstruction(route));
-            }
-        }
-        return instructions;
+        return NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
     }
     computeVisible() {
         if (this.linkVisible instanceof Function) {
@@ -73,11 +53,12 @@ export class NavRoute {
         return this.linkVisible;
     }
     computeActive() {
-        if (this.linkActive instanceof Function) {
+        if (!Array.isArray(this.linkActive)) {
             return this.linkActive(this) ? 'nav-active' : '';
         }
-        const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
-        const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+        const components = this.linkActive;
+        let activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
+        activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(activeComponents);
         for (const component of components) {
             if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
                 return '';

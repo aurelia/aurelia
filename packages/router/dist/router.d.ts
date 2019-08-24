@@ -1,11 +1,12 @@
 import { IContainer, Key } from '@aurelia/kernel';
-import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
+import { ComponentAppellation, INavigatorInstruction, ViewportHandle } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorInstruction, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
+import { INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { Scope } from './scope';
@@ -20,16 +21,6 @@ export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
     separators?: IRouteSeparators;
     reportCallback?(instruction: INavigatorInstruction): void;
 }
-export interface IRouteViewport {
-    name: string;
-    component: Partial<ICustomElementType> | string;
-}
-export interface IViewportComponent {
-    component: string | Partial<ICustomElementType>;
-    viewport?: string | Viewport;
-    parameters?: Record<string, unknown> | string;
-}
-export declare type NavigationInstruction = string | Partial<ICustomElementType> | IViewportComponent | ViewportInstruction;
 export interface IRouter {
     readonly isNavigating: boolean;
     activeComponents: string[];
@@ -45,7 +36,7 @@ export interface IRouter {
     deactivate(): void;
     linkCallback(info: AnchorEventInfo): void;
     processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
-    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
+    addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void;
     getViewport(name: string): Viewport;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
@@ -90,7 +81,7 @@ export declare class Router implements IRouter {
     navigatorCallback: (instruction: INavigatorInstruction) => void;
     navigationCallback: (navigation: INavigatorViewerEvent) => void;
     processNavigations: (qInstruction: QueueItem<INavigatorInstruction>) => Promise<void>;
-    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
+    addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void;
     findScope(element: Element): Scope;
     getViewport(name: string): Viewport;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;

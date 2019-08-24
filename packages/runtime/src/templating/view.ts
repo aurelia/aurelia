@@ -242,7 +242,7 @@ export class ViewLocator implements IViewLocator {
       return views[0].name;
     }
 
-    return 'default';
+    return 'default-view';
   }
 
   private getView(views: ITemplateDefinition[], name: string): ITemplateDefinition {

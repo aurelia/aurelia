@@ -1,7 +1,7 @@
-import { ViewValueConverter } from '@aurelia/runtime';
+import { ViewValueConverter, view, ViewLocator, CustomElement } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
-describe.only('the view value converter', () => {
+describe('the view value converter', () => {
   it('delegates view location to the view locator service', () => {
     const fakeResult = class Component {};
     const fakeViewLocator = {
@@ -23,5 +23,200 @@ describe.only('the view value converter', () => {
     assert.equal(fakeViewLocator.object, object);
     assert.equal(fakeViewLocator.viewName, viewName);
     assert.equal(result, fakeResult);
+  });
+});
+
+describe('the view decorator', () => {
+  it('can associate a view with a class', () => {
+    const template = { name: 'name' };
+    @view(template)
+    class MyModel {}
+
+    const associated = (MyModel as any).$views[0];
+    assert.equal(associated, template);
+  });
+
+  it('can associate multiple views with a class', () => {
+    const template1 = { name: 'view-1' };
+    const template2 = { name: 'view-2' };
+
+    @view(template1)
+    @view(template2)
+    class MyModel {}
+
+    assert.includes((MyModel as any).$views, template1);
+    assert.includes((MyModel as any).$views, template2);
+  });
+});
+
+describe('the view locator', () => {
+  it('returns a component class bound to the requested model', () => {
+    const template = { name: 'name' };
+    @view(template)
+    class MyModel {}
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model);
+    const instance: any = new Component();
+
+    assert.equal(CustomElement.isType(Component), true);
+    assert.equal(instance.viewModel, model);
+  });
+
+  it('returns the same component class for the same model instance', () => {
+    const template = { name: 'name' };
+    @view(template)
+    class MyModel {}
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component1 = locator.getViewComponentForObject(model);
+    const Component2 = locator.getViewComponentForObject(model);
+
+    assert.equal(CustomElement.isType(Component1), true);
+    assert.equal(CustomElement.isType(Component2), true);
+    assert.equal(Component1, Component2);
+  });
+
+  it('returns the same component base for two different instance of the same model', () => {
+    const template = { name: 'name' };
+    @view(template)
+    class MyModel {}
+
+    const locator = new ViewLocator();
+    const model1 = new MyModel();
+    const model2 = new MyModel();
+
+    const Component1 = locator.getViewComponentForObject(model1);
+    const Component2 = locator.getViewComponentForObject(model2);
+    const BaseComponent = Object.getPrototypeOf(
+      Object.getPrototypeOf(Component1)
+    ).constructor;
+
+    assert.equal(CustomElement.isType(Component1), true);
+    assert.equal(CustomElement.isType(Component2), true);
+    assert.instanceOf(Component1, BaseComponent);
+    assert.instanceOf(Component2, BaseComponent);
+  });
+
+  it('returns a component with the only view', () => {
+    const template1 = { name: 'view-1' };
+
+    @view(template1)
+    class MyModel {}
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model);
+    const template = (Component as any).description;
+
+    assert.equal(CustomElement.isType(Component), true);
+    assert.equal('view-1', template.name);
+  });
+
+  it('returns a component with the specified view', () => {
+    const template1 = { name: 'view-1' };
+    const template2 = { name: 'view-2' };
+
+    @view(template1)
+    @view(template2)
+    class MyModel {}
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model, 'view-2');
+    const template = (Component as any).description;
+
+    assert.equal(CustomElement.isType(Component), true);
+    assert.equal('view-2', template.name);
+  });
+
+  it('returns a component with the view named "default-view" if no name specified', () => {
+    const template1 = { name: 'view-1' };
+    const template2 = { name: 'default-view' };
+
+    @view(template1)
+    @view(template2)
+    class MyModel {}
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model);
+    const template = (Component as any).description;
+
+    assert.equal(CustomElement.isType(Component), true);
+    assert.equal('default-view', template.name);
+  });
+
+  it('returns a component with the view based on a selector function', () => {
+    const template1 = { name: 'view-1' };
+    const template2 = { name: 'view-2' };
+
+    @view(template1)
+    @view(template2)
+    class MyModel {}
+
+    let receivedObject;
+    let receivedViews;
+
+    function selectView(object, views) {
+      receivedObject = object;
+      receivedViews = views;
+      return 'view-2';
+    }
+
+    const locator = new ViewLocator();
+    const model = new MyModel();
+
+    const Component = locator.getViewComponentForObject(model, selectView);
+    const template = (Component as any).description;
+
+    assert.equal(CustomElement.isType(Component), true);
+    assert.equal('view-2', template.name);
+    assert.equal(receivedObject, model);
+    assert.equal(receivedViews, (MyModel as any).$views);
+  });
+
+  [
+    'created',
+    'binding',
+    'bound',
+    'attaching',
+    'attached',
+    'detaching',
+    'caching',
+    'detached',
+    'unbinding',
+    'unbound'
+  ].forEach(lifecycleHook => {
+    it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, () => {
+      const template = { name: 'name' };
+      @view(template)
+      class MyModel {
+        public invoked: boolean = false;
+      }
+
+      MyModel.prototype[lifecycleHook] = function(this: MyModel) {
+        this.invoked = true;
+      };
+
+      const locator = new ViewLocator();
+      const model = new MyModel();
+
+      const Component = locator.getViewComponentForObject(model as any);
+      const instance: any = new Component();
+
+      instance.$scope = {};
+      instance[lifecycleHook]();
+
+      assert.equal(CustomElement.isType(Component), true);
+      assert.equal(model.invoked, true);
+    });
   });
 });

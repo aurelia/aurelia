@@ -5,28 +5,26 @@ import { ComponentAppellationResolver, NavigationInstructionResolver } from './t
 import { ViewportInstruction } from './viewport-instruction';
 
 export class NavRoute {
-  public nav: Nav;
-  public instructions: ViewportInstruction[];
+  public instructions: ViewportInstruction[] = [];
   public title: string;
-  public link?: string;
+  public link: string | null = null;
   public execute?: ((route: NavRoute) => void);
-  public linkVisible?: boolean | ((route: NavRoute) => boolean);
-  public linkActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
+  public linkVisible: boolean | ((route: NavRoute) => boolean) | null = null;
+  public linkActive: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean) | null = null;
   public compareParameters: boolean = false;
-  public children?: NavRoute[];
+  public children: NavRoute[] | null = null;
   public meta?: Record<string, unknown>;
 
   public visible: boolean = true;
   public active: string = '';
 
-  constructor(nav: Nav, route?: INavRoute) {
-    this.nav = nav;
-    Object.assign(this, {
-      title: route.title,
-      children: null,
-      meta: route.meta,
-      active: '',
-    });
+  constructor(
+    public nav: Nav,
+    route: INavRoute
+  ) {
+    this.title = route.title;
+    this.meta = route.meta;
+
     if (route.route) {
       this.instructions = this.parseRoute(route.route);
       this.link = this.computeLink(this.instructions);
@@ -55,7 +53,9 @@ export class NavRoute {
   }
 
   public executeAction(event: Event): void {
-    this.execute(this);
+    if (this.execute) {
+      this.execute(this);
+    }
     event.stopPropagation();
   }
 
@@ -71,7 +71,7 @@ export class NavRoute {
     if (this.linkVisible instanceof Function) {
       return this.linkVisible(this);
     }
-    return this.linkVisible;
+    return !!this.linkVisible;
   }
 
   private computeActive(): string {

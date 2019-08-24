@@ -1,27 +1,26 @@
-import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { ComponentAppellation, GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export class Guard {
-  public type: GuardTypes;
-  public includeTargets: Target[];
-  public excludeTargets: Target[];
-  public guard: GuardFunction;
-  public id: GuardIdentity;
+  public type: GuardTypes = GuardTypes.Before;
+  public includeTargets: Target[] = [];
+  public excludeTargets: Target[] = [];
 
-  constructor(guard: GuardFunction, options: IGuardOptions, id: GuardIdentity) {
-    this.type = options.type || GuardTypes.Before;
-    this.guard = guard;
-    this.id = id;
+  constructor(
+    public guard: GuardFunction,
+    options: IGuardOptions,
+    public id: GuardIdentity
+  ) {
+    if (options.type) {
+      this.type = options.type;
+    }
 
-    this.includeTargets = [];
     for (const target of options.include || []) {
       this.includeTargets.push(new Target(target));
     }
-    this.excludeTargets = [];
     for (const target of options.exclude || []) {
       this.excludeTargets.push(new Target(target));
     }
@@ -43,23 +42,23 @@ export class Guard {
 }
 
 class Target {
-  public component?: IRouteableComponentType;
-  public componentName?: string;
-  public viewport?: Viewport;
-  public viewportName?: string;
+  public componentType: IRouteableComponentType | null = null;
+  public componentName: string | null = null;
+  public viewport: Viewport | null = null;
+  public viewportName: string | null = null;
 
   constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
     } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {
-      this.component = target as IRouteableComponentType;
+      this.componentType = target as IRouteableComponentType;
       this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
-      this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as Constructable) : null;
-      this.componentName = ComponentAppellationResolver.getName(cvTarget.component)
-      this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
-      this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
+      this.componentType = ComponentAppellationResolver.isType(cvTarget.component as ComponentAppellation) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
+      this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation);
+      this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as ViewportHandle) ? cvTarget.viewport as Viewport : null;
+      this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as ViewportHandle);
     }
   }
 
@@ -70,7 +69,7 @@ class Target {
     }
     for (const instruction of instructions) {
       if (this.componentName === instruction.componentName ||
-        this.component === instruction.component ||
+        this.componentType === instruction.componentType ||
         this.viewportName === instruction.viewportName ||
         this.viewport === instruction.viewport) {
         return true;

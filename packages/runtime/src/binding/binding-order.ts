@@ -1,5 +1,4 @@
 export const enum BindingOrder {
-  Let = 1,
-  Ref = 2,
+  Ref = 1,
   Normal = 5,
 }

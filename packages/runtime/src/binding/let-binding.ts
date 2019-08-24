@@ -58,7 +58,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.$lifecycle = locator.get(ILifecycle);
     this.$scope = void 0;
 
-    this.order = BindingOrder.Let;
+    this.order = BindingOrder.Normal;
     this.locator = locator;
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;

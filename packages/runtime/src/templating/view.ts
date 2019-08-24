@@ -175,7 +175,7 @@ export class ViewLocator implements IViewLocator {
       BoundComponent = lookup[resolvedViewName];
     }
 
-    if (!BoundComponent) {
+    if (BoundComponent === void 0) {
       const UnboundComponent = this.getOrCreateUnboundComponent(
         object,
         availableViews,

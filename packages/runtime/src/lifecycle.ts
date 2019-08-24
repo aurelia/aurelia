@@ -40,7 +40,7 @@ import {
 const slice = Array.prototype.slice;
 
 export interface IBinding {
-  readonly order: number;
+  readonly order?: number;
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
   readonly part?: string;

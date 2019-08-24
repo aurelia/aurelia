@@ -27,6 +27,7 @@ export class MockBinding implements IConnectableBinding {
   public locator!: IServiceLocator;
   public $scope?: IScope | undefined;
   public $state!: State;
+  public order!: number;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 

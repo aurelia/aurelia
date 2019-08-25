@@ -248,7 +248,8 @@ export class TemplateBinder {
 
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
-      if (bindingCommand === null || bindingCommand.override !== true) {
+
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttrCommand) !== BindingType.IgnoreCustomAttrCommand) {
         const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
         if (attrInfo == null) {

@@ -112,6 +112,77 @@ describe('harmoninous combination', function () {
         await waitForFrames(1);
         assert.strictEqual(host.querySelector('div'), null);
       }
+    },
+    {
+      title: 'multiple elements using custom attr + event with same names at the same time',
+      template: `
+        <input focus.bind="hasFocus" focus.trigger="log = (log || 0) + 1" />
+        <input focus.bind="hasFocus2" focus.trigger="log2 = (log2 || 0) + 1"/>
+      `,
+      assertFn: async (ctx, host, comp: { hasFocus: boolean; hasFocus2: boolean; log: number; log2: number }) => {
+        const [input1, input2] = Array.from(host.querySelectorAll('input'));
+
+        assert.notEqual(ctx.doc.activeElement, input1);
+        assert.notEqual(ctx.doc.activeElement, input2);
+        assert.equal(comp.hasFocus, undefined);
+        assert.equal(comp.log, undefined);
+        assert.equal(comp.hasFocus2, undefined);
+        assert.equal(comp.log2, undefined);
+
+        input1.focus();
+        assert.equal(comp.hasFocus, true);
+        assert.equal(comp.log, 1);
+        assert.equal(comp.hasFocus2, undefined);
+        assert.equal(comp.log2, undefined);
+
+        input2.focus();
+        assert.equal(comp.hasFocus, false);
+        assert.equal(comp.log, 1);
+        assert.equal(comp.hasFocus2, true);
+        assert.equal(comp.log2, 1);
+      }
+    },
+    {
+      title: 'delegates and capture work fine',
+      template: `
+        <div click.bind="hasFocus" click.delegate="(log = (log || 0) + 1) && (hasFocus = log)" ></div>
+        <div click.bind="hasFocus2" click.capture="(log2 = (log2 || 0) + 1) && (hasFocus2 = log2)"></div>
+      `,
+      resources: [
+        CustomAttribute.define(
+          { name: 'click', bindables: ['value'] },
+          class Click {
+            public static inject = [INode];
+            public value: any;
+            constructor(private readonly element: HTMLElement) {}
+            public binding(): void {
+              this.valueChanged();
+            }
+            public valueChanged(): void {
+              this.element.setAttribute('__click__', this.value);
+            }
+          }
+        )
+      ],
+      assertFn: async (ctx, host, comp: { hasFocus: number; hasFocus2: number; log: number; log2: number }) => {
+        const [div1, div2] = Array.from(host.querySelectorAll('div'));
+        assert.equal(div1.getAttribute('__click__'), 'undefined');
+        assert.equal(div2.getAttribute('__click__'), 'undefined');
+
+        div1.click();
+        assert.equal(comp.log, 1);
+        assert.equal(comp.hasFocus, 1);
+        assert.equal(div1.getAttribute('__click__'), '1');
+        assert.equal(div2.getAttribute('__click__'), 'undefined');
+
+        div2.click();
+        assert.equal(comp.log, 1);
+        assert.equal(comp.hasFocus, 1);
+        assert.equal(comp.log2, 1);
+        assert.equal(comp.hasFocus2, 1);
+        assert.equal(div1.getAttribute('__click__'), '1');
+        assert.equal(div1.getAttribute('__click__'), '1');
+      }
     }
   ];
 

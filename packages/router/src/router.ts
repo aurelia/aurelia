@@ -219,6 +219,10 @@ export class Router implements IRouter {
         // TODO: Don't go via string here, use instructions as they are
         path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
       }
+      // TODO: Review this
+      if (path === '/') {
+        path = '';
+      }
 
       // TODO: Clean up clear viewports
       const { clear, newPath } = this.instructionResolver.shouldClearViewports(path);

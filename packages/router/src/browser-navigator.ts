@@ -89,13 +89,13 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   public pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment = this.options.useBrowserFragmentHash ? '#' : '';
+    const fragment = this.options.useBrowserFragmentHash ? '#/' : '';
     return this.enqueue(this.history, 'pushState', [state, title, `${fragment}${path}`]);
   }
 
   public replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment = this.options.useBrowserFragmentHash ? '#' : '';
+    const fragment = this.options.useBrowserFragmentHash ? '#/' : '';
     return this.enqueue(this.history, 'replaceState', [state, title, `${fragment}${path}`]);
   }
 

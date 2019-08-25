@@ -3,6 +3,9 @@ import { IController, INode, IRenderContext, IRenderingEngine, LifecycleFlags, T
 import { IRouter } from '../router';
 import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
+    private readonly router;
+    private readonly element;
+    private readonly renderingEngine;
     static readonly inject: readonly Key[];
     name: string;
     usedBy: string;
@@ -11,11 +14,8 @@ export declare class ViewportCustomElement {
     noLink: boolean;
     noHistory: boolean;
     stateful: boolean;
-    viewport: Viewport;
+    viewport: Viewport | null;
     $controller: IController;
-    private readonly router;
-    private readonly element;
-    private readonly renderingEngine;
     constructor(router: IRouter, element: Element, renderingEngine: IRenderingEngine);
     render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void;
     bound(): void;

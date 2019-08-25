@@ -2,20 +2,22 @@ import { ViewportInstruction } from './viewport-instruction';
 export interface IInstructionResolverOptions {
     separators?: IRouteSeparators;
 }
-export interface IRouteSeparators {
-    viewport?: string;
-    sibling?: string;
-    scope?: string;
-    noScope?: string;
-    parameters?: string;
-    parametersEnd?: string;
+export interface IRouteSeparators extends Partial<ISeparators> {
+}
+interface ISeparators {
+    viewport: string;
+    sibling: string;
+    scope: string;
+    noScope: string;
+    parameters: string;
+    parametersEnd: string;
     parameter?: string;
-    add?: string;
-    clear?: string;
-    action?: string;
+    add: string;
+    clear: string;
+    action: string;
 }
 export declare class InstructionResolver {
-    separators: IRouteSeparators;
+    separators: ISeparators;
     activate(options?: IInstructionResolverOptions): void;
     readonly clearViewportInstruction: string;
     parseViewportInstructions(instructions: string): ViewportInstruction[];
@@ -38,4 +40,5 @@ export declare class InstructionResolver {
     private parseAViewportInstruction;
     private stringifyAViewportInstruction;
 }
+export {};
 //# sourceMappingURL=instruction-resolver.d.ts.map

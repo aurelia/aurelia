@@ -20,12 +20,13 @@
      */
     class Queue {
         constructor(callback) {
+            this.callback = callback;
+            this.isActive = false;
             this.pending = [];
             this.processing = null;
-            this.callback = callback;
             this.allowedExecutionCostWithinTick = null;
             this.currentExecutionCostInCurrentTick = 0;
-            this.isActive = false;
+            this.lifecycle = null;
         }
         get length() {
             return this.pending.length;
@@ -86,12 +87,14 @@
             if (!this.pending.length) {
                 return;
             }
-            if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + this.pending[0].cost > this.allowedExecutionCostWithinTick) {
+            if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
                 return;
             }
-            this.processing = this.pending.shift();
-            this.currentExecutionCostInCurrentTick += this.processing.cost;
-            this.callback(this.processing);
+            this.processing = this.pending.shift() || null;
+            if (this.processing) {
+                this.currentExecutionCostInCurrentTick += this.processing.cost || 0;
+                this.callback(this.processing);
+            }
         }
         clear() {
             this.pending.splice(0, this.pending.length);

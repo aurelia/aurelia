@@ -3,8 +3,8 @@ import { ILifecycle } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerEvent } from './navigator';
 export declare class BrowserNavigator implements INavigatorStore, INavigatorViewer {
-    static readonly inject: readonly Key[];
     readonly lifecycle: ILifecycle;
+    static readonly inject: readonly Key[];
     window: Window;
     history: History;
     location: Location;
@@ -15,7 +15,7 @@ export declare class BrowserNavigator implements INavigatorStore, INavigatorView
     private callback;
     private forwardedState;
     constructor(lifecycle: ILifecycle, dom: HTMLDOM);
-    activate(callback: (ev?: INavigatorViewerEvent) => void): void;
+    activate(callback: (ev: INavigatorViewerEvent) => void): void;
     loadUrl(): Promise<void>;
     deactivate(): void;
     readonly length: number;
@@ -24,7 +24,7 @@ export declare class BrowserNavigator implements INavigatorStore, INavigatorView
     pushNavigatorState(state: INavigatorState): Promise<void>;
     replaceNavigatorState(state: INavigatorState): Promise<void>;
     popNavigatorState(): Promise<void>;
-    readonly handlePopstate: (ev: PopStateEvent) => Promise<void>;
+    readonly handlePopstate: (ev: PopStateEvent | null) => Promise<void>;
     private popstate;
     private popState;
     private forwardState;

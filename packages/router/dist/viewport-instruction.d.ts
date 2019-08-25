@@ -1,23 +1,24 @@
+import { IContainer } from '@aurelia/kernel';
 import { IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 export declare class ViewportInstruction {
-    component?: IRouteableComponentType;
-    componentName?: string;
-    viewport?: Viewport;
-    viewportName?: string;
-    parametersString?: string;
-    parameters?: Record<string, unknown>;
-    parametersList?: string[];
-    ownsScope?: boolean;
-    nextScopeInstruction?: ViewportInstruction;
-    constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstruction?: ViewportInstruction);
+    ownsScope: boolean;
+    nextScopeInstruction?: ViewportInstruction | undefined;
+    componentType: IRouteableComponentType | null;
+    componentName: string | null;
+    viewport: Viewport | null;
+    viewportName: string | null;
+    parametersString: string | null;
+    parameters: Record<string, unknown> | null;
+    parametersList: string[] | null;
+    constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstruction?: ViewportInstruction | undefined);
     setComponent(component: ComponentAppellation): void;
-    setViewport(viewport: ViewportHandle): void;
-    setParameters(parameters: ComponentParameters): void;
-    componentType(context: IRenderContext): IRouteableComponentType;
-    viewportInstance(router: IRouter): Viewport;
+    setViewport(viewport?: ViewportHandle | null): void;
+    setParameters(parameters?: ComponentParameters | null): void;
+    toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null;
+    toViewportInstance(router: IRouter): Viewport | null;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;
     sameViewport(other: ViewportInstruction): boolean;
 }

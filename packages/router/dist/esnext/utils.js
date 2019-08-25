@@ -1,11 +1,12 @@
 export function closestCustomElement(element) {
-    while (element) {
-        if ((element).$controller) {
+    let el = element;
+    while (el) {
+        if (el.$controller) {
             break;
         }
-        element = element.parentElement;
+        el = el.parentElement;
     }
-    return element;
+    return el;
 }
 export function arrayRemove(arr, func) {
     const removed = [];

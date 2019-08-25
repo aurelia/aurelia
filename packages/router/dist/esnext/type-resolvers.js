@@ -79,7 +79,7 @@ export const NavigationInstructionResolver = {
             else if (instruction instanceof ViewportInstruction) {
                 instructions.push(instruction);
             }
-            else if (instruction['component']) {
+            else if (instruction.component) {
                 const viewportComponent = instruction;
                 instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
             }

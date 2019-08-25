@@ -11,11 +11,11 @@ export interface INavClasses {
     aActive?: string;
 }
 export declare class NavCustomElement {
-    name: string;
-    routes: NavRoute[];
+    private readonly router;
+    name: string | null;
+    routes: NavRoute[] | null;
     level: number;
     classes: INavClasses;
-    private readonly router;
     constructor(router: IRouter);
     readonly navRoutes: NavRoute[];
     readonly navClasses: INavClasses;

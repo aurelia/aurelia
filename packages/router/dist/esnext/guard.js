@@ -2,14 +2,17 @@ import { ComponentAppellationResolver, ViewportHandleResolver } from './type-res
 import { ViewportInstruction } from './viewport-instruction';
 export class Guard {
     constructor(guard, options, id) {
-        this.type = options.type || "before" /* Before */;
         this.guard = guard;
         this.id = id;
+        this.type = "before" /* Before */;
         this.includeTargets = [];
+        this.excludeTargets = [];
+        if (options.type) {
+            this.type = options.type;
+        }
         for (const target of options.include || []) {
             this.includeTargets.push(new Target(target));
         }
-        this.excludeTargets = [];
         for (const target of options.exclude || []) {
             this.excludeTargets.push(new Target(target));
         }
@@ -29,16 +32,20 @@ export class Guard {
 }
 class Target {
     constructor(target) {
+        this.componentType = null;
+        this.componentName = null;
+        this.viewport = null;
+        this.viewportName = null;
         if (typeof target === 'string') {
             this.componentName = target;
         }
         else if (ComponentAppellationResolver.isType(target)) {
-            this.component = target;
+            this.componentType = target;
             this.componentName = ComponentAppellationResolver.getName(target);
         }
         else {
             const cvTarget = target;
-            this.component = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component) : null;
+            this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component) : null;
             this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
             this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
             this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
@@ -51,7 +58,7 @@ class Target {
         }
         for (const instruction of instructions) {
             if (this.componentName === instruction.componentName ||
-                this.component === instruction.component ||
+                this.componentType === instruction.componentType ||
                 this.viewportName === instruction.viewportName ||
                 this.viewport === instruction.viewport) {
                 return true;

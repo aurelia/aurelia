@@ -3,6 +3,12 @@ import { IDOM, ILifecycle } from '@aurelia/runtime';
 import { Queue } from './queue';
 export class BrowserNavigator {
     constructor(lifecycle, dom) {
+        this.lifecycle = lifecycle;
+        this.useHash = true;
+        this.allowedExecutionCostWithinTick = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
+        this.isActive = false;
+        this.callback = null;
+        this.forwardedState = {};
         this.handlePopstate = (ev) => {
             return this.enqueue(this, 'popstate', [ev]);
         };
@@ -19,19 +25,15 @@ export class BrowserNavigator {
             }
             const method = call.target[call.methodName];
             Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
-            method.apply(call.target, call.parameters);
+            if (method) {
+                method.apply(call.target, call.parameters);
+            }
             qCall.resolve();
         };
-        this.lifecycle = lifecycle;
         this.window = dom.window;
         this.history = dom.window.history;
         this.location = dom.window.location;
-        this.useHash = true;
-        this.allowedExecutionCostWithinTick = 2;
         this.pendingCalls = new Queue(this.processCalls);
-        this.isActive = false;
-        this.callback = null;
-        this.forwardedState = {};
     }
     activate(callback) {
         if (this.isActive) {
@@ -77,14 +79,16 @@ export class BrowserNavigator {
     popstate(ev, resolve, suppressPopstate = false) {
         if (!suppressPopstate) {
             const { pathname, search, hash } = this.location;
-            this.callback({
-                event: ev,
-                state: this.history.state,
-                path: pathname,
-                data: search,
-                hash,
-                instruction: this.useHash ? hash.slice(1) : pathname,
-            });
+            if (this.callback) {
+                this.callback({
+                    event: ev,
+                    state: this.history.state,
+                    path: pathname,
+                    data: search,
+                    hash,
+                    instruction: this.useHash ? hash.slice(1) : pathname,
+                });
+            }
         }
         if (resolve) {
             resolve();
@@ -111,7 +115,7 @@ export class BrowserNavigator {
         const promises = [];
         if (suppressPopstate !== undefined) {
             // Due to (browser) events not having a promise, we create and propagate one
-            let resolve;
+            let resolve = null;
             // tslint:disable-next-line:promise-must-complete
             promises.push(new Promise(_resolve => {
                 resolve = _resolve;

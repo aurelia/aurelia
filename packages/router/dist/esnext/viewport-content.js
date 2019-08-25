@@ -11,23 +11,27 @@ export var ContentStatus;
     ContentStatus[ContentStatus["added"] = 4] = "added";
 })(ContentStatus || (ContentStatus = {}));
 export class ViewportContent {
-    constructor(content = null, parameters = null, instruction = null, context = null) {
-        // Can be a (resolved) type or a string (to be resolved later)
+    constructor(
+    // Can (and wants) be a (resolved) type or a string (to be resolved later)
+    content = null, parameters = '', instruction = {
+        instruction: '',
+        fullStateInstruction: '',
+    }, context = null) {
         this.content = content;
         this.parameters = parameters;
         this.instruction = instruction;
-        this.component = null;
+        this.componentInstance = null;
         this.contentStatus = 0 /* none */;
         this.entered = false;
         this.fromCache = false;
         this.reentry = false;
         // If we've got a container, we're good to resolve type
         if (this.content !== null && typeof this.content === 'string' && context !== null) {
-            this.content = this.componentType(context);
+            this.content = this.toComponentType(context);
         }
     }
     equalComponent(other) {
-        return (typeof other.content === 'string' && this.componentName() === other.content) ||
+        return (typeof other.content === 'string' && this.toComponentName() === other.content) ||
             (typeof other.content !== 'string' && this.content === other.content);
     }
     equalParameters(other) {
@@ -36,10 +40,14 @@ export class ViewportContent {
             this.instruction.query === other.instruction.query;
     }
     reentryBehavior() {
-        return 'reentryBehavior' in this.component ? this.component.reentryBehavior : "default" /* default */;
+        return (this.componentInstance &&
+            'reentryBehavior' in this.componentInstance &&
+            this.componentInstance.reentryBehavior)
+            ? this.componentInstance.reentryBehavior
+            : "default" /* default */;
     }
     isCacheEqual(other) {
-        return ((typeof other.content === 'string' && this.componentName() === other.content) ||
+        return ((typeof other.content === 'string' && this.toComponentName() === other.content) ||
             (typeof other.content !== 'string' && this.content === other.content)) &&
             this.parameters === other.parameters;
     }
@@ -49,7 +57,7 @@ export class ViewportContent {
         }
         // Don't load cached content
         if (!this.fromCache) {
-            this.component = this.componentInstance(context);
+            this.componentInstance = this.toComponentInstance(context);
         }
         this.contentStatus = 1 /* created */;
     }
@@ -62,17 +70,17 @@ export class ViewportContent {
         this.contentStatus = 0 /* none */;
     }
     canEnter(viewport, previousInstruction) {
-        if (!this.component) {
+        if (!this.componentInstance) {
             return Promise.resolve(false);
         }
-        if (!this.component.canEnter) {
+        if (!this.componentInstance.canEnter) {
             return Promise.resolve(true);
         }
-        const contentType = this.component !== null ? this.component.constructor : this.content;
+        const contentType = this.componentInstance !== null ? this.componentInstance.constructor : this.content;
         const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
         this.instruction.parameters = merged.namedParameters;
         this.instruction.parameterList = merged.parameterList;
-        const result = this.component.canEnter(merged.merged, this.instruction, previousInstruction);
+        const result = this.componentInstance.canEnter(merged.merged, this.instruction, previousInstruction);
         Reporter.write(10000, 'viewport canEnter', result);
         if (typeof result === 'boolean') {
             return Promise.resolve(result);
@@ -83,10 +91,10 @@ export class ViewportContent {
         return result;
     }
     canLeave(nextInstruction) {
-        if (!this.component || !this.component.canLeave) {
+        if (!this.componentInstance || !this.componentInstance.canLeave) {
             return Promise.resolve(true);
         }
-        const result = this.component.canLeave(this.instruction, nextInstruction);
+        const result = this.componentInstance.canLeave(nextInstruction, this.instruction);
         Reporter.write(10000, 'viewport canLeave', result);
         if (typeof result === 'boolean') {
             return Promise.resolve(result);
@@ -97,12 +105,12 @@ export class ViewportContent {
         if (!this.reentry && (this.contentStatus !== 1 /* created */ || this.entered)) {
             return;
         }
-        if (this.component.enter) {
-            const contentType = this.component !== null ? this.component.constructor : this.content;
+        if (this.componentInstance && this.componentInstance.enter) {
+            const contentType = this.componentInstance !== null ? this.componentInstance.constructor : this.content;
             const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
             this.instruction.parameters = merged.namedParameters;
             this.instruction.parameterList = merged.parameterList;
-            await this.component.enter(merged.merged, this.instruction, previousInstruction);
+            await this.componentInstance.enter(merged.merged, this.instruction, previousInstruction);
         }
         this.entered = true;
     }
@@ -110,20 +118,20 @@ export class ViewportContent {
         if (this.contentStatus !== 4 /* added */ || !this.entered) {
             return;
         }
-        if (this.component.leave) {
-            await this.component.leave(this.instruction, nextInstruction);
+        if (this.componentInstance && this.componentInstance.leave) {
+            await this.componentInstance.leave(nextInstruction, this.instruction);
         }
         this.entered = false;
     }
     loadComponent(context, element) {
-        if (this.contentStatus !== 1 /* created */ || !this.entered) {
-            return;
+        if (this.contentStatus !== 1 /* created */ || !this.entered || !this.componentInstance) {
+            return Promise.resolve();
         }
         // Don't load cached content
         if (!this.fromCache) {
             const host = element;
             const container = context;
-            Controller.forCustomElement(this.component, container, host);
+            Controller.forCustomElement(this.componentInstance, container, host);
         }
         this.contentStatus = 2 /* loaded */;
         return Promise.resolve();
@@ -142,7 +150,7 @@ export class ViewportContent {
         }
         // Don't initialize cached content
         if (!this.fromCache) {
-            this.component.$controller.bind(1024 /* fromStartTask */ | 4096 /* fromBind */, null);
+            this.componentInstance.$controller.bind(1024 /* fromStartTask */ | 4096 /* fromBind */);
         }
         this.contentStatus = 3 /* initialized */;
     }
@@ -152,7 +160,7 @@ export class ViewportContent {
         }
         // Don't terminate cached content
         if (!stateful) {
-            this.component.$controller.unbind(2048 /* fromStopTask */ | 8192 /* fromUnbind */);
+            this.componentInstance.$controller.unbind(2048 /* fromStopTask */ | 8192 /* fromUnbind */);
             this.contentStatus = 2 /* loaded */;
         }
     }
@@ -160,12 +168,13 @@ export class ViewportContent {
         if (this.contentStatus !== 3 /* initialized */) {
             return;
         }
-        this.component.$controller.attach(1024 /* fromStartTask */);
+        this.componentInstance.$controller.attach(1024 /* fromStartTask */);
         if (this.fromCache) {
             const elements = Array.from(element.getElementsByTagName('*'));
             for (const el of elements) {
-                if (el.hasAttribute('au-element-scroll')) {
-                    const [top, left] = el.getAttribute('au-element-scroll').split(',');
+                const attr = el.getAttribute('au-element-scroll');
+                if (attr) {
+                    const [top, left] = attr.split(',');
                     el.removeAttribute('au-element-scroll');
                     el.scrollTo(+left, +top);
                 }
@@ -185,7 +194,7 @@ export class ViewportContent {
                 }
             }
         }
-        this.component.$controller.detach(2048 /* fromStopTask */);
+        this.componentInstance.$controller.detach(2048 /* fromStopTask */);
         this.contentStatus = 3 /* initialized */;
     }
     async freeContent(element, nextInstruction, stateful = false) {
@@ -201,7 +210,7 @@ export class ViewportContent {
                 this.destroyComponent();
         }
     }
-    componentName() {
+    toComponentName() {
         if (this.content === null) {
             return null;
         }
@@ -212,7 +221,7 @@ export class ViewportContent {
             return this.content.description.name;
         }
     }
-    componentType(context) {
+    toComponentType(context) {
         if (this.content === null) {
             return null;
         }
@@ -221,26 +230,36 @@ export class ViewportContent {
         }
         else {
             const container = context.get(IContainer);
-            const resolver = container.getResolver(CustomElement.keyFrom(this.content));
-            if (resolver !== null) {
-                return resolver.getFactory(container).Type;
+            if (container) {
+                const resolver = container.getResolver(CustomElement.keyFrom(this.content));
+                if (resolver && resolver.getFactory) {
+                    const factory = resolver.getFactory(container);
+                    if (factory) {
+                        return factory.Type;
+                    }
+                }
             }
             return null;
         }
     }
-    componentInstance(context) {
+    toComponentInstance(context) {
         if (this.content === null) {
             return null;
         }
         // TODO: Remove once "local registration is fixed"
-        const component = this.componentName();
-        const container = context.get(IContainer);
-        if (typeof component !== 'string') {
-            return container.get(component);
+        const component = this.toComponentName();
+        if (component) {
+            const container = context.get(IContainer);
+            if (container) {
+                if (typeof component !== 'string') {
+                    return container.get(component);
+                }
+                else {
+                    return container.get(CustomElement.keyFrom(component));
+                }
+            }
         }
-        else {
-            return container.get(CustomElement.keyFrom(component));
-        }
+        return null;
     }
 }
 //# sourceMappingURL=viewport-content.js.map

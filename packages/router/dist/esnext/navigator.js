@@ -2,12 +2,15 @@ import { Reporter } from '@aurelia/kernel';
 import { Queue } from './queue';
 export class Navigator {
     constructor() {
+        this.entries = [];
+        this.options = {};
+        this.isActive = false;
         this.processNavigations = (qEntry) => {
             const entry = qEntry;
             const navigationFlags = {};
-            if (!this.currentEntry) { // Refresh or first entry
+            if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
                 this.loadState();
-                if (this.currentEntry) {
+                if (this.currentEntry !== this.uninitializedEntry) {
                     navigationFlags.refresh = true;
                 }
                 else {
@@ -16,14 +19,14 @@ export class Navigator {
                     // TODO: Should this really be created here? Shouldn't it be in the viewer?
                     this.currentEntry = {
                         index: 0,
-                        instruction: null,
-                        fullStateInstruction: null,
+                        instruction: '',
+                        fullStateInstruction: '',
                     };
                     this.entries = [];
                 }
             }
             if (entry.index !== undefined && !entry.replacing && !entry.refreshing) { // History navigation
-                entry.historyMovement = entry.index - this.currentEntry.index;
+                entry.historyMovement = entry.index - (this.currentEntry.index !== undefined ? this.currentEntry.index : 0);
                 entry.instruction = entry.fullStateInstruction;
                 entry.replacing = true;
                 if (entry.historyMovement > 0) {
@@ -39,11 +42,12 @@ export class Navigator {
             }
             this.invokeCallback(entry, navigationFlags, this.currentEntry);
         };
-        this.currentEntry = null;
-        this.entries = null;
+        this.uninitializedEntry = {
+            instruction: 'NAVIGATOR UNINITIALIZED',
+            fullStateInstruction: '',
+        };
+        this.currentEntry = this.uninitializedEntry;
         this.pendingNavigations = new Queue(this.processNavigations);
-        this.options = null;
-        this.isActive = false;
     }
     get queued() {
         return this.pendingNavigations.length;
@@ -67,7 +71,7 @@ export class Navigator {
     }
     refresh() {
         const entry = this.currentEntry;
-        if (!entry) {
+        if (entry === this.uninitializedEntry) {
             return Promise.reject();
         }
         entry.replacing = true;
@@ -75,7 +79,7 @@ export class Navigator {
         return this.navigate(entry);
     }
     go(movement) {
-        const newIndex = this.currentEntry.index + movement;
+        const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + movement;
         if (newIndex >= this.entries.length) {
             return Promise.reject();
         }
@@ -87,26 +91,36 @@ export class Navigator {
         return this.saveState();
     }
     get titles() {
-        return (this.entries ? this.entries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
+        if (this.currentEntry == this.uninitializedEntry) {
+            return [];
+        }
+        const index = this.currentEntry.index !== void 0 ? this.currentEntry.index : 0;
+        return this.entries.slice(0, index + 1).filter((value) => !!value.title).map((value) => value.title ? value.title : '');
     }
     getState() {
-        const state = { ...this.options.store.state };
+        const state = this.options.store ? { ...this.options.store.state } : {};
         const entries = (state.entries || []);
-        const currentEntry = state.currentEntry;
+        const currentEntry = (state.currentEntry || this.uninitializedEntry);
         return { state, entries, currentEntry };
     }
     loadState() {
         const state = this.getState();
-        this.entries = state.entries || [];
+        this.entries = state.entries;
         this.currentEntry = state.currentEntry;
     }
     saveState(push = false) {
+        if (this.currentEntry === this.uninitializedEntry) {
+            return Promise.resolve();
+        }
         const storedEntry = this.toStorableEntry(this.currentEntry);
-        this.entries[storedEntry.index] = storedEntry;
+        this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
         const state = {
             entries: this.entries,
             currentEntry: storedEntry,
         };
+        if (!this.options.store) {
+            return Promise.resolve();
+        }
         if (push) {
             return this.options.store.pushNavigatorState(state);
         }
@@ -120,35 +134,41 @@ export class Navigator {
     }
     async finalize(instruction) {
         this.currentEntry = instruction;
+        let index = this.currentEntry.index !== undefined ? this.currentEntry.index : 0;
         if (this.currentEntry.untracked) {
-            if (instruction.fromBrowser) {
+            if (instruction.fromBrowser && this.options.store) {
                 await this.options.store.popNavigatorState();
             }
-            this.currentEntry.index--;
-            this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
+            index--;
+            this.currentEntry.index = index;
+            this.entries[index] = this.toStorableEntry(this.currentEntry);
             await this.saveState();
         }
         else if (this.currentEntry.replacing) {
-            this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
+            this.entries[index] = this.toStorableEntry(this.currentEntry);
             await this.saveState();
         }
         else { // New entry (add and discard later entries)
-            this.entries = this.entries.slice(0, this.currentEntry.index);
+            this.entries = this.entries.slice(0, index);
             this.entries.push(this.toStorableEntry(this.currentEntry));
             await this.saveState(true);
         }
-        this.currentEntry.resolve();
+        if (this.currentEntry.resolve) {
+            this.currentEntry.resolve();
+        }
     }
     async cancel(instruction) {
-        if (instruction.fromBrowser) {
-            if (instruction.navigation.new) {
+        if (instruction.fromBrowser && this.options.store) {
+            if (instruction.navigation && instruction.navigation.new) {
                 await this.options.store.popNavigatorState();
             }
             else {
-                await this.options.store.go(-instruction.historyMovement, true);
+                await this.options.store.go(-(instruction.historyMovement || 0), true);
             }
         }
-        this.currentEntry.resolve();
+        if (this.currentEntry.resolve) {
+            this.currentEntry.resolve();
+        }
     }
     invokeCallback(entry, navigationFlags, previousEntry) {
         const instruction = { ...entry };

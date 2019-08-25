@@ -12,8 +12,10 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     class ViewportInstruction {
-        constructor(component, viewport, parameters, ownsScope = true, nextScopeInstruction = null) {
-            this.component = null;
+        constructor(component, viewport, parameters, ownsScope = true, nextScopeInstruction) {
+            this.ownsScope = ownsScope;
+            this.nextScopeInstruction = nextScopeInstruction;
+            this.componentType = null;
             this.componentName = null;
             this.viewport = null;
             this.viewportName = null;
@@ -23,16 +25,14 @@
             this.setComponent(component);
             this.setViewport(viewport);
             this.setParameters(parameters);
-            this.ownsScope = ownsScope;
-            this.nextScopeInstruction = nextScopeInstruction;
         }
         setComponent(component) {
             if (typeof component === 'string') {
                 this.componentName = component;
-                this.component = null;
+                this.componentType = null;
             }
             else {
-                this.component = component;
+                this.componentType = component;
                 this.componentName = component.description.name;
             }
         }
@@ -66,28 +66,35 @@
             }
             // TODO: Deal with parametersList
         }
-        componentType(context) {
-            if (this.component !== null) {
-                return this.component;
+        toComponentType(context) {
+            if (this.componentType !== null) {
+                return this.componentType;
             }
-            const container = context.get(kernel_1.IContainer);
-            const resolver = container.getResolver(runtime_1.CustomElement.keyFrom(this.componentName));
-            if (resolver !== null) {
-                return resolver.getFactory(container).Type;
+            if (this.componentName !== null && typeof this.componentName === 'string') {
+                const container = context.get(kernel_1.IContainer);
+                if (container) {
+                    const resolver = container.getResolver(runtime_1.CustomElement.keyFrom(this.componentName));
+                    if (resolver && resolver.getFactory) {
+                        const factory = resolver.getFactory(container);
+                        if (factory) {
+                            return factory.Type;
+                        }
+                    }
+                }
             }
             return null;
         }
-        viewportInstance(router) {
+        toViewportInstance(router) {
             if (this.viewport !== null) {
                 return this.viewport;
             }
-            return router.allViewports()[this.viewportName];
+            return router.getViewport(this.viewportName);
         }
         sameComponent(other, compareParameters = false, compareType = false) {
             if (compareParameters && this.parametersString !== other.parametersString) {
                 return false;
             }
-            return compareType ? this.component === other.component : this.componentName === other.componentName;
+            return compareType ? this.componentType === other.componentType : this.componentName === other.componentName;
         }
         sameViewport(other) {
             return (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);

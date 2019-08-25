@@ -16,24 +16,24 @@ export interface IViewportOptions {
     forceDescription?: boolean;
 }
 export declare class Viewport {
-    name: string;
-    element: Element;
-    context: IRenderContext | IContainer;
-    owningScope: Scope;
-    scope: Scope;
-    options?: IViewportOptions;
-    content: ViewportContent;
-    nextContent: ViewportContent;
-    enabled: boolean;
     private readonly router;
+    name: string;
+    element: Element | null;
+    context: IRenderContext | IContainer | null;
+    owningScope: Scope;
+    scope: Scope | null;
+    options: IViewportOptions;
+    content: ViewportContent;
+    nextContent: ViewportContent | null;
+    enabled: boolean;
     private clear;
     private elementResolve?;
-    private previousViewportState?;
+    private previousViewportState;
     private cache;
-    constructor(router: IRouter, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions);
+    constructor(router: IRouter, name: string, element: Element | null, context: IRenderContext | IContainer | null, owningScope: Scope, scope: Scope | null, options?: IViewportOptions);
     setNextContent(content: ComponentAppellation, instruction: INavigatorInstruction): boolean;
     setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void;
-    remove(element: Element, context: IRenderContext | IContainer): boolean;
+    remove(element: Element | null, context: IRenderContext | IContainer | null): boolean;
     canLeave(): Promise<boolean>;
     canEnter(): Promise<boolean | ViewportInstruction[]>;
     enter(): Promise<boolean>;

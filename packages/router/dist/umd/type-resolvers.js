@@ -90,7 +90,7 @@
                 else if (instruction instanceof viewport_instruction_1.ViewportInstruction) {
                     instructions.push(instruction);
                 }
-                else if (instruction['component']) {
+                else if (instruction.component) {
                     const viewportComponent = instruction;
                     instructions.push(new viewport_instruction_1.ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
                 }

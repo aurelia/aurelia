@@ -1,16 +1,17 @@
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
 export class NavRoute {
     constructor(nav, route) {
+        this.nav = nav;
+        this.instructions = [];
+        this.link = null;
+        this.linkVisible = null;
+        this.linkActive = null;
         this.compareParameters = false;
+        this.children = null;
         this.visible = true;
         this.active = '';
-        this.nav = nav;
-        Object.assign(this, {
-            title: route.title,
-            children: null,
-            meta: route.meta,
-            active: '',
-        });
+        this.title = route.title;
+        this.meta = route.meta;
         if (route.route) {
             this.instructions = this.parseRoute(route.route);
             this.link = this.computeLink(this.instructions);
@@ -37,7 +38,9 @@ export class NavRoute {
         }
     }
     executeAction(event) {
-        this.execute(this);
+        if (this.execute) {
+            this.execute(this);
+        }
         event.stopPropagation();
     }
     toggleActive() {
@@ -50,7 +53,7 @@ export class NavRoute {
         if (this.linkVisible instanceof Function) {
             return this.linkVisible(this);
         }
-        return this.linkVisible;
+        return !!this.linkVisible;
     }
     computeActive() {
         if (!Array.isArray(this.linkActive)) {

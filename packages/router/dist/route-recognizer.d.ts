@@ -23,7 +23,6 @@ export declare class TypesRecord {
     statics: number;
     dynamics: number;
     stars: number;
-    constructor();
 }
 export declare class RecognizeResult {
     handler: RouteHandler;
@@ -32,7 +31,7 @@ export declare class RecognizeResult {
     constructor(handler: RouteHandler, params: Record<string, string>, isDynamic: boolean);
 }
 export interface RecognizeResults extends Array<RecognizeResult> {
-    queryParams: IQueryParams;
+    queryParams?: IQueryParams;
 }
 export declare class CharSpec {
     invalidChars: string | null;
@@ -42,19 +41,19 @@ export declare class CharSpec {
     equals(other: CharSpec): boolean;
 }
 export declare class State {
+    charSpec?: CharSpec | undefined;
     handlers: HandlerEntry[];
     regex: RegExp;
     types: TypesRecord;
-    charSpec: CharSpec;
     nextStates: State[];
-    constructor(charSpec?: CharSpec);
+    constructor(charSpec?: CharSpec | undefined);
     put(charSpec: CharSpec): State;
 }
 export declare class StaticSegment {
+    caseSensitive: boolean;
     name: string;
     string: string;
     optional: boolean;
-    caseSensitive: boolean;
     constructor(str: string, caseSensitive: boolean);
     eachChar(callback: (spec: CharSpec) => void): void;
     regex(): string;

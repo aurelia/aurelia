@@ -11,15 +11,15 @@ export declare const enum ContentStatus {
     added = 4
 }
 export declare class ViewportContent {
-    content: ComponentAppellation;
+    content: ComponentAppellation | null;
     parameters: string;
     instruction: INavigatorInstruction;
-    component: IRouteableComponent;
+    componentInstance: IRouteableComponent | null;
     contentStatus: ContentStatus;
     entered: boolean;
     fromCache: boolean;
     reentry: boolean;
-    constructor(content?: ComponentAppellation, parameters?: string, instruction?: INavigatorInstruction, context?: IRenderContext | IContainer);
+    constructor(content?: ComponentAppellation | null, parameters?: string, instruction?: INavigatorInstruction, context?: IRenderContext | IContainer | null);
     equalComponent(other: ViewportContent): boolean;
     equalParameters(other: ViewportContent): boolean;
     reentryBehavior(): ReentryBehavior;
@@ -27,18 +27,18 @@ export declare class ViewportContent {
     createComponent(context: IRenderContext | IContainer): void;
     destroyComponent(): void;
     canEnter(viewport: Viewport, previousInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]>;
-    canLeave(nextInstruction: INavigatorInstruction): Promise<boolean>;
+    canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean>;
     enter(previousInstruction: INavigatorInstruction): Promise<void>;
-    leave(nextInstruction: INavigatorInstruction): Promise<void>;
+    leave(nextInstruction: INavigatorInstruction | null): Promise<void>;
     loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void>;
     unloadComponent(): void;
     initializeComponent(): void;
     terminateComponent(stateful?: boolean): void;
     addComponent(element: Element): void;
     removeComponent(element: Element, stateful?: boolean): void;
-    freeContent(element: Element, nextInstruction: INavigatorInstruction, stateful?: boolean): Promise<void>;
-    componentName(): string;
-    componentType(context: IRenderContext | IContainer): IRouteableComponentType;
-    componentInstance(context: IRenderContext | IContainer): IRouteableComponent;
+    freeContent(element: Element, nextInstruction: INavigatorInstruction | null, stateful?: boolean): Promise<void>;
+    toComponentName(): string | null;
+    toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null;
+    toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null;
 }
 //# sourceMappingURL=viewport-content.d.ts.map

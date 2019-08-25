@@ -18,7 +18,7 @@ export class Guardian {
         for (const type in this.guards) {
             const index = this.guards[type].findIndex(guard => guard.id === id);
             if (index > -1) {
-                return this.guards[type].splice(index, 1);
+                this.guards[type].splice(index, 1);
             }
         }
     }

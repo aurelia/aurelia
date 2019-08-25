@@ -14,20 +14,23 @@
     const router_1 = require("../router");
     class ViewportCustomElement {
         constructor(router, element, renderingEngine) {
-            this.name = 'default';
-            this.usedBy = null;
-            this.default = null;
-            this.noScope = null;
-            this.noLink = null;
-            this.noHistory = null;
-            this.stateful = null;
-            this.viewport = null;
             this.router = router;
             this.element = element;
             this.renderingEngine = renderingEngine;
+            this.name = 'default';
+            this.usedBy = '';
+            this.default = '';
+            this.noScope = false;
+            this.noLink = false;
+            this.noHistory = false;
+            this.stateful = false;
+            this.viewport = null;
         }
         render(flags, host, parts, parentContext) {
             const Type = this.constructor;
+            if (!parentContext) {
+                parentContext = this.$controller.context;
+            }
             const dom = parentContext.get(runtime_1.IDOM);
             const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
             template.renderContext = runtime_1.createRenderContext(dom, parentContext, Type.description.dependencies, Type);
@@ -87,7 +90,9 @@
             this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context, options);
         }
         disconnect() {
-            this.router.removeViewport(this.viewport, this.element, this.$controller.context);
+            if (this.viewport) {
+                this.router.removeViewport(this.viewport, this.element, this.$controller.context);
+            }
         }
         binding(flags) {
             if (this.viewport) {
@@ -134,6 +139,6 @@
     ], ViewportCustomElement.prototype, "stateful", void 0);
     exports.ViewportCustomElement = ViewportCustomElement;
     // tslint:disable-next-line:no-invalid-template-strings
-    runtime_1.CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
+    runtime_1.CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);
 });
 //# sourceMappingURL=viewport.js.map

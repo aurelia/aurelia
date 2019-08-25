@@ -5,7 +5,7 @@ export interface ILinkHandlerOptions {
     /**
      * Callback method for when a link is clicked
      */
-    callback?(info: AnchorEventInfo): void;
+    callback(info: AnchorEventInfo): void;
 }
 /**
  * Provides information about how to handle an anchor event.
@@ -18,11 +18,11 @@ export interface AnchorEventInfo {
     /**
      * The href of the link or null if not-applicable.
      */
-    href: string;
+    href: string | null;
     /**
      * The anchor element or null if not-applicable.
      */
-    anchor: Element;
+    anchor: Element | null;
 }
 /**
  * Class responsible for handling interactions that should trigger navigation.

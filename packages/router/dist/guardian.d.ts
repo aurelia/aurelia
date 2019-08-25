@@ -22,9 +22,8 @@ export interface IGuardOptions {
 export declare class Guardian {
     guards: Record<GuardTypes, Guard[]>;
     private lastIdentity;
-    constructor();
     addGuard(guardFunction: GuardFunction, options?: IGuardOptions): GuardIdentity;
-    removeGuard(id: GuardIdentity): Guard;
+    removeGuard(id: GuardIdentity): void;
     passes(type: GuardTypes, viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[];
 }
 //# sourceMappingURL=guardian.d.ts.map

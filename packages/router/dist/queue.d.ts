@@ -1,7 +1,7 @@
 import { ILifecycle } from '@aurelia/runtime';
 export interface QueueItem<T> {
-    resolve?: ((value?: void | PromiseLike<void>) => void);
-    reject?: ((value?: void | PromiseLike<void>) => void);
+    resolve?: ((value: void | PromiseLike<void>) => void);
+    reject?: ((value: void | PromiseLike<void>) => void);
     cost?: number;
 }
 export interface IQueueOptions {
@@ -18,14 +18,14 @@ export interface IQueueOptions {
  * a specific amount of execution cost per RAF/tick.
  */
 export declare class Queue<T> {
+    private readonly callback;
     isActive: boolean;
     readonly pending: QueueItem<T>[];
-    processing: QueueItem<T>;
-    allowedExecutionCostWithinTick: number;
+    processing: QueueItem<T> | null;
+    allowedExecutionCostWithinTick: number | null;
     currentExecutionCostInCurrentTick: number;
-    private readonly callback;
     private lifecycle;
-    constructor(callback: (item?: QueueItem<T>) => void);
+    constructor(callback: (item: QueueItem<T>) => void);
     readonly length: number;
     activate(options: IQueueOptions): void;
     deactivate(): void;

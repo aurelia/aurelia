@@ -30,7 +30,7 @@ export declare const RouterConfiguration: {
      * Parameter is either a config object that's passed to Router's activate
      * or a config function that's called instead of Router's activate.
      */
-    customize(config?: IRouterOptions | ((router: IRouter) => void)): {
+    customize(config?: IRouterOptions | ((router: IRouter) => void) | undefined): {
         /**
          * Apply this configuration to the provided container.
          */

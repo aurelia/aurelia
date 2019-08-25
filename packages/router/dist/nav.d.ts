@@ -14,10 +14,10 @@ export interface INavRoute {
     meta?: Record<string, unknown>;
 }
 export declare class Nav {
+    router: IRouter;
     name: string;
     routes: NavRoute[];
     classes: INavClasses;
-    router: IRouter;
     constructor(router: IRouter, name: string, routes?: NavRoute[], classes?: INavClasses);
     addRoutes(routes: INavRoute[]): void;
     update(): void;

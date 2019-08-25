@@ -26,15 +26,23 @@
     exports.IRouter = kernel_1.DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
     class Router {
         constructor(container, navigator, navigation, routeTransformer, linkHandler, instructionResolver) {
+            this.container = container;
+            this.navigator = navigator;
+            this.navigation = navigation;
+            this.routeTransformer = routeTransformer;
+            this.linkHandler = linkHandler;
+            this.instructionResolver = instructionResolver;
+            this.rootScope = null;
             this.scopes = [];
             this.navs = {};
             this.activeComponents = [];
             this.addedViewports = [];
+            this.options = {};
             this.isActive = false;
             this.processingNavigation = null;
             this.lastNavigation = null;
             this.linkCallback = (info) => {
-                let href = info.href;
+                let href = info.href || '';
                 if (href.startsWith('#')) {
                     href = href.slice(1);
                     // '#' === '/' === '#/'
@@ -67,9 +75,11 @@
                 // Instructions extracted from queue, one at a time
                 this.processNavigations(instruction).catch(error => { throw error; });
             };
-            this.navigationCallback = (navigation) => {
-                const entry = (navigation.state && navigation.state.currentEntry ? navigation.state.currentEntry : { instruction: null, fullStateInstruction: null });
-                entry.instruction = navigation.instruction;
+            this.browserNavigatorCallback = (browserNavigationEvent) => {
+                const entry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
+                    ? browserNavigationEvent.state.currentEntry
+                    : { instruction: '', fullStateInstruction: '' });
+                entry.instruction = browserNavigationEvent.instruction;
                 entry.fromBrowser = true;
                 this.navigator.navigate(entry).catch(error => { throw error; });
             };
@@ -79,7 +89,8 @@
                     this.options.reportCallback(instruction);
                 }
                 let fullStateInstruction = false;
-                if ((instruction.navigation.back || instruction.navigation.forward) && instruction.fullStateInstruction) {
+                const instructionNavigation = instruction.navigation;
+                if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
                     fullStateInstruction = true;
                     // tslint:disable-next-line:no-commented-code
                     // if (!confirm('Perform history navigation?')) {
@@ -89,7 +100,7 @@
                     // }
                 }
                 let views;
-                let clearViewports;
+                let clearViewports = false;
                 if (typeof instruction.instruction === 'string') {
                     let path = instruction.instruction;
                     if (this.options.transformFromUrl && !fullStateInstruction) {
@@ -114,10 +125,10 @@
                 instruction.parameters = parsedQuery.parameters;
                 instruction.parameterList = parsedQuery.list;
                 // TODO: Fetch title (probably when done)
-                const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.component !== null) : []);
+                const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
                 const doneDefaultViewports = [];
                 let defaultViewports = this.allViewports().filter(viewport => viewport.options.default
-                    && viewport.content.component === null
+                    && viewport.content.componentInstance === null
                     && doneDefaultViewports.every(done => done !== viewport));
                 const updatedViewports = [];
                 // TODO: Take care of cancellations down in subsets/iterations
@@ -200,7 +211,7 @@
                     viewportInstructions = [...viewportInstructions, ...remaining.viewportInstructions];
                     viewportsRemaining = remaining.viewportsRemaining;
                     defaultViewports = this.allViewports().filter(viewport => viewport.options.default
-                        && viewport.content.component === null
+                        && viewport.content.componentInstance === null
                         && doneDefaultViewports.every(done => done !== viewport)
                         && updatedViewports.every(updated => updated !== viewport));
                     if (!this.allViewports().length) {
@@ -212,7 +223,7 @@
                 await this.replacePaths(instruction);
                 this.updateNav();
                 // Remove history entry if no history viewports updated
-                if (instruction.navigation.new && !instruction.navigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {
+                if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {
                     instruction.untracked = true;
                 }
                 updatedViewports.forEach((viewport) => {
@@ -225,12 +236,6 @@
                 this.processingNavigation = null;
                 await this.navigator.finalize(instruction);
             };
-            this.container = container;
-            this.navigator = navigator;
-            this.navigation = navigation;
-            this.routeTransformer = routeTransformer;
-            this.linkHandler = linkHandler;
-            this.instructionResolver = instructionResolver;
             this.guardian = new guardian_1.Guardian();
         }
         get isNavigating() {
@@ -253,7 +258,7 @@
                 store: this.navigation,
             });
             this.linkHandler.activate({ callback: this.linkCallback });
-            this.navigation.activate(this.navigationCallback);
+            this.navigation.activate(this.browserNavigatorCallback);
         }
         loadUrl() {
             return this.navigation.loadUrl();
@@ -271,7 +276,7 @@
                 if (componentOrInstruction instanceof viewport_instruction_1.ViewportInstruction) {
                     if (!componentOrInstruction.viewport) {
                         // TODO: Deal with not yet existing viewports
-                        componentOrInstruction.viewport = this.allViewports().find(vp => vp.name === componentOrInstruction.viewportName);
+                        componentOrInstruction.viewport = this.allViewports().find(vp => vp.name === componentOrInstruction.viewportName) || null;
                     }
                     this.addedViewports.push(componentOrInstruction);
                 }
@@ -294,7 +299,7 @@
         }
         // External API to get viewport by name
         getViewport(name) {
-            return this.allViewports().find(viewport => viewport.name === name);
+            return this.allViewports().find(viewport => viewport.name === name) || null;
         }
         // Called from the viewport custom element in attached()
         addViewport(name, element, context, options) {
@@ -326,7 +331,7 @@
         goto(pathOrViewports, title, data, replace = false) {
             const entry = {
                 instruction: pathOrViewports,
-                fullStateInstruction: null,
+                fullStateInstruction: '',
                 title: title,
                 data: data,
                 fromBrowser: false,

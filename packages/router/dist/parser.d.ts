@@ -7,6 +7,6 @@ export interface IMergedParameters {
     parameterList: string[];
     merged: string[] | Record<string, string>;
 }
-export declare function parseQuery(query: string): IParsedQuery;
-export declare function mergeParameters(parameters: string, query: string, specifiedParameters: string[]): IMergedParameters;
+export declare function parseQuery(query: string | null | undefined): IParsedQuery;
+export declare function mergeParameters(parameters: string, query: string | null | undefined, specifiedParameters: string[] | null | undefined): IMergedParameters;
 //# sourceMappingURL=parser.d.ts.map

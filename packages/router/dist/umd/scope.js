@@ -19,6 +19,7 @@
             this.viewport = null;
             this.children = [];
             this.viewports = [];
+            this.viewportInstructions = null;
             this.availableViewports = null;
             if (this.parent) {
                 this.parent.addChild(this);
@@ -128,18 +129,18 @@
                 viewportsRemaining: viewportsRemaining,
             };
         }
-        addViewport(name, element, context, options) {
+        addViewport(name, element, context, options = {}) {
             let viewport = this.getEnabledViewports()[name];
             // Each au-viewport element has its own Viewport
             if (element && viewport && viewport.element !== null && viewport.element !== element) {
                 viewport.enabled = false;
-                viewport = this.viewports.find(vp => vp.name === name && vp.element === element);
+                viewport = this.viewports.find(vp => vp.name === name && vp.element === element) || null;
                 if (viewport) {
                     viewport.enabled = true;
                 }
             }
             if (!viewport) {
-                let scope;
+                let scope = null;
                 if (options.scope) {
                     scope = new Scope(this.router, element, context, this);
                     this.router.scopes.push(scope);
@@ -220,14 +221,15 @@
         }
         closestViewport(controller) {
             const viewports = Object.values(this.getEnabledViewports());
-            while (controller) {
-                if (controller.host) {
-                    const viewport = viewports.find(item => item.element === controller.host);
+            let ctrlr = controller;
+            while (ctrlr) {
+                if (ctrlr.host) {
+                    const viewport = viewports.find(item => item.element === ctrlr.host);
                     if (viewport) {
                         return viewport;
                     }
                 }
-                controller = controller.parent;
+                ctrlr = ctrlr.parent;
             }
             return null;
         }

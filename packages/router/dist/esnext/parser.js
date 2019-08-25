@@ -16,7 +16,7 @@ export function parseQuery(query) {
         parameters[key] = value;
         // TODO: Deal with complex parameters such as lists and objects
     }
-    return { parameters: parameters, list: list };
+    return { parameters, list };
 }
 export function mergeParameters(parameters, query, specifiedParameters) {
     const parsedQuery = parseQuery(query);

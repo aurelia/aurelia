@@ -13,14 +13,17 @@
     const viewport_instruction_1 = require("./viewport-instruction");
     class Guard {
         constructor(guard, options, id) {
-            this.type = options.type || "before" /* Before */;
             this.guard = guard;
             this.id = id;
+            this.type = "before" /* Before */;
             this.includeTargets = [];
+            this.excludeTargets = [];
+            if (options.type) {
+                this.type = options.type;
+            }
             for (const target of options.include || []) {
                 this.includeTargets.push(new Target(target));
             }
-            this.excludeTargets = [];
             for (const target of options.exclude || []) {
                 this.excludeTargets.push(new Target(target));
             }
@@ -41,16 +44,20 @@
     exports.Guard = Guard;
     class Target {
         constructor(target) {
+            this.componentType = null;
+            this.componentName = null;
+            this.viewport = null;
+            this.viewportName = null;
             if (typeof target === 'string') {
                 this.componentName = target;
             }
             else if (type_resolvers_1.ComponentAppellationResolver.isType(target)) {
-                this.component = target;
+                this.componentType = target;
                 this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(target);
             }
             else {
                 const cvTarget = target;
-                this.component = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component) ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component) : null;
+                this.componentType = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component) ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component) : null;
                 this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(cvTarget.component);
                 this.viewport = type_resolvers_1.ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
                 this.viewportName = type_resolvers_1.ViewportHandleResolver.getName(cvTarget.viewport);
@@ -63,7 +70,7 @@
             }
             for (const instruction of instructions) {
                 if (this.componentName === instruction.componentName ||
-                    this.component === instruction.component ||
+                    this.componentType === instruction.componentType ||
                     this.viewportName === instruction.viewportName ||
                     this.viewport === instruction.viewport) {
                     return true;

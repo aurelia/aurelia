@@ -3,20 +3,20 @@ import { GuardFunction, GuardTarget, INavigatorInstruction, IRouteableComponentT
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export declare class Guard {
+    guard: GuardFunction;
+    id: GuardIdentity;
     type: GuardTypes;
     includeTargets: Target[];
     excludeTargets: Target[];
-    guard: GuardFunction;
-    id: GuardIdentity;
     constructor(guard: GuardFunction, options: IGuardOptions, id: GuardIdentity);
     matches(viewportInstructions: ViewportInstruction[]): boolean;
     check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[];
 }
 declare class Target {
-    component?: IRouteableComponentType;
-    componentName?: string;
-    viewport?: Viewport;
-    viewportName?: string;
+    componentType: IRouteableComponentType | null;
+    componentName: string | null;
+    viewport: Viewport | null;
+    viewportName: string | null;
     constructor(target: GuardTarget);
     matches(viewportInstructions: ViewportInstruction[]): boolean;
 }

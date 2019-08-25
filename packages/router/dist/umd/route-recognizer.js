@@ -95,10 +95,10 @@
     // * `repeat`: true if the character specification can repeat
     class StaticSegment {
         constructor(str, caseSensitive) {
-            this.name = str;
-            this.string = str;
             this.caseSensitive = caseSensitive;
             this.optional = false;
+            this.name = str;
+            this.string = str;
         }
         eachChar(callback) {
             const s = this.string;
@@ -177,9 +177,9 @@
      */
     class RouteRecognizer {
         constructor() {
-            this.rootState = new State();
             this.names = {};
             this.routes = new Map();
+            this.rootState = new State();
         }
         /**
          * Parse a route pattern and add it to the collection of recognized routes.
@@ -234,7 +234,7 @@
                         continue;
                     }
                     else {
-                        segments.push(segment = new StaticSegment(part, route.caseSensitive));
+                        segments.push(segment = new StaticSegment(part, route.caseSensitive === true));
                         types.statics++;
                     }
                 }
@@ -300,7 +300,7 @@
          * @returns The RouteGenerator for that route.
          */
         getRoute(nameOrRoute) {
-            return typeof (nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute);
+            return typeof nameOrRoute === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute);
         }
         /**
          * Retrieve the handlers registered for the route by name or RouteConfig (RouteHandler).
@@ -478,6 +478,7 @@
                 });
                 return result;
             }
+            return void 0;
         }
     }
     exports.RouteRecognizer = RouteRecognizer;

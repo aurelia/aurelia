@@ -66,6 +66,7 @@ export declare class Navigator {
     private readonly pendingNavigations;
     private options;
     private isActive;
+    private uninitializedEntry;
     constructor();
     readonly queued: number;
     activate(options?: INavigatorOptions): void;

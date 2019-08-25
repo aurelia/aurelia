@@ -15,6 +15,7 @@
      */
     class LinkHandler {
         constructor() {
+            this.options = { callback: () => { } };
             this.isActive = false;
             this.handler = (e) => {
                 const info = LinkHandler.getEventInfo(e);
@@ -36,7 +37,7 @@
                 href: null,
                 anchor: null
             };
-            const target = LinkHandler.closestAnchor(event.target);
+            const target = info.anchor = LinkHandler.closestAnchor(event.target);
             if (!target || !LinkHandler.targetIsThisWindow(target)) {
                 return info;
             }
@@ -72,6 +73,7 @@
                 }
                 el = el.parentNode;
             }
+            return null;
         }
         /**
          * Gets a value indicating whether or not an anchor targets the current window.

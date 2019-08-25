@@ -27,7 +27,7 @@
             parameters[key] = value;
             // TODO: Deal with complex parameters such as lists and objects
         }
-        return { parameters: parameters, list: list };
+        return { parameters, list };
     }
     exports.parseQuery = parseQuery;
     function mergeParameters(parameters, query, specifiedParameters) {

@@ -1,20 +1,22 @@
 import { ViewportInstruction } from './viewport-instruction';
 export class InstructionResolver {
-    activate(options) {
+    constructor() {
         this.separators = {
-            ...{
-                viewport: '@',
-                sibling: '+',
-                scope: '/',
-                noScope: '!',
-                parameters: '(',
-                parametersEnd: ')',
-                parameter: '&',
-                add: '+',
-                clear: '-',
-                action: '.',
-            }, ...options.separators
+            viewport: '@',
+            sibling: '+',
+            scope: '/',
+            noScope: '!',
+            parameters: '(',
+            parametersEnd: ')',
+            parameter: '&',
+            add: '+',
+            clear: '-',
+            action: '.',
         };
+    }
+    activate(options) {
+        options = options || {};
+        this.separators = { ...this.separators, ...options.separators };
     }
     get clearViewportInstruction() {
         return this.separators.clear;
@@ -100,7 +102,7 @@ export class InstructionResolver {
             unique.push(sorted.shift());
             while (sorted.length) {
                 const state = sorted.shift();
-                if (unique.every(value => {
+                if (state && unique.every(value => {
                     return value.indexOf(state) === -1;
                 })) {
                     unique.push(state);
@@ -161,7 +163,7 @@ export class InstructionResolver {
             if (!instruction.ownsScope) {
                 instructionString += this.separators.noScope;
             }
-            return instructionString;
+            return instructionString || '';
         }
     }
 }

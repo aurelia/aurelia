@@ -19,8 +19,8 @@ export interface IRouteableComponent<T extends INode = INode> extends IViewModel
   reentryBehavior?: ReentryBehavior;
   canEnter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
-  canLeave?(nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
+  canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
+  leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
 }
 
 export const enum ReentryBehavior {
@@ -52,6 +52,6 @@ export type NavigationInstruction = ComponentAppellation | IViewportInstruction 
 export type GuardFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => boolean | ViewportInstruction[];
 export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation = string | IRouteableComponentType | Constructable; // TODO: | IRouteableComponent;
+export type ComponentAppellation = string | IRouteableComponentType | IRouteableComponent | Constructable; // TODO: | IRouteableComponent;
 export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];

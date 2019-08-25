@@ -29,40 +29,29 @@ import {
 export class ViewportCustomElement {
   public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
 
-  @bindable public name: string;
-  @bindable public usedBy: string;
-  @bindable public default: string;
-  @bindable public noScope: boolean;
-  @bindable public noLink: boolean;
-  @bindable public noHistory: boolean;
-  @bindable public stateful: boolean;
+  @bindable public name: string = 'default';
+  @bindable public usedBy: string = '';
+  @bindable public default: string = '';
+  @bindable public noScope: boolean = false;
+  @bindable public noLink: boolean = false;
+  @bindable public noHistory: boolean = false;
+  @bindable public stateful: boolean = false;
 
-  public viewport: Viewport;
+  public viewport: Viewport | null = null;
 
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   public $controller!: IController;
 
-  private readonly router: IRouter;
-  private readonly element: Element;
-  private readonly renderingEngine: IRenderingEngine;
-
-  constructor(router: IRouter, element: Element, renderingEngine: IRenderingEngine) {
-    this.name = 'default';
-    this.usedBy = null;
-    this.default = null;
-    this.noScope = null;
-    this.noLink = null;
-    this.noHistory = null;
-    this.stateful = null;
-    this.viewport = null;
-
-    this.router = router;
-    this.element = element;
-    this.renderingEngine = renderingEngine;
-  }
+  constructor(
+    private readonly router: IRouter,
+    private readonly element: Element, private readonly renderingEngine: IRenderingEngine
+  ) { }
 
   public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
     const Type = this.constructor as ICustomElementType;
+    if (!parentContext) {
+      parentContext = this.$controller.context as IRenderContext;
+    }
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
     (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
@@ -124,7 +113,9 @@ export class ViewportCustomElement {
     this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
   }
   public disconnect(): void {
-    this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+    if (this.viewport) {
+      this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+    }
   }
 
   public binding(flags: LifecycleFlags): void {
@@ -152,4 +143,4 @@ export class ViewportCustomElement {
   }
 }
 // tslint:disable-next-line:no-invalid-template-strings
-CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
+CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);

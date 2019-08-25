@@ -14,44 +14,35 @@ interface Call {
 
 interface ForwardedState {
   suppressPopstate?: boolean;
-  resolve?: ((value?: void | PromiseLike<void>) => void);
+  resolve?: ((value: void | PromiseLike<void>) => void) | null;
 }
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
-
-  public readonly lifecycle: ILifecycle;
 
   public window: Window;
   public history: History;
   public location: Location;
 
-  public useHash: boolean;
-  public allowedExecutionCostWithinTick: number; // Limit no of executed actions within the same RAF (due to browser limitation)
+  public useHash: boolean = true;
+  public allowedExecutionCostWithinTick: number = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: Queue<Call>;
-  private isActive: boolean;
-  private callback: (ev?: INavigatorViewerEvent) => void;
+  private isActive: boolean = false;
+  private callback: ((ev: INavigatorViewerEvent) => void) | null = null;
 
-  private forwardedState: ForwardedState;
+  private forwardedState: ForwardedState = {};
 
   constructor(
-    lifecycle: ILifecycle,
+    public readonly lifecycle: ILifecycle,
     dom: HTMLDOM
   ) {
-    this.lifecycle = lifecycle;
-
     this.window = dom.window;
     this.history = dom.window.history;
     this.location = dom.window.location;
-    this.useHash = true;
-    this.allowedExecutionCostWithinTick = 2;
     this.pendingCalls = new Queue<Call>(this.processCalls);
-    this.isActive = false;
-    this.callback = null;
-    this.forwardedState = {};
   }
 
-  public activate(callback: (ev?: INavigatorViewerEvent) => void): void {
+  public activate(callback: (ev: INavigatorViewerEvent) => void): void {
     if (this.isActive) {
       throw new Error('Browser navigation has already been activated');
     }
@@ -100,21 +91,23 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     return this.enqueue(this, 'popState', []);
   }
 
-  public readonly handlePopstate = (ev: PopStateEvent): Promise<void> => {
+  public readonly handlePopstate = (ev: PopStateEvent | null): Promise<void> => {
     return this.enqueue(this, 'popstate', [ev]);
   }
 
   private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
     if (!suppressPopstate) {
       const { pathname, search, hash } = this.location;
-      this.callback({
-        event: ev,
-        state: this.history.state,
-        path: pathname,
-        data: search,
-        hash,
-        instruction: this.useHash ? hash.slice(1) : pathname,
-      });
+      if (this.callback) {
+        this.callback({
+          event: ev,
+          state: this.history.state,
+          path: pathname,
+          data: search,
+          hash,
+          instruction: this.useHash ? hash.slice(1) : pathname,
+        });
+      }
     }
     if (resolve) {
       resolve();
@@ -145,7 +138,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
     if (suppressPopstate !== undefined) {
       // Due to (browser) events not having a promise, we create and propagate one
-      let resolve: ((value?: void | PromiseLike<void>) => void);
+      let resolve: ((value: void | PromiseLike<void>) => void) | null = null;
       // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise(_resolve => {
         resolve = _resolve;
@@ -190,9 +183,11 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         this.forwardedState.suppressPopstate = false;
       }
     }
-    const method = call.target[call.methodName];
+    const method = (call.target as { [key: string]: Function | undefined })[call.methodName];
     Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
-    method.apply(call.target, call.parameters);
-    qCall.resolve();
+    if (method) {
+      method.apply(call.target, call.parameters);
+    }
+    (qCall.resolve as ((value: void | PromiseLike<void>) => void))();
   }
 }

@@ -1,7 +1,7 @@
 import { Key, Reporter } from '@aurelia/kernel';
 import { IDOM, ILifecycle } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerEvent, INavigatorViewerOptions } from './navigator';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
 import { Queue, QueueItem } from './queue';
 
 interface Call {
@@ -54,7 +54,10 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
       throw new Error('Browser navigation has already been activated');
     }
     this.isActive = true;
-    this.options = { ...this.options, ...options };
+    this.options.callback = options.callback;
+    if (options.useBrowserFragmentHash != void 0) {
+      this.options.useBrowserFragmentHash = options.useBrowserFragmentHash;
+    }
     this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
   }

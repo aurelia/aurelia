@@ -1,7 +1,7 @@
 import { Key, Reporter } from '@aurelia/kernel';
 import { IDOM, ILifecycle } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerEvent } from './navigator';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerEvent, INavigatorViewerOptions } from './navigator';
 import { Queue, QueueItem } from './queue';
 
 interface Call {
@@ -16,6 +16,11 @@ interface ForwardedState {
   suppressPopstate?: boolean;
   resolve?: ((value: void | PromiseLike<void>) => void) | null;
 }
+
+export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
+  useBrowserFragmentHash?: boolean;
+}
+
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
 
@@ -23,12 +28,14 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public history: History;
   public location: Location;
 
-  public useHash: boolean = true;
   public allowedExecutionCostWithinTick: number = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: Queue<Call>;
   private isActive: boolean = false;
-  private callback: ((ev: INavigatorViewerEvent) => void) | null = null;
+  private options: IBrowserNavigatorOptions = {
+    useBrowserFragmentHash: true,
+    callback: () => { },
+  };
 
   private forwardedState: ForwardedState = {};
 
@@ -42,12 +49,12 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     this.pendingCalls = new Queue<Call>(this.processCalls);
   }
 
-  public activate(callback: (ev: INavigatorViewerEvent) => void): void {
+  public activate(options: IBrowserNavigatorOptions): void {
     if (this.isActive) {
       throw new Error('Browser navigation has already been activated');
     }
     this.isActive = true;
-    this.callback = callback;
+    this.options = { ...this.options, ...options };
     this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
   }
@@ -62,7 +69,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     }
     this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.deactivate();
-    this.callback = null;
+    this.options = { useBrowserFragmentHash: true, callback: () => { } };
     this.isActive = false;
   }
 
@@ -79,12 +86,14 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   public pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
+    const fragment = this.options.useBrowserFragmentHash ? '#' : '';
+    return this.enqueue(this.history, 'pushState', [state, title, `${fragment}${path}`]);
   }
 
   public replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
+    const fragment = this.options.useBrowserFragmentHash ? '#' : '';
+    return this.enqueue(this.history, 'replaceState', [state, title, `${fragment}${path}`]);
   }
 
   public popNavigatorState(): Promise<void> {
@@ -98,16 +107,14 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
     if (!suppressPopstate) {
       const { pathname, search, hash } = this.location;
-      if (this.callback) {
-        this.callback({
-          event: ev,
-          state: this.history.state,
-          path: pathname,
-          data: search,
-          hash,
-          instruction: this.useHash ? hash.slice(1) : pathname,
-        });
-      }
+      this.options.callback({
+        event: ev,
+        state: this.history.state,
+        path: pathname,
+        data: search,
+        hash,
+        instruction: this.options.useBrowserFragmentHash ? hash.slice(1) : pathname,
+      });
     }
     if (resolve) {
       resolve();

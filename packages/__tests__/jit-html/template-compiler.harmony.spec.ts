@@ -11,7 +11,8 @@ import {
   IViewFactory,
   IRenderLocation,
   IController,
-  LifecycleFlags
+  LifecycleFlags,
+  INode
 } from '@aurelia/runtime';
 import {
   assert,
@@ -74,7 +75,7 @@ describe('harmoninous combination', function () {
       template: '<div aaabbb.bind="hello" aaabbb.trigger="hello = 555"></div>',
       resources: [
         CustomAttribute.define({ name: 'aaabbb', bindables: ['value'] }, class AB {
-          public static inject = [Element];
+          public static inject = [INode];
 
           public value: any;
           constructor(private element: HTMLElement) {}

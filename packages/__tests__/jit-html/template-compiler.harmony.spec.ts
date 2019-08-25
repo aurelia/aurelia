@@ -26,6 +26,7 @@ describe('harmoninous combination', function () {
     title: string;
     template: string | HTMLElement;
     resources?: any[];
+    browserOnly?: boolean;
     assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
@@ -41,6 +42,7 @@ describe('harmoninous combination', function () {
       title: 'basic custom attr + event binding command',
       template: `<input blur.bind="hasFocus" blur.trigger="hasFocus = true">`,
       resources: [],
+      browserOnly: true,
       assertFn: async (ctx, host, comp: { hasFocus: boolean }) => {
         assert.equal(comp.hasFocus, undefined, 'should have worked and had focus===undefined initially');
         host.querySelector('input').focus();
@@ -55,6 +57,7 @@ describe('harmoninous combination', function () {
       title: 'basic custom attribute focus + focus trigger binding command',
       template: `<input focus.bind="hasFocus" focus.trigger="focusCount = (focusCount || 0) + 1" blur.trigger="blurCount = (blurCount || 0) + 1" >`,
       resources: [],
+      browserOnly: true,
       assertFn: async (ctx, host, comp: { hasFocus: boolean; focusCount: number; blurCount: number }) => {
         assert.equal(comp.hasFocus, undefined, 'should have worked and had focus===undefined initially');
         assert.equal(comp.focusCount, undefined);
@@ -88,6 +91,7 @@ describe('harmoninous combination', function () {
           }
         })
       ],
+      browserOnly: true,
       assertFn: async (ctx, host, comp: { hello: number }) => {
         const div = host.querySelector('div');
         assert.equal(comp.hello, undefined);
@@ -112,7 +116,10 @@ describe('harmoninous combination', function () {
   ];
 
   testCases.forEach((testCase, idx) => {
-    const { title, template, resources = [], assertFn } = testCase;
+    const { title, template, resources = [], browserOnly, assertFn } = testCase;
+    if (!PLATFORM.isBrowserLike && browserOnly) {
+      return;
+    }
     it(`(${idx + 1}). ${title}`, async function() {
       let host: HTMLElement;
       try {

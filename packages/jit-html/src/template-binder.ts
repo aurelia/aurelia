@@ -212,7 +212,7 @@ export class TemplateBinder {
         continue;
       }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.resources.getBindingCommand(attrSyntax);
+      const command = this.resources.getBindingCommand(attrSyntax, false);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       const to = camelCase(attrSyntax.target);
@@ -247,34 +247,42 @@ export class TemplateBinder {
       }
 
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+      const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
+      if (bindingCommand === null || bindingCommand.override !== true) {
+        const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
-      if (attrInfo == null) {
+        if (attrInfo == null) {
+          // map special html attributes to their corresponding properties
+          this.attrSyntaxTransformer.transform(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(attrSyntax, attr);
+        } else if (attrInfo.isTemplateController) {
+          // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
+          // so keep setting manifest.templateController to the latest template controller we find
+          currentController = manifest!.templateController = this.declareTemplateController(attrSyntax, attrInfo);
+
+          // the proxy and the manifest are only identical when we're at the first template controller (since the controller
+          // is assigned to the proxy), so this evaluates to true at most once per node
+          if (manifestProxy === manifest) {
+            currentController.template = manifest;
+            // @ts-ignore
+            manifestProxy = currentController;
+          } else {
+            currentController.templateController = previousController;
+            currentController.template = previousController.template;
+            // @ts-ignore
+            previousController.template = currentController;
+          }
+          previousController = currentController;
+        } else {
+          // a regular custom attribute
+          this.bindCustomAttribute(attrSyntax, attrInfo);
+        }
+      } else {
         // map special html attributes to their corresponding properties
         this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax, attr);
-      } else if (attrInfo.isTemplateController) {
-        // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
-        // so keep setting manifest.templateController to the latest template controller we find
-        currentController = manifest!.templateController = this.declareTemplateController(attrSyntax, attrInfo);
-
-        // the proxy and the manifest are only identical when we're at the first template controller (since the controller
-        // is assigned to the proxy), so this evaluates to true at most once per node
-        if (manifestProxy === manifest) {
-          currentController.template = manifest;
-          // @ts-ignore
-          manifestProxy = currentController;
-        } else {
-          currentController.templateController = previousController;
-          currentController.template = previousController.template;
-          // @ts-ignore
-          previousController.template = currentController;
-        }
-        previousController = currentController;
-      } else {
-        // a regular custom attribute
-        this.bindCustomAttribute(attrSyntax, attrInfo);
       }
     }
 
@@ -360,7 +368,7 @@ export class TemplateBinder {
 
     let symbol: TemplateControllerSymbol;
     // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
-    const command = this.resources.getBindingCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax, false);
     if (command == null && attrInfo.hasDynamicOptions) {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
       this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
@@ -376,7 +384,7 @@ export class TemplateBinder {
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
 
-    const command = this.resources.getBindingCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax, false);
     let symbol: CustomAttributeSymbol;
     if (command == null && attrInfo.hasDynamicOptions) {
       // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
@@ -403,7 +411,7 @@ export class TemplateBinder {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.resources.getBindingCommand(attrSyntax);
+      const command = this.resources.getBindingCommand(attrSyntax, false);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       let bindable = attrInfo.bindables[attrSyntax.target];
@@ -419,7 +427,7 @@ export class TemplateBinder {
 
   private bindPlainAttribute(attrSyntax: AttrSyntax, attr: Attr): void {
 
-    const command = this.resources.getBindingCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax, false);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
     let expr: AnyBindingExpression;

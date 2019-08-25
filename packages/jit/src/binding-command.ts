@@ -22,6 +22,7 @@ import {
 
 export interface IBindingCommand {
   bindingType: BindingType;
+  override?: boolean;
   compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 }
 

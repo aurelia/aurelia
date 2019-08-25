@@ -25,6 +25,7 @@ import {
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -34,6 +35,7 @@ export class OneTimeBindingCommand implements IBindingCommand {
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.ToViewCommand = BindingType.ToViewCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -43,6 +45,7 @@ export class ToViewBindingCommand implements IBindingCommand {
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.FromViewCommand = BindingType.FromViewCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -52,6 +55,7 @@ export class FromViewBindingCommand implements IBindingCommand {
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -61,6 +65,7 @@ export class TwoWayBindingCommand implements IBindingCommand {
 @bindingCommand('bind')
 export class DefaultBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     let mode: BindingMode = BindingMode.default;
@@ -102,6 +107,7 @@ export class DefaultBindingCommand implements IBindingCommand {
 @bindingCommand('call')
 export class CallBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.CallCommand = BindingType.CallCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new CallBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, true));
@@ -111,6 +117,7 @@ export class CallBindingCommand implements IBindingCommand {
 @bindingCommand('for')
 export class ForBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.ForCommand = BindingType.ForCommand;
+  public readonly override: boolean = false;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new IteratorBindingInstruction(binding.expression as ForOfStatement, getTarget(binding, false));

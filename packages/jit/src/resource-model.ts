@@ -80,7 +80,7 @@ export class ResourceModel {
    *
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
-  public getBindingCommand(syntax: AttrSyntax): IBindingCommand | null {
+  public getBindingCommand(syntax: AttrSyntax, optional: boolean): IBindingCommand | null {
     const name = syntax.command;
     if (name === null) {
       return null;
@@ -90,7 +90,11 @@ export class ResourceModel {
       result = this.resources.create(BindingCommandResource, name)!;
       if (result == null) {
         // unknown binding command
-        throw Reporter.error(0); // TODO: create error code
+        if (!optional) {
+          throw Reporter.error(0); // TODO: create error code
+        } else {
+          return null;
+        }
       }
       this.commandLookup[name] = result;
     }

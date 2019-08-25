@@ -20,6 +20,7 @@ import {
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.TriggerCommand = BindingType.TriggerCommand;
+  public readonly override: boolean = true;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
     return new TriggerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -32,6 +33,7 @@ export class TriggerBindingCommand implements IBindingCommand {
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.DelegateCommand = BindingType.DelegateCommand;
+  public readonly override: boolean = true;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
     return new DelegateBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -44,6 +46,7 @@ export class DelegateBindingCommand implements IBindingCommand {
 @bindingCommand('capture')
 export class CaptureBindingCommand implements IBindingCommand {
   public readonly bindingType: BindingType.CaptureCommand = BindingType.CaptureCommand;
+  public readonly override: boolean = true;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
     return new CaptureBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));

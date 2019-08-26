@@ -144,6 +144,7 @@ export const enum BindingType {
               IsCommand  =  0b0_000000000010_0000,
 
       IsPropertyCommand  =  0b0_000000000110_0000,
+      IsEventCommand     =  0b0_000000001010_0000,
  DelegationStrategyDelta =  0b0_000000000010_0110,
 
                  Command =  0b0_000000000000_1111,

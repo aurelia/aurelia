@@ -32,9 +32,11 @@ describe('translation-integration', function () {
 
       html: 'this is a <i>HTML</i> content',
       pre: 'tic ',
+      preHtml: '<b>tic</b><span>foo</span> ',
       mid: 'tac',
       midHtml: '<i>tac</i>',
       post: ' toe',
+      postHtml: ' <b>toe</b><span>bar</span>',
 
       imgPath: 'foo.jpg'
     };
@@ -327,6 +329,30 @@ describe('translation-integration', function () {
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i>');
     });
+    it('works for html content for [prepend] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[html]mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
+    });
+    it('works for html content for [prepend] + innerHtml', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i>');
+    });
 
     it('works for [append] only', async function () {
 
@@ -364,6 +390,30 @@ describe('translation-integration', function () {
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> toe');
     });
+    it('works for html content for [append] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]postHtml;[html]mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
+    });
+    it('works for html content for [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]postHtml;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> <b>toe</b><span>bar</span>');
+    });
 
     it('works for [prepend] and [append]', async function () {
 
@@ -400,6 +450,131 @@ describe('translation-integration', function () {
       await setup(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i> toe');
+    });
+    it('works for html resource for [prepend] and [append] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[append]postHtml;mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+    });
+    it('works for html resource for [prepend] and [append] + innerHtml', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[append]postHtml;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
+    });
+
+    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[prepend]pre;[append]post';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
+    });
+    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]pre;[append]post';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
+      app.keyExpr = '[prepend]preHtml;[append]postHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+    });
+    it('works correctly with the removal of [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[prepend]preHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
+    });
+    it('works correctly with the removal of [prepend]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[append]postHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
+    });
+    it('works correctly with the removal of both [prepend] and [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[html]midHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
     });
   });
 

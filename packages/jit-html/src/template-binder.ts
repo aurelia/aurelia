@@ -249,7 +249,7 @@ export class TemplateBinder {
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
 
-      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttrCommand) !== BindingType.IgnoreCustomAttrCommand) {
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) > 0) {
         const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
         if (attrInfo == null) {

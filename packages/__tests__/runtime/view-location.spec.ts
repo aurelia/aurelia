@@ -248,7 +248,10 @@ describe('the view locator', () => {
       const Component = locator.getViewComponentForObject(model);
       const instance: any = new Component();
 
-      instance.$scope = {};
+      instance.$controller = {
+        scope: {}
+      };
+
       instance[lifecycleHook]();
 
       assert.isCustomElementType(Component);

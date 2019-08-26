@@ -229,12 +229,16 @@ export class ViewLocator implements IViewLocator {
       UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
         this.getView(availableViews, resolvedViewName),
         class {
-          protected $scope!: IScope;
+          protected $controller!: IController;
 
           constructor(public viewModel: T) {}
 
           public created(flags: LifecycleFlags) {
-            this.$scope = Scope.fromParent(flags, this.$scope, this.viewModel);
+            this.$controller.scope = Scope.fromParent(
+              flags,
+              this.$controller.scope!,
+              this.viewModel
+            );
 
             if (this.viewModel.created) {
               this.viewModel.created(flags);

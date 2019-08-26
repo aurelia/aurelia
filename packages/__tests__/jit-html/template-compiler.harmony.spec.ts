@@ -119,6 +119,7 @@ describe('harmoninous combination', function () {
         <input focus.bind="hasFocus" focus.trigger="log = (log || 0) + 1" />
         <input focus.bind="hasFocus2" focus.trigger="log2 = (log2 || 0) + 1"/>
       `,
+      browserOnly: true,
       assertFn: async (ctx, host, comp: { hasFocus: boolean; hasFocus2: boolean; log: number; log2: number }) => {
         const [input1, input2] = Array.from(host.querySelectorAll('input'));
 

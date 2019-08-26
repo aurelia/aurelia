@@ -119,11 +119,15 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
   .noDefault();
 
 export interface IViewLocator {
-  getViewComponentForObject<T extends ComposableObject>(
+  getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector,
   ): ComposableObjectComponentType<T> | null;
 }
+
+export type ClassInstance<T> = T & {
+  readonly constructor: Function;
+};
 
 export type ComposableObject = Omit<IViewModel, '$controller'>;
 export type ViewSelector = (object: ComposableObject, views: ITemplateDefinition[]) => string;
@@ -150,7 +154,7 @@ export class ViewLocator implements IViewLocator {
     return Registration.singleton(IViewLocator, this).register(container);
   }
 
-  public getViewComponentForObject<T extends ComposableObject>(
+  public getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {
@@ -172,7 +176,7 @@ export class ViewLocator implements IViewLocator {
     return null;
   }
 
-  private getOrCreateBoundComponent<T extends ComposableObject>(
+  private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
     availableViews: ITemplateDefinition[],
     resolvedViewName: string
@@ -206,7 +210,7 @@ export class ViewLocator implements IViewLocator {
     return BoundComponent;
   }
 
-  private getOrCreateUnboundComponent<T extends ComposableObject>(
+  private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
     availableViews: ITemplateDefinition[],
     resolvedViewName: string

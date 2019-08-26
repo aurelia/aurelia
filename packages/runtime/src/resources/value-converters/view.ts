@@ -1,11 +1,17 @@
-import { ComposableObject, ComposableObjectComponentType, IViewLocator, ViewSelector } from '../../templating/view';
+import {
+  ClassInstance,
+  ComposableObject,
+  ComposableObjectComponentType,
+  IViewLocator,
+  ViewSelector
+} from '../../templating/view';
 import { valueConverter } from '../value-converter';
 
 @valueConverter('view')
 export class ViewValueConverter {
   constructor(@IViewLocator private readonly viewLocator: IViewLocator) {}
 
-  public toView<T extends ComposableObject>(
+  public toView<T extends ClassInstance<ComposableObject>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {

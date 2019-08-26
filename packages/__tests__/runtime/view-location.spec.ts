@@ -245,7 +245,7 @@ describe('the view locator', () => {
       const locator = new ViewLocator();
       const model = new MyModel();
 
-      const Component = locator.getViewComponentForObject(model as any);
+      const Component = locator.getViewComponentForObject(model);
       const instance: any = new Component();
 
       instance.$scope = {};

@@ -25,7 +25,7 @@ export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTr
 
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
-  useBrowserFragmentHash?: boolean;
+  useUrlFragmentHash?: boolean;
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
@@ -130,7 +130,7 @@ export class Router implements IRouter {
     this.linkHandler.activate({ callback: this.linkCallback });
     this.navigation.activate({
       callback: this.browserNavigatorCallback,
-      useBrowserFragmentHash: this.options.useBrowserFragmentHash
+      useUrlFragmentHash: this.options.useUrlFragmentHash
     });
   }
 

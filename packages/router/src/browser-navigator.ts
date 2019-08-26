@@ -18,7 +18,7 @@ interface ForwardedState {
 }
 
 export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
-  useBrowserFragmentHash?: boolean;
+  useUrlFragmentHash?: boolean;
 }
 
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
@@ -33,7 +33,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private readonly pendingCalls: Queue<Call>;
   private isActive: boolean = false;
   private options: IBrowserNavigatorOptions = {
-    useBrowserFragmentHash: true,
+    useUrlFragmentHash: true,
     callback: () => { },
   };
 
@@ -55,8 +55,8 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     }
     this.isActive = true;
     this.options.callback = options.callback;
-    if (options.useBrowserFragmentHash != void 0) {
-      this.options.useBrowserFragmentHash = options.useBrowserFragmentHash;
+    if (options.useUrlFragmentHash != void 0) {
+      this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
     this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
@@ -72,7 +72,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     }
     this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.deactivate();
-    this.options = { useBrowserFragmentHash: true, callback: () => { } };
+    this.options = { useUrlFragmentHash: true, callback: () => { } };
     this.isActive = false;
   }
 
@@ -89,13 +89,13 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   public pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment = this.options.useBrowserFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
     return this.enqueue(this.history, 'pushState', [state, title, `${fragment}${path}`]);
   }
 
   public replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment = this.options.useBrowserFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
     return this.enqueue(this.history, 'replaceState', [state, title, `${fragment}${path}`]);
   }
 
@@ -116,7 +116,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         path: pathname,
         data: search,
         hash,
-        instruction: this.options.useBrowserFragmentHash ? hash.slice(1) : pathname,
+        instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
       });
     }
     if (resolve) {

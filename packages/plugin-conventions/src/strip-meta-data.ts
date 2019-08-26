@@ -1,12 +1,12 @@
 import { kebabCase } from '@aurelia/kernel';
-import { IBindableDescription, BindingMode } from '@aurelia/runtime';
-import { parseFragment, DefaultTreeElement, ElementLocation } from 'parse5';
+import { BindingMode, IBindableDescription } from '@aurelia/runtime';
+import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
 interface IStrippedHtml {
-  html: string,
-  deps: string[],
-  shadowMode: 'open' | 'closed' | null,
-  containerless: boolean,
+  html: string;
+  deps: string[];
+  shadowMode: 'open' | 'closed' | null;
+  containerless: boolean;
   bindables: Record<string, IBindableDescription>;
 }
 
@@ -18,7 +18,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   const toRemove: [number, number][] = [];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
-  traverse(tree, node => {
+  traverse(tree, node =>
     stripImport(node, (dep, ranges) => {
       if (dep) deps.push(dep);
       toRemove.push(...ranges);
@@ -34,8 +34,8 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
     stripBindable(node, (bs, ranges) => {
       Object.assign(bindables, bs);
       toRemove.push(...ranges);
-    });
-  });
+    })
+  );
 
   let html = '';
   let lastIdx = 0;
@@ -48,7 +48,9 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   return { html, deps, shadowMode, containerless, bindables};
 }
 
+// tslint:disable-next-line:no-any
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
+  // tslint:disable-next-line:no-any
   tree.childNodes.forEach((n: any) => {
     cb(n as DefaultTreeElement);
     if (n.childNodes) traverse(n, cb);

@@ -1,16 +1,13 @@
-import { loader } from '@aurelia/webpack-loader';
+import { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
+import { loader } from '@aurelia/webpack-loader';
 
-function preprocess(
-  filePath: string,
-  contents: string,
-  basePath: string = '',
-  defaultShadowOptions: { mode: 'open' | 'closed' } | null = null,
-  stringModuleWrap: ((id: string) => string) | null = null
-) {
+function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
+  if (unit.path.endsWith('.css')) return;
+  const { defaultShadowOptions, stringModuleWrap } = options;
   return {
     code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
-          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(filePath) : filePath) + ' ' + contents,
+          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
     map: { version: 3 }
   };
 }

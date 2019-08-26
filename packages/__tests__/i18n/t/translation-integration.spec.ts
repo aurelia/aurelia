@@ -264,6 +264,19 @@ describe('translation-integration', function () {
     assertTextContent(host, `span#b`, translation.simple.text);
   });
 
+  it('works for textContent replacement with explicit [text] attribute - `t="[text]key"`', async function () {
+
+    @customElement({
+      name: 'app', template: `<span id='a' t='[text]simple.text'></span>`
+    })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const { en } = await setup(host, new App());
+
+    assertTextContent(host, 'span', en.simple.text);
+  });
+
   it('works for innerHTML replacement - `t="[html]key"`', async function () {
 
     @customElement({

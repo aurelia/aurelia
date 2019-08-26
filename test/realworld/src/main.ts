@@ -29,7 +29,7 @@ const globalResources = [
   .register(
     BasicConfiguration,
     DebugConfiguration,
-    RouterConfiguration.customize({ useUrlFragmentHash: true }),
+    RouterConfiguration.customize({ useUrlFragmentHash: false }),
     ...globalResources,
   )
   .app({

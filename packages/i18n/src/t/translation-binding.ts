@@ -43,6 +43,8 @@ interface ContentValue {
   append?: string;
 }
 
+const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
+
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
   public id!: number;
@@ -177,10 +179,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (attributes.length === 0) {
       attributes = this.target.tagName === 'IMG' ? ['src'] : ['textContent'];
     }
-    const htmlIndex = attributes.findIndex((attr) => attr === 'html');
-    if (htmlIndex > -1) {
-      attributes.splice(htmlIndex, 1, 'innerHTML');
+
+    for (const [alias, attribute] of attributeAliases) {
+      const aliasIndex = attributes.findIndex((attr) => attr === alias);
+      if (aliasIndex > -1) {
+        attributes.splice(aliasIndex, 1, attribute);
+      }
     }
+
     return attributes;
   }
 

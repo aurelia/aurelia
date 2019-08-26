@@ -187,6 +187,63 @@ describe('BrowserNavigator', function () {
 
     tearDown();
   });
+
+  it('defaults to using url fragment hash', async function () {
+    const { sut, tearDown, callback } = setup();
+
+    let instruction;
+    await sut.activate({
+      callback:
+        function (state) {
+          instruction = state;
+        }
+    });
+
+    await sut.pushNavigatorState(toNavigatorState('one'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('two'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+    await sut.go(-1);
+    await Promise.resolve();
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+
+    assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
+    assert.strictEqual(instruction.path, '/', `instruction.path`);
+    assert.strictEqual(instruction.hash, '#/one', `instruction.hash`);
+
+    sut.deactivate();
+
+    tearDown();
+  });
+
+  it('can be set to not using url fragment hash', async function () {
+    const { sut, tearDown, callback } = setup();
+
+    let instruction;
+    await sut.activate({
+      callback:
+        function (state) {
+          instruction = state;
+        },
+        useUrlFragmentHash: false,
+    });
+
+    await sut.pushNavigatorState(toNavigatorState('one'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('two'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+    await sut.go(-1);
+    await Promise.resolve();
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+
+    assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
+    assert.strictEqual(instruction.path, '/one', `instruction.path`);
+    assert.strictEqual(instruction.hash, '', `instruction.hash`);
+
+    sut.deactivate();
+
+    tearDown();
+  });
 });
 
 const toNavigatorState = (instruction: string): INavigatorState => {

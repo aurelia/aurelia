@@ -45,7 +45,7 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
   deps.forEach((d, i) => {
     const ext = path.extname(d);
-    if (ext === '.html') {
+    if (options.templateExtensions.includes(ext)) {
       statements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
       viewDeps.push(`d${i}`);
     } else if (ext && ext !== '.js' && ext !== '.ts') {

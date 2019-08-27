@@ -88,6 +88,30 @@ export function getHTMLOnlyElement() {
     assert.equal(result.code, expected);
   });
 
+  it('supports HTML-only dependency not in html format', function () {
+    const html = '<import from="./hello-world.md" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import * as h0 from "./hello-world.md";
+const d0 = h0.getHTMLOnlyElement();
+import * as d1 from "foo";
+import { Registration } from '@aurelia/kernel';
+import d2 from "./foo-bar.scss";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+let _e;
+export function getHTMLOnlyElement() {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  return _e;
+}
+`;
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
+    assert.equal(result.code, expected);
+  });
+
   it('processes template with dependencies, wrap css module id', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';

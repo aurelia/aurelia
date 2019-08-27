@@ -227,7 +227,11 @@ export class MockBrowserHistoryLocation {
   get pathname(): string {
     const parts = this.parts;
     // parts.shift();
-    return parts.shift()!;
+    let path = parts.shift()!;
+    if (!path.startsWith('/')) {
+      path = `/${path}`;
+    }
+    return path;
   }
   get search(): string {
     const parts = this.parts;

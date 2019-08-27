@@ -8,9 +8,10 @@ export class DateValueConverter {
   * "July 27, 2017"
   */
   public toView(value: Date | string | number) {
-    return format(
-      value,
-      'MMMM D, YYYY',
-    );
+    return value;
+    //   return format(
+    //     value,
+    //     'MMMM D, YYYY',
+    //   );
   }
 }

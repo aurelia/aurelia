@@ -25,6 +25,7 @@ export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTr
 
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
+  useUrlFragmentHash?: boolean;
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
@@ -127,7 +128,10 @@ export class Router implements IRouter {
       store: this.navigation,
     });
     this.linkHandler.activate({ callback: this.linkCallback });
-    this.navigation.activate(this.browserNavigatorCallback);
+    this.navigation.activate({
+      callback: this.browserNavigatorCallback,
+      useUrlFragmentHash: this.options.useUrlFragmentHash
+    });
   }
 
   public loadUrl(): Promise<void> {
@@ -214,6 +218,10 @@ export class Router implements IRouter {
         const routeOrInstructions = this.options.transformFromUrl(path, this);
         // TODO: Don't go via string here, use instructions as they are
         path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
+      }
+      // TODO: Review this
+      if (path === '/') {
+        path = '';
       }
 
       // TODO: Clean up clear viewports

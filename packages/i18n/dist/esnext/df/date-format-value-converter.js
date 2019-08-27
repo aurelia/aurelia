@@ -10,7 +10,7 @@ let DateFormatValueConverter = class DateFormatValueConverter {
         if ((!value && value !== 0) || (typeof value === 'string' && value.trim() === '')) {
             return value;
         }
-        // covert '0' to 01/01/1970 or ISO string to Date and return the original value if invalid date is constructed
+        // convert '0' to 01/01/1970 or ISO string to Date and return the original value if invalid date is constructed
         if (typeof value === 'string') {
             const numValue = Number(value);
             const tempDate = new Date(Number.isInteger(numValue) ? numValue : value);

@@ -38,7 +38,7 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private isContentAttribute;
     private updateContent;
     private prepareTemplate;
-    private addTextContentToTemplate;
+    private addContentToTemplate;
     private unobserveTargets;
 }
 export {};

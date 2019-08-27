@@ -16,6 +16,7 @@
     const runtime_1 = require("@aurelia/runtime");
     const i18n_1 = require("../i18n");
     const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
+    const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
     let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         constructor(target, observerLocator, locator) {
             this.target = target;
@@ -126,9 +127,11 @@
             if (attributes.length === 0) {
                 attributes = this.target.tagName === 'IMG' ? ['src'] : ['textContent'];
             }
-            const htmlIndex = attributes.findIndex((attr) => attr === 'html');
-            if (htmlIndex > -1) {
-                attributes.splice(htmlIndex, 1, 'innerHTML');
+            for (const [alias, attribute] of attributeAliases) {
+                const aliasIndex = attributes.findIndex((attr) => attr === alias);
+                if (aliasIndex > -1) {
+                    attributes.splice(aliasIndex, 1, attribute);
+                }
             }
             return attributes;
         }
@@ -156,28 +159,23 @@
         }
         prepareTemplate(content, marker, fallBackContents) {
             const template = runtime_1.DOM.createTemplate();
-            this.addTextContentToTemplate(template, content.prepend, marker);
+            this.addContentToTemplate(template, content.prepend, marker);
             // build content: prioritize [html], then textContent, and falls back to original content
-            if (content.innerHTML) {
-                const fragment = runtime_1.DOM.createDocumentFragment(content.innerHTML);
-                for (const child of kernel_1.toArray(fragment.childNodes)) {
-                    Reflect.set(child, marker, true);
-                    template.content.append(child);
-                }
-            }
-            else if (!this.addTextContentToTemplate(template, content.textContent, marker)) {
+            if (!this.addContentToTemplate(template, content.innerHTML || content.textContent, marker)) {
                 for (const fallbackContent of fallBackContents) {
                     template.content.append(fallbackContent);
                 }
             }
-            this.addTextContentToTemplate(template, content.append, marker);
+            this.addContentToTemplate(template, content.append, marker);
             return template;
         }
-        addTextContentToTemplate(template, additionalText, marker) {
-            if (additionalText) {
-                const addendum = runtime_1.DOM.createTextNode(additionalText);
-                Reflect.set(addendum, marker, true);
-                template.content.append(addendum);
+        addContentToTemplate(template, content, marker) {
+            if (content) {
+                const addendum = runtime_1.DOM.createDocumentFragment(content);
+                for (const child of kernel_1.toArray(addendum.childNodes)) {
+                    Reflect.set(child, marker, true);
+                    template.content.append(child);
+                }
                 return true;
             }
             return false;

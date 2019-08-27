@@ -28,7 +28,7 @@ import {
 } from '@aurelia/kernel';
 
 import {
-  CompositionRoot,
+  CompositionRoot, CustomElement, CustomAttribute,
 } from '@aurelia/runtime';
 
 import {
@@ -654,6 +654,30 @@ export function notMatch(actual: any, regex: RegExp, message?: string): void {
   }
 }
 
+export function isCustomElementType(actual: any, message?: string): void {
+  if (!CustomElement.isType(actual)) {
+    innerFail({
+      actual: false,
+      expected: true,
+      message,
+      operator: 'isCustomElementType' as any,
+      stackStartFn: isCustomElementType
+    });
+  }
+}
+
+export function isCustomAttributeType(actual: any, message?: string): void {
+  if (!CustomAttribute.isType(actual)) {
+    innerFail({
+      actual: false,
+      expected: true,
+      message,
+      operator: 'isCustomAttributeType' as any,
+      stackStartFn: isCustomElementType
+    });
+  }
+}
+
 const assert = Object_freeze({
   throws,
   doesNotThrow,
@@ -683,6 +707,8 @@ const assert = Object_freeze({
   match,
   notMatch,
   visibleTextEqual,
+  isCustomElementType,
+  isCustomAttributeType,
   strict: {
     deepEqual: deepStrictEqual,
     notDeepEqual: notDeepStrictEqual,

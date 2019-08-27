@@ -6,13 +6,13 @@ import {
   BindingMode,
   CustomAttribute,
   CustomElement,
-  ITemplateCompiler,
-  TargetedInstructionType as TT,
-  IViewFactory,
-  IRenderLocation,
   IController,
+  INode,
+  IRenderLocation,
+  ITemplateCompiler,
+  IViewFactory,
   LifecycleFlags,
-  INode
+  TargetedInstructionType as TT
 } from '@aurelia/runtime';
 import {
   assert,
@@ -20,7 +20,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe('harmoninous combination', function () {
+describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
 
   interface IHarmoniousCompilationTestCase {
     title: string;

@@ -90,11 +90,10 @@ export class ResourceModel {
       result = this.resources.create(BindingCommandResource, name)!;
       if (result == null) {
         // unknown binding command
-        if (!optional) {
-          throw Reporter.error(0); // TODO: create error code
-        } else {
+        if (optional) {
           return null;
         }
+        throw Reporter.error(0); // TODO: create error code
       }
       this.commandLookup[name] = result;
     }

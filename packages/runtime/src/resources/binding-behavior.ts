@@ -51,8 +51,8 @@ export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze
     WritableType.description = description;
     Type.register = function register(container: IContainer): void {
       const key = BindingBehavior.keyFrom(description.name);
-      Registration.singleton(key, Type).register(container);
-      Registration.alias(key, Type).register(container);
+      Registration.singleton(key, this).register(container);
+      Registration.alias(key, this).register(container);
     };
 
     return Type;

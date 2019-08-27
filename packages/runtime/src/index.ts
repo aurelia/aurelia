@@ -271,6 +271,9 @@ export {
   ISanitizer,
   SanitizeValueConverter
 } from './resources/value-converters/sanitize';
+export {
+  ViewValueConverter
+} from './resources/value-converters/view';
 
 export {
   bindable,
@@ -291,6 +294,9 @@ export {
 } from './templating/controller';
 export {
   ViewFactory,
+  IViewLocator,
+  ViewLocator,
+  view
 } from './templating/view';
 
 export {

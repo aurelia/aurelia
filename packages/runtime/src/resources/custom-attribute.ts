@@ -99,8 +99,8 @@ export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze
       const aliases = description.aliases;
 
       const key = CustomAttribute.keyFrom(description.name);
-      Registration.transient(key, Type).register(container);
-      Registration.alias(key, Type).register(container);
+      Registration.transient(key, this).register(container);
+      Registration.alias(key, this).register(container);
 
       for (let i = 0, ii = aliases.length; i < ii; ++i) {
         Registration.alias(key, CustomAttribute.keyFrom(aliases[i])).register(container);

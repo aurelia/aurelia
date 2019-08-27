@@ -15,10 +15,12 @@
     class BrowserNavigator {
         constructor(lifecycle, dom) {
             this.lifecycle = lifecycle;
-            this.useHash = true;
             this.allowedExecutionCostWithinTick = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
             this.isActive = false;
-            this.callback = null;
+            this.options = {
+                useUrlFragmentHash: true,
+                callback: () => { },
+            };
             this.forwardedState = {};
             this.handlePopstate = (ev) => {
                 return this.enqueue(this, 'popstate', [ev]);
@@ -46,12 +48,15 @@
             this.location = dom.window.location;
             this.pendingCalls = new queue_1.Queue(this.processCalls);
         }
-        activate(callback) {
+        activate(options) {
             if (this.isActive) {
                 throw new Error('Browser navigation has already been activated');
             }
             this.isActive = true;
-            this.callback = callback;
+            this.options.callback = options.callback;
+            if (options.useUrlFragmentHash != void 0) {
+                this.options.useUrlFragmentHash = options.useUrlFragmentHash;
+            }
             this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
             this.window.addEventListener('popstate', this.handlePopstate);
         }
@@ -64,7 +69,7 @@
             }
             this.window.removeEventListener('popstate', this.handlePopstate);
             this.pendingCalls.deactivate();
-            this.callback = null;
+            this.options = { useUrlFragmentHash: true, callback: () => { } };
             this.isActive = false;
         }
         get length() {
@@ -78,11 +83,13 @@
         }
         pushNavigatorState(state) {
             const { title, path } = state.currentEntry;
-            return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
+            const fragment = this.options.useUrlFragmentHash ? '#/' : '';
+            return this.enqueue(this.history, 'pushState', [state, title, `${fragment}${path}`]);
         }
         replaceNavigatorState(state) {
             const { title, path } = state.currentEntry;
-            return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
+            const fragment = this.options.useUrlFragmentHash ? '#/' : '';
+            return this.enqueue(this.history, 'replaceState', [state, title, `${fragment}${path}`]);
         }
         popNavigatorState() {
             return this.enqueue(this, 'popState', []);
@@ -90,16 +97,14 @@
         popstate(ev, resolve, suppressPopstate = false) {
             if (!suppressPopstate) {
                 const { pathname, search, hash } = this.location;
-                if (this.callback) {
-                    this.callback({
-                        event: ev,
-                        state: this.history.state,
-                        path: pathname,
-                        data: search,
-                        hash,
-                        instruction: this.useHash ? hash.slice(1) : pathname,
-                    });
-                }
+                this.options.callback({
+                    event: ev,
+                    state: this.history.state,
+                    path: pathname,
+                    data: search,
+                    hash,
+                    instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+                });
             }
             if (resolve) {
                 resolve();

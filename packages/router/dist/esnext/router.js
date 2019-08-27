@@ -97,6 +97,10 @@ export class Router {
                     // TODO: Don't go via string here, use instructions as they are
                     path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
                 }
+                // TODO: Review this
+                if (path === '/') {
+                    path = '';
+                }
                 // TODO: Clean up clear viewports
                 const { clear, newPath } = this.instructionResolver.shouldClearViewports(path);
                 clearViewports = clear;
@@ -247,7 +251,10 @@ export class Router {
             store: this.navigation,
         });
         this.linkHandler.activate({ callback: this.linkCallback });
-        this.navigation.activate(this.browserNavigatorCallback);
+        this.navigation.activate({
+            callback: this.browserNavigatorCallback,
+            useUrlFragmentHash: this.options.useUrlFragmentHash
+        });
     }
     loadUrl() {
         return this.navigation.loadUrl();

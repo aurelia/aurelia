@@ -19,6 +19,7 @@ export interface IRouteTransformer {
 export declare const IRouteTransformer: import("@aurelia/kernel").InterfaceSymbol<IRouteTransformer>;
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
     separators?: IRouteSeparators;
+    useUrlFragmentHash?: boolean;
     reportCallback?(instruction: INavigatorInstruction): void;
 }
 export interface IRouter {

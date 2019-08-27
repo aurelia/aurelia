@@ -9,8 +9,11 @@ export interface INavigatorStore {
     popNavigatorState(): Promise<void>;
 }
 export interface INavigatorViewer {
-    activate(callback: (ev?: INavigatorViewerEvent) => void): void;
+    activate(options: INavigatorViewerOptions): void;
     deactivate(): void;
+}
+export interface INavigatorViewerOptions {
+    callback(ev: INavigatorViewerEvent): void;
 }
 export interface INavigatorViewerEvent {
     event: PopStateEvent;

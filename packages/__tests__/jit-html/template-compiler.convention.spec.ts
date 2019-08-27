@@ -11,7 +11,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe('html convention', function () {
+describe('template-compiler.convention.spec.ts \n\thtml convention', function () {
 
   type IAttrMappingConventionCombo = [string, string, string?, Record<string, string>?];
 

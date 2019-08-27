@@ -14,10 +14,10 @@ describe('blur.integration.spec.ts', () => {
   }
 
   before(async function () {
-    await new Promise(PLATFORM.requestAnimationFrame);
+    await waitForFrames(2);
   });
   after(async function () {
-    await new Promise(PLATFORM.requestAnimationFrame);
+    await waitForFrames(2);
   });
 
   describe('>> with mouse', function() {

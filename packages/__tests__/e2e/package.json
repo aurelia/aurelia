@@ -8,6 +8,7 @@
   },
   "version": "0.3.0",
   "scripts": {
+    "prestart": "rimraf dist",
     "start": "webpack-dev-server --no-inline",
     "preserve": "rimraf dist && webpack --config webpack.config.js",
     "serve": "http-server -c-1 -p 9000 dist",
@@ -27,7 +28,8 @@
     "@aurelia/runtime-html": "^0.3.0",
     "@aurelia/runtime-html-browser": "^0.3.0",
     "i18next-intervalplural-postprocessor": "^1.0.0",
-    "relative-time-format": "^1.0.0"
+    "relative-time-format": "^1.0.0",
+    "i18next-fetch-backend": "^2.2.0"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^4.1.0",
@@ -42,6 +44,7 @@
     "typescript": "^3.5.3",
     "webpack": "^4.39.2",
     "webpack-cli": "latest",
-    "webpack-dev-server": "latest"
+    "webpack-dev-server": "latest",
+    "copy-webpack-plugin": "^5.0.0"
   }
 }

@@ -1,4 +1,6 @@
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = function(env, { mode }) {
   const production = mode === 'production';
@@ -12,6 +14,7 @@ module.exports = function(env, { mode }) {
       mainFields: ['module']
     },
     devServer: {
+      contentBase: path.join(__dirname, "dist"),
       port: 9500,
       historyApiFallback: true,
       lazy: false
@@ -22,6 +25,11 @@ module.exports = function(env, { mode }) {
         { test: /\.html$/i, loader: 'html-loader' }
       ]
     },
-    plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
+    plugins: [
+      new HtmlWebpackPlugin({ template: 'index.ejs' }),
+      new CopyPlugin([
+        { from: 'src/locales', to: 'locales' }
+      ])
+    ]
   }
 }

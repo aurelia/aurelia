@@ -3,11 +3,14 @@ export declare const IObserverLocatorRegistration: IRegistry;
 export declare const ILifecycleRegistration: IRegistry;
 export declare const IRendererRegistration: IRegistry;
 export declare const IStartTaskManagerRegistration: IRegistry;
+export declare const IViewLocatorRegistration: IRegistry;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
+ * - `IStartTaskManager`
+ * - `IViewLocator`
  */
 export declare const DefaultComponents: IRegistry[];
 export declare const FrequentMutationsRegistration: IRegistry;
@@ -19,6 +22,7 @@ export declare const RepeatRegistration: IRegistry;
 export declare const ReplaceableRegistration: IRegistry;
 export declare const WithRegistration: IRegistry;
 export declare const SanitizeValueConverterRegistration: IRegistry;
+export declare const ViewValueConverterRegistration: IRegistry;
 export declare const DebounceBindingBehaviorRegistration: IRegistry;
 export declare const OneTimeBindingBehaviorRegistration: IRegistry;
 export declare const ToViewBindingBehaviorRegistration: IRegistry;

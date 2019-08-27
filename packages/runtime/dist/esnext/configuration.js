@@ -14,21 +14,27 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { ViewValueConverter } from './resources/value-converters/view';
+import { ViewLocator } from './templating/view';
 export const IObserverLocatorRegistration = ObserverLocator;
 export const ILifecycleRegistration = Lifecycle;
 export const IRendererRegistration = Renderer;
 export const IStartTaskManagerRegistration = StartTaskManager;
+export const IViewLocatorRegistration = ViewLocator;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
+ * - `IStartTaskManager`
+ * - `IViewLocator`
  */
 export const DefaultComponents = [
     IObserverLocatorRegistration,
     ILifecycleRegistration,
     IRendererRegistration,
     IStartTaskManagerRegistration,
+    IViewLocatorRegistration
 ];
 export const FrequentMutationsRegistration = FrequentMutations;
 export const InfrequentMutationsRegistration = InfrequentMutations;
@@ -39,6 +45,7 @@ export const RepeatRegistration = Repeat;
 export const ReplaceableRegistration = Replaceable;
 export const WithRegistration = With;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter;
+export const ViewValueConverterRegistration = ViewValueConverter;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior;
 export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior;
@@ -63,6 +70,7 @@ export const DefaultResources = [
     ReplaceableRegistration,
     WithRegistration,
     SanitizeValueConverterRegistration,
+    ViewValueConverterRegistration,
     DebounceBindingBehaviorRegistration,
     OneTimeBindingBehaviorRegistration,
     ToViewBindingBehaviorRegistration,

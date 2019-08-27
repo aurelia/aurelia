@@ -530,8 +530,13 @@ export class ParameterizedRegistry {
         this.params = params;
     }
     register(container) {
-        const registry = container.get(this.key);
-        registry.register(container, ...this.params);
+        if (container.has(this.key, true)) {
+            const registry = container.get(this.key);
+            registry.register(container, ...this.params);
+        }
+        else {
+            container.register(...this.params);
+        }
     }
 }
 export const Registration = Object.freeze({

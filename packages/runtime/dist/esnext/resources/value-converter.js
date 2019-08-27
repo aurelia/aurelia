@@ -19,8 +19,8 @@ export const ValueConverter = Object.freeze({
         Type.description = description;
         Type.register = function register(container) {
             const key = ValueConverter.keyFrom(description.name);
-            Registration.singleton(key, Type).register(container);
-            Registration.alias(key, Type).register(container);
+            Registration.singleton(key, this).register(container);
+            Registration.alias(key, this).register(container);
         };
         return Type;
     },

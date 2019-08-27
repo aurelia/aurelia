@@ -1,5 +1,6 @@
 // Significant portion of this code is copy-pasted from the node.js source
 // Modifications consist primarily of removing dependencies on v8 natives and adding typings
+import { CustomElement, CustomAttribute, } from '@aurelia/runtime';
 import { isDeepEqual, isDeepStrictEqual, } from './comparison';
 import { AssertionError, inspect, } from './inspect';
 import { getVisibleText } from './specialized-assertions';
@@ -494,6 +495,28 @@ export function notMatch(actual, regex, message) {
         });
     }
 }
+export function isCustomElementType(actual, message) {
+    if (!CustomElement.isType(actual)) {
+        innerFail({
+            actual: false,
+            expected: true,
+            message,
+            operator: 'isCustomElementType',
+            stackStartFn: isCustomElementType
+        });
+    }
+}
+export function isCustomAttributeType(actual, message) {
+    if (!CustomAttribute.isType(actual)) {
+        innerFail({
+            actual: false,
+            expected: true,
+            message,
+            operator: 'isCustomAttributeType',
+            stackStartFn: isCustomElementType
+        });
+    }
+}
 const assert = Object_freeze({
     throws,
     doesNotThrow,
@@ -523,6 +546,8 @@ const assert = Object_freeze({
     match,
     notMatch,
     visibleTextEqual,
+    isCustomElementType,
+    isCustomAttributeType,
     strict: {
         deepEqual: deepStrictEqual,
         notDeepEqual: notDeepStrictEqual,

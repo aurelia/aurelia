@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,21 +25,27 @@
     const replaceable_1 = require("./resources/custom-attributes/replaceable");
     const with_1 = require("./resources/custom-attributes/with");
     const sanitize_1 = require("./resources/value-converters/sanitize");
+    const view_1 = require("./resources/value-converters/view");
+    const view_2 = require("./templating/view");
     exports.IObserverLocatorRegistration = observer_locator_1.ObserverLocator;
     exports.ILifecycleRegistration = lifecycle_1.Lifecycle;
     exports.IRendererRegistration = renderer_1.Renderer;
     exports.IStartTaskManagerRegistration = lifecycle_task_1.StartTaskManager;
+    exports.IViewLocatorRegistration = view_2.ViewLocator;
     /**
      * Default implementations for the following interfaces:
      * - `IObserverLocator`
      * - `ILifecycle`
      * - `IRenderer`
+     * - `IStartTaskManager`
+     * - `IViewLocator`
      */
     exports.DefaultComponents = [
         exports.IObserverLocatorRegistration,
         exports.ILifecycleRegistration,
         exports.IRendererRegistration,
         exports.IStartTaskManagerRegistration,
+        exports.IViewLocatorRegistration
     ];
     exports.FrequentMutationsRegistration = flags_1.FrequentMutations;
     exports.InfrequentMutationsRegistration = flags_1.InfrequentMutations;
@@ -50,6 +56,7 @@
     exports.ReplaceableRegistration = replaceable_1.Replaceable;
     exports.WithRegistration = with_1.With;
     exports.SanitizeValueConverterRegistration = sanitize_1.SanitizeValueConverter;
+    exports.ViewValueConverterRegistration = view_1.ViewValueConverter;
     exports.DebounceBindingBehaviorRegistration = debounce_1.DebounceBindingBehavior;
     exports.OneTimeBindingBehaviorRegistration = binding_mode_1.OneTimeBindingBehavior;
     exports.ToViewBindingBehaviorRegistration = binding_mode_1.ToViewBindingBehavior;
@@ -74,6 +81,7 @@
         exports.ReplaceableRegistration,
         exports.WithRegistration,
         exports.SanitizeValueConverterRegistration,
+        exports.ViewValueConverterRegistration,
         exports.DebounceBindingBehaviorRegistration,
         exports.OneTimeBindingBehaviorRegistration,
         exports.ToViewBindingBehaviorRegistration,

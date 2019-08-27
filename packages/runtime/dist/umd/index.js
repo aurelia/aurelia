@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/self-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine"], factory);
+        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/self-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -162,6 +162,8 @@
     var sanitize_1 = require("./resources/value-converters/sanitize");
     exports.ISanitizer = sanitize_1.ISanitizer;
     exports.SanitizeValueConverter = sanitize_1.SanitizeValueConverter;
+    var view_1 = require("./resources/value-converters/view");
+    exports.ViewValueConverter = view_1.ViewValueConverter;
     var bindable_1 = require("./templating/bindable");
     exports.bindable = bindable_1.bindable;
     exports.Bindable = bindable_1.Bindable;
@@ -170,8 +172,11 @@
     // These exports are temporary until we have a proper way to unit test them
     var controller_1 = require("./templating/controller");
     exports.Controller = controller_1.Controller;
-    var view_1 = require("./templating/view");
-    exports.ViewFactory = view_1.ViewFactory;
+    var view_2 = require("./templating/view");
+    exports.ViewFactory = view_2.ViewFactory;
+    exports.IViewLocator = view_2.IViewLocator;
+    exports.ViewLocator = view_2.ViewLocator;
+    exports.view = view_2.view;
     var aurelia_1 = require("./aurelia");
     exports.Aurelia = aurelia_1.Aurelia;
     exports.IDOMInitializer = aurelia_1.IDOMInitializer;

@@ -37,11 +37,12 @@ export { With } from './resources/custom-attributes/with';
 export { containerless, customElement, CustomElement, IProjectorLocator, useShadowDOM } from './resources/custom-element';
 export { valueConverter, ValueConverter } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter } from './resources/value-converters/sanitize';
+export { ViewValueConverter } from './resources/value-converters/view';
 export { bindable, Bindable, } from './templating/bindable';
 export { children } from './templating/children';
 // These exports are temporary until we have a proper way to unit test them
 export { Controller, } from './templating/controller';
-export { ViewFactory, } from './templating/view';
+export { ViewFactory, IViewLocator, ViewLocator, view } from './templating/view';
 export { Aurelia, IDOMInitializer, CompositionRoot, } from './aurelia';
 export { IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, PriorityBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, IObserverLocatorRegistration, ILifecycleRegistration, IRendererRegistration, RuntimeBasicConfiguration } from './configuration';
 export { buildTemplateDefinition, HooksDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType } from './definitions';

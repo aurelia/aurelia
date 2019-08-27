@@ -31,6 +31,8 @@ export declare function strictEqual(actual: any, expected: any, message?: string
 export declare function notStrictEqual(actual: any, expected: any, message?: string): void;
 export declare function match(actual: any, regex: RegExp, message?: string): void;
 export declare function notMatch(actual: any, regex: RegExp, message?: string): void;
+export declare function isCustomElementType(actual: any, message?: string): void;
+export declare function isCustomAttributeType(actual: any, message?: string): void;
 declare const assert: Readonly<{
     throws: typeof throws;
     doesNotThrow: typeof doesNotThrow;
@@ -60,6 +62,8 @@ declare const assert: Readonly<{
     match: typeof match;
     notMatch: typeof notMatch;
     visibleTextEqual: typeof visibleTextEqual;
+    isCustomElementType: typeof isCustomElementType;
+    isCustomAttributeType: typeof isCustomAttributeType;
     strict: {
         deepEqual: typeof deepStrictEqual;
         notDeepEqual: typeof notDeepStrictEqual;

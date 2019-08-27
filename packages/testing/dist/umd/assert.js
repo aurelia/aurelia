@@ -6,11 +6,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./comparison", "./inspect", "./specialized-assertions", "./util"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const runtime_1 = require("@aurelia/runtime");
     const comparison_1 = require("./comparison");
     const inspect_1 = require("./inspect");
     const specialized_assertions_1 = require("./specialized-assertions");
@@ -534,6 +535,30 @@
         }
     }
     exports.notMatch = notMatch;
+    function isCustomElementType(actual, message) {
+        if (!runtime_1.CustomElement.isType(actual)) {
+            innerFail({
+                actual: false,
+                expected: true,
+                message,
+                operator: 'isCustomElementType',
+                stackStartFn: isCustomElementType
+            });
+        }
+    }
+    exports.isCustomElementType = isCustomElementType;
+    function isCustomAttributeType(actual, message) {
+        if (!runtime_1.CustomAttribute.isType(actual)) {
+            innerFail({
+                actual: false,
+                expected: true,
+                message,
+                operator: 'isCustomAttributeType',
+                stackStartFn: isCustomElementType
+            });
+        }
+    }
+    exports.isCustomAttributeType = isCustomAttributeType;
     const assert = util_1.Object_freeze({
         throws,
         doesNotThrow,
@@ -563,6 +588,8 @@
         match,
         notMatch,
         visibleTextEqual,
+        isCustomElementType,
+        isCustomAttributeType,
         strict: {
             deepEqual: deepStrictEqual,
             notDeepEqual: notDeepStrictEqual,

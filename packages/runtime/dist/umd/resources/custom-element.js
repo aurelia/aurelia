@@ -39,8 +39,8 @@
             Type.description = description;
             Type.register = function register(container) {
                 const key = exports.CustomElement.keyFrom(description.name);
-                kernel_1.Registration.transient(key, Type).register(container);
-                kernel_1.Registration.alias(key, Type).register(container);
+                kernel_1.Registration.transient(key, this).register(container);
+                kernel_1.Registration.alias(key, this).register(container);
             };
             return Type;
         },

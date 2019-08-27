@@ -48,8 +48,8 @@
             Type.register = function register(container) {
                 const aliases = description.aliases;
                 const key = exports.CustomAttribute.keyFrom(description.name);
-                kernel_1.Registration.transient(key, Type).register(container);
-                kernel_1.Registration.alias(key, Type).register(container);
+                kernel_1.Registration.transient(key, this).register(container);
+                kernel_1.Registration.alias(key, this).register(container);
                 for (let i = 0, ii = aliases.length; i < ii; ++i) {
                     kernel_1.Registration.alias(key, exports.CustomAttribute.keyFrom(aliases[i])).register(container);
                 }

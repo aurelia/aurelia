@@ -32,8 +32,8 @@
             WritableType.description = description;
             Type.register = function register(container) {
                 const key = exports.BindingBehavior.keyFrom(description.name);
-                kernel_1.Registration.singleton(key, Type).register(container);
-                kernel_1.Registration.alias(key, Type).register(container);
+                kernel_1.Registration.singleton(key, this).register(container);
+                kernel_1.Registration.alias(key, this).register(container);
             };
             return Type;
         },

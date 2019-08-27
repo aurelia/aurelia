@@ -98,6 +98,7 @@
     var BindingType;
     (function (BindingType) {
         BindingType[BindingType["None"] = 0] = "None";
+        BindingType[BindingType["IgnoreCustomAttr"] = 4096] = "IgnoreCustomAttr";
         BindingType[BindingType["Interpolation"] = 2048] = "Interpolation";
         BindingType[BindingType["IsRef"] = 1280] = "IsRef";
         BindingType[BindingType["IsIterator"] = 512] = "IsIterator";
@@ -115,9 +116,9 @@
         BindingType[BindingType["FromViewCommand"] = 51] = "FromViewCommand";
         BindingType[BindingType["TwoWayCommand"] = 52] = "TwoWayCommand";
         BindingType[BindingType["BindCommand"] = 53] = "BindCommand";
-        BindingType[BindingType["TriggerCommand"] = 86] = "TriggerCommand";
-        BindingType[BindingType["CaptureCommand"] = 87] = "CaptureCommand";
-        BindingType[BindingType["DelegateCommand"] = 88] = "DelegateCommand";
+        BindingType[BindingType["TriggerCommand"] = 4182] = "TriggerCommand";
+        BindingType[BindingType["CaptureCommand"] = 4183] = "CaptureCommand";
+        BindingType[BindingType["DelegateCommand"] = 4184] = "DelegateCommand";
         BindingType[BindingType["CallCommand"] = 153] = "CallCommand";
         BindingType[BindingType["OptionsCommand"] = 26] = "OptionsCommand";
         BindingType[BindingType["ForCommand"] = 539] = "ForCommand";

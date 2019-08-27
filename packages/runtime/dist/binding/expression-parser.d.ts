@@ -9,6 +9,7 @@ export interface IExpressionParser {
 export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;
 export declare const enum BindingType {
     None = 0,
+    IgnoreCustomAttr = 4096,
     Interpolation = 2048,
     IsRef = 1280,
     IsIterator = 512,
@@ -26,9 +27,9 @@ export declare const enum BindingType {
     FromViewCommand = 51,
     TwoWayCommand = 52,
     BindCommand = 53,
-    TriggerCommand = 86,
-    CaptureCommand = 87,
-    DelegateCommand = 88,
+    TriggerCommand = 4182,
+    CaptureCommand = 4183,
+    DelegateCommand = 4184,
     CallCommand = 153,
     OptionsCommand = 26,
     ForCommand = 539,

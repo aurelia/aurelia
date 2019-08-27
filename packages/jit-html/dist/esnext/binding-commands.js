@@ -9,7 +9,7 @@ let TriggerBindingCommand = class TriggerBindingCommand {
      * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
      */
     constructor() {
-        this.bindingType = 86 /* TriggerCommand */;
+        this.bindingType = 4182 /* TriggerCommand */;
     }
     compile(binding) {
         return new TriggerBindingInstruction(binding.expression, getTarget(binding, false));
@@ -27,7 +27,7 @@ let DelegateBindingCommand = class DelegateBindingCommand {
      * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
      */
     constructor() {
-        this.bindingType = 88 /* DelegateCommand */;
+        this.bindingType = 4184 /* DelegateCommand */;
     }
     compile(binding) {
         return new DelegateBindingInstruction(binding.expression, getTarget(binding, false));
@@ -45,7 +45,7 @@ let CaptureBindingCommand = class CaptureBindingCommand {
      * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
      */
     constructor() {
-        this.bindingType = 87 /* CaptureCommand */;
+        this.bindingType = 4183 /* CaptureCommand */;
     }
     compile(binding) {
         return new CaptureBindingInstruction(binding.expression, getTarget(binding, false));

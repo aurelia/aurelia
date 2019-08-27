@@ -35,7 +35,7 @@ export declare class ResourceModel {
      *
      * @returns An instance of the command if it exists, or `null` if it does not exist.
      */
-    getBindingCommand(syntax: AttrSyntax): IBindingCommand | null;
+    getBindingCommand(syntax: AttrSyntax, optional: boolean): IBindingCommand | null;
 }
 /**
  * A pre-processed piece of information about a defined bindable property on a custom

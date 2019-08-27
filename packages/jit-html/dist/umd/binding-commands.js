@@ -20,7 +20,7 @@
          * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
          */
         constructor() {
-            this.bindingType = 86 /* TriggerCommand */;
+            this.bindingType = 4182 /* TriggerCommand */;
         }
         compile(binding) {
             return new runtime_html_1.TriggerBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
@@ -38,7 +38,7 @@
          * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
          */
         constructor() {
-            this.bindingType = 88 /* DelegateCommand */;
+            this.bindingType = 4184 /* DelegateCommand */;
         }
         compile(binding) {
             return new runtime_html_1.DelegateBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
@@ -56,7 +56,7 @@
          * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
          */
         constructor() {
-            this.bindingType = 87 /* CaptureCommand */;
+            this.bindingType = 4183 /* CaptureCommand */;
         }
         compile(binding) {
             return new runtime_html_1.CaptureBindingInstruction(binding.expression, jit_1.getTarget(binding, false));

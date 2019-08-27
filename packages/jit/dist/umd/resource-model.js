@@ -72,7 +72,7 @@
          *
          * @returns An instance of the command if it exists, or `null` if it does not exist.
          */
-        getBindingCommand(syntax) {
+        getBindingCommand(syntax, optional) {
             const name = syntax.command;
             if (name === null) {
                 return null;
@@ -82,6 +82,9 @@
                 result = this.resources.create(binding_command_1.BindingCommandResource, name);
                 if (result == null) {
                     // unknown binding command
+                    if (optional) {
+                        return null;
+                    }
                     throw kernel_1.Reporter.error(0); // TODO: create error code
                 }
                 this.commandLookup[name] = result;

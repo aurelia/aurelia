@@ -61,7 +61,7 @@ export class ResourceModel {
      *
      * @returns An instance of the command if it exists, or `null` if it does not exist.
      */
-    getBindingCommand(syntax) {
+    getBindingCommand(syntax, optional) {
         const name = syntax.command;
         if (name === null) {
             return null;
@@ -71,6 +71,9 @@ export class ResourceModel {
             result = this.resources.create(BindingCommandResource, name);
             if (result == null) {
                 // unknown binding command
+                if (optional) {
+                    return null;
+                }
                 throw Reporter.error(0); // TODO: create error code
             }
             this.commandLookup[name] = result;

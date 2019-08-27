@@ -43,6 +43,8 @@ interface ContentValue {
   append?: string;
 }
 
+const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
+
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
   public id!: number;
@@ -177,10 +179,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (attributes.length === 0) {
       attributes = this.target.tagName === 'IMG' ? ['src'] : ['textContent'];
     }
-    const htmlIndex = attributes.findIndex((attr) => attr === 'html');
-    if (htmlIndex > -1) {
-      attributes.splice(htmlIndex, 1, 'innerHTML');
+
+    for (const [alias, attribute] of attributeAliases) {
+      const aliasIndex = attributes.findIndex((attr) => attr === alias);
+      if (aliasIndex > -1) {
+        attributes.splice(aliasIndex, 1, attribute);
+      }
     }
+
     return attributes;
   }
 
@@ -215,30 +221,26 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
     const template = DOM.createTemplate() as HTMLTemplateElement;
 
-    this.addTextContentToTemplate(template, content.prepend, marker);
+    this.addContentToTemplate(template, content.prepend, marker);
 
     // build content: prioritize [html], then textContent, and falls back to original content
-    if (content.innerHTML) {
-      const fragment = DOM.createDocumentFragment(content.innerHTML) as DocumentFragment;
-      for (const child of toArray(fragment.childNodes)) {
-        Reflect.set(child, marker, true);
-        template.content.append(child);
-      }
-    } else if (!this.addTextContentToTemplate(template, content.textContent, marker)) {
+    if (!this.addContentToTemplate(template, content.innerHTML || content.textContent, marker)) {
       for (const fallbackContent of fallBackContents) {
         template.content.append(fallbackContent);
       }
     }
 
-    this.addTextContentToTemplate(template, content.append, marker);
+    this.addContentToTemplate(template, content.append, marker);
     return template;
   }
 
-  private addTextContentToTemplate(template: HTMLTemplateElement, additionalText: string | undefined, marker: string) {
-    if (additionalText) {
-      const addendum = DOM.createTextNode(additionalText) as Node;
-      Reflect.set(addendum, marker, true);
-      template.content.append(addendum);
+  private addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
+    if (content) {
+      const addendum = DOM.createDocumentFragment(content) as Node;
+      for (const child of toArray(addendum.childNodes)) {
+        Reflect.set(child, marker, true);
+        template.content.append(child);
+      }
       return true;
     }
     return false;

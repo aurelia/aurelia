@@ -56,11 +56,14 @@ For apps in TypeScript, an extra typing definition is required for html module. 
 
 `html.d.ts`
 ```ts
+import { IBindableDescription } from '@aurelia/runtime';
 declare module '*.html' {
   export const name: string;
   export const template: string;
   export default template;
   export const dependencies: string[];
+  export const containerless: boolean;
+  export const bindables: Record<string, IBindableDescription>;
   export const shadowOptions: { mode: 'open' | 'closed'};
   export function getHTMLOnlyElement();
 }
@@ -68,5 +71,5 @@ declare module '*.html' {
 
 Note: for CSSModule, there are more configuration to be done in webpack config and app main entry.
 
-TODO: add more info for using CSSModule
-
+TODO: add more info for using CSSModule.
+TODO: add example of using other template syntax like markdown.

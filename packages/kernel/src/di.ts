@@ -781,8 +781,8 @@ export class ParameterizedRegistry implements IRegistry {
     if (container.has(this.key, true)) {
       const registry = container.get<IRegistry>(this.key);
       registry.register(container, ...this.params);
-    } else  {
-      container.register(...this.params);
+    } else {
+      container.register(...this.params.filter(x => typeof x === 'object'));
     }
   }
 }

@@ -821,4 +821,26 @@ describe('defer registration', () => {
 
     assert.strictEqual(data.wasCalled, true);
   });
+
+  [
+    {
+      name: 'string',
+      value: 'some string value'
+    },
+    {
+      name: 'boolean',
+      value: true
+    },
+    {
+      name: 'number',
+      value: 42
+    }
+  ].forEach(x => {
+    it (`does not pass ${x.name} params to the container's register when no handler is found`, () => {
+      const container = DI.createContainer();
+      container.register(
+        Registration.defer('.css', x.value)
+      );
+    });
+  });
 });

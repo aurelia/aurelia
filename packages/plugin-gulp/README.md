@@ -55,9 +55,9 @@ declare module '*.html' {
   export const template: string;
   export default template;
   export const dependencies: string[];
-  export const containerless: boolean;
+  export const containerless: boolean | undefined;
   export const bindables: Record<string, IBindableDescription>;
-  export const shadowOptions: { mode: 'open' | 'closed'};
+  export const shadowOptions: { mode: 'open' | 'closed'} | undefined;
   export function getHTMLOnlyElement();
 }
 ```

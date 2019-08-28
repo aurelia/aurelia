@@ -552,7 +552,7 @@
                 registry.register(container, ...this.params);
             }
             else {
-                container.register(...this.params);
+                container.register(...this.params.filter(x => typeof x === 'object'));
             }
         }
     }

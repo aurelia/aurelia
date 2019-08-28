@@ -6,7 +6,7 @@ import { stripMetaData } from './strip-meta-data';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
-//   import d0 from 'raw-loader!./foo.css';
+//   import d0 from '!!raw-loader!./foo.css';
 // For dumber/requirejs:
 //   import d0 from 'text!./foo.css';
 // We cannot use

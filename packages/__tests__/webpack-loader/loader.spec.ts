@@ -35,7 +35,7 @@ describe('webpack-loader', function () {
 
   it('transforms html file in shadowDOM mode', function(done) {
     const content = 'content';
-    const expected = 'processed {"mode":"open"} raw-loader!src/foo-bar.html content';
+    const expected = 'processed {"mode":"open"} !!raw-loader!src/foo-bar.html content';
 
     const context = {
       async: () => function(err, code, map) {

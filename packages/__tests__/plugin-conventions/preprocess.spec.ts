@@ -61,7 +61,7 @@ import * as h0 from "./hello-world.html";
 const d0 = h0.getHTMLOnlyElement();
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
-import d2 from "raw-loader!./foo-bar.scss";
+import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -79,7 +79,7 @@ export function getHTMLOnlyElement() {
       { path: path.join('src', 'foo-bar.html'), contents: html },
       {
         defaultShadowOptions: { mode: 'open' },
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       },
       () => false
     );

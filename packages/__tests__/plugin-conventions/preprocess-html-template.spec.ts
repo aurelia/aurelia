@@ -134,7 +134,7 @@ export function getHTMLOnlyElement() {
 `;
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
-      preprocessOptions({ stringModuleWrap: (id: string) => `raw-loader!${id}` })
+      preprocessOptions({ stringModuleWrap: (id: string) => `!!raw-loader!${id}` })
     );
     assert.equal(result.code, expected);
   });
@@ -146,7 +146,7 @@ import * as h0 from "./hello-world.html";
 const d0 = h0.getHTMLOnlyElement();
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
-import d2 from "raw-loader!./foo-bar.scss";
+import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -164,7 +164,7 @@ export function getHTMLOnlyElement() {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'open' },
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -177,7 +177,7 @@ import * as h0 from "./hello-world.html";
 const d0 = h0.getHTMLOnlyElement();
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
-import d2 from "raw-loader!./foo-bar.scss";
+import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -195,7 +195,7 @@ export function getHTMLOnlyElement() {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'closed' },
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -208,7 +208,7 @@ import * as h0 from "./hello-world.html";
 const d0 = h0.getHTMLOnlyElement();
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
-import d2 from "raw-loader!./foo-bar.scss";
+import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -226,7 +226,7 @@ export function getHTMLOnlyElement() {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'closed' },
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -239,7 +239,7 @@ import * as h0 from "./hello-world.html";
 const d0 = h0.getHTMLOnlyElement();
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
-import d2 from "raw-loader!./foo-bar.scss";
+import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -256,7 +256,7 @@ export function getHTMLOnlyElement() {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -287,7 +287,7 @@ export function getHTMLOnlyElement() {
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'closed' },
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -313,7 +313,7 @@ export function getHTMLOnlyElement() {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `raw-loader!${id}`
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
       })
     );
     assert.equal(result.code, expected);

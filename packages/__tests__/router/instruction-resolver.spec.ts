@@ -76,8 +76,8 @@ describe('InstructionResolver', function () {
     { instruction: 'foo@left', viewportInstruction: new ViewportInstruction('foo', 'left') },
     { instruction: 'foo(123)@left', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
     { instruction: 'foo(123)', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
-    { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, true, new ViewportInstruction('bar')) },
-    { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, new ViewportInstruction('bar', 'left', undefined, true, new ViewportInstruction('baz'))) },
+    { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, true, [new ViewportInstruction('bar')]) },
+    { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left', undefined, true, [new ViewportInstruction('baz')])]) },
   ];
 
   for (const instructionTest of instructions) {
@@ -94,6 +94,51 @@ describe('InstructionResolver', function () {
       await tearDown();
     });
   }
+
+  it('handles siblings within scope', async function () {
+    const { host, router, tearDown } = await setup();
+
+    // <a>
+    //   <b>
+    //     <c></c>
+    //     <d></d>
+    //   </b>
+    //   <e>
+    //     <f>
+    //       <g></g>
+    //     </f>
+    //   </e>
+    // </a>
+    // <h></h>
+    //
+    // /[a/[b/[c+d]+e/[f/[g]]]+h]
+
+    const [a, b, c, d, e, f, g, h] = [
+      new ViewportInstruction('a'),
+      new ViewportInstruction('b'),
+      new ViewportInstruction('c'),
+      new ViewportInstruction('d'),
+      new ViewportInstruction('e'),
+      new ViewportInstruction('f'),
+      new ViewportInstruction('g'),
+      new ViewportInstruction('h'),
+    ];
+    a.nextScopeInstructions = [b, e];
+    b.nextScopeInstructions = [c, d];
+    e.nextScopeInstructions = [f];
+    f.nextScopeInstructions = [g];
+
+    let instructions: ViewportInstruction[] = [a, h];
+
+    let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
+    console.log('Instructions', instructionsString);
+    let parsedInstructions = router.instructionResolver.parseViewportInstructionX(instructionsString);
+    console.log('Parsed', parsedInstructions);
+    console.log('Stringified', router.instructionResolver.stringifyViewportInstructions(parsedInstructions.instructions));
+    // assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
+
+    await tearDown();
+  });
 });
 
 async function setup() {

@@ -1,38 +1,66 @@
-import { preprocessResource } from '@aurelia/plugin-conventions';
+import { preprocessResource, preprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
+import * as path from 'path';
 
 describe('preprocessResource', function () {
   it('ignores file without html pair', function () {
     const code = `export class Foo {}\n`;
-    const result = preprocessResource('bar/foo.js', code, false);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, code);
   });
 
   it('ignores file with html pair but wrong resource name', function () {
     const code = `export class Bar {}\n`;
-    const result = preprocessResource('bar/foo.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo.js'),
+        contents: code,
+        filePair: 'foo.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, code);
   });
 
   it('injects customElement decorator', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import * as __fooBarViewDef from './foo-bar.html';
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
 import { customElement } from '@aurelia/runtime';
-@customElement(__fooBarViewDef)
+@customElement(__au2ViewDef)
 export class FooBar {}
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
   it('injects customElement decorator for non-kebab case file name', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import * as __fooBarViewDef from './FooBar.html';
+    const expected = `import * as __au2ViewDef from './FooBar.html';
 import { customElement } from '@aurelia/runtime';
-@customElement(__fooBarViewDef)
+@customElement(__au2ViewDef)
 export class FooBar {}
 `;
-    const result = preprocessResource('bar/FooBar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -45,17 +73,24 @@ export class FooBar {}
 
 function b() {}
 `;
-    const expected = `import * as __fooBarViewDef from './foo-bar.html';
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
 import { containerless, customElement } from '@aurelia/runtime';
 
 const A = 0;
 @containerless()
-@customElement(__fooBarViewDef)
+@customElement(__au2ViewDef)
 export class FooBar {}
 
 function b() {}
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -65,7 +100,13 @@ function b() {}
 @customAttribute('foo-bar')
 export class FooBarCustomAttribute {}
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, false);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -75,7 +116,14 @@ export class FooBarCustomAttribute {}
 @customAttribute('foo-bar')
 export class FooBarCustomAttribute {}
 `;
-    const result = preprocessResource('bar/FooBar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -85,7 +133,13 @@ export class FooBarCustomAttribute {}
 @valueConverter('fooBar')
 export class FooBarValueConverter {}
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, false);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -95,7 +149,14 @@ export class FooBarValueConverter {}
 @valueConverter('fooBar')
 export class FooBarValueConverter {}
 `;
-    const result = preprocessResource('bar/FooBar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -105,7 +166,13 @@ export class FooBarValueConverter {}
 @bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, false);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -115,7 +182,14 @@ export class FooBarBindingBehavior {}
 @bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
 `;
-    const result = preprocessResource('bar/FooBar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -125,7 +199,13 @@ export class FooBarBindingBehavior {}
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, false);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -135,7 +215,14 @@ export class FooBarBindingCommand {}
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
 `;
-    const result = preprocessResource('bar/FooBar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 });
@@ -208,7 +295,14 @@ export class AbcBindingCommand {
 
 }
 `;
-    const result = preprocessResource('bar/foo-bar.js', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -246,7 +340,7 @@ export class AbcBindingCommand {
 
 }
 `;
-    const expected = `import * as __fooBarViewDef from './foo-bar.html';
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
 import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
 import { other, bindingCommand } from '@aurelia/jit';
@@ -284,10 +378,17 @@ export class AbcBindingCommand {
 
 }
 
-@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
 export class FooBar {}
 `;
-    const result = preprocessResource('bar/foo-bar.ts', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.ts'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 
@@ -300,7 +401,7 @@ export class SomeValueConverter {
   }
 }
 `;
-    const expected = `import * as __fooBarViewDef from './foo-bar.html';
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
 import { customElement, valueConverter } from '@aurelia/runtime';
 
 
@@ -311,10 +412,17 @@ export class SomeValueConverter {
   }
 }
 
-@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, SomeValueConverter ] })
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
 export class FooBar {}
 `;
-    const result = preprocessResource('bar/foo-bar.ts', code, true);
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.ts'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
     assert.equal(result.code, expected);
   });
 });

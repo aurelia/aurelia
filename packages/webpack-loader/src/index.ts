@@ -1,12 +1,11 @@
+import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
 import * as webpack from 'webpack';
-import { preprocess } from '@aurelia/plugin-conventions';
-import * as path from 'path';
 
 export default function(
   this: webpack.loader.LoaderContext,
   contents: string,
-  sourceMap?: any, // ignore existing source map for now
+  sourceMap?: object, // ignore existing source map for now
 ) {
   return loader.call(this, contents);
 }
@@ -19,25 +18,31 @@ export function loader(
   // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
   this.cacheable && this.cacheable();
   const cb = this.async() as webpack.loader.loaderCallback;
-  const options = getOptions(this);
-  const ts = options && options.ts as boolean;
+  const options = getOptions(this) as IOptionalPreprocessOptions;
+
   const filePath = this.resourcePath;
-  const ext = path.extname(filePath);
 
   try {
-    if (ext === '.html' || ext === '.js' || ext === '.ts') {
-      const result = _preprocess(filePath, contents, ts);
-
-      // webpack uses source-map 0.6.1 typings for RawSourceMap which
-      // contains typing error version: string (should be number).
-      // use result.map as any to bypass the typing issue.
+    const result = _preprocess(
+      { path: filePath, contents },
+      preprocessOptions({ ...options, stringModuleWrap })
+    );
+    // webpack uses source-map 0.6.1 typings for RawSourceMap which
+    // contains typing error version: string (should be number).
+    // use result.map as any to bypass the typing issue.
+    if (result) {
+      // tslint:disable-next-line:no-any
       cb(null, result.code, result.map as any);
       return;
     }
 
-    // bypass
+    // bypassed
     cb(null, contents);
   } catch (e) {
     cb(e);
   }
+}
+
+function stringModuleWrap(id: string) {
+  return '!!raw-loader!' + id;
 }

@@ -96,6 +96,22 @@ describe('InstructionResolver', function () {
     });
   }
 
+  for (const instructionTest of instructions) {
+    let { instruction, viewportInstruction } = instructionTest;
+    instruction = `/${instruction}`;
+
+    it(`parses viewport instruction: ${instruction}`, async function () {
+      const { host, router, tearDown } = await setup();
+
+      const parsed = router.instructionResolver.parseViewportInstruction(instruction);
+      assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
+      const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
+      assert.strictEqual(`/${newInstruction}`, instruction, `newInstruction`);
+
+      await tearDown();
+    });
+  }
+
   it('handles siblings within scope', async function () {
     const { host, router, tearDown } = await setup();
 
@@ -112,7 +128,7 @@ describe('InstructionResolver', function () {
     // </a>
     // <h></h>
     //
-    // /[a/[b/[c+d]+e/[f/[g]]]+h]
+    // /(a/(b/(c+d)+e/(f/(g)))+h)
 
     const [a, b, c, d, e, f, g, h] = [
       new ViewportInstruction('a'),

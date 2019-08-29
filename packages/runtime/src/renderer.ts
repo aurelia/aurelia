@@ -52,7 +52,7 @@ import {
   CustomAttribute,
 } from './resources/custom-attribute';
 import {
-  CustomElement,
+  CustomElement, CustomElementHost,
 } from './resources/custom-element';
 import {
   Controller,
@@ -170,6 +170,28 @@ export function getTarget(potentialTarget: object): object {
     return (potentialTarget as { bindingContext: object }).bindingContext;
   }
   return potentialTarget;
+}
+
+export function getRefTarget(refHost: CustomElementHost<INode> & { $au?: Record<string, IController> }, refTargetName: string): object {
+  const $au = refHost.$au;
+  if ($au === void 0) {
+    // todo: code error code
+    throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
+  }
+  switch (refTargetName) {
+    case 'element':
+      return refHost;
+    case 'controller':
+      return refHost.$controller as IController;
+    case 'view':
+      throw new Error('Not supported API');
+    default:
+      const refTarget = $au[refTargetName];
+      if (refTarget === void 0) {
+        throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+      }
+      return refTarget.viewModel!;
+  }
 }
 
 @instructionRenderer(TargetedInstructionType.setProperty)
@@ -329,9 +351,9 @@ export class RefBindingRenderer implements IInstructionRenderer {
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IRefBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IRefBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new RefBinding(expr, getTarget(target), context);
+    const binding = new RefBinding(expr, getRefTarget(target, instruction.to), context);
     addBinding(renderable, binding);
   }
 }

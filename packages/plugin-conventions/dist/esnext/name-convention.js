@@ -1,11 +1,11 @@
-import { kebabCase, camelCase } from '@aurelia/kernel';
+import { camelCase, kebabCase } from '@aurelia/kernel';
 export function nameConvention(className) {
     const m = className.match(/^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/);
     if (!m) {
         throw new Error('No convention found for class name ' + className);
     }
     const bareName = m[1];
-    let type = (m[2] ? camelCase(m[2]) : 'customElement');
+    const type = (m[2] ? camelCase(m[2]) : 'customElement');
     return {
         name: normalizedName(bareName, type),
         type

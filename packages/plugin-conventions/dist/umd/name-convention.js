@@ -16,7 +16,7 @@
             throw new Error('No convention found for class name ' + className);
         }
         const bareName = m[1];
-        let type = (m[2] ? kernel_1.camelCase(m[2]) : 'customElement');
+        const type = (m[2] ? kernel_1.camelCase(m[2]) : 'customElement');
         return {
             name: normalizedName(bareName, type),
             type

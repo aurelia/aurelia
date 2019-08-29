@@ -1,6 +1,5 @@
+import { preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
-import { preprocess } from '@aurelia/plugin-conventions';
-import * as path from 'path';
 export default function (contents, sourceMap) {
     return loader.call(this, contents);
 }
@@ -10,23 +9,25 @@ export function loader(contents, _preprocess = preprocess // for testing
     this.cacheable && this.cacheable();
     const cb = this.async();
     const options = getOptions(this);
-    const ts = options && options.ts;
     const filePath = this.resourcePath;
-    const ext = path.extname(filePath);
     try {
-        if (ext === '.html' || ext === '.js' || ext === '.ts') {
-            const result = _preprocess(filePath, contents, ts);
-            // webpack uses source-map 0.6.1 typings for RawSourceMap which
-            // contains typing error version: string (should be number).
-            // use result.map as any to bypass the typing issue.
+        const result = _preprocess({ path: filePath, contents }, preprocessOptions({ ...options, stringModuleWrap }));
+        // webpack uses source-map 0.6.1 typings for RawSourceMap which
+        // contains typing error version: string (should be number).
+        // use result.map as any to bypass the typing issue.
+        if (result) {
+            // tslint:disable-next-line:no-any
             cb(null, result.code, result.map);
             return;
         }
-        // bypass
+        // bypassed
         cb(null, contents);
     }
     catch (e) {
         cb(e);
     }
+}
+function stringModuleWrap(id) {
+    return '!!raw-loader!' + id;
 }
 //# sourceMappingURL=index.js.map

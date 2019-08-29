@@ -4,14 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "loader-utils", "@aurelia/plugin-conventions", "path"], factory);
+        define(["require", "exports", "@aurelia/plugin-conventions", "loader-utils"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const loader_utils_1 = require("loader-utils");
     const plugin_conventions_1 = require("@aurelia/plugin-conventions");
-    const path = require("path");
+    const loader_utils_1 = require("loader-utils");
     function default_1(contents, sourceMap) {
         return loader.call(this, contents);
     }
@@ -22,19 +21,18 @@
         this.cacheable && this.cacheable();
         const cb = this.async();
         const options = loader_utils_1.getOptions(this);
-        const ts = options && options.ts;
         const filePath = this.resourcePath;
-        const ext = path.extname(filePath);
         try {
-            if (ext === '.html' || ext === '.js' || ext === '.ts') {
-                const result = _preprocess(filePath, contents, ts);
-                // webpack uses source-map 0.6.1 typings for RawSourceMap which
-                // contains typing error version: string (should be number).
-                // use result.map as any to bypass the typing issue.
+            const result = _preprocess({ path: filePath, contents }, plugin_conventions_1.preprocessOptions({ ...options, stringModuleWrap }));
+            // webpack uses source-map 0.6.1 typings for RawSourceMap which
+            // contains typing error version: string (should be number).
+            // use result.map as any to bypass the typing issue.
+            if (result) {
+                // tslint:disable-next-line:no-any
                 cb(null, result.code, result.map);
                 return;
             }
-            // bypass
+            // bypassed
             cb(null, contents);
         }
         catch (e) {
@@ -42,5 +40,8 @@
         }
     }
     exports.loader = loader;
+    function stringModuleWrap(id) {
+        return '!!raw-loader!' + id;
+    }
 });
 //# sourceMappingURL=index.js.map

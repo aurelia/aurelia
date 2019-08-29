@@ -4,36 +4,53 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./preprocess-resource", "./preprocess-html-template", "fs", "path"], factory);
+        define(["require", "exports", "fs", "path", "./options", "./preprocess-html-template", "./preprocess-resource"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const preprocess_resource_1 = require("./preprocess-resource");
-    const preprocess_html_template_1 = require("./preprocess-html-template");
     const fs = require("fs");
     const path = require("path");
-    function preprocess(
-    // The filePath is used in sourceMap.
-    filePath, contents, ts = false, 
-    // The base file path that filePath is related to. Used for checking existence of html pair.
-    basePath = '', 
-    // For testing
-    _fileExists = fileExists) {
-        const ext = path.extname(filePath);
-        if (ext === '.html') {
-            return preprocess_html_template_1.preprocessHtmlTemplate(filePath, contents, ts);
+    const options_1 = require("./options");
+    const preprocess_html_template_1 = require("./preprocess-html-template");
+    const preprocess_resource_1 = require("./preprocess-resource");
+    function preprocess(unit, options, _fileExists = fileExists) {
+        const ext = path.extname(unit.path);
+        const basename = path.basename(unit.path, ext);
+        const allOptions = options_1.preprocessOptions(options);
+        const base = unit.base || '';
+        if (allOptions.templateExtensions.includes(ext)) {
+            const possibleFilePair = allOptions.cssExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + e));
+            const filePair = possibleFilePair.find(_fileExists);
+            if (filePair) {
+                if (allOptions.useProcessedFilePairFilename) {
+                    unit.filePair = basename + '.css';
+                }
+                else {
+                    unit.filePair = path.basename(filePair);
+                }
+            }
+            return preprocess_html_template_1.preprocessHtmlTemplate(unit, allOptions);
         }
-        else {
-            const htmlFilePath = path.join(basePath, filePath.slice(0, -ext.length) + '.html');
-            const hasHtmlPair = _fileExists(htmlFilePath);
-            return preprocess_resource_1.preprocessResource(filePath, contents, hasHtmlPair);
+        else if (allOptions.jsExtensions.includes(ext)) {
+            const possibleFilePair = allOptions.templateExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + e));
+            const filePair = possibleFilePair.find(_fileExists);
+            if (filePair) {
+                if (allOptions.useProcessedFilePairFilename) {
+                    unit.filePair = basename + '.html';
+                }
+                else {
+                    unit.filePair = path.basename(filePair);
+                }
+            }
+            return preprocess_resource_1.preprocessResource(unit, allOptions);
         }
     }
     exports.preprocess = preprocess;
-    function fileExists(filePath) {
+    function fileExists(p) {
         try {
-            const stats = fs.statSync(filePath);
+            // tslint:disable-next-line:non-literal-fs-path
+            const stats = fs.statSync(p);
             return stats.isFile();
         }
         catch (e) {

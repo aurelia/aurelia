@@ -4,101 +4,85 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "modify-code", "@aurelia/kernel", "./name-convention", "./file-base"], factory);
+        define(["require", "exports", "@aurelia/kernel", "modify-code", "path", "typescript", "./name-convention"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const ts = require("typescript");
-    const modify_code_1 = require("modify-code");
     const kernel_1 = require("@aurelia/kernel");
+    const modify_code_1 = require("modify-code");
+    const path = require("path");
+    const ts = require("typescript");
     const name_convention_1 = require("./name-convention");
-    const file_base_1 = require("./file-base");
-    function preprocessResource(filePath, jsCode, hasHtmlPair = false) {
-        const m = modify_code_1.default(jsCode, filePath);
-        const basename = file_base_1.fileBase(filePath);
-        const implicitCustomElementName = kernel_1.kebabCase(basename);
-        const sf = ts.createSourceFile(filePath, jsCode, ts.ScriptTarget.Latest);
-        const runtimeImport = { names: [], start: 0, end: 0 };
-        const jitImport = { names: [], start: 0, end: 0 };
-        let implicitElementStart = -1;
-        let implicitElementEnd = -1;
+    function preprocessResource(unit, options) {
+        const basename = path.basename(unit.path, path.extname(unit.path));
+        const expectedResourceName = kernel_1.kebabCase(basename);
+        const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
+        let runtimeImport = { names: [], start: 0, end: 0 };
+        let jitImport = { names: [], start: 0, end: 0 };
+        let implicitElement;
         // When there are multiple exported classes (e.g. local value converters),
         // they might be deps for rendering the main implicit custom element.
-        const mayBeDependencies = [];
+        const localDeps = [];
         const conventionalDecorators = [];
         sf.statements.forEach(s => {
             // Find existing import {customElement} from '@aurelia/runtime';
-            const runtime = captureImport(s, '@aurelia/runtime');
+            const runtime = captureImport(s, '@aurelia/runtime', unit.contents);
             if (runtime) {
-                runtimeImport.names = runtime.names;
-                runtimeImport.start = ensureTokenStart(runtime.start, jsCode);
-                runtimeImport.end = runtime.end;
+                // Assumes only one import statement for @aurelia/runtime
+                runtimeImport = runtime;
                 return;
             }
             // Find existing import {bindingCommand} from '@aurelia/jit';
-            const jit = captureImport(s, '@aurelia/jit');
+            const jit = captureImport(s, '@aurelia/jit', unit.contents);
             if (jit) {
-                jitImport.names = jit.names;
-                jitImport.start = ensureTokenStart(jit.start, jsCode);
-                jitImport.end = jit.end;
+                // Assumes only one import statement for @aurelia/jit
+                jitImport = jit;
                 return;
             }
             // Only care about export class Foo {...}.
             // Note this convention simply doesn't work for
             //   class Foo {}
             //   export {Foo};
-            if (!ts.isClassDeclaration(s))
+            const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents);
+            if (!resource)
                 return;
-            if (!s.name)
-                return;
-            let exportPos = findExportPos(s);
-            if (typeof exportPos !== 'number')
-                return;
-            exportPos = ensureTokenStart(exportPos, jsCode);
-            const className = s.name.text;
-            const { name, type } = name_convention_1.nameConvention(className);
-            const isImplicitResource = name === implicitCustomElementName;
-            const decoratedType = findDecoratedResourceType(s);
-            if (decoratedType) {
-                // Explicitly decorated resource
-                if (!isImplicitResource && decoratedType !== 'customElement') {
-                    mayBeDependencies.push(className);
-                }
-            }
-            else {
-                if (type === 'customElement') {
-                    // Custom element can only be implicit resource
-                    if (isImplicitResource && hasHtmlPair) {
-                        implicitElementStart = exportPos;
-                        implicitElementEnd = s.end;
-                        ensureTypeIsExported(runtimeImport.names, type);
-                    }
-                }
-                else {
-                    conventionalDecorators.push([exportPos, `@${type}('${name}')\n`]);
-                    mayBeDependencies.push(className);
-                    if (type === 'bindingCommand') {
-                        ensureTypeIsExported(jitImport.names, type);
-                    }
-                    else {
-                        ensureTypeIsExported(runtimeImport.names, type);
-                    }
-                }
-            }
+            const { localDep, needDecorator, implicitStatement, runtimeImportName, jitImportName } = resource;
+            if (localDep)
+                localDeps.push(localDep);
+            if (needDecorator)
+                conventionalDecorators.push(needDecorator);
+            if (implicitStatement)
+                implicitElement = implicitStatement;
+            if (runtimeImportName)
+                ensureTypeIsExported(runtimeImport.names, runtimeImportName);
+            if (jitImportName)
+                ensureTypeIsExported(jitImport.names, jitImportName);
         });
-        if (implicitElementStart >= 0) {
-            const viewDef = '__' + kernel_1.camelCase(basename) + 'ViewDef';
-            m.prepend(`import * as ${viewDef} from './${basename}.html';\n`);
-            if (mayBeDependencies.length) {
+        return modifyResource(unit, {
+            runtimeImport,
+            jitImport,
+            implicitElement,
+            localDeps,
+            conventionalDecorators
+        });
+    }
+    exports.preprocessResource = preprocessResource;
+    function modifyResource(unit, options) {
+        const { runtimeImport, jitImport, implicitElement, localDeps, conventionalDecorators } = options;
+        const m = modify_code_1.default(unit.contents, unit.path);
+        if (implicitElement && unit.filePair) {
+            const viewDef = '__au2ViewDef';
+            m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
+            if (localDeps.length) {
                 // When in-file deps are used, move the body of custom element to end of the file,
                 // in order to avoid TS2449: Class '...' used before its declaration.
-                const elementStatement = jsCode.slice(implicitElementStart, implicitElementEnd);
-                m.replace(implicitElementStart, implicitElementEnd, '');
-                m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${mayBeDependencies.join(', ')} ] })\n${elementStatement}\n`);
+                const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
+                m.replace(implicitElement.pos, implicitElement.end, '');
+                m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
             }
             else {
-                conventionalDecorators.push([implicitElementStart, `@customElement(${viewDef})\n`]);
+                conventionalDecorators.push([implicitElement.pos, `@customElement(${viewDef})\n`]);
             }
         }
         if (conventionalDecorators.length) {
@@ -118,8 +102,7 @@
         }
         return m.transform();
     }
-    exports.preprocessResource = preprocessResource;
-    function captureImport(s, lib) {
+    function captureImport(s, lib, code) {
         if (ts.isImportDeclaration(s) &&
             ts.isStringLiteral(s.moduleSpecifier) &&
             s.moduleSpecifier.text === lib &&
@@ -128,7 +111,7 @@
             ts.isNamedImports(s.importClause.namedBindings)) {
             return {
                 names: s.importClause.namedBindings.elements.map(e => e.name.text),
-                start: s.pos,
+                start: ensureTokenStart(s.pos, code),
                 end: s.end
             };
         }
@@ -158,7 +141,7 @@
     function findDecoratedResourceType(node) {
         if (!node.decorators)
             return;
-        for (let d of node.decorators) {
+        for (const d of node.decorators) {
             if (!ts.isCallExpression(d.expression))
                 return;
             const exp = d.expression.expression;
@@ -167,6 +150,50 @@
                 if (KNOWN_DECORATORS.includes(name)) {
                     return name;
                 }
+            }
+        }
+    }
+    function findResource(node, expectedResourceName, filePair, code) {
+        if (!ts.isClassDeclaration(node))
+            return;
+        if (!node.name)
+            return;
+        let exportPos = findExportPos(node);
+        if (typeof exportPos !== 'number')
+            return;
+        exportPos = ensureTokenStart(exportPos, code);
+        const className = node.name.text;
+        const { name, type } = name_convention_1.nameConvention(className);
+        const isImplicitResource = name === expectedResourceName;
+        const decoratedType = findDecoratedResourceType(node);
+        if (decoratedType) {
+            // Explicitly decorated resource
+            if (!isImplicitResource && decoratedType !== 'customElement') {
+                return { localDep: className };
+            }
+        }
+        else {
+            if (type === 'customElement') {
+                // Custom element can only be implicit resource
+                if (isImplicitResource && filePair) {
+                    return {
+                        implicitStatement: { pos: exportPos, end: node.end },
+                        runtimeImportName: type
+                    };
+                }
+            }
+            else {
+                const result = {
+                    needDecorator: [exportPos, `@${type}('${name}')\n`],
+                    localDep: className,
+                };
+                if (type === 'bindingCommand') {
+                    result.jitImportName = type;
+                }
+                else {
+                    result.runtimeImportName = type;
+                }
+                return result;
             }
         }
     }

@@ -1,8 +1,3 @@
-export declare type ResourceType = 'customElement' | 'customAttribute' | 'valueConverter' | 'bindingBehavior' | 'bindingCommand';
-interface NameConvention {
-    name: string;
-    type: ResourceType;
-}
-export declare function nameConvention(className: string): NameConvention;
-export {};
+import { INameConvention } from './options';
+export declare function nameConvention(className: string): INameConvention;
 //# sourceMappingURL=name-convention.d.ts.map

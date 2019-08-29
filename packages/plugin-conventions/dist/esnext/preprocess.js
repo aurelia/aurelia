@@ -1,27 +1,44 @@
-import { preprocessResource } from './preprocess-resource';
-import { preprocessHtmlTemplate } from './preprocess-html-template';
 import * as fs from 'fs';
 import * as path from 'path';
-export function preprocess(
-// The filePath is used in sourceMap.
-filePath, contents, ts = false, 
-// The base file path that filePath is related to. Used for checking existence of html pair.
-basePath = '', 
-// For testing
-_fileExists = fileExists) {
-    const ext = path.extname(filePath);
-    if (ext === '.html') {
-        return preprocessHtmlTemplate(filePath, contents, ts);
+import { preprocessOptions } from './options';
+import { preprocessHtmlTemplate } from './preprocess-html-template';
+import { preprocessResource } from './preprocess-resource';
+export function preprocess(unit, options, _fileExists = fileExists) {
+    const ext = path.extname(unit.path);
+    const basename = path.basename(unit.path, ext);
+    const allOptions = preprocessOptions(options);
+    const base = unit.base || '';
+    if (allOptions.templateExtensions.includes(ext)) {
+        const possibleFilePair = allOptions.cssExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + e));
+        const filePair = possibleFilePair.find(_fileExists);
+        if (filePair) {
+            if (allOptions.useProcessedFilePairFilename) {
+                unit.filePair = basename + '.css';
+            }
+            else {
+                unit.filePair = path.basename(filePair);
+            }
+        }
+        return preprocessHtmlTemplate(unit, allOptions);
     }
-    else {
-        const htmlFilePath = path.join(basePath, filePath.slice(0, -ext.length) + '.html');
-        const hasHtmlPair = _fileExists(htmlFilePath);
-        return preprocessResource(filePath, contents, hasHtmlPair);
+    else if (allOptions.jsExtensions.includes(ext)) {
+        const possibleFilePair = allOptions.templateExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + e));
+        const filePair = possibleFilePair.find(_fileExists);
+        if (filePair) {
+            if (allOptions.useProcessedFilePairFilename) {
+                unit.filePair = basename + '.html';
+            }
+            else {
+                unit.filePair = path.basename(filePair);
+            }
+        }
+        return preprocessResource(unit, allOptions);
     }
 }
-function fileExists(filePath) {
+function fileExists(p) {
     try {
-        const stats = fs.statSync(filePath);
+        // tslint:disable-next-line:non-literal-fs-path
+        const stats = fs.statSync(p);
         return stats.isFile();
     }
     catch (e) {

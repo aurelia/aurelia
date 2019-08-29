@@ -39,6 +39,61 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 
   const testCases: IHarmoniousCompilationTestCase[] = [
     {
+      title: 'basic surrogate working example with 1 pair of custom attr + event same name',
+      template: '<template focus.bind="hasFocus" focus.trigger="focus = (focus || 0) + 1" tabindex=-1></template>',
+      browserOnly: true,
+      assertFn: async (ctx, host, comp: { hasFocus: boolean; focus: number }) => {
+        assert.equal(comp.hasFocus, undefined, 'comp.hasFocus === undefined');
+        assert.equal(comp.focus, undefined);
+        assert.equal(host.hasAttribute('tabindex'), true);
+
+        host.focus();
+        assert.equal(comp.hasFocus, true, 'comp.hasFocus === true');
+        assert.equal(comp.focus, 1);
+
+        host.blur();
+        assert.equal(comp.hasFocus, false, 'comp.hasFocus === false');
+        assert.equal(comp.focus, 1);
+      }
+    },
+    {
+      title: 'basic surrogate working example',
+      template: `<template
+        focus.bind="hasFocus"
+        focus.trigger="focus = (focus || 0) + 1"
+        blur.bind="hasFocus"
+        blur.trigger="blur = (blur || 0) + 1"
+        tabindex=-1>
+        <div></div>
+      </template>`,
+      browserOnly: true,
+      assertFn: async (ctx, host, comp: { hasFocus: boolean; focus: number; blur: number }) => {
+        assert.equal(comp.hasFocus, undefined, 'comp.hasFocus === undefined');
+        assert.equal(comp.focus, undefined);
+        assert.equal(comp.blur, undefined);
+        assert.equal(host.hasAttribute('tabindex'), true);
+
+        host.focus();
+        assert.equal(comp.hasFocus, true, 'comp.hasFocus === true (1)');
+        assert.equal(comp.focus, 1);
+        assert.equal(comp.blur, undefined);
+
+        host.blur();
+        assert.equal(comp.hasFocus, false, 'comp.hasFocus === false (1)');
+        assert.equal(comp.focus, 1);
+        assert.equal(comp.blur, 1);
+
+        comp.hasFocus = true;
+        await waitForFrames(1);
+        assert.strictEqual(ctx.doc.activeElement, host);
+        assert.equal(comp.focus, 2);
+        const div = host.querySelector('div');
+        div.click();
+        assert.equal(comp.focus, 2);
+        assert.equal(comp.blur, 1);
+      }
+    },
+    {
       title: 'basic custom attr + event binding command',
       template: `<input blur.bind="hasFocus" blur.trigger="hasFocus = true">`,
       resources: [],

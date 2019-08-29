@@ -103,6 +103,8 @@ export class TemplateBinder {
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
     const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
+    const resources = this.resources;
+    const attrSyntaxTransformer = this.attrSyntaxTransformer;
 
     const attributes = node.attributes;
     let i = 0;
@@ -114,14 +116,26 @@ export class TemplateBinder {
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
-      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
-      if (attrInfo == null) {
-        this.bindPlainAttribute(attrSyntax, attr);
-      } else if (attrInfo.isTemplateController) {
-        throw new Error('Cannot have template controller on surrogate element.');
-        // TODO: use reporter
+      const bindingCommand = resources.getBindingCommand(attrSyntax, true);
+      if (bindingCommand == null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = resources.getAttributeInfo(attrSyntax);
+
+        if (attrInfo == null) {
+          // map special html attributes to their corresponding properties
+          attrSyntaxTransformer.transform(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(attrSyntax, attr);
+        } else if (attrInfo.isTemplateController) {
+          throw new Error('Cannot have template controller on surrogate element.');
+          // TODO: use reporter
+        } else {
+          this.bindCustomAttribute(attrSyntax, attrInfo);
+        }
       } else {
-        this.bindCustomAttribute(attrSyntax, attrInfo);
+        // map special html attributes to their corresponding properties
+        attrSyntaxTransformer.transform(node, attrSyntax);
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        this.bindPlainAttribute(attrSyntax, attr);
       }
       ++i;
     }

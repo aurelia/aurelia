@@ -26,9 +26,9 @@ export interface IOptionalPreprocessOptions {
   templateExtensions?: string[]; // .html, .md, .pug, .haml, .jade, .slim, .slm
   // When foo.js is paired by foo.md,
   // when foo.md is paried by foo.scss,
-  // most bundlers requires import original filename foo.md and foo.scss
+  // most bundlers require import original filename foo.md and foo.scss
   // instead of foo.html and foo.css.
-  // But some bundlers (dumber) requires import processed filename foo.html
+  // But some bundlers (dumber) require import processed filename foo.html
   // and foo.css.
   useProcessedFilePairFilename?: boolean;
   // Whenn CSSModule is in use, stringModuleWrap is ignored.
@@ -42,12 +42,6 @@ export interface IPreprocessOptions {
   cssExtensions: string[]; // .css, .scss, .sass, .less, .styl
   jsExtensions: string[]; // .js, .jsx, .ts, .tsx, .coffee
   templateExtensions: string[]; // .html, .md, .pug, .haml, .jade, .slim, .slm
-  // When foo.js is paired by foo.md,
-  // when foo.md is paried by foo.scss,
-  // most bundlers requires import original filename foo.md and foo.scss
-  // instead of foo.html and foo.css.
-  // But some bundlers (dumber) requires import processed filename foo.html
-  // and foo.css.
   useProcessedFilePairFilename?: boolean;
 }
 

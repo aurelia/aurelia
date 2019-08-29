@@ -55,10 +55,14 @@ class Target {
       this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
-      this.componentType = ComponentAppellationResolver.isType(cvTarget.component as ComponentAppellation) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
-      this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation);
-      this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as ViewportHandle) ? cvTarget.viewport as Viewport : null;
-      this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as ViewportHandle);
+      if (cvTarget.component) {
+        this.componentType = ComponentAppellationResolver.isType(cvTarget.component as ComponentAppellation) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
+        this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation);
+      }
+      if (cvTarget.viewport) {
+        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as ViewportHandle) ? cvTarget.viewport as Viewport : null;
+        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as ViewportHandle);
+      }
     }
   }
 

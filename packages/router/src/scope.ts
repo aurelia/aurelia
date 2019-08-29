@@ -242,7 +242,7 @@ export class Scope {
     }
     parents.unshift(this.parent.scopeContext(full));
 
-    return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
+    return this.router.instructionResolver.stringifyScopedViewportInstructions(parents.filter((value) => value && value.length));
   }
 
   private closestViewport(controller: IController): Viewport | null {

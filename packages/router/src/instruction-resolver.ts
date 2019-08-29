@@ -76,10 +76,9 @@ export class InstructionResolver {
     }
   }
 
-  // TODO: Is this really needed?
-  public stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string {
+  public stringifyScopedViewportInstructions(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string {
     if (!Array.isArray(instructions)) {
-      return this.stringifyScopedViewportInstruction([instructions]);
+      return this.stringifyScopedViewportInstructions([instructions]);
     }
     return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.scope);
   }

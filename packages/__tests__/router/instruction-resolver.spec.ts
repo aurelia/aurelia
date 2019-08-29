@@ -149,14 +149,30 @@ describe('InstructionResolver', function () {
 
     let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     console.log('Instructions', instructionsString);
-    let parsedInstructions = router.instructionResolver.parseViewportInstructionX(instructionsString);
+    let parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
     console.log('Parsed', parsedInstructions);
-    const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions.instructions)
+    const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions);
     console.log('Stringified', stringified);
     assert.strictEqual(stringified, instructionsString, `stringified`);
 
     await tearDown();
   });
+
+  const instructionStrings: string[] = [
+    'a@left/b@a+c@right/d@c',
+  ];
+
+  for (const instruction of instructionStrings) {
+    it(`parses and stringifies viewport instructions: ${instruction}`, async function () {
+      const { host, router, tearDown } = await setup();
+
+      const parsed = router.instructionResolver.parseViewportInstructions(instruction);
+      const stringifiedInstructions = router.instructionResolver.stringifyViewportInstructions(parsed);
+      assert.strictEqual(stringifiedInstructions, instruction, `stringifiedInstructions`);
+
+      await tearDown();
+    });
+  }
 });
 
 async function setup() {

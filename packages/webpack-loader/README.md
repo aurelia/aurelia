@@ -36,7 +36,7 @@ module: {
     // For apps want to use ShadowDOM or CSSModule
     // available defaultShadowOptions are { mode: 'open' }, or { mode: 'closed' }, or null (default).
     // by default, option useCSSModule is false. https://github.com/css-modules/css-modules
-    // Normally you would not use ShadowDOM and CSSModule together, but our tooling doesn't prevent you doing that.
+    // Normally you would not use ShadowDOM and CSSModule together, but our tooling doesn't prevent you from doing that.
     {
       test: /\.html$/i,
       use: {
@@ -56,8 +56,8 @@ For apps in TypeScript, an extra typing definition is required for html module. 
 
 `html.d.ts`
 ```ts
-import { IBindableDescription } from '@aurelia/runtime';
 declare module '*.html' {
+  import { IBindableDescription } from '@aurelia/runtime';
   export const name: string;
   export const template: string;
   export default template;
@@ -69,7 +69,20 @@ declare module '*.html' {
 }
 ```
 
-Note: for CSSModule, there are more configuration to be done in webpack config and app main entry.
+Besides webpack config, you need following config in your app's entry file if you use ShadowDOM or CSS Module.
 
-TODO: add more info for using CSSModule.
+1. ShadowDOM
+```js
+import { StyleConfiguration } from '@aurelia/runtime-html';
+new Aurelia()
+  .register(/* ... */, StyleConfiguration.shadowDOM())
+```
+
+2. CSS Module
+```js
+import { StyleConfiguration } from '@aurelia/runtime-html';
+new Aurelia()
+  .register(/* ... */, StyleConfiguration.cssModulesProcessor())
+```
+
 TODO: add example of using other template syntax like markdown.

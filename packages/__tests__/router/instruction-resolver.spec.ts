@@ -78,6 +78,7 @@ describe('InstructionResolver', function () {
     { instruction: 'foo(123)', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
     { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, true, [new ViewportInstruction('bar')]) },
     { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left', undefined, true, [new ViewportInstruction('baz')])]) },
+    { instruction: 'foo(123)/(bar@left+baz(456))', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left'), new ViewportInstruction('baz', undefined, '456')]) },
   ];
 
   for (const instructionTest of instructions) {
@@ -134,8 +135,9 @@ describe('InstructionResolver', function () {
     console.log('Instructions', instructionsString);
     let parsedInstructions = router.instructionResolver.parseViewportInstructionX(instructionsString);
     console.log('Parsed', parsedInstructions);
-    console.log('Stringified', router.instructionResolver.stringifyViewportInstructions(parsedInstructions.instructions));
-    // assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
+    const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions.instructions)
+    console.log('Stringified', stringified);
+    assert.strictEqual(stringified, instructionsString, `stringified`);
 
     await tearDown();
   });

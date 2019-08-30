@@ -1,14 +1,16 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
+import { CustomElement, IRenderContext } from '@aurelia/runtime';
+import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
+import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 
 export class ViewportInstruction {
-  public componentType: IRouteableComponentType | null = null;
   public componentName: string | null = null;
-  public viewport: Viewport | null = null;
+  public componentType: IRouteableComponentType | null = null;
+  public componentInstance: IRouteableComponent | null = null;
   public viewportName: string | null = null;
+  public viewport: Viewport | null = null;
   public parametersString: string | null = null;
   public parameters: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
@@ -26,15 +28,20 @@ export class ViewportInstruction {
   }
 
   public setComponent(component: ComponentAppellation): void {
-    if (typeof component === 'string') {
-      this.componentName = component;
+    if (ComponentAppellationResolver.isName(component)) {
+      this.componentName = ComponentAppellationResolver.getName(component);
       this.componentType = null;
-    } else {
-      this.componentType = component as IRouteableComponentType;
-      this.componentName = (component as ICustomElementType).description.name;
+      this.componentInstance = null;
+    } else if (ComponentAppellationResolver.isType(component)) {
+      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentType = ComponentAppellationResolver.getType(component);
+      this.componentInstance = null;
+    } else if (ComponentAppellationResolver.isInstance(component)) {
+      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentType = ComponentAppellationResolver.getType(component);
+      this.componentInstance = ComponentAppellationResolver.getInstance(component);
     }
   }
-
   public setViewport(viewport?: ViewportHandle | null): void {
     if (viewport === undefined || viewport === '') {
       viewport = null;

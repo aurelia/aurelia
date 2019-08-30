@@ -43,7 +43,7 @@ export class ViewportContent {
   }
 
   public equalParameters(other: ViewportContent): boolean {
-    return this.content.sameComponent(other.content) &&
+    return this.content.sameComponent(other.content, true) &&
       // TODO: Review whether query is relevant
       this.instruction.query === other.instruction.query;
   }
@@ -231,7 +231,7 @@ export class ViewportContent {
   }
 
   public toComponentName(): string | null {
-    return !this.content.isEmpty() ? this.content.componentName : null;
+    return this.content.componentName;
   }
   public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
     if (this.content.isEmpty()) {

@@ -43,13 +43,19 @@ export class Viewport {
     this.content = new ViewportContent();
   }
 
-  public setNextContent(content: ComponentAppellation, instruction: INavigatorInstruction): boolean {
+  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
     let viewportInstruction: ViewportInstruction;
-    if (typeof content === 'string') {
-      viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+    if (content instanceof ViewportInstruction) {
+      viewportInstruction = content;
     } else {
-      viewportInstruction = new ViewportInstruction(content);
+      if (typeof content === 'string') {
+        viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+      } else {
+        viewportInstruction = new ViewportInstruction(content);
+      }
     }
+    viewportInstruction.setViewport(this);
+    this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
 
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.context);
@@ -82,8 +88,9 @@ export class Viewport {
       this.content.reentryBehavior() === ReentryBehavior.enter) {
       this.content.reentry = true;
 
-      this.nextContent.content = this.content.content;
-      this.nextContent.content.componentInstance = this.content.componentInstance;
+      this.nextContent.content.setComponent(this.content.componentInstance!);
+      // this.nextContent.content.componentType = this.content.content.componentType;
+      // this.nextContent.content.componentInstance = this.content.componentInstance;
       this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.reentry = this.content.reentry;
       return true;

@@ -89,8 +89,6 @@ export class Viewport {
       this.content.reentry = true;
 
       this.nextContent.content.setComponent(this.content.componentInstance!);
-      // this.nextContent.content.componentType = this.content.content.componentType;
-      // this.nextContent.content.componentInstance = this.content.componentInstance;
       this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.reentry = this.content.reentry;
       return true;
@@ -244,22 +242,13 @@ export class Viewport {
     if (this.content.content) {
       const component = this.content.toComponentName() as string;
       if (full || this.options.forceDescription) {
-        return this.router.instructionResolver.stringifyViewportInstruction(
-          this.content.content
-          // new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
-        );
+        return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
       }
       const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
       if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
-        return this.router.instructionResolver.stringifyViewportInstruction(
-          this.content.content
-          // new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
-        );
+        return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
       }
-      return this.router.instructionResolver.stringifyViewportInstruction(
-        this.content.content
-        // new ViewportInstruction(component, void 0, this.content.parameters, this.scope !== null)
-      );
+      return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
     }
     return '';
   }

@@ -72,6 +72,19 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
+  public isEmpty(): boolean {
+    return !this.isComponentName() && !this.isComponentType() && !this.isComponentInstance();
+  }
+  public isComponentName(): boolean {
+    return !!this.componentName && !this.isComponentType() && !this.isComponentInstance();
+  }
+  public isComponentType(): boolean {
+    return this.componentType !== null && !this.isComponentInstance();
+  }
+  public isComponentInstance(): boolean {
+    return this.componentInstance !== null;
+  }
+
   public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
@@ -103,6 +116,11 @@ export class ViewportInstruction {
       return false;
     }
     return compareType ? this.componentType === other.componentType : this.componentName === other.componentName;
+  }
+
+  // TODO: Somewhere we need to check for format such as spaces etc
+  public sameParameters(other: ViewportInstruction): boolean {
+    return this.parametersString === other.parametersString;
   }
 
   public sameViewport(other: ViewportInstruction): boolean {

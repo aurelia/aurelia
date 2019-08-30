@@ -21,6 +21,10 @@ export {
 } from './guardian';
 
 export {
+  InstructionResolver,
+} from './instruction-resolver';
+
+export {
   GuardFunction,
   GuardTarget,
   INavigatorInstruction,

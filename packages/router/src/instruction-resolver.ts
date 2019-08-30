@@ -46,6 +46,12 @@ export class InstructionResolver {
     return this.separators.clear;
   }
 
+  public isClearViewportInstruction(instruction: string | ViewportInstruction): boolean {
+    return instruction instanceof ViewportInstruction
+      ? instruction.componentName === this.clearViewportInstruction
+      : instruction === this.clearViewportInstruction;
+  }
+
   public parseViewportInstructions(instructions: string): ViewportInstruction[] {
     return this.parseViewportInstructionsWorker(instructions, true).instructions;
   }

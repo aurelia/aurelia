@@ -12,7 +12,8 @@ import {
   ITemplateCompiler,
   IViewFactory,
   LifecycleFlags,
-  TargetedInstructionType as TT
+  TargetedInstructionType as TT,
+  CustomElementHost
 } from '@aurelia/runtime';
 import {
   assert,
@@ -57,7 +58,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       }
     },
     {
-      title: 'basic surrogate working example',
+      title: 'basic surrogate working example with 2 pairs of custom attr + event same names',
       template: `<template
         focus.bind="hasFocus"
         focus.trigger="focus = (focus || 0) + 1"
@@ -93,6 +94,83 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.blur, 1);
       }
     },
+    {
+      title: 'surrogate on custom element (non-root) with 1 pair of custom attr + event same names',
+      template: '<c-e></c-e>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'c-e',
+            template:
+              `<template
+                focus.bind="hasFocus"
+                focus.trigger="focus = (focus || 0) + 1"
+                tabindex="-1"></template>`
+          },
+          class CE {}
+        )
+      ],
+      browserOnly: true,
+      assertFn: async (ctx, host, comp: any) => {
+        const ceEl = host.querySelector('c-e') as CustomElementHost<HTMLElement>;
+        const $ceViewModel = ceEl.$controller.viewModel as { hasFocus: boolean; focus: number; blur: number };
+        assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
+        assert.equal($ceViewModel.focus, undefined);
+        assert.equal(ceEl.hasAttribute('tabindex'), true, 'host.hasAttribute(tabindex)');
+
+        ceEl.focus();
+        assert.equal($ceViewModel.hasFocus, true, '$ceViewModel.hasFocus === true');
+        assert.equal($ceViewModel.focus, 1);
+
+        ceEl.blur();
+        assert.equal($ceViewModel.hasFocus, false, '$ceViewModel.hasFocus === false');
+        assert.equal($ceViewModel.focus, 1);
+      }
+    },
+    ...Array.from({ length: 10 }, (_, idx) => {
+      return {
+        title: `surrogate on recursive c-e, level ${idx}`,
+        template:
+          `<c-e lvl.bind="${idx}">`,
+        resources: [
+          CustomElement.define(
+            {
+              name: 'c-e',
+              template:
+                // todo: interpolation on surrogate does not work
+                // todo: attr command on surrogate does not work
+                `<template
+                  focus.to-view="lvl === ${idx}"
+                  focus.trigger="focus = (focus || 0) + 1"
+                  tabindex="-1">
+                  <c-e if.bind="lvl < ${idx}" lvl.bind="lvl + 1" ></c-e>
+                </template>`,
+              bindables: ['lvl']
+            },
+            class Ce {
+              public static inject = [INode];
+              public lvl: number;
+              constructor(
+                private el: HTMLElement
+              ) {}
+
+              public binding() {
+                this.el.setAttribute('lvl', `lvl-${this.lvl}`);
+              }
+            }
+          )
+        ],
+        assertFn: async (ctx, host, comp) => {
+          // it should work
+          // todo: self-recursive does not work
+          // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
+          const leafCeHost = host.querySelector(`[lvl=lvl-${idx}]`) as CustomElementHost<HTMLElement>;
+          const $leafCeVm = leafCeHost.$controller.viewModel as { focus: number };
+          assert.strictEqual(ctx.doc.activeElement, leafCeHost, `activeElement === <c-e lvl=lvl-${idx}>`);
+          assert.equal($leafCeVm.focus, 1);
+        }
+      };
+    }) as IHarmoniousCompilationTestCase[],
     {
       title: 'basic custom attr + event binding command',
       template: `<input blur.bind="hasFocus" blur.trigger="hasFocus = true">`,
@@ -247,8 +325,9 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     if (!PLATFORM.isBrowserLike && browserOnly) {
       return;
     }
-    it(`(${idx + 1}). ${title}`, async function() {
+    it(`\n\t(${idx + 1}). ${title}\n\t`, async function() {
       let host: HTMLElement;
+      let body: HTMLElement;
       try {
         const ctx = TestContext.createHTMLTestContext();
         const comp = new (CustomElement.define(
@@ -258,6 +337,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           },
           class App {}
         ))();
+        body = ctx.doc.body;
 
         host = ctx.doc.body.appendChild(ctx.createElement('app'));
         ctx.container.register(...resources);
@@ -273,6 +353,10 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         if (host) {
           host.remove();
         }
+        if (body) {
+          body.focus();
+        }
+        await waitForFrames(2);
       }
     });
   });

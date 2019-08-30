@@ -14,7 +14,6 @@ export const enum ContentStatus {
 }
 
 export class ViewportContent {
-  public componentInstance: IRouteableComponent | null = null;
   public contentStatus: ContentStatus = ContentStatus.none;
   public entered: boolean = false;
   public fromCache: boolean = false;
@@ -22,8 +21,7 @@ export class ViewportContent {
 
   constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
-    public content: ComponentAppellation | null = null,
-    public parameters: string = '',
+    public content: ViewportInstruction = new ViewportInstruction(''),
     public instruction: INavigatorInstruction = {
       instruction: '',
       fullStateInstruction: '',
@@ -31,34 +29,35 @@ export class ViewportContent {
     context: IRenderContext | IContainer | null = null
   ) {
     // If we've got a container, we're good to resolve type
-    if (this.content !== null && typeof this.content === 'string' && context !== null) {
-      this.content = this.toComponentType(context);
+    if (!this.content.isComponentType() && context !== null) {
+      this.content.componentType = this.toComponentType(context);
     }
   }
 
+  public get componentInstance(): IRouteableComponent | null {
+    return this.content.componentInstance;
+  }
+
   public equalComponent(other: ViewportContent): boolean {
-    return (typeof other.content === 'string' && this.toComponentName() === other.content) ||
-      (typeof other.content !== 'string' && this.content === other.content);
+    return this.content.sameComponent(other.content);
   }
 
   public equalParameters(other: ViewportContent): boolean {
-    // TODO: Review this
-    return this.parameters === other.parameters &&
+    return this.content.sameComponent(other.content) &&
+      // TODO: Review whether query is relevant
       this.instruction.query === other.instruction.query;
   }
 
   public reentryBehavior(): ReentryBehavior {
-    return (this.componentInstance &&
-      'reentryBehavior' in this.componentInstance &&
-      this.componentInstance.reentryBehavior)
-      ? this.componentInstance.reentryBehavior
+    return (this.content.componentInstance !== null &&
+      'reentryBehavior' in this.content.componentInstance &&
+      this.content.componentInstance.reentryBehavior)
+      ? this.content.componentInstance.reentryBehavior
       : ReentryBehavior.default;
   }
 
   public isCacheEqual(other: ViewportContent): boolean {
-    return ((typeof other.content === 'string' && this.toComponentName() === other.content) ||
-      (typeof other.content !== 'string' && this.content === other.content)) &&
-      this.parameters === other.parameters;
+    return this.content.sameComponent(other.content, true);
   }
 
   public createComponent(context: IRenderContext | IContainer): void {
@@ -67,7 +66,7 @@ export class ViewportContent {
     }
     // Don't load cached content
     if (!this.fromCache) {
-      this.componentInstance = this.toComponentInstance(context);
+      this.content.componentInstance = this.toComponentInstance(context);
     }
     this.contentStatus = ContentStatus.created;
   }
@@ -81,19 +80,19 @@ export class ViewportContent {
   }
 
   public canEnter(viewport: Viewport, previousInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]> {
-    if (!this.componentInstance) {
+    if (!this.content.componentInstance) {
       return Promise.resolve(false);
     }
 
-    if (!this.componentInstance.canEnter) {
+    if (!this.content.componentInstance.canEnter) {
       return Promise.resolve(true);
     }
 
-    const contentType: IRouteableComponentType = this.componentInstance !== null ? this.componentInstance.constructor as IRouteableComponentType : this.content as IRouteableComponentType;
-    const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
+    const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
+    const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
     this.instruction.parameters = merged.namedParameters;
     this.instruction.parameterList = merged.parameterList;
-    const result = this.componentInstance.canEnter(merged.merged, this.instruction, previousInstruction);
+    const result = this.content.componentInstance.canEnter(merged.merged, this.instruction, previousInstruction);
     Reporter.write(10000, 'viewport canEnter', result);
     if (typeof result === 'boolean') {
       return Promise.resolve(result);
@@ -104,11 +103,11 @@ export class ViewportContent {
     return result as Promise<ViewportInstruction[]>;
   }
   public canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
-    if (!this.componentInstance || !this.componentInstance.canLeave) {
+    if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
       return Promise.resolve(true);
     }
 
-    const result = this.componentInstance.canLeave(nextInstruction, this.instruction);
+    const result = this.content.componentInstance.canLeave(nextInstruction, this.instruction);
     Reporter.write(10000, 'viewport canLeave', result);
 
     if (typeof result === 'boolean') {
@@ -121,12 +120,12 @@ export class ViewportContent {
     if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
       return;
     }
-    if (this.componentInstance && this.componentInstance.enter) {
-      const contentType: IRouteableComponentType = this.componentInstance !== null ? this.componentInstance.constructor as IRouteableComponentType : this.content as IRouteableComponentType;
-      const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
+    if (this.content.componentInstance && this.content.componentInstance.enter) {
+      const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
+      const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
       this.instruction.parameters = merged.namedParameters;
       this.instruction.parameterList = merged.parameterList;
-      await this.componentInstance.enter(merged.merged, this.instruction, previousInstruction);
+      await this.content.componentInstance.enter(merged.merged, this.instruction, previousInstruction);
     }
     this.entered = true;
   }
@@ -134,21 +133,21 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.added || !this.entered) {
       return;
     }
-    if (this.componentInstance && this.componentInstance.leave) {
-      await this.componentInstance.leave(nextInstruction, this.instruction);
+    if (this.content.componentInstance && this.content.componentInstance.leave) {
+      await this.content.componentInstance.leave(nextInstruction, this.instruction);
     }
     this.entered = false;
   }
 
   public loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void> {
-    if (this.contentStatus !== ContentStatus.created || !this.entered || !this.componentInstance) {
+    if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
       return Promise.resolve();
     }
     // Don't load cached content
     if (!this.fromCache) {
       const host: INode = element as INode;
       const container = context;
-      Controller.forCustomElement(this.componentInstance, container, host);
+      Controller.forCustomElement(this.content.componentInstance, container, host);
     }
     this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
@@ -168,7 +167,7 @@ export class ViewportContent {
     }
     // Don't initialize cached content
     if (!this.fromCache) {
-      ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+      ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     }
     this.contentStatus = ContentStatus.initialized;
   }
@@ -178,7 +177,7 @@ export class ViewportContent {
     }
     // Don't terminate cached content
     if (!stateful) {
-      ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       this.contentStatus = ContentStatus.loaded;
     }
   }
@@ -187,7 +186,7 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
-    ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
+    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
     if (this.fromCache) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -213,7 +212,7 @@ export class ViewportContent {
         }
       }
     }
-    ((this.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
+    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
     this.contentStatus = ContentStatus.initialized;
   }
 
@@ -232,35 +231,29 @@ export class ViewportContent {
   }
 
   public toComponentName(): string | null {
-    if (this.content === null) {
-      return null;
-    } else if (typeof this.content === 'string') {
-      return this.content;
-    } else {
-      return (this.content as ICustomElementType<Constructable>).description.name;
-    }
+    return !this.content.isEmpty() ? this.content.componentName : null;
   }
   public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
-    if (this.content === null) {
-      return null;
-    } else if (typeof this.content !== 'string') {
-      return this.content as IRouteableComponentType;
-    } else {
-      const container = context.get(IContainer);
-      if (container) {
-        const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.content));
-        if (resolver && resolver.getFactory) {
-          const factory = resolver.getFactory(container);
-          if (factory) {
-            return factory.Type;
-          }
-        }
-      }
+    if (this.content.isEmpty()) {
       return null;
     }
+    if (this.content.componentType) {
+      return this.content.componentType;
+    }
+    const container = context.get(IContainer);
+    if (container) {
+      const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.content.componentName as string));
+      if (resolver && resolver.getFactory) {
+        const factory = resolver.getFactory(container);
+        if (factory) {
+          return factory.Type;
+        }
+      }
+    }
+    return null;
   }
   public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
-    if (this.content === null) {
+    if (this.content.isEmpty()) {
       return null;
     }
     // TODO: Remove once "local registration is fixed"

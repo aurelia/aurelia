@@ -44,20 +44,15 @@ export class Viewport {
   }
 
   public setNextContent(content: ComponentAppellation, instruction: INavigatorInstruction): boolean {
-    let parameters;
-    this.clear = false;
+    let viewportInstruction: ViewportInstruction;
     if (typeof content === 'string') {
-      if (content === this.router.instructionResolver.clearViewportInstruction) {
-        this.clear = true;
-      } else {
-        const viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
-        content = viewportInstruction.componentName ? viewportInstruction.componentName : content; // TODO: fix this!
-        parameters = viewportInstruction.parametersString;
-      }
+      viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+    } else {
+      viewportInstruction = new ViewportInstruction(content);
     }
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(!this.clear ? content : null, parameters as string, instruction, this.context);
+    this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.context);
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
       const cached = this.cache.find((item) => (this.nextContent as ViewportContent).isCacheEqual(item));
@@ -88,7 +83,7 @@ export class Viewport {
       this.content.reentry = true;
 
       this.nextContent.content = this.content.content;
-      this.nextContent.componentInstance = this.content.componentInstance;
+      this.nextContent.content.componentInstance = this.content.componentInstance;
       this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.reentry = this.content.reentry;
       return true;
@@ -220,7 +215,7 @@ export class Viewport {
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(null, void 0, (this.nextContent as ViewportContent).instruction);
+      this.content = new ViewportContent(void 0, (this.nextContent as ViewportContent).instruction);
     }
 
     this.nextContent = null;
@@ -243,17 +238,20 @@ export class Viewport {
       const component = this.content.toComponentName() as string;
       if (full || this.options.forceDescription) {
         return this.router.instructionResolver.stringifyViewportInstruction(
-          new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
+          this.content.content
+          // new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
         );
       }
       const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
       if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
         return this.router.instructionResolver.stringifyViewportInstruction(
-          new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
+          this.content.content
+          // new ViewportInstruction(component, this, this.content.parameters, this.scope !== null)
         );
       }
       return this.router.instructionResolver.stringifyViewportInstruction(
-        new ViewportInstruction(component, void 0, this.content.parameters, this.scope !== null)
+        this.content.content
+        // new ViewportInstruction(component, void 0, this.content.parameters, this.scope !== null)
       );
     }
     return '';

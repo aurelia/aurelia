@@ -1,7 +1,5 @@
 # Components
 
-## Introduction
-
 Aurelia applications are built out of components, from top to bottom. At startup, an app declares a *root component*, but inside of that component's template (aka view), other components are used, and inside of those components, yet more components. In this fashion, the entire user interface is constructed.
 
 {% hint style="success" %}

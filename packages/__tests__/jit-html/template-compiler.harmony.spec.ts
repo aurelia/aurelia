@@ -1,19 +1,12 @@
 import {
-  PLATFORM, RuntimeCompilationResources
+  PLATFORM
 } from '@aurelia/kernel';
 import {
   Aurelia,
-  BindingMode,
   CustomAttribute,
   CustomElement,
   CustomElementHost,
-  IController,
-  INode,
-  IRenderLocation,
-  ITemplateCompiler,
-  IViewFactory,
-  LifecycleFlags,
-  TargetedInstructionType as TT
+  INode
 } from '@aurelia/runtime';
 import {
   assert,
@@ -111,7 +104,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         )
       ],
       browserOnly: true,
-      assertFn: async (ctx, host, comp: any) => {
+      assertFn: async (ctx, host) => {
         const ceEl = host.querySelector('c-e') as CustomElementHost<HTMLElement>;
         const $ceViewModel = ceEl.$controller.viewModel as { hasFocus: boolean; focus: number; blur: number };
         assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
@@ -160,7 +153,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
             }
           )
         ],
-        assertFn: async (ctx, host, comp) => {
+        assertFn: async (ctx, host) => {
           // it should work
           // todo: self-recursive does not work
           // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
@@ -370,31 +363,5 @@ interface IExpectedInstruction {
 async function waitForFrames(frameCount: number): Promise<void> {
   while (frameCount-- > 0) {
     await new Promise(PLATFORM.requestAnimationFrame);
-  }
-}
-
-function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
-  assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
-  for (let i = 0, ii = actual.length; i < ii; ++i) {
-    const actualInst = actual[i];
-    const expectedInst = expectation[i];
-    const ofType = type ? `of ${type}` : '';
-    for (const prop of expectedInst.toVerify) {
-      // tslint:disable-next-line:no-all-duplicated-branches
-      if (expectedInst[prop] instanceof Object) {
-        assert.deepStrictEqual(
-          actualInst[prop],
-          expectedInst[prop],
-          `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
-        );
-        // tslint:disable-next-line:no-duplicated-branches
-      } else {
-        assert.deepStrictEqual(
-          actualInst[prop],
-          expectedInst[prop],
-          `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
-        );
-      }
-    }
   }
 }

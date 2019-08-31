@@ -1,20 +1,15 @@
 import {
-  Constructable, PLATFORM, RuntimeCompilationResources
+  Constructable,
+  PLATFORM
 } from '@aurelia/kernel';
 import {
   Aurelia,
-  BindingMode,
   ComponentHost,
   Controller,
   CustomAttribute,
   CustomElement,
   CustomElementHost,
-  IController,
-  INode,
-  IRenderLocation,
-  ITemplateCompiler,
-  IViewFactory,
-  LifecycleFlags
+  INode
 } from '@aurelia/runtime';
 import {
   assert,
@@ -210,7 +205,7 @@ describe('templating-compiler.ref.spec.ts', function() {
               { name: 'c-e', template: `<template ${attrString} ${attr_RefString}>` }
             )
           ],
-          assertFn: (ctx, host, comp) => {
+          assertFn: (ctx, host) => {
             const ceEl = host.querySelector('c-e') as CustomElementHost;
             const $celVm = ceEl.$controller.viewModel as object;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
@@ -227,7 +222,7 @@ describe('templating-compiler.ref.spec.ts', function() {
               { name: 'c-e', template: `<template ${attrString} ${ref_Attr_String}>` }
             )
           ],
-          assertFn: (ctx, host, comp) => {
+          assertFn: (ctx, host) => {
             const ceEl = host.querySelector('c-e') as CustomElementHost;
             const $celVm = ceEl.$controller.viewModel as object;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
@@ -237,6 +232,176 @@ describe('templating-compiler.ref.spec.ts', function() {
         },
       ] as IRefIntegrationTestCase[];
     }),
+    {
+      title: 'leaves the reference intact if changed',
+      template: '<div ref=div>',
+      assertFn: (ctx, host, comp) => {
+        comp.div = Symbol.for('???');
+      },
+      assertFn_AfterDestroy: (ctx, host, comp) => {
+        assert.strictEqual(comp.div, Symbol.for('???'));
+      }
+    },
+    {
+      title: `works properly with lifecycle`,
+      template: '<div ref=div>',
+      root: class App {
+        public static inject = [INode];
+        public div: HTMLElement;
+        public bindingCalls = 0;
+        public boundCalls = 0;
+        public attachingCalls = 0;
+        public attachedCalls = 0;
+        public detachingCalls = 0;
+        public detachedCalls = 0;
+        public unbindingCalls = 0;
+        public unboundCalls = 0;
+
+        constructor(public readonly el: HTMLElement) {}
+
+        public binding(): void {
+          this.bindingCalls++;
+          assert.notStrictEqual(this.div, undefined, '[binding] div !== undefined');
+          assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');
+        }
+
+        public bound(): void {
+          this.boundCalls++;
+          assert.notStrictEqual(this.div, undefined, '[bound] div !== undefined');
+          assert.notContains(this.el, this.div, '[bound] this.el.contains(this.div) === false');
+        }
+
+        public attaching(): void {
+          this.attachingCalls++;
+          assert.notStrictEqual(this.div, undefined, '[attaching] div !== undefined');
+          assert.notContains(this.el, this.div, '[attaching] this.el.contains(this.div)');
+        }
+
+        public attached(): void {
+          this.attachedCalls++;
+          assert.notStrictEqual(this.div, undefined);
+          assert.contains(this.el, this.div, '[attached] this.el.contains(this.div)');
+        }
+
+        public detaching(): void {
+          this.detachingCalls++;
+          assert.notStrictEqual(this.div, undefined);
+          assert.contains(this.el, this.div, '[detaching] this.el.contains(this.div)');
+        }
+
+        public detached(): void {
+          this.detachedCalls++;
+          assert.notStrictEqual(this.div, undefined);
+          assert.notContains(this.el, this.div, '[detached] this.el.contains(this.div)');
+        }
+
+        public unbinding(): void {
+          this.unbindingCalls++;
+          assert.notStrictEqual(this.div, undefined);
+          assert.notContains(this.el, this.div, '[unbinding] this.el.contains(this.div)');
+        }
+
+        public unbound(): void {
+          this.unboundCalls++;
+          assert.strictEqual(this.div, null, '[unbound] this.div === null');
+        }
+      },
+      assertFn: (
+        ctx,
+        host,
+        comp: {
+          bindingCalls: number;
+          boundCalls: number;
+          attachingCalls: number;
+          attachedCalls: number;
+          detachingCalls: number;
+          detachedCalls: number;
+          unbindingCalls: number;
+          unboundCalls: number;
+        }
+      ) => {
+        assert.equal(comp.bindingCalls, 1, '[binding]');
+        assert.equal(comp.boundCalls, 1, '[bound]');
+        assert.equal(comp.attachingCalls, 1, '[attaching]');
+        assert.equal(comp.attachedCalls, 1, '[attached]');
+        assert.equal(comp.detachingCalls, 0, '[detaching]');
+        assert.equal(comp.detachedCalls, 0, '[detached]');
+        assert.equal(comp.unbindingCalls, 0, '[unbinding]');
+        assert.equal(comp.unboundCalls, 0, '[unbound]');
+      },
+      assertFn_AfterDestroy: (
+        ctx,
+        host,
+        comp: {
+          bindingCalls: number;
+          boundCalls: number;
+          attachingCalls: number;
+          attachedCalls: number;
+          detachingCalls: number;
+          detachedCalls: number;
+          unbindingCalls: number;
+          unboundCalls: number;
+        }
+      ) => {
+        assert.equal(comp.bindingCalls, 1, '[binding]');
+        assert.equal(comp.boundCalls, 1, '[bound]');
+        assert.equal(comp.attachingCalls, 1, '[attaching]');
+        assert.equal(comp.attachedCalls, 1, '[attached]');
+        assert.equal(comp.detachingCalls, 1, '[detaching]');
+        assert.equal(comp.detachedCalls, 1, '[detached]');
+        assert.equal(comp.unbindingCalls, 1, '[unbinding]');
+        assert.equal(comp.unboundCalls, 1, '[unbound]');
+      }
+    },
+    ...Array.from({ length: 10 }).flatMap((_, idx, arr) => {
+      const dot_notation_expressions = Array(arr.length).fill(`div${idx}`); // div1.div1.div1.div1
+      const CustomElementTestClass = CustomElement.define('c-e');
+      return [
+        {
+          title: 'it works with complex expression',
+          template: `<div ref="${dot_notation_expressions.join('.')}">`,
+          assertFn: (ctx, host, comp) => {
+            const accessPath = dot_notation_expressions.slice(0);
+            let value;
+            while (accessPath.length > 0) {
+              value = (value || comp)[accessPath.shift()];
+            }
+            assert.equal(value, host.querySelector('div'));
+          },
+          assertFn_AfterDestroy: (ctx, host, comp) => {
+            const accessPath = dot_notation_expressions.slice(0);
+            let value;
+            while (accessPath.length > 0) {
+              value = (value || comp)[accessPath.shift()];
+            }
+            assert.strictEqual(value, null);
+          }
+        },
+        {
+          title: 'it works with complex expression for view-model.ref',
+          template: `<c-e view-model.ref="${dot_notation_expressions.join('.')}">`,
+          resources: [
+            CustomElementTestClass
+          ],
+          assertFn: (ctx, host, comp) => {
+            const accessPath = dot_notation_expressions.slice(0);
+            let value;
+            while (accessPath.length > 0) {
+              value = (value || comp)[accessPath.shift()];
+            }
+            assert.instanceOf(value, CustomElementTestClass);
+          },
+          assertFn_AfterDestroy: (ctx, host, comp) => {
+            const accessPath = dot_notation_expressions.slice(0);
+            let value;
+            while (accessPath.length > 0) {
+              value = (value || comp)[accessPath.shift()];
+            }
+            assert.strictEqual(value, null);
+          }
+        }
+      ] as IRefIntegrationTestCase[];
+    }) as IRefIntegrationTestCase[],
     // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[
@@ -298,7 +463,6 @@ describe('templating-compiler.ref.spec.ts', function() {
         const ctx = TestContext.createHTMLTestContext();
 
         const App = CustomElement.define({ name: 'app', template }, root);
-        const component = new App();
         const au = new Aurelia(ctx.container);
 
         body = ctx.doc.body;
@@ -306,9 +470,11 @@ describe('templating-compiler.ref.spec.ts', function() {
         ctx.container.register(...resources);
 
         let didThrow = false;
+        let component: any;
         try {
-          au.app({ host, component });
+          au.app({ host, component: App });
           await au.start().wait();
+          component = au.root.viewModel;
         } catch (ex) {
           didThrow = true;
           if (testWillThrow) {

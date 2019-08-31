@@ -18,7 +18,7 @@ export class ViewportInstruction {
     viewport?: ViewportHandle,
     parameters?: ComponentParameters,
     public ownsScope: boolean = true,
-    public nextScopeInstruction?: ViewportInstruction,
+    public nextScopeInstructions: ViewportInstruction[] | null = null,
   ) {
     this.setComponent(component);
     this.setViewport(viewport);

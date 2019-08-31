@@ -287,9 +287,9 @@ describe('templating-compiler.ref.spec.ts', function() {
     if (!PLATFORM.isBrowserLike && browserOnly) {
       continue;
     }
-    const suit = (title: string, fn: any) => only
-      ? it.only(title, fn)
-      : it(title, fn);
+    const suit = (_title: string, fn: any) => only
+      ? it.only(_title, fn)
+      : it(_title, fn);
 
     suit(title, async function() {
       let body: HTMLElement;

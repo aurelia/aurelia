@@ -107,9 +107,9 @@ export class Scope {
         instruction.setViewport(viewport);
         const instructions = [instruction];
         let viewportsRemaining = false;
-        if (instruction.nextScopeInstruction) {
+        if (instruction.nextScopeInstructions) {
             const scope = viewport.scope || viewport.owningScope;
-            const scoped = scope.findViewports([instruction.nextScopeInstruction]);
+            const scoped = scope.findViewports(instruction.nextScopeInstructions);
             instructions.push(...scoped.viewportInstructions);
             viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
         }
@@ -206,7 +206,7 @@ export class Scope {
             // viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
         }
         parents.unshift(this.parent.scopeContext(full));
-        return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
+        return this.router.instructionResolver.stringifyScopedViewportInstructions(parents.filter((value) => value && value.length));
     }
     closestViewport(controller) {
         const viewports = Object.values(this.getEnabledViewports());

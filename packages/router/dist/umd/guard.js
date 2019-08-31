@@ -57,10 +57,14 @@
             }
             else {
                 const cvTarget = target;
-                this.componentType = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component) ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component) : null;
-                this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(cvTarget.component);
-                this.viewport = type_resolvers_1.ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
-                this.viewportName = type_resolvers_1.ViewportHandleResolver.getName(cvTarget.viewport);
+                if (cvTarget.component) {
+                    this.componentType = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component) ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component) : null;
+                    this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(cvTarget.component);
+                }
+                if (cvTarget.viewport) {
+                    this.viewport = type_resolvers_1.ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+                    this.viewportName = type_resolvers_1.ViewportHandleResolver.getName(cvTarget.viewport);
+                }
             }
         }
         matches(viewportInstructions) {

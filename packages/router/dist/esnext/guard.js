@@ -45,10 +45,14 @@ class Target {
         }
         else {
             const cvTarget = target;
-            this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component) : null;
-            this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
-            this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
-            this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
+            if (cvTarget.component) {
+                this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component) : null;
+                this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
+            }
+            if (cvTarget.viewport) {
+                this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+                this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
+            }
         }
     }
     matches(viewportInstructions) {

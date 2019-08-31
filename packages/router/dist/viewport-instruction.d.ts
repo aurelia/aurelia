@@ -5,7 +5,7 @@ import { IRouter } from './router';
 import { Viewport } from './viewport';
 export declare class ViewportInstruction {
     ownsScope: boolean;
-    nextScopeInstruction?: ViewportInstruction | undefined;
+    nextScopeInstructions: ViewportInstruction[] | null;
     componentType: IRouteableComponentType | null;
     componentName: string | null;
     viewport: Viewport | null;
@@ -13,7 +13,7 @@ export declare class ViewportInstruction {
     parametersString: string | null;
     parameters: Record<string, unknown> | null;
     parametersList: string[] | null;
-    constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstruction?: ViewportInstruction | undefined);
+    constructor(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null);
     setComponent(component: ComponentAppellation): void;
     setViewport(viewport?: ViewportHandle | null): void;
     setParameters(parameters?: ComponentParameters | null): void;

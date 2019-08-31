@@ -8,6 +8,8 @@ interface ISeparators {
     viewport: string;
     sibling: string;
     scope: string;
+    scopeStart: string;
+    scopeEnd: string;
     noScope: string;
     parameters: string;
     parametersEnd: string;
@@ -22,10 +24,9 @@ export declare class InstructionResolver {
     readonly clearViewportInstruction: string;
     parseViewportInstructions(instructions: string): ViewportInstruction[];
     parseViewportInstruction(instruction: string): ViewportInstruction;
-    stringifyViewportInstructions(instructions: ViewportInstruction[]): string;
+    stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport?: boolean): string;
     stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean): string;
-    parseScopedViewportInstruction(instruction: string): ViewportInstruction[];
-    stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
+    stringifyScopedViewportInstructions(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
     encodeViewportInstructions(instructions: ViewportInstruction[]): string;
     decodeViewportInstructions(instructions: string): ViewportInstruction[];
     buildScopedLink(scopeContext: string, href: string): string;
@@ -37,6 +38,8 @@ export declare class InstructionResolver {
     removeStateDuplicates(states: string[]): string[];
     flattenViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[];
     stateStringsToString(stateStrings: string[], clear?: boolean): string;
+    private parseViewportInstructionsWorker;
+    private findNextToken;
     private parseAViewportInstruction;
     private stringifyAViewportInstruction;
 }

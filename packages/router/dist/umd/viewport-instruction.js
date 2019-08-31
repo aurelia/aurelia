@@ -12,9 +12,9 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     class ViewportInstruction {
-        constructor(component, viewport, parameters, ownsScope = true, nextScopeInstruction) {
+        constructor(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
             this.ownsScope = ownsScope;
-            this.nextScopeInstruction = nextScopeInstruction;
+            this.nextScopeInstructions = nextScopeInstructions;
             this.componentType = null;
             this.componentName = null;
             this.viewport = null;

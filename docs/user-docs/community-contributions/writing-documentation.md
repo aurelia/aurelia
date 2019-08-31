@@ -10,12 +10,6 @@ Greetings! We're so glad that you're interested in contributing to Aurelia's doc
   * How is the documentation organized?
 {% endhint %}
 
-> Here's what you'll learn...
-> * What are the three types of documentation?
-> * How do I contribute to each type of documentation?
-> * What syntax is used throughout the documentation?
-> * How is the documentation organized?
-
 ## Documentation Types
 
 The three fundamental types of documentation are **articles**, **API reference**, and **code examples**.

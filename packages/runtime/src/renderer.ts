@@ -37,6 +37,7 @@ import {
 import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
+  ComponentHost,
   IBinding,
   IController,
   IRenderContext,
@@ -172,25 +173,27 @@ export function getTarget(potentialTarget: object): object {
   return potentialTarget;
 }
 
-export function getRefTarget(refHost: CustomElementHost<INode> & { $au?: Record<string, IController> }, refTargetName: string): object {
+export function getRefTarget(refHost: ComponentHost<INode> & { $au?: Record<string, IController> }, refTargetName: string): object {
   const $au = refHost.$au;
   if ($au === void 0) {
-    // todo: code error code
+    // todo: code error code, this message is from v1
     throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
   }
   switch (refTargetName) {
     case 'element':
       return refHost;
     case 'controller':
-      return refHost.$controller as IController;
+      // this means it supports returning undefined
+      return (refHost as CustomElementHost<INode>).$controller as IController;
     case 'view':
+      // todo: returns node sequences for fun?
       throw new Error('Not supported API');
     default:
-      const refTarget = $au[refTargetName];
-      if (refTarget === void 0) {
+      const refTargetController = $au[refTargetName];
+      if (refTargetController === void 0) {
         throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
       }
-      return refTarget.viewModel!;
+      return refTargetController.viewModel!;
   }
 }
 

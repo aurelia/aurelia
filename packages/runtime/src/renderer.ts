@@ -174,11 +174,11 @@ export function getTarget(potentialTarget: object): object {
 }
 
 export function getRefTarget(refHost: ComponentHost<INode> & { $au?: Record<string, IController> }, refTargetName: string): object {
+  if (refTargetName === 'element') {
+    return refHost;
+  }
   const $au = refHost.$au;
   if ($au === void 0) {
-    if (refTargetName === 'element') {
-      return refHost;
-    }
     // todo: code error code, this message is from v1
     throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
   }

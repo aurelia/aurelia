@@ -6,14 +6,14 @@ import {
   BindingMode,
   CustomAttribute,
   CustomElement,
+  CustomElementHost,
   IController,
   INode,
   IRenderLocation,
   ITemplateCompiler,
   IViewFactory,
   LifecycleFlags,
-  TargetedInstructionType as TT,
-  CustomElementHost
+  TargetedInstructionType as TT
 } from '@aurelia/runtime';
 import {
   assert,

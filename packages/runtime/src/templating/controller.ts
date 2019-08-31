@@ -15,12 +15,12 @@ import {
   HooksDefinition,
   IAttributeDefinition,
   IBindableDescription,
+  IChildrenObserverDescription,
   IElementHydrationOptions,
   IHydrateElementInstruction,
   IHydrateTemplateController,
   ITemplateDefinition,
-  TemplateDefinition,
-  IChildrenObserverDescription
+  TemplateDefinition
 } from '../definitions';
 import {
   IDOM,
@@ -33,6 +33,7 @@ import {
   State
 } from '../flags';
 import {
+  ComponentHost,
   IBinding,
   IController,
   ILifecycle,
@@ -63,7 +64,9 @@ import {
   SelfObserver,
 } from '../observation/self-observer';
 import {
-  IRenderingEngine, ITemplate, ChildrenObserver,
+  ChildrenObserver,
+  IRenderingEngine,
+  ITemplate,
 } from '../rendering-engine';
 import {
   ICustomElementType,
@@ -155,6 +158,8 @@ export class Controller<
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
 
+  // todo: refactor
+  // tslint:disable-next-line:cognitive-complexity
   constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
@@ -319,6 +324,15 @@ export class Controller<
         default:
           throw new Error(`Invalid resource kind: '${Type.kind.name}'`);
       }
+      // only set reference when creating new view model
+      setControllerReference(
+        this,
+        // cannot get local variable host
+        // as it might have been replaced with a new render location during projector construction. ie: containerless
+        // todo: ensure containerless is replacing this.host with new render location
+        this.host as ComponentHost<T>,
+        description
+      );
 
       if (this.hooks.hasCreated) {
         this.bindingContext.created(flags);
@@ -1012,7 +1026,7 @@ function createObservers(
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
   const lifecycle = controller.lifecycle;
-  let hasChildrenObservers = 'childrenObservers' in description;
+  const hasChildrenObservers = 'childrenObservers' in description;
 
   const { length } = observableNames;
   let name: string;
@@ -1074,3 +1088,17 @@ function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: Life
 
   return ProxyObserver.getOrCreate(instance).proxy as unknown as BindingContext<T, C>;
 }
+
+function setControllerReference<T = INode>(
+  controller: Controller<T>,
+  host: ComponentHost<T>,
+  definition: IAttributeDefinition | ITemplateDefinition
+): void {
+  let $au = host.$au;
+  if ($au === void 0) {
+    $au = host.$au = new ControllerLookup() as Record<string, IController<T>>;
+  }
+  $au[definition.name] = controller;
+}
+
+class ControllerLookup {}

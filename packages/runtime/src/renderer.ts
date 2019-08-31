@@ -173,12 +173,12 @@ export function getTarget(potentialTarget: object): object {
   return potentialTarget;
 }
 
-export function getRefTarget(refHost: ComponentHost<INode> & { $au?: Record<string, IController> }, refTargetName: string): object {
+export function getRefTarget(refHost: ComponentHost<INode>, refTargetName: string): object {
   if (refTargetName === 'element') {
     return refHost;
   }
-  const $au = refHost.$au;
-  if ($au === void 0) {
+  const $auRefs = refHost.$auRefs;
+  if ($auRefs === void 0) {
     // todo: code error code, this message is from v1
     throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
   }
@@ -193,7 +193,7 @@ export function getRefTarget(refHost: ComponentHost<INode> & { $au?: Record<stri
         // this means it supports returning undefined
         return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
     default:
-      const refTargetController = $au[refTargetName];
+      const refTargetController = $auRefs[refTargetName];
       if (refTargetController === void 0) {
         throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
       }
@@ -206,14 +206,14 @@ function setControllerReference<T = INode>(
   host: ComponentHost<T>,
   referenceName: string
 ): void {
-  let $au = host.$au;
-  if ($au === void 0) {
-    $au = host.$au = new ControllerLookup() as Record<string, IController<T>>;
+  let $auRefs = host.$auRefs;
+  if ($auRefs === void 0) {
+    $auRefs = host.$auRefs = new ControllersLookup() as Record<string, IController<T>>;
   }
-  $au[referenceName] = controller;
+  $auRefs[referenceName] = controller;
 }
 
-class ControllerLookup {}
+class ControllersLookup {}
 
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
@@ -287,7 +287,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
   constructor(
-    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,    @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {

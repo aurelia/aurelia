@@ -126,7 +126,7 @@ export interface IController<
 export const IController = DI.createInterface<IController>('IController').noDefault();
 
 export type ComponentHost<T extends INode = INode> = IRenderLocation<T> & T & {
-  $au?: Record<string, IController<T>>;
+  $auRefs?: Record<string, IController<T>>;
 };
 
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {

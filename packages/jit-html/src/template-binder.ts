@@ -414,8 +414,18 @@ export class TemplateBinder {
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
-    this.manifest!.attributes.push(symbol);
-    this.manifest!.isTarget = true;
+    const manifest = this.manifest!;
+    const attributes = manifest.attributes;
+    let firstCustomAttrIndex = 0;
+    for (let i = 0, ii = attributes.length; ii > i; ++i) {
+      if ((attributes[i].flags & SymbolFlags.isCustomAttribute) > 0) {
+        firstCustomAttrIndex = i;
+      } else {
+        break;
+      }
+    }
+    attributes.splice(firstCustomAttrIndex, 0, symbol);
+    manifest.isTarget = true;
 
   }
 

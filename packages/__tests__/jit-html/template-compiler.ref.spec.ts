@@ -22,7 +22,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe.only('templating-compiler.ref.spec.ts', function() {
+describe('templating-compiler.ref.spec.ts', function() {
 
   before(async function() {
     await waitForFrames(2);
@@ -49,11 +49,11 @@ describe.only('templating-compiler.ref.spec.ts', function() {
       template:
         `<div ref=hello>`,
       assertFn: (ctx, host, comp) => {
-        assert.notEqual(comp.hello, undefined);
+        assert.notStrictEqual(comp.hello, undefined);
         assert.strictEqual(host.querySelector('div'), comp.hello);
       },
       assertFn_AfterDestroy: (ctx, host, comp) => {
-        assert.equal(comp.hello, null);
+        assert.strictEqual(comp.hello, null);
       }
     },
     {
@@ -65,7 +65,7 @@ describe.only('templating-compiler.ref.spec.ts', function() {
         assert.strictEqual(host.querySelector('div'), comp.hello);
       },
       assertFn_AfterDestroy: (ctx, host, comp) => {
-        assert.equal(comp.hello, null);
+        assert.strictEqual(comp.hello, null);
       }
     },
     {
@@ -73,11 +73,11 @@ describe.only('templating-compiler.ref.spec.ts', function() {
       template:
         `<div ref.element=hello>`,
       assertFn: (ctx, host, comp) => {
-        assert.notEqual(comp.hello, undefined);
+        assert.notStrictEqual(comp.hello, undefined);
         assert.strictEqual(host.querySelector('div'), comp.hello);
       },
       assertFn_AfterDestroy: (ctx, host, comp) => {
-        assert.equal(comp.hello, null);
+        assert.strictEqual(comp.hello, null);
       }
     },
     {
@@ -88,7 +88,7 @@ describe.only('templating-compiler.ref.spec.ts', function() {
         public hello = undefined;
       },
       assertFn: (ctx, host, comp) => {
-        assert.notEqual(comp.hello, undefined);
+        assert.notStrictEqual(comp.hello, undefined);
         assert.equal(host.querySelectorAll('div').length, 10);
         assert.strictEqual(comp.hello, host.querySelectorAll('div')[9]);
       }
@@ -101,7 +101,7 @@ describe.only('templating-compiler.ref.spec.ts', function() {
         public hello = undefined;
       },
       assertFn: (ctx, host, comp) => {
-        assert.notEqual(comp.hello, undefined);
+        assert.notStrictEqual(comp.hello, undefined);
         assert.equal(host.querySelectorAll('div').length, 10);
         assert.strictEqual(comp.hello, host.querySelectorAll('div')[9]);
       }
@@ -113,7 +113,7 @@ describe.only('templating-compiler.ref.spec.ts', function() {
         CustomElement.define({ name: 'c-e' })
       ],
       assertFn: (ctx, host, comp) => {
-        assert.notEqual(comp.ce, undefined);
+        assert.notStrictEqual(comp.ce, undefined);
         assert.equal(comp.ce.$controller instanceof Controller, true);
       }
     },
@@ -124,13 +124,10 @@ describe.only('templating-compiler.ref.spec.ts', function() {
         CustomElement.define({ name: 'c-e' })
       ],
       assertFn: (ctx, host, comp) => {
-        assert.notEqual(comp.ce, undefined);
+        assert.notStrictEqual(comp.ce, undefined);
         assert.equal(comp.ce.$controller instanceof Controller, true);
       }
     },
-    // {
-    //   title: 'basic ref usage with custom attribute view model'
-    // },
     ...Array.from({ length: 10 }).flatMap((_, idx, arr) => {
       const Attrs = Array.from({ length: arr.length }).map((__, idx1) => CustomAttribute.define(
         { name: `c-a-${idx1}` },
@@ -147,7 +144,7 @@ describe.only('templating-compiler.ref.spec.ts', function() {
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -158,35 +155,89 @@ describe.only('templating-compiler.ref.spec.ts', function() {
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
-        // {
-        //   title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref], ref before attr declaration',
-        //   template: `<div ${attr_RefString} ${attrString}>`,
-        //   resources: Attrs,
-        //   assertFn: (ctx, host, comp) => {
-        //     const div = host.querySelector('div') as ComponentHost;
-        //     for (let i = 0, ii = arr.length; ii > i; ++i) {
-        //       assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-        //     }
-        //   }
-        // },
-        // {
-        //   title: 'ref usage with multiple custom attributes on a normal element, syntax: [ref.xxx], ref before attr declaration',
-        //   template: `<div ${ref_Attr_String} ${attrString}>`,
-        //   resources: Attrs,
-        //   assertFn: (ctx, host, comp) => {
-        //     const div = host.querySelector('div') as ComponentHost;
-        //     for (let i = 0, ii = arr.length; ii > i; ++i) {
-        //       assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-        //     }
-        //   }
-        // }
+        {
+          title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref], ref before attr declaration',
+          template: `<div ${attr_RefString} ${attrString}>`,
+          resources: Attrs,
+          assertFn: (ctx, host, comp) => {
+            const div = host.querySelector('div') as ComponentHost;
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+            }
+          }
+        },
+        {
+          title: 'ref usage with multiple custom attributes on a normal element, syntax: [ref.xxx], ref before attr declaration',
+          template: `<div ${ref_Attr_String} ${attrString}>`,
+          resources: Attrs,
+          assertFn: (ctx, host, comp) => {
+            const div = host.querySelector('div') as ComponentHost;
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+            }
+          }
+        },
+        {
+          title: '[Surrogate - ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
+          template: `<template ${attrString} ${attr_RefString}>`,
+          resources: Attrs,
+          assertFn: (ctx, host: ComponentHost, comp) => {
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(host.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+            }
+          }
+        },
+        {
+          title: '[Surrogate - ROOT] ref usage with multiple custom attribute on a normal element, syntax: [ref.xxx]',
+          template: `<template ${attrString} ${ref_Attr_String}>`,
+          resources: Attrs,
+          assertFn: (ctx, host: ComponentHost, comp) => {
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(host.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+            }
+          }
+        },
+        {
+          title: '[Surrogate - Custom-Element ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
+          template: `<c-e>`,
+          resources: [
+            ...Attrs,
+            CustomElement.define(
+              { name: 'c-e', template: `<template ${attrString} ${attr_RefString}>` }
+            )
+          ],
+          assertFn: (ctx, host, comp) => {
+            const ceEl = host.querySelector('c-e') as CustomElementHost;
+            const $celVm = ceEl.$controller.viewModel as object;
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(ceEl.$auRefs[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
+            }
+          }
+        },
+        {
+          title: '[Surrogate - Custom-Element ROOT] ref usage with multiple custom attributes on a normal element, syntax: [ref.xxx]',
+          template: `<c-e>`,
+          resources: [
+            ...Attrs,
+            CustomElement.define(
+              { name: 'c-e', template: `<template ${attrString} ${ref_Attr_String}>` }
+            )
+          ],
+          assertFn: (ctx, host, comp) => {
+            const ceEl = host.querySelector('c-e') as CustomElementHost;
+            const $celVm = ceEl.$controller.viewModel as object;
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(ceEl.$auRefs[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
+            }
+          }
+        },
       ] as IRefIntegrationTestCase[];
     }),
-    // before are non-happy-path scenarios
+    // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[
       'view',
@@ -227,11 +278,20 @@ describe.only('templating-compiler.ref.spec.ts', function() {
       template,
       root,
       resources = [],
+      only,
+      browserOnly,
       assertFn,
       assertFn_AfterDestroy = PLATFORM.noop,
       testWillThrow
     } = testCase;
-    it(title, async function() {
+    if (!PLATFORM.isBrowserLike && browserOnly) {
+      continue;
+    }
+    const suit = (title: string, fn: any) => only
+      ? it.only(title, fn)
+      : it(title, fn);
+
+    suit(title, async function() {
       let body: HTMLElement;
       let host: HTMLElement;
       try {

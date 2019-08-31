@@ -4,13 +4,22 @@
 
 Aurelia applications are built out of components, from top to bottom. At startup, an app declares a *root component*, but inside of that component's template (aka view), other components are used, and inside of those components, yet more components. In this fashion, the entire user interface is constructed.
 
+{% hint style="success" %}
+**Here's what you'll learn...**
+  * How to create and use components.
+  * How to leverage conventions to work smarter and not harder.
+  * What component lifecycle hooks are available to you.
+{% endhint %}
+
 ## Creating and Using Components
 
 Components in Aurelia follow the Model-View-ViewModel design pattern (a descendant of MVC and MVP) and are represented in HTML as *custom elements*. Each component has a JavaScript class, which serves as the *view-model*, providing the state and behavior for the component. Each component has an HTML template or *view*, which provides the rendering instructions for the component. Finally, components can optionally have a *model* to provide unique business logic.
 
 To declare a component, use the `@customElement` decorator on a class. This decorator allows you to name the element as you will use it in HTML and link the view-model class with its template (view). Here's an example of a simple "hello world" component:
 
-```TypeScript say-hello.ts
+#### say-hello.ts
+
+```TypeScript
 import { customElement } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -23,20 +32,28 @@ export class SayHello {
 }
 ```
 
-```HTML say-hello.html
+#### say-hello.html
+
+```HTML
 <h2>Hello World!</h2>
 ```
 
-```HTML app.html
+#### app.html
+
+```HTML
 <say-hello></say-hello>
 ```
 
-> Warning
-> A component name **must** contain a hyphen. This is part of the W3C web components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+{% hint style="warning" %}
+**Warning**
+A component name **must** contain a hyphen. This is part of the W3C web components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+{% endhint %}
 
 The `say-hello` custom element we've created isn't very interesting yet, so lets spice it up by allowing the user to providing a "to" property so that we can personalize the message. To create "bindable" properties for your HTML element, you declare them using the `@bindable` decorator as shown in the next example.
 
-```TypeScript say-hello.ts
+#### say-hello.ts
+
+```TypeScript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -49,11 +66,14 @@ export class SayHello {
 }
 ```
 
-```HTML say-hello.html
+#### say-hello.html
+
+```HTML
 <h2>Hello ${to}!</h2>
 ```
+#### app.html
 
-```HTML app.html
+```HTML
 <say-hello to="John"></say-hello>
 ```
 
@@ -61,7 +81,9 @@ By declaring a bindable, not only can your template access that via string inter
 
 Now, what if we want our component to do something in response to user interaction? Let's see how we can set up DOM events to trigger methods on our component.
 
-```TypeScript say-hello.ts
+#### say-hello.ts
+
+```TypeScript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -79,12 +101,16 @@ export class SayHello {
 }
 ```
 
-```HTML say-hello.html
+#### say-hello.html
+
+```HTML
 <h2>${message} ${to}!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
 
-```HTML app.html
+#### app.html
+
+```HTML
 <say-hello to="John"></say-hello>
 ```
 
@@ -98,7 +124,9 @@ Now, when the user clicks the button, the `leave` method will get called. It the
 
 By default, component views are encapsulated. What that means is that you can't use a component within another component, unless that component has been declared as a dependency. Let's imagine that our "say-hello" component wants to use a "name-tag" component internally. To do that, we need to declare the component dependency. Here's how that works:
 
-```TypeScript say-hello.ts
+#### say-hello.ts
+
+```TypeScript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 import { NameTag } from './name-tag';
@@ -118,12 +146,16 @@ export class SayHello {
 }
 ```
 
-```HTML say-hello.html
+#### say-hello.html
+
+```HTML
 <h2>${message} <name-tag name.bind="to"></name-tag>!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
 
-```HTML app.html
+### app.html
+
+```HTML
 <say-hello to="John"></say-hello>
 ```
 
@@ -144,12 +176,16 @@ new Aurelia()
 
 As a best practice, we recommend an alternate approach to registering each component individually in this way. Instead, create a folder where you keep all your components. In that folder, create a `registry.ts` module where you re-export your components. Then, import that registery module and pass it to the application's `register` method at startup.
 
-```TypeScript components/register.ts
+#### components/register.ts
+
+```TypeScript
 export * from './say-hello';
 export * from './name-tag';
 ```
 
-```TypeScript main.ts
+#### main.ts
+
+```TypeScript
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
@@ -180,7 +216,9 @@ Every component has a lifecycle that you can tap into, to perform various action
 
 To tap into any of these hooks, simply implement the method on your class:
 
-```TypeScript say-hello.ts
+#### say-hello.ts
+
+```TypeScript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 import { NameTag } from './name-tag';
@@ -225,11 +263,16 @@ export class SayHello {
 }
 ```
 
-> Info
-> There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a public statid field named "inject". See the [dependency injection](9.%20dependency-injection.md) documentation for more information on other approaches that use decorators or TS-specific metadata.
 
-> Info
-> If you need access to a DOM element from within your template, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](3.%20displaying-basic-data).
+{% hint style="info" %}
+**Info**
+There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a public statid field named "inject". See the [dependency injection](dependency-injection.md) documentation for more information on other approaches that use decorators or TS-specific metadata.
+{% endhint %}
+
+{% hint style="info" %}
+**Info**
+If you need access to a DOM element from within your template, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](displaying-basic-data).
+{% endhint %}
 
 ## The as-element Attribute
 
@@ -237,7 +280,9 @@ export class SayHello {
 
 In some cases, especially when creating table rows out of Aurelia custom elements, you may need to have a custom element masquerade as a standard HTML element. For example, if you're trying to fill table rows with data, you may need your custom element to appear as a `<tr>` row or `<td>` cell. This is where the `as-element` attribute comes in handy:
 
-```HTML as-element.html
+#### as-element.html
+
+```HTML
 <template>
   <import from="./hello-row.html"></import>
   <table>
@@ -246,7 +291,9 @@ In some cases, especially when creating table rows out of Aurelia custom element
 </template>
 ```
 
-```HTML hello-row.html
+#### hello-row.html
+
+```HTML
 <template>
   <td>Hello</td>
   <td>World</td>

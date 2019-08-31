@@ -135,9 +135,9 @@ export class Scope {
     const instructions: ViewportInstruction[] = [instruction];
     let viewportsRemaining: boolean = false;
 
-    if (instruction.nextScopeInstruction) {
+    if (instruction.nextScopeInstructions) {
       const scope = viewport.scope || viewport.owningScope;
-      const scoped = scope.findViewports([instruction.nextScopeInstruction]);
+      const scoped = scope.findViewports(instruction.nextScopeInstructions);
       instructions.push(...scoped.viewportInstructions);
       viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
     }
@@ -242,7 +242,7 @@ export class Scope {
     }
     parents.unshift(this.parent.scopeContext(full));
 
-    return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
+    return this.router.instructionResolver.stringifyScopedViewportInstructions(parents.filter((value) => value && value.length));
   }
 
   private closestViewport(controller: IController): Viewport | null {

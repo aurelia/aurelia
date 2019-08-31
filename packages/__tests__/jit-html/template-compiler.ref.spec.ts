@@ -4,6 +4,8 @@ import {
 import {
   Aurelia,
   BindingMode,
+  ComponentHost,
+  Controller,
   CustomAttribute,
   CustomElement,
   CustomElementHost,
@@ -12,8 +14,7 @@ import {
   IRenderLocation,
   ITemplateCompiler,
   IViewFactory,
-  LifecycleFlags,
-  TargetedInstructionType as TT
+  LifecycleFlags
 } from '@aurelia/runtime';
 import {
   assert,
@@ -105,6 +106,86 @@ describe.only('templating-compiler.ref.spec.ts', function() {
         assert.strictEqual(comp.hello, host.querySelectorAll('div')[9]);
       }
     },
+    {
+      title: 'basic ref usage with a custom element view model [view-model.ref]',
+      template: `<c-e view-model.ref=ce>`,
+      resources: [
+        CustomElement.define({ name: 'c-e' })
+      ],
+      assertFn: (ctx, host, comp) => {
+        assert.notEqual(comp.ce, undefined);
+        assert.equal(comp.ce.$controller instanceof Controller, true);
+      }
+    },
+    {
+      title: 'basic ref usage with a custom element view model [ref.view-model]',
+      template: `<c-e ref.view-model=ce>`,
+      resources: [
+        CustomElement.define({ name: 'c-e' })
+      ],
+      assertFn: (ctx, host, comp) => {
+        assert.notEqual(comp.ce, undefined);
+        assert.equal(comp.ce.$controller instanceof Controller, true);
+      }
+    },
+    // {
+    //   title: 'basic ref usage with custom attribute view model'
+    // },
+    ...Array.from({ length: 10 }).flatMap((_, idx, arr) => {
+      const Attrs = Array.from({ length: arr.length }).map((__, idx1) => CustomAttribute.define(
+        { name: `c-a-${idx1}` },
+        class Ca {}
+      ));
+      const attrString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}="a"`).join(' ');
+      const attr_RefString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}.ref="ca${idx1}"`).join(' ');
+      const ref_Attr_String = Array.from({ length: arr.length }, (__, idx1) => `ref.c-a-${idx1}="ca${idx1}"`).join(' ');
+      return [
+        {
+          title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
+          template: `<div ${attrString} ${attr_RefString}>`,
+          resources: Attrs,
+          assertFn: (ctx, host, comp) => {
+            const div = host.querySelector('div') as ComponentHost;
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+            }
+          }
+        },
+        {
+          title: 'ref usage with multiple custom attribute on a normal element, syntax: [ref.xxx]',
+          template: `<div ${attrString} ${ref_Attr_String}>`,
+          resources: Attrs,
+          assertFn: (ctx, host, comp) => {
+            const div = host.querySelector('div') as ComponentHost;
+            for (let i = 0, ii = arr.length; ii > i; ++i) {
+              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+            }
+          }
+        },
+        // {
+        //   title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref], ref before attr declaration',
+        //   template: `<div ${attr_RefString} ${attrString}>`,
+        //   resources: Attrs,
+        //   assertFn: (ctx, host, comp) => {
+        //     const div = host.querySelector('div') as ComponentHost;
+        //     for (let i = 0, ii = arr.length; ii > i; ++i) {
+        //       assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+        //     }
+        //   }
+        // },
+        // {
+        //   title: 'ref usage with multiple custom attributes on a normal element, syntax: [ref.xxx], ref before attr declaration',
+        //   template: `<div ${ref_Attr_String} ${attrString}>`,
+        //   resources: Attrs,
+        //   assertFn: (ctx, host, comp) => {
+        //     const div = host.querySelector('div') as ComponentHost;
+        //     for (let i = 0, ii = arr.length; ii > i; ++i) {
+        //       assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+        //     }
+        //   }
+        // }
+      ] as IRefIntegrationTestCase[];
+    }),
     // before are non-happy-path scenarios
     // just to complete the assertion
     ...[
@@ -123,9 +204,21 @@ describe.only('templating-compiler.ref.spec.ts', function() {
           title: `basic WRONG ref usage with [ref.${refTarget}]`,
           testWillThrow: true,
           template: `<div ref.${refTarget}=hello>`
-        }
+        },
       ] as IRefIntegrationTestCase[];
     }),
+    {
+      title: `basic WRONG ref usage with [repeat.ref] as cannot reference template controller`,
+      testWillThrow: true,
+      template: `<div repeat.for="i of 1" repeat.ref=hello>`,
+      assertFn: PLATFORM.noop
+    },
+    {
+      title: `basic WRONG ref usage with [ref.repeat] as cannot reference template controller`,
+      testWillThrow: true,
+      template: `<div repeat.for="i of 1" ref.repeat=hello>`,
+      assertFn: PLATFORM.noop
+    },
   ];
 
   for (const testCase of testCases) {

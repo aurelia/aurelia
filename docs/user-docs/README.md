@@ -4,9 +4,10 @@ So, you've been scouring the interwebs and have managed to find yourself here, o
 
 {% hint style="success" %}
 **Here's what you'll learn...**
-  * What is Aurelia?
-  * How to use this documentation
-  * How to create an Aurelia project
+
+* What is Aurelia?
+* How to use this documentation
+* How to create an Aurelia project
 {% endhint %}
 
 ## What is Aurelia?

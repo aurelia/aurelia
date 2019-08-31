@@ -1,4 +1,4 @@
-# Building and Testing Aurelia
+# Build and Testing Aurelia
 
 ## Setup
 
@@ -6,25 +6,25 @@ In order to setup Aurelia, ensure that you have [Git](https://git-scm.com/downlo
 
 Clone a copy of the repo:
 
-```Shell
+```text
 git clone https://github.com/aurelia/aurelia.git
 ```
 
 Change to the `aurelia` directory:
 
-```Shell
+```text
 cd aurelia
 ```
 
 Install dev dependencies:
 
-```Shell
+```text
 npm ci
 ```
 
 Install/symlink package dependencies:
 
-```Shell
+```text
 npm run bootstrap # just like npm ci, this command only needs to be run once
 ```
 
@@ -32,7 +32,7 @@ npm run bootstrap # just like npm ci, this command only needs to be run once
 
 Once the above steps have been completed, you should be able to build the entire monorepo with this command:
 
-```Shell
+```text
 npm run build
 ```
 
@@ -40,13 +40,13 @@ npm run build
 
 To develop while running tests, you will need two console windows. In one console window, run the following command to build and put the monorepo in dev mode:
 
-```Shell
+```text
 npm run dev
 ```
 
 Next, open a second console window, and change directory to the tests project:
 
-```Shell
+```text
 cd packages/__tests__
 ```
 
@@ -57,5 +57,5 @@ From within this directory, you can run tests in a variety of ways:
 * `npm run test-chrome:watch` - Run all tests in Chrome with watch mode enabled.
 * `npm run test-chrome:debugger` - Run all tests in Chrome with the debugger enabled.
 
-> Info
-> See the `package.json` file within the `__tests__` project for additional test-related commands.
+> Info See the `package.json` file within the `__tests__` project for additional test-related commands.
+

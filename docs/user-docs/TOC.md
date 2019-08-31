@@ -3,7 +3,6 @@
 ## Getting Started
 
 * [Quick Start Guide](getting-started/quick-start-guide.md)
-* [Components](getting-started/components.md)
 
 ## App Basics
 

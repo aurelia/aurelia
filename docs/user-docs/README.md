@@ -1,3 +1,13 @@
-# User Docs
+# Introduction
 
-This folder contains documentation for those using Aurelia to create applications, component libraries, and plugins. For API documentation, see the source code. For documentation on how to build or work on Aurelia itself, please see our [engineering notes](../engineering-notes/README.md).
+So, you've been scouring the interwebs and have managed to find yourself here, of all places. Now you're wondering, what is this thing called "Aurelia" that everyone's talking about?
+
+> Here's what you'll learn...
+> * What is Aurelia?
+> * How to use this documentation
+> * How to create an Aurelia project
+
+## What is Aurelia?
+
+Placeholder...
+

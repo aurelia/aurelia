@@ -8,7 +8,9 @@ const log = createLogger('change-tsconfigs');
   const [, , operation, mod] = process.argv;
 
   const packages = project.packages;
-  const tsconfigFiles = packages.map(pkg => new File(pkg.tsconfig));
+  const tsconfigFiles = packages
+    .filter(pkg => pkg.name.kebab !== '__tests__') // ignore @aurelia/__tests__
+    .map(pkg => new File(pkg.tsconfig));
 
   for (const file of tsconfigFiles) {
     const backupPath = file.path.replace('.json', '.json.bak');

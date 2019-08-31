@@ -189,6 +189,9 @@ export function getRefTarget(refHost: ComponentHost<INode> & { $au?: Record<stri
     case 'view':
       // todo: returns node sequences for fun?
       throw new Error('Not supported API');
+    case 'view-model':
+        // this means it supports returning undefined
+        return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
     default:
       const refTargetController = $au[refTargetName];
       if (refTargetController === void 0) {
@@ -197,6 +200,20 @@ export function getRefTarget(refHost: ComponentHost<INode> & { $au?: Record<stri
       return refTargetController.viewModel!;
   }
 }
+
+function setControllerReference<T = INode>(
+  controller: Controller<T>,
+  host: ComponentHost<T>,
+  referenceName: string
+): void {
+  let $au = host.$au;
+  if ($au === void 0) {
+    $au = host.$au = new ControllerLookup() as Record<string, IController<T>>;
+  }
+  $au[referenceName] = controller;
+}
+
+class ControllerLookup {}
 
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
@@ -222,6 +239,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
       flags,
       instruction as IElementHydrationOptions,
     );
+
+    setControllerReference(controller, controller.host as ComponentHost, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -250,6 +269,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
       flags,
     );
 
+    setControllerReference(controller, target as ComponentHost, instruction.res);
+
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
@@ -271,7 +292,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
+    const renderLocation = dom.convertToRenderLocation(target);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation, false);
     const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -295,6 +317,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       const controllers = renderable.controllers!;
       (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
     }
+
+    setControllerReference(controller, renderLocation as ComponentHost, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {

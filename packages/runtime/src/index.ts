@@ -408,6 +408,7 @@ export {
   TwoWayBindingInstruction
 } from './instructions';
 export {
+  ComponentHost,
   ViewModelKind,
   IBinding,
   ILifecycle,

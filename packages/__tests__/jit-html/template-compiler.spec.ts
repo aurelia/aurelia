@@ -660,7 +660,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => ['value', 'value', 'value']
       ] as ((ctx: HTMLTestContext, $1: [string]) => [string, string, string])[],
       [
-        (ctx, $1, [, to, value]) => [`ref`,                   value, { type: TT.refBinding,       from: value, to }],
+        (ctx, $1, [, , value]) => [`ref`,                     value, { type: TT.refBinding,       from: value, to: 'element' }],
         (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
@@ -681,7 +681,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
         };
         const expected = {
-          template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
+          template: ctx.createElementFromMarkup(`<template><${el} ${n1 === 'ref' ? 'element.ref' : n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],
           surrogates: [],
           build: buildNotRequired,

@@ -139,7 +139,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -150,7 +150,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -161,7 +161,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -172,7 +172,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -182,7 +182,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           resources: Attrs,
           assertFn: (ctx, host: ComponentHost, comp) => {
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(host.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -192,7 +192,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           resources: Attrs,
           assertFn: (ctx, host: ComponentHost, comp) => {
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(host.$auRefs[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
           }
         },
@@ -209,7 +209,7 @@ describe('templating-compiler.ref.spec.ts', function() {
             const ceEl = host.querySelector('c-e') as CustomElementHost;
             const $celVm = ceEl.$controller.viewModel as object;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(ceEl.$auRefs[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
+              assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
             }
           }
         },
@@ -226,7 +226,7 @@ describe('templating-compiler.ref.spec.ts', function() {
             const ceEl = host.querySelector('c-e') as CustomElementHost;
             const $celVm = ceEl.$controller.viewModel as object;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(ceEl.$auRefs[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
+              assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
             }
           }
         },

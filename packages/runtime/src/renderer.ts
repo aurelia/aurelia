@@ -177,7 +177,7 @@ export function getRefTarget(refHost: ComponentHost<INode>, refTargetName: strin
   if (refTargetName === 'element') {
     return refHost;
   }
-  const $auRefs = refHost.$auRefs;
+  const $auRefs = refHost.$au;
   if ($auRefs === void 0) {
     // todo: code error code, this message is from v1
     throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
@@ -206,9 +206,9 @@ function setControllerReference<T = INode>(
   host: ComponentHost<T>,
   referenceName: string
 ): void {
-  let $auRefs = host.$auRefs;
+  let $auRefs = host.$au;
   if ($auRefs === void 0) {
-    $auRefs = host.$auRefs = new ControllersLookup() as Record<string, IController<T>>;
+    $auRefs = host.$au = new ControllersLookup() as Record<string, IController<T>>;
   }
   $auRefs[referenceName] = controller;
 }

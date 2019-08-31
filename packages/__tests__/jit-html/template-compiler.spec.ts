@@ -681,7 +681,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
         };
         const expected = {
-          template: ctx.createElementFromMarkup(`<template><${el} ${n1 === 'ref' ? 'element.ref' : n1}="${v1}" class="au"></${el}></template>`),
+          template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],
           surrogates: [],
           build: buildNotRequired,

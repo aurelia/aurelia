@@ -445,34 +445,47 @@ export class TemplateBinder {
     const command = this.resources.getBindingCommand(attrSyntax, false);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
+    const attrTarget = attrSyntax.target;
+    const attrRawValue = attrSyntax.rawValue;
     let expr: AnyBindingExpression;
     if (
-      attrSyntax.rawValue.length === 0
+      attrRawValue.length === 0
       && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
     ) {
       if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
         // Default to the name of the attr for empty binding commands
-        expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+        expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
       } else {
         return;
       }
     } else {
-      expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      expr = this.exprParser.parse(attrRawValue, bindingType);
+    }
+
+    const attrCommand = attrSyntax.command;
+    if (attrCommand === 'ref') {
+      if (command == null) {
+        // todo: proper code
+        throw new Error(`It appears ref binding command is used, without corresponding binding command on <${attr.ownerElement!.tagName}/>`);
+      }
+      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest!.isTarget = true;
+      return;
     }
 
     if (manifest!.flags & SymbolFlags.isCustomElement) {
-      const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
+      const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
       if (bindable != null) {
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
-        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
         manifest!.isTarget = true;
-      } else if (expr != null || attrSyntax.target === 'ref') {
+      } else if (expr != null) {
         // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
         manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         manifest!.isTarget = true;
       }
-    } else if (expr != null || attrSyntax.target === 'ref') {
+    } else if (expr != null) {
       // either a binding command, an interpolation, or a ref
       manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest!.isTarget = true;

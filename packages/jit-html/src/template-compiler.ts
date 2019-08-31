@@ -312,7 +312,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileAttribute(symbol: IAttributeSymbol): HTMLAttributeInstruction {
-    if (symbol.syntax.target === 'ref') {
+    if (symbol.syntax.command === 'ref') {
       return new RefBindingInstruction(symbol.syntax.rawValue, symbol.syntax.target);
     }
     // any attribute on a custom element (which is not a bindable) or a plain element

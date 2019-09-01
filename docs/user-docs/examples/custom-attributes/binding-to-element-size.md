@@ -1,8 +1,8 @@
-# Using Resize Observer to observe element size
+# Binding to Element Size
 
 ## Basic implementation
 
-```ts
+```typescript
 import { bindable, BindingMode, customAttribute, IDOM, INode } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 
@@ -60,8 +60,8 @@ export class RectSize {
 
 As `ResizeObserver` is still new and experimental API, it's not widely supported in all browsers. Fortunately there are a few polyfills available. For example:
 
-- older spec, with only `contentRect`: https://github.com/que-etc/resize-observer-polyfill
-- newer spec, with supports for box model options: https://github.com/juggle/resize-observer
+* older spec, with only `contentRect`: [https://github.com/que-etc/resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill)
+* newer spec, with supports for box model options: [https://github.com/juggle/resize-observer](https://github.com/juggle/resize-observer)
 
 To make the attribute work seamlessly with any polyfill users want to choose, we can adjust the way we get the `ResizeObserver` constructor, as shown in the following example:
 
@@ -90,7 +90,7 @@ export class RectSize {
 
 And now, our user can switch to any polyfill as the following example:
 
-```ts
+```typescript
 import { RectSize } from './some-path'
 import { ResizeObserver } from 'some-resize-observer-polyfill'
 
@@ -101,7 +101,7 @@ RectSize.ResizeObserver = ResizeObserver;
 
 For the above implementation, the usage would be:
 
-```html
+```markup
 <form rectsize.bind="formSize">
   ...
 </form>
@@ -113,7 +113,7 @@ or
 
 ## Special note:
 
-For the polyfill at https://github.com/que-etc/resize-observer-polyfill , you cannot use `box-model` for observation option, as it follows an older spec of `ResizeObserver`. Though it is a mature polyfill, and works well so if you want to use it, slightly modify the above implementation:
+For the polyfill at [https://github.com/que-etc/resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) , you cannot use `box-model` for observation option, as it follows an older spec of `ResizeObserver`. Though it is a mature polyfill, and works well so if you want to use it, slightly modify the above implementation:
 
 ```diff
   private handleResize(entry: ResizeObserverEntry): void {
@@ -121,3 +121,4 @@ For the polyfill at https://github.com/que-etc/resize-observer-polyfill , you ca
 +    this.value = entry.contentRect;
   }
 ```
+

@@ -1,48 +1,44 @@
+---
+description: Display data stored in various types of JavaScript collections.
+---
+
 # Rendering Collections
 
 In most applications, your model is not only composed of objects, but also of various types of collections. Aurelia provides a robust way to handle collection data through its built-in `repeat` attribute. Repeaters can be used on any element, including custom elements and template elements too!
 
-> Here's what you'll learn...
-> * Rendering JavaScript Arrays.
-> * Rendering JavaScript Sets.
-> * Rendering JavaScript Maps.
-> * Working with number ranges and Object keys.
-> * Special properties available in loops.
+{% hint style="success" %}
+**Here's what you'll learn...**
+
+* Rendering JavaScript Arrays.
+* Rendering JavaScript Sets.
+* Rendering JavaScript Maps.
+* Working with number ranges and Object keys.
+* Special properties available in loops.
+{% endhint %}
 
 ## Arrays
 
 Aurelia is able to repeat elements for each item in an array. Let's look at a basic example:
 
-```JavaScript repeater-template.js
-export class RepeaterTemplate {
-  constructor() {
-    this.friends = [
-      'Alice',
-      'Bob',
-      'Carol',
-      'Dana'
-    ];
-  }
-}
-```
+\`\`\`JavaScript repeater-template.js export class RepeaterTemplate { constructor\(\) { this.friends = \[ 'Alice', 'Bob', 'Carol', 'Dana' \]; } }
 
+```text
 ```HTML repeater-template.html
 <h1>My Friends</h1>
 <p repeat.for="friend of friends">Hello, ${friend}!</p>
 ```
 
-This template allows us to list out our friends and greet them one by one, rather than attempting to greet all 7 billion
-inhabitants of the world at once. Notice that `for="friend of friends"` bears a strong resemblance to the JavaScript equivalent `for(let friend of friends)`. Aurelia matches JavaScript syntax in its templates as much as possible, while still maintaining compatibility with the HTML standard.
+This template allows us to list out our friends and greet them one by one, rather than attempting to greet all 7 billion inhabitants of the world at once. Notice that `for="friend of friends"` bears a strong resemblance to the JavaScript equivalent `for(let friend of friends)`. Aurelia matches JavaScript syntax in its templates as much as possible, while still maintaining compatibility with the HTML standard.
 
 As mentioned above, we can also use the template element as our repeater so that a "container" is not needed.
 
-```HTML repeater-template.html
-<h1>My Friends</h1>
-<template repeat.for="friend of friends">
-  Hello, ${friend}!
-</template>
-```
+\`\`\`HTML repeater-template.html
 
+My Friends
+
+ Hello, ${friend}!
+
+```text
 > Warning
 > If the remplate is the first element in our view, we have to wrap our entire view in a `<template>` element as well so Aurelia can clearly differentiate from the view itself and its content.
 
@@ -58,11 +54,13 @@ Aurelia will observe your array for changes and update the DOM efficiently. Howe
 
 We can also iterate over a numeric range:
 
-```HTML repeater-template.html
-<p repeat.for="i of 10">${10-i}</p>
-<p>Blast off!</p>
-```
+\`\`\`HTML repeater-template.html
 
+${10-i}
+
+Blast off!
+
+```text
 Note that the range will start at 0 with a length of 10, so our countdown really does start at 10 and end at 1 before blast off.
 
 ## Sets
@@ -81,10 +79,11 @@ export class RepeaterTemplate {
 }
 ```
 
-```HTML repeater-template.html
-<p repeat.for="friend of friends">Hello, ${friend}!</p>
-```
+\`\`\`HTML repeater-template.html
 
+Hello, ${friend}!
+
+```text
 ## Maps
 
 One of the more useful iterables is the Map, because you can decompose the key and value into two variables directly in the repeater. Although you can repeat over objects in a straight forward way, Maps can be two-way bound much more easily than Objects, so you should try to use Maps where possible.
@@ -101,10 +100,11 @@ export class RepeaterTemplate {
 }
 ```
 
-```HTML repeater-template.html
-<p repeat.for="[greeting, friend] of friends">${greeting}, ${friend.name}!</p>
-```
+\`\`\`HTML repeater-template.html
 
+${greeting}, ${friend.name}!
+
+```text
 One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the `name` property set, we can get our friend's name with `\${friend.name}`, just like in standard JavaScript!
 
 ## Object Keys
@@ -130,9 +130,11 @@ export class KeysValueConverter {
 }
 ```
 
-```HTML repeater-template.html
-<p repeat.for="greeting of friends | keys">${greeting}, ${friends[greeting].name}!</p>
-```
+\`\`\`HTML repeater-template.html
+
+${greeting}, ${friends\[greeting\].name}!
+
+\`\`\`
 
 We just introduced something called a "value converter". Basically, we take the object in our view model, `friends`, and run it through our `keys` value converter. Aurelia looks for a class named `KeysValueConverter` and tries to call its `toView()` method with our `friends` object. That method returns an array of keys, which we can iterate. In a pinch, we can use this to iterate over Objects.
 
@@ -144,7 +146,7 @@ The binding system makes several special properties available for binding in tem
 
 ### General
 
-* `$this` - The binding context (the view-model).
+* `$this` - The binding context \(the view-model\).
 
 ### Event
 
@@ -158,3 +160,4 @@ The binding system makes several special properties available for binding in tem
 * `$even` - In a repeat template, is true if the item has an even numbered index.
 * `$odd` - In a repeat template, is true if the item has an odd numbered index.
 * `$parent` - Explicitly accesses the outer scope from within a `repeat` or `compose` template. You may need this when a property on the current scope masks a property on the outer scope. Chainable, eg. `$parent.$parent.foo` is supported.
+

@@ -1,3 +1,7 @@
+---
+description: 'Get acquainted with Aurelia, our docs, and basic setup.'
+---
+
 # Introduction
 
 So, you've been scouring the interwebs and have managed to find yourself here, of all places. Now you're wondering, what is this thing called "Aurelia" that everyone's talking about?
@@ -21,3 +25,4 @@ Placeholder...
 ## Creating Your First Aurelia App
 
 Placeholder...
+

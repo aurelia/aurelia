@@ -1,3 +1,4 @@
-# Shipping Your Own Aurelia Plugins
+# Shipping Your Own Aurelia Plugin
 
 Placeholder...
+

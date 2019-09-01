@@ -1,3 +1,4 @@
-# Advanced UI Modeling with Composite MVVM
+# Advanced UI Modeling and Composition
 
 Placeholder...
+

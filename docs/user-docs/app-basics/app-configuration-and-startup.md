@@ -4,7 +4,7 @@
 
 To start an Aurelia application, create a `new Aurelia()` object with a target `host` and a root `component` and call `start()`.
 
-```TypeScript
+```typescript
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
@@ -22,7 +22,7 @@ new Aurelia()
 
 To make a custom element globally available to your application, pass the custom element constructor to the `.register()` method on your Aurelia app.
 
-```TypeScript
+```typescript
 import { CardCustomElement } from './components/card';
 
 new Aurelia()
@@ -36,11 +36,9 @@ new Aurelia()
 
 If you have a package that exports all your custom elements, you can pass the entire package to the `.register()` method on your Aurelia app.
 
-```TypeScript src/components/index.ts
-export { CardCustomElement } from './card';
-export { CollapseCustomElement } from './collapse';
-```
+\`\`\`TypeScript src/components/index.ts export { CardCustomElement } from './card'; export { CollapseCustomElement } from './collapse';
 
+```text
 ```TypeScript src/main.ts
 import * as globalComponents from './components';
 
@@ -50,3 +48,4 @@ new Aurelia()
   .app({ ... })
   .start();
 ```
+

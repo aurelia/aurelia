@@ -130,7 +130,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (customAttributeLength + plainAttributeLength > 0) {
       let surrogates: ITargetedInstruction[];
       if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
-        definition.surrogates = Array(plainAttributeLength);
+        definition.surrogates = Array(customAttributeLength + plainAttributeLength);
       }
       surrogates = definition.surrogates;
       let offset = 0;

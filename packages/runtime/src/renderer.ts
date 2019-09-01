@@ -208,12 +208,14 @@ function setControllerReference<T = INode>(
 ): void {
   let $auRefs = host.$au;
   if ($auRefs === void 0) {
-    $auRefs = host.$au = new ControllersLookup() as Record<string, IController<T>>;
+    $auRefs = host.$au = new ControllersLookup<T>();
   }
   $auRefs[referenceName] = controller;
 }
 
-class ControllersLookup {}
+class ControllersLookup<T extends INode> {
+  [key: string]: IController<T>;
+}
 
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */

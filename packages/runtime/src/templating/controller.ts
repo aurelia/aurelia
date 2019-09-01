@@ -1019,7 +1019,7 @@ function createObservers(
   const lifecycle = controller.lifecycle;
   const hasChildrenObservers = 'childrenObservers' in description;
 
-  const { length } = observableNames;
+  const length = observableNames.length;
   let name: string;
   for (let i = 0; i < length; ++i) {
     name = observableNames[i];

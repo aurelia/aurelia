@@ -64,18 +64,6 @@ describe('templating-compiler.ref.spec.ts', function() {
       }
     },
     {
-      title: 'basic ref usage with [ref.element]',
-      template:
-        `<div ref.element=hello>`,
-      assertFn: (ctx, host, comp) => {
-        assert.notStrictEqual(comp.hello, undefined);
-        assert.strictEqual(host.querySelector('div'), comp.hello);
-      },
-      assertFn_AfterDestroy: (ctx, host, comp) => {
-        assert.strictEqual(comp.hello, null);
-      }
-    },
-    {
       title: 'basic ref usage within [REPEAT] template controller, ref BEFORE template controller',
       template: `<div repeat.for="i of 10" ref=hello>`,
       root: class App {
@@ -112,17 +100,6 @@ describe('templating-compiler.ref.spec.ts', function() {
         assert.equal(comp.ce.$controller instanceof Controller, true);
       }
     },
-    {
-      title: 'basic ref usage with a custom element view model [ref.view-model]',
-      template: `<c-e ref.view-model=ce>`,
-      resources: [
-        CustomElement.define({ name: 'c-e' })
-      ],
-      assertFn: (ctx, host, comp) => {
-        assert.notStrictEqual(comp.ce, undefined);
-        assert.equal(comp.ce.$controller instanceof Controller, true);
-      }
-    },
     ...Array.from({ length: 10 }).flatMap((_, idx, arr) => {
       const Attrs = Array.from({ length: arr.length }).map((__, idx1) => CustomAttribute.define(
         { name: `c-a-${idx1}` },
@@ -130,22 +107,10 @@ describe('templating-compiler.ref.spec.ts', function() {
       ));
       const attrString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}="a"`).join(' ');
       const attr_RefString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}.ref="ca${idx1}"`).join(' ');
-      const ref_Attr_String = Array.from({ length: arr.length }, (__, idx1) => `ref.c-a-${idx1}="ca${idx1}"`).join(' ');
       return [
         {
           title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
           template: `<div ${attrString} ${attr_RefString}>`,
-          resources: Attrs,
-          assertFn: (ctx, host, comp) => {
-            const div = host.querySelector('div') as ComponentHost;
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-            }
-          }
-        },
-        {
-          title: 'ref usage with multiple custom attribute on a normal element, syntax: [ref.xxx]',
-          template: `<div ${attrString} ${ref_Attr_String}>`,
           resources: Attrs,
           assertFn: (ctx, host, comp) => {
             const div = host.querySelector('div') as ComponentHost;
@@ -166,29 +131,8 @@ describe('templating-compiler.ref.spec.ts', function() {
           }
         },
         {
-          title: 'ref usage with multiple custom attributes on a normal element, syntax: [ref.xxx], ref before attr declaration',
-          template: `<div ${ref_Attr_String} ${attrString}>`,
-          resources: Attrs,
-          assertFn: (ctx, host, comp) => {
-            const div = host.querySelector('div') as ComponentHost;
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-            }
-          }
-        },
-        {
           title: '[Surrogate - ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
           template: `<template ${attrString} ${attr_RefString}>`,
-          resources: Attrs,
-          assertFn: (ctx, host: ComponentHost, comp) => {
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-            }
-          }
-        },
-        {
-          title: '[Surrogate - ROOT] ref usage with multiple custom attribute on a normal element, syntax: [ref.xxx]',
-          template: `<template ${attrString} ${ref_Attr_String}>`,
           resources: Attrs,
           assertFn: (ctx, host: ComponentHost, comp) => {
             for (let i = 0, ii = arr.length; ii > i; ++i) {
@@ -212,24 +156,7 @@ describe('templating-compiler.ref.spec.ts', function() {
               assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
             }
           }
-        },
-        {
-          title: '[Surrogate - Custom-Element ROOT] ref usage with multiple custom attributes on a normal element, syntax: [ref.xxx]',
-          template: `<c-e>`,
-          resources: [
-            ...Attrs,
-            CustomElement.define(
-              { name: 'c-e', template: `<template ${attrString} ${ref_Attr_String}>` }
-            )
-          ],
-          assertFn: (ctx, host) => {
-            const ceEl = host.querySelector('c-e') as CustomElementHost;
-            const $celVm = ceEl.$controller.viewModel as object;
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
-            }
-          }
-        },
+        }
       ] as IRefIntegrationTestCase[];
     }),
     {
@@ -427,12 +354,6 @@ describe('templating-compiler.ref.spec.ts', function() {
       title: `basic WRONG ref usage with [repeat.ref] as cannot reference template controller`,
       testWillThrow: true,
       template: `<div repeat.for="i of 1" repeat.ref=hello>`,
-      assertFn: PLATFORM.noop
-    },
-    {
-      title: `basic WRONG ref usage with [ref.repeat] as cannot reference template controller`,
-      testWillThrow: true,
-      template: `<div repeat.for="i of 1" ref.repeat=hello>`,
       assertFn: PLATFORM.noop
     },
   ];

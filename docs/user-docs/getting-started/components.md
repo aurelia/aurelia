@@ -1,23 +1,60 @@
 # Components
 
-Aurelia applications are built out of components, from top to bottom. At startup, an app declares a *root component*, but inside of that component's template (aka view), other components are used, and inside of those components, yet more components. In this fashion, the entire user interface is constructed.
+Aurelia applications are built out of components, from top to bottom. At startup, an app declares a _root component_, but inside of that component's template \(aka view\), other components are used, and inside of those components, yet more components. In this fashion, the entire user interface is constructed.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
-  * How to create and use components.
-  * How to leverage conventions to work smarter and not harder.
-  * What component lifecycle hooks are available to you.
+
+* How to create and use components.
+* How to leverage conventions to work smarter and not harder.
+* What component lifecycle hooks are available to you.
 {% endhint %}
 
 ## Creating and Using Components
 
-Components in Aurelia follow the Model-View-ViewModel design pattern (a descendant of MVC and MVP) and are represented in HTML as *custom elements*. Each component has a JavaScript class, which serves as the *view-model*, providing the state and behavior for the component. Each component has an HTML template or *view*, which provides the rendering instructions for the component. Finally, components can optionally have a *model* to provide unique business logic.
+Components in Aurelia follow the Model-View-ViewModel design pattern \(a descendant of MVC and MVP\) and are represented in HTML as _custom elements_. Each component has a JavaScript class, which serves as the _view-model_, providing the state and behavior for the component. Each component has an HTML template or _view_, which provides the rendering instructions for the component. Finally, components can optionally have a _model_ to provide unique business logic.
 
-To declare a component, use the `@customElement` decorator on a class. This decorator allows you to name the element as you will use it in HTML and link the view-model class with its template (view). Here's an example of a simple "hello world" component:
+To declare a component, use the `@customElement` decorator on a class. This decorator allows you to name the element as you will use it in HTML and link the view-model class with its template \(view\). Here's an example of a simple "hello world" component:
+
+{% tabs %}
+{% tab title="First Tab" %}
+Some tab content for the first tab.
+{% endtab %}
+
+{% tab title="Second Tab" %}
+Some tab content for the second tab.
+{% endtab %}
+{% endtabs %}
+
+{% code-tabs %}
+{% code-tabs-item title="some-file.ts" %}
+```typescript
+const num = 42;
+```
+{% endcode-tabs-item %}
+
+{% code-tabs-item title="some-file.html" %}
+```markup
+<div>Hello World</div>
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
+
+{% hint style="success" %}
+What you'll learn...
+
+* [x] One
+* [x] Two
+* [x] Three
+{% endhint %}
+
+{% embed url="https://codesandbox.io/embed/9zvm06x9pp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview" %}
+
+
 
 #### say-hello.ts
 
-```TypeScript
+```typescript
 import { customElement } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -32,26 +69,25 @@ export class SayHello {
 
 #### say-hello.html
 
-```HTML
+```markup
 <h2>Hello World!</h2>
 ```
 
 #### app.html
 
-```HTML
+```markup
 <say-hello></say-hello>
 ```
 
 {% hint style="warning" %}
-**Warning**
-A component name **must** contain a hyphen. This is part of the W3C web components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+**Warning** A component name **must** contain a hyphen. This is part of the W3C web components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
 {% endhint %}
 
 The `say-hello` custom element we've created isn't very interesting yet, so lets spice it up by allowing the user to providing a "to" property so that we can personalize the message. To create "bindable" properties for your HTML element, you declare them using the `@bindable` decorator as shown in the next example.
 
 #### say-hello.ts
 
-```TypeScript
+```typescript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -66,12 +102,13 @@ export class SayHello {
 
 #### say-hello.html
 
-```HTML
+```markup
 <h2>Hello ${to}!</h2>
 ```
+
 #### app.html
 
-```HTML
+```markup
 <say-hello to="John"></say-hello>
 ```
 
@@ -81,7 +118,7 @@ Now, what if we want our component to do something in response to user interacti
 
 #### say-hello.ts
 
-```TypeScript
+```typescript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -101,14 +138,14 @@ export class SayHello {
 
 #### say-hello.html
 
-```HTML
+```markup
 <h2>${message} ${to}!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
 
 #### app.html
 
-```HTML
+```markup
 <say-hello to="John"></say-hello>
 ```
 
@@ -124,7 +161,7 @@ By default, component views are encapsulated. What that means is that you can't 
 
 #### say-hello.ts
 
-```TypeScript
+```typescript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 import { NameTag } from './name-tag';
@@ -146,20 +183,20 @@ export class SayHello {
 
 #### say-hello.html
 
-```HTML
+```markup
 <h2>${message} <name-tag name.bind="to"></name-tag>!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
 
 ### app.html
 
-```HTML
+```markup
 <say-hello to="John"></say-hello>
 ```
 
 In practice, most people want to side-step this feature and make all their components global, so they can remove the dependencies boiler-plate code. To make a component global, simply register it with the application's root DI container at startup:
 
-```TypeScript
+```typescript
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
@@ -176,14 +213,14 @@ As a best practice, we recommend an alternate approach to registering each compo
 
 #### components/register.ts
 
-```TypeScript
+```typescript
 export * from './say-hello';
 export * from './name-tag';
 ```
 
 #### main.ts
 
-```TypeScript
+```typescript
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
@@ -216,7 +253,7 @@ To tap into any of these hooks, simply implement the method on your class:
 
 #### say-hello.ts
 
-```TypeScript
+```typescript
 import { customElement, bindable } from '@aurelia/runtime';
 import template from './say-hello.html';
 import { NameTag } from './name-tag';
@@ -242,9 +279,9 @@ export class SayHello {
 
 ### Component Constructors
 
-All components are instantiated by the framework's dependency injection system. As a result, you can share common services across components and get access to component-specific services by declaring that you want the framework to "inject" them into your constructor. The most common component-specific thing you may want to inject into your component is the `HTMLElement` that serves as the host element for your component. In the examples above, this is the `say-hello` element itself (rather than an element within its template). Should you need access to the host for any component, you can declare that like this:
+All components are instantiated by the framework's dependency injection system. As a result, you can share common services across components and get access to component-specific services by declaring that you want the framework to "inject" them into your constructor. The most common component-specific thing you may want to inject into your component is the `HTMLElement` that serves as the host element for your component. In the examples above, this is the `say-hello` element itself \(rather than an element within its template\). Should you need access to the host for any component, you can declare that like this:
 
-```TypeScript
+```typescript
 import { customElement } from '@aurelia/runtime';
 import template from './say-hello.html';
 
@@ -261,15 +298,12 @@ export class SayHello {
 }
 ```
 
-
 {% hint style="info" %}
-**Info**
-There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a public statid field named "inject". See the [dependency injection](dependency-injection.md) documentation for more information on other approaches that use decorators or TS-specific metadata.
+**Info** There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a public statid field named "inject". See the [dependency injection](https://github.com/aurelia/aurelia/tree/1bbffbe06ece817146eca7771e3882d4a4c9473d/docs/user-docs/getting-started/dependency-injection.md) documentation for more information on other approaches that use decorators or TS-specific metadata.
 {% endhint %}
 
 {% hint style="info" %}
-**Info**
-If you need access to a DOM element from within your template, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](displaying-basic-data).
+**Info** If you need access to a DOM element from within your template, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](https://github.com/aurelia/aurelia/tree/1bbffbe06ece817146eca7771e3882d4a4c9473d/docs/user-docs/getting-started/displaying-basic-data/README.md).
 {% endhint %}
 
 ## The as-element Attribute
@@ -280,7 +314,7 @@ In some cases, especially when creating table rows out of Aurelia custom element
 
 #### as-element.html
 
-```HTML
+```markup
 <template>
   <import from="./hello-row.html"></import>
   <table>
@@ -291,7 +325,7 @@ In some cases, especially when creating table rows out of Aurelia custom element
 
 #### hello-row.html
 
-```HTML
+```markup
 <template>
   <td>Hello</td>
   <td>World</td>
@@ -299,3 +333,4 @@ In some cases, especially when creating table rows out of Aurelia custom element
 ```
 
 The `as-element` attribute tells Aurelia that we want the content of the table row to be exactly what our `hello-row` template wraps. The way different browsers render tables means this may be necessary sometimes.
+

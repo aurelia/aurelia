@@ -4,10 +4,11 @@ Greetings! We're so glad that you're interested in contributing to Aurelia's doc
 
 {% hint style="success" %}
 **Here's what you'll learn...**
-  * What are the three types of documentation?
-  * How do I contribute to each type of documentation?
-  * What syntax is used throughout the documentation?
-  * How is the documentation organized?
+
+* What are the three types of documentation?
+* How do I contribute to each type of documentation?
+* What syntax is used throughout the documentation?
+* How is the documentation organized?
 {% endhint %}
 
 ## Documentation Types
@@ -20,13 +21,13 @@ Articles are narrative-form content and come in two flavors: tutorials and guide
 
 Every article has several things in common:
 
-* **Title** - An article has a clear, short title. The title is not only displayed at the top of the article, but also within the Table of Contents (ToC), index pages, and search results. It's also encoded in the page's metadata, which is used by search engines.
+* **Title** - An article has a clear, short title. The title is not only displayed at the top of the article, but also within the Table of Contents \(ToC\), index pages, and search results. It's also encoded in the page's metadata, which is used by search engines.
 * **Description** - An article has a 1-3 sentence description, designed to help the reader understand whether it covers the material they are interested in. The description is displayed primarily on index pages. It's also used as a highly weighted input to the full-text site search and it's a key piece of metadata used by search engines.
 * **Keywords** - Each article should have at least 2-3 keywords associated with it. This metadata is used to power the in-site search as well as in meta tags for external search engines.
 * **Here's what you'll learn...** - At the top of every article, there's a bulleted list of what the reader will learn by the end of the article. This should be 3-5 high-level bullet points. They do NOT need to map directly to the sections within the document.
 * **H2s** - Each article should be broken down into sections, delineated by level-2 headers. The headers should be clear, but short. They are displayed not only in the article itself, but also in the expanded ToC. Additionally, the full-text search indexes by section, allowing search results to deep-link to a particular section within a document. Articles MAY contain level-3 headers as well.
 * **Next** - Each article has a "next link" which designates a single article to be read after the current article. We want to keep readers moving through the documentation as-a-whole, ensuring that they gain both broad and deep knowledge. The next article link will be displayed specially at the bottom of the article. It will also be encoded as link metadata in the document head for SEO purposes.
-* **Additional Resources** (Optional) - If appropriate, articles MAY specify a set of additional resources for readers, including links to relevant HTML specifications, other articles, API Reference, code examples within the site, sandboxes, or any other item related to the current article content.
+* **Additional Resources** \(Optional\) - If appropriate, articles MAY specify a set of additional resources for readers, including links to relevant HTML specifications, other articles, API Reference, code examples within the site, sandboxes, or any other item related to the current article content.
 
 #### Article Syntax
 
@@ -42,7 +43,7 @@ API reference documentation is written inline within the code, using [TSDoc](htt
 
 ### Code Examples
 
-These are code-focused documents that demonstrates a solution for a specific task. e.g. "Configuring Auth-Protected Routes". A code example MUST have a title and MAY have a 1-5 sentence explanation. Importantly, code examples should be designed, as much as possible, to be copy->paste->modified by readers who need a fast, task-oriented solution for their own project.
+These are code-focused documents that demonstrates a solution for a specific task. e.g. "Configuring Auth-Protected Routes". A code example MUST have a title and MAY have a 1-5 sentence explanation. Importantly, code examples should be designed, as much as possible, to be copy-&gt;paste-&gt;modified by readers who need a fast, task-oriented solution for their own project.
 
 ## Docs Organization
 
@@ -57,3 +58,4 @@ The documentation is organized into seven major sections, all available through 
 * **Resources** - This is a collection of articles that address common questions and provide more information around the project itself.
 
 Each of these sections is represented in the ToC as a bold section delimiter. Articles and Packages are listed after each section, not nested. When an article is clicked on, it expands inline to show its level-2 headings, nested under the article name. API reference does not expand inline.
+

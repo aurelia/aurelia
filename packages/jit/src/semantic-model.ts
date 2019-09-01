@@ -32,11 +32,16 @@ export interface ISymbol {
   flags: SymbolFlags;
 }
 
-export interface IPlainAttributeSymbol extends ISymbol {
+export interface IAttributeSymbol {
   syntax: AttrSyntax;
 }
 
-export interface ICustomAttributeSymbol extends ISymbol {
+export interface IPlainAttributeSymbol extends IAttributeSymbol {
+  command: IBindingCommand | null;
+  expression: AnyBindingExpression | null;
+}
+
+export interface ICustomAttributeSymbol extends IAttributeSymbol, IResourceAttributeSymbol {
   syntax: AttrSyntax;
 }
 
@@ -144,7 +149,7 @@ export class ReplacePartSymbol implements ISymbolWithTemplate {
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
-export class CustomAttributeSymbol implements ICustomAttributeSymbol, IResourceAttributeSymbol {
+export class CustomAttributeSymbol implements ICustomAttributeSymbol {
   public flags: SymbolFlags;
   public res: string;
   public syntax: AttrSyntax;

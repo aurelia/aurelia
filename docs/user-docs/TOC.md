@@ -37,6 +37,44 @@
 * [Overlays, Modals, and Toast](app-basics/overlays-modals-toast.md)
 * [Testing Apps and Components](app-basics/testing-apps-and-components.md)
 
+## Advanced Scenarios
+
+* [One Thousand Components](advanced-scenarios/one-thousand-components.md)
+* [Binding and Templating Internals](advanced-scenarios/binding-and-templating-internals.md)
+* [Performance Optimization Techniques](advanced-scenarios/performance-optimization-techniques.md)
+* [Virtualizing Large Collections](advanced-scenarios/virtualizing-large-collections.md)
+* [Organizing Large-Scale Projects](advanced-scenarios/organizing-large-scale-projects.md)
+* [Advanced UI Modeling and Composition](advanced-scenarios/advanced-ui-modeling-with-composite-mvvm.md)
+* [Consuming and Producing Web Components](advanced-scenarios/consuming-and-producing-web-components.md)
+* [Shipping Your Own Aurelia Plugin](advanced-scenarios/shipping-your-own-aurelia-plugin.md)
+* [Server-Side Rendering](advanced-scenarios/server-side-rendering.md)
+* [Building Desktop Apps and PWAs](advanced-scenarios/building-desktop-apps-and-pwa.md)
+* [Building Phone Apps](advanced-scenarios/building-phone-apps.md)
+* [Extending the Template Compiler](advanced-scenarios/extending-the-template-compiler.md)
+* [Extending the Binding Engine](advanced-scenarios/extending-the-binding-engine.md)
+
+## API
+
+* [Introduction](api/README.md)
+
+## Examples
+
+* Custom Attributes
+  * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
+* Routing
+  * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
+
+## Resources
+
+* [FAQ](resources/faq.md)
+* [Browser Support](resources/browser-support.md)
+* [Versioning Policy](resources/versioning-policy.md)
+* [Framework Comparison](resources/framework-comparison.md)
+* [Migrating to Aurelia 2](resources/migrating-to-aurelia-2.md)
+* [The Aurelia Team](resources/the-aurelia-team.md)
+* [Glossary](resources/glossary.md)
+* [Cheat Sheet](resources/cheat-sheet.md)
+
 ## Community Contributions
 
 * [Joining the Community](community-contributions/joining-the-community.md)

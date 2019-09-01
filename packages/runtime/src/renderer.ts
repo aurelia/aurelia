@@ -37,7 +37,6 @@ import {
 import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
-  ComponentHost,
   IBinding,
   IController,
   IRenderContext,
@@ -173,7 +172,7 @@ export function getTarget(potentialTarget: object): object {
   return potentialTarget;
 }
 
-export function getRefTarget(refHost: ComponentHost<INode>, refTargetName: string): object {
+export function getRefTarget(refHost: INode, refTargetName: string): object {
   if (refTargetName === 'element') {
     return refHost;
   }
@@ -201,9 +200,9 @@ export function getRefTarget(refHost: ComponentHost<INode>, refTargetName: strin
   }
 }
 
-function setControllerReference<T = INode>(
+function setControllerReference<T extends INode = INode>(
   controller: Controller<T>,
-  host: ComponentHost<T>,
+  host: T,
   referenceName: string
 ): void {
   let $auRefs = host.$au;
@@ -242,7 +241,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
       instruction as IElementHydrationOptions,
     );
 
-    setControllerReference(controller, controller.host as ComponentHost, instruction.res);
+    setControllerReference(controller, controller.host!, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -271,7 +270,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
       flags,
     );
 
-    setControllerReference(controller, target as ComponentHost, instruction.res);
+    setControllerReference(controller, target, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -321,7 +320,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
     }
 
-    setControllerReference(controller, renderLocation as ComponentHost, instruction.res);
+    setControllerReference(controller, renderLocation, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {

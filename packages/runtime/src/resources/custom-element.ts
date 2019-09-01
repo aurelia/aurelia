@@ -18,10 +18,10 @@ import {
 import {
   IDOM,
   INode,
-  INodeSequence
+  INodeSequence,
+  IRenderLocation
 } from '../dom';
 import {
-  ComponentHost,
   IController,
   IViewModel,
 } from '../lifecycle';
@@ -32,7 +32,7 @@ export interface ICustomElementType<C extends Constructable = Constructable> ext
   description: TemplateDefinition;
 }
 
-export type CustomElementHost<T extends INode = INode> = ComponentHost<T> & {
+export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
   $controller?: IController<T>;
 };
 

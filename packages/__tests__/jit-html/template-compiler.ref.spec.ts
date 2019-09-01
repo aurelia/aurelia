@@ -4,7 +4,6 @@ import {
 } from '@aurelia/kernel';
 import {
   Aurelia,
-  ComponentHost,
   Controller,
   CustomAttribute,
   CustomElement,
@@ -113,7 +112,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           template: `<div ${attrString} ${attr_RefString}>`,
           resources: Attrs,
           assertFn: (ctx, host, comp) => {
-            const div = host.querySelector('div') as ComponentHost;
+            const div = host.querySelector('div') as INode;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
               assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
@@ -124,7 +123,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           template: `<div ${attr_RefString} ${attrString}>`,
           resources: Attrs,
           assertFn: (ctx, host, comp) => {
-            const div = host.querySelector('div') as ComponentHost;
+            const div = host.querySelector('div') as INode;
             for (let i = 0, ii = arr.length; ii > i; ++i) {
               assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }
@@ -134,7 +133,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           title: '[Surrogate - ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
           template: `<template ${attrString} ${attr_RefString}>`,
           resources: Attrs,
-          assertFn: (ctx, host: ComponentHost, comp) => {
+          assertFn: (ctx, host: INode, comp) => {
             for (let i = 0, ii = arr.length; ii > i; ++i) {
               assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
             }

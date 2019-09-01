@@ -33,7 +33,6 @@ import {
   State
 } from '../flags';
 import {
-  ComponentHost,
   IBinding,
   IController,
   ILifecycle,

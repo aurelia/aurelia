@@ -1,3 +1,4 @@
-# Manager App State
+# Managing App State
 
 Placeholder...
+

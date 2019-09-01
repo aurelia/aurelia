@@ -2,15 +2,16 @@
 
 // Intro...
 
-> Here's what you'll learn...
-> * Leveraging two-way binding to capture user input.
-> * Working with basic HTML input elements.
-> * Binding various types of data to checkboxes and radios.
-> * Handling single and multi-select scenarios.
+{% hint style="success" %}
+**Here's what you'll learn...**
+
+* Leveraging two-way binding to capture user input.
+* Working with basic HTML input elements.
+* Binding various types of data to checkboxes and radios.
+* Handling single and multi-select scenarios.
+{% endhint %}
 
 ## Text Input and Textarea
-
-
 
 ## Checkboxes
 
@@ -20,13 +21,9 @@ Aurelia supports two-way binding a variety of data-types to checkbox input eleme
 
 Bind a boolean property to an input element's `checked` attribute using `checked.bind="myBooleanProperty"`.
 
-```JavaScript app.js
-export class App {
-  motherboard = false;
-  cpu = false;
-  memory = false;
-}
-```
+\`\`\`JavaScript app.js export class App { motherboard = false; cpu = false; memory = false; }
+
+```text
 ```TypeScript app.ts [variant]
  export class App {
   motherboard = false;
@@ -35,21 +32,19 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label><input type="checkbox" checked.bind="motherboard">  Motherboard</label>
-    <label><input type="checkbox" checked.bind="cpu"> CPU</label>
-    <label><input type="checkbox" checked.bind="memory"> Memory</label>
+\`\`\`HTML app.html
 
-    motherboard = ${motherboard}<br>
-    cpu = ${cpu}<br>
-    memory = ${memory}<br>
-  </form>
-</template>
+  Products  Motherboard  CPU  Memory
+
+```text
+motherboard = ${motherboard}<br>
+cpu = ${cpu}<br>
+memory = ${memory}<br>
 ```
 
+&lt;/form&gt; &lt;/template&gt;
+
+```text
 [Boolean Demo](https://codesandbox.io/embed/9zvm06x9pp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Array of Numbers
@@ -69,23 +64,14 @@ export class App {
   selectedProductIds = [];
 }
 ```
-```TypeScript app.ts [variant]
-export interface IProduct {
-    id: number;
-    name: string;
-}
 
-export class App {
-  products: IProduct[] = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`TypeScript app.ts \[variant\] export interface IProduct { id: number; name: string; }
 
-  selectedProductIds: number[] = [];
-}
-```
+export class App { products: IProduct\[\] = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
+selectedProductIds: number\[\] = \[\]; }
+
+```text
 ```HTML app.html
 <template>
   <form>
@@ -104,19 +90,13 @@ export class App {
 
 ### Array of Objects
 
-Numbers aren't the only type of value you can store in a "selected items" array. The binding system supports all types, including objects.  Here's an example that adds and removes "product" objects from a `selectedProducts` array using the checkbox data-binding.
+Numbers aren't the only type of value you can store in a "selected items" array. The binding system supports all types, including objects. Here's an example that adds and removes "product" objects from a `selectedProducts` array using the checkbox data-binding.
 
-```JavaScript app.js
-export class App {
-  products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`JavaScript app.js export class App { products = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
-  selectedProducts = [];
-}
-```
+selectedProducts = \[\]; }
+
+```text
 ```TypeScript app.ts [variant]
 export interface IProduct {
     id: number;
@@ -134,23 +114,20 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" model.bind="product" checked.bind="selectedProducts">
-      ${product.id} - ${product.name}
-    </label>
+\`\`\`HTML app.html
 
-    Selected products:
-    <ul>
-      <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-    </ul>
-  </form>
-</template>
+  Products  ${product.id} - ${product.name}
+
+```text
+Selected products:
+<ul>
+  <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
+</ul>
 ```
 
+&lt;/form&gt; &lt;/template&gt;
+
+```text
 [Object Array Demo](https://codesandbox.io/embed/1qr32k1po3?autoresize=1&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Array of Objects with Matcher
@@ -167,22 +144,14 @@ export class App {
   productMatcher = (a, b) => a.id === b.id;
 }
 ```
-```TypeScript app.ts [variant]
-export interface IProduct {
-    id: number;
-    name: string;
-}
 
-export class App {
-  selectedProducts: IProduct[] = [
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' }
-  ];
+\`\`\`TypeScript app.ts \[variant\] export interface IProduct { id: number; name: string; }
 
-  productMatcher = (a, b) => a.id === b.id;
-}
-```
+export class App { selectedProducts: IProduct\[\] = \[ { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' } \];
 
+productMatcher = \(a, b\) =&gt; a.id === b.id; }
+
+```text
 ```HTML app.html
 <template>
   <form>
@@ -220,12 +189,9 @@ export class App {
 
 Finally, here's an example that adds and removes strings from a `selectedProducts` array using the checkbox data-binding. This is example is unique because it does not use `model.bind` to assign each checkbox's value. Instead the input's standard `value` attribute is used. Normally we cannot use the standard `value` attribute in conjunction with checked binding because it coerces anything it's assigned to a string. This example uses an array of strings so everything works just fine.
 
-```JavaScript app.js
-export class App {
-  products = ['Motherboard', 'CPU', 'Memory'];
-  selectedProducts = [];
-}
-```
+\`\`\`JavaScript app.js export class App { products = \['Motherboard', 'CPU', 'Memory'\]; selectedProducts = \[\]; }
+
+```text
 ```TypeScript app.ts [variant]
 export class App {
   products: string[] = ['Motherboard', 'CPU', 'Memory'];
@@ -233,20 +199,11 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" value.bind="product" checked.bind="selectedProducts">
-      ${product}
-    </label>
-    <br>
-    Selected products: ${selectedProducts}
-  </form>
-</template>
-```
+\`\`\`HTML app.html
 
+ Products
+
+```text
 [String Array Demo](https://codesandbox.io/embed/m9qp62kl2p?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ## Radios
@@ -272,23 +229,14 @@ export class App {
   selectedProductId = null;
 }
 ```
-```TypeScript app.ts [variant]
-export interface IProduct {
-    id: number;
-    name: string;
-}
 
-export class App {
-  products: IProduct[] = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`TypeScript app.ts \[variant\] export interface IProduct { id: number; name: string; }
 
-  selectedProductId: number = null;
-}
-```
+export class App { products: IProduct\[\] = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
+selectedProductId: number = null; }
+
+```text
 ```HTML app.html
 <template>
   <form>
@@ -310,17 +258,11 @@ export class App {
 
 The binding system supports binding all types to radios, including objects. Here's an example that binds a group of radios to a `selectedProduct` object property.
 
-```JavaScript app.js
-export class App {
-  products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`JavaScript app.js export class App { products = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
-  selectedProduct = null;
-}
-```
+selectedProduct = null; }
+
+```text
 ```TypeScript app.ts [variant]
 export interface IProduct {
     id: number;
@@ -338,21 +280,17 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group2"
-              model.bind="product" checked.bind="selectedProduct">
-      ${product.id} - ${product.name}
-    </label>
+\`\`\`HTML app.html
 
-    Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-  </form>
-</template>
+  Products  ${product.id} - ${product.name}
+
+```text
+Selected product: ${selectedProduct.id} - ${selectedProduct.name}
 ```
 
+&lt;/form&gt; &lt;/template&gt;
+
+```text
 [Object Demo](https://codesandbox.io/embed/mqy966y08p?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Objects with Matcher
@@ -366,19 +304,14 @@ export class App {
   productMatcher = (a, b) => a.id === b.id;
 }
 ```
-```TypeScript app.ts [variant]
-export interface IProduct {
-    id: number;
-    name: string;
-}
 
-export class App {
-  selectedProduct: IProduct = { id: 1, name: 'CPU' };
+\`\`\`TypeScript app.ts \[variant\] export interface IProduct { id: number; name: string; }
 
-  productMatcher = (a, b) => a.id === b.id;
-}
-```
+export class App { selectedProduct: IProduct = { id: 1, name: 'CPU' };
 
+productMatcher = \(a, b\) =&gt; a.id === b.id; }
+
+```text
 ```HTML app.html
 <template>
   <form>
@@ -416,42 +349,26 @@ export class App {
 
 In this example each radio input is assigned one of three literal values: `null`, `true` and `false`. Selecting one of the radios will assign it's value to the `likesCake` property.
 
-```JavaScript app.js
-export class App {
-  likesCake = null;
-}
-```
+\`\`\`JavaScript app.js export class App { likesCake = null; }
+
+```text
 ```TypeScript app.ts [variant]
 export class App {
   likesCake = null;
 }
 ```
 
-```HTML app.html
-<template>
-  <form>
-    <h4>Do you like cake?</h4>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="null" checked.bind="likesCake">
-      Don't Know
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="true" checked.bind="likesCake">
-      Yes
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="false" checked.bind="likesCake">
-      No
-    </label>
+\`\`\`HTML app.html
 
-    likesCake = ${likesCake}
-  </form>
-</template>
+  Do you like cake?  Don't Know  Yes  No
+
+```text
+likesCake = ${likesCake}
 ```
 
+&lt;/form&gt; &lt;/template&gt;
+
+```text
 [Boolean Demo](https://codesandbox.io/embed/qzyly2kxy4?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Strings
@@ -464,13 +381,10 @@ export class App {
   selectedProduct = null;
 }
 ```
-```TypeScript app.ts [variant]
-export class App {
-  products: string[] = ['Motherboard', 'CPU', 'Memory'];
-  selectedProduct = null;
-}
-```
 
+\`\`\`TypeScript app.ts \[variant\] export class App { products: string\[\] = \['Motherboard', 'CPU', 'Memory'\]; selectedProduct = null; }
+
+```text
 ```HTML app.html
 <template>
   <form>
@@ -496,22 +410,18 @@ A `<select>` element can serve as a single-select or multiple-select "picker" de
 2. Bind the select element's `value` attribute to a property. In "multiple" mode, the property should be an array. In singular mode it can be any type.
 3. Define the select element's `<option>` elements. You can use the `repeat` or add each option element manually.
 4. Specify each option's value via the `model` property:
-  `<option model.bind="product.id">${product.name}</option>`
-   *You can use the standard `value` attribute instead of `model`, just remember- it will coerce anything it's assigned to a string.*
+
+   `<option model.bind="product.id">${product.name}</option>`
+
+   _You can use the standard `value` attribute instead of `model`, just remember- it will coerce anything it's assigned to a string._
 
 ### Select Number
 
-```JavaScript app.js
-export class App {
-  products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`JavaScript app.js export class App { products = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
-  selectedProductId = null;
-}
-```
+selectedProductId = null; }
+
+```text
 ```TypeScript app.js [variant]
 export interface IProduct {
     id: number;
@@ -529,22 +439,12 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProductId">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product.id">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
-  Selected product ID: ${selectedProductId}
-</template>
-```
+\`\`\`HTML app.html
 
+ Select product:  
+ Choose... ${product.id} - ${product.name} Selected product ID: ${selectedProductId}
+
+```text
 [Select Number Demo](https://codesandbox.io/embed/5j0zxp7rk?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Select Object
@@ -560,23 +460,14 @@ export class App {
   selectedProduct = null;
 }
 ```
-```TypeScript app.ts [variant]
-export interface IProduct {
-    id: number;
-    name: string;
-}
 
-export class App {
-  products: IProduct[] = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`TypeScript app.ts \[variant\] export interface IProduct { id: number; name: string; }
 
-  selectedProduct: IProduct = null;
-}
-```
+export class App { products: IProduct\[\] = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
+selectedProduct: IProduct = null; }
+
+```text
 ```HTML app.html
 <template>
   <label>
@@ -600,19 +491,13 @@ export class App {
 
 You may run into situations where the object your select element's value is bound does not have reference equality with any of the objects your option element model properties are bound to. The select's value object might "match" one of the option objects by id, but they may not be the same object instance. To support this scenario you can override Aurelia's default "matcher" which is a equality comparison function that looks like this: `(a, b) => a === b`. You can substitute a function of your choosing that has the right logic to compare your objects.
 
-```JavaScript app.js
-export class App {
-  products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`JavaScript app.js export class App { products = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
-  productMatcher = (a, b) => a.id === b.id;
+productMatcher = \(a, b\) =&gt; a.id === b.id;
 
-  selectedProduct = { id: 1, name: 'CPU' };
-}
-```
+selectedProduct = { id: 1, name: 'CPU' }; }
+
+```text
 ```TypeScript app.ts [variant]
 export interface IProduct {
     id: number;
@@ -632,23 +517,14 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct" matcher.bind="productMatcher">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+\`\`\`HTML app.html
 
-  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-</template>
-```
+  Select product:  
+ Choose... ${product.id} - ${product.name}
 
+Selected product: ${selectedProduct.id} - ${selectedProduct.name} &lt;/template&gt;
+
+```text
 [Select Object Matcher Demo](https://codesandbox.io/embed/nk5m6216xl?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Select Boolean
@@ -658,12 +534,10 @@ export class App {
   likesTacos = null;
 }
 ```
-```TypeScript app.ts [variant]
-export class App {
-  likesTacos = null;
-}
-```
 
+\`\`\`TypeScript app.ts \[variant\] export class App { likesTacos = null; }
+
+```text
 ```HTML app.html
 <template>
   <label>
@@ -682,12 +556,9 @@ export class App {
 
 ### Select String
 
-```JavaScript app.js
-export class App {
-  products = ['Motherboard', 'CPU', 'Memory'];
-  selectedProduct = '';
-}
-```
+\`\`\`JavaScript app.js export class App { products = \['Motherboard', 'CPU', 'Memory'\]; selectedProduct = ''; }
+
+```text
 ```TypeScript app.ts [variant]
 export class App {
   products: string[] = ['Motherboard', 'CPU', 'Memory'];
@@ -695,22 +566,12 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct">
-      <option value="">Choose...</option>
-      <option repeat.for="product of products"
-              value.bind="product">
-        ${product}
-      </option>
-    </select>
-  </label>
-  Selected product: ${selectedProduct}
-</template>
-```
+\`\`\`HTML app.html
 
+ Select product:  
+ Choose... ${product} Selected product: ${selectedProduct}
+
+```text
 [Select String Demo](https://codesandbox.io/embed/o8o7yozoz?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Multiple Select Numbers
@@ -726,23 +587,14 @@ export class App {
   selectedProductIds = [];
 }
 ```
-```TypeScript app.ts [variant]
-export interface IProduct {
-    id: number;
-    name: string;
-}
 
-export class App {
-  products: IProduct[] = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`TypeScript app.ts \[variant\] export interface IProduct { id: number; name: string; }
 
-  selectedProductIds: number[] = [];
-}
-```
+export class App { products: IProduct\[\] = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
+selectedProductIds: number\[\] = \[\]; }
+
+```text
 ```HTML app.html
 <template>
   <label>
@@ -762,17 +614,11 @@ export class App {
 
 ### Multiple Select Objects
 
-```JavaScript app.js
-export class App {
-  products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
-  ];
+\`\`\`JavaScript app.js export class App { products = \[ { id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }, \];
 
-  selectedProducts = [];
-}
-```
+selectedProducts = \[\]; }
+
+```text
 ```TypeScript app.ts [variant]
 export interface IProduct {
     id: number;
@@ -790,25 +636,13 @@ export class App {
 }
 ```
 
-```HTML app.html
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProducts">
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+\`\`\`HTML app.html
 
-  Selected products:
-  <ul>
-    <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-  </ul>
-</template>
-```
+  Select products: ${product.id} - ${product.name}
 
+Selected products:  &lt;/template&gt;
+
+```text
 [Select Multiple Objects Demo](https://codesandbox.io/embed/o10mn3p0qq?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
 
 ### Multiple Select Strings
@@ -819,13 +653,10 @@ export class App {
   selectedProducts = [];
 }
 ```
-```TypeScript app.ts [variant]
-export class App {
-  products: string[] = ['Motherboard', 'CPU', 'Memory'];
-  selectedProducts: string[] = [];
-}
-```
 
+\`\`\`TypeScript app.ts \[variant\] export class App { products: string\[\] = \['Motherboard', 'CPU', 'Memory'\]; selectedProducts: string\[\] = \[\]; }
+
+```text
 ```HTML app.html
 <template>
   <label>
@@ -842,3 +673,4 @@ export class App {
 ```
 
 [Select Multiple Strings Demo](https://codesandbox.io/embed/yvr7p888q9?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+

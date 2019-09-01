@@ -2,12 +2,15 @@
 
 ## Introduction
 
-The first rule of securing client-side applications: the client cannot be trusted. Your backend should never trust the input coming from the front-end, under any circumstance. Malicious individuals often know how to use browser debug tools and manually craft HTTP requests to your backend. You may even find yourself in a situation where a disgruntled employee (or former employee), who is a developer with intimate knowledge of the system, is seeking revenge by attempting a malicious attack.
+The first rule of securing client-side applications: the client cannot be trusted. Your backend should never trust the input coming from the front-end, under any circumstance. Malicious individuals often know how to use browser debug tools and manually craft HTTP requests to your backend. You may even find yourself in a situation where a disgruntled employee \(or former employee\), who is a developer with intimate knowledge of the system, is seeking revenge by attempting a malicious attack.
 
 **Your primary mechanism for securing any SPA application, Aurelia or otherwise, is to work hard on securing your backend services.**
 
-> Danger: Security Advice
-> This article, more or less, contains only a few quick warnings. It is in no way exhaustive, nor should it be your only resource on securing your application. The bulk of the work in security relates to your server-side technology. You should spend adequate time reading up on and understanding security best practices for whatever backend tech you have chosen.
+{% hint style="warning" %}
+**Security Advice**
+
+This article, more or less, contains only a few quick warnings. It is in no way exhaustive, nor should it be your only resource on securing your application. The bulk of the work in security relates to your server-side technology. You should spend adequate time reading up on and understanding security best practices for whatever backend tech you have chosen.
+{% endhint %}
 
 ## Authentication and Authorization
 
@@ -26,8 +29,11 @@ You can improve the user-experience by plugging into Aurelia's router pipeline w
 
 // TODO: Insert router auth configuration example.
 
-> Info: Route Settings
-> Developers can add a `settings` property to any route configuration object and use it to store any data they wish to associate with the route. The value of the `settings` property will be preserved by Aurelia's router and also copied to the navigation model.
+{% hint style="info" %}
+**Route Settings**
+
+Developers can add a `settings` property to any route configuration object and use it to store any data they wish to associate with the route. The value of the `settings` property will be preserved by Aurelia's router and also copied to the navigation model.
+{% endhint %}
 
 ## Validation and Sanitization
 
@@ -40,19 +46,22 @@ Here's a few things you should do though:
 * Be extra careful anytime you are dynamically creating and compiling client-side templates based on user input.
 * Be extra careful anytime you are dynamically creating templates on the server based on user input, which will later be processed by Aurelia on the client.
 
-> Info: We Are Trying To Help You
-> Internally, Aurelia makes no use of `eval` or the `Function` constructor. Additionally, all binding expressions are parsed by our strict parser which does not make globals like `window` or `document` available in binding expressions. We've done this to help prevent some common abuses.
+{% hint style="success" %}
+**We Are Trying To Help You**
+
+Internally, Aurelia makes no use of `eval` or the `Function` constructor. Additionally, all binding expressions are parsed by our strict parser which does not make globals like `window` or `document` available in binding expressions. We've done this to help prevent some common abuses.
+{% endhint %}
 
 ## Secret Data
 
-Do not embed private keys into your JavaScript code. While the average user may not be able to access them, anyone with true ill intent can simply download your client code, un-minifiy it and use basic regular expressions on the codebase to find things that *look like* sensitive data. Perhaps they've discovered what backend technology you are using or what cloud services your product is based on simply by studying your app's HTTP requests or looking at the page source. Using that information they may be able to refine their search based on certain patterns well-known to users of those technologies, making it easier to find your private keys.
+Do not embed private keys into your JavaScript code. While the average user may not be able to access them, anyone with true ill intent can simply download your client code, un-minifiy it and use basic regular expressions on the codebase to find things that _look like_ sensitive data. Perhaps they've discovered what backend technology you are using or what cloud services your product is based on simply by studying your app's HTTP requests or looking at the page source. Using that information they may be able to refine their search based on certain patterns well-known to users of those technologies, making it easier to find your private keys.
 
-If you have a need to acquire any secret data on the client, it should be done with great care. Here is a (non-exhaustive) list of recommendations:
+If you have a need to acquire any secret data on the client, it should be done with great care. Here is a \(non-exhaustive\) list of recommendations:
 
 * Always use HTTPS to transmit this information.
 * Restrict which users and roles can acquire this information to an absolute minimum.
 * Always use time-outs on any secret keys so that, at most, if an attacker gains access, they can't use them for long.
-* Be careful how you store these values in memory. Do not store these as class property values or on any object that is linked to the DOM through data-binding or otherwise. Doing so would allow an attacker to gain access to the information through the debug console. If you must store this information, keep it inside a private (non-exported) module-level variable.
+* Be careful how you store these values in memory. Do not store these as class property values or on any object that is linked to the DOM through data-binding or otherwise. Doing so would allow an attacker to gain access to the information through the debug console. If you must store this information, keep it inside a private \(non-exported\) module-level variable.
 * If you need to store this information anywhere, encrypt it first.
 
 ## Deployment
@@ -80,3 +89,4 @@ Again, most of this comes down to server-side implementation. Here are a few bas
 Be careful what information you give out, especially when something goes wrong. For example, if there's a failed login attempt, do not tell the user whether they got their username or password incorrect. That's too much information. Just tell them they had an incorrect login. Furthermore, be careful with what error information you send to end-users. You should keep detailed, internal error logs, but most of that information should not be sent to the end user. Too much information can help an attacker take a step closer to causing real damage.
 
 Beyond this, you are under no obligation to provide nice messages of any kind when you know a user is doing something malicious. Just let the application crash. It's fitting for them.
+

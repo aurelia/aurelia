@@ -1,4 +1,4 @@
-# Table of Contents
+# Table of contents
 
 * [Introduction](README.md)
 
@@ -55,13 +55,13 @@
 
 ## API
 
-* [Introduction](api/README.md)
+* [Introduction](api/api.md)
 
 ## Examples
 
-* Custom Attributes
+* [Custom Attributes](examples/custom-attributes/README.md)
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
-* Routing
+* [Routing](examples/routing/README.md)
   * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
 
 ## Resources

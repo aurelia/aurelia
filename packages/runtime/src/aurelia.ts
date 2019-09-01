@@ -49,7 +49,7 @@ type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 export class CompositionRoot<T extends INode = INode> {
   public readonly config: ISinglePageApp<T>;
   public readonly container: IContainer;
-  public readonly host: T & { $au?: Aurelia<T> };
+  public readonly host: T & { $aurelia?: Aurelia<T> };
   public readonly dom: IDOM<T>;
   public readonly strategy: BindingStrategy;
   public readonly lifecycle: ILifecycle;
@@ -284,7 +284,7 @@ export class Aurelia<TNode extends INode = INode> {
   }
 
   private onBeforeStart(root: CompositionRoot<TNode>): void {
-    Reflect.set(root.host, '$au', this);
+    Reflect.set(root.host, '$aurelia', this);
     this._root = root;
     this._isStarting = true;
   }
@@ -303,7 +303,7 @@ export class Aurelia<TNode extends INode = INode> {
   }
 
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
-    Reflect.deleteProperty(root.host, '$au');
+    Reflect.deleteProperty(root.host, '$aurelia');
     this._root = void 0;
     this._isStopping = false;
     this.dispatchEvent(root, 'au-stopped', root.host as Publisher);

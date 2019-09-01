@@ -52,7 +52,7 @@ import {
   CustomAttribute,
 } from './resources/custom-attribute';
 import {
-  CustomElement,
+  CustomElement, CustomElementHost,
 } from './resources/custom-element';
 import {
   Controller,
@@ -172,6 +172,50 @@ export function getTarget(potentialTarget: object): object {
   return potentialTarget;
 }
 
+export function getRefTarget(refHost: INode, refTargetName: string): object {
+  if (refTargetName === 'element') {
+    return refHost;
+  }
+  const $auRefs = refHost.$au;
+  if ($auRefs === void 0) {
+    // todo: code error code, this message is from v1
+    throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
+  }
+  switch (refTargetName) {
+    case 'controller':
+      // this means it supports returning undefined
+      return (refHost as CustomElementHost<INode>).$controller as IController;
+    case 'view':
+      // todo: returns node sequences for fun?
+      throw new Error('Not supported API');
+    case 'view-model':
+        // this means it supports returning undefined
+        return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
+    default:
+      const refTargetController = $auRefs[refTargetName];
+      if (refTargetController === void 0) {
+        throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+      }
+      return refTargetController.viewModel!;
+  }
+}
+
+function setControllerReference<T extends INode = INode>(
+  controller: Controller<T>,
+  host: T,
+  referenceName: string
+): void {
+  let $auRefs = host.$au;
+  if ($auRefs === void 0) {
+    $auRefs = host.$au = new ControllersLookup<T>();
+  }
+  $auRefs[referenceName] = controller;
+}
+
+class ControllersLookup<T extends INode> {
+  [key: string]: IController<T>;
+}
+
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
@@ -196,6 +240,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
       flags,
       instruction as IElementHydrationOptions,
     );
+
+    setControllerReference(controller, controller.host!, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -224,6 +270,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
       flags,
     );
 
+    setControllerReference(controller, target, instruction.res);
+
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
@@ -240,12 +288,14 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
   constructor(
-    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,    @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
+    const renderLocation = dom.convertToRenderLocation(target);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation, false);
     const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -269,6 +319,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       const controllers = renderable.controllers!;
       (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
     }
+
+    setControllerReference(controller, renderLocation, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -329,9 +381,9 @@ export class RefBindingRenderer implements IInstructionRenderer {
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IRefBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IRefBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new RefBinding(expr, getTarget(target), context);
+    const binding = new RefBinding(expr, getRefTarget(target, instruction.to), context);
     addBinding(renderable, binding);
   }
 }

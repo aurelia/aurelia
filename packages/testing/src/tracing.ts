@@ -3,8 +3,9 @@ import {
   Tracer as DebugTracer
 } from '@aurelia/debug';
 import {
-  IAttributeSymbol,
+  ICustomAttributeSymbol,
   INodeSymbol,
+  IPlainAttributeSymbol,
   ISymbol,
 } from '@aurelia/jit';
 import {
@@ -46,7 +47,7 @@ export const SymbolTraceWriter = {
             output += 'null';
           } else {
             if ((p as ISymbol).flags !== undefined) {
-              const symbol = p as INodeSymbol | IAttributeSymbol;
+              const symbol = p as INodeSymbol | IPlainAttributeSymbol | ICustomAttributeSymbol;
               if ('target' in symbol) {
                 //@ts-ignore
                 output += `attr: ${symbol.target}=${symbol.rawValue}`;

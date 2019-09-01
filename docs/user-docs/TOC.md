@@ -6,6 +6,7 @@
 
 * [Quick Start Guide](getting-started/quick-start-guide.md)
 * [Components](getting-started/components.md)
+* [Displaying Basic Data](getting-started/displaying-basic-data.md)
 
 ## Community Contributions
 

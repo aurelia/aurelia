@@ -32,7 +32,16 @@ export interface ISymbol {
   flags: SymbolFlags;
 }
 
-export interface IAttributeSymbol extends ISymbol {
+export interface IAttributeSymbol {
+  syntax: AttrSyntax;
+}
+
+export interface IPlainAttributeSymbol extends IAttributeSymbol {
+  command: IBindingCommand | null;
+  expression: AnyBindingExpression | null;
+}
+
+export interface ICustomAttributeSymbol extends IAttributeSymbol, IResourceAttributeSymbol {
   syntax: AttrSyntax;
 }
 
@@ -60,7 +69,8 @@ export interface ISymbolWithTemplate extends INodeSymbol {
 }
 
 export interface IElementSymbol extends IParentNodeSymbol {
-  attributes: IAttributeSymbol[];
+  customAttributes: ICustomAttributeSymbol[];
+  plainAttributes: IPlainAttributeSymbol[];
   childNodes: INodeSymbol[];
   isTarget: boolean;
 }
@@ -139,7 +149,7 @@ export class ReplacePartSymbol implements ISymbolWithTemplate {
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
-export class CustomAttributeSymbol implements IAttributeSymbol, IResourceAttributeSymbol {
+export class CustomAttributeSymbol implements ICustomAttributeSymbol {
   public flags: SymbolFlags;
   public res: string;
   public syntax: AttrSyntax;
@@ -167,7 +177,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol, IResourceAttribu
  *
  * This will never target a bindable property of a custom attribute or element;
  */
-export class PlainAttributeSymbol implements IAttributeSymbol {
+export class PlainAttributeSymbol implements IPlainAttributeSymbol {
   public flags: SymbolFlags;
   public syntax: AttrSyntax;
   public command: IBindingCommand | null;
@@ -230,13 +240,22 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
   public isContainerless: boolean;
   public marker: INode;
 
-  private _attributes: IAttributeSymbol[] | null;
-  public get attributes(): IAttributeSymbol[] {
-    if (this._attributes == null) {
-      this._attributes = [];
+  private _customAttributes: ICustomAttributeSymbol[] | null;
+  public get customAttributes(): ICustomAttributeSymbol[] {
+    if (this._customAttributes == null) {
+      this._customAttributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
-    return this._attributes;
+    return this._customAttributes;
+  }
+
+  private _plainAttributes: IPlainAttributeSymbol[] | null;
+  public get plainAttributes(): IPlainAttributeSymbol[] {
+    if (this._plainAttributes == null) {
+      this._plainAttributes = [];
+      this.flags |= SymbolFlags.hasAttributes;
+    }
+    return this._plainAttributes;
   }
 
   private _bindings: BindingSymbol[] | null;
@@ -281,7 +300,8 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
       this.isContainerless = false;
       this.marker = null!;
     }
-    this._attributes = null;
+    this._customAttributes = null;
+    this._plainAttributes = null;
     this._bindings = null;
     this._childNodes = null;
     this._parts = null;
@@ -324,13 +344,22 @@ export class PlainElementSymbol implements IElementSymbol {
   public templateController: TemplateControllerSymbol;
   public hasSlots?: boolean;
 
-  private _attributes: IAttributeSymbol[] | null;
-  public get attributes(): IAttributeSymbol[] {
-    if (this._attributes == null) {
-      this._attributes = [];
+  private _customAttributes: ICustomAttributeSymbol[] | null;
+  public get customAttributes(): ICustomAttributeSymbol[] {
+    if (this._customAttributes == null) {
+      this._customAttributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
-    return this._attributes;
+    return this._customAttributes;
+  }
+
+  private _plainAttributes: IPlainAttributeSymbol[] | null;
+  public get plainAttributes(): IPlainAttributeSymbol[] {
+    if (this._plainAttributes == null) {
+      this._plainAttributes = [];
+      this.flags |= SymbolFlags.hasAttributes;
+    }
+    return this._plainAttributes;
   }
 
   private _childNodes: INodeSymbol[] | null;
@@ -347,7 +376,8 @@ export class PlainElementSymbol implements IElementSymbol {
     this.physicalNode = node;
     this.isTarget = false;
     this.templateController = null!;
-    this._attributes = null;
+    this._customAttributes = null;
+    this._plainAttributes = null;
     this._childNodes = null;
   }
 }

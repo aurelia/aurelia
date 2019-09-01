@@ -1,18 +1,12 @@
 import {
-  PLATFORM, RuntimeCompilationResources
+  PLATFORM
 } from '@aurelia/kernel';
 import {
   Aurelia,
-  BindingMode,
   CustomAttribute,
   CustomElement,
-  IController,
-  INode,
-  IRenderLocation,
-  ITemplateCompiler,
-  IViewFactory,
-  LifecycleFlags,
-  TargetedInstructionType as TT
+  CustomElementHost,
+  INode
 } from '@aurelia/runtime';
 import {
   assert,
@@ -38,6 +32,138 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
   });
 
   const testCases: IHarmoniousCompilationTestCase[] = [
+    {
+      title: 'basic surrogate working example with 1 pair of custom attr + event same name',
+      template: '<template focus.bind="hasFocus" focus.trigger="focus = (focus || 0) + 1" tabindex=-1></template>',
+      browserOnly: true,
+      assertFn: async (ctx, host, comp: { hasFocus: boolean; focus: number }) => {
+        assert.equal(comp.hasFocus, undefined, 'comp.hasFocus === undefined');
+        assert.equal(comp.focus, undefined);
+        assert.equal(host.hasAttribute('tabindex'), true);
+
+        host.focus();
+        assert.equal(comp.hasFocus, true, 'comp.hasFocus === true');
+        assert.equal(comp.focus, 1);
+
+        host.blur();
+        assert.equal(comp.hasFocus, false, 'comp.hasFocus === false');
+        assert.equal(comp.focus, 1);
+      }
+    },
+    {
+      title: 'basic surrogate working example with 2 pairs of custom attr + event same names',
+      template: `<template
+        focus.bind="hasFocus"
+        focus.trigger="focus = (focus || 0) + 1"
+        blur.bind="hasFocus"
+        blur.trigger="blur = (blur || 0) + 1"
+        tabindex=-1>
+        <div></div>
+      </template>`,
+      browserOnly: true,
+      assertFn: async (ctx, host, comp: { hasFocus: boolean; focus: number; blur: number }) => {
+        assert.equal(comp.hasFocus, undefined, 'comp.hasFocus === undefined');
+        assert.equal(comp.focus, undefined);
+        assert.equal(comp.blur, undefined);
+        assert.equal(host.hasAttribute('tabindex'), true);
+
+        host.focus();
+        assert.equal(comp.hasFocus, true, 'comp.hasFocus === true (1)');
+        assert.equal(comp.focus, 1);
+        assert.equal(comp.blur, undefined);
+
+        host.blur();
+        assert.equal(comp.hasFocus, false, 'comp.hasFocus === false (1)');
+        assert.equal(comp.focus, 1);
+        assert.equal(comp.blur, 1);
+
+        comp.hasFocus = true;
+        await waitForFrames(1);
+        assert.strictEqual(ctx.doc.activeElement, host);
+        assert.equal(comp.focus, 2);
+        const div = host.querySelector('div');
+        div.click();
+        assert.equal(comp.focus, 2);
+        assert.equal(comp.blur, 1);
+      }
+    },
+    {
+      title: 'surrogate on custom element (non-root) with 1 pair of custom attr + event same names',
+      template: '<c-e></c-e>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'c-e',
+            template:
+              `<template
+                focus.bind="hasFocus"
+                focus.trigger="focus = (focus || 0) + 1"
+                tabindex="-1"></template>`
+          },
+          class CE {}
+        )
+      ],
+      browserOnly: true,
+      assertFn: async (ctx, host) => {
+        const ceEl = host.querySelector('c-e') as CustomElementHost<HTMLElement>;
+        const $ceViewModel = ceEl.$controller.viewModel as { hasFocus: boolean; focus: number; blur: number };
+        assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
+        assert.equal($ceViewModel.focus, undefined);
+        assert.equal(ceEl.hasAttribute('tabindex'), true, 'host.hasAttribute(tabindex)');
+
+        ceEl.focus();
+        assert.equal($ceViewModel.hasFocus, true, '$ceViewModel.hasFocus === true');
+        assert.equal($ceViewModel.focus, 1);
+
+        ceEl.blur();
+        assert.equal($ceViewModel.hasFocus, false, '$ceViewModel.hasFocus === false');
+        assert.equal($ceViewModel.focus, 1);
+      }
+    },
+    ...Array.from({ length: 10 }, (_, idx) => {
+      return {
+        title: `surrogate on recursive c-e, level ${idx}`,
+        template:
+          `<c-e lvl.bind="${idx}">`,
+        resources: [
+          CustomElement.define(
+            {
+              name: 'c-e',
+              template:
+                // todo: interpolation on surrogate does not work
+                // todo: attr command on surrogate does not work
+                `<template
+                  focus.to-view="lvl === ${idx}"
+                  focus.trigger="focus = (focus || 0) + 1"
+                  tabindex="-1">
+                  <c-e if.bind="lvl < ${idx}" lvl.bind="lvl + 1" ></c-e>
+                </template>`,
+              bindables: ['lvl']
+            },
+            class Ce {
+              public static inject = [INode];
+              public lvl: number;
+              constructor(
+                private el: HTMLElement
+              ) {}
+
+              public binding() {
+                this.el.setAttribute('lvl', `lvl-${this.lvl}`);
+              }
+            }
+          )
+        ],
+        assertFn: async (ctx, host) => {
+          // it should work
+          // todo: self-recursive does not work
+          // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
+          const leafCeHost = host.querySelector(`[lvl=lvl-${idx}]`) as CustomElementHost<HTMLElement>;
+          const $leafCeVm = leafCeHost.$controller.viewModel as { focus: number };
+          assert.strictEqual(ctx.doc.activeElement, leafCeHost, `activeElement === <c-e lvl=lvl-${idx}>`);
+          assert.equal($leafCeVm.focus, 1);
+        }
+      };
+    }) as IHarmoniousCompilationTestCase[],
     {
       title: 'basic custom attr + event binding command',
       template: `<input blur.bind="hasFocus" blur.trigger="hasFocus = true">`,
@@ -192,8 +318,9 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     if (!PLATFORM.isBrowserLike && browserOnly) {
       return;
     }
-    it(`(${idx + 1}). ${title}`, async function() {
+    it(`\n\t(${idx + 1}). ${title}\n\t`, async function() {
       let host: HTMLElement;
+      let body: HTMLElement;
       try {
         const ctx = TestContext.createHTMLTestContext();
         const comp = new (CustomElement.define(
@@ -203,6 +330,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           },
           class App {}
         ))();
+        body = ctx.doc.body;
 
         host = ctx.doc.body.appendChild(ctx.createElement('app'));
         ctx.container.register(...resources);
@@ -218,6 +346,10 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         if (host) {
           host.remove();
         }
+        if (body) {
+          body.focus();
+        }
+        await waitForFrames(2);
       }
     });
   });
@@ -231,31 +363,5 @@ interface IExpectedInstruction {
 async function waitForFrames(frameCount: number): Promise<void> {
   while (frameCount-- > 0) {
     await new Promise(PLATFORM.requestAnimationFrame);
-  }
-}
-
-function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
-  assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
-  for (let i = 0, ii = actual.length; i < ii; ++i) {
-    const actualInst = actual[i];
-    const expectedInst = expectation[i];
-    const ofType = type ? `of ${type}` : '';
-    for (const prop of expectedInst.toVerify) {
-      // tslint:disable-next-line:no-all-duplicated-branches
-      if (expectedInst[prop] instanceof Object) {
-        assert.deepStrictEqual(
-          actualInst[prop],
-          expectedInst[prop],
-          `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
-        );
-        // tslint:disable-next-line:no-duplicated-branches
-      } else {
-        assert.deepStrictEqual(
-          actualInst[prop],
-          expectedInst[prop],
-          `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
-        );
-      }
-    }
   }
 }

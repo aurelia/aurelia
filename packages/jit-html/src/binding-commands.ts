@@ -5,7 +5,7 @@ import {
   IBindingCommand,
   PlainAttributeSymbol,
 } from '@aurelia/jit';
-import { BindingType, IsBindingBehavior } from '@aurelia/runtime';
+import { BindingType, IsBindingBehavior, RefBindingInstruction } from '@aurelia/runtime';
 import {
   AttributeBindingInstruction,
   CaptureBindingInstruction,
@@ -84,5 +84,17 @@ export class ClassBindingCommand implements IBindingCommand {
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
     return new AttributeBindingInstruction('class', binding.expression as IsBindingBehavior, getTarget(binding, false));
+  }
+}
+
+/**
+ * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+ */
+@bindingCommand('ref')
+export class RefBindingCommand implements IBindingCommand {
+  public readonly bindingType: BindingType.IsProperty | BindingType.IgnoreCustomAttr = BindingType.IsProperty | BindingType.IgnoreCustomAttr;
+
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction {
+    return new RefBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }

@@ -15,6 +15,7 @@ import {
   CaptureBindingCommand,
   ClassBindingCommand,
   DelegateBindingCommand,
+  RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand
 } from './binding-commands';
@@ -46,6 +47,7 @@ export const JitAttrBindingSyntax = [
   AttrAttributePattern
 ];
 
+export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
@@ -58,6 +60,7 @@ export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
  */
 export const DefaultBindingLanguage = [
+  RefBindingCommandRegistration,
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,

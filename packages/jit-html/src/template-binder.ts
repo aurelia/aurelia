@@ -103,6 +103,8 @@ export class TemplateBinder {
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
     const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
+    const resources = this.resources;
+    const attrSyntaxTransformer = this.attrSyntaxTransformer;
 
     const attributes = node.attributes;
     let i = 0;
@@ -114,14 +116,26 @@ export class TemplateBinder {
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
-      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
-      if (attrInfo == null) {
-        this.bindPlainAttribute(attrSyntax, attr);
-      } else if (attrInfo.isTemplateController) {
-        throw new Error('Cannot have template controller on surrogate element.');
-        // TODO: use reporter
+      const bindingCommand = resources.getBindingCommand(attrSyntax, true);
+      if (bindingCommand == null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = resources.getAttributeInfo(attrSyntax);
+
+        if (attrInfo == null) {
+          // map special html attributes to their corresponding properties
+          attrSyntaxTransformer.transform(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(attrSyntax, attr);
+        } else if (attrInfo.isTemplateController) {
+          throw new Error('Cannot have template controller on surrogate element.');
+          // TODO: use reporter
+        } else {
+          this.bindCustomAttribute(attrSyntax, attrInfo);
+        }
       } else {
-        this.bindCustomAttribute(attrSyntax, attrInfo);
+        // map special html attributes to their corresponding properties
+        attrSyntaxTransformer.transform(node, attrSyntax);
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        this.bindPlainAttribute(attrSyntax, attr);
       }
       ++i;
     }
@@ -400,8 +414,9 @@ export class TemplateBinder {
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
-    this.manifest!.attributes.push(symbol);
-    this.manifest!.isTarget = true;
+    const manifest = this.manifest!;
+    manifest.customAttributes.push(symbol);
+    manifest.isTarget = true;
 
   }
 
@@ -430,42 +445,44 @@ export class TemplateBinder {
 
     const command = this.resources.getBindingCommand(attrSyntax, false);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
-    const manifest = this.manifest;
+    const manifest = this.manifest!;
+    const attrTarget = attrSyntax.target;
+    const attrRawValue = attrSyntax.rawValue;
     let expr: AnyBindingExpression;
     if (
-      attrSyntax.rawValue.length === 0
+      attrRawValue.length === 0
       && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
     ) {
       if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
         // Default to the name of the attr for empty binding commands
-        expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+        expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
       } else {
         return;
       }
     } else {
-      expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      expr = this.exprParser.parse(attrRawValue, bindingType);
     }
 
-    if (manifest!.flags & SymbolFlags.isCustomElement) {
-      const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
+    if (manifest.flags & SymbolFlags.isCustomElement) {
+      const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
       if (bindable != null) {
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
-        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
-        manifest!.isTarget = true;
-      } else if (expr != null || attrSyntax.target === 'ref') {
+        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
+        manifest.isTarget = true;
+      } else if (expr != null) {
         // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
-        manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-        manifest!.isTarget = true;
+        manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+        manifest.isTarget = true;
       }
-    } else if (expr != null || attrSyntax.target === 'ref') {
+    } else if (expr != null) {
       // either a binding command, an interpolation, or a ref
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-      manifest!.isTarget = true;
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.isTarget = true;
     } else if (manifest === this.surrogate) {
       // any attributes, even if they are plain (no command/interpolation etc), should be added if they
       // are on the surrogate element
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 
     if (command == null && expr != null) {

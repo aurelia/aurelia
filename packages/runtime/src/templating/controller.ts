@@ -15,12 +15,12 @@ import {
   HooksDefinition,
   IAttributeDefinition,
   IBindableDescription,
+  IChildrenObserverDescription,
   IElementHydrationOptions,
   IHydrateElementInstruction,
   IHydrateTemplateController,
   ITemplateDefinition,
-  TemplateDefinition,
-  IChildrenObserverDescription
+  TemplateDefinition
 } from '../definitions';
 import {
   IDOM,
@@ -63,7 +63,9 @@ import {
   SelfObserver,
 } from '../observation/self-observer';
 import {
-  IRenderingEngine, ITemplate, ChildrenObserver,
+  ChildrenObserver,
+  IRenderingEngine,
+  ITemplate,
 } from '../rendering-engine';
 import {
   ICustomElementType,
@@ -155,6 +157,8 @@ export class Controller<
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
 
+  // todo: refactor
+  // tslint:disable-next-line:cognitive-complexity
   constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
@@ -1012,9 +1016,9 @@ function createObservers(
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
   const lifecycle = controller.lifecycle;
-  let hasChildrenObservers = 'childrenObservers' in description;
+  const hasChildrenObservers = 'childrenObservers' in description;
 
-  const { length } = observableNames;
+  const length = observableNames.length;
   let name: string;
   for (let i = 0; i < length; ++i) {
     name = observableNames[i];

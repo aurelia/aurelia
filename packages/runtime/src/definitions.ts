@@ -171,6 +171,7 @@ export interface ICallBindingInstruction extends ITargetedInstruction {
 export interface IRefBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.refBinding;
   from: string | IsBindingBehavior;
+  to: string;
 }
 
 export interface ISetPropertyInstruction extends ITargetedInstruction {

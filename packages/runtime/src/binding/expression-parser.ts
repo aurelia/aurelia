@@ -134,7 +134,7 @@ export const enum BindingType {
                 None = 0,
     IgnoreCustomAttr = 0b100000000_0000,
        Interpolation = 0b010000000_0000,
-          IsRef      = 0b001010000_0000,
+          IsRef      = 0b101010000_0000,
           IsIterator = 0b000100000_0000,
           IsCustom   = 0b000010000_0000,
           IsFunction = 0b000001000_0000,

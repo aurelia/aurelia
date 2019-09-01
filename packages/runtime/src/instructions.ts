@@ -138,12 +138,11 @@ export class CallBindingInstruction implements ICallBindingInstruction {
 export class RefBindingInstruction implements IRefBindingInstruction {
   public type: TargetedInstructionType.refBinding;
 
-  public from: string | IsBindingBehavior;
-
-  constructor(from: string | IsBindingBehavior) {
+  constructor(
+    public readonly from: string | IsBindingBehavior,
+    public readonly to: string
+  ) {
     this.type = TargetedInstructionType.refBinding;
-
-    this.from = from;
   }
 }
 

@@ -1,4 +1,4 @@
-# Table of contents
+# Table of Contents
 
 * [Introduction](README.md)
 
@@ -7,6 +7,9 @@
 * [Quick Start Guide](getting-started/quick-start-guide.md)
 * [Components](getting-started/components.md)
 * [Displaying Basic Data](getting-started/displaying-basic-data.md)
+* [Rendering Collections](getting-started/rendering-collections.md)
+* [Conditional Rendering](getting-started/conditional-rendering.md)
+* [Handling Events](getting-started/handling-events.md)
 
 ## Community Contributions
 

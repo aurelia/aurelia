@@ -14,3 +14,10 @@ So, you've been scouring the interwebs and have managed to find yourself here, o
 
 Placeholder...
 
+## Using the Docs
+
+Placeholder...
+
+## Creating Your First Aurelia App
+
+Placeholder...

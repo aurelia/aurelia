@@ -3,10 +3,11 @@ import {
   CustomAttributeSymbol,
   CustomElementSymbol,
   IAttributeParser,
-  IAttributeSymbol,
+  ICustomAttributeSymbol,
   IElementSymbol,
   INodeSymbol,
   IParentNodeSymbol,
+  IPlainAttributeSymbol,
   ISymbolWithBindings,
   LetElementSymbol,
   PlainAttributeSymbol,
@@ -122,16 +123,24 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.parts = {};
     this.scopeParts = definition.scopeParts as (readonly string[]) & string[];
 
-    const attributes = surrogate.attributes;
-    const len = attributes.length;
-    if (len > 0) {
+    const customAttributes = surrogate.customAttributes;
+    const plainAttributes = surrogate.plainAttributes;
+    const customAttributeLength = customAttributes.length;
+    const plainAttributeLength = plainAttributes.length;
+    if (customAttributeLength + plainAttributeLength > 0) {
       let surrogates: ITargetedInstruction[];
       if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
-        definition.surrogates = Array(len);
+        definition.surrogates = Array(plainAttributeLength);
       }
       surrogates = definition.surrogates;
-      for (let i = 0; i < len; ++i) {
-        surrogates[i] = this.compileAttribute(attributes[i]);
+      let offset = 0;
+      for (let i = 0; customAttributeLength > i; ++i) {
+        surrogates[offset] = this.compileCustomAttribute(customAttributes[i] as CustomAttributeSymbol);
+        offset++;
+      }
+      for (let i = 0; i < plainAttributeLength; ++i) {
+        surrogates[offset] = this.compilePlainAttribute(plainAttributes[i] as PlainAttributeSymbol);
+        offset++;
       }
     }
 
@@ -276,11 +285,18 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attributeInstructions: HTMLAttributeInstruction[];
     if (symbol.flags & SymbolFlags.hasAttributes) {
       // any attributes on a custom element (which are not bindables) or a plain element
-      const { attributes } = symbol;
-      const len = attributes.length;
-      attributeInstructions = Array(offset + len);
-      for (let i = 0; i < len; ++i) {
-        attributeInstructions[i + offset] = this.compileAttribute(attributes[i]);
+      const customAttributes = symbol.customAttributes;
+      const plainAttributes = symbol.plainAttributes;
+      const customAttributeLength = customAttributes.length;
+      const plainAttributesLength = plainAttributes.length;
+      attributeInstructions = Array(offset + customAttributeLength + plainAttributesLength);
+      for (let i = 0; customAttributeLength > i; ++i) {
+        attributeInstructions[offset] = this.compileCustomAttribute(customAttributes[i] as CustomAttributeSymbol);
+        offset++;
+      }
+      for (let i = 0; plainAttributesLength > i; ++i) {
+        attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i] as PlainAttributeSymbol);
+        offset++;
       }
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
@@ -311,17 +327,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  private compileAttribute(symbol: IAttributeSymbol): HTMLAttributeInstruction {
-    if (symbol.syntax.command === 'ref') {
-      return new RefBindingInstruction(symbol.syntax.rawValue, symbol.syntax.target);
-    }
-    // any attribute on a custom element (which is not a bindable) or a plain element
-    if (symbol.flags & SymbolFlags.isCustomAttribute) {
-      return this.compileCustomAttribute(symbol as CustomAttributeSymbol);
-    } else {
-      return this.compilePlainAttribute(symbol as PlainAttributeSymbol);
-    }
-  }
+  // private compileAttribute(symbol: IAttributeSymbol): HTMLAttributeInstruction {
+  //   // any attribute on a custom element (which is not a bindable) or a plain element
+  //   if (symbol.flags & SymbolFlags.isCustomAttribute) {
+  //     return this.compileCustomAttribute(symbol as CustomAttributeSymbol);
+  //   } else {
+  //     return this.compilePlainAttribute(symbol as PlainAttributeSymbol);
+  //   }
+  // }
 
   private compileParts(symbol: CustomElementSymbol): Record<string, ITemplateDefinition> {
     let parts: Record<string, ITemplateDefinition>;

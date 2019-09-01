@@ -415,16 +415,7 @@ export class TemplateBinder {
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
     const manifest = this.manifest!;
-    const attributes = manifest.attributes;
-    let firstCustomAttrIndex = 0;
-    for (let i = 0, ii = attributes.length; ii > i; ++i) {
-      if ((attributes[i].flags & SymbolFlags.isCustomAttribute) > 0) {
-        firstCustomAttrIndex = i;
-      } else {
-        break;
-      }
-    }
-    attributes.splice(firstCustomAttrIndex, 0, symbol);
+    manifest.customAttributes.push(symbol);
     manifest.isTarget = true;
 
   }
@@ -454,7 +445,7 @@ export class TemplateBinder {
 
     const command = this.resources.getBindingCommand(attrSyntax, false);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
-    const manifest = this.manifest;
+    const manifest = this.manifest!;
     const attrTarget = attrSyntax.target;
     const attrRawValue = attrSyntax.rawValue;
     let expr: AnyBindingExpression;
@@ -472,37 +463,26 @@ export class TemplateBinder {
       expr = this.exprParser.parse(attrRawValue, bindingType);
     }
 
-    const attrCommand = attrSyntax.command;
-    if (attrCommand === 'ref') {
-      if (command == null) {
-        // todo: proper code
-        throw new Error(`It appears ref binding command is used, without corresponding binding command on <${attr.ownerElement!.tagName}/>`);
-      }
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-      manifest!.isTarget = true;
-      return;
-    }
-
-    if (manifest!.flags & SymbolFlags.isCustomElement) {
+    if (manifest.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
       if (bindable != null) {
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
-        manifest!.isTarget = true;
+        manifest.isTarget = true;
       } else if (expr != null) {
         // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
-        manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-        manifest!.isTarget = true;
+        manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+        manifest.isTarget = true;
       }
     } else if (expr != null) {
       // either a binding command, an interpolation, or a ref
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-      manifest!.isTarget = true;
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.isTarget = true;
     } else if (manifest === this.surrogate) {
       // any attributes, even if they are plain (no command/interpolation etc), should be added if they
       // are on the surrogate element
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 
     if (command == null && expr != null) {

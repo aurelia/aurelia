@@ -6,12 +6,14 @@ import { AggregateContinuationTask, ContinuationTask, hasAsyncWork, LifecycleTas
 import { Scope, } from '../observation/binding-context';
 import { ProxyObserver, } from '../observation/proxy-observer';
 import { SelfObserver, } from '../observation/self-observer';
-import { IRenderingEngine, ChildrenObserver, } from '../rendering-engine';
+import { ChildrenObserver, IRenderingEngine, } from '../rendering-engine';
 import { IProjectorLocator } from '../resources/custom-element';
 function hasDescription(type) {
     return type.description != void 0;
 }
 export class Controller {
+    // todo: refactor
+    // tslint:disable-next-line:cognitive-complexity
     constructor(flags, viewCache, lifecycle, viewModel, parentContext, host, options) {
         this.id = nextId('au$component');
         this.nextBound = void 0;
@@ -668,8 +670,8 @@ function createObservers(controller, description, flags, instance) {
     const observableNames = Object.getOwnPropertyNames(bindables);
     const useProxy = (flags & 2 /* proxyStrategy */) > 0;
     const lifecycle = controller.lifecycle;
-    let hasChildrenObservers = 'childrenObservers' in description;
-    const { length } = observableNames;
+    const hasChildrenObservers = 'childrenObservers' in description;
+    const length = observableNames.length;
     let name;
     for (let i = 0; i < length; ++i) {
         name = observableNames[i];

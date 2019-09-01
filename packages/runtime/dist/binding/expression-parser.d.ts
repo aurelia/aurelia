@@ -11,7 +11,7 @@ export declare const enum BindingType {
     None = 0,
     IgnoreCustomAttr = 4096,
     Interpolation = 2048,
-    IsRef = 1280,
+    IsRef = 5376,
     IsIterator = 512,
     IsCustom = 256,
     IsFunction = 128,

@@ -1,5 +1,6 @@
 import * as tslib_1 from "tslib";
 import { bindingCommand, getTarget, } from '@aurelia/jit';
+import { RefBindingInstruction } from '@aurelia/runtime';
 import { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, TriggerBindingInstruction } from '@aurelia/runtime-html';
 /**
  * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
@@ -110,4 +111,22 @@ ClassBindingCommand = tslib_1.__decorate([
     bindingCommand('class')
 ], ClassBindingCommand);
 export { ClassBindingCommand };
+/**
+ * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+ */
+let RefBindingCommand = class RefBindingCommand {
+    /**
+     * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+     */
+    constructor() {
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
+    }
+    compile(binding) {
+        return new RefBindingInstruction(binding.expression, getTarget(binding, false));
+    }
+};
+RefBindingCommand = tslib_1.__decorate([
+    bindingCommand('ref')
+], RefBindingCommand);
+export { RefBindingCommand };
 //# sourceMappingURL=binding-commands.js.map

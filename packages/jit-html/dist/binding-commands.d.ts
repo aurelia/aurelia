@@ -1,5 +1,5 @@
 import { BindingSymbol, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
-import { BindingType } from '@aurelia/runtime';
+import { BindingType, RefBindingInstruction } from '@aurelia/runtime';
 import { HTMLAttributeInstruction } from '@aurelia/runtime-html';
 /**
  * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
@@ -42,5 +42,12 @@ export declare class StyleBindingCommand implements IBindingCommand {
 export declare class ClassBindingCommand implements IBindingCommand {
     readonly bindingType: BindingType.IsProperty;
     compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction;
+}
+/**
+ * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+ */
+export declare class RefBindingCommand implements IBindingCommand {
+    readonly bindingType: BindingType.IsProperty | BindingType.IgnoreCustomAttr;
+    compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction;
 }
 //# sourceMappingURL=binding-commands.d.ts.map

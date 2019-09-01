@@ -57,9 +57,10 @@ export class CallBindingInstruction {
     }
 }
 export class RefBindingInstruction {
-    constructor(from) {
-        this.type = "rj" /* refBinding */;
+    constructor(from, to) {
         this.from = from;
+        this.to = to;
+        this.type = "rj" /* refBinding */;
     }
 }
 export class SetPropertyInstruction {

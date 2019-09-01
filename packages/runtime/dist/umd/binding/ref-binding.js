@@ -44,10 +44,12 @@
             }
             // add isUnbinding flag
             this.$state |= 2 /* isUnbinding */;
-            if (this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part) === this.target) {
-                this.sourceExpression.assign(flags, this.$scope, this.locator, null, this.part);
+            let sourceExpression = this.sourceExpression;
+            if (sourceExpression.evaluate(flags, this.$scope, this.locator, this.part) === this.target) {
+                sourceExpression.assign(flags, this.$scope, this.locator, null, this.part);
             }
-            const sourceExpression = this.sourceExpression;
+            // source expression might have been modified durring assign, via a BB
+            sourceExpression = this.sourceExpression;
             if (ast_1.hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this);
             }

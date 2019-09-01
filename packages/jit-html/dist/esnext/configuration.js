@@ -2,7 +2,7 @@ import { DefaultBindingLanguage as JitDefaultBindingLanguage, DefaultBindingSynt
 import { DI } from '@aurelia/kernel';
 import { BasicConfiguration as RuntimeHtmlBasicConfiguration } from '@aurelia/runtime-html';
 import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
-import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-commands';
+import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, RefBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-commands';
 import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
@@ -27,6 +27,7 @@ export const JitAttrBindingSyntax = [
     ClassAttributePattern,
     AttrAttributePattern
 ];
+export const RefBindingCommandRegistration = RefBindingCommand;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand;
@@ -38,6 +39,7 @@ export const StyleBindingCommandRegistration = StyleBindingCommand;
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
  */
 export const DefaultBindingLanguage = [
+    RefBindingCommandRegistration,
     TriggerBindingCommandRegistration,
     DelegateBindingCommandRegistration,
     CaptureBindingCommandRegistration,

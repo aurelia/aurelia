@@ -23,6 +23,8 @@
         return type.description != void 0;
     }
     class Controller {
+        // todo: refactor
+        // tslint:disable-next-line:cognitive-complexity
         constructor(flags, viewCache, lifecycle, viewModel, parentContext, host, options) {
             this.id = kernel_1.nextId('au$component');
             this.nextBound = void 0;
@@ -680,8 +682,8 @@
         const observableNames = Object.getOwnPropertyNames(bindables);
         const useProxy = (flags & 2 /* proxyStrategy */) > 0;
         const lifecycle = controller.lifecycle;
-        let hasChildrenObservers = 'childrenObservers' in description;
-        const { length } = observableNames;
+        const hasChildrenObservers = 'childrenObservers' in description;
+        const length = observableNames.length;
         let name;
         for (let i = 0; i < length; ++i) {
             name = observableNames[i];

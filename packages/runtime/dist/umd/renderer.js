@@ -126,6 +126,43 @@
         return potentialTarget;
     }
     exports.getTarget = getTarget;
+    function getRefTarget(refHost, refTargetName) {
+        if (refTargetName === 'element') {
+            return refHost;
+        }
+        const $auRefs = refHost.$au;
+        if ($auRefs === void 0) {
+            // todo: code error code, this message is from v1
+            throw new Error(`No Aurelia APIs are defined for the element: "${refHost.tagName}".`);
+        }
+        switch (refTargetName) {
+            case 'controller':
+                // this means it supports returning undefined
+                return refHost.$controller;
+            case 'view':
+                // todo: returns node sequences for fun?
+                throw new Error('Not supported API');
+            case 'view-model':
+                // this means it supports returning undefined
+                return refHost.$controller.viewModel;
+            default:
+                const refTargetController = $auRefs[refTargetName];
+                if (refTargetController === void 0) {
+                    throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+                }
+                return refTargetController.viewModel;
+        }
+    }
+    exports.getRefTarget = getRefTarget;
+    function setControllerReference(controller, host, referenceName) {
+        let $auRefs = host.$au;
+        if ($auRefs === void 0) {
+            $auRefs = host.$au = new ControllersLookup();
+        }
+        $auRefs[referenceName] = controller;
+    }
+    class ControllersLookup {
+    }
     let SetPropertyRenderer = 
     /** @internal */
     class SetPropertyRenderer {
@@ -147,6 +184,7 @@
             const instructionRenderers = context.get(rendering_engine_1.IRenderer).instructionRenderers;
             const childInstructions = instruction.instructions;
             const controller = controller_1.Controller.forCustomElement(component, context, target, flags, instruction);
+            setControllerReference(controller, controller.host, instruction.res);
             let current;
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 current = childInstructions[i];
@@ -170,6 +208,7 @@
             const instructionRenderers = context.get(rendering_engine_1.IRenderer).instructionRenderers;
             const childInstructions = instruction.instructions;
             const controller = controller_1.Controller.forCustomAttribute(component, context, flags);
+            setControllerReference(controller, target, instruction.res);
             let current;
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 current = childInstructions[i];
@@ -193,7 +232,8 @@
         }
         render(flags, dom, context, renderable, target, instruction, parts) {
             const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
-            const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
+            const renderLocation = dom.convertToRenderLocation(target);
+            const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation, false);
             const component = context.get(custom_attribute_1.CustomAttribute.keyFrom(instruction.res));
             const instructionRenderers = context.get(rendering_engine_1.IRenderer).instructionRenderers;
             const childInstructions = instruction.instructions;
@@ -216,6 +256,7 @@
                 const controllers = renderable.controllers;
                 component.link(controllers[controllers.length - 1]);
             }
+            setControllerReference(controller, renderLocation, instruction.res);
             let current;
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 current = childInstructions[i];
@@ -229,7 +270,8 @@
         instructionRenderer("rc" /* hydrateTemplateController */)
         /** @internal */
         ,
-        tslib_1.__param(0, rendering_engine_1.IRenderingEngine), tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(0, rendering_engine_1.IRenderingEngine),
+        tslib_1.__param(1, observer_locator_1.IObserverLocator)
     ], TemplateControllerRenderer);
     exports.TemplateControllerRenderer = TemplateControllerRenderer;
     let LetElementRenderer = 
@@ -290,8 +332,8 @@
             this.parser = parser;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
-            const binding = new ref_binding_1.RefBinding(expr, getTarget(target), context);
+            const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
+            const binding = new ref_binding_1.RefBinding(expr, getRefTarget(target, instruction.to), context);
             addBinding(renderable, binding);
         }
     };

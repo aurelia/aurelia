@@ -1,5 +1,7 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
+import { IController } from './lifecycle';
 export interface INode extends Object {
+    $au?: Record<string, IController<this>>;
 }
 export declare const INode: import("@aurelia/kernel").InterfaceSymbol<INode>;
 export declare const IRenderLocation: import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<INode>>;

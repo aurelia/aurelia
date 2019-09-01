@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const jit_1 = require("@aurelia/jit");
+    const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     /**
      * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
@@ -121,5 +122,23 @@
         jit_1.bindingCommand('class')
     ], ClassBindingCommand);
     exports.ClassBindingCommand = ClassBindingCommand;
+    /**
+     * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+     */
+    let RefBindingCommand = class RefBindingCommand {
+        /**
+         * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+         */
+        constructor() {
+            this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
+        }
+        compile(binding) {
+            return new runtime_1.RefBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+        }
+    };
+    RefBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('ref')
+    ], RefBindingCommand);
+    exports.RefBindingCommand = RefBindingCommand;
 });
 //# sourceMappingURL=binding-commands.js.map

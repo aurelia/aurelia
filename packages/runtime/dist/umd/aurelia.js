@@ -204,7 +204,7 @@
             return this.task.wait();
         }
         onBeforeStart(root) {
-            Reflect.set(root.host, '$au', this);
+            Reflect.set(root.host, '$aurelia', this);
             this._root = root;
             this._isStarting = true;
         }
@@ -220,7 +220,7 @@
             this._isStopping = true;
         }
         onAfterStop(root) {
-            Reflect.deleteProperty(root.host, '$au');
+            Reflect.deleteProperty(root.host, '$aurelia');
             this._root = void 0;
             this._isStopping = false;
             this.dispatchEvent(root, 'au-stopped', root.host);

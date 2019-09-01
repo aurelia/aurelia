@@ -5,7 +5,7 @@ export declare class DotSeparatedAttributePattern {
 }
 export declare class RefAttributePattern {
     ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-    ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
+    ['PART.ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
 }
 export declare class ColonPrefixedBindAttributePattern {
     [':PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;

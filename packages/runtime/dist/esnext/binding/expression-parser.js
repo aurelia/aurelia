@@ -88,7 +88,7 @@ export var BindingType;
     BindingType[BindingType["None"] = 0] = "None";
     BindingType[BindingType["IgnoreCustomAttr"] = 4096] = "IgnoreCustomAttr";
     BindingType[BindingType["Interpolation"] = 2048] = "Interpolation";
-    BindingType[BindingType["IsRef"] = 1280] = "IsRef";
+    BindingType[BindingType["IsRef"] = 5376] = "IsRef";
     BindingType[BindingType["IsIterator"] = 512] = "IsIterator";
     BindingType[BindingType["IsCustom"] = 256] = "IsCustom";
     BindingType[BindingType["IsFunction"] = 128] = "IsFunction";

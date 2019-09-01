@@ -38,6 +38,7 @@
         attribute_patterns_1.ClassAttributePattern,
         attribute_patterns_1.AttrAttributePattern
     ];
+    exports.RefBindingCommandRegistration = binding_commands_1.RefBindingCommand;
     exports.TriggerBindingCommandRegistration = binding_commands_1.TriggerBindingCommand;
     exports.DelegateBindingCommandRegistration = binding_commands_1.DelegateBindingCommand;
     exports.CaptureBindingCommandRegistration = binding_commands_1.CaptureBindingCommand;
@@ -49,6 +50,7 @@
      * - Event listeners: `.trigger`, `.delegate`, `.capture`
      */
     exports.DefaultBindingLanguage = [
+        exports.RefBindingCommandRegistration,
         exports.TriggerBindingCommandRegistration,
         exports.DelegateBindingCommandRegistration,
         exports.CaptureBindingCommandRegistration,

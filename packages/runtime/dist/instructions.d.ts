@@ -52,9 +52,10 @@ export declare class CallBindingInstruction implements ICallBindingInstruction {
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class RefBindingInstruction implements IRefBindingInstruction {
+    readonly from: string | IsBindingBehavior;
+    readonly to: string;
     type: TargetedInstructionType.refBinding;
-    from: string | IsBindingBehavior;
-    constructor(from: string | IsBindingBehavior);
+    constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class SetPropertyInstruction implements ISetPropertyInstruction {
     type: TargetedInstructionType.setProperty;

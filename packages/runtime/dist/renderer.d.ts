@@ -14,6 +14,7 @@ export declare function ensureExpression<TFrom>(parser: IExpressionParser, srcOr
 export declare function addBinding(renderable: IController, binding: IBinding): void;
 export declare function addComponent(renderable: IController, component: IController): void;
 export declare function getTarget(potentialTarget: object): object;
+export declare function getRefTarget(refHost: INode, refTargetName: string): object;
 export declare class SetPropertyRenderer implements IInstructionRenderer {
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ISetPropertyInstruction): void;
 }
@@ -44,7 +45,7 @@ export declare class CallBindingRenderer implements IInstructionRenderer {
 export declare class RefBindingRenderer implements IInstructionRenderer {
     private readonly parser;
     constructor(parser: IExpressionParser);
-    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IRefBindingInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IRefBindingInstruction): void;
 }
 export declare class InterpolationBindingRenderer implements IInstructionRenderer {
     private readonly parser;

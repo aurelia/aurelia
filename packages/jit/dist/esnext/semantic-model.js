@@ -122,12 +122,19 @@ export class BindingSymbol {
  * or the value of its `as-element` attribute.
  */
 export class CustomElementSymbol {
-    get attributes() {
-        if (this._attributes == null) {
-            this._attributes = [];
+    get customAttributes() {
+        if (this._customAttributes == null) {
+            this._customAttributes = [];
             this.flags |= 2048 /* hasAttributes */;
         }
-        return this._attributes;
+        return this._customAttributes;
+    }
+    get plainAttributes() {
+        if (this._plainAttributes == null) {
+            this._plainAttributes = [];
+            this.flags |= 2048 /* hasAttributes */;
+        }
+        return this._plainAttributes;
     }
     get bindings() {
         if (this._bindings == null) {
@@ -166,7 +173,8 @@ export class CustomElementSymbol {
             this.isContainerless = false;
             this.marker = null;
         }
-        this._attributes = null;
+        this._customAttributes = null;
+        this._plainAttributes = null;
         this._bindings = null;
         this._childNodes = null;
         this._parts = null;
@@ -194,12 +202,19 @@ export class LetElementSymbol {
  * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
  */
 export class PlainElementSymbol {
-    get attributes() {
-        if (this._attributes == null) {
-            this._attributes = [];
+    get customAttributes() {
+        if (this._customAttributes == null) {
+            this._customAttributes = [];
             this.flags |= 2048 /* hasAttributes */;
         }
-        return this._attributes;
+        return this._customAttributes;
+    }
+    get plainAttributes() {
+        if (this._plainAttributes == null) {
+            this._plainAttributes = [];
+            this.flags |= 2048 /* hasAttributes */;
+        }
+        return this._plainAttributes;
     }
     get childNodes() {
         if (this._childNodes == null) {
@@ -213,7 +228,8 @@ export class PlainElementSymbol {
         this.physicalNode = node;
         this.isTarget = false;
         this.templateController = null;
-        this._attributes = null;
+        this._customAttributes = null;
+        this._plainAttributes = null;
         this._childNodes = null;
     }
 }

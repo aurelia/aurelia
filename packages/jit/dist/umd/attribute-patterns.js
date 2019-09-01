@@ -26,14 +26,14 @@
     exports.DotSeparatedAttributePattern = DotSeparatedAttributePattern;
     let RefAttributePattern = class RefAttributePattern {
         ['ref'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, 'ref', null);
+            return new ast_1.AttrSyntax(rawName, rawValue, 'element', 'ref');
         }
-        ['ref.PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, 'ref', parts[1]);
+        ['PART.ref'](rawName, rawValue, parts) {
+            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'ref');
         }
     };
     RefAttributePattern = tslib_1.__decorate([
-        attribute_pattern_1.attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'ref.PART', symbols: '.' })
+        attribute_pattern_1.attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'PART.ref', symbols: '.' })
     ], RefAttributePattern);
     exports.RefAttributePattern = RefAttributePattern;
     let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {

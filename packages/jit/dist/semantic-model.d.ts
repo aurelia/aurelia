@@ -23,7 +23,14 @@ export declare const enum SymbolFlags {
 export interface ISymbol {
     flags: SymbolFlags;
 }
-export interface IAttributeSymbol extends ISymbol {
+export interface IAttributeSymbol {
+    syntax: AttrSyntax;
+}
+export interface IPlainAttributeSymbol extends IAttributeSymbol {
+    command: IBindingCommand | null;
+    expression: AnyBindingExpression | null;
+}
+export interface ICustomAttributeSymbol extends IAttributeSymbol, IResourceAttributeSymbol {
     syntax: AttrSyntax;
 }
 export interface ISymbolWithBindings extends ISymbol {
@@ -45,7 +52,8 @@ export interface ISymbolWithTemplate extends INodeSymbol {
     template: IParentNodeSymbol;
 }
 export interface IElementSymbol extends IParentNodeSymbol {
-    attributes: IAttributeSymbol[];
+    customAttributes: ICustomAttributeSymbol[];
+    plainAttributes: IPlainAttributeSymbol[];
     childNodes: INodeSymbol[];
     isTarget: boolean;
 }
@@ -87,7 +95,7 @@ export declare class ReplacePartSymbol implements ISymbolWithTemplate {
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
-export declare class CustomAttributeSymbol implements IAttributeSymbol, IResourceAttributeSymbol {
+export declare class CustomAttributeSymbol implements ICustomAttributeSymbol {
     flags: SymbolFlags;
     res: string;
     syntax: AttrSyntax;
@@ -101,7 +109,7 @@ export declare class CustomAttributeSymbol implements IAttributeSymbol, IResourc
  *
  * This will never target a bindable property of a custom attribute or element;
  */
-export declare class PlainAttributeSymbol implements IAttributeSymbol {
+export declare class PlainAttributeSymbol implements IPlainAttributeSymbol {
     flags: SymbolFlags;
     syntax: AttrSyntax;
     command: IBindingCommand | null;
@@ -137,8 +145,10 @@ export declare class CustomElementSymbol implements IElementSymbol, ISymbolWithB
     templateController: TemplateControllerSymbol;
     isContainerless: boolean;
     marker: INode;
-    private _attributes;
-    readonly attributes: IAttributeSymbol[];
+    private _customAttributes;
+    readonly customAttributes: ICustomAttributeSymbol[];
+    private _plainAttributes;
+    readonly plainAttributes: IPlainAttributeSymbol[];
     private _bindings;
     readonly bindings: BindingSymbol[];
     private _childNodes;
@@ -167,8 +177,10 @@ export declare class PlainElementSymbol implements IElementSymbol {
     isTarget: boolean;
     templateController: TemplateControllerSymbol;
     hasSlots?: boolean;
-    private _attributes;
-    readonly attributes: IAttributeSymbol[];
+    private _customAttributes;
+    readonly customAttributes: ICustomAttributeSymbol[];
+    private _plainAttributes;
+    readonly plainAttributes: IPlainAttributeSymbol[];
     private _childNodes;
     readonly childNodes: INodeSymbol[];
     constructor(node: INode);

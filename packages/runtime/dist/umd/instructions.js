@@ -75,9 +75,10 @@
     }
     exports.CallBindingInstruction = CallBindingInstruction;
     class RefBindingInstruction {
-        constructor(from) {
-            this.type = "rj" /* refBinding */;
+        constructor(from, to) {
             this.from = from;
+            this.to = to;
+            this.type = "rj" /* refBinding */;
         }
     }
     exports.RefBindingInstruction = RefBindingInstruction;

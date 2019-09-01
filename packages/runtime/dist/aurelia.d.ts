@@ -16,7 +16,7 @@ export declare class CompositionRoot<T extends INode = INode> {
     readonly config: ISinglePageApp<T>;
     readonly container: IContainer;
     readonly host: T & {
-        $au?: Aurelia<T>;
+        $aurelia?: Aurelia<T>;
     };
     readonly dom: IDOM<T>;
     readonly strategy: BindingStrategy;

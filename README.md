@@ -69,11 +69,11 @@ To get started with a new Aurelia 2 project, with Node.js installed, simply run 
 
 ## Documentation
 
-You can read the documentation on Aurelia 2 [here](docs/user-docs). During the pre-Alpha phase, the most complete documentation is available in [our getting started section](docs/user-docs/1.%20getting-started).
+You can read the documentation on Aurelia 2 [here](docs/user-docs). During the pre-Alpha phase, the most complete documentation is available in [our getting started section](docs/user-docs/getting-started).
 
 ## Contributing
 
-If you are interested in contributing to Aurelia, please see [our contributor documentation](docs/user-docs/6.%20community-contributions/1.%20joining-the-community.md) for more information. You'll learn how to build the code and run tests, how best to engage in our social channels, how to submit PRs, and even how to contribute to our documentation. We welcome you and thank you in advance for joining with us in this endeavor.
+If you are interested in contributing to Aurelia, please see [our contributor documentation](docs/user-docs/community-contributions/joining-the-community.md) for more information. You'll learn how to build the code and run tests, how best to engage in our social channels, how to submit PRs, and even how to contribute to our documentation. We welcome you and thank you in advance for joining with us in this endeavor.
 
 ## Staying Up-to-Date
 

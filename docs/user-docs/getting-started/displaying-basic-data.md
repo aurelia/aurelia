@@ -33,7 +33,7 @@ One of the key features of Aurelia's templating system is helping to reduce cont
 code and your template markup. String interpolation using the `\${}` operator is a feature of ES2015 that makes it
  simple to insert values into a string. Thus, Aurelia uses this standard syntax in templates as well.
 
-When this template is run, Aurelia will insert the value of the `name` property into the template where `\${name}`
+When this template is run, Aurelia will insert the value of the `name` property into the template where `${name}`
 appears. Pretty simple, right? But what if we want logic in our string interpolation. Can we add our own expressions?
  Absolutely!
 
@@ -115,7 +115,7 @@ This binding will accept a string, an array, or a single object and coerce them 
 ['class1', 'class2']; // <div class='class1 class2'></div>
 ['class1', { class2: true, 'class3 class4':true, class5: false}]; // <div class='class1 class2 class3 class4'></div>
 { class1: true, 'class2 class4': true, class3 : false}; // <div class='class1 class2 class4'></div>
-{ class1: true, 
+{ class1: true,
 ['innerArray', {innerArray1:true, innerArray2: false}],
 'class2 class4': true,
 class3 : false}; // <div class='class1 class2 class4 innerArray innerArray1'></div>

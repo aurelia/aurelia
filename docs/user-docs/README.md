@@ -6,11 +6,18 @@ So, you've been scouring the interwebs and have managed to find yourself here, o
 **Here's what you'll learn...**
 
 * What is Aurelia?
-* How to use this documentation
-* How to create an Aurelia project
+* How do I use this documentation?
+* How do I create an Aurelia project?
 {% endhint %}
 
 ## What is Aurelia?
 
 Placeholder...
 
+## Using the Docs
+
+Placeholder...
+
+## Creating Your First Aurelia App
+
+Placeholder...

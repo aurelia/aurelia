@@ -40,17 +40,7 @@ const num = 42;
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
-{% hint style="success" %}
-What you'll learn...
-
-* [x] One
-* [x] Two
-* [x] Three
-{% endhint %}
-
 {% embed url="https://codesandbox.io/embed/9zvm06x9pp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview" %}
-
-
 
 #### say-hello.ts
 

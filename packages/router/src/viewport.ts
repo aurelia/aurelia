@@ -248,7 +248,7 @@ export class Viewport {
       if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
         return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
       }
-      return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
+      return this.router.instructionResolver.stringifyViewportInstruction(this.content.content, true);
     }
     return '';
   }

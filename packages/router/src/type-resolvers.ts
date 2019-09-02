@@ -74,14 +74,14 @@ export const NavigationInstructionResolver = {
     const instructions: ViewportInstruction[] = [];
     for (const instruction of navigationInstructions) {
       if (typeof instruction === 'string') {
-        instructions.push(router.instructionResolver.parseViewportInstruction(instruction));
+        instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
       } else if (instruction instanceof ViewportInstruction) {
         instructions.push(instruction as ViewportInstruction);
       } else if ((instruction as IViewportInstruction).component) {
         const viewportComponent = instruction as IViewportInstruction;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {
-        instructions.push(new ViewportInstruction(instruction as IRouteableComponentType));
+        instructions.push(new ViewportInstruction(instruction as ComponentAppellation));
       }
     }
     return instructions;

@@ -192,7 +192,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
-    await router.replace('bar@left');
+    await router.goto('bar@left', { replace: true });
 
     assert.includes(host.textContent, 'bar', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);

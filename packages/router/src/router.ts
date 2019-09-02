@@ -230,22 +230,31 @@ export class Router implements IRouter {
     let clearViewports: boolean = fullStateInstruction;
     if (typeof instruction.instruction === 'string') {
       let path = instruction.instruction;
+      let transformedInstruction: string | ViewportInstruction[] = path;
       if (this.options.transformFromUrl && !fullStateInstruction) {
-        const routeOrInstructions = this.options.transformFromUrl(path, this);
-        // TODO: Don't go via string here, use instructions as they are
-        path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
+        transformedInstruction = this.options.transformFromUrl(path, this);
       }
-      // TODO: Review this
-      if (path === '/') {
-        path = '';
-      }
+      if (Array.isArray(transformedInstruction)) {
+        views = transformedInstruction;
+      } else {
+        path = transformedInstruction;
+        // TODO: Review this
+        if (path === '/') {
+          path = '';
+        }
 
-      ({ clearViewports, newPath: path } = this.instructionResolver.shouldClearViewports(path));
-      views = this.instructionResolver.parseViewportInstructions(path);
-      // TODO: Used to have an early exit if no views. Restore it?
+        // ({ clearViewports, newPath: path } = this.instructionResolver.shouldClearViewports(path));
+        views = this.instructionResolver.parseViewportInstructions(path);
+        // TODO: Used to have an early exit if no views. Restore it?
+      }
     } else {
       views = instruction.instruction;
       // TODO: Used to have an early exit if no views. Restore it?
+    }
+
+    if (views.some(view => this.instructionResolver.isClearAllViewportsInstruction(view))) {
+      clearViewports = true;
+      views = views.filter(view => !this.instructionResolver.isClearAllViewportsInstruction(view));
     }
 
     const parsedQuery: IParsedQuery = parseQuery(instruction.query);
@@ -382,7 +391,10 @@ export class Router implements IRouter {
   };
 
   public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
-    if (this.processingNavigation && (onlyIfProcessingStatus === undefined || onlyIfProcessingStatus)) {
+    if (!this.processingNavigation && onlyIfProcessingStatus) {
+      return;
+    }
+    if (this.processingNavigation) {
       if (componentOrInstruction instanceof ViewportInstruction) {
         if (!componentOrInstruction.viewport) {
           // TODO: Deal with not yet existing viewports
@@ -396,7 +408,7 @@ export class Router implements IRouter {
         }
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
-    } else if (this.lastNavigation && (onlyIfProcessingStatus === undefined || !onlyIfProcessingStatus)) {
+    } else if (this.lastNavigation) {
       this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
       // Don't wait for the (possibly slow) navigation
     }
@@ -583,14 +595,15 @@ export class Router implements IRouter {
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
     instruction.path = state + query;
 
-    const enabledViewports: Viewport[] = (this.rootScope as Scope).viewports.filter((viewport) => viewport.enabled);
-    const fullViewportStates = [ /* new ViewportInstruction(this.instructionResolver.clearViewportInstruction) */];
-    fullViewportStates.push(...enabledViewports.map(viewport => viewport.content.content));
+    const viewports: Viewport[] = (this.rootScope as Scope).viewports.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
+    const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
+    fullViewportStates.push(...viewports.map(viewport => viewport.content.content));
     instruction.fullStateInstruction = fullViewportStates;
 
     // let fullViewportStates = (this.rootScope as Scope).viewportStates(true);
     // fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
     // instruction.fullStateInstruction = this.instructionResolver.stateStringsToString(fullViewportStates, true) + query;
+
     return Promise.resolve();
   }
 }

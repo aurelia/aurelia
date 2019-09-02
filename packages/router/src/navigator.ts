@@ -150,6 +150,7 @@ export class Navigator {
     if (entry.index !== undefined && !entry.replacing && !entry.refreshing) { // History navigation
       entry.historyMovement = entry.index - (this.currentEntry.index !== undefined ? this.currentEntry.index : 0);
       entry.instruction = this.entries[entry.index] ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
+      // entry.instruction = entry.fullStateInstruction;
       entry.replacing = true;
       if (entry.historyMovement > 0) {
         navigationFlags.forward = true;

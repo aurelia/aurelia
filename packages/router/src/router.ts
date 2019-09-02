@@ -3,7 +3,7 @@ import { Aurelia, IController, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { ComponentAppellation, INavigatorInstruction, ViewportHandle } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, NavigationInstruction, ViewportHandle } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
@@ -12,6 +12,7 @@ import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { RouteTable } from './route-table';
 import { Scope } from './scope';
+import { NavigationInstructionResolver } from './type-resolvers';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -22,6 +23,14 @@ export interface IRouteTransformer {
 }
 
 export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
+
+export interface IGotoOptions {
+  title?: string;
+  query?: string;
+  data?: Record<string, unknown>;
+  replace?: boolean;
+  origin?: IRouteableComponent | Element;
+}
 
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
@@ -61,8 +70,8 @@ export interface IRouter {
   findScope(element: Element): Scope;
   removeScope(scope: Scope): void;
 
-  goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
-  replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+  // goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+  goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
   refresh(): Promise<void>;
   back(): Promise<void>;
   forward(): Promise<void>;
@@ -123,7 +132,7 @@ export class Router implements IRouter {
     };
 
     this.instructionResolver.activate({ separators: this.options.separators });
-    this.navigator.activate({
+    this.navigator.activate(this, {
       callback: this.navigatorCallback,
       store: this.navigation,
     });
@@ -218,7 +227,7 @@ export class Router implements IRouter {
     }
 
     let views: ViewportInstruction[];
-    let clearViewports: boolean = false;
+    let clearViewports: boolean = fullStateInstruction;
     if (typeof instruction.instruction === 'string') {
       let path = instruction.instruction;
       if (this.options.transformFromUrl && !fullStateInstruction) {
@@ -231,12 +240,7 @@ export class Router implements IRouter {
         path = '';
       }
 
-      // TODO: Clean up clear viewports
-      const { clear, newPath } = this.instructionResolver.shouldClearViewports(path);
-      clearViewports = clear;
-      if (clearViewports) {
-        path = newPath;
-      }
+      ({ clearViewports, newPath: path } = this.instructionResolver.shouldClearViewports(path));
       views = this.instructionResolver.parseViewportInstructions(path);
       // TODO: Used to have an early exit if no views. Restore it?
     } else {
@@ -437,25 +441,29 @@ export class Router implements IRouter {
     }
   }
 
-  public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>, replace: boolean = false): Promise<void> {
+  // public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>, replace: boolean = false): Promise<void> {
+  public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+    options = options || {};
+    // TODO: Review query extraction; different pos for path and fragment!
+    if (typeof instructions === 'string' && !options.query) {
+      const [path, search] = instructions.split('?');
+      instructions = path;
+      options.query = search;
+    }
+    if (typeof instructions !== 'string' || instructions !== this.instructionResolver.clearViewportInstruction) {
+      instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
+    }
+
     const entry: INavigatorEntry = {
-      instruction: pathOrViewports as string,
+      instruction: instructions as ViewportInstruction[],
       fullStateInstruction: '',
-      title: title,
-      data: data,
+      title: options.title,
+      data: options.data,
+      query: options.query,
+      replacing: options.replace,
       fromBrowser: false,
     };
-    if (typeof pathOrViewports === 'string') {
-      const [path, search] = pathOrViewports.split('?');
-      entry.instruction = path;
-      entry.query = search;
-    }
-    entry.replacing = replace;
     return this.navigator.navigate(entry);
-  }
-
-  public replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
-    return this.goto(pathOrViewports, title, data, true);
   }
 
   public refresh(): Promise<void> {
@@ -572,12 +580,17 @@ export class Router implements IRouter {
       state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
     }
 
-    let fullViewportStates = (this.rootScope as Scope).viewportStates(true);
-    fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-
     instruction.path = state + query;
-    instruction.fullStateInstruction = this.instructionResolver.stateStringsToString(fullViewportStates, true) + query;
+
+    const enabledViewports: Viewport[] = (this.rootScope as Scope).viewports.filter((viewport) => viewport.enabled);
+    const fullViewportStates = [ /* new ViewportInstruction(this.instructionResolver.clearViewportInstruction) */];
+    fullViewportStates.push(...enabledViewports.map(viewport => viewport.content.content));
+    instruction.fullStateInstruction = fullViewportStates;
+
+    // let fullViewportStates = (this.rootScope as Scope).viewportStates(true);
+    // fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
+    // instruction.fullStateInstruction = this.instructionResolver.stateStringsToString(fullViewportStates, true) + query;
     return Promise.resolve();
   }
 }

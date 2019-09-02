@@ -1,6 +1,8 @@
 import { Reporter } from '@aurelia/kernel';
 import { INavigatorInstruction } from './interfaces';
 import { Queue, QueueItem } from './queue';
+import { IRouter } from './router';
+import { ViewportInstruction } from './viewport-instruction';
 
 export interface INavigatorStore {
   length: number;
@@ -32,8 +34,8 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
 }
 
 export interface IStoredNavigatorEntry {
-  instruction: string;
-  fullStateInstruction: string;
+  instruction: string | ViewportInstruction[];
+  fullStateInstruction: string | ViewportInstruction[];
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
   path?: string;
@@ -84,8 +86,8 @@ export class Navigator {
 
   private options: INavigatorOptions = {};
   private isActive: boolean = false;
-
-  private readonly uninitializedEntry: INavigatorInstruction;
+  private router!: IRouter;
+  private uninitializedEntry: INavigatorInstruction;
 
   constructor() {
     this.uninitializedEntry = {
@@ -101,12 +103,13 @@ export class Navigator {
     return this.pendingNavigations.length;
   }
 
-  public activate(options?: INavigatorOptions): void {
+  public activate(router: IRouter, options?: INavigatorOptions): void {
     if (this.isActive) {
       throw new Error('Navigator has already been activated');
     }
 
     this.isActive = true;
+    this.router = router;
     this.options = { ...options };
   }
 
@@ -146,7 +149,7 @@ export class Navigator {
     }
     if (entry.index !== undefined && !entry.replacing && !entry.refreshing) { // History navigation
       entry.historyMovement = entry.index - (this.currentEntry.index !== undefined ? this.currentEntry.index : 0);
-      entry.instruction = entry.fullStateInstruction;
+      entry.instruction = this.entries[entry.index] ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
       entry.replacing = true;
       if (entry.historyMovement > 0) {
         navigationFlags.forward = true;
@@ -209,15 +212,19 @@ export class Navigator {
     if (this.currentEntry === this.uninitializedEntry) {
       return Promise.resolve();
     }
-    const storedEntry = this.toStorableEntry(this.currentEntry);
+    const storedEntry = this.toStoredEntry(this.currentEntry);
     this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
-    const state: INavigatorState = {
-      entries: this.entries,
-      currentEntry: storedEntry,
-    };
     if (!this.options.store) {
       return Promise.resolve();
     }
+    const state: INavigatorState = {
+      entries: [],
+      currentEntry: { ...this.toStoreableEntry(storedEntry) },
+    };
+    for (const entry of this.entries) {
+      state.entries.push(this.toStoreableEntry(entry));
+    }
+
     if (push) {
       return this.options.store.pushNavigatorState(state);
     } else {
@@ -225,7 +232,7 @@ export class Navigator {
     }
   }
 
-  public toStorableEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
+  public toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
     const {
       previous,
       fromBrowser,
@@ -251,14 +258,14 @@ export class Navigator {
       }
       index--;
       this.currentEntry.index = index;
-      this.entries[index] = this.toStorableEntry(this.currentEntry);
+      this.entries[index] = this.toStoredEntry(this.currentEntry);
       await this.saveState();
     } else if (this.currentEntry.replacing) {
-      this.entries[index] = this.toStorableEntry(this.currentEntry);
+      this.entries[index] = this.toStoredEntry(this.currentEntry);
       await this.saveState();
     } else { // New entry (add and discard later entries)
       this.entries = this.entries.slice(0, index);
-      this.entries.push(this.toStorableEntry(this.currentEntry));
+      this.entries.push(this.toStoredEntry(this.currentEntry));
       await this.saveState(true);
     }
     if (this.currentEntry.resolve) {
@@ -282,10 +289,21 @@ export class Navigator {
   private invokeCallback(entry: INavigatorEntry, navigationFlags: INavigatorFlags, previousEntry: INavigatorEntry): void {
     const instruction: INavigatorInstruction = { ...entry };
     instruction.navigation = navigationFlags;
-    instruction.previous = this.toStorableEntry(previousEntry);
+    instruction.previous = this.toStoredEntry(previousEntry);
     Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
     if (this.options.callback) {
       this.options.callback(instruction);
     }
+  }
+
+  private toStoreableEntry(entry: IStoredNavigatorEntry): IStoredNavigatorEntry {
+    const storeable: IStoredNavigatorEntry = { ...entry };
+    if (storeable.instruction && typeof storeable.instruction !== 'string') {
+      storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
+    }
+    if (storeable.fullStateInstruction && typeof storeable.fullStateInstruction !== 'string') {
+      storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+    }
+    return storeable;
   }
 }

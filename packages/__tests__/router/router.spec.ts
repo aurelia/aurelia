@@ -192,7 +192,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
-    await router.replace('bar@left');
+    await router.goto('bar@left', { replace: true });
 
     assert.includes(host.textContent, 'bar', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
@@ -747,8 +747,8 @@ describe('Router', function () {
       const component = new App();
 
       const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
-      .app({ host: host, component: App });
+        .register(DebugConfiguration, RouterConfiguration)
+        .app({ host: host, component: App });
 
       const router = container.get(IRouter);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

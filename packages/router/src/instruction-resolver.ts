@@ -48,7 +48,13 @@ export class InstructionResolver {
 
   public isClearViewportInstruction(instruction: string | ViewportInstruction): boolean {
     return instruction instanceof ViewportInstruction
-      ? instruction.componentName === this.clearViewportInstruction
+      ? instruction.componentName === this.clearViewportInstruction && !!instruction.viewportName
+      : instruction.startsWith(this.clearViewportInstruction) && instruction !== this.clearViewportInstruction;
+  }
+
+  public isClearAllViewportsInstruction(instruction: string | ViewportInstruction): boolean {
+    return instruction instanceof ViewportInstruction
+      ? instruction.componentName === this.clearViewportInstruction && !instruction.viewportName
       : instruction === this.clearViewportInstruction;
   }
 

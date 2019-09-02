@@ -2,9 +2,9 @@
 description: The basics of building components with Aurelia.
 ---
 
-# Components
+# Building Components
 
-Aurelia applications are built out of components, from top to bottom. At startup, an app declares a _root component_, but inside of that component's template \(aka view\), other components are used, and inside of those components, yet more components. In this fashion, the entire user interface is constructed.
+Aurelia applications are built out of components, from top to bottom. At startup, an app declares a _root component_, but inside of that component's view, other components are used, and inside of those components, even more components. In this fashion, the entire user interface is constructed.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -16,20 +16,13 @@ Aurelia applications are built out of components, from top to bottom. At startup
 
 ## Creating and Using Components
 
-Components in Aurelia follow the Model-View-ViewModel design pattern \(a descendant of MVC and MVP\) and are represented in HTML as _custom elements_. Each component has a JavaScript class, which serves as the _view-model_, providing the state and behavior for the component. Each component has an HTML template or _view_, which provides the rendering instructions for the component. Finally, components can optionally have a _model_ to provide unique business logic.
+Components in Aurelia follow the Model-View-ViewModel design pattern \(a descendant of MVC and MVP\) and are represented in HTML as _custom elements_. Each component has a JavaScript class, which serves as the _view-model_, providing the state and behavior for the component. Each component has an HTML template or _view_, which provides the rendering instructions for the component. Optionally, components can have a separate _model_ to provide unique business logic or a separate CSS file to provide styles.
 
-To declare a component, use the `@customElement` decorator on a class. This decorator allows you to name the element as you will use it in HTML and link the view-model class with its template \(view\). Here's an example of a simple "hello world" component:
+To define a component, you only need to create your JavaScript or TypeScript file with the same name as your HTML file. By convention, Aurelia will recognize these as the view-model and view of a component, and will assemble them for you. Here's an example of a simple "hello world" component:
 
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { customElement } from '@aurelia/runtime';
-import template from './say-hello.html';
-
-@customElement({
-  name: 'say-hello',
-  template
-})
 export class SayHello {
 
 }
@@ -42,7 +35,7 @@ export class SayHello {
 ```
 {% endcode-tabs-item %}
 
-{% code-tabs-item title="app.html" %}
+{% code-tabs-item title="my-app.html" %}
 ```markup
 <say-hello></say-hello>
 ```
@@ -50,9 +43,9 @@ export class SayHello {
 {% endcode-tabs %}
 
 {% hint style="warning" %}
-**Warning**
+**Naming Components**
 
-A component name **must** contain a hyphen. This is part of the W3C web components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM \(see [Styling Components](../app-basics/styling-components.md)\). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
 {% endhint %}
 
 The `say-hello` custom element we've created isn't very interesting yet, so lets spice it up by allowing the user to providing a "to" property so that we can personalize the message. To create "bindable" properties for your HTML element, you declare them using the `@bindable` decorator as shown in the next example.
@@ -60,13 +53,8 @@ The `say-hello` custom element we've created isn't very interesting yet, so lets
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { customElement, bindable } from '@aurelia/runtime';
-import template from './say-hello.html';
+import { bindable } from '@aurelia/runtime';
 
-@customElement({
-  name: 'say-hello',
-  template
-})
 export class SayHello {
   @bindable to = 'World';
 }
@@ -79,22 +67,70 @@ export class SayHello {
 ```
 {% endcode-tabs-item %}
 
-{% code-tabs-item title="app.html" %}
+{% code-tabs-item title="my-app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
-By declaring a bindable, not only can your template access that via string interpolation, but those who use the custom element in HTML can set that property directly through an HTML attribute or even bind the `to` attribute to their own model.
+By declaring a _bindable_, not only can your template access the property via string interpolation, but those who use the custom element in HTML can set that property directly through an HTML attribute or even bind the `to` attribute to their own model.
+
+{% hint style="success" %}
+**CSS Conventions Are Awesome!**
+
+Want to define component-specific CSS? Simply name your CSS file the same as your view-model and view, and Aurelia will include the styles in your component automatically. So, for the component defined above, we only need to add a `say-hello.css` file.
+{% endhint %}
 
 Now, what if we want our component to do something in response to user interaction? Let's see how we can set up DOM events to trigger methods on our component.
 
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
+import { bindable } from '@aurelia/runtime';
+
+export class SayHello {
+  @bindable to = 'World';
+  message = 'Hello';
+
+  leave() {
+    this.message = 'Goodbye';
+  }
+}
+```
+{% endcode-tabs-item %}
+
+{% code-tabs-item title="say-hello.html" %}
+```markup
+<h2>${message} ${to}!</h2>
+<button click.trigger="leave()">Leave</button>
+```
+{% endcode-tabs-item %}
+
+{% code-tabs-item title="my-app.html" %}
+```markup
+<say-hello to="John"></say-hello>
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
+
+Now, when the user clicks the button, the `leave` method will get called. It then updates the message property, which causes the DOM to respond by updating as well.
+
+{% hint style="info" %}
+**Further Reading**
+
+Interested to learn more about how you can display data with Aurelia's templating engine or how you can leverage events to respond to changes and interactions within your app? The next few docs on [Displaying Basic Data](displaying-basic-data.md), [Rendering Collections](rendering-collections.md), [Conditional Rendering](conditional-rendering.md), and [Handling Events](handling-events.md) will give you all the nitty, gritty details.
+{% endhint %}
+
+### Working without Conventions
+
+So far, we've described how components are created by simply naming your JavaScript and HTML files with the same name, and that the component name is automatically derived from the file name. However, if you don't want to leverage conventions, or need to override the default behavior for an individual component, you can always explicitly provide the configuration yourself. To do this, use the `@customElement` decorator. Here's how we would define the previous component, without using conventions.
+
+{% code-tabs %}
+{% code-tabs-item title="say-hello.ts" %}
+```typescript
 import { customElement, bindable } from '@aurelia/runtime';
-import template from './say-hello.html';
+import * as template from './say-hello.html';
 
 @customElement({
   name: 'say-hello',
@@ -118,35 +154,43 @@ export class SayHello {
 ```
 {% endcode-tabs-item %}
 
-{% code-tabs-item title="app.html" %}
+{% code-tabs-item title="my-app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
-Now, when the user clicks the button, the `leave` method will get called. It then updates the message property, which causes the DOM to respond by updating as well.
+{% hint style="warning" %}
+**Don't Skip the Conventions**
 
-## Leveraging Component Conventions
+We highly recommend that you leverage conventions where possible. A few benefits include:
 
-// TODO: Write this based on the conventions module.
+* Reduction of boilerplate.
+* Cleaner, more portable code.
+* Improved readability and learnability of code.
+* Less setup work and maintenance over time.
+* Ease of migration to future versions and platforms.
+{% endhint %}
 
-## Registering Components
+### Registering Components
 
-By default, component views are encapsulated. What that means is that you can't use a component within another component, unless that component has been declared as a dependency. Let's imagine that our "say-hello" component wants to use a "name-tag" component internally. To do that, we need to declare the component dependency. Here's how that works:
+By default, components you create aren't global. What that means is that you can't use a component within another component, unless that component has been imported. Let's imagine that our "say-hello" component wants to use a "name-tag" component internally. To do that, we need to add an import in our view. Here's how that works:
 
 {% code-tabs %}
+{% code-tabs-item title="say-hello.html" %}
+```markup
+<import from="./name-tag">
+
+<h2>${message} <name-tag name.bind="to"></name-tag>!</h2>
+<button click.trigger="leave()">Leave</button>
+```
+{% endcode-tabs-item %}
+
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { customElement, bindable } from '@aurelia/runtime';
-import template from './say-hello.html';
-import { NameTag } from './name-tag';
+import { bindable } from '@aurelia/runtime';
 
-@customElement({
-  name: 'say-hello',
-  template,
-  dependencies: [NameTag]
-})
 export class SayHello {
   @bindable to = 'World';
   message = 'Hello';
@@ -158,13 +202,6 @@ export class SayHello {
 ```
 {% endcode-tabs-item %}
 
-{% code-tabs-item title="say-hello.html" %}
-```markup
-<h2>${message} <name-tag name.bind="to"></name-tag>!</h2>
-<button click.trigger="leave()">Leave</button>
-```
-{% endcode-tabs-item %}
-
 {% code-tabs-item title="app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
@@ -172,7 +209,7 @@ export class SayHello {
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
-In practice, most people want to side-step this feature and make all their components global, so they can remove the dependencies boiler-plate code. To make a component global, simply register it with the application's root DI container at startup:
+In practice, most people want to side-step this feature and make most of their general-purpose components global, so they can remove the majority of their imports. To make a component global, simply register it with the application's root dependency injection container at startup:
 
 {% code-tabs %}
 {% code-tabs-item title="mail.ts" %}
@@ -184,14 +221,17 @@ import { App } from './app';
 import { NameTag } from './name-tag';
 
 new Aurelia()
-  .register(BasicConfiguration, DebugConfiguration, NameTag)
-  .app({ host: document.querySelector('app'), component: App })
-  .start();
+  .register(
+    BasicConfiguration,
+    DebugConfiguration,
+    NameTag // Here it is!
+  ).app({ host: document.querySelector('app'), component: App })
+   .start();
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
-As a best practice, we recommend an alternate approach to registering each component individually in this way. Instead, create a folder where you keep all your components. In that folder, create a `registry.ts` module where you re-export your components. Then, import that registery module and pass it to the application's `register` method at startup.
+As a best practice, we recommend an alternate approach to registering each component individually in this way. Instead, create a folder where you keep all your shared components. In that folder, create a `registry.ts` module where you re-export your components. Then, import that registry module and pass it to the application's `register` method at startup.
 
 {% code-tabs %}
 {% code-tabs-item title="components/register.ts" %}
@@ -210,12 +250,21 @@ import { App } from './app';
 import * as globalComponents from './components/registry';
 
 new Aurelia()
-  .register(BasicConfiguration, DebugConfiguration, globalComponents)
-  .app({ host: document.querySelector('app'), component: App })
-  .start();
+  .register(
+    BasicConfiguration,
+    DebugConfiguration,
+    globalComponents // This globalizes all the exports of our registry.
+  ).app({ host: document.querySelector('app'), component: App })
+   .start();
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
+
+{% hint style="info" %}
+**Aurelia Architecture**
+
+Did you notice how the default Aurelia startup code involves importing and registering `BasicConfiguration`? The `BasicConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
+{% endhint %}
 
 ## The Component Lifecycle
 

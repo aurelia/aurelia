@@ -44,18 +44,31 @@ Now, we'll create its view, binding the two together with our templating languag
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
-One of the key features of Aurelia's templating system is helping to reduce context switching between your JavaScript code and your template markup. String interpolation using the `\${}` operator is a feature of ES2015 that makes it simple to insert values into a string. Thus, Aurelia uses this standard syntax in templates as well.
+One of the key features of Aurelia's templating system is helping to reduce context switching between your JavaScript code and your template markup. String interpolation using the `${}` operator is a feature of ES2015 that makes it simple to insert values into a string. Thus, Aurelia uses this standard syntax in templates as well.
 
 When this template is run, Aurelia will insert the value of the `name` property into the template where `${name}` appears. Pretty simple, right? But what if we want logic in our string interpolation. Can we add our own expressions? Absolutely!
 
-\`\`\`JavaScript greeter.js export class Greeter { constructor\(\) { this.name = 'John Doe'; this.arriving = true; setTimeout\(\(\) =&gt; this.arriving = false, 5000\); } }
-
-```text
-```HTML greeter.html
+{% code-tabs %}
+{% code-tabs-item title="greeter.html" %}
+```markup
 <p>
   ${arriving ? 'Hello' : 'Goodbye'}, ${name}!
 </p>
 ```
+{% endcode-tabs-item %}
+
+{% code-tabs-item title="greeter.js" %}
+```javascript
+export class Greeter { 
+  constructor() { 
+    this.name = 'John Doe';
+    this.arriving = true; 
+    setTimeout(() => this.arriving = false, 5000); 
+  }
+}
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 In our template, when `arriving` is true, the ternary operator makes our result `'Hello'`, but when it's false, it makes our result `'Goodbye'`. Our view-model code initializes `arriving` to `true` and changes it to `false` after 5 seconds \(5000 milliseconds\). So when we run the template, it will say "Hello, John Doe!" and after 5 seconds, it will say "Goodbye, John Doe!". Aurelia re-evaluates the string interpolation when the value of `arriving` changes!
 

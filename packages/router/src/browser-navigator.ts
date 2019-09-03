@@ -72,14 +72,14 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     this.isActive = false;
   }
 
-  get length(): number {
+  public get length(): number {
     return this.history.length;
   }
-  get state(): Record<string, unknown> {
+  public get state(): Record<string, unknown> {
     return this.history.state;
   }
 
-  get viewerState(): INavigatorViewerState {
+  public get viewerState(): INavigatorViewerState {
     const { pathname, search, hash } = this.location;
     return {
       path: pathname,

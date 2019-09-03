@@ -15,6 +15,8 @@ export class ViewportInstruction {
   public parameters: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
 
+  public needsViewportDescribed: boolean = false;
+
   constructor(
     component: ComponentAppellation,
     viewport?: ViewportHandle,

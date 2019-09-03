@@ -18,27 +18,25 @@ Have you ever needed to hide or show part of a UI based on some condition? Well,
 
 Aurelia has two major tools for conditional display: `if` and `show`. Let's look at `if` first. Here's a basic "Hello World" that asks the user if they want to greet the world:
 
-\`\`\`HTML if-template.html
+{% code-tabs %}
+{% code-tabs-item title="my-app.html" %}
+```markup
+<label for="greet">Would you like me to greet the world?</label>
+<input type="checkbox" id="greet" checked.bind="greet">
+<div if.bind="greet">
+  Hello, World!
+</div>
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
-Would you like me to greet the world?
-
- Hello, World!
-
-```text
-If the value of `greet` is `true`, then the `div` with the message "Hello, World!" will be inserted into the DOM. If it's `false`, the `div` will be removed.
+If the value of `greet` is `true`, then the `div` with the message "Hello, World!" will be inserted into the DOM. If it's `false`, the `div` will be removed \(or never added in the first place\).
 
 Conditionals can also be `one-time` bound, so that parts of the template are fixed once they're instantiated:
 
-```JavaScript bind-template.js
-export class ConditionalOneTimeTemplate {
-  greet = (Math.random() > 0.5);
-}
-```
-
-\`\`\`TypeScript bind-template.ts \[variant\] export class ConditionalOneTimeTemplate { greet = \(Math.random\(\) &gt; 0.5\); }
-
-```text
-```HTML conditional-one-time-template.html
+{% code-tabs %}
+{% code-tabs-item title="my-app.html" %}
+```markup
 <div if.one-time="greet">
   Hello, World!
 </div>
@@ -46,41 +44,61 @@ export class ConditionalOneTimeTemplate {
   Some other time.
 </div>
 ```
+{% endcode-tabs-item %}
+
+{% code-tabs-item title="my-app.js" %}
+```javascript
+export class MyApp {
+  greet = (Math.random() > 0.5);
+}
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 There's a 50-50 chance that we'll greet the world, or put it off until later. Once the page loads, this is fixed, because the data is `one-time` bound.
 
 Complementing `if`, there is `else`. Used in conjunction with `if`, `else` will render its content when `if` does not evaluate to `true`.
 
-\`\`\`HTML if-else-template.html
+{% code-tabs %}
+{% code-tabs-item title="my-app.html" %}
+```markup
+<div if.bind="showMessage">
+  <span>${message}</span>
+</div>
+<div else>
+  <span>Nothing to see here</span>
+</div>
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
- ${message}
-
- Nothing to see here...
-
-```text
 Elements using the `else` template modifier must follow an `if` bound element to make contextual sense and function properly.
 
 ### Caching View Instances
 
-> Info
-> Not Implemented: View cache control is not yet implemented in vNext.
+{% hint style="danger" %}
+**Not Yet Implemented in Aurelia 2**
+{% endhint %}
 
-By default, `if` caches the underlying view instance. Although the element is being removed from the DOM and
-the component goes through `detached` and `unbind` lifecyle events, its instance is kept in memory for further condition
-changes. Therefore, when the element is hidden and then shown again, `if` does not need to initialize the component
-again.
+By default, `if` caches the underlying view instance. Although the element is being removed from the DOM and the component goes through the `detached` and `unbind` lifecyle events, its instance is kept in memory for further condition changes. Therefore, when the element is hidden and then shown again, `if` does not need to initialize the component again.
 
-You can opt-out this default behavior by setting the `cache` binding of the `if` attribute explicitly. This is
-especially useful when using `if` on [custom elements](./components) and initializing them on every appearance is
-crucial.
+You can opt-out this default behavior by setting the `cache` binding of the `if` attribute explicitly. This is especially useful when using `if` on custom elements where initializing them on every appearance is crucial.
 
-```HTML if-template-without-cache.html
+{% code-tabs %}
+{% code-tabs-item title="my-app.html" %}
+```markup
 <div if="condition.bind: showMessage; cache: false">
   <span>${message}</span>
 </div>
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 ## show/hide
+
+{% hint style="danger" %}
+**Note Yet Implemented in Aurelia 2**
+{% endhint %}
 
 The difference between `if` and `show` is that `if` removes the element entirely from the DOM, and `show` toggles the `aurelia-hide` CSS class which controls the element's visibility only.
 
@@ -88,11 +106,17 @@ This difference is subtle but important in terms of speed and usability. When th
 
 If we just want to hide the element from view instead of removing it from the DOM completely, we should use `show` instead of `if`. Let's look at the same basic "Hello World" from above that asks the user if they want to greet the world, this time with `show` instead of `if`.
 
-\`\`\`HTML show-template.html
-
- Would you like me to greet the world? Hello, World!
-
-\`\`\`
+{% code-tabs %}
+{% code-tabs-item title="my-app.html" %}
+```markup
+<label for="greet">Would you like me to greet the world?</label>
+<input type="checkbox" id="greet" checked.bind="greet">
+<div show.bind="greet">
+  Hello, World!
+</div>
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 When unchecked, our "Hello World" div will have the `aurelia-hide` class, which sets `display: none` if you're using Aurelia's default CSS. However, if you don't want to do that, you can also define your own CSS rules that treat `aurelia-hide` differently, like setting `visibility: none` or `height: 0px`.
 

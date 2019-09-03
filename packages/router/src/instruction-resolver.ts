@@ -70,19 +70,31 @@ export class InstructionResolver {
     return new ViewportInstruction('');
   }
 
-  public stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport: boolean = false): string {
-    return instructions.map((instruction) => this.stringifyViewportInstruction(instruction, excludeViewport)).join(this.separators.sibling);
+  public stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport: boolean = false, viewportContext: boolean = false): string {
+    return instructions
+      .map(instruction => this.stringifyViewportInstruction(instruction, excludeViewport, viewportContext))
+      .filter(instruction => instruction && instruction.length)
+      .join(this.separators.sibling);
   }
 
-  public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
+  public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
     if (typeof instruction === 'string') {
       return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
-      let stringified = this.stringifyAViewportInstruction(instruction, excludeViewport);
+      let excludeCurrentViewport = excludeViewport;
+      if (viewportContext) {
+        if (instruction.viewport && instruction.viewport.options.noLink) {
+          return '';
+        }
+        if (!instruction.needsViewportDescribed && instruction.viewport && !instruction.viewport.options.forceDescription) {
+          excludeCurrentViewport = true;
+        }
+      }
+      let stringified = this.stringifyAViewportInstruction(instruction, excludeCurrentViewport)
       if (instruction.nextScopeInstructions && instruction.nextScopeInstructions.length) {
         stringified += instruction.nextScopeInstructions.length === 1
-          ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport)}`
-          : `${this.separators.scope}${this.separators.scopeStart}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport)}${this.separators.scopeEnd}`;
+          ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}`
+          : `${this.separators.scope}${this.separators.scopeStart}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}${this.separators.scopeEnd}`;
       }
       return stringified;
     }

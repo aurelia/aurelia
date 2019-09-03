@@ -9,6 +9,7 @@
     { "path": "runtime-html-jsdom" },
     { "path": "store" },
     { "path": "validation" },
+    { "path": "dialog" },
     { "path": "router" },
     { "path": "jit" },
     { "path": "jit-html" },

@@ -17,15 +17,15 @@ export class DotSeparatedAttributePattern {
 
 @attributePattern(
   { pattern: 'ref', symbols: '' },
-  { pattern: 'ref.PART', symbols: '.' }
+  { pattern: 'PART.ref', symbols: '.' }
 )
 export class RefAttributePattern {
   public ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, 'ref', null);
+    return new AttrSyntax(rawName, rawValue, 'element', 'ref');
   }
 
-  public ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
+  public ['PART.ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
   }
 }
 

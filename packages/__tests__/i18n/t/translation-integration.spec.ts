@@ -1,6 +1,6 @@
-import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand } from '@aurelia/i18n';
+import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand, Signals } from '@aurelia/i18n';
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags, ISignaler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('translation-integration', function () {
@@ -32,9 +32,11 @@ describe('translation-integration', function () {
 
       html: 'this is a <i>HTML</i> content',
       pre: 'tic ',
+      preHtml: '<b>tic</b><span>foo</span> ',
       mid: 'tac',
       midHtml: '<i>tac</i>',
       post: ' toe',
+      postHtml: ' <b>toe</b><span>bar</span>',
 
       imgPath: 'foo.jpg'
     };
@@ -83,9 +85,29 @@ describe('translation-integration', function () {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
   }
 
+  it('left the content as-is if empty value is used for translation attribute', async function () {
+
+    @customElement({ name: 'app', template: `<span t=''>The Intouchables</span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    await setup(host, new App());
+    assertTextContent(host, 'span', 'The Intouchables');
+  });
+
   it('works for simple string literal key', async function () {
 
     @customElement({ name: 'app', template: `<span t='simple.text'></span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const { en: translation } = await setup(host, new App());
+    assertTextContent(host, 'span', translation.simple.text);
+  });
+
+  it('with multiple `t` attribute only the first one is considered', async function () {
+
+    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>` })
     class App { }
 
     const host = DOM.createElement('app');
@@ -123,6 +145,19 @@ describe('translation-integration', function () {
   });
 
   describe('translation can be manipulated by using t-params', function () {
+    it('throws error if used without `t` attribute', async function () {
+
+      @customElement({ name: 'app', template: `<span t-params.bind="{context: 'dispatched'}"></span>` })
+      class App { }
+
+      const host = DOM.createElement('app');
+      try {
+        await setup(host, new App());
+      } catch (e) {
+        assert.equal(e.message, 'key expression is missing');
+      }
+    });
+
     async function suiteSetup() {
       @customElement({
         name: 'app', template: `
@@ -195,6 +230,16 @@ describe('translation-integration', function () {
     assertTextContent(host, `span[title='${translation.simple.attr}']`, '');
   });
 
+  it('value of last key takes effect if multiple keys target same attribute - t=\'[title]simple.attr;[title]simple.text\'', async function () {
+
+    @customElement({ name: 'app', template: `<span t='[title]simple.attr;[title]simple.text'></span>` })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const { en: translation } = await setup(host, new App());
+    assertTextContent(host, `span[title='${translation.simple.text}']`, '');
+  });
+
   it('works for a mixture of attribute targeted key and textContent targeted key - t=\'[title]simple.attr;simple.text\'', async function () {
 
     @customElement({ name: 'app', template: `<span t='[title]simple.attr;simple.text'></span>` })
@@ -264,6 +309,19 @@ describe('translation-integration', function () {
     assertTextContent(host, `span#b`, translation.simple.text);
   });
 
+  it('works for textContent replacement with explicit [text] attribute - `t="[text]key"`', async function () {
+
+    @customElement({
+      name: 'app', template: `<span id='a' t='[text]simple.text'></span>`
+    })
+    class App { }
+
+    const host = DOM.createElement('app');
+    const { en } = await setup(host, new App());
+
+    assertTextContent(host, 'span', en.simple.text);
+  });
+
   it('works for innerHTML replacement - `t="[html]key"`', async function () {
 
     @customElement({
@@ -314,6 +372,30 @@ describe('translation-integration', function () {
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i>');
     });
+    it('works for html content for [prepend] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[html]mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
+    });
+    it('works for html content for [prepend] + innerHtml', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i>');
+    });
 
     it('works for [append] only', async function () {
 
@@ -351,6 +433,30 @@ describe('translation-integration', function () {
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> toe');
     });
+    it('works for html content for [append] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]postHtml;[html]mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
+    });
+    it('works for html content for [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[append]postHtml;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> <b>toe</b><span>bar</span>');
+    });
 
     it('works for [prepend] and [append]', async function () {
 
@@ -387,6 +493,131 @@ describe('translation-integration', function () {
       await setup(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i> toe');
+    });
+    it('works for html resource for [prepend] and [append] + textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[append]postHtml;mid'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+    });
+    it('works for html resource for [prepend] and [append] + innerHtml', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t='[prepend]preHtml;[append]postHtml;[html]midHtml'></span>`
+      })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await setup(host, new App());
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
+    });
+
+    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[prepend]pre;[append]post';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
+    });
+    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]pre;[append]post';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
+      app.keyExpr = '[prepend]preHtml;[append]postHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+    });
+    it('works correctly with the removal of [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[prepend]preHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
+    });
+    it('works correctly with the removal of [prepend]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[append]postHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
+    });
+    it('works correctly with the removal of both [prepend] and [append]', async function () {
+
+      @customElement({
+        name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
+      })
+      class App {
+        public keyExpr: string = '[prepend]preHtml;[append]postHtml';
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+      app.keyExpr = '[html]midHtml';
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
     });
   });
 
@@ -674,6 +905,20 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
       assertTextContent(host, 'span', '20.8.2019');
     });
+
+    it('works for change of source value', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
+      class App { public dt = new Date(2019, 7, 20); }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      app.dt = new Date(2019, 7, 21);
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      assertTextContent(host, 'span', '8/21/2019');
+    });
   });
 
   describe('`df` binding-behavior', function () {
@@ -719,6 +964,20 @@ describe('translation-integration', function () {
       await i18n.setLocale('de');
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
       assertTextContent(host, 'span', '20.8.2019');
+    });
+
+    it('works for change of source value', async function () {
+
+      @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
+      class App { public dt = new Date(2019, 7, 20); }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+
+      app.dt = new Date(2019, 7, 21);
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      assertTextContent(host, 'span', '8/21/2019');
     });
   });
 
@@ -782,6 +1041,19 @@ describe('translation-integration', function () {
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
+
+    it('works for change of source value', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
+      class App { public num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+      app.num = 123456789.21;
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '123,456,789.21');
+  });
   });
 
   describe('`nf` binding-behavior', function () {
@@ -844,6 +1116,19 @@ describe('translation-integration', function () {
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
+
+    it('works for change of source value', async function () {
+      @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
+      class App { public num = 123456789.12; }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+      app.num = 123456789.21;
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '123,456,789.21');
+  });
   });
 
   describe('`rt` value-converter', function () {
@@ -921,6 +1206,48 @@ describe('translation-integration', function () {
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
+
+    it('works for change of source value', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
+      class App {
+        public dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+      app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '5 hours ago');
+    });
+
+    it('updates formatted value if rt_signal', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
+      class App {
+        public dt: Date = new Date();
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+      await new Promise((resolve) => {
+        setTimeout(
+          () => {
+            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+            resolve();
+          },
+          3000);
+      });
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '3 seconds ago');
+    });
   });
 
   describe('`rt` binding-behavior', function () {
@@ -997,6 +1324,48 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
+    });
+
+    it('works for change of source value', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
+      class App {
+        public dt: Date;
+        constructor() {
+          this.dt = new Date();
+          this.dt.setHours(this.dt.getHours() - 2);
+        }
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+      app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
+
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '5 hours ago');
+    });
+
+    it('updates formatted value if rt_signal', async function () {
+      @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
+      class App {
+        public dt: Date = new Date();
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      const { ctx } = await setup(host, app);
+      await new Promise((resolve) => {
+        setTimeout(
+          () => {
+            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+            resolve();
+          },
+          3000);
+      });
+      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+
+      assertTextContent(host, 'span', '3 seconds ago');
     });
   });
 

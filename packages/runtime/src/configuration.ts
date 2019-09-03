@@ -39,23 +39,29 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { ViewValueConverter } from './resources/value-converters/view';
+import { ViewLocator } from './templating/view';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
 export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
+export const IViewLocatorRegistration = ViewLocator as IRegistry;
 
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
+ * - `IStartTaskManager`
+ * - `IViewLocator`
  */
 export const DefaultComponents = [
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
   IStartTaskManagerRegistration,
+  IViewLocatorRegistration
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
@@ -67,6 +73,7 @@ export const RepeatRegistration = Repeat as IRegistry;
 export const ReplaceableRegistration = Replaceable as unknown as IRegistry;
 export const WithRegistration = With as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
+export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
 export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
@@ -92,6 +99,7 @@ export const DefaultResources = [
   ReplaceableRegistration,
   WithRegistration,
   SanitizeValueConverterRegistration,
+  ViewValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,

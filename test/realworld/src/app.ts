@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
+import { INavRoute, IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import { UserService } from './shared/services/user-service';
 import { SharedState } from './shared/state/shared-state';
@@ -50,7 +50,7 @@ export class App implements IViewModel {
         this.router.goto(`auth(type=login)`);
         return [];
       }
-      , { include: [{ componentName: 'editor' }, { componentName: 'settings' }] },
+      , { include: [{ component: 'editor' }, { component: 'settings' }] },
     );
     const observerLocator = this.router.container.get(IObserverLocator);
     const observer = observerLocator.getObserver(LifecycleFlags.none, this.state, 'isAuthenticated') as any;
@@ -72,7 +72,7 @@ export class App implements IViewModel {
     this.router.updateNav();
   }
 
-  public get routes() {
+  public get routes(): INavRoute[] {
     return [
       {
         route: Home,

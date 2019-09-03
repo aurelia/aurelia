@@ -5,8 +5,13 @@ import {
   PLATFORM,
   Reporter,
 } from '@aurelia/kernel';
+import {
+  IController
+} from './lifecycle';
 
-export interface INode extends Object { }
+export interface INode extends Object {
+  $au?: Record<string, IController<this>>;
+}
 
 export const INode = DI.createInterface<INode>('INode').noDefault();
 

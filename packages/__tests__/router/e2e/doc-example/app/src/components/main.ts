@@ -34,9 +34,9 @@ import { Books } from './books/books';
         The background is in the --primary-color: <span data-test="info-background-color">\${color}</span>.
       </div>
     </div>
-    <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" default="about"></au-viewport>
-    <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
+    <au-viewport no-scope name="lists" used-by="authors,books" default="authors"></au-viewport>
+    <au-viewport no-scope name="content" default="about"></au-viewport>
+    <au-viewport no-scope name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 ` })
 export class Main {

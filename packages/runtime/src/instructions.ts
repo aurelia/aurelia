@@ -90,7 +90,7 @@ export class FromViewBindingInstruction implements IPropertyBindingInstruction {
 }
 
 export class TwoWayBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: TargetedInstructionType.propertyBinding;
 
   public from: string | IsBindingBehavior;
   public mode: BindingMode.twoWay;
@@ -138,12 +138,11 @@ export class CallBindingInstruction implements ICallBindingInstruction {
 export class RefBindingInstruction implements IRefBindingInstruction {
   public type: TargetedInstructionType.refBinding;
 
-  public from: string | IsBindingBehavior;
-
-  constructor(from: string | IsBindingBehavior) {
+  constructor(
+    public readonly from: string | IsBindingBehavior,
+    public readonly to: string
+  ) {
     this.type = TargetedInstructionType.refBinding;
-
-    this.from = from;
   }
 }
 

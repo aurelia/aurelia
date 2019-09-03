@@ -15,14 +15,17 @@ import {
   CaptureBindingCommand,
   ClassBindingCommand,
   DelegateBindingCommand,
+  RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand
 } from './binding-commands';
+import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
 export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as IRegistry;
+export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -31,7 +34,8 @@ export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as
  */
 export const DefaultComponents = [
   ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration
+  ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation
 ];
 
 /**
@@ -43,6 +47,7 @@ export const JitAttrBindingSyntax = [
   AttrAttributePattern
 ];
 
+export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
@@ -55,6 +60,7 @@ export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
  */
 export const DefaultBindingLanguage = [
+  RefBindingCommandRegistration,
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,

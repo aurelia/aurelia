@@ -29,7 +29,8 @@
     "packages/runtime-html-jsdom",
     "packages/store",
     "packages/testing",
-    "packages/validation"
+    "packages/validation",
+    "packages/dialog"
   ],
   "version": "0.3.0"
 }

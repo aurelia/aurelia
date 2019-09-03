@@ -76,8 +76,9 @@ describe('InstructionResolver', function () {
     { instruction: 'foo@left', viewportInstruction: new ViewportInstruction('foo', 'left') },
     { instruction: 'foo(123)@left', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
     { instruction: 'foo(123)', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
-    { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, true, new ViewportInstruction('bar')) },
-    { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, new ViewportInstruction('bar', 'left', undefined, true, new ViewportInstruction('baz'))) },
+    { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, true, [new ViewportInstruction('bar')]) },
+    { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left', undefined, true, [new ViewportInstruction('baz')])]) },
+    { instruction: 'foo(123)/(bar@left+baz(456))', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left'), new ViewportInstruction('baz', undefined, '456')]) },
   ];
 
   for (const instructionTest of instructions) {
@@ -90,6 +91,84 @@ describe('InstructionResolver', function () {
       assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
       const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
       assert.strictEqual(newInstruction, instruction, `newInstruction`);
+
+      await tearDown();
+    });
+  }
+
+  for (const instructionTest of instructions) {
+    let { instruction, viewportInstruction } = instructionTest;
+    instruction = `/${instruction}`;
+
+    it(`parses viewport instruction: ${instruction}`, async function () {
+      const { host, router, tearDown } = await setup();
+
+      const parsed = router.instructionResolver.parseViewportInstruction(instruction);
+      assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
+      const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
+      assert.strictEqual(`/${newInstruction}`, instruction, `newInstruction`);
+
+      await tearDown();
+    });
+  }
+
+  it('handles siblings within scope', async function () {
+    const { host, router, tearDown } = await setup();
+
+    // <a>
+    //   <b>
+    //     <c></c>
+    //     <d></d>
+    //   </b>
+    //   <e>
+    //     <f>
+    //       <g></g>
+    //     </f>
+    //   </e>
+    // </a>
+    // <h></h>
+    //
+    // /(a/(b/(c+d)+e/(f/(g)))+h)
+
+    const [a, b, c, d, e, f, g, h] = [
+      new ViewportInstruction('a'),
+      new ViewportInstruction('b'),
+      new ViewportInstruction('c'),
+      new ViewportInstruction('d'),
+      new ViewportInstruction('e'),
+      new ViewportInstruction('f'),
+      new ViewportInstruction('g'),
+      new ViewportInstruction('h'),
+    ];
+    a.nextScopeInstructions = [b, e];
+    b.nextScopeInstructions = [c, d];
+    e.nextScopeInstructions = [f];
+    f.nextScopeInstructions = [g];
+
+    let instructions: ViewportInstruction[] = [a, h];
+
+    let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
+    console.log('Instructions', instructionsString);
+    let parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
+    console.log('Parsed', parsedInstructions);
+    const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions);
+    console.log('Stringified', stringified);
+    assert.strictEqual(stringified, instructionsString, `stringified`);
+
+    await tearDown();
+  });
+
+  const instructionStrings: string[] = [
+    'a@left/b@a+c@right/d@c',
+  ];
+
+  for (const instruction of instructionStrings) {
+    it(`parses and stringifies viewport instructions: ${instruction}`, async function () {
+      const { host, router, tearDown } = await setup();
+
+      const parsed = router.instructionResolver.parseViewportInstructions(instruction);
+      const stringifiedInstructions = router.instructionResolver.stringifyViewportInstructions(parsed);
+      assert.strictEqual(stringifiedInstructions, instruction, `stringifiedInstructions`);
 
       await tearDown();
     });

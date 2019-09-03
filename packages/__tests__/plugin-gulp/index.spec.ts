@@ -1,13 +1,17 @@
-import { Readable, Writable } from 'stream';
+import { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { plugin } from '@aurelia/plugin-gulp';
 import { assert } from '@aurelia/testing';
+import { Readable, Writable } from 'stream';
 import * as v from 'vinyl';
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 
-function preprocess(filePath: string, contents: string, ts: boolean = false) {
+function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
+  if (unit.path.endsWith('.css')) return;
+  const { defaultShadowOptions, stringModuleWrap } = options;
   return {
-    code: (ts ? 'ts ' : '') + 'processed ' + filePath + ' ' + contents,
+    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
+          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
     map: { version: 3 }
   };
 }
@@ -15,7 +19,7 @@ function preprocess(filePath: string, contents: string, ts: boolean = false) {
 describe('plugin-gulp', function () {
   it('complains about stream mode', function (done) {
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, {}, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -35,10 +39,10 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('ignores non js/ts/html file', function (done) {
+  it('bypass other file', function (done) {
     const css = '.a { color: red; }';
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, {}, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -66,7 +70,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, {}, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -89,13 +93,83 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in ts mode', function(done) {
+  it('transforms html file in shadowDOM mode', function(done) {
     const content = 'content';
-    const expected = 'ts processed src/foo-bar.html content';
-
+    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, true, preprocess);
+    const t = plugin.call(undefined,
+      {
+        defaultShadowOptions: { mode: 'open' },
+        stringModuleWrap: (id: string) => `text!${id}`
+      },
+      preprocess
+    );
+    t.pipe(new Writable({
+      objectMode: true,
+      write(file: Vinyl, enc, cb) {
+        files.push(file);
+        cb();
+      }
+    }));
+    t.on('error', done);
+    t.on('end', () => {
+      assert.equal(files.length, 1);
+      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].contents.toString(), expected);
+      assert.equal(files[0].sourceMap.version, 3);
+      done();
+    });
+
+    t.end(new Vinyl({
+      path: 'src/foo-bar.html',
+      contents: Buffer.from(content),
+      sourceMap: {}
+    }));
+  });
+
+  it('transforms html file in CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed src/foo-bar.html content';
+
+    const files: Vinyl[] = [];
+    const t = plugin.call(undefined, { useCSSModule: true }, preprocess);
+    t.pipe(new Writable({
+      objectMode: true,
+      write(file: Vinyl, enc, cb) {
+        files.push(file);
+        cb();
+      }
+    }));
+    t.on('error', done);
+    t.on('end', () => {
+      assert.equal(files.length, 1);
+      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].contents.toString(), expected);
+      assert.equal(files[0].sourceMap.version, 3);
+      done();
+    });
+
+    t.end(new Vinyl({
+      path: 'src/foo-bar.html',
+      contents: Buffer.from(content),
+      sourceMap: {}
+    }));
+  });
+
+  it('transforms html file in shadowDOM mode + CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+
+    const files: Vinyl[] = [];
+    const t = plugin.call(undefined,
+      {
+        defaultShadowOptions: { mode: 'open' },
+        stringModuleWrap: (id: string) => `text!${id}`,
+        useCSSModule: true
+      },
+      preprocess
+    );
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -124,7 +198,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.js content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, {}, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -152,7 +226,7 @@ describe('plugin-gulp', function () {
     const expected = 'processed src/foo-bar.ts content';
 
     const files: Vinyl[] = [];
-    const t = plugin.call(undefined, false, preprocess);
+    const t = plugin.call(undefined, {}, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {

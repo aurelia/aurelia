@@ -5,9 +5,9 @@ import {
   IContainer,
   IRegistry,
   IResourceDescriptions,
+  kebabCase,
   PLATFORM,
-  RuntimeCompilationResources,
-  kebabCase
+  RuntimeCompilationResources
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -32,7 +32,13 @@ import {
   TargetedInstructionType as TT
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
-import { HTMLTestContext, TestContext, eachCartesianJoinFactory, verifyBindingInstructionsEqual, assert } from '@aurelia/testing';
+import {
+  assert,
+  eachCartesianJoinFactory,
+  HTMLTestContext,
+  TestContext,
+  verifyBindingInstructionsEqual
+} from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -42,7 +48,7 @@ export function createAttribute(name: string, value: string): Attr {
 
 const buildNotRequired = { required: false, compiler: 'default' };
 
-describe('TemplateCompiler', function () {
+describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
   let resources: IResourceDescriptions;
@@ -654,16 +660,16 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => ['value', 'value', 'value']
       ] as ((ctx: HTMLTestContext, $1: [string]) => [string, string, string])[],
       [
-        (ctx, $1, [, , value]) => [`ref`,               value, { type: TT.refBinding,      from: value }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay,   oneTime: false }],
+        (ctx, $1, [, , value]) => [`ref`,                     value, { type: TT.refBinding,       from: new AccessScopeExpression(value), to: 'element' }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay,   oneTime: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
         (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,     from: new AccessScopeExpression(value), to }]
+        (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,      from: new AccessScopeExpression(value), to }]
       ] as ((ctx: HTMLTestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;

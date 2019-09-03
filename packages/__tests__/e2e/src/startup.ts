@@ -2,6 +2,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { I18nConfiguration } from '@aurelia/i18n';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
+import Fetch from 'i18next-fetch-backend';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
 import { App as component } from './app';
 import { CustomMessage } from './plugins/custom-message';
@@ -18,6 +19,8 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
 
 (async function () {
   const host = document.querySelector('app');
+  const searchParams = new URL(location.href).searchParams;
+  const fetchResource = !!searchParams.get('fetchResource');
 
   const au = new Aurelia()
     .register(
@@ -25,10 +28,19 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
       DebugConfiguration,
       I18nConfiguration.customize((options) => {
         options.translationAttributeAliases = ['t', 'i18n'];
+        const plugins = [intervalPlural.default];
+        if (fetchResource) {
+          plugins.push(Fetch);
+        }
         options.initOptions = {
-          plugins: [intervalPlural.default],
-          resources,
-          skipTranslationOnMissingKey: !!new URL(location.href).searchParams.get('skipkey')
+          plugins,
+          resources: !fetchResource ? resources : undefined,
+          backend: fetchResource
+            ? {
+              loadPath: '/locales/{{lng}}/{{ns}}.json',
+            }
+            : undefined,
+          skipTranslationOnMissingKey: !!searchParams.get('skipkey')
         };
       })
     );

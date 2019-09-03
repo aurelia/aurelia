@@ -69,7 +69,7 @@ describe('BrowserNavigator', function () {
   it('can be activated', async function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate(callback);
+    await sut.activate({ callback });
 
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
@@ -82,7 +82,7 @@ describe('BrowserNavigator', function () {
   it('can be deactivated', async function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate(callback);
+    await sut.activate({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
@@ -97,12 +97,12 @@ describe('BrowserNavigator', function () {
   it('throws when activated while active', async function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate(callback);
+    await sut.activate({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
 
     let err;
     try {
-      await sut.activate(callback);
+      await sut.activate({ callback });
     } catch (e) {
       err = e;
     }
@@ -117,11 +117,13 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = setup();
 
     let counter = 0;
-    await sut.activate(
-      // Called once for each url/location change (no longer in as part of activation)
-      function () {
-        counter++;
-      });
+    await sut.activate({
+      callback:
+        // Called once for each url/location change (no longer in as part of activation)
+        function () {
+          counter++;
+        }
+    });
 
     await sut.pushNavigatorState(toNavigatorState('one'));
     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
@@ -141,7 +143,7 @@ describe('BrowserNavigator', function () {
   it('queues consecutive calls', async function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate(callback);
+    await sut.activate({ callback });
     await wait();
 
     const length = sut['pendingCalls'].length;
@@ -163,11 +165,13 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = setup();
 
     let counter = 0;
-    await sut.activate(
-      // Called once for each url/location change (no longer in as part of activation)
-      function () {
-        counter++;
-      });
+    await sut.activate({
+      callback:
+        // Called once for each url/location change (no longer in as part of activation)
+        function () {
+          counter++;
+        }
+    });
 
     await sut.pushNavigatorState(toNavigatorState('one'));
     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
@@ -178,6 +182,63 @@ describe('BrowserNavigator', function () {
     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
     assert.strictEqual(counter, 1, `counter`);
+
+    sut.deactivate();
+
+    tearDown();
+  });
+
+  it('defaults to using url fragment hash', async function () {
+    const { sut, tearDown, callback } = setup();
+
+    let instruction;
+    await sut.activate({
+      callback:
+        function (state) {
+          instruction = state;
+        }
+    });
+
+    await sut.pushNavigatorState(toNavigatorState('one'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('two'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+    await sut.go(-1);
+    await Promise.resolve();
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+
+    assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
+    assert.strictEqual(instruction.path, '/', `instruction.path`);
+    assert.strictEqual(instruction.hash, '#/one', `instruction.hash`);
+
+    sut.deactivate();
+
+    tearDown();
+  });
+
+  it('can be set to not using url fragment hash', async function () {
+    const { sut, tearDown, callback } = setup();
+
+    let instruction;
+    await sut.activate({
+      callback:
+        function (state) {
+          instruction = state;
+        },
+        useUrlFragmentHash: false,
+    });
+
+    await sut.pushNavigatorState(toNavigatorState('one'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+    await sut.pushNavigatorState(toNavigatorState('two'));
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+    await sut.go(-1);
+    await Promise.resolve();
+    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+
+    assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
+    assert.strictEqual(instruction.path, '/one', `instruction.path`);
+    assert.strictEqual(instruction.hash, '', `instruction.hash`);
 
     sut.deactivate();
 

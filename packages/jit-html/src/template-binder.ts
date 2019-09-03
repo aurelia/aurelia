@@ -34,6 +34,7 @@ import {
 import {
   NodeType,
 } from '@aurelia/runtime-html';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 
 const slice = Array.prototype.slice;
 
@@ -59,6 +60,7 @@ export class TemplateBinder {
   public resources: ResourceModel;
   public attrParser: IAttributeParser;
   public exprParser: IExpressionParser;
+  public attrSyntaxTransformer: IAttrSyntaxTransformer;
 
   private surrogate: PlainElementSymbol | null;
 
@@ -76,11 +78,18 @@ export class TemplateBinder {
 
   private partName: string | null;
 
-  constructor(dom: IDOM, resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser) {
+  constructor(
+    dom: IDOM,
+    resources: ResourceModel,
+    attrParser: IAttributeParser,
+    exprParser: IExpressionParser,
+    attrSyntaxModifier: IAttrSyntaxTransformer
+  ) {
     this.dom = dom;
     this.resources = resources;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
+    this.attrSyntaxTransformer = attrSyntaxModifier;
     this.surrogate = null;
     this.manifest = null;
     this.manifestRoot = null;
@@ -94,6 +103,8 @@ export class TemplateBinder {
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
     const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
+    const resources = this.resources;
+    const attrSyntaxTransformer = this.attrSyntaxTransformer;
 
     const attributes = node.attributes;
     let i = 0;
@@ -105,14 +116,26 @@ export class TemplateBinder {
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
-      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
-      if (attrInfo == null) {
-        this.bindPlainAttribute(attrSyntax, attr);
-      } else if (attrInfo.isTemplateController) {
-        throw new Error('Cannot have template controller on surrogate element.');
-        // TODO: use reporter
+      const bindingCommand = resources.getBindingCommand(attrSyntax, true);
+      if (bindingCommand == null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = resources.getAttributeInfo(attrSyntax);
+
+        if (attrInfo == null) {
+          // map special html attributes to their corresponding properties
+          attrSyntaxTransformer.transform(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(attrSyntax, attr);
+        } else if (attrInfo.isTemplateController) {
+          throw new Error('Cannot have template controller on surrogate element.');
+          // TODO: use reporter
+        } else {
+          this.bindCustomAttribute(attrSyntax, attrInfo);
+        }
       } else {
-        this.bindCustomAttribute(attrSyntax, attrInfo);
+        // map special html attributes to their corresponding properties
+        attrSyntaxTransformer.transform(node, attrSyntax);
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        this.bindPlainAttribute(attrSyntax, attr);
       }
       ++i;
     }
@@ -203,7 +226,7 @@ export class TemplateBinder {
         continue;
       }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.resources.getBindingCommand(attrSyntax);
+      const command = this.resources.getBindingCommand(attrSyntax, false);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       const to = camelCase(attrSyntax.target);
@@ -238,119 +261,43 @@ export class TemplateBinder {
       }
 
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+      const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
 
-      if (attrInfo == null) {
-        switch (node.tagName) {
-          case 'LABEL':
-            switch (attrSyntax.target) {
-              case 'for':
-                attrSyntax.target = 'htmlFor';
-                break;
-            }
-            break;
-          case 'IMG':
-            switch (attrSyntax.target) {
-              case 'usemap':
-                attrSyntax.target = 'useMap';
-                break;
-            }
-            break;
-          case 'INPUT':
-            switch (attrSyntax.target) {
-              case 'maxlength':
-                attrSyntax.target = 'maxLength';
-                break;
-              case 'minlength':
-                attrSyntax.target = 'minLength';
-                break;
-              case 'formaction':
-                attrSyntax.target = 'formAction';
-                break;
-              case 'formenctype':
-                attrSyntax.target = 'formEncType';
-                break;
-              case 'formmethod':
-                attrSyntax.target = 'formMethod';
-                break;
-              case 'formnovalidate':
-                attrSyntax.target = 'formNoValidate';
-                break;
-              case 'formtarget':
-                attrSyntax.target = 'formTarget';
-                break;
-            }
-            break;
-          case 'TEXTAREA':
-            switch (attrSyntax.target) {
-              case 'maxlength':
-                attrSyntax.target = 'maxLength';
-                break;
-            }
-            break;
-          case 'TD':
-          case 'TH':
-            switch (attrSyntax.target) {
-              case 'rowspan':
-                attrSyntax.target = 'rowSpan';
-                break;
-              case 'colspan':
-                attrSyntax.target = 'colSpan';
-                break;
-            }
-            break;
-          default:
-            switch (attrSyntax.target) {
-              case 'accesskey':
-                attrSyntax.target = 'accessKey';
-                break;
-              case 'contenteditable':
-                attrSyntax.target = 'contentEditable';
-                break;
-              case 'tabindex':
-                attrSyntax.target = 'tabIndex';
-                break;
-              case 'textcontent':
-                attrSyntax.target = 'textContent';
-                break;
-              case 'innerhtml':
-                attrSyntax.target = 'innerHTML';
-                break;
-              case 'scrolltop':
-                attrSyntax.target = 'scrollTop';
-                break;
-              case 'scrollleft':
-                attrSyntax.target = 'scrollLeft';
-                break;
-              case 'readonly':
-                attrSyntax.target = 'readOnly';
-                break;
-            }
-            break;
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+
+        if (attrInfo == null) {
+          // map special html attributes to their corresponding properties
+          this.attrSyntaxTransformer.transform(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(attrSyntax, attr);
+        } else if (attrInfo.isTemplateController) {
+          // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
+          // so keep setting manifest.templateController to the latest template controller we find
+          currentController = manifest!.templateController = this.declareTemplateController(attrSyntax, attrInfo);
+
+          // the proxy and the manifest are only identical when we're at the first template controller (since the controller
+          // is assigned to the proxy), so this evaluates to true at most once per node
+          if (manifestProxy === manifest) {
+            currentController.template = manifest;
+            // @ts-ignore
+            manifestProxy = currentController;
+          } else {
+            currentController.templateController = previousController;
+            currentController.template = previousController.template;
+            // @ts-ignore
+            previousController.template = currentController;
+          }
+          previousController = currentController;
+        } else {
+          // a regular custom attribute
+          this.bindCustomAttribute(attrSyntax, attrInfo);
         }
+      } else {
+        // map special html attributes to their corresponding properties
+        this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax, attr);
-      } else if (attrInfo.isTemplateController) {
-        // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
-        // so keep setting manifest.templateController to the latest template controller we find
-        currentController = manifest!.templateController = this.declareTemplateController(attrSyntax, attrInfo);
-
-        // the proxy and the manifest are only identical when we're at the first template controller (since the controller
-        // is assigned to the proxy), so this evaluates to true at most once per node
-        if (manifestProxy === manifest) {
-          currentController.template = manifest;
-          // @ts-ignore
-          manifestProxy = currentController;
-        } else {
-          currentController.templateController = previousController;
-          currentController.template = previousController.template;
-          // @ts-ignore
-          previousController.template = currentController;
-        }
-        previousController = currentController;
-      } else {
-        // a regular custom attribute
-        this.bindCustomAttribute(attrSyntax, attrInfo);
       }
     }
 
@@ -384,9 +331,7 @@ export class TemplateBinder {
 
       processReplacePart(this.dom, replacePart, manifestProxy);
     }
-
   }
-
 
   private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
     let childNode: ChildNode;
@@ -438,7 +383,7 @@ export class TemplateBinder {
 
     let symbol: TemplateControllerSymbol;
     // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
-    const command = this.resources.getBindingCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax, false);
     if (command == null && attrInfo.hasDynamicOptions) {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
       this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
@@ -454,7 +399,7 @@ export class TemplateBinder {
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
 
-    const command = this.resources.getBindingCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax, false);
     let symbol: CustomAttributeSymbol;
     if (command == null && attrInfo.hasDynamicOptions) {
       // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
@@ -469,8 +414,9 @@ export class TemplateBinder {
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
-    this.manifest!.attributes.push(symbol);
-    this.manifest!.isTarget = true;
+    const manifest = this.manifest!;
+    manifest.customAttributes.push(symbol);
+    manifest.isTarget = true;
 
   }
 
@@ -481,7 +427,7 @@ export class TemplateBinder {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.resources.getBindingCommand(attrSyntax);
+      const command = this.resources.getBindingCommand(attrSyntax, false);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       let bindable = attrInfo.bindables[attrSyntax.target];
@@ -497,44 +443,46 @@ export class TemplateBinder {
 
   private bindPlainAttribute(attrSyntax: AttrSyntax, attr: Attr): void {
 
-    const command = this.resources.getBindingCommand(attrSyntax);
+    const command = this.resources.getBindingCommand(attrSyntax, false);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
-    const manifest = this.manifest;
+    const manifest = this.manifest!;
+    const attrTarget = attrSyntax.target;
+    const attrRawValue = attrSyntax.rawValue;
     let expr: AnyBindingExpression;
     if (
-      attrSyntax.rawValue.length === 0
+      attrRawValue.length === 0
       && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
     ) {
       if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
         // Default to the name of the attr for empty binding commands
-        expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+        expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
       } else {
         return;
       }
     } else {
-      expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      expr = this.exprParser.parse(attrRawValue, bindingType);
     }
 
-    if (manifest!.flags & SymbolFlags.isCustomElement) {
-      const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
+    if (manifest.flags & SymbolFlags.isCustomElement) {
+      const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
       if (bindable != null) {
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
-        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
-        manifest!.isTarget = true;
-      } else if (expr != null || attrSyntax.target === 'ref') {
+        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
+        manifest.isTarget = true;
+      } else if (expr != null) {
         // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
-        manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-        manifest!.isTarget = true;
+        manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+        manifest.isTarget = true;
       }
-    } else if (expr != null || attrSyntax.target === 'ref') {
+    } else if (expr != null) {
       // either a binding command, an interpolation, or a ref
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-      manifest!.isTarget = true;
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.isTarget = true;
     } else if (manifest === this.surrogate) {
       // any attributes, even if they are plain (no command/interpolation etc), should be added if they
       // are on the surrogate element
-      manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 
     if (command == null && expr != null) {

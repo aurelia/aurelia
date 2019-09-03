@@ -1,5 +1,5 @@
-import * as de from '../../src/locales/de/translations.json';
-import * as en from '../../src/locales/en/translations.json';
+import * as de from '../../src/locales/de/translation.json';
+import * as en from '../../src/locales/en/translation.json';
 
 interface Spec {
   name: string;
@@ -311,5 +311,15 @@ describe('i18n', function () {
       cy.visit('/');
       cy.reload();
     });
+  });
+
+  it('works with Backend', function () {
+    cy.visit('/?fetchResource=true');
+
+    assertContent(`#i18n-simple`, en.simple.text);
+    changeCurrentLocaleToDe();
+
+    assertContent(`#i18n-simple`, de.simple.text);
+    cy.visit('/');
   });
 });

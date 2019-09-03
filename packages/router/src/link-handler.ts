@@ -7,7 +7,7 @@ export interface ILinkHandlerOptions {
   /**
    * Callback method for when a link is clicked
    */
-  callback?(info: AnchorEventInfo): void;
+  callback(info: AnchorEventInfo): void;
 }
 
 /**
@@ -21,18 +21,18 @@ export interface AnchorEventInfo {
   /**
    * The href of the link or null if not-applicable.
    */
-  href: string;
+  href: string | null;
   /**
    * The anchor element or null if not-applicable.
    */
-  anchor: Element;
+  anchor: Element | null;
 }
 
 /**
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
-  private options: ILinkHandlerOptions;
+  private options: ILinkHandlerOptions = { callback: () => { } };
   private isActive: boolean = false;
 
   // private handler: EventListener;
@@ -43,13 +43,13 @@ export class LinkHandler {
    * @param event The Event to inspect for target anchor and href.
    */
   private static getEventInfo(event: Event): AnchorEventInfo {
-    const info = {
+    const info: AnchorEventInfo = {
       shouldHandleEvent: false,
       href: null,
       anchor: null
     };
 
-    const target = LinkHandler.closestAnchor(event.target as Element);
+    const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
     if (!target || !LinkHandler.targetIsThisWindow(target)) {
       return info;
     }
@@ -86,13 +86,14 @@ export class LinkHandler {
    * @param el The element to search upward from.
    * @returns The link element that is the closest ancestor.
    */
-  private static closestAnchor(el: Element): Element {
+  private static closestAnchor(el: Element): Element | null {
     while (el) {
       if (el.tagName === 'A') {
         return el;
       }
       el = el.parentNode as Element;
     }
+    return null;
   }
 
   /**

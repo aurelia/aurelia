@@ -1,9 +1,13 @@
-import { loader } from '@aurelia/webpack-loader';
+import { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
+import { loader } from '@aurelia/webpack-loader';
 
-function preprocess(filePath: string, contents: string, ts: boolean = false) {
+function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
+  if (unit.path.endsWith('.css')) return;
+  const { defaultShadowOptions, stringModuleWrap } = options;
   return {
-    code: (ts ? 'ts ' : '') + 'processed ' + filePath + ' ' + contents,
+    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
+          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
     map: { version: 3 }
   };
 }
@@ -29,9 +33,9 @@ describe('webpack-loader', function () {
     loader.call(context, content, preprocess);
   });
 
-  it('transforms html file in ts mode', function(done) {
+  it('transforms html file in shadowDOM mode', function(done) {
     const content = 'content';
-    const expected = 'ts processed src/foo-bar.html content';
+    const expected = 'processed {"mode":"open"} !!raw-loader!src/foo-bar.html content';
 
     const context = {
       async: () => function(err, code, map) {
@@ -43,7 +47,48 @@ describe('webpack-loader', function () {
         assert.equal(map.version, 3);
         done();
       },
-      query: { ts: true },
+      query: { defaultShadowOptions: { mode: 'open' } },
+      resourcePath: 'src/foo-bar.html'
+    };
+
+    loader.call(context, content, preprocess);
+  });
+
+  it('transforms html file in CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed src/foo-bar.html content';
+
+    const context = {
+      async: () => function(err, code, map) {
+        if (err) {
+          done(err);
+          return;
+        }
+        assert.equal(code, expected);
+        assert.equal(map.version, 3);
+        done();
+      },
+      query: { useCSSModule: true },
+      resourcePath: 'src/foo-bar.html'
+    };
+
+    loader.call(context, content, preprocess);
+  });
+  it('transforms html file in shadowDOM mode + CSSModule mode', function(done) {
+    const content = 'content';
+    const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+
+    const context = {
+      async: () => function(err, code, map) {
+        if (err) {
+          done(err);
+          return;
+        }
+        assert.equal(code, expected);
+        assert.equal(map.version, 3);
+        done();
+      },
+      query: { defaultShadowOptions: { mode: 'open' }, useCSSModule: true },
       resourcePath: 'src/foo-bar.html'
     };
 

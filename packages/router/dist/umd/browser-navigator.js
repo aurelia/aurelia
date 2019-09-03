@@ -60,9 +60,6 @@
             this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
             this.window.addEventListener('popstate', this.handlePopstate);
         }
-        loadUrl() {
-            return this.handlePopstate(null);
-        }
         deactivate() {
             if (!this.isActive) {
                 throw new Error('Browser navigation has not been activated');
@@ -77,6 +74,15 @@
         }
         get state() {
             return this.history.state;
+        }
+        get viewerState() {
+            const { pathname, search, hash } = this.location;
+            return {
+                path: pathname,
+                query: search,
+                hash,
+                instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+            };
         }
         go(delta, suppressPopstate = false) {
             return this.enqueue(this.history, 'go', [delta], suppressPopstate);
@@ -96,14 +102,12 @@
         }
         popstate(ev, resolve, suppressPopstate = false) {
             if (!suppressPopstate) {
-                const { pathname, search, hash } = this.location;
                 this.options.callback({
-                    event: ev,
-                    state: this.history.state,
-                    path: pathname,
-                    data: search,
-                    hash,
-                    instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+                    ...this.viewerState,
+                    ...{
+                        event: ev,
+                        state: this.history.state,
+                    },
                 });
             }
             if (resolve) {

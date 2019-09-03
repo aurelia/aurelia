@@ -257,7 +257,15 @@ export class Router {
         });
     }
     loadUrl() {
-        return this.navigation.loadUrl();
+        const entry = {
+            ...this.navigation.viewerState,
+            ...{
+                fullStateInstruction: '',
+                replacing: true,
+                fromBrowser: false,
+            }
+        };
+        return this.navigator.navigate(entry);
     }
     deactivate() {
         if (!this.isActive) {

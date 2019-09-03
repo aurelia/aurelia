@@ -1,5 +1,5 @@
 ---
-description: 'Get acquainted with Aurelia, our docs, and basic project setup.'
+description: 'Get acquainted with Aurelia, the docs, and basic project setup.'
 ---
 
 # Introduction

@@ -21,13 +21,16 @@ export interface INavigatorViewerOptions {
   callback(ev: INavigatorViewerEvent): void;
 }
 
-export interface INavigatorViewerEvent {
-  event: PopStateEvent;
-  state?: INavigatorState;
+export interface INavigatorViewerState {
   path: string;
-  data: string;
+  query: string;
   hash: string;
   instruction: string;
+}
+
+export interface INavigatorViewerEvent extends INavigatorViewerState {
+  event: PopStateEvent;
+  state?: INavigatorState;
 }
 
 export interface IStoredNavigatorEntry {

@@ -1,7 +1,7 @@
 import { Key, Reporter } from '@aurelia/kernel';
 import { IDOM, ILifecycle } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { Queue, QueueItem } from './queue';
 
 interface Call {
@@ -62,10 +62,6 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     this.window.addEventListener('popstate', this.handlePopstate);
   }
 
-  public loadUrl(): Promise<void> {
-    return this.handlePopstate(null);
-  }
-
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Browser navigation has not been activated');
@@ -81,6 +77,16 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   }
   get state(): Record<string, unknown> {
     return this.history.state;
+  }
+
+  get viewerState(): INavigatorViewerState {
+    const { pathname, search, hash } = this.location;
+    return {
+      path: pathname,
+      query: search,
+      hash,
+      instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+    };
   }
 
   public go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
@@ -109,14 +115,12 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
     if (!suppressPopstate) {
-      const { pathname, search, hash } = this.location;
       this.options.callback({
-        event: ev,
-        state: this.history.state,
-        path: pathname,
-        data: search,
-        hash,
-        instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+        ...this.viewerState,
+        ...{
+          event: ev,
+          state: this.history.state,
+        },
       });
     }
     if (resolve) {

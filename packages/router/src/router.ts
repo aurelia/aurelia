@@ -135,7 +135,15 @@ export class Router implements IRouter {
   }
 
   public loadUrl(): Promise<void> {
-    return this.navigation.loadUrl();
+    const entry: INavigatorEntry = {
+      ...this.navigation.viewerState,
+      ...{
+        fullStateInstruction: '',
+        replacing: true,
+        fromBrowser: false,
+      }
+    };
+    return this.navigator.navigate(entry);
   }
 
   public deactivate(): void {

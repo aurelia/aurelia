@@ -1,7 +1,7 @@
 import { Constructable, IResourceDefinition, Key, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { BindingMode, BindingStrategy } from './flags';
 import { INode } from './dom';
+import { BindingMode, BindingStrategy } from './flags';
 import { IController, IViewModel } from './lifecycle';
 import { IElementProjector } from './resources/custom-element';
 export declare type IElementHydrationOptions = {
@@ -13,6 +13,7 @@ export interface IBindableDescription {
     callback?: string;
     attribute?: string;
     property?: string;
+    primary?: boolean;
 }
 export interface IChildrenObserverDescription<TNode extends INode = INode> {
     callback?: string;
@@ -79,7 +80,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
     strategy?: BindingStrategy;
     hooks?: Readonly<HooksDefinition>;
 }
-export declare type AttributeDefinition = Required<IAttributeDefinition> | null;
+export declare type AttributeDefinition = Required<IAttributeDefinition>;
 export declare type InstructionTypeName = string;
 export declare const ITargetedInstruction: import("@aurelia/kernel").InterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {

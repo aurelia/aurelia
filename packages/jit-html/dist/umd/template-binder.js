@@ -71,7 +71,7 @@
                         // TODO: use reporter
                     }
                     else {
-                        this.bindCustomAttribute(attrSyntax, attrInfo);
+                        this.bindCustomAttribute(attrSyntax, attrInfo, bindingCommand);
                     }
                 }
                 else {
@@ -214,7 +214,7 @@
                     }
                     else {
                         // a regular custom attribute
-                        this.bindCustomAttribute(attrSyntax, attrInfo);
+                        this.bindCustomAttribute(attrSyntax, attrInfo, bindingCommand);
                     }
                 }
                 else {
@@ -309,8 +309,7 @@
             }
             return symbol;
         }
-        bindCustomAttribute(attrSyntax, attrInfo) {
-            const command = this.resources.getBindingCommand(attrSyntax, false);
+        bindCustomAttribute(attrSyntax, attrInfo, command) {
             let symbol;
             if (command == null && attrInfo.hasDynamicOptions) {
                 // a dynamicOptions (semicolon separated binding) is only valid without a binding command;

@@ -159,5 +159,6 @@ export {
 export {
   AdoptedStyleSheetsStyles,
   StyleElementStyles,
-  IShadowDOMStyles
+  IShadowDOMStyles,
+  IShadowDOMGlobalStyles
 } from './styles/shadow-dom-styles';

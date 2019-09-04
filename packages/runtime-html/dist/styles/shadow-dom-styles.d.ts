@@ -6,6 +6,7 @@ export declare const noopShadowDOMStyles: Readonly<{
     applyTo: () => void;
 }>;
 export declare const IShadowDOMStyles: import("@aurelia/kernel").InterfaceSymbol<IShadowDOMStyles>;
+export declare const IShadowDOMGlobalStyles: import("@aurelia/kernel").InterfaceSymbol<IShadowDOMStyles>;
 export interface IShadowDOMStyles {
     applyTo(shadowRoot: ShadowRoot): void;
 }

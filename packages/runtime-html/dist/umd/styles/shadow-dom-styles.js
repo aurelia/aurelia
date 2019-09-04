@@ -13,7 +13,8 @@
     exports.noopShadowDOMStyles = Object.freeze({
         applyTo: kernel_1.PLATFORM.noop
     });
-    exports.IShadowDOMStyles = kernel_1.DI.createInterface('IShadowDOMStyles')
+    exports.IShadowDOMStyles = kernel_1.DI.createInterface('IShadowDOMStyles').noDefault();
+    exports.IShadowDOMGlobalStyles = kernel_1.DI.createInterface('IShadowDOMGlobalStyles')
         .withDefault(x => x.instance(exports.noopShadowDOMStyles));
     class AdoptedStyleSheetsStyles {
         constructor(dom, localStyles, styleSheetCache, sharedStyles = null) {

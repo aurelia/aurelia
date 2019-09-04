@@ -47,15 +47,15 @@
                         return new shadow_dom_styles_1.StyleElementStyles(dom, localStyles, sharedStyles);
                     };
                 }
-                let globalSharedStyles;
+                let globalStyles;
                 if (config && config.sharedStyles) {
-                    globalSharedStyles = createStyles(config.sharedStyles, null);
+                    globalStyles = createStyles(config.sharedStyles, null);
                 }
                 else {
-                    globalSharedStyles = shadow_dom_styles_1.noopShadowDOMStyles;
+                    globalStyles = shadow_dom_styles_1.noopShadowDOMStyles;
                 }
-                container.register(kernel_1.Registration.instance(shadow_dom_styles_1.IShadowDOMStyles, globalSharedStyles));
-                container.register(kernel_1.Registration.instance(ext, new shadow_dom_registry_1.ShadowDOMRegistry(globalSharedStyles, createStyles)));
+                container.register(kernel_1.Registration.instance(shadow_dom_styles_1.IShadowDOMGlobalStyles, globalStyles));
+                container.register(kernel_1.Registration.instance(ext, new shadow_dom_registry_1.ShadowDOMRegistry(globalStyles, createStyles)));
             });
         }
     };

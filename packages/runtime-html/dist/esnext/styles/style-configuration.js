@@ -3,7 +3,7 @@ import { StartTask } from '@aurelia/runtime';
 import { HTMLDOM } from '../dom';
 import { CSSModulesProcessorRegistry } from './css-modules-registry';
 import { ShadowDOMRegistry } from './shadow-dom-registry';
-import { AdoptedStyleSheetsStyles, IShadowDOMStyles, noopShadowDOMStyles, StyleElementStyles } from './shadow-dom-styles';
+import { AdoptedStyleSheetsStyles, noopShadowDOMStyles, StyleElementStyles, IShadowDOMGlobalStyles } from './shadow-dom-styles';
 const ext = '.css';
 export function styles(...styles) {
     return Registration.defer(ext, ...styles);
@@ -35,15 +35,15 @@ export const StyleConfiguration = {
                     return new StyleElementStyles(dom, localStyles, sharedStyles);
                 };
             }
-            let globalSharedStyles;
+            let globalStyles;
             if (config && config.sharedStyles) {
-                globalSharedStyles = createStyles(config.sharedStyles, null);
+                globalStyles = createStyles(config.sharedStyles, null);
             }
             else {
-                globalSharedStyles = noopShadowDOMStyles;
+                globalStyles = noopShadowDOMStyles;
             }
-            container.register(Registration.instance(IShadowDOMStyles, globalSharedStyles));
-            container.register(Registration.instance(ext, new ShadowDOMRegistry(globalSharedStyles, createStyles)));
+            container.register(Registration.instance(IShadowDOMGlobalStyles, globalStyles));
+            container.register(Registration.instance(ext, new ShadowDOMRegistry(globalStyles, createStyles)));
         });
     }
 };

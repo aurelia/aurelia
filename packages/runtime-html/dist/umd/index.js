@@ -108,5 +108,6 @@
     exports.AdoptedStyleSheetsStyles = shadow_dom_styles_1.AdoptedStyleSheetsStyles;
     exports.StyleElementStyles = shadow_dom_styles_1.StyleElementStyles;
     exports.IShadowDOMStyles = shadow_dom_styles_1.IShadowDOMStyles;
+    exports.IShadowDOMGlobalStyles = shadow_dom_styles_1.IShadowDOMGlobalStyles;
 });
 //# sourceMappingURL=index.js.map

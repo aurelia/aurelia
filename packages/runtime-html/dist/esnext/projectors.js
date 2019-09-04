@@ -1,6 +1,6 @@
 import { PLATFORM, Registration, Reporter, toArray } from '@aurelia/kernel';
 import { IProjectorLocator } from '@aurelia/runtime';
-import { IShadowDOMStyles } from './styles/shadow-dom-styles';
+import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 const slice = Array.prototype.slice;
 const defaultShadowOptions = {
     mode: 'open'
@@ -53,7 +53,9 @@ export class ShadowDOMProjector {
     }
     project(nodes) {
         const context = this.$controller.context;
-        const styles = context.get(IShadowDOMStyles);
+        const styles = context.has(IShadowDOMStyles, false)
+            ? context.get(IShadowDOMStyles)
+            : context.get(IShadowDOMGlobalStyles);
         styles.applyTo(this.shadowRoot);
         nodes.appendTo(this.shadowRoot);
     }

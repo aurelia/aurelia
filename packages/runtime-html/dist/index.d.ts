@@ -26,5 +26,5 @@ export { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMP
 export { StyleConfiguration, styles, IShadowDOMConfiguration } from './styles/style-configuration';
 export { CSSModulesProcessorRegistry } from './styles/css-modules-registry';
 export { ShadowDOMRegistry } from './styles/shadow-dom-registry';
-export { AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles } from './styles/shadow-dom-styles';
+export { AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 //# sourceMappingURL=index.d.ts.map

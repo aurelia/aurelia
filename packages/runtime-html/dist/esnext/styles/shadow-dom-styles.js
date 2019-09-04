@@ -2,7 +2,8 @@ import { DI, PLATFORM } from '@aurelia/kernel';
 export const noopShadowDOMStyles = Object.freeze({
     applyTo: PLATFORM.noop
 });
-export const IShadowDOMStyles = DI.createInterface('IShadowDOMStyles')
+export const IShadowDOMStyles = DI.createInterface('IShadowDOMStyles').noDefault();
+export const IShadowDOMGlobalStyles = DI.createInterface('IShadowDOMGlobalStyles')
     .withDefault(x => x.instance(noopShadowDOMStyles));
 export class AdoptedStyleSheetsStyles {
     constructor(dom, localStyles, styleSheetCache, sharedStyles = null) {

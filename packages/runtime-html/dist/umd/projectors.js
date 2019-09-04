@@ -65,7 +65,9 @@
         }
         project(nodes) {
             const context = this.$controller.context;
-            const styles = context.get(shadow_dom_styles_1.IShadowDOMStyles);
+            const styles = context.has(shadow_dom_styles_1.IShadowDOMStyles, false)
+                ? context.get(shadow_dom_styles_1.IShadowDOMStyles)
+                : context.get(shadow_dom_styles_1.IShadowDOMGlobalStyles);
             styles.applyTo(this.shadowRoot);
             nodes.appendTo(this.shadowRoot);
         }

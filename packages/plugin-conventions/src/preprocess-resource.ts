@@ -25,6 +25,7 @@ interface IFoundResource {
 }
 
 interface IModifyResourceOptions {
+  expectedResourceName: string;
   runtimeImport: ICapturedImport;
   jitImport: ICapturedImport;
   implicitElement?: IPos;
@@ -86,6 +87,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   });
 
   return modifyResource(unit, {
+    expectedResourceName,
     runtimeImport,
     jitImport,
     implicitElement,
@@ -96,6 +98,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
 
 function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   const {
+    expectedResourceName,
     runtimeImport,
     jitImport,
     implicitElement,
@@ -105,6 +108,10 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
 
   const m = modifyCode(unit.contents, unit.path);
   if (implicitElement && unit.filePair) {
+    // @view() for foo.js and foo-view.html
+    // @customElement() for foo.js and foo.html
+    const dec = kebabCase(unit.filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement';
+
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
 
@@ -113,9 +120,9 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
       // in order to avoid TS2449: Class '...' used before its declaration.
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
       m.replace(implicitElement.pos, implicitElement.end, '');
-      m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
+      m.append(`\n@${dec}({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
     } else {
-      conventionalDecorators.push([implicitElement.pos, `@customElement(${viewDef})\n`]);
+      conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
     }
   }
 
@@ -175,7 +182,7 @@ function isExported(node: ts.Node): boolean {
   return false;
 }
 
-const KNOWN_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
 
 function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   if (!node.decorators) return;
@@ -204,7 +211,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
 
   if (decoratedType) {
     // Explicitly decorated resource
-    if (!isImplicitResource && decoratedType !== 'customElement') {
+    if (!isImplicitResource && decoratedType !== 'customElement' && decoratedType !== 'view') {
       return { localDep: className };
     }
   } else {
@@ -213,7 +220,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       if (isImplicitResource && filePair) {
         return {
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: type
+          runtimeImportName: kebabCase(filePair).startsWith(name + '-view') ? 'view' : 'customElement'
         };
       }
     } else {

@@ -129,6 +129,26 @@ export class FooBar {}
     assert.equal(result.map.version, 3);
   });
 
+  it('injects view decorator', function () {
+    const js = `export class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocess(
+      {
+        path: path.join('src', 'foo-bar.ts'),
+        contents: js,
+        base: 'base'
+      },
+      {},
+      (filePath: string) => filePath === path.join('base', 'src', 'foo-bar-view.html')
+    );
+    assert.equal(result.code, expected);
+    assert.equal(result.map.version, 3);
+  });
+
   it('injects various decorators when there is implicit custom element', function () {
     const js = `import {Foo} from './foo';
 import { valueConverter } from '@aurelia/runtime';

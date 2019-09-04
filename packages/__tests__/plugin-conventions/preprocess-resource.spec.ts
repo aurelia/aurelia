@@ -46,6 +46,24 @@ export class FooBar {}
     assert.equal(result.code, expected);
   });
 
+  it('injects view decorator', function () {
+    const code = `export class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar-view.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects customElement decorator for non-kebab case file name', function () {
     const code = `export class FooBar {}\n`;
     const expected = `import * as __au2ViewDef from './FooBar.html';
@@ -58,6 +76,24 @@ export class FooBar {}
         path: path.join('bar', 'FooBar.js'),
         contents: code,
         filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator for non-kebab case file name', function () {
+    const code = `export class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './FooBarView.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBarView.html'
       },
       preprocessOptions()
     );
@@ -88,6 +124,84 @@ function b() {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code,
         filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('does not inject customElement decorator for decorated resource', function () {
+    const code = `import { customElement } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@customElement(lorem)
+export class FooBar {}
+`;
+    const expected = `import { customElement } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@customElement(lorem)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator with existing runtime import', function () {
+    const code = `import { containerless } from '@aurelia/runtime';
+
+const A = 0;
+@containerless()
+export class FooBar {}
+
+function b() {}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
+import { containerless, view } from '@aurelia/runtime';
+
+const A = 0;
+@view(__au2ViewDef)
+@containerless()
+export class FooBar {}
+
+function b() {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar-view.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('does not inject view decorator for decorated resource', function () {
+    const code = `import { view } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@view(lorem)
+export class FooBar {}
+`;
+    const expected = `import { view } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@view(lorem)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar-view.html'
       },
       preprocessOptions()
     );

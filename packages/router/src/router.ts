@@ -40,7 +40,7 @@ export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
 
 export interface IRouter {
   readonly isNavigating: boolean;
-  activeComponents: string[];
+  activeComponents: ViewportInstruction[];
   readonly container: IContainer;
   readonly scopes: Scope[];
   readonly instructionResolver: InstructionResolver;
@@ -93,7 +93,7 @@ export class Router implements IRouter {
   public guardian: Guardian;
 
   public navs: Record<string, Nav> = {};
-  public activeComponents: string[] = [];
+  public activeComponents: ViewportInstruction[] = [];
 
   public addedViewports: ViewportInstruction[] = [];
 
@@ -581,16 +581,19 @@ export class Router implements IRouter {
   private replacePaths(instruction: INavigatorInstruction): Promise<void> {
     (this.rootScope as Scope).reparentViewportInstructions();
     const viewports: Viewport[] = (this.rootScope as Scope).viewports.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
-    const instructions = viewports.map(viewport => viewport.content.content);
+    let instructions = viewports.map(viewport => viewport.content.content);
+    // TODO: Check if this is really necessary
+    instructions = this.instructionResolver.parseViewportInstructions(this.instructionResolver.stringifyViewportInstructions(instructions));
     (this.rootScope as Scope).findViewports(instructions, true);
 
-    this.activeComponents = (this.rootScope as Scope).viewportStates(true, true);
-    this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);
+    // this.activeComponents = (this.rootScope as Scope).viewportStates(true, true);
+    // this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);
+    this.activeComponents = instructions;
 
     // let viewportStates = (this.rootScope as Scope).viewportStates();
     // viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
     // let state = this.instructionResolver.stateStringsToString(viewportStates);
-    let state = this.instructionResolver.stringifyViewportInstructions(viewports.map(viewport => viewport.content.content), false, true);
+    let state = this.instructionResolver.stringifyViewportInstructions(instructions, false, true);
 
     if (this.options.transformToUrl) {
       const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);

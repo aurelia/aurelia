@@ -339,7 +339,7 @@ There are various ways to tell the framework what you want to inject. The above 
 If you need access to a DOM element from within your view, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](displaying-basic-data.md#referencing-dom-elements).
 {% endhint %}
 
-## Shadow DOM and Slot Composition
+## Shadow DOM and Slots
 
 // TODO
 

@@ -10,7 +10,10 @@ export const noopShadowDOMStyles = Object.freeze({
 });
 
 export const IShadowDOMStyles =
-  DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles')
+  DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles').noDefault();
+
+export const IShadowDOMGlobalStyles =
+  DI.createInterface<IShadowDOMStyles>('IShadowDOMGlobalStyles')
     .withDefault(x => x.instance(noopShadowDOMStyles));
 
 export interface IShadowDOMStyles {

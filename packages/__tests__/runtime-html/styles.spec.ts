@@ -7,7 +7,8 @@ import {
   ShadowDOMRegistry,
   StyleConfiguration,
   StyleElementStyles,
-  styles
+  styles,
+  IShadowDOMGlobalStyles
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -106,7 +107,7 @@ describe('Styles', () => {
       });
 
       const childContainer = container.createChild();
-      const s = childContainer.get(IShadowDOMStyles);
+      const s = childContainer.get(IShadowDOMGlobalStyles);
 
       assert.instanceOf(s, Object);
       assert.equal(typeof s.applyTo, 'function');
@@ -121,7 +122,7 @@ describe('Styles', () => {
       });
 
       const childContainer = container.createChild();
-      const s = childContainer.get(IShadowDOMStyles);
+      const s = childContainer.get(IShadowDOMGlobalStyles);
 
       if (AdoptedStyleSheetsStyles.supported(ctx.dom)) {
         assert.instanceOf(s, AdoptedStyleSheetsStyles);

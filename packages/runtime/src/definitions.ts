@@ -109,7 +109,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   hooks?: Readonly<HooksDefinition>;
 }
 
-export type AttributeDefinition = Required<IAttributeDefinition> | null;
+export type AttributeDefinition = Required<IAttributeDefinition>;
 
 export type InstructionTypeName = string;
 

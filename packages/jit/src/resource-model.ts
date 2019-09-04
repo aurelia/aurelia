@@ -135,11 +135,10 @@ function createElementInfo(def: TemplateDefinition): ElementInfo {
 }
 
 function createAttributeInfo(def: AttributeDefinition): AttrInfo {
-  const $def = def!;
-  const info = new AttrInfo($def.name, $def.isTemplateController);
-  const bindables = $def.bindables as Record<string, IBindableDescription>;
-  const defaultBindingMode = $def.defaultBindingMode !== void 0 && $def.defaultBindingMode !== BindingMode.default
-    ? $def.defaultBindingMode
+  const info = new AttrInfo(def.name, def.isTemplateController);
+  const bindables = def.bindables as Record<string, IBindableDescription>;
+  const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
+    ? def.defaultBindingMode
     : BindingMode.toView;
 
   let bindable: IBindableDescription;
@@ -180,7 +179,7 @@ function createAttributeInfo(def: AttributeDefinition): AttrInfo {
   if (info.bindable === null) {
     info.bindable = new BindableInfo('value', defaultBindingMode);
   }
-  if ($def.hasDynamicOptions) {
+  if (def.hasDynamicOptions) {
     info.hasDynamicOptions = true;
   }
   return info;

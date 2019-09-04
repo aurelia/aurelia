@@ -167,11 +167,12 @@ function ensureTokenStart(start: number, code: string) {
   return start;
 }
 
-function findExportPos(node: ts.Node): number | void {
-  if (!node.modifiers) return;
+function isExported(node: ts.Node): boolean {
+  if (!node.modifiers) return false;
   for (const mod of node.modifiers) {
-    if (mod.kind === ts.SyntaxKind.ExportKeyword) return mod.pos;
+    if (mod.kind === ts.SyntaxKind.ExportKeyword) return true;
   }
+  return false;
 }
 
 const KNOWN_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
@@ -193,9 +194,8 @@ function findDecoratedResourceType(node: ts.Node): ResourceType | void {
 function findResource(node: ts.Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
   if (!ts.isClassDeclaration(node)) return;
   if (!node.name) return;
-  let exportPos = findExportPos(node);
-  if (typeof exportPos !== 'number') return;
-  exportPos = ensureTokenStart(exportPos, code);
+  if (!isExported(node)) return;
+  const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
   const {name, type} = nameConvention(className);
@@ -212,13 +212,13 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       // Custom element can only be implicit resource
       if (isImplicitResource && filePair) {
         return {
-          implicitStatement: { pos: exportPos, end: node.end },
+          implicitStatement: { pos: pos, end: node.end },
           runtimeImportName: type
         };
       }
     } else {
       const result: IFoundResource = {
-        needDecorator: [exportPos, `@${type}('${name}')\n`],
+        needDecorator: [pos, `@${type}('${name}')\n`],
         localDep: className,
       };
 

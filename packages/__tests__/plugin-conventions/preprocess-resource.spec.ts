@@ -77,8 +77,8 @@ function b() {}
 import { containerless, customElement } from '@aurelia/runtime';
 
 const A = 0;
-@containerless()
 @customElement(__au2ViewDef)
+@containerless()
 export class FooBar {}
 
 function b() {}
@@ -413,6 +413,45 @@ export class SomeValueConverter {
 }
 
 @customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.ts'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects new decorator before existing decorator', function () {
+    const code = `import { something } from '@aurelia/runtime';
+@something
+export class FooBar {}
+
+@something()
+export class SomeValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { something, customElement, valueConverter } from '@aurelia/runtime';
+
+
+@valueConverter('some')
+@something()
+export class SomeValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
+@something
 export class FooBar {}
 `;
     const result = preprocessResource(

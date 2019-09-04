@@ -317,5 +317,5 @@ export function getHTMLOnlyElement() {
       })
     );
     assert.equal(result.code, expected);
-  })
+  });
 });

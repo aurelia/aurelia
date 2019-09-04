@@ -147,8 +147,8 @@ export class Navigator {
         this.entries = [];
       }
     }
-    if (entry.index !== undefined && !entry.replacing && !entry.refreshing) { // History navigation
-      entry.historyMovement = entry.index - (this.currentEntry.index !== undefined ? this.currentEntry.index : 0);
+    if (entry.index !== void 0 && !entry.replacing && !entry.refreshing) { // History navigation
+      entry.historyMovement = entry.index - (this.currentEntry.index !== void 0 ? this.currentEntry.index : 0);
       entry.instruction = this.entries[entry.index] ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
       // entry.instruction = entry.fullStateInstruction;
       entry.replacing = true;
@@ -157,9 +157,15 @@ export class Navigator {
       } else if (entry.historyMovement < 0) {
         navigationFlags.back = true;
       }
+    } else if (entry.refreshing || navigationFlags.refresh) { // Refreshing
+      entry.index = this.currentEntry.index;
+    } else if (entry.replacing) { // Replacing
+      navigationFlags.replace = true;
+      navigationFlags.new = true;
+      entry.index = this.currentEntry.index;
     } else { // New entry
       navigationFlags.new = true;
-      entry.index = (entry.replacing ? entry.index : this.entries.length);
+      entry.index = this.currentEntry.index !== void 0 ? this.currentEntry.index + 1 : this.entries.length;
     }
     this.invokeCallback(entry, navigationFlags, this.currentEntry);
   };

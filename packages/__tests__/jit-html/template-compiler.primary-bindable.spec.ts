@@ -70,7 +70,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
 
           public binding() {
             this.el.style.background = this.color;
-            assert.equal(this.diameter, undefined, 'diameter === undefined');
+            assert.strictEqual(this.diameter, undefined, 'diameter === undefined');
           }
         }
 
@@ -96,7 +96,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
 
           public binding() {
             this.el.style.background = this.color;
-            assert.equal(this.diameter, undefined, 'diameter === undefined');
+            assert.strictEqual(this.diameter, undefined, 'diameter === undefined');
           }
         }
 
@@ -150,7 +150,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
 
           public binding() {
             this.el.style.background = this.color;
-            assert.equal(this.diameter, undefined);
+            assert.strictEqual(this.diameter, undefined);
           }
         }
 

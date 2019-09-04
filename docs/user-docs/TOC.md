@@ -59,6 +59,8 @@
 
 ## Examples
 
+* [Binding & Templating](examples/binding-and-templating/README.md)
+  * [Expression Syntax](examples/binding-and-templating/expression-syntax.md)
 * [Custom Attributes](examples/custom-attributes/README.md)
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
 * [Routing](examples/routing/README.md)

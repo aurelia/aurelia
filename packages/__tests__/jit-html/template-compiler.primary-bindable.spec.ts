@@ -215,7 +215,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       },
       assertFn: (ctx, host, comp, attrs) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
-        assert.equal(host.querySelector('div').getBoundingClientRect().width, 5);
+        assert.equal(host.querySelector('div').style.width, '5px');
       }
     },
     // unhappy usage

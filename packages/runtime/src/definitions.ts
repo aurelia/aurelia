@@ -16,15 +16,15 @@ import {
   IInterpolationExpression,
   IsBindingBehavior
 } from './ast';
+import { INode } from './dom';
 import {
   BindingMode,
   BindingStrategy,
   ensureValidStrategy
 } from './flags';
-import { Bindable } from './templating/bindable';
-import { INode } from './dom';
 import { IController, IViewModel } from './lifecycle';
 import { IElementProjector } from './resources/custom-element';
+import { Bindable } from './templating/bindable';
 
 export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
@@ -35,6 +35,7 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
+  primary?: boolean;
 }
 
 export interface IChildrenObserverDescription<TNode extends INode = INode> {
@@ -84,7 +85,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription> | string[];
-  childrenObservers?: Record<string, IChildrenObserverDescription>
+  childrenObservers?: Record<string, IChildrenObserverDescription>;
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;

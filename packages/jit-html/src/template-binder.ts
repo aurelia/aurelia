@@ -6,6 +6,7 @@ import {
   CustomAttributeSymbol,
   CustomElementSymbol,
   IAttributeParser,
+  IBindingCommand,
   IElementSymbol,
   IParentNodeSymbol,
   IResourceAttributeSymbol,
@@ -129,7 +130,7 @@ export class TemplateBinder {
           throw new Error('Cannot have template controller on surrogate element.');
           // TODO: use reporter
         } else {
-          this.bindCustomAttribute(attrSyntax, attrInfo);
+          this.bindCustomAttribute(attrSyntax, attrInfo, bindingCommand);
         }
       } else {
         // map special html attributes to their corresponding properties
@@ -291,7 +292,7 @@ export class TemplateBinder {
           previousController = currentController;
         } else {
           // a regular custom attribute
-          this.bindCustomAttribute(attrSyntax, attrInfo);
+          this.bindCustomAttribute(attrSyntax, attrInfo, bindingCommand);
         }
       } else {
         // map special html attributes to their corresponding properties
@@ -397,9 +398,7 @@ export class TemplateBinder {
     return symbol;
   }
 
-  private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
-
-    const command = this.resources.getBindingCommand(attrSyntax, false);
+  private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo, command: IBindingCommand | null): void {
     let symbol: CustomAttributeSymbol;
     if (command == null && attrInfo.hasDynamicOptions) {
       // a dynamicOptions (semicolon separated binding) is only valid without a binding command;

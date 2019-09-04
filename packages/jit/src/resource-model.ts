@@ -135,16 +135,19 @@ function createElementInfo(def: TemplateDefinition): ElementInfo {
 }
 
 function createAttributeInfo(def: AttributeDefinition): AttrInfo {
-  const info = new AttrInfo(def!.name, def!.isTemplateController);
-  const bindables = def!.bindables as Record<string, IBindableDescription>;
-  const defaultBindingMode = def!.defaultBindingMode !== void 0 && def!.defaultBindingMode !== BindingMode.default
-    ? def!.defaultBindingMode
+  const info = new AttrInfo(def.name, def.isTemplateController);
+  const bindables = def.bindables as Record<string, IBindableDescription>;
+  const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
+    ? def.defaultBindingMode
     : BindingMode.toView;
 
   let bindable: IBindableDescription;
   let prop: string;
   let mode: BindingMode;
   let bindableCount: number = 0;
+  let hasPrimary: boolean = false;
+  let isPrimary: boolean = false;
+  let bindableInfo: BindableInfo;
 
   for (prop in bindables) {
     ++bindableCount;
@@ -158,17 +161,25 @@ function createAttributeInfo(def: AttributeDefinition): AttrInfo {
     } else {
       mode = defaultBindingMode;
     }
-    info.bindables[prop] = new BindableInfo(prop, mode);
+    isPrimary = bindable.primary === true;
+    bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
+    if (isPrimary) {
+      if (hasPrimary) {
+        throw Reporter.error(0); // todo: error code: primary already exists
+      }
+      hasPrimary = true;
+      info.bindable = bindableInfo;
+    }
     // set to first bindable by convention
     if (info.bindable === null) {
-      info.bindable = info.bindables[prop];
+      info.bindable = bindableInfo;
     }
   }
   // if no bindables are present, default to "value"
   if (info.bindable === null) {
     info.bindable = new BindableInfo('value', defaultBindingMode);
   }
-  if (def!.hasDynamicOptions || bindableCount > 1) {
+  if (def.hasDynamicOptions) {
     info.hasDynamicOptions = true;
   }
   return info;

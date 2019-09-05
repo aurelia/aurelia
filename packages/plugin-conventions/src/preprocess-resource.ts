@@ -198,6 +198,10 @@ function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   }
 }
 
+function isKindOfSame(name1: string, name2: string): boolean {
+  return name1.replace(/-/g, '') === name2.replace(/-/g, '');
+}
+
 function findResource(node: ts.Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
   if (!ts.isClassDeclaration(node)) return;
   if (!node.name) return;
@@ -206,7 +210,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
 
   const className = node.name.text;
   const {name, type} = nameConvention(className);
-  const isImplicitResource = name === expectedResourceName;
+  const isImplicitResource = isKindOfSame(name, expectedResourceName);
   const decoratedType = findDecoratedResourceType(node);
 
   if (decoratedType) {
@@ -220,7 +224,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       if (isImplicitResource && filePair) {
         return {
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: kebabCase(filePair).startsWith(name + '-view') ? 'view' : 'customElement'
+          runtimeImportName: kebabCase(filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement'
         };
       }
     } else {

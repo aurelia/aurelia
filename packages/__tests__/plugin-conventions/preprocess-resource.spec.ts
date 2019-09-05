@@ -46,6 +46,24 @@ export class FooBar {}
     assert.equal(result.code, expected);
   });
 
+  it('injects customElement decorator for loosely equal class name', function () {
+    const code = `export class UAFooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './ua-foo-bar.html';
+import { customElement } from '@aurelia/runtime';
+@customElement(__au2ViewDef)
+export class UAFooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'ua-foo-bar.js'),
+        contents: code,
+        filePair: 'ua-foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects view decorator', function () {
     const code = `export class FooBar {}\n`;
     const expected = `import * as __au2ViewDef from './foo-bar-view.html';
@@ -58,6 +76,24 @@ export class FooBar {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code,
         filePair: 'foo-bar-view.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator for loosely equal class name', function () {
+    const code = `export class UAFooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './ua-foo-bar-view.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class UAFooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'ua-foo-bar.js'),
+        contents: code,
+        filePair: 'ua-foo-bar-view.html'
       },
       preprocessOptions()
     );

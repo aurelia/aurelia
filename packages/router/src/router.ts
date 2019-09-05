@@ -484,6 +484,8 @@ export class Router implements IRouter {
                 instructions = instructions.slice(3);
               }
             }
+          } else { // Specified root scope with /
+            scope = this.rootScope;
           }
         }
         // TODO: Maybe deal with non-strings?

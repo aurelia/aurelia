@@ -237,37 +237,42 @@ export class ViewportContent {
     if (this.content.isEmpty()) {
       return null;
     }
-    if (this.content.componentType) {
-      return this.content.componentType;
-    }
-    const container = context.get(IContainer);
-    if (container) {
-      const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.content.componentName as string));
-      if (resolver && resolver.getFactory) {
-        const factory = resolver.getFactory(container);
-        if (factory) {
-          return factory.Type;
-        }
-      }
-    }
-    return null;
+    return this.content.toComponentType(context);
+    // if (this.content.componentType) {
+    //   return this.content.componentType;
+    // }
+    // const container = context.get(IContainer);
+    // if (container) {
+    //   const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.content.componentName as string));
+    //   if (resolver && resolver.getFactory) {
+    //     const factory = resolver.getFactory(container);
+    //     if (factory) {
+    //       return factory.Type;
+    //     }
+    //   }
+    // }
+    // return null;
   }
   public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
     if (this.content.isEmpty()) {
       return null;
     }
-    // TODO: Remove once "local registration is fixed"
-    const component = this.toComponentName();
-    if (component) {
-      const container = context.get(IContainer);
-      if (container) {
-        if (typeof component !== 'string') {
-          return container.get<IRouteableComponent>(component);
-        } else {
-          return container.get<IRouteableComponent>(CustomElement.keyFrom(component));
-        }
-      }
-    }
-    return null;
+    return this.content.toComponentInstance(context);
+    // if (this.content.componentInstance) {
+    //   return this.content.componentInstance;
+    // }
+    // // TODO: Remove once "local registration is fixed"
+    // const component = this.toComponentName();
+    // if (component) {
+    //   const container = context.get(IContainer);
+    //   if (container) {
+    //     if (typeof component !== 'string') {
+    //       return container.get<IRouteableComponent>(component);
+    //     } else {
+    //       return container.get<IRouteableComponent>(CustomElement.keyFrom(component));
+    //     }
+    //   }
+    // }
+    // return null;
   }
 }

@@ -21,7 +21,7 @@ export class Login {
     const goto = this.router.instructionResolver.stringifyViewportInstructions(instructions);
     console.log(goto);
     this.state.loginReturnTo = [];
-    this.router.replace(goto);
+    this.router.goto(goto, { replace: true });
   }
 }
 export interface Login extends ICustomElementType { }

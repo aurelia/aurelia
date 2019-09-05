@@ -32,6 +32,20 @@ export function preprocess(unit, options, _fileExists = fileExists) {
                 unit.filePair = path.basename(filePair);
             }
         }
+        else {
+            // Try foo.js and foo-view.html convention.
+            // This convention is handled by @view(), not @customElement().
+            const possibleViewPair = allOptions.templateExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + '-view' + e));
+            const viewPair = possibleViewPair.find(_fileExists);
+            if (viewPair) {
+                if (allOptions.useProcessedFilePairFilename) {
+                    unit.filePair = basename + '-view' + '.html';
+                }
+                else {
+                    unit.filePair = path.basename(viewPair);
+                }
+            }
+        }
         return preprocessResource(unit, allOptions);
     }
 }

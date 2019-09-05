@@ -60,6 +60,7 @@
                 ensureTypeIsExported(jitImport.names, jitImportName);
         });
         return modifyResource(unit, {
+            expectedResourceName,
             runtimeImport,
             jitImport,
             implicitElement,
@@ -69,9 +70,12 @@
     }
     exports.preprocessResource = preprocessResource;
     function modifyResource(unit, options) {
-        const { runtimeImport, jitImport, implicitElement, localDeps, conventionalDecorators } = options;
+        const { expectedResourceName, runtimeImport, jitImport, implicitElement, localDeps, conventionalDecorators } = options;
         const m = modify_code_1.default(unit.contents, unit.path);
         if (implicitElement && unit.filePair) {
+            // @view() for foo.js and foo-view.html
+            // @customElement() for foo.js and foo.html
+            const dec = kernel_1.kebabCase(unit.filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement';
             const viewDef = '__au2ViewDef';
             m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
             if (localDeps.length) {
@@ -79,10 +83,10 @@
                 // in order to avoid TS2449: Class '...' used before its declaration.
                 const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
                 m.replace(implicitElement.pos, implicitElement.end, '');
-                m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
+                m.append(`\n@${dec}({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
             }
             else {
-                conventionalDecorators.push([implicitElement.pos, `@customElement(${viewDef})\n`]);
+                conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
             }
         }
         if (conventionalDecorators.length) {
@@ -129,15 +133,16 @@
             start++;
         return start;
     }
-    function findExportPos(node) {
+    function isExported(node) {
         if (!node.modifiers)
-            return;
+            return false;
         for (const mod of node.modifiers) {
             if (mod.kind === ts.SyntaxKind.ExportKeyword)
-                return mod.pos;
+                return true;
         }
+        return false;
     }
-    const KNOWN_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+    const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
     function findDecoratedResourceType(node) {
         if (!node.decorators)
             return;
@@ -153,22 +158,24 @@
             }
         }
     }
+    function isKindOfSame(name1, name2) {
+        return name1.replace(/-/g, '') === name2.replace(/-/g, '');
+    }
     function findResource(node, expectedResourceName, filePair, code) {
         if (!ts.isClassDeclaration(node))
             return;
         if (!node.name)
             return;
-        let exportPos = findExportPos(node);
-        if (typeof exportPos !== 'number')
+        if (!isExported(node))
             return;
-        exportPos = ensureTokenStart(exportPos, code);
+        const pos = ensureTokenStart(node.pos, code);
         const className = node.name.text;
         const { name, type } = name_convention_1.nameConvention(className);
-        const isImplicitResource = name === expectedResourceName;
+        const isImplicitResource = isKindOfSame(name, expectedResourceName);
         const decoratedType = findDecoratedResourceType(node);
         if (decoratedType) {
             // Explicitly decorated resource
-            if (!isImplicitResource && decoratedType !== 'customElement') {
+            if (!isImplicitResource && decoratedType !== 'customElement' && decoratedType !== 'view') {
                 return { localDep: className };
             }
         }
@@ -177,14 +184,14 @@
                 // Custom element can only be implicit resource
                 if (isImplicitResource && filePair) {
                     return {
-                        implicitStatement: { pos: exportPos, end: node.end },
-                        runtimeImportName: type
+                        implicitStatement: { pos: pos, end: node.end },
+                        runtimeImportName: kernel_1.kebabCase(filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement'
                     };
                 }
             }
             else {
                 const result = {
-                    needDecorator: [exportPos, `@${type}('${name}')\n`],
+                    needDecorator: [pos, `@${type}('${name}')\n`],
                     localDep: className,
                 };
                 if (type === 'bindingCommand') {

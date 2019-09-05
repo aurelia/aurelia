@@ -99,65 +99,68 @@ describe('templating-compiler.ref.spec.ts', function() {
         assert.equal(comp.ce.$controller instanceof Controller, true);
       }
     },
-    ...Array.from({ length: 10 }).flatMap((_, idx, arr) => {
-      const Attrs = Array.from({ length: arr.length }).map((__, idx1) => CustomAttribute.define(
-        { name: `c-a-${idx1}` },
-        class Ca {}
-      ));
-      const attrString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}="a"`).join(' ');
-      const attr_RefString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}.ref="ca${idx1}"`).join(' ');
-      return [
-        {
-          title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
-          template: `<div ${attrString} ${attr_RefString}>`,
-          resources: Attrs,
-          assertFn: (ctx, host, comp) => {
-            const div = host.querySelector('div') as INode;
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+    ...Array
+      .from({ length: 10 })
+      .map((_, idx, arr) => {
+        const Attrs = Array.from({ length: arr.length }).map((__, idx1) => CustomAttribute.define(
+          { name: `c-a-${idx1}` },
+          class Ca {}
+        ));
+        const attrString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}="a"`).join(' ');
+        const attr_RefString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}.ref="ca${idx1}"`).join(' ');
+        return [
+          {
+            title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
+            template: `<div ${attrString} ${attr_RefString}>`,
+            resources: Attrs,
+            assertFn: (ctx, host, comp) => {
+              const div = host.querySelector('div') as INode;
+              for (let i = 0, ii = arr.length; ii > i; ++i) {
+                assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              }
+            }
+          },
+          {
+            title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref], ref before attr declaration',
+            template: `<div ${attr_RefString} ${attrString}>`,
+            resources: Attrs,
+            assertFn: (ctx, host, comp) => {
+              const div = host.querySelector('div') as INode;
+              for (let i = 0, ii = arr.length; ii > i; ++i) {
+                assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              }
+            }
+          },
+          {
+            title: '[Surrogate - ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
+            template: `<template ${attrString} ${attr_RefString}>`,
+            resources: Attrs,
+            assertFn: (ctx, host: INode, comp) => {
+              for (let i = 0, ii = arr.length; ii > i; ++i) {
+                assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+              }
+            }
+          },
+          {
+            title: '[Surrogate - Custom-Element ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
+            template: `<c-e>`,
+            resources: [
+              ...Attrs,
+              CustomElement.define(
+                { name: 'c-e', template: `<template ${attrString} ${attr_RefString}>` }
+              )
+            ],
+            assertFn: (ctx, host) => {
+              const ceEl = host.querySelector('c-e') as CustomElementHost;
+              const $celVm = ceEl.$controller.viewModel as object;
+              for (let i = 0, ii = arr.length; ii > i; ++i) {
+                assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
+              }
             }
           }
-        },
-        {
-          title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref], ref before attr declaration',
-          template: `<div ${attr_RefString} ${attrString}>`,
-          resources: Attrs,
-          assertFn: (ctx, host, comp) => {
-            const div = host.querySelector('div') as INode;
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-            }
-          }
-        },
-        {
-          title: '[Surrogate - ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
-          template: `<template ${attrString} ${attr_RefString}>`,
-          resources: Attrs,
-          assertFn: (ctx, host: INode, comp) => {
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
-            }
-          }
-        },
-        {
-          title: '[Surrogate - Custom-Element ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
-          template: `<c-e>`,
-          resources: [
-            ...Attrs,
-            CustomElement.define(
-              { name: 'c-e', template: `<template ${attrString} ${attr_RefString}>` }
-            )
-          ],
-          assertFn: (ctx, host) => {
-            const ceEl = host.querySelector('c-e') as CustomElementHost;
-            const $celVm = ceEl.$controller.viewModel as object;
-            for (let i = 0, ii = arr.length; ii > i; ++i) {
-              assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
-            }
-          }
-        }
-      ] as IRefIntegrationTestCase[];
-    }),
+        ] as IRefIntegrationTestCase[];
+      })
+      .reduce((arr, cases) => arr.concat(cases), []),
     {
       title: 'leaves the reference intact if changed',
       template: '<div ref=div>',
@@ -279,55 +282,58 @@ describe('templating-compiler.ref.spec.ts', function() {
         assert.equal(comp.unboundCalls, 1, '[unbound]');
       }
     },
-    ...Array.from({ length: 10 }).flatMap((_, idx, arr) => {
-      const dot_notation_expressions = Array(arr.length).fill(`div${idx}`); // div1.div1.div1.div1
-      const CustomElementTestClass = CustomElement.define('c-e');
-      return [
-        {
-          title: 'it works with complex expression',
-          template: `<div ref="${dot_notation_expressions.join('.')}">`,
-          assertFn: (ctx, host, comp) => {
-            const accessPath = dot_notation_expressions.slice(0);
-            let value;
-            while (accessPath.length > 0) {
-              value = (value || comp)[accessPath.shift()];
+    ...Array
+      .from({ length: 10 })
+      .map((_, idx, arr) => {
+        const dot_notation_expressions = Array(arr.length).fill(`div${idx}`); // div1.div1.div1.div1
+        const CustomElementTestClass = CustomElement.define('c-e');
+        return [
+          {
+            title: 'it works with complex expression',
+            template: `<div ref="${dot_notation_expressions.join('.')}">`,
+            assertFn: (ctx, host, comp) => {
+              const accessPath = dot_notation_expressions.slice(0);
+              let value;
+              while (accessPath.length > 0) {
+                value = (value || comp)[accessPath.shift()];
+              }
+              assert.equal(value, host.querySelector('div'));
+            },
+            assertFn_AfterDestroy: (ctx, host, comp) => {
+              const accessPath = dot_notation_expressions.slice(0);
+              let value;
+              while (accessPath.length > 0) {
+                value = (value || comp)[accessPath.shift()];
+              }
+              assert.strictEqual(value, null);
             }
-            assert.equal(value, host.querySelector('div'));
           },
-          assertFn_AfterDestroy: (ctx, host, comp) => {
-            const accessPath = dot_notation_expressions.slice(0);
-            let value;
-            while (accessPath.length > 0) {
-              value = (value || comp)[accessPath.shift()];
+          {
+            title: 'it works with complex expression for view-model.ref',
+            template: `<c-e view-model.ref="${dot_notation_expressions.join('.')}">`,
+            resources: [
+              CustomElementTestClass
+            ],
+            assertFn: (ctx, host, comp) => {
+              const accessPath = dot_notation_expressions.slice(0);
+              let value;
+              while (accessPath.length > 0) {
+                value = (value || comp)[accessPath.shift()];
+              }
+              assert.instanceOf(value, CustomElementTestClass);
+            },
+            assertFn_AfterDestroy: (ctx, host, comp) => {
+              const accessPath = dot_notation_expressions.slice(0);
+              let value;
+              while (accessPath.length > 0) {
+                value = (value || comp)[accessPath.shift()];
+              }
+              assert.strictEqual(value, null);
             }
-            assert.strictEqual(value, null);
           }
-        },
-        {
-          title: 'it works with complex expression for view-model.ref',
-          template: `<c-e view-model.ref="${dot_notation_expressions.join('.')}">`,
-          resources: [
-            CustomElementTestClass
-          ],
-          assertFn: (ctx, host, comp) => {
-            const accessPath = dot_notation_expressions.slice(0);
-            let value;
-            while (accessPath.length > 0) {
-              value = (value || comp)[accessPath.shift()];
-            }
-            assert.instanceOf(value, CustomElementTestClass);
-          },
-          assertFn_AfterDestroy: (ctx, host, comp) => {
-            const accessPath = dot_notation_expressions.slice(0);
-            let value;
-            while (accessPath.length > 0) {
-              value = (value || comp)[accessPath.shift()];
-            }
-            assert.strictEqual(value, null);
-          }
-        }
-      ] as IRefIntegrationTestCase[];
-    }) as IRefIntegrationTestCase[],
+        ] as IRefIntegrationTestCase[];
+      })
+      .reduce((arr, cases) => arr.concat(cases), []) as IRefIntegrationTestCase[],
     // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[
@@ -335,7 +341,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       'controller',
       'view-model',
       'rando'
-    ].flatMap(refTarget => {
+    ].map(refTarget => {
       return [
         {
           title: `basic WRONG ref usage with [${refTarget}.ref]`,
@@ -348,7 +354,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           template: `<div ref.${refTarget}=hello>`
         },
       ] as IRefIntegrationTestCase[];
-    }),
+    }).reduce((arr, cases) => arr.concat(cases)),
     {
       title: `basic WRONG ref usage with [repeat.ref] as cannot reference template controller`,
       testWillThrow: true,

@@ -1,4 +1,4 @@
-import { DI, Registration } from '@aurelia/kernel';
+import { DI, Registration, RuntimeCompilationResources } from '@aurelia/kernel';
 import { Aurelia, Controller, CustomAttribute, CustomElement, INode } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
@@ -88,6 +88,25 @@ describe('Styles', () => {
       attr.valueChanged();
 
       assert.equal(element.className, 'bar qux');
+    });
+
+    it('components do not inherit parent component styles', () => {
+      const rootContainer = DI.createContainer();
+      const parentContainer = rootContainer.createChild();
+
+      const registry = new CSSModulesProcessorRegistry();
+      registry.register(parentContainer, {});
+
+      const childContainer = parentContainer.createChild();
+
+      const parentResources = new RuntimeCompilationResources(parentContainer);
+      const childResources = new RuntimeCompilationResources(childContainer);
+
+      const fromParent = parentResources.find(CustomAttribute, 'class');
+      const fromChild = childResources.find(CustomAttribute, 'class');
+
+      assert.equal(fromParent.name, 'class');
+      assert.equal(fromChild, null);
     });
   });
 

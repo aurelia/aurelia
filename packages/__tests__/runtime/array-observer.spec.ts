@@ -1,20 +1,22 @@
+import { DI } from '@aurelia/kernel';
 import {
   ArrayObserver,
+  copyIndexMap,
   disableArrayObservation,
   enableArrayObservation,
+  ICollectionSubscriber,
+  ILifecycle,
   IndexMap,
   LifecycleFlags as LF,
-  ILifecycle,
-  copyIndexMap,
-  ICollectionSubscriber,
+  applyMutationsToIndices,
+  synchronizeIndices,
 } from '@aurelia/runtime';
 import {
-  SpySubscriber,
   assert,
   CollectionChangeSet,
   eachCartesianJoin,
+  SpySubscriber,
 } from '@aurelia/testing';
-import { DI } from '@aurelia/kernel';
 
 export class SynchronizingCollectionSubscriber implements ICollectionSubscriber {
   public readonly oldArr: unknown[];
@@ -29,30 +31,27 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LF): void {
+    applyMutationsToIndices(indexMap);
+
     const newArr = this.newArr;
     const oldArr = this.oldArr;
 
-    if (newArr.length === 0 && oldArr.length === 0) {
-      return;
+    const deleted = indexMap.deletedItems.sort((a, b) => a - b);
+    const deletedLen = deleted.length;
+    let j = 0;
+    for (let i = 0; i < deletedLen; ++i) {
+      j = deleted[i] - i;
+      oldArr.splice(j, 1);
     }
 
-    const copy = oldArr.slice();
-
-    const len = indexMap.length;
-    let to = 0;
-    let from = 0;
-    while (to < len) {
-      from = indexMap[to];
-      if (from > -1) {
-        // move existing
-        oldArr[to] = copy[from];
-      } else if (from < -1) {
-        // add new
-        oldArr[to] = newArr[to];
+    const mapLen = indexMap.length;
+    for (let i = 0; i < mapLen; ++i) {
+      if (indexMap[i] === -2) {
+        oldArr.splice(i, 0, newArr[i]);
       }
-      to++;
     }
-    oldArr.length = newArr.length;
+
+    synchronizeIndices(oldArr, indexMap);
   }
 }
 

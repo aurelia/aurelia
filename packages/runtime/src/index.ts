@@ -118,7 +118,9 @@ export {
 export {
   ArrayObserver,
   enableArrayObservation,
-  disableArrayObservation
+  disableArrayObservation,
+  applyMutationsToIndices,
+  synchronizeIndices,
 } from './observation/array-observer';
 export {
   MapObserver,
@@ -372,7 +374,9 @@ export {
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
+  alias,
+  registerAliases
 } from './definitions';
 export {
   DOM,
@@ -482,7 +486,6 @@ export {
 } from './renderer';
 export {
   CompiledTemplate,
-  createRenderContext,
   ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
@@ -493,3 +496,6 @@ export {
   ITemplateFactory,
   ViewCompileFlags,
 } from './rendering-engine';
+export {
+  RenderContext,
+} from './render-context';

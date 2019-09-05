@@ -29,9 +29,10 @@ describe('preprocessResource', function () {
   });
 
   it('injects customElement decorator', function () {
-    const code = `export class FooBar {}\n`;
+    const code = `\nexport class FooBar {}\n`;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import { customElement } from '@aurelia/runtime';
+
 @customElement(__au2ViewDef)
 export class FooBar {}
 `;

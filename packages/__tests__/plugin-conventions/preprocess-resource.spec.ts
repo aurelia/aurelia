@@ -46,6 +46,60 @@ export class FooBar {}
     assert.equal(result.code, expected);
   });
 
+  it('injects customElement decorator for loosely equal class name', function () {
+    const code = `export class UAFooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './ua-foo-bar.html';
+import { customElement } from '@aurelia/runtime';
+@customElement(__au2ViewDef)
+export class UAFooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'ua-foo-bar.js'),
+        contents: code,
+        filePair: 'ua-foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator', function () {
+    const code = `export class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar-view.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator for loosely equal class name', function () {
+    const code = `export class UAFooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './ua-foo-bar-view.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class UAFooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'ua-foo-bar.js'),
+        contents: code,
+        filePair: 'ua-foo-bar-view.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects customElement decorator for non-kebab case file name', function () {
     const code = `export class FooBar {}\n`;
     const expected = `import * as __au2ViewDef from './FooBar.html';
@@ -58,6 +112,24 @@ export class FooBar {}
         path: path.join('bar', 'FooBar.js'),
         contents: code,
         filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator for non-kebab case file name', function () {
+    const code = `export class FooBar {}\n`;
+    const expected = `import * as __au2ViewDef from './FooBarView.html';
+import { view } from '@aurelia/runtime';
+@view(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBarView.html'
       },
       preprocessOptions()
     );
@@ -77,8 +149,8 @@ function b() {}
 import { containerless, customElement } from '@aurelia/runtime';
 
 const A = 0;
-@containerless()
 @customElement(__au2ViewDef)
+@containerless()
 export class FooBar {}
 
 function b() {}
@@ -88,6 +160,84 @@ function b() {}
         path: path.join('bar', 'foo-bar.js'),
         contents: code,
         filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('does not inject customElement decorator for decorated resource', function () {
+    const code = `import { customElement } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@customElement(lorem)
+export class FooBar {}
+`;
+    const expected = `import { customElement } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@customElement(lorem)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects view decorator with existing runtime import', function () {
+    const code = `import { containerless } from '@aurelia/runtime';
+
+const A = 0;
+@containerless()
+export class FooBar {}
+
+function b() {}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar-view.html';
+import { containerless, view } from '@aurelia/runtime';
+
+const A = 0;
+@view(__au2ViewDef)
+@containerless()
+export class FooBar {}
+
+function b() {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar-view.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('does not inject view decorator for decorated resource', function () {
+    const code = `import { view } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@view(lorem)
+export class FooBar {}
+`;
+    const expected = `import { view } from '@aurelia/runtime';
+import * as lorem from './lorem.html';
+
+@view(lorem)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar-view.html'
       },
       preprocessOptions()
     );
@@ -413,6 +563,45 @@ export class SomeValueConverter {
 }
 
 @customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.ts'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects new decorator before existing decorator', function () {
+    const code = `import { something } from '@aurelia/runtime';
+@something
+export class FooBar {}
+
+@something()
+export class SomeValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { something, customElement, valueConverter } from '@aurelia/runtime';
+
+
+@valueConverter('some')
+@something()
+export class SomeValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
+@something
 export class FooBar {}
 `;
     const result = preprocessResource(

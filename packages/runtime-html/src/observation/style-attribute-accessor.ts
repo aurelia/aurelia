@@ -66,45 +66,53 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     return returnVal;
   }
 
-  private getStyleArray(currentValue: unknown): [string, string][] {
-    if (typeof currentValue === 'string') {
-      return this.spltStyleString(currentValue);
+  private getStylesFromObject(currentValue: Object): [string, string][] {
+    let value: unknown;
+    const styles: [string, string][] = [];
+    for (const property in currentValue) {
+      //@ts-ignore
+      value = currentValue[property];
+      if (value == null) {
+        continue;
+      }
+      if (typeof value === 'string') {
+        styles.push([kebabCase(property), value]);
+        continue;
+      }
+
+      styles.push(...this.getStylesTuple(value));
     }
 
-    if (currentValue instanceof Array) {
-      const len = currentValue.length;
-      if (len > 0) {
-        const styles: [string, string][] = [];
-        for (let i = 0; i < len; ++i) {
-          styles.push(...this.getStyleArray(currentValue[i]));
-        }
-        return styles;
-      } else {
-        return PLATFORM.emptyArray;
-      }
-    } else if (currentValue instanceof Object) {
-      let value: unknown;
+    return styles;
+  }
+
+  private getStylesFromArray(currentValue: Array<unknown>): [string, string][] {
+    const len = currentValue.length;
+    if (len > 0) {
       const styles: [string, string][] = [];
-      for (const property in currentValue) {
-        //@ts-ignore
-        value = currentValue[property];
-        if (value == null) {
-          continue;
-        }
-        if (typeof value === 'string') {
-          styles.push([kebabCase(property), value]);
-          continue;
-        }
-
-        styles.push(...this.getStyleArray(value));
+      for (let i = 0; i < len; ++i) {
+        styles.push(...this.getStylesTuple(currentValue[i]));
       }
-
       return styles;
     }
     return PLATFORM.emptyArray;
   }
 
+  private getStylesTuple(currentValue: unknown): [string, string][] {
+    if (typeof currentValue === 'string') {
+      return this.spltStyleString(currentValue);
+    }
 
+    if (currentValue instanceof Array) {
+      return this.getStylesFromArray(currentValue);
+    }
+
+    if (currentValue instanceof Object) {
+      return this.getStylesFromObject(currentValue);
+    }
+
+    return PLATFORM.emptyArray;
+  }
 
   public flushRAF(flags: LifecycleFlags): void {
     if (this.hasChanges) {
@@ -115,7 +123,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
       let style: string;
       let version = this.version;
 
-      const styleTuple = this.getStyleArray(currentValue);
+      const styleTuple = this.getStylesTuple(currentValue);
       for (let i = 0; i < styleTuple.length; i++) {
         const [style, value] = styleTuple[i];
         styles[style] = version;

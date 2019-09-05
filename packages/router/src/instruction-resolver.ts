@@ -144,27 +144,27 @@ export class InstructionResolver {
     return merged;
   }
 
-  public removeStateDuplicates(states: string[]): string[] {
-    let sorted: string[] = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
-    sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
+  // public removeStateDuplicates(states: string[]): string[] {
+  //   let sorted: string[] = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
+  //   sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
 
-    let unique: string[] = [];
-    if (sorted.length) {
-      unique.push(sorted.shift() as string);
-      while (sorted.length) {
-        const state = sorted.shift();
-        if (state && unique.every(value => {
-          return value.indexOf(state) === -1;
-        })) {
-          unique.push(state);
-        }
-      }
-    }
-    unique = unique.map((value) => value.substring(1, value.length - 1));
-    unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
+  //   let unique: string[] = [];
+  //   if (sorted.length) {
+  //     unique.push(sorted.shift() as string);
+  //     while (sorted.length) {
+  //       const state = sorted.shift();
+  //       if (state && unique.every(value => {
+  //         return value.indexOf(state) === -1;
+  //       })) {
+  //         unique.push(state);
+  //       }
+  //     }
+  //   }
+  //   unique = unique.map((value) => value.substring(1, value.length - 1));
+  //   unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
 
-    return unique;
-  }
+  //   return unique;
+  // }
 
   public flattenViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[] {
     const flat: ViewportInstruction[] = [];
@@ -177,13 +177,31 @@ export class InstructionResolver {
     return flat;
   }
 
-  public stateStringsToString(stateStrings: string[], clear: boolean = false): string {
-    const strings = stateStrings.slice();
-    if (clear) {
-      strings.unshift(this.clearViewportInstruction);
+  public cloneViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[] {
+    const clones: ViewportInstruction[] = [];
+    for (const instruction of instructions) {
+      const clone = new ViewportInstruction(
+        instruction.componentInstance || instruction.componentType || instruction.componentName!,
+        instruction.viewportName!,
+        instruction.parametersString!
+      );
+      clone.needsViewportDescribed = instruction.needsViewportDescribed;
+      clone.scope = null; // Since scopes are recreated constantly
+      if (instruction.nextScopeInstructions) {
+        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions);
+      }
+      clones.push(clone);
     }
-    return strings.join(this.separators.sibling);
+    return clones;
   }
+
+  // public stateStringsToString(stateStrings: string[], clear: boolean = false): string {
+  //   const strings = stateStrings.slice();
+  //   if (clear) {
+  //     strings.unshift(this.clearViewportInstruction);
+  //   }
+  //   return strings.join(this.separators.sibling);
+  // }
 
   private parseViewportInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: ViewportInstruction[]; remaining: string } {
     if (!instructions) {

@@ -4,13 +4,13 @@ import {
   LifecycleFlags,
   Priority,
 } from '@aurelia/runtime';
-
+import { PLATFORM, kebabCase } from '@aurelia/kernel';
 export class StyleAttributeAccessor implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
 
   public readonly obj: HTMLElement;
-  public currentValue: string | Record<string, string>;
-  public oldValue: string | Record<string, string>;
+  public currentValue: unknown;
+  public oldValue: unknown;
 
   public readonly persistentFlags: LifecycleFlags;
 
@@ -43,7 +43,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     return this.obj.style.cssText;
   }
 
-  public setValue(newValue: string | Record<string, string>, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
@@ -52,6 +52,59 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
       this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
+
+  private spltStyleString(currentValue: string): [string, string][] {
+    const returnVal: [string, string][] = [];
+    const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+    let pair: RegExpExecArray;
+    let style;
+    while ((pair = rx.exec(currentValue)!) != null) {
+      style = pair[1];
+      if (!style) { continue; }
+      returnVal.push([style, pair[2]])
+    }
+    return returnVal;
+  }
+
+  private getStyleArray(currentValue: unknown): [string, string][] {
+    if (typeof currentValue === 'string') {
+      return this.spltStyleString(currentValue);
+    }
+
+    if (currentValue instanceof Array) {
+      const len = currentValue.length;
+      if (len > 0) {
+        const styles: [string, string][] = [];
+        for (let i = 0; i < len; ++i) {
+          styles.push(...this.getStyleArray(currentValue[i]));
+        }
+        return styles;
+      } else {
+        return PLATFORM.emptyArray;
+      }
+    } else if (currentValue instanceof Object) {
+      let value: unknown;
+      const styles: [string, string][] = [];
+      for (const property in currentValue) {
+        //@ts-ignore
+        value = currentValue[property];
+        if (value == null) {
+          continue;
+        }
+        if (typeof value === 'string') {
+          styles.push([kebabCase(property), value]);
+          continue;
+        }
+
+        styles.push(...this.getStyleArray(value));
+      }
+
+      return styles;
+    }
+    return PLATFORM.emptyArray;
+  }
+
+
 
   public flushRAF(flags: LifecycleFlags): void {
     if (this.hasChanges) {
@@ -62,26 +115,11 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
       let style: string;
       let version = this.version;
 
-      if (currentValue instanceof Object) {
-        let value: string;
-        for (style in currentValue) {
-          if (currentValue.hasOwnProperty(style)) {
-            value = currentValue[style];
-            style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
-            styles[style] = version;
-            this.setProperty(style, value);
-          }
-        }
-      } else if (typeof currentValue === 'string') {
-        const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-        let pair: RegExpExecArray;
-        while ((pair = rx.exec(currentValue)!) != null) {
-          style = pair[1];
-          if (!style) { continue; }
-
-          styles[style] = version;
-          this.setProperty(style, pair[2]);
-        }
+      const styleTuple = this.getStyleArray(currentValue);
+      for (let i = 0; i < styleTuple.length; i++) {
+        const [style, value] = styleTuple[i];
+        styles[style] = version;
+        this.setProperty(style, value);
       }
 
       this.styles = styles;

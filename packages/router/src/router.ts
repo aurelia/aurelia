@@ -173,26 +173,26 @@ export class Router implements IRouter {
         href = `/${href}`;
       }
     }
-    // If it's not from scope root, figure out which scope
-    if (!href.startsWith('/')) {
-      let scope = this.closestScope(info.anchor as Element);
-      // Scope modifications
-      if (href.startsWith('.')) {
-        // The same as no scope modification
-        if (href.startsWith('./')) {
-          href = href.slice(2);
-        }
-        // Find out how many scopes upwards we should move
-        while (href.startsWith('../')) {
-          scope = scope.parent || scope;
-          href = href.slice(3);
-        }
-      }
-      const context = scope.scopeContext();
-      href = this.instructionResolver.buildScopedLink(context, href);
-    }
+    // // If it's not from scope root, figure out which scope
+    // if (!href.startsWith('/')) {
+    //   let scope = this.closestScope(info.anchor as Element);
+    //   // Scope modifications
+    //   if (href.startsWith('.')) {
+    //     // The same as no scope modification
+    //     if (href.startsWith('./')) {
+    //       href = href.slice(2);
+    //     }
+    //     // Find out how many scopes upwards we should move
+    //     while (href.startsWith('../')) {
+    //       scope = scope.parent || scope;
+    //       href = href.slice(3);
+    //     }
+    //   }
+    //   const context = scope.scopeContext();
+    //   href = this.instructionResolver.buildScopedLink(context, href);
+    // }
     // Adds to Navigator's Queue, which makes sure it's serial
-    this.goto(href).catch(error => { throw error; });
+    this.goto(href, { origin: info.anchor! }).catch(error => { throw error; });
   };
 
   public navigatorCallback = (instruction: INavigatorInstruction): void => {
@@ -226,7 +226,7 @@ export class Router implements IRouter {
       // }
     }
 
-    let views: ViewportInstruction[];
+    let instructions: ViewportInstruction[];
     let clearViewports: boolean = fullStateInstruction;
     if (typeof instruction.instruction === 'string') {
       let path = instruction.instruction;
@@ -235,7 +235,7 @@ export class Router implements IRouter {
         transformedInstruction = this.options.transformFromUrl(path, this);
       }
       if (Array.isArray(transformedInstruction)) {
-        views = transformedInstruction;
+        instructions = transformedInstruction;
       } else {
         path = transformedInstruction;
         // TODO: Review this
@@ -244,17 +244,17 @@ export class Router implements IRouter {
         }
 
         // ({ clearViewports, newPath: path } = this.instructionResolver.shouldClearViewports(path));
-        views = this.instructionResolver.parseViewportInstructions(path);
-        // TODO: Used to have an early exit if no views. Restore it?
+        instructions = this.instructionResolver.parseViewportInstructions(path);
+        // TODO: Used to have an early exit if no instructions. Restore it?
       }
     } else {
-      views = instruction.instruction;
-      // TODO: Used to have an early exit if no views. Restore it?
+      instructions = instruction.instruction;
+      // TODO: Used to have an early exit if no instructions. Restore it?
     }
 
-    if (views.some(view => this.instructionResolver.isClearAllViewportsInstruction(view))) {
+    if (instructions.some(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
       clearViewports = true;
-      views = views.filter(view => !this.instructionResolver.isClearAllViewportsInstruction(view));
+      instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
     }
 
     const parsedQuery: IParsedQuery = parseQuery(instruction.query);
@@ -272,8 +272,14 @@ export class Router implements IRouter {
     );
     const updatedViewports: Viewport[] = [];
 
+    for (const instr of instructions) {
+      if (instr.scope === null) {
+        instr.scope = this.rootScope;
+      }
+    }
+
     // TODO: Take care of cancellations down in subsets/iterations
-    let { viewportInstructions, viewportsRemaining } = (this.rootScope as Scope).findViewports(views);
+    let { viewportInstructions, viewportsRemaining } = (this.rootScope as Scope).findViewports(instructions);
     let guard = 100;
     while (viewportInstructions.length || viewportsRemaining || defaultViewports.length || clearViewports) {
       // Guard against endless loop
@@ -430,10 +436,9 @@ export class Router implements IRouter {
   }
   // Called from the viewport custom element
   public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
-    // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
     if (!scope.removeViewport(viewport, element, context)) {
-      this.removeScope(scope);
+      throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
   }
   public allViewports(): Viewport[] {
@@ -461,7 +466,34 @@ export class Router implements IRouter {
       options.query = search;
     }
     if (typeof instructions !== 'string' || instructions !== this.instructionResolver.clearViewportInstruction) {
+      let scope = null;
+      if (options.origin) {
+        scope = this.closestScope(options.origin as Element);
+        if (typeof instructions === 'string') {
+          // If it's not from scope root, figure out which scope
+          if (!instructions.startsWith('/')) {
+            // Scope modifications
+            if (instructions.startsWith('.')) {
+              // The same as no scope modification
+              if (instructions.startsWith('./')) {
+                instructions = instructions.slice(2);
+              }
+              // Find out how many scopes upwards we should move
+              while (instructions.startsWith('../')) {
+                scope = scope.parent || scope;
+                instructions = instructions.slice(3);
+              }
+            }
+          }
+        }
+        // TODO: Maybe deal with non-strings?
+      }
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
+      for (const instruction of instructions as ViewportInstruction[]) {
+        if (instruction.scope === null) {
+          instruction.scope = scope;
+        }
+      }
     }
 
     const entry: INavigatorEntry = {
@@ -583,8 +615,8 @@ export class Router implements IRouter {
     const viewports: Viewport[] = (this.rootScope as Scope).viewports.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
     let instructions = viewports.map(viewport => viewport.content.content);
     // TODO: Check if this is really necessary
-    instructions = this.instructionResolver.parseViewportInstructions(this.instructionResolver.stringifyViewportInstructions(instructions));
-    (this.rootScope as Scope).findViewports(instructions, true);
+    instructions = this.instructionResolver.cloneViewportInstructions(instructions);
+    (this.rootScope as Scope).findViewports(instructions.slice(), true);
 
     // this.activeComponents = (this.rootScope as Scope).viewportStates(true, true);
     // this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);
@@ -604,7 +636,7 @@ export class Router implements IRouter {
     instruction.path = state + query;
 
     const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
-    fullViewportStates.push(...instructions);
+    fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions));
     instruction.fullStateInstruction = fullViewportStates;
 
     // let fullViewportStates = (this.rootScope as Scope).viewportStates(true);

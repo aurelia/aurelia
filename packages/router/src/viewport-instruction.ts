@@ -2,6 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
+import { Scope } from './scope';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 
@@ -15,6 +16,7 @@ export class ViewportInstruction {
   public parameters: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
 
+  public scope: Scope | null = null;
   public needsViewportDescribed: boolean = false;
 
   constructor(
@@ -55,6 +57,7 @@ export class ViewportInstruction {
       this.viewport = viewport;
       if (viewport !== null) {
         this.viewportName = viewport.name;
+        this.scope = viewport.owningScope;
       }
     }
   }
@@ -101,6 +104,22 @@ export class ViewportInstruction {
             return factory.Type;
           }
         }
+      }
+    }
+    return null;
+  }
+  public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
+    if (this.componentInstance !== null) {
+      return this.componentInstance;
+    }
+    // TODO: Remove once "local registration is fixed"
+    // const component = this.toComponentName();
+    const container = context.get(IContainer);
+    if (container) {
+      if (this.isComponentType()) {
+        return container.get<IRouteableComponent>(this.componentType!);
+      } else {
+        return container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
       }
     }
     return null;

@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
-import { customElement, ICustomElementType } from '@aurelia/runtime';
+import { customElement, ICustomElement } from '@aurelia/runtime';
+import { IRouter } from '../../../../../../src';
 import { State } from '../state';
 
 @customElement({
@@ -25,4 +25,4 @@ export class LoginSpecial {
     this.router.goto(goto, { replace: true });
   }
 }
-export interface LoginSpecial extends ICustomElementType { }
+export interface LoginSpecial extends ICustomElement<HTMLElement> { }

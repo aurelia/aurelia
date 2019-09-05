@@ -1,7 +1,8 @@
 import { inject } from '@aurelia/kernel';
-import { customElement, ICustomElementType } from '@aurelia/runtime';
-import { IRouter, ViewportInstruction } from '@aurelia/router';
+import { customElement, ICustomElement } from '@aurelia/runtime';
+import { IRouter } from '../../../../../../src';
 import { State } from '../state';
+import { ViewportInstruction } from '../../../../../../src/viewport-instruction';
 
 @customElement({
   name: 'login', template: `
@@ -24,4 +25,4 @@ export class Login {
     this.router.goto(goto, { replace: true });
   }
 }
-export interface Login extends ICustomElementType { }
+export interface Login extends ICustomElement<HTMLElement> { }

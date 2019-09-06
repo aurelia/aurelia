@@ -1,3 +1,4 @@
+import { PLATFORM, kebabCase } from '@aurelia/kernel';
 export class StyleAttributeAccessor {
     constructor(lifecycle, flags, obj) {
         this.lifecycle = lifecycle;
@@ -23,6 +24,59 @@ export class StyleAttributeAccessor {
             this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
         }
     }
+    getStyleTuplesFromString(currentValue) {
+        const styleTuples = [];
+        const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+        let pair;
+        let name;
+        while ((pair = rx.exec(currentValue)) !== null) {
+            name = pair[1];
+            if (name.length === 0) {
+                continue;
+            }
+            styleTuples.push([name, pair[2]]);
+        }
+        return styleTuples;
+    }
+    getStyleTuplesFromObject(currentValue) {
+        let value;
+        const styles = [];
+        for (const property in currentValue) {
+            value = currentValue[property];
+            if (value == null) {
+                continue;
+            }
+            if (typeof value === 'string') {
+                styles.push([kebabCase(property), value]);
+                continue;
+            }
+            styles.push(...this.getStyleTuples(value));
+        }
+        return styles;
+    }
+    getStyleTuplesFromArray(currentValue) {
+        const len = currentValue.length;
+        if (len > 0) {
+            const styles = [];
+            for (let i = 0; i < len; ++i) {
+                styles.push(...this.getStyleTuples(currentValue[i]));
+            }
+            return styles;
+        }
+        return PLATFORM.emptyArray;
+    }
+    getStyleTuples(currentValue) {
+        if (typeof currentValue === 'string') {
+            return this.getStyleTuplesFromString(currentValue);
+        }
+        if (currentValue instanceof Array) {
+            return this.getStyleTuplesFromArray(currentValue);
+        }
+        if (currentValue instanceof Object) {
+            return this.getStyleTuplesFromObject(currentValue);
+        }
+        return PLATFORM.emptyArray;
+    }
     flushRAF(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
@@ -31,28 +85,16 @@ export class StyleAttributeAccessor {
             const styles = this.styles;
             let style;
             let version = this.version;
-            if (currentValue instanceof Object) {
-                let value;
-                for (style in currentValue) {
-                    if (currentValue.hasOwnProperty(style)) {
-                        value = currentValue[style];
-                        style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
-                        styles[style] = version;
-                        this.setProperty(style, value);
-                    }
-                }
-            }
-            else if (typeof currentValue === 'string') {
-                const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-                let pair;
-                while ((pair = rx.exec(currentValue)) != null) {
-                    style = pair[1];
-                    if (!style) {
-                        continue;
-                    }
-                    styles[style] = version;
-                    this.setProperty(style, pair[2]);
-                }
+            const styleTuples = this.getStyleTuples(currentValue);
+            let tuple;
+            let name;
+            let value;
+            const len = styleTuples.length;
+            for (let i = 0; i < len; ++i) {
+                tuple = styleTuples[i];
+                name = tuple[0];
+                value = tuple[1];
+                this.setProperty(name, value);
             }
             this.styles = styles;
             this.version += 1;

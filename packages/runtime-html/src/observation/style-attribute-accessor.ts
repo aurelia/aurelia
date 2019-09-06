@@ -53,24 +53,25 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     }
   }
 
-  private spltStyleString(currentValue: string): [string, string][] {
-    const returnVal: [string, string][] = [];
+  private getStyleTuplesFromString(currentValue: string): [string, string][] {
+    const styleTuples: [string, string][] = [];
     const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
     let pair: RegExpExecArray;
-    let style;
-    while ((pair = rx.exec(currentValue)!) != null) {
-      style = pair[1];
-      if (!style) { continue; }
-      returnVal.push([style, pair[2]])
+    let name:string;
+    while ((pair = rx.exec(currentValue)!) !== null) {
+      name = pair[1];
+      if (name.length === 0) {
+        continue;
+      }
+      styleTuples.push([name, pair[2]])
     }
-    return returnVal;
+    return styleTuples;
   }
 
-  private getStylesFromObject(currentValue: Object): [string, string][] {
+  private getStyleTuplesFromObject(currentValue: Record<string, unknown>): [string, string][] {
     let value: unknown;
     const styles: [string, string][] = [];
     for (const property in currentValue) {
-      //@ts-ignore
       value = currentValue[property];
       if (value == null) {
         continue;
@@ -80,35 +81,35 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
         continue;
       }
 
-      styles.push(...this.getStylesTuple(value));
+      styles.push(...this.getStyleTuples(value));
     }
 
     return styles;
   }
 
-  private getStylesFromArray(currentValue: Array<unknown>): [string, string][] {
+  private getStyleTuplesFromArray(currentValue: Array<unknown>): [string, string][] {
     const len = currentValue.length;
     if (len > 0) {
       const styles: [string, string][] = [];
       for (let i = 0; i < len; ++i) {
-        styles.push(...this.getStylesTuple(currentValue[i]));
+        styles.push(...this.getStyleTuples(currentValue[i]));
       }
       return styles;
     }
     return PLATFORM.emptyArray;
   }
 
-  private getStylesTuple(currentValue: unknown): [string, string][] {
+  private getStyleTuples(currentValue: unknown): [string, string][] {
     if (typeof currentValue === 'string') {
-      return this.spltStyleString(currentValue);
+      return this.getStyleTuplesFromString(currentValue);
     }
 
     if (currentValue instanceof Array) {
-      return this.getStylesFromArray(currentValue);
+      return this.getStyleTuplesFromArray(currentValue);
     }
 
     if (currentValue instanceof Object) {
-      return this.getStylesFromObject(currentValue);
+      return this.getStyleTuplesFromObject(currentValue as Record<string, unknown>);
     }
 
     return PLATFORM.emptyArray;
@@ -123,11 +124,17 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
       let style: string;
       let version = this.version;
 
-      const styleTuple = this.getStylesTuple(currentValue);
-      for (let i = 0; i < styleTuple.length; i++) {
-        const [style, value] = styleTuple[i];
-        styles[style] = version;
-        this.setProperty(style, value);
+      const styleTuples = this.getStyleTuples(currentValue);
+
+      let tuple: [string, string];
+      let name: string;
+      let value: string;
+      const len = styleTuples.length;
+      for (let i = 0; i < len; ++i) {
+        tuple = styleTuples[i];
+        name = tuple[0];
+        value = tuple[1];
+        this.setProperty(name, value);
       }
 
       this.styles = styles;

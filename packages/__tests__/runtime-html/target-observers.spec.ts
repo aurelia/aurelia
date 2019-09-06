@@ -182,6 +182,13 @@ describe('DataAttributeAccessor', function () {
   });
 });
 
+interface IStyleSpec {
+  title: string;
+  staticStyle: string;
+  input: unknown;
+  expected: string;
+}
+
 describe('StyleAccessor', function () {
   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
 
@@ -249,272 +256,136 @@ describe('StyleAccessor', function () {
     });
   }
 
-  it(`getValue - style="display: block;"`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
+  const specs: Partial<IStyleSpec>[] = [
+    {
+      title: 'getValue - style="display: block;"',
+      staticStyle: 'display:block',
+      input: '',
+      expected: 'display: block;'
+    },
+    {
+      title: `style binding array string/object returns correct with static style`,
+      staticStyle: `display: block;`,
+      input: ['background-color:red', { borderColor: 'black' }],
+      expected: 'display: block; background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object (kebab) returns correct with static style`,
+      staticStyle: `display: block;`,
+      input: ['background-color:red', { ['border-color']: 'black' }],
+      expected: 'display: block; background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object (kebab) returns correct with no static style`,
+      input: ['background-color:red', { ['border-color']: 'black' }],
+      expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object returns correct without static style`,
+      input: ['background-color:red', { borderColor: 'black' }],
+      expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/string returns correct with static style`,
+      input: ['background-color:red', 'height:32px'],
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style binding array string/string returns correct with no static style`,
+      input: ['background-color:red', 'height:32px'],
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style string returns correct with static style`,
+      input: 'background-color:red;height:32px;',
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style string returns correct with no static style`,
+      input: 'background-color:red;height:32px;',
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non kebab) returns correct with static style`,
+      input: { backgroundColor: 'red', height: '32px' },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non kebab) returns correct without static style`,
+      input: { backgroundColor: 'red', height: '32px' },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) returns correct with static style`,
+      input: { ['background-color']: 'red', height: '32px' },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) returns correct without static style`,
+      input: { ['background-color']: 'red', height: '32px' },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non-kebab) string/object returns correct with static style`,
+      input: { backgroundColor: 'red', test: { height: '32px' } },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non-kebab) string/object returns correct with no static style`,
+      input: { backgroundColor: 'red', test: { height: '32px' } },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) string/object returns correct with static style`,
+      input: { ['background-color']: 'red', test: { height: '32px' } },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) string/object returns correct with no static style`,
+      input: { ['background-color']: 'red', test: { height: '32px' } },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) string/object (kebab) returns correct with static style`,
+      input: { ['background-color']: 'red', test: { ['border-color']: 'black' } },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; border-color: black;',
+    },
+    {
+      title: `style object (kebab) string/object (kebab) returns correct no with static style`,
+      input: { ['background-color']: 'red', test: { ['border-color']: 'black' } },
+      expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/array (kebab) returns correct with static style`,
+      input: ['background-color:red', ['height:32px', { ['border-color']: 'black' }]],
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px; border-color: black;',
+    },
+    {
+      title: `style binding array string/array (kebab) returns correct with no static style`,
+      input: ['background-color:red', ['height:32px', { ['border-color']: 'black' }]],
+      expected: 'background-color: red; height: 32px; border-color: black;',
+    },
+  ];
 
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block;', `actual`);
-  });
-  it(`style binding array string/object returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', { borderColor: 'black' }], LifecycleFlags.fromBind);
+  for (const { title, staticStyle, input, expected } of specs) {
+    it(title, function () {
+      const ctx = TestContext.createHTMLTestContext();
+      const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
+      const sut = new StyleAttributeAccessor(ctx.lifecycle, LifecycleFlags.none, el);
+      sut.setValue(input, LifecycleFlags.fromBind);
 
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; border-color: black;', `actual`);
-  });
-  it(`style binding array string/object returns correct with no static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', { borderColor: 'black' }], LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; border-color: black;', `actual`);
-  });
-
-  it(`style binding array string/object (kebab) returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', { ['border-color']: 'black' }], LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; border-color: black;', `actual`);
-  });
-  it(`style binding array string/object (kebab) returns correct with no static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', { ['border-color']: 'black' }], LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; border-color: black;', `actual`);
-  });
-
-
-  it(`style binding array string/string returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', 'height:32px'], LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style binding array string/string returns correct with no static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', 'height:32px'], LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style string returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue('background-color:red;height:32px;', LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style string returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue('background-color:red; height:32px;', LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (non kebab) returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ backgroundColor: 'red', height: '32px' }, LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (non kebab) returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', height: '32px' }, LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (kebab) returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', height: '32px' }, LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (kebab) returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ backgroundColor: 'red', height: '32px' }, LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (non kebab) returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ backgroundColor: 'red', height: '32px' }, LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (kebab) returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', height: '32px' }, LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (non-kebab) string/object returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ backgroundColor: 'red', test: { height: '32px' } }, LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-  it(`style object (non-kebab) string/object returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ backgroundColor: 'red', test: { height: '32px' } }, LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (kebab) string/object returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', test: { height: '32px' } }, LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (kebab) string/object returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', test: { height: '32px' } }, LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px;', `actual`);
-  });
-
-  it(`style object (kebab) string/object (kebab) returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', test: { ['border-color']: 'black' } }, LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; border-color: black;', `actual`);
-  });
-
-  it(`style object (kebab) string/object (kebab) returns correct without static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue({ ['background-color']: 'red', test: { ['border-color']: 'black' } }, LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; border-color: black;', `actual`);
-  });
-
-  it(`style binding array string/array (kebab) returns correct with static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-
-    sut.setValue(['background-color:red', ['height:32px', { ['border-color']: 'black' }]], LifecycleFlags.fromBind);
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block; background-color: red; height: 32px; border-color: black;', `actual`);
-  });
-
-  it(`style binding array string/array (kebab) returns correct with no static style`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
-    sut.setValue(['background-color:red', ['height:32px', { ['border-color']: 'black' }]], LifecycleFlags.fromBind);
-
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'background-color: red; height: 32px; border-color: black;', `actual`);
-  });
-
+      const actual = sut.getValue();
+      assert.strictEqual(actual, expected);
+    });
+  }
 });
 
 describe('ClassAccessor', function () {

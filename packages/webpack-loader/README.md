@@ -57,6 +57,7 @@ For apps in TypeScript, an extra typing definition is required for html module. 
 `html.d.ts`
 ```ts
 declare module '*.html' {
+  import { IContainer } from '@aurelia/kernel';
   import { IBindableDescription } from '@aurelia/runtime';
   export const name: string;
   export const template: string;
@@ -65,7 +66,7 @@ declare module '*.html' {
   export const containerless: boolean | undefined;
   export const bindables: Record<string, IBindableDescription>;
   export const shadowOptions: { mode: 'open' | 'closed'} | undefined;
-  export function getHTMLOnlyElement();
+  export function register(container: IContainer);
 }
 ```
 

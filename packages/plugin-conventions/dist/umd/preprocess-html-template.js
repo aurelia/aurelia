@@ -49,11 +49,7 @@
         }
         deps.forEach((d, i) => {
             const ext = path.extname(d);
-            if (options.templateExtensions.includes(ext)) {
-                statements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
-                viewDeps.push(`d${i}`);
-            }
-            else if (ext && ext !== '.js' && ext !== '.ts') {
+            if (ext && ext !== '.js' && ext !== '.ts' && !options.templateExtensions.includes(ext)) {
                 // Wrap all other unknown resources (including .css, .scss) in defer.
                 if (!registrationImported) {
                     statements.push(`import { Registration } from '@aurelia/kernel';\n`);
@@ -90,11 +86,11 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
             m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
         }
         m.append(`let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''} });
   }
-  return _e;
+  container.register(_e);
 }
 `);
         const { code, map } = m.transform();

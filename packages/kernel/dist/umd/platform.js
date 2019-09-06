@@ -72,7 +72,11 @@
             return now;
         }
         else {
-            throw new Error('Unsupported runtime'); // Can't really happen, can it?
+            const now = function () {
+                return Date.now() - nodeLoadTime;
+            };
+            nodeLoadTime = Date.now();
+            return now;
         }
     })();
     // performance.mark / measure polyfill based on https://github.com/blackswanny/performance-polyfill

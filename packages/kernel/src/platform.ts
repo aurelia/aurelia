@@ -78,7 +78,11 @@ const $now = (function (): () => number {
     nodeLoadTime = moduleLoadTime - upTime;
     return now;
   } else {
-    throw new Error('Unsupported runtime'); // Can't really happen, can it?
+    const now = function (): number {
+      return Date.now() - nodeLoadTime;
+    };
+    nodeLoadTime = Date.now();
+    return now;
   }
 })();
 

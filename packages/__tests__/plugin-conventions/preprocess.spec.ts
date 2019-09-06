@@ -11,11 +11,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, {}, () => false);
@@ -33,11 +33,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ Registration.defer('.css', d0) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocess(
@@ -57,8 +57,7 @@ export function getHTMLOnlyElement() {
   it('transforms html file with shadowOptions', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
@@ -68,11 +67,11 @@ export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, shadowOptions });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocess(

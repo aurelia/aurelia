@@ -11,11 +11,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html }, preprocessOptions());
@@ -32,11 +32,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ Registration.defer('.css', d0) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions());
@@ -53,11 +53,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ Registration.defer('.css', d0) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions());
@@ -67,8 +67,7 @@ export function getHTMLOnlyElement() {
   it('processes template with dependencies', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
@@ -77,11 +76,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
@@ -91,8 +90,7 @@ export function getHTMLOnlyElement() {
   it('supports HTML-only dependency not in html format', function () {
     const html = '<import from="./hello-world.md" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.md";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.md";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
@@ -101,11 +99,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
@@ -115,8 +113,7 @@ export function getHTMLOnlyElement() {
   it('processes template with dependencies, wrap css module id', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
@@ -125,11 +122,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(
@@ -142,8 +139,7 @@ export function getHTMLOnlyElement() {
   it('processes template with css dependencies in shadowDOM mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
@@ -153,11 +149,11 @@ export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, shadowOptions });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(
@@ -173,8 +169,7 @@ export function getHTMLOnlyElement() {
   it('processes template with css dependencies in shadowDOM mode with string module wrap', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
@@ -184,11 +179,11 @@ export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 export const shadowOptions = { mode: 'closed' };
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, shadowOptions });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(
@@ -204,8 +199,7 @@ export function getHTMLOnlyElement() {
   it('processes template with css dependencies in shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
@@ -215,11 +209,11 @@ export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, shadowOptions });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(
@@ -235,8 +229,7 @@ export function getHTMLOnlyElement() {
   it('processes template with css dependencies in per-file shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
@@ -246,11 +239,11 @@ export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, shadowOptions });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(
@@ -266,8 +259,7 @@ export function getHTMLOnlyElement() {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain a dash (-), you have to refactor <foo> to something like <lorem-foo>.");
-import * as h0 from "./hello-world.html";
-const d0 = h0.getHTMLOnlyElement();
+import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
@@ -276,11 +268,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(
@@ -303,11 +295,11 @@ export const dependencies = [  ];
 export const containerless = true;
 export const bindables = {"age":{"mode":2},"firstName":{},"lastName":{}};
 let _e;
-export function getHTMLOnlyElement() {
+export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, containerless, bindables });
   }
-  return _e;
+  container.register(_e);
 }
 `;
     const result = preprocessHtmlTemplate(

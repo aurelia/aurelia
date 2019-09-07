@@ -400,18 +400,26 @@ export class TemplateBinder {
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo, command: IBindingCommand | null): void {
     let symbol: CustomAttributeSymbol;
-    if (command == null && attrInfo.hasDynamicOptions) {
-      // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
-      // the binding commands must be declared in the dynamicOptions expression itself
-      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-      this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
-    } else {
+    // Custom attributes are always in multiple binding mode,
+    // except when they can't be
+    // When they cannot be:
+    //        * has binding command, ie: <div my-attr.bind="...">.
+    //          In this scenario, the value of the custom attributes is required to be a valid expression
+    //        * has no colon: ie: <div my-attr="abcd">
+    //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
+    const isSingleBinding = command != null || attrSyntax.rawValue.indexOf(':') === -1;
+    if (isSingleBinding) {
       // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
       // or a null command but without dynamicOptions (which may be an interpolation or a normal string)
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+    } else {
+      // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
+      // the binding commands must be declared in the dynamicOptions expression itself
+      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+      this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
     }
     const manifest = this.manifest!;
     manifest.customAttributes.push(symbol);

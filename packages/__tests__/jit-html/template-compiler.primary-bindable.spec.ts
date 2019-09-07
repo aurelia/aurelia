@@ -5,10 +5,12 @@ import {
 import {
   Aurelia,
   bindable,
+  bindingBehavior,
   customAttribute,
   CustomElement,
   ICustomAttributeResource,
-  INode
+  INode,
+  valueConverter
 } from '@aurelia/runtime';
 
 import {
@@ -111,8 +113,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -136,8 +137,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable({ primary: true })
@@ -165,8 +165,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -193,8 +192,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: ${`red`}; diameter: ${5}"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -218,6 +216,66 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         assert.equal(host.querySelector('div').style.width, '5px');
       }
     },
+    {
+      title: '(8) default to "value" as primary bindable',
+      template: '<div square.bind="color || `red`">',
+      attrResources: () => {
+        @customAttribute({ name: 'square' })
+        class Square {
+          public value: string;
+          constructor(@INode private el: HTMLElement) {}
+          public binding() {
+            this.el.style.background = this.value;
+          }
+        }
+        return [Square];
+      },
+      assertFn: (ctx, host, comp) => {
+        assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
+      }
+    },
+    ...[
+      'color | identity: value',
+      '`literal:literal`',
+      'color & bb:value',
+    ].map((expression, idx) => {
+      return {
+        title: `(${8 + idx + 1}) does not get interpreted as multi bindings when there is a binding command with colon in value: ${expression}`,
+        template: `<div square.bind="${expression}">`,
+        attrResources: () => {
+          @customAttribute({ name: 'square' })
+          class Square {
+            public value: string;
+            constructor(@INode private el: HTMLElement) {}
+            public binding() {
+              const value = this.value === 'literal:literal' ? 'red' : this.value;
+              this.el.style.background = value;
+            }
+          }
+
+          @valueConverter('identity')
+          class Identity {
+            public toView(val: any, alternativeValue: any) {
+              return alternativeValue || val;
+            }
+          }
+
+          @bindingBehavior('bb')
+          class BB {
+            public bind() {/*  */}
+            public unbind() {/*  */}
+          }
+
+          return [Square, Identity, BB];
+        },
+        root: class App {
+          public color = 'red';
+        },
+        assertFn: (ctx, host, comp) => {
+          assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
+        }
+      };
+    }) as IPrimaryBindableTestCase[],
     // unhappy usage
     {
       title: 'throws when combining binding commnd with interpolation',
@@ -225,8 +283,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       testWillThrow: true,
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -249,8 +306,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       testWillThrow: true,
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable({ primary: true })

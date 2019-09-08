@@ -7,6 +7,7 @@ const toString = Object.prototype.toString;
 
 const stringCases = [
   ['FooBarBaz', 'fooBarBaz', 'foo-bar-baz'],
+  ['FooB', 'fooB', 'foo-b'],
   ['fooBar1Baz23', 'fooBar1Baz23', 'foo-bar1-baz23'],
   ['foobarbaz', 'foobarbaz', 'foobarbaz'],
   ['FOOBARBAZ', 'foobarbaz', 'foobarbaz'],

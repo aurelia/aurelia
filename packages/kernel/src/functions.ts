@@ -1,7 +1,5 @@
 import { PLATFORM } from './platform';
 
-const camelCaseLookup: Record<string, string> = {};
-const kebabCaseLookup: Record<string, string> = {};
 const isNumericLookup: Record<string, boolean> = {};
 
 /**
@@ -42,57 +40,148 @@ export function isNumeric(value: unknown): value is number | string {
 }
 
 /**
- * Efficiently convert a kebab-cased string to camelCase.
+ * Base implementation of camel and kebab cases
+ */
+const baseCase = (function () {
+  const enum CharKind {
+    none  = 0,
+    digit = 1,
+    upper = 2,
+    lower = 3,
+  }
+
+  const isDigit = Object.freeze(Object.assign(Object.create(null) as {}, {
+    '0': true,
+    '1': true,
+    '2': true,
+    '3': true,
+    '4': true,
+    '5': true,
+    '6': true,
+    '7': true,
+    '8': true,
+    '9': true,
+  } as Record<string, true | undefined>));
+
+  function charToKind(char: string): CharKind {
+    if (char === '') {
+      // We get this if we do charAt() with an index out of range
+      return CharKind.none;
+    }
+
+    if (char !== char.toUpperCase()) {
+      return CharKind.lower;
+    }
+
+    if (char !== char.toLowerCase()) {
+      return CharKind.upper;
+    }
+
+    if (isDigit[char] === true) {
+      return CharKind.digit;
+    }
+
+    return CharKind.none;
+  }
+
+  return function (input: string, cb: (char: string, sep: boolean) => string): string {
+    const len = input.length;
+    if (len === 0) {
+      return input;
+    }
+
+    let sep = false;
+    let output = '';
+
+    let prevKind: CharKind;
+
+    let curChar = '';
+    let curKind = CharKind.none;
+
+    let nextChar = input.charAt(0);
+    let nextKind = charToKind(nextChar);
+
+    for (let i = 0; i < len; ++i) {
+      prevKind = curKind;
+
+      curChar = nextChar;
+      curKind = nextKind;
+
+      nextChar = input.charAt(i + 1);
+      nextKind = charToKind(nextChar);
+
+      if (curKind === CharKind.none) {
+        if (output.length > 0) {
+          // Only set sep to true if it's not at the beginning of output.
+          sep = true;
+        }
+      } else {
+        if (!sep && output.length > 0 && curKind === CharKind.upper) {
+          // Separate UAFoo into UA Foo.
+          // Separate uaFOO into ua FOO.
+          sep = prevKind === CharKind.lower || nextKind === CharKind.lower;
+        }
+
+        output += cb(curChar, sep);
+        sep = false;
+      }
+    }
+
+    return output;
+  };
+})();
+
+/**
+ * Efficiently convert a string to camelCase.
  *
- * Separators that signal the next character to be capitalized, are: `-`, `.`, `_`.
+ * Non-alphanumeric characters are treated as separators.
  *
  * Primarily used by Aurelia to convert DOM attribute names to ViewModel property names.
  *
  * Results are cached.
  */
-export function camelCase(input: string): string {
-  // benchmark: http://jsben.ch/qIz4Z
-  let value = camelCaseLookup[input];
-  if (value !== void 0) return value;
-  value = '';
-  let first = true;
-  let sep = false;
-  let char: string;
-  for (let i = 0, ii = input.length; i < ii; ++i) {
-    char = input.charAt(i);
-    if (char === '-' || char === '.' || char === '_') {
-      sep = true; // skip separators
-    } else {
-      value = value + (first ? char.toLowerCase() : (sep ? char.toUpperCase() : char));
-      sep = false;
-    }
-    first = false;
+export const camelCase = (function () {
+  const cache = Object.create(null) as Record<string, string | undefined>;
+
+  function callback(char: string, sep: boolean): string {
+    return sep ? char.toUpperCase() : char.toLowerCase();
   }
-  return camelCaseLookup[input] = value;
-}
+
+  return function (input: string): string {
+    let output = cache[input];
+    if (output === void 0) {
+      output = cache[input] = baseCase(input, callback);
+    }
+
+    return output;
+  };
+})();
 
 /**
- * Efficiently convert a camelCased string to kebab-case.
+ * Efficiently convert a string to kebab-case.
+ *
+ * Non-alphanumeric characters are treated as separators.
  *
  * Primarily used by Aurelia to convert ViewModel property names to DOM attribute names.
  *
  * Results are cached.
  */
-export function kebabCase(input: string): string {
-  // benchmark: http://jsben.ch/v7K9T
-  let value = kebabCaseLookup[input];
-  if (value !== void 0) return value;
-  value = '';
-  let first = true;
-  let char: string, lower: string;
-  for (let i = 0, ii = input.length; i < ii; ++i) {
-    char = input.charAt(i);
-    lower = char.toLowerCase();
-    value = value + (first ? lower : (char !== lower ? `-${lower}` : lower));
-    first = false;
+export const kebabCase = (function () {
+  const cache = Object.create(null) as Record<string, string | undefined>;
+
+  function callback(char: string, sep: boolean): string {
+    return sep ? '-' + char.toLowerCase() : char.toLowerCase();
   }
-  return kebabCaseLookup[input] = value;
-}
+
+  return function (input: string): string {
+    let output = cache[input];
+    if (output === void 0) {
+      output = cache[input] = baseCase(input, callback);
+    }
+
+    return output;
+  };
+})();
 
 /**
  * Efficiently (up to 10x faster than `Array.from`) convert an `ArrayLike` to a real array.

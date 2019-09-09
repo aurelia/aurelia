@@ -1,5 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const baseUrl = '../';
 
 module.exports = function (env, { mode }) {
   const production = mode === 'production';
@@ -17,6 +18,9 @@ module.exports = function (env, { mode }) {
       historyApiFallback: true,
       open: !process.env.CI,
       lazy: false
+    },
+    output: {
+      publicPath: baseUrl,
     },
     module: {
       rules: [

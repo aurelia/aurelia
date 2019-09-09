@@ -23,6 +23,8 @@ var frameworks = [].concat(
   fs.readdirSync('./frameworks/keyed').map(f => ['frameworks/keyed/', f]),
   /*fs.readdirSync('./frameworks/non-keyed').map(f => ['frameworks/non-keyed/', f])*/);
 
+  console.log(frameworks);
+
 var notRestarter = ([_, name]) => !name.startsWith(restartWithFramework || undefined);
 var [skippable, buildable] = !restartWithFramework
     ? [[],
@@ -40,7 +42,7 @@ _.each([].concat(relevant, core), function([dir,name]) {
         let fullname = dir + name;
 	if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
           console.log("*** Executing npm install in "+fullname);
-            exec('npm install', {
+            exec('npm install --no-package-lock', {
 				cwd: fullname,
 				stdio: 'inherit'
 			});

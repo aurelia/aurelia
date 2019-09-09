@@ -79,6 +79,7 @@ export interface IBuildInstruction {
 
 export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
+  aliases?: string[];
   template?: unknown;
   instructions?: ITargetedInstruction[][];
   dependencies?: Key[];
@@ -266,6 +267,7 @@ export class HooksDefinition {
 class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public name: string;
   public cache: '*' | number;
+  public aliases: string[];
   public template: unknown;
   public instructions: ITargetedInstruction[][];
   public dependencies: IRegistry[];
@@ -290,6 +292,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
+    this.aliases = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['aliases'];
     this.containerless = false;
     this.shadowOptions = null!;
     this.hasSlots = false;
@@ -312,13 +315,15 @@ const templateDefinitionAssignables = [
 const templateDefinitionArrays = [
   'instructions',
   'dependencies',
-  'surrogates'
+  'surrogates',
+  'aliases'
 ];
 
 export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  aliases?: string[];
   childrenObservers?: TemplateDefinition['childrenObservers'];
 };
 
@@ -347,7 +352,9 @@ export function buildTemplateDefinition(
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
   strategy?: BindingStrategy | null,
-  childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition;
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null,
+  aliases?: ReadonlyArray<string> | null,
+): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -363,13 +370,16 @@ export function buildTemplateDefinition(
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
   strategy?: BindingStrategy | null,
-  childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition {
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null,
+  aliases?: ReadonlyArray<string> | null,
+): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
+    case 15: if (aliases != null) def.aliases = toArray(aliases);
     case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
     case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
@@ -441,4 +451,29 @@ export function buildTemplateDefinition(
   }
 
   return def;
+}
+
+
+
+type HasAliases = Pick<ITemplateDefinition | IAttributeDefinition, 'aliases'>;
+
+function aliasesDecorator<T extends Constructable>(target: T & HasAliases, ...aliases: string[]): T & Required<HasAliases> {
+  target.aliases = aliases;
+  return target as T & Required<HasAliases>;
+}
+
+/**
+ * Decorator: Indicates that the custom element should be rendered without its element container.
+ */
+export function aliases(): typeof aliasesDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered without its element container.
+ */
+export function aliases<T extends Constructable>(...aliases: string[]): T & Required<HasAliases>;
+export function aliases<T extends Constructable>(target?: T & HasAliases | string[], ...aliases: string[]): T & Required<HasAliases> | typeof aliasesDecorator {
+
+  if (target !== null && (typeof target === 'string' || Array.isArray(target))) {
+    return (instance: any) => aliasesDecorator(instance, ...aliases);
+  }
+  return target === undefined ? aliasesDecorator : aliasesDecorator<T>(target, ...aliases);
 }

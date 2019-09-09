@@ -10,7 +10,7 @@ const run = () => {
 }
 
 const shutdownAppServer = () => {
-  if (npm && npm.proc) {
+  if (npm.proc) {
     kill(npm.proc.pid);
   }
 };

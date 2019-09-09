@@ -1,6 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const baseUrl = '../';
+const baseUrl = '';
 
 module.exports = function (env, { mode }) {
   const production = mode === 'production';

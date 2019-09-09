@@ -58,6 +58,7 @@ export interface ICustomElementStaticProperties {
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
   strategy?: TemplateDefinition['strategy'];
+  aliases?: TemplateDefinition['aliases'];
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends
@@ -97,9 +98,14 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     WritableType.kind = CustomElement;
     Type.description = description;
     Type.register = function register(container: IContainer): void {
+      const aliases = description.aliases;
       const key = CustomElement.keyFrom(description.name);
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
+
+      for (let i = 0, ii = aliases.length; i < ii; ++i) {
+        Registration.alias(key, CustomElement.keyFrom(aliases[i])).register(container);
+      }
     };
 
     return Type;

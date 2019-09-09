@@ -454,6 +454,12 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
         return container.getFactory(this.state as Constructable);
+      case ResolverStrategy.alias:
+        const resolver = container.getResolver(this.state);
+        if (resolver == null || resolver.getFactory === void 0) {
+          return null;
+        }
+        return resolver.getFactory(container);
       default:
         return null;
     }

@@ -3,7 +3,7 @@
   "description": "An Aurelia 2 client application.",
   "js-framework-benchmark": {
     "frameworkVersion": "",
-    "customURL": "/dist/index.html"
+    "customURL": "/dist/"
   },
   "repository": {
     "type": "git",

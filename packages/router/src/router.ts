@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, IController, IRenderContext } from '@aurelia/runtime';
+import { Aurelia, IController, INode, IRenderContext, IViewModel, CustomElement } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -67,7 +67,7 @@ export interface IRouter {
   removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
 
   allViewports(): Viewport[];
-  findScope(element: Element): Scope;
+  findScope(element: Element | null): Scope;
   removeScope(scope: Scope): void;
 
   // goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
@@ -80,6 +80,7 @@ export interface IRouter {
   addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   updateNav(name?: string): void;
   findNav(name: string): Nav;
+  closestViewport(element: Element): Viewport | null;
 }
 
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
@@ -551,6 +552,74 @@ export class Router implements IRouter {
     return this.navs[name];
   }
 
+  /**
+   * Finds the closest ancestor viewport.
+   *
+   * @param element The element to search upward from. The element is not searched.
+   * @returns The Viewport that is the closest ancestor.
+   */
+  public closestViewport(element: Element): Viewport | null {
+    let el: Element & { $viewport?: Viewport } | null = element;
+    if (el.$viewport) {
+      return el.$viewport;
+    }
+    do {
+      el = el!.parentElement;
+    } while (el && !el!.$viewport && el!.nodeName.toLowerCase() !== 'au-viewport');
+
+    if (el) {
+      if (el.$viewport) {
+        return el.$viewport;
+      } else if (el.nodeName.toLowerCase() === 'au-viewport') {
+        return this.allViewports().find((item) => item.element === el) || null;
+      }
+    }
+    return null;
+
+
+    // let el: any = element;
+    // while (!el.$controller && el.parentElement) {
+    //   el = el.parentElement;
+    // }
+    // let controller = el.$controller;
+    // while (controller) {
+    //   if (controller.host) {
+    //     const viewport = this.allViewports().find((item) => item.element === controller.host);
+    //     if (viewport && (viewport.scope || viewport.owningScope)) {
+    //       return viewport.scope || viewport.owningScope;
+    //     }
+    //   }
+    //   controller = controller.parent;
+    // }
+    // return this.rootScope as Scope;
+
+
+    // let el = element;
+    // while (el.parentElement) {
+    //   const viewport = this.allViewports().find((item) => item.element === el);
+    //   if (viewport && viewport.owningScope) {
+    //     return viewport.owningScope;
+    //   }
+    //   el = el.parentElement;
+    // }
+    // return this.rootScope;
+
+    // TODO: It would be better if it was something like this
+    // const el = closestCustomElement(element);
+    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+    // while (container) {
+    //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
+    //   if (scope) {
+    //     return scope;
+    //   }
+    //   const viewport = this.allViewports().find((item) => item.context && item.context.get(IContainer) === container);
+    //   if (viewport && viewport.owningScope) {
+    //     return viewport.owningScope;
+    //   }
+    //   container = container.parent;
+    // }
+  }
+
   private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedViewports.forEach((viewport) => {
@@ -570,21 +639,41 @@ export class Router implements IRouter {
   }
 
   private closestScope(element: Element): Scope {
-    let el: any = element;
-    while (!el.$controller && el.parentElement) {
-      el = el.parentElement;
+    // if (!element) {
+    //   return this.rootScope!;
+    // }
+    const viewport = this.closestViewport(element);
+    if (viewport && (viewport.scope || viewport.owningScope)) {
+      return viewport.scope || viewport.owningScope;
     }
-    let controller = el.$controller;
-    while (controller) {
-      if (controller.host) {
-        const viewport = this.allViewports().find((item) => item.element === controller.host);
-        if (viewport && (viewport.scope || viewport.owningScope)) {
-          return viewport.scope || viewport.owningScope;
-        }
-      }
-      controller = controller.parent;
-    }
-    return this.rootScope as Scope;
+    return this.rootScope!;
+
+    // let el: any = element;
+    // while (!el.$viewport && el.parentElement) {
+    //   el = el.parentElement;
+    // }
+    // if (el.$viewport) {
+    //   return (el.$viewport as Viewport).scope || (el.$viewport as Viewport).owningScope;
+    // }
+    // return this.rootScope!;
+
+
+    // let el: any = element;
+    // while (!el.$controller && el.parentElement) {
+    //   el = el.parentElement;
+    // }
+    // let controller = el.$controller;
+    // while (controller) {
+    //   if (controller.host) {
+    //     const viewport = this.allViewports().find((item) => item.element === controller.host);
+    //     if (viewport && (viewport.scope || viewport.owningScope)) {
+    //       return viewport.scope || viewport.owningScope;
+    //     }
+    //   }
+    //   controller = controller.parent;
+    // }
+    // return this.rootScope as Scope;
+
 
     // let el = element;
     // while (el.parentElement) {

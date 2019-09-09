@@ -35,7 +35,7 @@
     "aurelia-cli": "^1.0.2",
     "browserify": "^16.5.0",
     "chai": "^4.2.0",
-    "chromedriver": "^74.0.0",
+    "chromedriver": "^76.0.1",
     "cross-env": "^5.2.0",
     "esm": "^3.2.25",
     "event-stream": "4.0.1",

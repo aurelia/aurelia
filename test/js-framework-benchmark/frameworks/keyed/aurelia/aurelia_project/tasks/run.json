@@ -1,16 +1,4 @@
 {
   "name": "run",
-  "description": "Builds the application and serves up the assets via a local web server, watching files for changes as you work.",
-  "flags": [
-    {
-      "name": "env",
-      "description": "Sets the build environment.",
-      "type": "string"
-    },
-    {
-      "name": "watch",
-      "description": "Watches source files for changes and refreshes the app automatically.",
-      "type": "boolean"
-    }
-  ]
+  "description": "Builds the application and serves up the assets via a local web server, watching files for changes as you work. It is an alias of the `npm start`, you may use either of those; see README for more details."
 }

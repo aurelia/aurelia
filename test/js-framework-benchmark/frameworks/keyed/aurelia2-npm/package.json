@@ -1,0 +1,49 @@
+{
+  "name": "js-framework-benchmark-aurelia2",
+  "description": "An Aurelia 2 client application.",
+  "js-framework-benchmark": {
+    "frameworkVersion": "",
+    "customURL": "/dist/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "???"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@aurelia/jit-html": "dev",
+    "@aurelia/jit-html-browser": "dev",
+    "@aurelia/jit": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/runtime-html": "dev",
+    "@aurelia/runtime-html-browser": "dev",
+    "@aurelia/runtime": "dev"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^5.0.4",
+    "css-loader": "^3.2.0",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "htmlhint": "^0.11.0",
+    "local-web-server": "^3.0.7",
+    "loglevel": "^1.6.3",
+    "rimraf": "^3.0.0",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^6.0.4",
+    "tslint": "^5.19.0",
+    "typescript": "^3.5.3",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.7",
+    "webpack-dev-server": "^3.8.0"
+  },
+  "scripts": {
+    "lint:html": "htmlhint -c .htmlhintrc src",
+    "lint": "npm run lint:js && npm run lint:html",
+    "start": "npm run build && npm run serve",
+    "build": "rimraf dist && webpack",
+    "lint:js": "tslint --project tsconfig.json",
+    "build-dev": "npm run build",
+    "build-prod": "npm run build -- --mode=production",
+    "serve": "ws -c-1 -p 8081 -d dist"
+  }
+}

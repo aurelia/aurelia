@@ -4,7 +4,8 @@
   "description": "Vanilla.JS demo",
   "main": "index.js",
   "js-framework-benchmark": {
-    "frameworkVersion": ""
+    "frameworkVersion": "",
+    "customURL": "/index.html"
   },
   "scripts": {
     "build-dev": "webpack -w -d",

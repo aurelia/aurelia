@@ -90,6 +90,12 @@ export class ViewportCustomElement {
     this.disconnect();
   }
 
+  public attached(): void {
+    if (this.viewport) {
+      this.viewport.clearTaggedNodes();
+    }
+  }
+
   public connect(): void {
     const options: IViewportOptions = { scope: !this.element.hasAttribute('no-scope') };
     if (this.usedBy && this.usedBy.length) {

@@ -230,8 +230,8 @@ export async function determineInstalledVersions(framework: FrameworkVersionInfo
         }
     } catch (err) {
         if (err.errno==='ECONNREFUSED') {
-            console.log("Can't load package-lock.json via http. Make sure the http-server is running on port 8080");
-            throw "Can't load package-lock.json via http. Make sure the http-server is running on port 8080";
+            console.log("Can't load package-lock.json via http. Make sure the local-web-server is running on port 8080");
+            throw "Can't load package-lock.json via http. Make sure the local-web-server is running on port 8080";
         } else if (err.response && err.response.status === 404) {
             console.log(`package-lock.json not found for ${framework.keyedType}/${framework.directory}`);
             versions.add(new PackageVersionInformationErrorNoPackageJSONLock());

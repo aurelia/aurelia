@@ -19,6 +19,8 @@ export class ViewportContent {
   public fromCache: boolean = false;
   public reentry: boolean = false;
 
+  private taggedNodes: Element[] = [];
+
   constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public content: ViewportInstruction = new ViewportInstruction(''),
@@ -139,7 +141,7 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  public loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void> {
+  public loadComponent(context: IRenderContext | IContainer, element: Element, viewport: Viewport): Promise<void> {
     if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
       return Promise.resolve();
     }
@@ -149,6 +151,17 @@ export class ViewportContent {
       const container = context;
       Controller.forCustomElement(this.content.componentInstance, container, host);
     }
+    // Temporarily tag content so that it can find parent scope before viewport is attached
+    if (!element || !viewport.router.closestViewport(element)) {
+      const childNodes = this.content.componentInstance!.$controller!.nodes!.childNodes;
+      for (let i = 0; i < childNodes.length; i++) {
+        const child = childNodes[i] as Element;
+        if (child.nodeType === 1) {
+          Reflect.set(child, '$viewport', viewport);
+          this.taggedNodes.push(child);
+        }
+      }
+    }
     this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
   }
@@ -157,8 +170,17 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
+
+    this.clearTaggedNodes();
+
     // Don't unload components when stateful
     this.contentStatus = ContentStatus.created;
+  }
+  public clearTaggedNodes(): void {
+    for (const node of this.taggedNodes) {
+      Reflect.deleteProperty(node, '$viewport');
+    }
+    this.taggedNodes = [];
   }
 
   public initializeComponent(): void {

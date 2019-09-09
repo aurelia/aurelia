@@ -32,7 +32,7 @@ export class Viewport {
   private cache: ViewportContent[] = [];
 
   constructor(
-    private readonly router: IRouter,
+    public readonly router: IRouter,
     public name: string,
     public element: Element | null,
     public context: IRenderContext | IContainer | null,
@@ -184,7 +184,7 @@ export class Viewport {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element);
+    await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element, this);
     this.nextContent.initializeComponent();
     return true;
   }
@@ -226,6 +226,15 @@ export class Viewport {
     this.nextContent = null;
 
     return true;
+  }
+
+  public clearTaggedNodes(): void {
+    if (this.content) {
+      this.content.clearTaggedNodes();
+    }
+    if (this.nextContent) {
+      this.nextContent.clearTaggedNodes();
+    }
   }
 
   public finalizeContentChange(): void {

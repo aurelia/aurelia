@@ -28,4 +28,4 @@ RUN bash /root/install_rust.sh
 
 # RUN npm install
 EXPOSE 8080
-CMD ["/server/node_modules/.bin/http-server","-c-1","/build"]
+CMD ["/server/node_modules/.bin/local-web-server","/build"]

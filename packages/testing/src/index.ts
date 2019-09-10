@@ -32,6 +32,10 @@ export {
   hJsx,
 } from './h';
 export {
+  setup,
+  tearDown
+} from './startup';
+export {
   HTMLTestContext,
   TestContext,
 } from './html-test-context';

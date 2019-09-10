@@ -11,7 +11,7 @@ import {
     PropertyBinding
 } from '@aurelia/runtime';
 import { ElementPropertyAccessor } from '@aurelia/runtime-html';
-import { HTMLTestContext, TestContext, TestConfiguration, assert, setup, tearDown } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
 interface Person { firstName?: string, lastName?: string, fullName?: string };
@@ -25,40 +25,41 @@ describe('custom-elements', function () {
     });
 
     // custom elements
-    it('01.', function () {
+    it('01.', async function () {
         ctx.container.register(TestConfiguration);
-        const { au } = setup(`<template><name-tag name="bigopon"></name-tag></template>`, class { }, ctx);
+        const { au, tearDown } = setup(`<template><name-tag name="bigopon"></name-tag></template>`, class { }, ctx);
         assert.strictEqual(ctx.doc.firstElementChild.textContent, 'bigopon', `host.textContent`);
-        tearDown(au);
+        await tearDown();
     });
 
     //[as-element]
     describe('02.', function () {
 
         //works with custom element with [as-element]
-        it('01.', function () {
+        it('01.', async function () {
             ctx.container.register(TestConfiguration);
-            const { au } = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, class { }, ctx);
+            const { au, tearDown } = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, class { }, ctx);
 
             assert.strictEqual(ctx.doc.firstElementChild.textContent, 'bigopon', `host.textContent`);
+            await tearDown();
 
-            tearDown(au);
         });
 
         //ignores tag name
-        it('02.', function () {
+        it('02.', async function () {
             ctx.container.register(TestConfiguration);
-            const { au } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, class { }, ctx);
+            const { au, tearDown } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, class { }, ctx);
 
             assert.strictEqual(ctx.doc.firstElementChild.textContent, 'Fred', `host.textContent`);
 
-            tearDown(au);
+            await tearDown();
+
         });
     });
 
     // //<let/>
-    it('03.', function () {
-        const { au, lifecycle, host, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; }, ctx);
+    it('03.', async function () {
+        const { au, tearDown, lifecycle, host, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; }, ctx);
         assert.strictEqual(host.textContent, 'undefined undefined', `host.textContent`);
 
         component.firstName = 'bi';
@@ -69,19 +70,21 @@ describe('custom-elements', function () {
 
         assert.strictEqual(host.textContent, 'bi go', `host.textContent`);
 
-        tearDown(au);
+        await tearDown();
+
     });
 
     // //<let [to-view-model] />
-    it('04.', function () {
-        const { au, lifecycle, host, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { }, ctx);
+    it('04.', async function () {
+        const { au, tearDown, lifecycle, host, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { }, ctx);
         component.firstName = 'bi';
         assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
         component.lastName = 'go';
         assert.strictEqual(component.fullName, 'bi go', `component.fullName`);
         lifecycle.processRAFQueue(LifecycleFlags.none);
         assert.strictEqual(host.textContent, 'bi go', `host.textContent`);
-        tearDown(au);
+        await tearDown();
+
     });
 
     // //initial values propagate through multiple nested custom elements connected via bindables
@@ -181,21 +184,12 @@ describe('custom-elements', function () {
         }
 
         const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
-        const { container, lifecycle } = ctx;
-        container.register(...customElementCtors);
-        container.register(TestConfiguration);
-        const host = ctx.createElement('app');
-        const au = new Aurelia(container);
-        const App = CustomElement.define({ name: 'app', template: '<template><foo1 value.bind="value"></foo1>\${value}</template>' }, null);
-        const component = new App();
-        component.value = 'w00t';
-        await au.app({ host, component }).start().wait();
+        const { lifecycle, component, au, host, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...customElementCtors, TestConfiguration])
 
         assert.strictEqual(boundCalls, 5, `boundCalls`);
 
-        let i = 0;
         let current = component;
-        let cur: any;
+        // let cur: any;
         // while (i < 5) {
 
         //     const childCtor = customElementCtors[i];
@@ -280,7 +274,8 @@ describe('custom-elements', function () {
 
         lifecycle.processRAFQueue(LifecycleFlags.none);
         assert.strictEqual(host.textContent, 'w00t00t'.repeat(6), `host.textContent`);
-        tearDown(au);
+        await tearDown();
+
     });
 
     describe('06. Aliasing', async function () {
@@ -323,35 +318,43 @@ describe('custom-elements', function () {
         it('Simple Alias doesn\'t break original', async function () {
             const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            await options.tearDown();
         });
 
         it('Simple Alias Works', async function () {
             const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            await options.tearDown();
         });
         it('Simple Alias element referencing another alias', async function () {
             const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(4));
+            await options.tearDown();
         });
         it('Orig and Alias work', async function () {
             const options = await setup('<template><foo11 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            await options.tearDown();
         });
         it('Alias and Alias (2) work', async function () {
             const options = await setup('<template><foo11 value.bind="value"></foo11><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            await options.tearDown();
         });
         it('Alias to Alias ', async function () {
             const options = await setup('<template><test value.bind="value"></test>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            await options.tearDown();
         });
         it('Alias to Alias plus original alias ', async function () {
             const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            await options.tearDown();
         });
         it('Alias to Alias 2 aliases and original', async function () {
             const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo11><foo12 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
             assert.strictEqual(options.host.textContent, 'wOOt'.repeat(9));
+            await options.tearDown();
         });
     });
 });

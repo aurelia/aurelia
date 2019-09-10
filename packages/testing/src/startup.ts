@@ -10,15 +10,15 @@ export function setup<T>(template: string | Node,
     ...registrations: any[]) {
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations);
-    const testHost = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
-    const appHost = testHost.appendChild(ctx.createElement('app'));
+    const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
+    const host = root.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
     let startPromise: Promise<unknown> = Promise.resolve();
     if (autoStart) {
-        au.app({ host: appHost, component });
+        au.app({ host: host, component });
         startPromise = au.start().wait();
     }
 
@@ -28,22 +28,20 @@ export function setup<T>(template: string | Node,
         host: ctx.doc.firstElementChild,
         container,
         lifecycle,
-        testHost,
-        appHost,
+        testHost: root,
+        appHost: host,
         au,
         component,
         observerLocator,
         start: async () => {
-            au.app({ host: appHost, component });
-            await au.start().wait();
+            await au.app({ host: host, component }).start().wait();
         },
-        dispose: async () => {
+        tearDown: async () => {
             await au.stop().wait();
-            testHost.remove();
+            root.remove();
         }
     };
 }
-
 
 export async function tearDown(au: Aurelia) {
     await au.stop().wait()

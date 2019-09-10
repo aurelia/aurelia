@@ -7,7 +7,8 @@ import {
   IResourceKind,
   IResourceType,
   Registration,
-  Writable
+  Writable,
+  PLATFORM
 } from '@aurelia/kernel';
 import {
   BindingType,
@@ -25,9 +26,12 @@ export interface IBindingCommand {
   compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 }
 
-export interface IBindingCommandDefinition extends IResourceDefinition { }
+type BindingCommandStaticProperties = Required<Pick<IBindingCommandDefinition, 'aliases'>>;
+export interface IBindingCommandDefinition extends IResourceDefinition {
+  type?: string | null
+}
 
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> { }
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>>, BindingCommandStaticProperties { }
 
 export interface IBindingCommandResource extends
   IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> { }
@@ -37,7 +41,7 @@ type BindingCommandDecorator = <TProto, TClass>(target: Class<TProto, TClass> & 
 export function bindingCommand(name: string): BindingCommandDecorator;
 export function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
 export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinition): BindingCommandDecorator {
-  return target => BindingCommandResource.define(nameOrDefinition, target);
+  return target => BindingCommandResource.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
 export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.freeze({
@@ -51,20 +55,42 @@ export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.
   define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
     const Type = ctor as T & IBindingCommandType;
     const WritableType = Type as T & Writable<IBindingCommandType>;
-    const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
+    const description = createBindingCommandDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
 
     WritableType.kind = BindingCommandResource;
     WritableType.description = description;
 
     Type.register = function register(container: IContainer): void {
+      const aliases = description.aliases;
       const key = BindingCommandResource.keyFrom(description.name);
       Registration.singleton(key, Type).register(container);
       Registration.alias(key, Type).register(container);
+      for (let i = 0, ii = aliases.length; i < ii; ++i) {
+        Registration.alias(key, BindingCommandResource.keyFrom(aliases[i])).register(container);
+      }
+
+      if (this.aliases == null) {
+        return;
+      }
+
+      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
+        Registration.alias(key, BindingCommandResource.keyFrom(this.aliases[i])).register(container);
+      }
     };
 
     return Type;
   },
 });
+
+/** @internal */
+export function createBindingCommandDescription(def: IBindingCommandDefinition, Type: IBindingCommandType): Required<IBindingCommandDefinition> {
+  const aliases = def.aliases;
+  return {
+    name: def.name,
+    type: null,
+    aliases: aliases == null ? PLATFORM.emptyArray : aliases,
+  };
+}
 
 export function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string {
   if (binding.flags & SymbolFlags.isBinding) {

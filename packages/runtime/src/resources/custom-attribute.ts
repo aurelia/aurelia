@@ -23,7 +23,7 @@ import {
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
-type CustomAttributeStaticProperties = Required<Pick<Required<IAttributeDefinition>, 'bindables' | 'aliases'>>;
+type CustomAttributeStaticProperties = Required<Pick<IAttributeDefinition, 'bindables' | 'aliases'>>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 

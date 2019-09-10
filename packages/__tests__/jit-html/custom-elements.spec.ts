@@ -20,8 +20,8 @@ describe('custom-elements', function () {
     // custom elements
     it('01.', async function () {
         ctx.container.register(TestConfiguration);
-        const { tearDown } = setup(`<template><name-tag name="bigopon"></name-tag></template>`, class { }, ctx);
-        assert.strictEqual(ctx.doc.firstElementChild.textContent, 'bigopon', `host.textContent`);
+        const { tearDown, appHost } = setup(`<template><name-tag name="bigopon"></name-tag></template>`, class { }, ctx);
+        assert.strictEqual(appHost.textContent, 'bigopon', `host.textContent`);
         await tearDown();
     });
 
@@ -31,9 +31,9 @@ describe('custom-elements', function () {
         //works with custom element with [as-element]
         it('01.', async function () {
             ctx.container.register(TestConfiguration);
-            const { tearDown } = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, class { }, ctx);
+            const { tearDown, appHost} = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, class { }, ctx);
 
-            assert.strictEqual(ctx.doc.firstElementChild.textContent, 'bigopon', `host.textContent`);
+            assert.strictEqual(appHost.textContent, 'bigopon', `host.textContent`);
             await tearDown();
 
         });
@@ -41,9 +41,9 @@ describe('custom-elements', function () {
         //ignores tag name
         it('02.', async function () {
             ctx.container.register(TestConfiguration);
-            const { tearDown } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, class { }, ctx);
+            const { tearDown, appHost } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, class { }, ctx);
 
-            assert.strictEqual(ctx.doc.firstElementChild.textContent, 'Fred', `host.textContent`);
+            assert.strictEqual(appHost.textContent, 'Fred', `host.textContent`);
 
             await tearDown();
 
@@ -52,16 +52,16 @@ describe('custom-elements', function () {
 
     // //<let/>
     it('03.', async function () {
-        const { tearDown, lifecycle, host, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; }, ctx);
-        assert.strictEqual(host.textContent, 'undefined undefined', `host.textContent`);
+        const { tearDown, lifecycle, appHost, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; }, ctx);
+        assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
         component.firstName = 'bi';
         component.lastName = 'go';
 
-        assert.strictEqual(host.textContent, 'undefined undefined', `host.textContent`);
+        assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(host.textContent, 'bi go', `host.textContent`);
+        assert.strictEqual(appHost.textContent, 'bi go', `host.textContent`);
 
         await tearDown();
 
@@ -69,13 +69,13 @@ describe('custom-elements', function () {
 
     // //<let [to-view-model] />
     it('04.', async function () {
-        const { tearDown, lifecycle, host, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { }, ctx);
+        const { tearDown, lifecycle, appHost, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { }, ctx);
         component.firstName = 'bi';
         assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
         component.lastName = 'go';
         assert.strictEqual(component.fullName, 'bi go', `component.fullName`);
         lifecycle.processRAFQueue(LifecycleFlags.none);
-        assert.strictEqual(host.textContent, 'bi go', `host.textContent`);
+        assert.strictEqual(appHost.textContent, 'bi go', `host.textContent`);
         await tearDown();
 
     });
@@ -177,7 +177,7 @@ describe('custom-elements', function () {
         }
 
         const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
-        const { lifecycle, component, host, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...customElementCtors, TestConfiguration])
+        const { lifecycle, component, appHost, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...customElementCtors, TestConfiguration])
 
         assert.strictEqual(boundCalls, 5, `boundCalls`);
 
@@ -258,15 +258,15 @@ describe('custom-elements', function () {
         // }
 
         // assert.strictEqual(lifecycle['flushCount'], 0, `lifecycle['flushCount']`);
-        assert.strictEqual(host.textContent, 'w00t'.repeat(6), `host.textContent`);
+        assert.strictEqual(appHost.textContent, 'w00t'.repeat(6), `host.textContent`);
 
         component.value = 'w00t00t';
         assert.strictEqual(current.value, 'w00t00t', `current.value`);
-        assert.strictEqual(host.textContent, 'w00t'.repeat(6), `host.textContent`);
+        assert.strictEqual(appHost.textContent, 'w00t'.repeat(6), `host.textContent`);
         // assert.strictEqual(lifecycle['flushCount'], 6, `lifecycle['flushCount']`);
 
         lifecycle.processRAFQueue(LifecycleFlags.none);
-        assert.strictEqual(host.textContent, 'w00t00t'.repeat(6), `host.textContent`);
+        assert.strictEqual(appHost.textContent, 'w00t00t'.repeat(6), `host.textContent`);
         await tearDown();
 
     });
@@ -310,43 +310,43 @@ describe('custom-elements', function () {
         const customElementCtors: any[] = [Foo1, Foo2, Foo3];
         it('Simple Alias doesn\'t break original', async function () {
             const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias Works', async function () {
             const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
         it('Simple Alias element referencing another alias', async function () {
             const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(4));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(4));
             await options.tearDown();
         });
         it('Orig and Alias work', async function () {
             const options = await setup('<template><foo11 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
             await options.tearDown();
         });
         it('Alias and Alias (2) work', async function () {
             const options = await setup('<template><foo11 value.bind="value"></foo11><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
             await options.tearDown();
         });
         it('Alias to Alias ', async function () {
             const options = await setup('<template><test value.bind="value"></test>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
         it('Alias to Alias plus original alias ', async function () {
             const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
             await options.tearDown();
         });
         it('Alias to Alias 2 aliases and original', async function () {
             const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo11><foo12 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(9));
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(9));
             await options.tearDown();
         });
     });

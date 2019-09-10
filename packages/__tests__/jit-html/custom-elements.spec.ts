@@ -2,7 +2,8 @@ import {
     bindable,
     customElement,
     CustomElement,
-    LifecycleFlags} from '@aurelia/runtime';
+    LifecycleFlags
+} from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
@@ -349,4 +350,68 @@ describe('custom-elements', function () {
             await options.tearDown();
         });
     });
+
+    describe('07. Containerless', async function () {
+        @customElement({ name: 'foo1', template: `<template><div><foo2 value.bind="value" value2.bind="value1"></foo2></div>\${value}</template>`, aliases: ['foo11', 'foo12'], containerless: true })
+        class Foo1 {
+            @bindable()
+            public value: any;
+            public value1: any;
+            public binding() { this.valueChanged(); }
+            public valueChanged(): void {
+                this.value1 = `${this.value}1`;
+            }
+        }
+
+        @customElement({ name: 'foo2', template: `<template>\${value}</template>`, aliases: ['foo21', 'foo22'], containerless: true })
+        class Foo2 {
+            @bindable()
+            public value: any;
+            public value1: any;
+            @bindable()
+            public value2: any;
+            public binding() { this.valueChanged(); }
+            public valueChanged(): void {
+                this.value1 = `${this.value}1`;
+            }
+        }
+
+        @customElement({ name: 'foo3', template: `<template><foo11 value.bind="value" value2.bind="value1"></foo11>\${value}</template>`, aliases: ['foo31', 'foo32'], containerless: false })
+        class Foo3 {
+            @bindable()
+            public value: any;
+            public value1: any;
+            public binding() { this.valueChanged(); }
+            public valueChanged(): void {
+                this.value1 = `${this.value}1`;
+            }
+        }
+
+        const customElementCtors: any[] = [Foo1, Foo2, Foo3];
+        it('Simple containerless', async function () {
+            const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            assert.strictEqual(options.appHost.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
+            await options.tearDown();
+        });
+        it('Simple alias containerless', async function () {
+            const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            assert.strictEqual(options.appHost.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
+            await options.tearDown();
+        });
+        it('Containerless inside non containerless', async function () {
+            const options = await setup('<template><foo3 value.bind="value"></foo3>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            assert.strictEqual(options.appHost.firstElementChild.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(4));
+            await options.tearDown();
+        });
+        it('Containerless inside non containerless alias', async function () {
+            const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            assert.strictEqual(options.appHost.firstElementChild.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(4));
+            await options.tearDown();
+        });
+
+    })
 });

@@ -379,18 +379,6 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   };
 
-  public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], withoutViewports: boolean = false): { found: ViewportInstruction[]; remaining: ViewportInstruction[] } {
-    const found: ViewportInstruction[] = [];
-    const remaining: ViewportInstruction[] = [];
-
-    for (const instruction of instructions) {
-      const { foundViewports, remainingInstructions } = instruction.scope!.findViewports([instruction], alreadyFound, withoutViewports);
-      found.push(...foundViewports);
-      remaining.push(...remainingInstructions);
-    }
-    return { found, remaining };
-  }
-
   public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
     if (!this.processingNavigation && onlyIfProcessingStatus) {
       return;
@@ -579,6 +567,20 @@ export class Router implements IRouter {
       controller = controller.parent;
     }
     return null;
+  }
+
+  private findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], withoutViewports: boolean = false): { found: ViewportInstruction[]; remaining: ViewportInstruction[] } {
+    const found: ViewportInstruction[] = [];
+    const remaining: ViewportInstruction[] = [];
+
+    while (instructions.length) {
+      const scope: Scope = instructions[0].scope!;
+      const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
+      found.push(...foundViewports);
+      remaining.push(...remainingInstructions);
+      instructions = instructions.filter(instruction => instruction.scope !== scope);
+    }
+    return { found, remaining };
   }
 
   private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {

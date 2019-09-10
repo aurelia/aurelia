@@ -144,28 +144,6 @@ export class InstructionResolver {
     return merged;
   }
 
-  // public removeStateDuplicates(states: string[]): string[] {
-  //   let sorted: string[] = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
-  //   sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
-
-  //   let unique: string[] = [];
-  //   if (sorted.length) {
-  //     unique.push(sorted.shift() as string);
-  //     while (sorted.length) {
-  //       const state = sorted.shift();
-  //       if (state && unique.every(value => {
-  //         return value.indexOf(state) === -1;
-  //       })) {
-  //         unique.push(state);
-  //       }
-  //     }
-  //   }
-  //   unique = unique.map((value) => value.substring(1, value.length - 1));
-  //   unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
-
-  //   return unique;
-  // }
-
   public flattenViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[] {
     const flat: ViewportInstruction[] = [];
     for (const instruction of instructions) {
@@ -194,14 +172,6 @@ export class InstructionResolver {
     }
     return clones;
   }
-
-  // public stateStringsToString(stateStrings: string[], clear: boolean = false): string {
-  //   const strings = stateStrings.slice();
-  //   if (clear) {
-  //     strings.unshift(this.clearViewportInstruction);
-  //   }
-  //   return strings.join(this.separators.sibling);
-  // }
 
   private parseViewportInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: ViewportInstruction[]; remaining: string } {
     if (!instructions) {

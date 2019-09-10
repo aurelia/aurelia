@@ -21,7 +21,7 @@ export class Editor {
         .then((article) => {
           this.article = article;
         });
-    } else {
+    } else if (!this.article) {
       this.article = {
         body: '',
         description: '',

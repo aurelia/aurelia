@@ -8,7 +8,8 @@ import {
   PLATFORM,
   Registration,
   ResourceDescription,
-  Writable
+  Writable,
+  IResourceDefinition
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
@@ -23,7 +24,7 @@ import {
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
-type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables'>;
+type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables' | 'aliases'>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
@@ -56,8 +57,8 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttribute.define(
     typeof nameOrDefinition === 'string'
-    ? { isTemplateController: true , name: nameOrDefinition }
-    : { isTemplateController: true, ...nameOrDefinition },
+      ? { isTemplateController: true, name: nameOrDefinition }
+      : { isTemplateController: true, ...nameOrDefinition },
     target) as any; // TODO: fix this at some point
 }
 
@@ -104,6 +105,14 @@ export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze
 
       for (let i = 0, ii = aliases.length; i < ii; ++i) {
         Registration.alias(key, CustomAttribute.keyFrom(aliases[i])).register(container);
+      }
+
+      if (this.aliases == null) {
+        return;
+      }
+
+      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
+        Registration.alias(key, CustomAttribute.keyFrom(this.aliases[i])).register(container);
       }
     };
 

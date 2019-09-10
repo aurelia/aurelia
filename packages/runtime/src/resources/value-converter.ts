@@ -6,7 +6,8 @@ import {
   IResourceKind,
   IResourceType,
   Registration,
-  Writable
+  Writable,
+  PLATFORM
 } from '@aurelia/kernel';
 
 export interface IValueConverter {
@@ -14,12 +15,15 @@ export interface IValueConverter {
   fromView?(input: unknown, ...args: unknown[]): unknown;
 }
 
-export interface IValueConverterDefinition extends IResourceDefinition { }
+export interface IValueConverterDefinition extends IResourceDefinition {
+}
 
-export interface IValueConverterType<C extends Constructable = Constructable> extends IResourceType<IValueConverterDefinition, InstanceType<C> & IValueConverter> { }
+type ValueConverterStaticProperties = Pick<Required<IValueConverterDefinition>, 'aliases'>;
+export interface IValueConverterType<C extends Constructable = Constructable> extends IResourceType<IValueConverterDefinition, InstanceType<C> & IValueConverter>, ValueConverterStaticProperties { }
 
 export interface IValueConverterResource extends
-  IResourceKind<IValueConverterDefinition, IValueConverter, Class<IValueConverter>> { }
+  IResourceKind<IValueConverterDefinition, IValueConverter, Class<IValueConverter>> {
+}
 
 export function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;
 export function valueConverter(name: string): ValueConverterDecorator;
@@ -37,21 +41,41 @@ export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
     return Type.kind === ValueConverter;
   },
   define<T extends Constructable = Constructable>(nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType<T> {
-    const Type = ctor as T & Writable<IValueConverterType>;
-    const description = typeof nameOrDefinition === 'string'
-      ? { name: nameOrDefinition }
-      : nameOrDefinition;
+    const Type = ctor as T & IValueConverterType<T>;
+    const WritableType = Type as T & Writable<IValueConverterType<T>>;
+    const description = createCustomValueDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
 
-    Type.kind = ValueConverter;
-    Type.description = description;
+    WritableType.kind = ValueConverter;
+    WritableType.description = description;
     Type.register = function register(container: IContainer): void {
+      const aliases = description.aliases;
       const key = ValueConverter.keyFrom(description.name);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
+      for (let i = 0, ii = aliases.length; i < ii; ++i) {
+        Registration.alias(key, ValueConverter.keyFrom(aliases[i])).register(container);
+      }
+
+      if (this.aliases == null) {
+        return;
+      }
+
+      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
+        Registration.alias(key, ValueConverter.keyFrom(this.aliases[i])).register(container);
+      }
     };
 
     return Type as T & IValueConverterType<T>;
   },
 });
+
+/** @internal */
+export function createCustomValueDescription(def: IValueConverterDefinition, Type: IValueConverterType): Required<IValueConverterDefinition> {
+  const aliases = def.aliases;
+  return {
+    name: def.name,
+    aliases: aliases == null ? PLATFORM.emptyArray : aliases,
+  };
+}
 
 export type ValueConverterDecorator = <T extends Constructable>(target: T) => T & IValueConverterType<T>;

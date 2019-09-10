@@ -106,6 +106,15 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
       for (let i = 0, ii = aliases.length; i < ii; ++i) {
         Registration.alias(key, CustomElement.keyFrom(aliases[i])).register(container);
       }
+
+      if (this.aliases == null) {
+        return;
+      }
+      
+      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
+        Registration.alias(key, CustomElement.keyFrom(this.aliases[i])).register(container);
+      }
+
     };
 
     return Type;

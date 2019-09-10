@@ -79,7 +79,6 @@ export interface IBuildInstruction {
 
 export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
-  aliases?: string[];
   template?: unknown;
   instructions?: ITargetedInstruction[][];
   dependencies?: Key[];
@@ -102,7 +101,6 @@ export type BindableDefinitions = Record<string, IBindableDescription>;
 
 export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
-  aliases?: string[];
   isTemplateController?: boolean;
   hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription> | string[];
@@ -455,25 +453,12 @@ export function buildTemplateDefinition(
 
 
 
-type HasAliases = Pick<ITemplateDefinition | IAttributeDefinition, 'aliases'>;
-
-function aliasesDecorator<T extends Constructable>(target: T & HasAliases, ...aliases: string[]): T & Required<HasAliases> {
+type HasAliases = Pick<IResourceDefinition, 'aliases'>;
+function aliasDecorator<T extends Constructable<any>>(target: T & HasAliases, ...aliases: string[]): T {
   target.aliases = aliases;
-  return target as T & Required<HasAliases>;
+  return target;
 }
 
-/**
- * Decorator: Indicates that the custom element should be rendered without its element container.
- */
-export function aliases(): typeof aliasesDecorator;
-/**
- * Decorator: Indicates that the custom element should be rendered without its element container.
- */
-export function aliases<T extends Constructable>(...aliases: string[]): T & Required<HasAliases>;
-export function aliases<T extends Constructable>(target?: T & HasAliases | string[], ...aliases: string[]): T & Required<HasAliases> | typeof aliasesDecorator {
-
-  if (target !== null && (typeof target === 'string' || Array.isArray(target))) {
-    return (instance: any) => aliasesDecorator(instance, ...aliases);
-  }
-  return target === undefined ? aliasesDecorator : aliasesDecorator<T>(target, ...aliases);
+export function alias(...aliases: string[]) {
+  return (instance: Constructable<any>) => aliasDecorator(instance, ...aliases);
 }

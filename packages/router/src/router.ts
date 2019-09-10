@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, IController, IRenderContext } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -279,10 +279,11 @@ export class Router implements IRouter {
       }
     }
 
+    const alreadyFoundInstructions: ViewportInstruction[] = [];
     // TODO: Take care of cancellations down in subsets/iterations
-    let { viewportInstructions, viewportsRemaining } = (this.rootScope as Scope).findViewports(instructions);
+    let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
     let guard = 100;
-    while (viewportInstructions.length || viewportsRemaining || defaultViewports.length || clearViewports) {
+    while (viewportInstructions.length || remainingInstructions.length || defaultViewports.length || clearViewports) {
       // Guard against endless loop
       if (!guard--) {
         throw Reporter.error(2002);
@@ -353,26 +354,27 @@ export class Router implements IRouter {
       }
 
       // TODO: Fix multi level recursiveness!
-      const remaining = (this.rootScope as Scope).findViewports();
+      alreadyFoundInstructions.push(...viewportInstructions);
+      const remaining = this.findViewports(remainingInstructions, alreadyFoundInstructions);
       viewportInstructions = [];
       let addedViewport: ViewportInstruction;
       while (addedViewport = this.addedViewports.shift() as ViewportInstruction) {
         // TODO: Should this overwrite instead? I think so.
-        if (remaining.viewportInstructions.every(value => value.viewport !== addedViewport.viewport)) {
+        if (remaining.found.every(value => value.viewport !== addedViewport.viewport)) {
           viewportInstructions.push(addedViewport);
         }
       }
-      viewportInstructions = [...viewportInstructions, ...remaining.viewportInstructions];
-      viewportsRemaining = remaining.viewportsRemaining;
+      viewportInstructions = [...viewportInstructions, ...remaining.found];
+      remainingInstructions = remaining.remaining;
       defaultViewports = this.allViewports().filter(viewport =>
         viewport.options.default
         && viewport.content.componentInstance === null
         && doneDefaultViewports.every(done => done !== viewport)
         && updatedViewports.every(updated => updated !== viewport)
       );
-      if (!this.allViewports().length) {
-        viewportsRemaining = false;
-      }
+      // if (!this.allViewports().length) {
+      //   viewportsRemaining = false;
+      // }
       clearViewports = false;
     }
 
@@ -395,6 +397,18 @@ export class Router implements IRouter {
     this.processingNavigation = null;
     await this.navigator.finalize(instruction);
   };
+
+  public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], withoutViewports: boolean = false): { found: ViewportInstruction[]; remaining: ViewportInstruction[] } {
+    const found: ViewportInstruction[] = [];
+    const remaining: ViewportInstruction[] = [];
+
+    for (const instruction of instructions) {
+      const { foundViewports, remainingInstructions } = instruction.scope!.findViewports([instruction], alreadyFound, withoutViewports);
+      found.push(...foundViewports);
+      remaining.push(...remainingInstructions);
+    }
+    return { found, remaining };
+  }
 
   public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
     if (!this.processingNavigation && onlyIfProcessingStatus) {
@@ -560,21 +574,43 @@ export class Router implements IRouter {
    */
   public closestViewport(element: Element): Viewport | null {
     let el: Element & { $viewport?: Viewport } | null = element;
+    let $viewport: Viewport | undefined = el.$viewport;
+    while (!$viewport && el.parentElement) {
+      el = el.parentElement;
+      $viewport = el.$viewport;
+    }
+    // TODO: Always also check controllers and return the closest one
     if (el.$viewport) {
       return el.$viewport;
     }
-    do {
-      el = el!.parentElement;
-    } while (el && !el!.$viewport && el!.nodeName.toLowerCase() !== 'au-viewport');
-
-    if (el) {
-      if (el.$viewport) {
-        return el.$viewport;
-      } else if (el.nodeName.toLowerCase() === 'au-viewport') {
-        return this.allViewports().find((item) => item.element === el) || null;
+    el = element;
+    let controller = CustomElement.behaviorFor(el);
+    while (!controller && el.parentElement) {
+      el = el.parentElement;
+      CustomElement.behaviorFor(el);
+    }
+    while (controller) {
+      if (controller.host) {
+        const viewport = this.allViewports().find((item) => item.element === controller!.host);
+        if (viewport) {
+          return viewport;
+        }
       }
+      controller = controller.parent;
     }
     return null;
+
+    // do {
+    //   el = el!.parentElement;
+    // } while (el && !el!.$viewport && el!.nodeName.toLowerCase() !== 'au-viewport');
+    // if (el) {
+    //   if (el.$viewport) {
+    //     return el.$viewport;
+    //   } else if (el.nodeName.toLowerCase() === 'au-viewport') {
+    //     return this.allViewports().find((item) => item.element === el) || null;
+    //   }
+    // }
+    // return null;
 
 
     // let el: any = element;
@@ -707,7 +743,21 @@ export class Router implements IRouter {
     let instructions = viewports.map(viewport => viewport.content.content);
     // TODO: Check if this is really necessary
     instructions = this.instructionResolver.cloneViewportInstructions(instructions);
-    (this.rootScope as Scope).findViewports(instructions.slice(), true);
+
+    for (const vpInstruction of instructions) {
+      vpInstruction.scope = this.rootScope;
+    }
+    const alreadyFound: ViewportInstruction[] = [];
+    let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
+    let guard = 100;
+    while (remaining.length) {
+      // Guard against endless loop
+      if (!guard--) {
+        throw new Error('Failed to find viewport when updating viewer paths.');
+      }
+      alreadyFound.push(...found);
+      ({ found, remaining } = this.findViewports(remaining, alreadyFound, true));
+    }
 
     // this.activeComponents = (this.rootScope as Scope).viewportStates(true, true);
     // this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);

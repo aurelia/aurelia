@@ -22,8 +22,8 @@ export interface IBindingBehavior<T = any[]> {
 export interface IBindingBehaviorDefinition extends IResourceDefinition {
 }
 
-type BindingBehabiorStaticProperties = Required<Pick<Required<IBindingBehaviorDefinition>, 'aliases'>>;
-export interface IBindingBehaviorType<C extends Constructable = Constructable> extends IResourceType<IBindingBehaviorDefinition, InstanceType<C> & IBindingBehavior>, BindingBehabiorStaticProperties { }
+type BindingBehaviorStaticProperties = Required<Pick<IBindingBehaviorDefinition, 'aliases'>>;
+export interface IBindingBehaviorType<C extends Constructable = Constructable> extends IResourceType<IBindingBehaviorDefinition, InstanceType<C> & IBindingBehavior>, BindingBehaviorStaticProperties { }
 
 export interface IBindingBehaviorResource extends
   IResourceKind<IBindingBehaviorDefinition, IBindingBehavior, Class<IBindingBehavior>> {

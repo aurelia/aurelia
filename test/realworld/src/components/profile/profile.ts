@@ -36,7 +36,7 @@ export class Profile {
         aActive: 'active',
       });
     this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
-    return this.profile = profile;
+    this.profile = profile;
   }
 
   get isUser() {

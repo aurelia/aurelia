@@ -521,6 +521,8 @@ export class TemplateBinder {
   }
 }
 
+// the implementation does not deal with complex usage
+// todo: make the test cases at packages/__tests__/jit-html/has-multi-bindings.unit.spec.ts passed
 export function hasMultipleBindings(rawValue: string): boolean {
   const len = rawValue.length;
   let ch = 0;

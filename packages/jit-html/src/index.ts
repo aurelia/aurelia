@@ -33,7 +33,8 @@ export {
   stringifyTemplateDefinition
 } from './debugging';
 export {
-  TemplateBinder
+  TemplateBinder,
+  hasMultipleBindings
 } from './template-binder';
 export {
   ITemplateElementFactory

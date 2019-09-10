@@ -179,9 +179,6 @@ function createAttributeInfo(def: AttributeDefinition): AttrInfo {
   if (info.bindable === null) {
     info.bindable = new BindableInfo('value', defaultBindingMode);
   }
-  if (def.hasDynamicOptions) {
-    info.hasDynamicOptions = true;
-  }
   return info;
 }
 
@@ -259,13 +256,10 @@ export class AttrInfo {
 
   public isTemplateController: boolean;
 
-  public hasDynamicOptions: boolean;
-
   constructor(name: string, isTemplateController: boolean) {
     this.name = name;
     this.bindables = {};
     this.bindable = null!;
     this.isTemplateController = isTemplateController;
-    this.hasDynamicOptions = false;
   }
 }

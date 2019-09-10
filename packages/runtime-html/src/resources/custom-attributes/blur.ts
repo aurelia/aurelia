@@ -94,10 +94,7 @@ export interface HasContains {
   contains(el: Element): boolean;
 }
 
-@customAttribute({
-  name: 'blur',
-  hasDynamicOptions: true
-})
+@customAttribute('blur')
 export class Blur {
 
   @bindable()

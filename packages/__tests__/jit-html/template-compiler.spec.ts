@@ -812,7 +812,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom  } = setup(
           ctx,
-          CustomAttribute.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar {})
+          CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {})
         );
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);

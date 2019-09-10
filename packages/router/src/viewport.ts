@@ -247,25 +247,25 @@ export class Viewport {
     }
   }
 
-  public description(full: boolean = false): string {
-    if (this.content.content) {
-      const component = this.content.toComponentName() as string;
-      if (full || this.options.forceDescription) {
-        return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
-      }
-      const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
-      if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
-        return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
-      }
-      return this.router.instructionResolver.stringifyViewportInstruction(this.content.content, true);
-    }
-    return '';
-  }
+  // public description(full: boolean = false): string {
+  //   if (this.content.content) {
+  //     const component = this.content.toComponentName() as string;
+  //     if (full || this.options.forceDescription) {
+  //       return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
+  //     }
+  //     const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
+  //     if (!found || !found.foundViewports || !found.foundViewports.length) {
+  //       return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
+  //     }
+  //     return this.router.instructionResolver.stringifyViewportInstruction(this.content.content, true);
+  //   }
+  //   return '';
+  // }
 
-  public scopedDescription(full: boolean = false): string {
-    const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
-    return this.router.instructionResolver.stringifyScopedViewportInstructions(descriptions.filter((value) => value && value.length));
-  }
+  // public scopedDescription(full: boolean = false): string {
+  //   const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
+  //   return this.router.instructionResolver.stringifyScopedViewportInstructions(descriptions.filter((value) => value && value.length));
+  // }
 
   // TODO: Deal with non-string components
   public wantComponent(component: ComponentAppellation): boolean {

@@ -14,7 +14,7 @@ export class Guard {
     options: IGuardOptions,
     public id: GuardIdentity
   ) {
-    if (options.type) {
+    if (options.type !== void 0) {
       this.type = options.type;
     }
 
@@ -56,12 +56,12 @@ class Target {
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       if (cvTarget.component) {
-        this.componentType = ComponentAppellationResolver.isType(cvTarget.component as ComponentAppellation) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
-        this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation);
+        this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
+        this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {
-        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as ViewportHandle) ? cvTarget.viewport as Viewport : null;
-        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as ViewportHandle);
+        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
+        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
       }
     }
   }

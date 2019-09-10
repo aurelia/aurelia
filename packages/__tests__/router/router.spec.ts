@@ -965,7 +965,7 @@ describe('Router', function () {
         const path = segments.join('/');
         const expectedText = new RegExp(`.*${texts.join('.*')}.*`);
 
-        it.skip(`path: ${path}, expectedText: ${expectedText}`, async function () {
+        it(`path: ${path}, expectedText: ${expectedText}`, async function () {
           const Conflict1 = CustomElement.define({ name: 'conflict', template: 'conflict1<au-viewport></au-viewport>' }, null);
           const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
           const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);

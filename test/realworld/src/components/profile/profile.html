@@ -32,7 +32,7 @@
         <div class="articles-toggle">
           <au-nav name="profile-posts"></au-nav>
         </div>
-        <au-viewport name="profile-posts" used-by="profile-favorites,profile-article" no-link></au-viewport>
+        <au-viewport name="profile-posts" default="profile-article(${username})" used-by="profile-favorites,profile-article" no-link></au-viewport>
       </div>
     </div>
   </div>

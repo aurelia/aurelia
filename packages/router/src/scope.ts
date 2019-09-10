@@ -246,8 +246,7 @@ export class Scope {
     for (const child of this.children) {
       childInstructions.push(...(child.reparentViewportInstructions() || []));
     }
-    for (const vp in enabledViewports) {
-      const viewport: Viewport = enabledViewports[vp];
+    for (const viewport of enabledViewports) {
       if (viewport.content.content) {
         viewport.content.content.nextScopeInstructions = childInstructions && childInstructions.length ? childInstructions : null;
       }

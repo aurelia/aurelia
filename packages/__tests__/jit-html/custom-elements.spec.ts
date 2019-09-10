@@ -1,16 +1,8 @@
 import {
-    Aurelia,
     bindable,
     customElement,
     CustomElement,
-    InterpolationBinding,
-    LifecycleFlags,
-    PropertyAccessor,
-    SelfObserver,
-    SetterObserver,
-    PropertyBinding
-} from '@aurelia/runtime';
-import { ElementPropertyAccessor } from '@aurelia/runtime-html';
+    LifecycleFlags} from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
@@ -27,7 +19,7 @@ describe('custom-elements', function () {
     // custom elements
     it('01.', async function () {
         ctx.container.register(TestConfiguration);
-        const { au, tearDown } = setup(`<template><name-tag name="bigopon"></name-tag></template>`, class { }, ctx);
+        const { tearDown } = setup(`<template><name-tag name="bigopon"></name-tag></template>`, class { }, ctx);
         assert.strictEqual(ctx.doc.firstElementChild.textContent, 'bigopon', `host.textContent`);
         await tearDown();
     });
@@ -38,7 +30,7 @@ describe('custom-elements', function () {
         //works with custom element with [as-element]
         it('01.', async function () {
             ctx.container.register(TestConfiguration);
-            const { au, tearDown } = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, class { }, ctx);
+            const { tearDown } = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, class { }, ctx);
 
             assert.strictEqual(ctx.doc.firstElementChild.textContent, 'bigopon', `host.textContent`);
             await tearDown();
@@ -48,7 +40,7 @@ describe('custom-elements', function () {
         //ignores tag name
         it('02.', async function () {
             ctx.container.register(TestConfiguration);
-            const { au, tearDown } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, class { }, ctx);
+            const { tearDown } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, class { }, ctx);
 
             assert.strictEqual(ctx.doc.firstElementChild.textContent, 'Fred', `host.textContent`);
 
@@ -59,7 +51,7 @@ describe('custom-elements', function () {
 
     // //<let/>
     it('03.', async function () {
-        const { au, tearDown, lifecycle, host, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; }, ctx);
+        const { tearDown, lifecycle, host, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; }, ctx);
         assert.strictEqual(host.textContent, 'undefined undefined', `host.textContent`);
 
         component.firstName = 'bi';
@@ -76,7 +68,7 @@ describe('custom-elements', function () {
 
     // //<let [to-view-model] />
     it('04.', async function () {
-        const { au, tearDown, lifecycle, host, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { }, ctx);
+        const { tearDown, lifecycle, host, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { }, ctx);
         component.firstName = 'bi';
         assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
         component.lastName = 'go';
@@ -184,7 +176,7 @@ describe('custom-elements', function () {
         }
 
         const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
-        const { lifecycle, component, au, host, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...customElementCtors, TestConfiguration])
+        const { lifecycle, component, host, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...customElementCtors, TestConfiguration])
 
         assert.strictEqual(boundCalls, 5, `boundCalls`);
 

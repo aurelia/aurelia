@@ -383,16 +383,19 @@ export class TemplateBinder {
   private declareTemplateController(attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
 
     let symbol: TemplateControllerSymbol;
-    // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
+    const attrRawValue = attrSyntax.rawValue;
     const command = this.resources.getBindingCommand(attrSyntax, false);
-    if (command == null && attrInfo.hasDynamicOptions) {
+    // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
+    const isMultiBindings = command == null && hasMultipleBindings(attrRawValue);
+
+    if (isMultiBindings) {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-      this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+      this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
     } else {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
-      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+      const expr = this.exprParser.parse(attrRawValue, bindingType);
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
     }
 
     return symbol;
@@ -400,6 +403,7 @@ export class TemplateBinder {
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo, command: IBindingCommand | null): void {
     let symbol: CustomAttributeSymbol;
+    const attrRawValue = attrSyntax.rawValue;
     // Custom attributes are always in multiple binding mode,
     // except when they can't be
     // When they cannot be:
@@ -407,43 +411,45 @@ export class TemplateBinder {
     //          In this scenario, the value of the custom attributes is required to be a valid expression
     //        * has no colon: ie: <div my-attr="abcd">
     //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
-    const isSingleBinding = command != null || attrSyntax.rawValue.indexOf(':') === -1;
-    if (isSingleBinding) {
-      // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
-      // or a null command but without dynamicOptions (which may be an interpolation or a normal string)
+    const isMultiBindings = command == null && hasMultipleBindings(attrRawValue);
+
+    if (isMultiBindings) {
+      // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;
+      // the binding commands must be declared in each of the property bindings
+      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+      this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
+    } else {
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
-      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
-    } else {
-      // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
-      // the binding commands must be declared in the dynamicOptions expression itself
-      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-      this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+      const expr = this.exprParser.parse(attrRawValue, bindingType);
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
     }
     const manifest = this.manifest!;
     manifest.customAttributes.push(symbol);
     manifest.isTarget = true;
-
   }
 
   private bindMultiAttribute(symbol: IResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
 
     const attributes = parseMultiAttributeBinding(value);
+    const bindables = attrInfo.bindables;
     let attr: IAttrLike;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      const attrRawValue = attrSyntax.rawValue;
+      const attrTarget = attrSyntax.target;
       const command = this.resources.getBindingCommand(attrSyntax, false);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
-      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      let bindable = attrInfo.bindables[attrSyntax.target];
+      const expr = this.exprParser.parse(attrRawValue, bindingType);
+      let bindable = bindables[attrTarget];
       if (bindable === undefined) {
-        // everything in a dynamicOptions expression must be used, so if it's not a bindable then we create one on the spot
-        bindable = attrInfo.bindables[attrSyntax.target] = new BindableInfo(attrSyntax.target, BindingMode.toView);
+        // everything in a multi-bindings expression must be used,
+        // so if it's not a bindable then we create one on the spot
+        bindable = bindables[attrTarget] = new BindableInfo(attrTarget, BindingMode.toView);
       }
 
-      symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+      symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
     }
 
   }
@@ -513,6 +519,21 @@ export class TemplateBinder {
     }
     return name === '' ? new ReplacePartSymbol('default') : new ReplacePartSymbol(name);
   }
+}
+
+export function hasMultipleBindings(rawValue: string): boolean {
+  const len = rawValue.length;
+  let ch = 0;
+  for (let i = 0; i < len; ++i) {
+    ch = rawValue.charCodeAt(i);
+    if (ch === Char.Backslash) {
+      ++i;
+      // Ignore whatever comes next because it's escaped
+    } else if (ch === Char.Colon) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function processInterpolationText(symbol: TextSymbol): void {
@@ -630,9 +651,10 @@ function scanAttributeName(state: ParserState): string {
 const enum Char {
   DoubleQuote = 0x22,
   SingleQuote = 0x27,
-  Slash = 0x2F,
-  Semicolon = 0x3B,
-  Colon = 0x3A
+  Slash       = 0x2F,
+  Semicolon   = 0x3B,
+  Colon       = 0x3A,
+  Backslash   = 0x5C,
 }
 
 function scanAttributeValue(state: ParserState): string {

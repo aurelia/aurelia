@@ -174,24 +174,6 @@ export class Router implements IRouter {
         href = `/${href}`;
       }
     }
-    // // If it's not from scope root, figure out which scope
-    // if (!href.startsWith('/')) {
-    //   let scope = this.closestScope(info.anchor as Element);
-    //   // Scope modifications
-    //   if (href.startsWith('.')) {
-    //     // The same as no scope modification
-    //     if (href.startsWith('./')) {
-    //       href = href.slice(2);
-    //     }
-    //     // Find out how many scopes upwards we should move
-    //     while (href.startsWith('../')) {
-    //       scope = scope.parent || scope;
-    //       href = href.slice(3);
-    //     }
-    //   }
-    //   const context = scope.scopeContext();
-    //   href = this.instructionResolver.buildScopedLink(context, href);
-    // }
     // Adds to Navigator's Queue, which makes sure it's serial
     this.goto(href, { origin: info.anchor! }).catch(error => { throw error; });
   };
@@ -244,7 +226,6 @@ export class Router implements IRouter {
           path = '';
         }
 
-        // ({ clearViewports, newPath: path } = this.instructionResolver.shouldClearViewports(path));
         instructions = this.instructionResolver.parseViewportInstructions(path);
         // TODO: Used to have an early exit if no instructions. Restore it?
       }
@@ -471,7 +452,6 @@ export class Router implements IRouter {
     }
   }
 
-  // public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>, replace: boolean = false): Promise<void> {
   public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
     options = options || {};
     // TODO: Review query extraction; different pos for path and fragment!
@@ -599,61 +579,6 @@ export class Router implements IRouter {
       controller = controller.parent;
     }
     return null;
-
-    // do {
-    //   el = el!.parentElement;
-    // } while (el && !el!.$viewport && el!.nodeName.toLowerCase() !== 'au-viewport');
-    // if (el) {
-    //   if (el.$viewport) {
-    //     return el.$viewport;
-    //   } else if (el.nodeName.toLowerCase() === 'au-viewport') {
-    //     return this.allViewports().find((item) => item.element === el) || null;
-    //   }
-    // }
-    // return null;
-
-
-    // let el: any = element;
-    // while (!el.$controller && el.parentElement) {
-    //   el = el.parentElement;
-    // }
-    // let controller = el.$controller;
-    // while (controller) {
-    //   if (controller.host) {
-    //     const viewport = this.allViewports().find((item) => item.element === controller.host);
-    //     if (viewport && (viewport.scope || viewport.owningScope)) {
-    //       return viewport.scope || viewport.owningScope;
-    //     }
-    //   }
-    //   controller = controller.parent;
-    // }
-    // return this.rootScope as Scope;
-
-
-    // let el = element;
-    // while (el.parentElement) {
-    //   const viewport = this.allViewports().find((item) => item.element === el);
-    //   if (viewport && viewport.owningScope) {
-    //     return viewport.owningScope;
-    //   }
-    //   el = el.parentElement;
-    // }
-    // return this.rootScope;
-
-    // TODO: It would be better if it was something like this
-    // const el = closestCustomElement(element);
-    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
-    // while (container) {
-    //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
-    //   if (scope) {
-    //     return scope;
-    //   }
-    //   const viewport = this.allViewports().find((item) => item.context && item.context.get(IContainer) === container);
-    //   if (viewport && viewport.owningScope) {
-    //     return viewport.owningScope;
-    //   }
-    //   container = container.parent;
-    // }
   }
 
   private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {
@@ -675,66 +600,11 @@ export class Router implements IRouter {
   }
 
   private closestScope(element: Element): Scope {
-    // if (!element) {
-    //   return this.rootScope!;
-    // }
     const viewport = this.closestViewport(element);
     if (viewport && (viewport.scope || viewport.owningScope)) {
       return viewport.scope || viewport.owningScope;
     }
     return this.rootScope!;
-
-    // let el: any = element;
-    // while (!el.$viewport && el.parentElement) {
-    //   el = el.parentElement;
-    // }
-    // if (el.$viewport) {
-    //   return (el.$viewport as Viewport).scope || (el.$viewport as Viewport).owningScope;
-    // }
-    // return this.rootScope!;
-
-
-    // let el: any = element;
-    // while (!el.$controller && el.parentElement) {
-    //   el = el.parentElement;
-    // }
-    // let controller = el.$controller;
-    // while (controller) {
-    //   if (controller.host) {
-    //     const viewport = this.allViewports().find((item) => item.element === controller.host);
-    //     if (viewport && (viewport.scope || viewport.owningScope)) {
-    //       return viewport.scope || viewport.owningScope;
-    //     }
-    //   }
-    //   controller = controller.parent;
-    // }
-    // return this.rootScope as Scope;
-
-
-    // let el = element;
-    // while (el.parentElement) {
-    //   const viewport = this.allViewports().find((item) => item.element === el);
-    //   if (viewport && viewport.owningScope) {
-    //     return viewport.owningScope;
-    //   }
-    //   el = el.parentElement;
-    // }
-    // return this.rootScope;
-
-    // TODO: It would be better if it was something like this
-    // const el = closestCustomElement(element);
-    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
-    // while (container) {
-    //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
-    //   if (scope) {
-    //     return scope;
-    //   }
-    //   const viewport = this.allViewports().find((item) => item.context && item.context.get(IContainer) === container);
-    //   if (viewport && viewport.owningScope) {
-    //     return viewport.owningScope;
-    //   }
-    //   container = container.parent;
-    // }
   }
 
   private replacePaths(instruction: INavigatorInstruction): Promise<void> {
@@ -759,16 +629,12 @@ export class Router implements IRouter {
       ({ found, remaining } = this.findViewports(remaining, alreadyFound, true));
     }
 
-    // this.activeComponents = (this.rootScope as Scope).viewportStates(true, true);
-    // this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);
     this.activeComponents = instructions;
 
-    // let viewportStates = (this.rootScope as Scope).viewportStates();
-    // viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
-    // let state = this.instructionResolver.stateStringsToString(viewportStates);
     let state = this.instructionResolver.stringifyViewportInstructions(instructions, false, true);
 
     if (this.options.transformToUrl) {
+      // TODO: Review this. Also, should it perhaps get full state?
       const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
       state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
     }
@@ -779,11 +645,6 @@ export class Router implements IRouter {
     const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
     fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions));
     instruction.fullStateInstruction = fullViewportStates;
-
-    // let fullViewportStates = (this.rootScope as Scope).viewportStates(true);
-    // fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
-    // instruction.fullStateInstruction = this.instructionResolver.stateStringsToString(fullViewportStates, true) + query;
-
     return Promise.resolve();
   }
 }

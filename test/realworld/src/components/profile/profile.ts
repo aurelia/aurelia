@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
+import { IRouter, ReentryBehavior } from '@aurelia/router';
 import { Profile as ProfileModel } from 'shared/models/profile';
 import { ProfileService } from "shared/services/profile-service";
 import { SharedState } from 'shared/state/shared-state';
@@ -7,6 +7,7 @@ import { SharedState } from 'shared/state/shared-state';
 @inject(SharedState, ProfileService, IRouter)
 export class Profile {
   public static parameters: string[] = ['name'];
+  public reentryBehavior: string = ReentryBehavior.refresh;
 
   private username?: string;
   private profile?: ProfileModel;
@@ -35,7 +36,7 @@ export class Profile {
         a: 'nav-link',
         aActive: 'active',
       });
-    this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
+    // this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
     this.profile = profile;
   }
 

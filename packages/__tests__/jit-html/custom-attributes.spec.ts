@@ -26,7 +26,7 @@ describe('custom-attributes', function () {
             public value: any;
             constructor(@INode private readonly element: Element) {
             }
-
+            
             bound() {
                 this.element.setAttribute('test', this.value);
             }

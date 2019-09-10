@@ -18,7 +18,7 @@ export interface IValueConverter {
 export interface IValueConverterDefinition extends IResourceDefinition {
 }
 
-type ValueConverterStaticProperties = Pick<Required<IValueConverterDefinition>, 'aliases'>;
+type ValueConverterStaticProperties = Required<Pick<Required<IValueConverterDefinition>, 'aliases'>>;
 export interface IValueConverterType<C extends Constructable = Constructable> extends IResourceType<IValueConverterDefinition, InstanceType<C> & IValueConverter>, ValueConverterStaticProperties { }
 
 export interface IValueConverterResource extends

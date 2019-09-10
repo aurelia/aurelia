@@ -9,7 +9,6 @@ import {
   Registration,
   ResourceDescription,
   Writable,
-  IResourceDefinition
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
@@ -24,7 +23,7 @@ import {
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
-type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables' | 'aliases'>;
+type CustomAttributeStaticProperties = Required<Pick<Required<IAttributeDefinition>, 'bindables' | 'aliases'>>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 

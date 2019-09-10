@@ -22,7 +22,7 @@ export interface IBindingBehavior<T = any[]> {
 export interface IBindingBehaviorDefinition extends IResourceDefinition {
 }
 
-type BindingBehabiorStaticProperties = Pick<Required<IBindingBehaviorDefinition>, 'aliases'>;
+type BindingBehabiorStaticProperties = Required<Pick<Required<IBindingBehaviorDefinition>, 'aliases'>>;
 export interface IBindingBehaviorType<C extends Constructable = Constructable> extends IResourceType<IBindingBehaviorDefinition, InstanceType<C> & IBindingBehavior>, BindingBehabiorStaticProperties { }
 
 export interface IBindingBehaviorResource extends

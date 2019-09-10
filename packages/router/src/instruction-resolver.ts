@@ -90,7 +90,7 @@ export class InstructionResolver {
           excludeCurrentViewport = true;
         }
       }
-      let stringified = this.stringifyAViewportInstruction(instruction, excludeCurrentViewport)
+      let stringified = this.stringifyAViewportInstruction(instruction, excludeCurrentViewport);
       if (instruction.nextScopeInstructions && instruction.nextScopeInstructions.length) {
         stringified += instruction.nextScopeInstructions.length === 1
           ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}`
@@ -224,8 +224,8 @@ export class InstructionResolver {
     const matches: Record<string, number> = {};
     // Tokens can have length > 1
     for (const token of tokens) {
-      const pos = instruction.indexOf(token);
-      if (pos > -1) {
+      const tokenPos = instruction.indexOf(token);
+      if (tokenPos > -1) {
         matches[token] = instruction.indexOf(token);
       }
     }

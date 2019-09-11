@@ -177,8 +177,8 @@ describe('custom-elements', function () {
             }
         }
 
-        const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
-        const { lifecycle, component, host, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...customElementCtors, TestConfiguration])
+        const resources: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
+        const { lifecycle, component, appHost, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...resources, TestConfiguration])
 
         assert.strictEqual(boundCalls, 5, `boundCalls`);
 
@@ -186,7 +186,7 @@ describe('custom-elements', function () {
         // let cur: any;
         // while (i < 5) {
 
-        //     const childCtor = customElementCtors[i];
+        //     const childCtor = resources[i];
         //     assert.instanceOf(current.$componentHead, Object, '');
         //     assert.strictEqual(current.$componentHead, current.$componentTail, `current.$componentHead`);
         //     assert.instanceOf(current.$componentHead, childCtor, `current.$componentHead`);
@@ -333,83 +333,83 @@ describe('custom-elements', function () {
             }
         }
 
-        const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
+        const resources: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
         it('Simple Alias doesn\'t break original', async function () {
-            const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias with decorator doesn\'t break original', async function () {
-            const options = await setup('<template><foo4 value.bind="value"></foo4>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo4 value.bind="value"></foo4>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias with decorator doesn\'t break origianl aliases', async function () {
-            const options = await setup('<template><foo43 value.bind="value"></foo43>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo43 value.bind="value"></foo43>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias Works', async function () {
-            const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias with decorator 1st position works as expected', async function () {
-            const options = await setup('<template><foo41 value.bind="value"></foo41>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo41 value.bind="value"></foo41>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias with decorator 2nd position works as expected', async function () {
-            const options = await setup('<template><foo42 value.bind="value"></foo42>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo42 value.bind="value"></foo42>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias with spread decorator 1st position works as expected', async function () {
-            const options = await setup('<template><foo51 value.bind="value"></foo51>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo51 value.bind="value"></foo51>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias with spread decorator 2nd position works as expected', async function () {
-            const options = await setup('<template><foo52 value.bind="value"></foo52>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo52 value.bind="value"></foo52>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
 
         it('Simple Alias element referencing another alias', async function () {
-            const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(4));
+            const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(4));
             await options.tearDown();
         });
         it('Orig and Alias work', async function () {
-            const options = await setup('<template><foo11 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            const options = await setup('<template><foo11 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
             await options.tearDown();
         });
         it('Alias and Alias (2) work', async function () {
-            const options = await setup('<template><foo11 value.bind="value"></foo11><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            const options = await setup('<template><foo11 value.bind="value"></foo11><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
             await options.tearDown();
         });
         it('Alias to Alias ', async function () {
-            const options = await setup('<template><test value.bind="value"></test>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(3));
+            const options = await setup('<template><test value.bind="value"></test>${value}</template>', class { value = 'wOOt' }, ctx, true, [...resources, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
         it('Alias to Alias plus original alias ', async function () {
-            const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(5));
+            const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo12>${value}</template>', class { value = 'wOOt' }, ctx, true, [...resources, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
             await options.tearDown();
         });
         it('Alias to Alias 2 aliases and original', async function () {
-            const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo11><foo12 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, [...customElementCtors, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
-            assert.strictEqual(options.host.textContent, 'wOOt'.repeat(9));
+            const options = await setup('<template><test value.bind="value"></test><foo12 value.bind="value"></foo11><foo12 value.bind="value"></foo11><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, [...resources, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
+            assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(9));
             await options.tearDown();
         });
     });
@@ -450,27 +450,27 @@ describe('custom-elements', function () {
             }
         }
 
-        const customElementCtors: any[] = [Foo1, Foo2, Foo3];
+        const resources: any[] = [Foo1, Foo2, Foo3];
         it('Simple containerless', async function () {
-            const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo1 value.bind="value"></foo1>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
         it('Simple alias containerless', async function () {
-            const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo11 value.bind="value"></foo11>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
             await options.tearDown();
         });
         it('Containerless inside non containerless', async function () {
-            const options = await setup('<template><foo3 value.bind="value"></foo3>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo3 value.bind="value"></foo3>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(4));
             await options.tearDown();
         });
         it('Containerless inside non containerless alias', async function () {
-            const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template><foo31 value.bind="value"></foo31>${value}</template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.firstElementChild.tagName, 'DIV', 'DIV INSTEAD OF ELEMENT TAG WITH CONTAINERLESS');
             assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(4));
             await options.tearDown();

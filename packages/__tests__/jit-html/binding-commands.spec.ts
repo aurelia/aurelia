@@ -1,3 +1,101 @@
+import {
+    alias,
+    LifecycleFlags,
+    BindingType,
+    AttributeInstruction
+} from '@aurelia/runtime';
+import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
+import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, TwoWayBindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
+
+// TemplateCompiler - binding command integration
+describe('binding-commans', function () {
+    let ctx: HTMLTestContext;
+
+    beforeEach(function () {
+        ctx = TestContext.createHTMLTestContext();
+    });
+
+    // custom elements
+    describe('01. Aliases', async function () {
+
+        @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
+        @alias(...['woot11', 'woot12'])
+        class WootConverter implements IBindingCommand {
+            public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+
+            public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+                return OneTimeBindingCommand.prototype.compile(binding);
+            }
+        }
+
+        @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
+        @alias('woot21', 'woot22')
+        class WootConverter2 implements IBindingCommand {
+            public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+
+            public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+                return OneTimeBindingCommand.prototype.compile(binding);
+            }
+        }
+
+        const resources: any[] = [WootConverter, WootConverter2];
+        const App = class {
+            value = 'wOOt';
+        };
+
+        it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
+            const options = await setup('<template> <a href.woot1="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('Simple spread Alias (1st position) works on value converter', async function () {
+            const options = await setup('<template> <a href.woot11="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('Simple spread Alias (2nd position) works on value converter', async function () {
+            const options = await setup('<template> <a href.woot12="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('Simple spread Alias doesn\'t break original value converter', async function () {
+            const options = await setup('<template> <a href.woot13="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+
+        it('Simple Alias doesn\'t break def alias works on value converter', async function () {
+            const options = await setup('<template> <a href.woot23="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('Simple Alias (1st position) works on value converter', async function () {
+            const options = await setup('<template> <a href.woot21="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('Simple Alias (2nd position) works on value converter', async function () {
+            const options = await setup('<template> <a href.woot22="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('Simple Alias doesn\'t break original value converter', async function () {
+            const options = await setup('<template> <a href.woot2="value"></a> </template>', App, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
+            await options.tearDown();
+        });
+
+    });
+
+});
+
 // import { Aurelia, CustomElement as CE, IViewModel, LifecycleFlags as LF } from '@aurelia/runtime';
 // import { IEventManager } from '@aurelia/runtime-html';
 // import { HTMLTestContext, TestContext, TestConfiguration, setupAndStart, setupWithDocumentAndStart, tearDown } from '@aurelia/testing';
@@ -30,7 +128,7 @@
 
 //   // styleBinding - bind
 //   it('03.', function () {
-//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div style.bind="foo"></div></template>`, null);
+//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><a style.bind="foo"></a></template>`, null);
 //     component.foo = 'color: green;';
 //     lifecycle.processFlushQueue(LF.none);
 //     assert.strictEqual((host.firstElementChild as HTMLElement).style.cssText, 'color: green;', `(host.firstElementChild as HTMLElement).style.cssText`);
@@ -39,7 +137,7 @@
 
 //   // styleBinding - interpolation
 //   it('04.', function () {
-//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div style="\${foo}"></div></template>`, null);
+//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><a style="\${foo}"></a></template>`, null);
 //     component.foo = 'color: green;';
 //     lifecycle.processFlushQueue(LF.none);
 //     assert.strictEqual((host.firstElementChild as HTMLElement).style.cssText, 'color: green;', `(host.firstElementChild as HTMLElement).style.cssText`);
@@ -48,7 +146,7 @@
 
 //   // classBinding - bind
 //   it('05.', function () {
-//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class.bind="foo"></div></template>`, null);
+//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><a class.bind="foo"></a></template>`, null);
 //     component.foo = 'foo bar';
 //     lifecycle.processFlushQueue(LF.none);
 //     assert.strictEqual((host.firstElementChild as HTMLElement).classList.toString(), 'au foo bar', `(host.firstElementChild as HTMLElement).classList.toString()`);
@@ -57,7 +155,7 @@
 
 //   // classBinding - interpolation
 //   it('06.', function () {
-//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class="\${foo}"></div></template>`, null);
+//     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><a class="\${foo}"></a></template>`, null);
 //     component.foo = 'foo bar';
 //     lifecycle.processFlushQueue(LF.none);
 //     assert.strictEqual((host.firstElementChild as HTMLElement).classList.toString(), 'au foo bar', `(host.firstElementChild as HTMLElement).classList.toString()`);
@@ -259,7 +357,7 @@
 //       }
 //     );
 
-//     const host = ctx.createElement('div');
+//     const host = ctx.createElement('a');
 //     const component = new App();
 
 //     component.a = 'x';

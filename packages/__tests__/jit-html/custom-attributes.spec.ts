@@ -46,53 +46,53 @@ describe('custom-attributes', function () {
         }
 
 
-        const customElementCtors: any[] = [Foo4, Foo5];
+        const resources: any[] = [Foo4, Foo5];
 
         it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
-            const options = await setup('<template> <div foo53.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo53.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple spread Alias (1st position) works on custom attribute', async function () {
-            const options = await setup('<template> <div foo51.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo51.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple spread Alias (2nd position) works on custom attribute', async function () {
-            const options = await setup('<template> <div foo52.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo52.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple spread Alias doesn\'t break original custom attribute', async function () {
-            const options = await setup('<template> <div foo5.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo5.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
 
         it('Simple Alias doesn\'t break def alias works on custom attribute', async function () {
-            const options = await setup('<template> <div foo43.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo43.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple Alias (1st position) works on custom attribute', async function () {
-            const options = await setup('<template> <div foo41.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo41.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple Alias (2nd position) works on custom attribute', async function () {
-            const options = await setup('<template> <div foo42.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo42.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple Alias doesn\'t break original custom attribute', async function () {
-            const options = await setup('<template> <div foo4.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, customElementCtors);
+            const options = await setup('<template> <div foo4.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });

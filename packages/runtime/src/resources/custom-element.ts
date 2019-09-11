@@ -104,9 +104,7 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
       registerAliases(aliases, CustomElement, key, container);
-      if (this.aliases !== undefined) {
-        registerAliases(this.aliases, CustomElement, key, container);
-      }
+      registerAliases(this.aliases, CustomElement, key, container);
 
     };
 

@@ -42,7 +42,3 @@ export function setup<T>(template: string | Node,
         }
     };
 }
-
-export async function tearDown(au: Aurelia) {
-    await au.stop().wait()
-}

@@ -48,13 +48,13 @@ export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
 
     WritableType.kind = ValueConverter;
     WritableType.description = description;
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
       const key = ValueConverter.keyFrom(description.name);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
-      registerAliases(aliases, ValueConverter, key, container);
-      registerAliases(this.aliases, ValueConverter, key, container);
+      registerAliases([...aliases, ...this.aliases], ValueConverter, key, container);
     };
 
     return Type as T & IValueConverterType<T>;

@@ -7,7 +7,8 @@ import {
   IResourceType,
   Registration,
   Reporter,
-  Writable
+  Writable,
+  PLATFORM
 } from '@aurelia/kernel';
 
 import {
@@ -59,7 +60,7 @@ export interface ICustomElementStaticProperties {
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
   strategy?: TemplateDefinition['strategy'];
-  aliases?: TemplateDefinition['aliases'];
+  aliases: TemplateDefinition['aliases'];
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends
@@ -97,14 +98,14 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     const description = buildTemplateDefinition(Type, nameOrDefinition);
 
     WritableType.kind = CustomElement;
-    Type.description = description;
+    Type.description = description;WritableType
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
       const key = CustomElement.keyFrom(description.name);
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
-      registerAliases(aliases, CustomElement, key, container);
-      registerAliases(this.aliases, CustomElement, key, container);
+      registerAliases([...aliases, ...this.aliases], CustomElement, key, container);
 
     };
 

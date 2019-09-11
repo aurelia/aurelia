@@ -1,11 +1,10 @@
 import {
     alias,
-    LifecycleFlags,
     BindingType,
     AttributeInstruction
 } from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
-import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, TwoWayBindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
+import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
 
 // TemplateCompiler - binding command integration
 describe('binding-commans', function () {

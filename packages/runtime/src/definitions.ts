@@ -8,7 +8,10 @@ import {
   PLATFORM,
   ResourceDescription,
   ResourcePartDescription,
-  toArray
+  toArray,
+  IContainer,
+  IResourceKind,
+  Registration
 } from '@aurelia/kernel';
 
 import {
@@ -451,8 +454,6 @@ export function buildTemplateDefinition(
   return def;
 }
 
-
-
 type HasAliases = Pick<IResourceDefinition, 'aliases'>;
 function aliasDecorator<T extends Constructable<any>>(target: T & HasAliases, ...aliases: string[]): T {
   target.aliases = aliases;
@@ -461,4 +462,14 @@ function aliasDecorator<T extends Constructable<any>>(target: T & HasAliases, ..
 
 export function alias(...aliases: string[]) {
   return (instance: Constructable<any>) => aliasDecorator(instance, ...aliases);
+}
+
+export function registerAliases<T, F>(aliases: string[] | null, resource: IResourceKind<T, F>, key: string, container: IContainer) {
+  if (aliases === null) {
+    return;
+  }
+  for (let i = 0, ii = aliases.length; i < ii; ++i) {
+    Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+  }
+
 }

@@ -12,6 +12,7 @@ import {
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import { IScope } from '../observation';
+import { registerAliases } from '../definitions';
 
 
 export interface IBindingBehavior<T = any[]> {
@@ -56,17 +57,8 @@ export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze
       const key = BindingBehavior.keyFrom(description.name);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, BindingBehavior.keyFrom(aliases[i])).register(container);
-      }
-
-      if (this.aliases == null) {
-        return;
-      }
-
-      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
-        Registration.alias(key, BindingBehavior.keyFrom(this.aliases[i])).register(container);
-      }
+      registerAliases(aliases, BindingBehavior, key, container);
+      registerAliases(this.aliases, BindingBehavior, key, container);
     };
 
     return Type;

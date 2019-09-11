@@ -13,7 +13,8 @@ import {
 import {
   buildTemplateDefinition,
   ITemplateDefinition,
-  TemplateDefinition
+  TemplateDefinition,
+  registerAliases
 } from '../definitions';
 import {
   IDOM,
@@ -102,17 +103,9 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
       const key = CustomElement.keyFrom(description.name);
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
-
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, CustomElement.keyFrom(aliases[i])).register(container);
-      }
-
-      if (this.aliases == null) {
-        return;
-      }
-      
-      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
-        Registration.alias(key, CustomElement.keyFrom(this.aliases[i])).register(container);
+      registerAliases(aliases, CustomElement, key, container);
+      if (this.aliases !== undefined) {
+        registerAliases(this.aliases, CustomElement, key, container);
       }
 
     };

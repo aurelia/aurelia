@@ -373,7 +373,8 @@ export {
   TargetedInstructionType,
   TemplateDefinition,
   TemplatePartDefinitions,
-  alias
+  alias,
+  registerAliases
 } from './definitions';
 export {
   DOM,

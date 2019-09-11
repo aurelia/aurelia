@@ -13,6 +13,7 @@ import {
 import {
   BindingType,
   ITargetedInstruction,
+  registerAliases
 } from '@aurelia/runtime';
 
 import {
@@ -64,18 +65,9 @@ export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.
       const aliases = description.aliases;
       const key = BindingCommandResource.keyFrom(description.name);
       Registration.singleton(key, Type).register(container);
-      Registration.alias(key, Type).register(container);
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, BindingCommandResource.keyFrom(aliases[i])).register(container);
-      }
-
-      if (this.aliases == null) {
-        return;
-      }
-
-      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
-        Registration.alias(key, BindingCommandResource.keyFrom(this.aliases[i])).register(container);
-      }
+      Registration.alias(key, Type).register(container);      
+      registerAliases(aliases, BindingCommandResource, key, container);
+      registerAliases(this.aliases, BindingCommandResource, key, container);
     };
 
     return Type;

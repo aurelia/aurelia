@@ -25,7 +25,7 @@ describe('value-converters', function () {
 
         @bindingBehavior({ name: 'woot1', aliases: ['woot13'] })
         @alias(...['woot11', 'woot12'])
-        class WootConverter implements IBindingBehavior<() => void> {
+        class WootBehavior implements IBindingBehavior<() => void> {
             bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void): void {
                 func(binding.target[binding.targetProperty]);
             }
@@ -35,7 +35,7 @@ describe('value-converters', function () {
 
         @bindingBehavior({ name: 'woot2', aliases: ['woot23'] })
         @alias('woot21', 'woot22')
-        class WootConverter2 implements IBindingBehavior<() => void> {
+        class WootBehavior2 implements IBindingBehavior<() => void> {
             bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void, func2: (param: string) => void): void {
                 func2(binding.target[binding.targetProperty]);
             }
@@ -45,7 +45,7 @@ describe('value-converters', function () {
 
         @customAttribute({ name: 'foo5', aliases: ['foo53'] })
         @alias(...['foo51', 'foo52'])
-        class Foo5 {
+        class FooAttr5 {
             @bindable({ primary: true })
             public value: any;
             constructor(@INode private readonly element: Element) {
@@ -59,7 +59,7 @@ describe('value-converters', function () {
 
         @customAttribute({ name: 'foo4', aliases: ['foo43'] })
         @alias('foo41', 'foo42')
-        class Foo4 {
+        class FooAttr4 {
             @bindable({ primary: true })
             public value: any;
             constructor(@INode private readonly element: Element) {
@@ -71,7 +71,7 @@ describe('value-converters', function () {
         }
 
 
-        const resources: any[] = [WootConverter, WootConverter2, Foo4, Foo5];
+        const resources: any[] = [WootBehavior, WootBehavior2, FooAttr4, FooAttr5];
         const App = class {
             value = 'wOOt';
             method = () => {

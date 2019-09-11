@@ -36,7 +36,7 @@ describe('value-converters', function () {
 
         @customAttribute({ name: 'foo5', aliases: ['foo53'] })
         @alias(...['foo51', 'foo52'])
-        class Foo5 {
+        class FooAttribute {
             @bindable({ primary: true })
             public value: any;
             constructor(@INode private readonly element: Element) {
@@ -49,7 +49,7 @@ describe('value-converters', function () {
 
         @customAttribute({ name: 'foo4', aliases: ['foo43'] })
         @alias('foo41', 'foo42')
-        class Foo4 {
+        class FooAttribute2 {
             @bindable({ primary: true })
             public value: any;
             constructor(@INode private readonly element: Element) {
@@ -61,7 +61,7 @@ describe('value-converters', function () {
         }
 
 
-        const resources: any[] = [WootConverter, WootConverter2, Foo4, Foo5];
+        const resources: any[] = [WootConverter, WootConverter2, FooAttribute2, FooAttribute];
 
         it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
             const options = await setup('<template> <div foo53.bind="value | woot13"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);

@@ -20,7 +20,7 @@ describe('binding-commans', function () {
 
         @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
         @alias(...['woot11', 'woot12'])
-        class WootConverter implements IBindingCommand {
+        class WootCommand implements IBindingCommand {
             public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
             public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -30,7 +30,7 @@ describe('binding-commans', function () {
 
         @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
         @alias('woot21', 'woot22')
-        class WootConverter2 implements IBindingCommand {
+        class WootCommand2 implements IBindingCommand {
             public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
             public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -38,7 +38,7 @@ describe('binding-commans', function () {
             }
         }
 
-        const resources: any[] = [WootConverter, WootConverter2];
+        const resources: any[] = [WootCommand, WootCommand2];
         const App = class {
             value = 'wOOt';
         };

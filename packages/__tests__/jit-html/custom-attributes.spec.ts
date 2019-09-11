@@ -21,7 +21,7 @@ describe('custom-attributes', function () {
 
         @customAttribute({ name: 'foo5', aliases: ['foo53'] })
         @alias(...['foo51', 'foo52'])
-        class Foo5 {
+        class Fooatt5 {
             @bindable({ primary: true })
             public value: any;
             constructor(@INode private readonly element: Element) {
@@ -34,7 +34,7 @@ describe('custom-attributes', function () {
 
         @customAttribute({ name: 'foo4', aliases: ['foo43'] })
         @alias('foo41', 'foo42')
-        class Foo4 {
+        class Fooatt4 {
             @bindable({ primary: true })
             public value: any;
             constructor(@INode private readonly element: Element) {
@@ -46,7 +46,7 @@ describe('custom-attributes', function () {
         }
 
 
-        const resources: any[] = [Foo4, Foo5];
+        const resources: any[] = [Fooatt4, Fooatt5];
 
         it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
             const options = await setup('<template> <div foo53.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);

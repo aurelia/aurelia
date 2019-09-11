@@ -86,7 +86,7 @@ describe('custom-elements', function () {
         let boundCalls = 0;
 
         @customElement({ name: 'foo1', template: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>` })
-        class Foo1 {
+        class FooElement1 {
             @bindable()
             public value: any;
             public value1: any;
@@ -102,7 +102,7 @@ describe('custom-elements', function () {
         }
 
         @customElement({ name: 'foo2', template: `<template><foo3 value.bind="value" value2.bind="value2"></foo3>\${value}</template>` })
-        class Foo2 {
+        class FooElement2 {
             @bindable()
             public value: any;
             public value1: any;
@@ -121,7 +121,7 @@ describe('custom-elements', function () {
         }
 
         @customElement({ name: 'foo3', template: `<template><foo4 value.bind="value" value2.bind="value2"></foo4>\${value}</template>` })
-        class Foo3 {
+        class FooElement3 {
             @bindable()
             public value: any;
             public value1: any;
@@ -140,7 +140,7 @@ describe('custom-elements', function () {
         }
 
         @customElement({ name: 'foo4', template: `<template><foo5 value.bind="value" value2.bind="value2"></foo5>\${value}</template>` })
-        class Foo4 {
+        class FooElement4 {
             @bindable()
             public value: any;
             public value1: any;
@@ -159,7 +159,7 @@ describe('custom-elements', function () {
         }
 
         @customElement({ name: 'foo5', template: `<template>\${value}</template>` })
-        class Foo5 {
+        class FooElement5 {
             @bindable()
             public value: any;
             public value1: any;
@@ -177,7 +177,7 @@ describe('custom-elements', function () {
             }
         }
 
-        const resources: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
+        const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
         const { lifecycle, component, appHost, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, ctx, true, [...resources, TestConfiguration])
 
         assert.strictEqual(boundCalls, 5, `boundCalls`);

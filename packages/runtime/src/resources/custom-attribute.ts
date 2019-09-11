@@ -12,7 +12,8 @@ import {
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
-  IAttributeDefinition
+  IAttributeDefinition,
+  registerAliases
 } from '../definitions';
 import {
   BindingMode,
@@ -101,18 +102,8 @@ export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze
       const key = CustomAttribute.keyFrom(description.name);
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
-
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, CustomAttribute.keyFrom(aliases[i])).register(container);
-      }
-
-      if (this.aliases == null) {
-        return;
-      }
-
-      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
-        Registration.alias(key, CustomAttribute.keyFrom(this.aliases[i])).register(container);
-      }
+      registerAliases(aliases, CustomAttribute, key, container);
+      registerAliases(this.aliases, CustomAttribute, key, container);
     };
 
     return Type;

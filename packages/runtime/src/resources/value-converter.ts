@@ -9,6 +9,7 @@ import {
   Writable,
   PLATFORM
 } from '@aurelia/kernel';
+import { registerAliases } from '../definitions';
 
 export interface IValueConverter {
   toView(input: unknown, ...args: unknown[]): unknown;
@@ -52,17 +53,8 @@ export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
       const key = ValueConverter.keyFrom(description.name);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, ValueConverter.keyFrom(aliases[i])).register(container);
-      }
-
-      if (this.aliases == null) {
-        return;
-      }
-
-      for (let i = 0, ii = this.aliases.length; i < ii; ++i) {
-        Registration.alias(key, ValueConverter.keyFrom(this.aliases[i])).register(container);
-      }
+      registerAliases(aliases, ValueConverter, key, container);
+      registerAliases(this.aliases, ValueConverter, key, container);
     };
 
     return Type as T & IValueConverterType<T>;

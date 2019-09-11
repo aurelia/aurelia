@@ -1,4 +1,4 @@
-import { kebabCase, PLATFORM } from '@aurelia/kernel';
+import { kebabCase } from '@aurelia/kernel';
 import { BindingMode, IBindableDescription } from '@aurelia/runtime';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 

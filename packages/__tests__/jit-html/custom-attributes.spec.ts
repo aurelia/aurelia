@@ -2,8 +2,7 @@ import {
     bindable,
     alias,
     customAttribute,
-    INode,
-    CustomElement
+    INode
 } from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
 

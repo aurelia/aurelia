@@ -378,6 +378,7 @@ export function buildTemplateDefinition(
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
+  /* deepscan-disable */
   const argLen = arguments.length;
   switch (argLen) {
     case 15: if (aliases != null) def.aliases = toArray(aliases);
@@ -445,6 +446,7 @@ export function buildTemplateDefinition(
         }
       }
   }
+  /* deepscan-enable */
 
   // special handling for invocations that quack like a @customElement decorator
   if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef!))) {

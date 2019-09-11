@@ -5,42 +5,38 @@ import {
 } from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
 import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
-
+const App = class {
+    value = 'wOOt';
+};
 // TemplateCompiler - binding command integration
-describe('binding-commans', function () {
+describe('binding-commands', function () {
     let ctx: HTMLTestContext;
 
     beforeEach(function () {
         ctx = TestContext.createHTMLTestContext();
     });
 
+    class BaseBindingCommand implements IBindingCommand {
+        public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
+
+        public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+            return OneTimeBindingCommand.prototype.compile(binding);
+        }
+    }
+
+
     // custom elements
     describe('01. Aliases', async function () {
 
         @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
         @alias(...['woot11', 'woot12'])
-        class WootCommand implements IBindingCommand {
-            public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
-
-            public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-                return OneTimeBindingCommand.prototype.compile(binding);
-            }
-        }
+        class WootCommand extends BaseBindingCommand { }
 
         @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
         @alias('woot21', 'woot22')
-        class WootCommand2 implements IBindingCommand {
-            public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
-
-            public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-                return OneTimeBindingCommand.prototype.compile(binding);
-            }
-        }
+        class WootCommand2 extends BaseBindingCommand { }
 
         const resources: any[] = [WootCommand, WootCommand2];
-        const App = class {
-            value = 'wOOt';
-        };
 
         it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
             const options = await setup('<template> <a href.woot1="value"></a> </template>', App, ctx, true, resources);

@@ -464,8 +464,8 @@ export function alias(...aliases: string[]) {
   return (instance: Constructable<any>) => aliasDecorator(instance, ...aliases);
 }
 
-export function registerAliases<T, F>(aliases: string[] | null, resource: IResourceKind<T, F>, key: string, container: IContainer) {
-  if (aliases === null) {
+export function registerAliases<T, F>(aliases: string[] | null | undefined, resource: IResourceKind<T, F>, key: string, container: IContainer) {
+  if (aliases == null) {
     return;
   }
   for (let i = 0, ii = aliases.length; i < ii; ++i) {

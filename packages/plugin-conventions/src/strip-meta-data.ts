@@ -146,10 +146,11 @@ function stripContainerlesss(node: DefaultTreeElement, cb: (ranges: [number, num
 function stripAlias(node: DefaultTreeElement, cb: (bindables: string[], ranges: [number, number][]) => void) {
   return stripTag(node, 'alias', (attrs, ranges) => {
     const { name } = attrs;
-    if (!name) {
-      const aliases: string[] = name.split(',').map(s => s.trim()).filter(s => s);
-      cb(aliases, ranges);
+    let aliases: string[] = [];
+    if (name) {
+      aliases = name.split(',').map(s => s.trim()).filter(s => s);
     }
+    cb(aliases, ranges);
   }) || stripAttribute(node, 'template', 'alias', (value, ranges) => {
     const aliases: string[] = value.split(',').map(s => s.trim()).filter(s => s);
     cb(aliases, ranges);

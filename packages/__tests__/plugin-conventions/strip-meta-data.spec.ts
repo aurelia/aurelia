@@ -345,4 +345,128 @@ ${'  ' /* leading space is untouched */}
       bindables: { firstName: {}, lastName: {}, age: {} }
     });
   });
+
+  it('strips alias attribute with multiple names with spaces', function () {
+    const html = `<template alias="firstName,
+                                   alias">
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', 'alias'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias attribute with multiple names', function () {
+    const html = `<template alias="firstName,                alias">
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', 'alias'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias attribute with single name', function () {
+    const html = `<template alias="firstName">
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node with single name', function () {
+    const html = `<alias name="firstName"><template>
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node with multiple name', function () {
+    const html = `<alias name="firstName,alias"><template>
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', 'alias'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+
+  it('strips alias node and attr combo', function () {
+    const html = `<alias name="firstName,alias"><template alias="firstName2,            alias2">
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', "alias", "firstName2", "alias2"],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node with no name', function () {
+    const html = `<alias><template>
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+
+
 });

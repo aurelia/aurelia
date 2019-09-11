@@ -1,4 +1,4 @@
-import { kebabCase } from '@aurelia/kernel';
+import { kebabCase, PLATFORM } from '@aurelia/kernel';
 import { BindingMode, IBindableDescription } from '@aurelia/runtime';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
@@ -8,6 +8,7 @@ interface IStrippedHtml {
   shadowMode: 'open' | 'closed' | null;
   containerless: boolean;
   bindables: Record<string, IBindableDescription>;
+  aliases: string[];
 }
 
 export function stripMetaData(rawHtml: string): IStrippedHtml {
@@ -15,26 +16,36 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   let shadowMode: 'open' | 'closed' | null = null;
   let containerless: boolean = false;
   const bindables: Record<string, IBindableDescription> = {};
+  const aliases: string[] = [];
   const toRemove: [number, number][] = [];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
-  traverse(tree, node =>
-    stripImport(node, (dep, ranges) => {
+  traverse(tree, node => {
+    const onTemplateTag = node.tagName === 'template';
+    (stripImport(node, (dep, ranges) => {
       if (dep) deps.push(dep);
       toRemove.push(...ranges);
-    }) ||
-    stripUseShadowDom(node, (mode, ranges) => {
-      if (mode) shadowMode = mode;
-      toRemove.push(...ranges);
-    }) ||
-    stripContainerlesss(node, ranges => {
-      containerless = true;
-      toRemove.push(...ranges);
-    }) ||
-    stripBindable(node, (bs, ranges) => {
-      Object.assign(bindables, bs);
-      toRemove.push(...ranges);
-    })
+    }) && !onTemplateTag)
+      ||
+      (stripUseShadowDom(node, (mode, ranges) => {
+        if (mode) shadowMode = mode;
+        toRemove.push(...ranges);
+      }) && !onTemplateTag)
+      ||
+      (stripContainerlesss(node, ranges => {
+        containerless = true;
+        toRemove.push(...ranges);
+      }) && !onTemplateTag)
+      ||
+      (stripBindable(node, (bs, ranges) => {
+        Object.assign(bindables, bs);
+        toRemove.push(...ranges);
+      }) && !onTemplateTag)
+      || stripAlias(node, (aliasArray, ranges) => {
+        aliases.push(...aliasArray);
+        toRemove.push(...ranges);
+      })
+  }
   );
 
   let html = '';
@@ -45,7 +56,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, deps, shadowMode, containerless, bindables};
+  return { html, deps, shadowMode, containerless, bindables, aliases };
 }
 
 // tslint:disable-next-line:no-any
@@ -81,7 +92,8 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
     const attr = node.attrs.find(a => a.name === attributeName);
     if (attr) {
       const loc = node.sourceCodeLocation as ElementLocation;
-      cb(attr.value, [[loc.attrs[attributeName].startOffset, loc.attrs[attributeName].endOffset]]);
+      // The attribute -1 includes whitespace to remove (if whitespace wasn't there then the attr wouldn't match anyhow)
+      cb(attr.value, [[loc.attrs[attributeName].startOffset - 1, loc.attrs[attributeName].endOffset]]);
       return true;
     }
   }
@@ -124,6 +136,23 @@ function stripContainerlesss(node: DefaultTreeElement, cb: (ranges: [number, num
     cb(ranges);
   }) || stripAttribute(node, 'template', 'containerless', (value, ranges) => {
     cb(ranges);
+  });
+}
+
+// <alias name="firstName">
+// <alias name="firstName, lastName></alias>
+// <template alias="firstName">
+// <template alias="firstName,lastName">
+function stripAlias(node: DefaultTreeElement, cb: (bindables: string[], ranges: [number, number][]) => void) {
+  return stripTag(node, 'alias', (attrs, ranges) => {
+    const { name } = attrs;
+    if (!name) {
+      const aliases: string[] = name.split(',').map(s => s.trim()).filter(s => s);
+      cb(aliases, ranges);
+    }
+  }) || stripAttribute(node, 'template', 'alias', (value, ranges) => {
+    const aliases: string[] = value.split(',').map(s => s.trim()).filter(s => s);
+    cb(aliases, ranges);
   });
 }
 

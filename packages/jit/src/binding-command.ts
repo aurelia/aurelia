@@ -56,7 +56,7 @@ export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.
   define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
     const Type = ctor as T & IBindingCommandType;
     const WritableType = Type as T & Writable<IBindingCommandType>;
-    const description = createBindingCommandDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
+    const description = createBindingCommandDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, type: null } : nameOrDefinition, Type);
 
     WritableType.kind = BindingCommandResource;
     WritableType.description = description;
@@ -65,9 +65,8 @@ export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.
       const aliases = description.aliases;
       const key = BindingCommandResource.keyFrom(description.name);
       Registration.singleton(key, Type).register(container);
-      Registration.alias(key, Type).register(container);      
-      registerAliases(aliases, BindingCommandResource, key, container);
-      registerAliases(this.aliases, BindingCommandResource, key, container);
+      Registration.alias(key, Type).register(container);
+      registerAliases([...aliases, ...this.aliases], BindingCommandResource, key, container);
     };
 
     return Type;
@@ -77,9 +76,10 @@ export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.
 /** @internal */
 export function createBindingCommandDescription(def: IBindingCommandDefinition, Type: IBindingCommandType): Required<IBindingCommandDefinition> {
   const aliases = def.aliases;
+  Type.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
   return {
     name: def.name,
-    type: null,
+    type: def.type == null ? null : def.type,
     aliases: aliases == null ? PLATFORM.emptyArray : aliases,
   };
 }

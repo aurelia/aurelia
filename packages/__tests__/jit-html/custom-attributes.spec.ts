@@ -2,13 +2,13 @@ import {
     bindable,
     alias,
     customAttribute,
-    INode
+    INode,
+    CustomElement
 } from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
 
 ;
 
-// TemplateCompiler - custom element integration
 describe('custom-attributes', function () {
     let ctx: HTMLTestContext;
 
@@ -26,7 +26,7 @@ describe('custom-attributes', function () {
             public value: any;
             constructor(@INode private readonly element: Element) {
             }
-            
+
             bound() {
                 this.element.setAttribute('test', this.value);
             }
@@ -45,14 +45,52 @@ describe('custom-attributes', function () {
             }
         }
 
+        @customAttribute({ name: 'foo44', aliases: ['foo431'] })
+        @alias('foo411', 'foo421')
+        @alias('foo422', 'foo422')
+        class FooMultipleAlias {
+            @bindable({ primary: true })
+            public value: any;
+            constructor(@INode private readonly element: Element) {
+            }
 
-        const resources: any[] = [Fooatt4, Fooatt5];
+            bound() {
+                this.element.setAttribute('test', this.value);
+            }
+        }
+
+        const resources: any[] = [Fooatt4, Fooatt5, FooMultipleAlias];
 
         it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
             const options = await setup('<template> <div foo53.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
             await options.tearDown();
         });
+
+        it('2 aliases and attribute alias original works', async function () {
+            const options = await setup('<template> <div foo44.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('2 aliases and attribute alias first alias deco works', async function () {
+            const options = await setup('<template> <div foo411.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('2 aliases and attribute alias def alias works', async function () {
+            const options = await setup('<template> <div foo431.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
+            await options.tearDown();
+        });
+
+        it('2 aliases and attribute alias second alias works', async function () {
+            const options = await setup('<template> <div foo422.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);
+            assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
+            await options.tearDown();
+        });
+
 
         it('Simple spread Alias (1st position) works on custom attribute', async function () {
             const options = await setup('<template> <div foo51.bind="value"></div> </template>', class { value = 'wOOt' }, ctx, true, resources);

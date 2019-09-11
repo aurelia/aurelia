@@ -456,7 +456,11 @@ export function buildTemplateDefinition(
 
 type HasAliases = Pick<IResourceDefinition, 'aliases'>;
 function aliasDecorator<T extends Constructable<any>>(target: T & HasAliases, ...aliases: string[]): T {
-  target.aliases = aliases;
+  if (target.aliases == null) {
+    target.aliases = aliases;
+    return target;
+  }
+  target.aliases.push(...aliases);
   return target;
 }
 
@@ -464,10 +468,7 @@ export function alias(...aliases: string[]) {
   return (instance: Constructable<any>) => aliasDecorator(instance, ...aliases);
 }
 
-export function registerAliases<T, F>(aliases: string[] | null | undefined, resource: IResourceKind<T, F>, key: string, container: IContainer) {
-  if (aliases == null) {
-    return;
-  }
+export function registerAliases<T, F>(aliases: string[], resource: IResourceKind<T, F>, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
     Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
   }

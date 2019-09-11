@@ -52,13 +52,13 @@ export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze
 
     WritableType.kind = BindingBehavior;
     WritableType.description = description;
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
       const key = BindingBehavior.keyFrom(description.name);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
-      registerAliases(aliases, BindingBehavior, key, container);
-      registerAliases(this.aliases, BindingBehavior, key, container);
+      registerAliases([...aliases, ...this.aliases], BindingBehavior, key, container);
     };
 
     return Type;

@@ -96,14 +96,13 @@ export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze
 
     WritableType.kind = CustomAttribute;
     WritableType.description = description;
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
-
       const key = CustomAttribute.keyFrom(description.name);
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
-      registerAliases(aliases, CustomAttribute, key, container);
-      registerAliases(this.aliases, CustomAttribute, key, container);
+      registerAliases([...aliases, ...this.aliases], CustomAttribute, key, container);
     };
 
     return Type;

@@ -15,7 +15,6 @@ import { stripMetaData } from './strip-meta-data';
 export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const name = kebabCase(path.basename(unit.path, path.extname(unit.path)));
   const stripped = stripMetaData(unit.contents);
-  console.log(stripped);
   const { html, deps, containerless, bindables, aliases } = stripped;
   let { shadowMode } = stripped;
 

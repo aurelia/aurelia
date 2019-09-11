@@ -225,7 +225,7 @@ So far, we've described how components are created by simply naming your JavaScr
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
 import { customElement, bindable } from '@aurelia/runtime';
-import * as template from './say-hello.html';
+import template from './say-hello.html';
 
 @customElement({
   name: 'say-hello',
@@ -317,11 +317,7 @@ All components are instantiated by the framework's dependency injection system. 
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
 export class SayHello {
-  static inject = [HTMLElement];
-
-  constructor(element) {
-    this.element = element;
-  }
+  constructor(private element: HTMLElement) {}
 }
 ```
 {% endcode-tabs-item %}
@@ -330,7 +326,7 @@ export class SayHello {
 {% hint style="info" %}
 **Dependency Injection**
 
-There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a public static field named "inject". See [the dependency injection documentation](../app-basics/dependency-injection.md) for more information on other approaches that use decorators or TS-specific metadata, as well as an in-depth look at dependency injection in general.
+There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a TypeScript constructor param. This works automatically for components that use conventions. See [the dependency injection documentation](../app-basics/dependency-injection.md) for more information on other approaches, as well as an in-depth look at dependency injection in general.
 {% endhint %}
 
 {% hint style="success" %}

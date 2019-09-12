@@ -154,7 +154,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<template use-shadow-dom>
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -172,7 +172,7 @@ ${'  ' /* leading space is untouched */}
 <require from="./a"></require>
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 
 </template>
 `;
@@ -228,7 +228,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<template containerless>
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -297,7 +297,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<template bindable="firstName">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -314,7 +314,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<template bindable="firstName,lastName">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -333,7 +333,7 @@ ${'  ' /* leading space is untouched */}
                                       age">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -351,7 +351,7 @@ ${'  ' /* leading space is untouched */}
                                    alias">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -368,7 +368,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<template alias="firstName,                alias">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -385,7 +385,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<template alias="firstName">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -437,7 +437,7 @@ ${'  ' /* leading space is untouched */}
     const html = `<alias name="firstName,alias"><template alias="firstName2,            alias2">
 </template>
 `;
-    const expected = `<template>
+    const expected = `<template >
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {

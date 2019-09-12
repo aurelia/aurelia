@@ -1,4 +1,4 @@
-import { kebabCase } from '@aurelia/kernel';
+import { kebabCase, PLATFORM } from '@aurelia/kernel';
 import { BindingMode, IBindableDescription } from '@aurelia/runtime';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
@@ -21,32 +21,31 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
   traverse(tree, node => {
-    const onTemplateTag = node.tagName === 'template';
-    (stripImport(node, (dep, ranges) => {
+    stripImport(node, (dep, ranges) => {
       if (dep) deps.push(dep);
       toRemove.push(...ranges);
-    }) && !onTemplateTag)
-      ||
-      (stripUseShadowDom(node, (mode, ranges) => {
-        if (mode) shadowMode = mode;
-        toRemove.push(...ranges);
-      }) && !onTemplateTag)
-      ||
-      (stripContainerlesss(node, ranges => {
-        containerless = true;
-        toRemove.push(...ranges);
-      }) && !onTemplateTag)
-      ||
-      (stripBindable(node, (bs, ranges) => {
-        Object.assign(bindables, bs);
-        toRemove.push(...ranges);
-      }) && !onTemplateTag)
-      || stripAlias(node, (aliasArray, ranges) => {
-        aliases.push(...aliasArray);
-        toRemove.push(...ranges);
-      })
-  }
-  );
+    });
+
+    stripUseShadowDom(node, (mode, ranges) => {
+      if (mode) shadowMode = mode;
+      toRemove.push(...ranges);
+    });
+
+    stripContainerlesss(node, ranges => {
+      containerless = true;
+      toRemove.push(...ranges);
+    });
+
+    stripBindable(node, (bs, ranges) => {
+      Object.assign(bindables, bs);
+      toRemove.push(...ranges);
+    });
+
+    stripAlias(node, (aliasArray, ranges) => {
+      aliases.push(...aliasArray);
+      toRemove.push(...ranges);
+    });
+  });
 
   let html = '';
   let lastIdx = 0;
@@ -92,8 +91,8 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
     const attr = node.attrs.find(a => a.name === attributeName);
     if (attr) {
       const loc = node.sourceCodeLocation as ElementLocation;
-      // The attribute -1 includes whitespace to remove (if whitespace wasn't there then the attr wouldn't match anyhow)
-      cb(attr.value, [[loc.attrs[attributeName].startOffset - 1, loc.attrs[attributeName].endOffset]]);
+
+      cb(attr.value, [[loc.attrs[attributeName].startOffset, loc.attrs[attributeName].endOffset]]);
       return true;
     }
   }

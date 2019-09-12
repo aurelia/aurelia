@@ -13,21 +13,16 @@ import {
 import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
 
 describe('value-converters', function () {
-    let ctx: HTMLTestContext;
-    let app;
 
-    beforeEach(function () {
-        ctx = TestContext.createHTMLTestContext();
-        app = class {
+    // custom elements
+    describe('01. Aliases', async function () {
+
+        const app = class {
             value = 'wOOt';
             method = () => {
                 this.value = 'wOOt1';
             }
         };
-    });
-
-    // custom elements
-    describe('01. Aliases', async function () {
 
         @bindingBehavior({ name: 'woot1', aliases: ['woot13'] })
         @alias(...['woot11', 'woot12'])
@@ -79,50 +74,50 @@ describe('value-converters', function () {
 
         const resources: any[] = [WootBehavior, WootBehavior2, FooAttr4, FooAttr5];
         it('Simple spread Alias doesn\'t break def alias works on binding behavior', async function () {
-            const options = await setup('<template> <div foo53.bind="value & woot13:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo53.bind="value & woot13:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
         it('Simple spread Alias (1st position) works on binding behavior', async function () {
-            const options = await setup('<template> <div foo51.bind="value & woot11:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo51.bind="value & woot11:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
         it('Simple spread Alias (2nd position) works on binding behavior', async function () {
-            const options = await setup('<template> <div foo52.bind="value & woot12:method:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo52.bind="value & woot12:method:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
         it('Simple spread Alias doesn\'t break original binding behavior', async function () {
-            const options = await setup('<template> <div foo5.bind="value & woot2:method:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo5.bind="value & woot2:method:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
 
         it('Simple Alias doesn\'t break def alias works on binding behavior', async function () {
-            const options = await setup('<template> <div foo43.bind="value & woot23:method:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo43.bind="value & woot23:method:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
         it('Simple Alias (1st position) works on binding behavior', async function () {
-            const options = await setup('<template> <div foo41.bind="value & woot21:method:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo41.bind="value & woot21:method:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
         it('Simple Alias (2nd position) works on binding behavior', async function () {
-            const options = await setup('<template> <div foo42.bind="value & woot22:method:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo42.bind="value & woot22:method:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });
 
         it('Simple Alias doesn\'t break original binding behavior', async function () {
-            const options = await setup('<template> <div foo4.bind="value & woot2:method:method"></div> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <div foo4.bind="value & woot2:method:method"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
             await options.tearDown();
         });

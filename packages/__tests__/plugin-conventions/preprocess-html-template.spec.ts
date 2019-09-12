@@ -289,7 +289,7 @@ export function register(container) {
     const html = '<bindable name="age" mode="one-way"><containerless><template bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -315,7 +315,7 @@ export function register(container) {
     const html = '<bindable name="age" mode="one-way"><template containerless bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template  ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -341,7 +341,7 @@ export function register(container) {
     const html = '<bindable name="age" mode="one-way"><containerless><template alias="test, test2" bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template  ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -368,7 +368,7 @@ export function register(container) {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -396,7 +396,7 @@ export function register(container) {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template alias="test3, test4" bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template  ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -423,7 +423,7 @@ export function register(container) {
     const html = '<alias><bindable name="age" mode="one-way"><containerless><template alias="test3, test4" bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template  ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -450,7 +450,7 @@ export function register(container) {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template alias="" bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template  ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -477,7 +477,7 @@ export function register(container) {
     const html = '<alias><bindable name="age" mode="one-way"><containerless><template alias="" bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
 export const name = "foo";
-export const template = "<template></template>";
+export const template = "<template  ></template>";
 export default template;
 export const dependencies = [  ];
 export const containerless = true;
@@ -486,6 +486,60 @@ let _e;
 export function register(container) {
   if (!_e) {
     _e = CustomElement.define({ name, template, dependencies, containerless, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'foo.html'), contents: html },
+      preprocessOptions({
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with containerless, bindables, and aliases (empty node) MAINTAIN EXISTING ATTRIBUTES', function () {
+    const html = '<alias><bindable name="age" mode="one-way"><containerless><template id="my-template" alias="test3, test4" bindable="firstName, lastName"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+export const name = "foo";
+export const template = "<template id=\\"my-template\\"  ></template>";
+export default template;
+export const dependencies = [  ];
+export const containerless = true;
+export const bindables = {"age":{"mode":2},"firstName":{},"lastName":{}};
+export const aliases = ["test3","test4"];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, containerless, bindables, aliases });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'foo.html'), contents: html },
+      preprocessOptions({
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with containerless, bindables, and aliases (empty node) MAINTAIN EXISTING ATTRIBUTE RAN TOGETHER', function () {
+    const html = '<alias><bindable name="age" mode="one-way"><containerless><template id="my-template"alias="test3, test4" bindable="firstName, lastName"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+export const name = "foo";
+export const template = "<template id=\\"my-template\\" ></template>";
+export default template;
+export const dependencies = [  ];
+export const containerless = true;
+export const bindables = {"age":{"mode":2},"firstName":{},"lastName":{}};
+export const aliases = ["test3","test4"];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, containerless, bindables, aliases });
   }
   container.register(_e);
 }

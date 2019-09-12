@@ -10,7 +10,7 @@ import {
     IBinding,
     PropertyBinding
 } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
+import { assert, setup } from '@aurelia/testing';
 
 describe('value-converters', function () {
 

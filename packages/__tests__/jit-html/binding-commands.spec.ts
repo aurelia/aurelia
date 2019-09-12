@@ -3,7 +3,7 @@ import {
     BindingType,
     AttributeInstruction
 } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
+import { assert, setup } from '@aurelia/testing';
 import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
 
 describe('binding-commands', function () {

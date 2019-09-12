@@ -7,15 +7,10 @@ import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
 import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
 
 describe('binding-commands', function () {
-    let ctx: HTMLTestContext;
-    let app;
 
-    beforeEach(function () {
-        ctx = TestContext.createHTMLTestContext();
-        app = class {
-            value = 'wOOt';
-        };
-    });
+    const app = class {
+        value = 'wOOt';
+    };
 
     describe('01. Aliases', async function () {
 
@@ -42,50 +37,50 @@ describe('binding-commands', function () {
         const resources: any[] = [WootCommand, WootCommand2];
 
         it('Simple spread Alias doesn\'t break def alias works on binding command', async function () {
-            const options = await setup('<template> <a href.woot1="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot1="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple spread Alias (1st position) works on binding command', async function () {
-            const options = await setup('<template> <a href.woot11="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot11="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple spread Alias (2nd position) works on binding command', async function () {
-            const options = await setup('<template> <a href.woot12="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot12="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple spread Alias doesn\'t break original binding command', async function () {
-            const options = await setup('<template> <a href.woot13="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot13="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
 
         it('Simple Alias doesn\'t break def alias works on binding command', async function () {
-            const options = await setup('<template> <a href.woot23="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot23="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple Alias (1st position) works on binding command', async function () {
-            const options = await setup('<template> <a href.woot21="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot21="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple Alias (2nd position) works on binding command', async function () {
-            const options = await setup('<template> <a href.woot22="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot22="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });
 
         it('Simple Alias doesn\'t break original binding command', async function () {
-            const options = await setup('<template> <a href.woot2="value"></a> </template>', app, ctx, true, resources);
+            const options = await setup('<template> <a href.woot2="value"></a> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('href'), 'wOOt');
             await options.tearDown();
         });

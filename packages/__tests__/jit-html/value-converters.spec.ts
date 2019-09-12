@@ -5,16 +5,10 @@ import {
     INode,
     valueConverter
 } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
+import { assert, setup } from '@aurelia/testing';
 
 // TemplateCompiler - value converter integration
 describe('value-converters', function () {
-    let ctx: HTMLTestContext;
-
-    beforeEach(function () {
-        ctx = TestContext.createHTMLTestContext();
-    });
-
     // custom elements
     describe('01. Aliases', async function () {
 

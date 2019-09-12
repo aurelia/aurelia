@@ -4,7 +4,7 @@ import {
     customAttribute,
     INode
 } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, assert, setup } from '@aurelia/testing';
+import { assert, setup } from '@aurelia/testing';
 
 ;
 

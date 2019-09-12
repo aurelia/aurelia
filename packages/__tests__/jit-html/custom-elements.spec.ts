@@ -5,7 +5,7 @@ import {
     LifecycleFlags,
     alias
 } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, TestConfiguration, assert, setup } from '@aurelia/testing';
+import { TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
 interface Person { firstName?: string, lastName?: string, fullName?: string };

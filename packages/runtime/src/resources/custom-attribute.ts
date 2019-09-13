@@ -8,11 +8,12 @@ import {
   PLATFORM,
   Registration,
   ResourceDescription,
-  Writable
+  Writable,
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
-  IAttributeDefinition
+  IAttributeDefinition,
+  registerAliases
 } from '../definitions';
 import {
   BindingMode,
@@ -23,7 +24,7 @@ import {
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
-type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables'>;
+type CustomAttributeStaticProperties = Required<Pick<IAttributeDefinition, 'bindables' | 'aliases'>>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
@@ -56,8 +57,8 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttribute.define(
     typeof nameOrDefinition === 'string'
-    ? { isTemplateController: true , name: nameOrDefinition }
-    : { isTemplateController: true, ...nameOrDefinition },
+      ? { isTemplateController: true, name: nameOrDefinition }
+      : { isTemplateController: true, ...nameOrDefinition },
     target) as any; // TODO: fix this at some point
 }
 
@@ -95,16 +96,13 @@ export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze
 
     WritableType.kind = CustomAttribute;
     WritableType.description = description;
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
-
       const key = CustomAttribute.keyFrom(description.name);
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
-
-      for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, CustomAttribute.keyFrom(aliases[i])).register(container);
-      }
+      registerAliases([...aliases, ...this.aliases], CustomAttribute, key, container);
     };
 
     return Type;

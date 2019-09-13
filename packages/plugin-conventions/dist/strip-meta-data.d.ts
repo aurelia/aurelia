@@ -5,6 +5,7 @@ interface IStrippedHtml {
     shadowMode: 'open' | 'closed' | null;
     containerless: boolean;
     bindables: Record<string, IBindableDescription>;
+    aliases: string[];
 }
 export declare function stripMetaData(rawHtml: string): IStrippedHtml;
 export {};

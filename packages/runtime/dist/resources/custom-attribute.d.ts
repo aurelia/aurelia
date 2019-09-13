@@ -1,7 +1,7 @@
 import { Class, Constructable, IResourceKind, IResourceType, Omit } from '@aurelia/kernel';
 import { IAttributeDefinition } from '../definitions';
 import { IViewModel } from '../lifecycle';
-declare type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables'>;
+declare type CustomAttributeStaticProperties = Required<Pick<IAttributeDefinition, 'bindables' | 'aliases'>>;
 export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 export interface ICustomAttributeType<C extends Constructable = Constructable> extends IResourceType<IAttributeDefinition, InstanceType<C> & IViewModel>, CustomAttributeStaticProperties {
 }

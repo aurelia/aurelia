@@ -217,6 +217,8 @@
     exports.isTargetedInstruction = definitions_1.isTargetedInstruction;
     exports.ITargetedInstruction = definitions_1.ITargetedInstruction;
     exports.TargetedInstructionType = definitions_1.TargetedInstructionType;
+    exports.alias = definitions_1.alias;
+    exports.registerAliases = definitions_1.registerAliases;
     var dom_1 = require("./dom");
     exports.DOM = dom_1.DOM;
     exports.INode = dom_1.INode;

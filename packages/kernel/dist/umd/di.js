@@ -293,6 +293,12 @@
                 case 1 /* singleton */:
                 case 2 /* transient */:
                     return container.getFactory(this.state);
+                case 5 /* alias */:
+                    const resolver = container.getResolver(this.state);
+                    if (resolver == null || resolver.getFactory === void 0) {
+                        return null;
+                    }
+                    return resolver.getFactory(container);
                 default:
                     return null;
             }

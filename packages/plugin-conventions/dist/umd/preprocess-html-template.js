@@ -24,7 +24,7 @@
     function preprocessHtmlTemplate(unit, options) {
         const name = kernel_1.kebabCase(path.basename(unit.path, path.extname(unit.path)));
         const stripped = strip_meta_data_1.stripMetaData(unit.contents);
-        const { html, deps, containerless, bindables } = stripped;
+        const { html, deps, containerless, bindables, aliases } = stripped;
         let { shadowMode } = stripped;
         if (unit.filePair) {
             const basename = path.basename(unit.filePair, path.extname(unit.filePair));
@@ -85,10 +85,13 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
         if (Object.keys(bindables).length) {
             m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
         }
+        if (aliases.length > 0) {
+            m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
+        }
         m.append(`let _e;
 export function register(container) {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''} });
+    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
   }
   container.register(_e);
 }

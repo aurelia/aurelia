@@ -2,6 +2,7 @@ import { IContainer, IRegistry } from './di';
 import { Constructable, ConstructableClass } from './interfaces';
 export interface IResourceDefinition extends Object {
     name: string;
+    aliases?: string[];
 }
 export interface IResourceKind<TDef, TProto, TClass extends ConstructableClass<TProto, unknown> = ConstructableClass<TProto>> {
     readonly name: string;

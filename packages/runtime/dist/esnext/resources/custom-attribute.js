@@ -1,5 +1,5 @@
-import { PLATFORM, Registration } from '@aurelia/kernel';
-import { HooksDefinition } from '../definitions';
+import { PLATFORM, Registration, } from '@aurelia/kernel';
+import { HooksDefinition, registerAliases } from '../definitions';
 import { BindingMode, ensureValidStrategy, } from '../flags';
 import { Bindable } from '../templating/bindable';
 export function customAttribute(nameOrDefinition) {
@@ -31,14 +31,13 @@ export const CustomAttribute = Object.freeze({
         const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
         WritableType.kind = CustomAttribute;
         WritableType.description = description;
+        WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
         Type.register = function register(container) {
             const aliases = description.aliases;
             const key = CustomAttribute.keyFrom(description.name);
             Registration.transient(key, this).register(container);
             Registration.alias(key, this).register(container);
-            for (let i = 0, ii = aliases.length; i < ii; ++i) {
-                Registration.alias(key, CustomAttribute.keyFrom(aliases[i])).register(container);
-            }
+            registerAliases([...aliases, ...this.aliases], CustomAttribute, key, container);
         };
         return Type;
     },

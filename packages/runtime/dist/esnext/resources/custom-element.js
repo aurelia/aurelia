@@ -1,5 +1,5 @@
-import { DI, Registration, Reporter } from '@aurelia/kernel';
-import { buildTemplateDefinition } from '../definitions';
+import { DI, Registration, Reporter, PLATFORM } from '@aurelia/kernel';
+import { buildTemplateDefinition, registerAliases } from '../definitions';
 export const IProjectorLocator = DI.createInterface('IProjectorLocator').noDefault();
 export function customElement(nameOrDefinition) {
     return (target => CustomElement.define(nameOrDefinition, target));
@@ -25,10 +25,14 @@ export const CustomElement = Object.freeze({
         const description = buildTemplateDefinition(Type, nameOrDefinition);
         WritableType.kind = CustomElement;
         Type.description = description;
+        WritableType;
+        WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
         Type.register = function register(container) {
+            const aliases = description.aliases;
             const key = CustomElement.keyFrom(description.name);
             Registration.transient(key, this).register(container);
             Registration.alias(key, this).register(container);
+            registerAliases([...aliases, ...this.aliases], CustomElement, key, container);
         };
         return Type;
     },

@@ -1,4 +1,4 @@
-import { DI, PLATFORM, toArray } from '@aurelia/kernel';
+import { DI, PLATFORM, toArray, Registration } from '@aurelia/kernel';
 import { ensureValidStrategy } from './flags';
 import { Bindable } from './templating/bindable';
 /**
@@ -68,6 +68,7 @@ class DefaultTemplateDefinition {
         this.instructions = PLATFORM.emptyArray;
         this.dependencies = PLATFORM.emptyArray;
         this.surrogates = PLATFORM.emptyArray;
+        this.aliases = PLATFORM.emptyArray;
         this.containerless = false;
         this.shadowOptions = null;
         this.hasSlots = false;
@@ -88,14 +89,18 @@ const templateDefinitionAssignables = [
 const templateDefinitionArrays = [
     'instructions',
     'dependencies',
-    'surrogates'
+    'surrogates',
+    'aliases'
 ];
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
-export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers) {
+export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases) {
     const def = new DefaultTemplateDefinition();
     // all cases fall through intentionally
+    /* deepscan-disable */
     const argLen = arguments.length;
     switch (argLen) {
+        case 15: if (aliases != null)
+            def.aliases = toArray(aliases);
         case 14: if (childrenObservers !== null)
             def.childrenObservers = { ...childrenObservers };
         case 13: if (strategy != null)
@@ -175,10 +180,27 @@ export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build,
                 }
             }
     }
+    /* deepscan-enable */
     // special handling for invocations that quack like a @customElement decorator
     if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
         def.build = buildRequired;
     }
     return def;
+}
+function aliasDecorator(target, ...aliases) {
+    if (target.aliases == null) {
+        target.aliases = aliases;
+        return target;
+    }
+    target.aliases.push(...aliases);
+    return target;
+}
+export function alias(...aliases) {
+    return (instance) => aliasDecorator(instance, ...aliases);
+}
+export function registerAliases(aliases, resource, key, container) {
+    for (let i = 0, ii = aliases.length; i < ii; ++i) {
+        Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+    }
 }
 //# sourceMappingURL=definitions.js.map

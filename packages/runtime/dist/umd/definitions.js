@@ -81,6 +81,7 @@
             this.instructions = kernel_1.PLATFORM.emptyArray;
             this.dependencies = kernel_1.PLATFORM.emptyArray;
             this.surrogates = kernel_1.PLATFORM.emptyArray;
+            this.aliases = kernel_1.PLATFORM.emptyArray;
             this.containerless = false;
             this.shadowOptions = null;
             this.hasSlots = false;
@@ -101,14 +102,18 @@
     const templateDefinitionArrays = [
         'instructions',
         'dependencies',
-        'surrogates'
+        'surrogates',
+        'aliases'
     ];
     // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
-    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers) {
+    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases) {
         const def = new DefaultTemplateDefinition();
         // all cases fall through intentionally
+        /* deepscan-disable */
         const argLen = arguments.length;
         switch (argLen) {
+            case 15: if (aliases != null)
+                def.aliases = kernel_1.toArray(aliases);
             case 14: if (childrenObservers !== null)
                 def.childrenObservers = { ...childrenObservers };
             case 13: if (strategy != null)
@@ -188,6 +193,7 @@
                     }
                 }
         }
+        /* deepscan-enable */
         // special handling for invocations that quack like a @customElement decorator
         if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
             def.build = exports.buildRequired;
@@ -195,5 +201,23 @@
         return def;
     }
     exports.buildTemplateDefinition = buildTemplateDefinition;
+    function aliasDecorator(target, ...aliases) {
+        if (target.aliases == null) {
+            target.aliases = aliases;
+            return target;
+        }
+        target.aliases.push(...aliases);
+        return target;
+    }
+    function alias(...aliases) {
+        return (instance) => aliasDecorator(instance, ...aliases);
+    }
+    exports.alias = alias;
+    function registerAliases(aliases, resource, key, container) {
+        for (let i = 0, ii = aliases.length; i < ii; ++i) {
+            kernel_1.Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+        }
+    }
+    exports.registerAliases = registerAliases;
 });
 //# sourceMappingURL=definitions.js.map

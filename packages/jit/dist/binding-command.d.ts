@@ -5,9 +5,11 @@ export interface IBindingCommand {
     bindingType: BindingType;
     compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 }
+declare type BindingCommandStaticProperties = Required<Pick<IBindingCommandDefinition, 'aliases'>>;
 export interface IBindingCommandDefinition extends IResourceDefinition {
+    type?: string | null;
 }
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> {
+export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>>, BindingCommandStaticProperties {
 }
 export interface IBindingCommandResource extends IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> {
 }

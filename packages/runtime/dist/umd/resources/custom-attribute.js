@@ -45,14 +45,13 @@
             const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
             WritableType.kind = exports.CustomAttribute;
             WritableType.description = description;
+            WritableType.aliases = Type.aliases == null ? kernel_1.PLATFORM.emptyArray : Type.aliases;
             Type.register = function register(container) {
                 const aliases = description.aliases;
                 const key = exports.CustomAttribute.keyFrom(description.name);
                 kernel_1.Registration.transient(key, this).register(container);
                 kernel_1.Registration.alias(key, this).register(container);
-                for (let i = 0, ii = aliases.length; i < ii; ++i) {
-                    kernel_1.Registration.alias(key, exports.CustomAttribute.keyFrom(aliases[i])).register(container);
-                }
+                definitions_1.registerAliases([...aliases, ...this.aliases], exports.CustomAttribute, key, container);
             };
             return Type;
         },

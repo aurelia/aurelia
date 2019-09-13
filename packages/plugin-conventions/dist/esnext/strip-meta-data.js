@@ -6,26 +6,33 @@ export function stripMetaData(rawHtml) {
     let shadowMode = null;
     let containerless = false;
     const bindables = {};
+    const aliases = [];
     const toRemove = [];
     const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
-    traverse(tree, node => stripImport(node, (dep, ranges) => {
-        if (dep)
-            deps.push(dep);
-        toRemove.push(...ranges);
-    }) ||
+    traverse(tree, node => {
+        stripImport(node, (dep, ranges) => {
+            if (dep)
+                deps.push(dep);
+            toRemove.push(...ranges);
+        });
         stripUseShadowDom(node, (mode, ranges) => {
             if (mode)
                 shadowMode = mode;
             toRemove.push(...ranges);
-        }) ||
+        });
         stripContainerlesss(node, ranges => {
             containerless = true;
             toRemove.push(...ranges);
-        }) ||
+        });
         stripBindable(node, (bs, ranges) => {
             Object.assign(bindables, bs);
             toRemove.push(...ranges);
-        }));
+        });
+        stripAlias(node, (aliasArray, ranges) => {
+            aliases.push(...aliasArray);
+            toRemove.push(...ranges);
+        });
+    });
     let html = '';
     let lastIdx = 0;
     toRemove.sort((a, b) => a[0] - b[0]).forEach(([start, end]) => {
@@ -33,7 +40,7 @@ export function stripMetaData(rawHtml) {
         lastIdx = end;
     });
     html += rawHtml.slice(lastIdx);
-    return { html, deps, shadowMode, containerless, bindables };
+    return { html, deps, shadowMode, containerless, bindables, aliases };
 }
 // tslint:disable-next-line:no-any
 function traverse(tree, cb) {
@@ -110,6 +117,23 @@ function stripContainerlesss(node, cb) {
         cb(ranges);
     }) || stripAttribute(node, 'template', 'containerless', (value, ranges) => {
         cb(ranges);
+    });
+}
+// <alias name="firstName">
+// <alias name="firstName, lastName></alias>
+// <template alias="firstName">
+// <template alias="firstName,lastName">
+function stripAlias(node, cb) {
+    return stripTag(node, 'alias', (attrs, ranges) => {
+        const { name } = attrs;
+        let aliases = [];
+        if (name) {
+            aliases = name.split(',').map(s => s.trim()).filter(s => s);
+        }
+        cb(aliases, ranges);
+    }) || stripAttribute(node, 'template', 'alias', (value, ranges) => {
+        const aliases = value.split(',').map(s => s.trim()).filter(s => s);
+        cb(aliases, ranges);
     });
 }
 // <bindable name="firstName">

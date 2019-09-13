@@ -37,10 +37,14 @@
             const description = definitions_1.buildTemplateDefinition(Type, nameOrDefinition);
             WritableType.kind = exports.CustomElement;
             Type.description = description;
+            WritableType;
+            WritableType.aliases = Type.aliases == null ? kernel_1.PLATFORM.emptyArray : Type.aliases;
             Type.register = function register(container) {
+                const aliases = description.aliases;
                 const key = exports.CustomElement.keyFrom(description.name);
                 kernel_1.Registration.transient(key, this).register(container);
                 kernel_1.Registration.alias(key, this).register(container);
+                definitions_1.registerAliases([...aliases, ...this.aliases], exports.CustomElement, key, container);
             };
             return Type;
         },

@@ -25,6 +25,7 @@ export interface ICustomElementStaticProperties {
     shadowOptions?: TemplateDefinition['shadowOptions'];
     bindables?: TemplateDefinition['bindables'];
     strategy?: TemplateDefinition['strategy'];
+    aliases: TemplateDefinition['aliases'];
 }
 export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, IViewModel, Class<IViewModel> & ICustomElementStaticProperties> {
     behaviorFor<N extends INode = T>(node: N): IController<N> | undefined;

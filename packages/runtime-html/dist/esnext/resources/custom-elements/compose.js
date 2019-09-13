@@ -201,6 +201,7 @@ Compose.description = Object.freeze({
     instructions: PLATFORM.emptyArray,
     dependencies: PLATFORM.emptyArray,
     surrogates: PLATFORM.emptyArray,
+    aliases: PLATFORM.emptyArray,
     containerless: true,
     // tslint:disable-next-line: no-non-null-assertion
     shadowOptions: null,

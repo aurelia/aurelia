@@ -212,6 +212,7 @@
         instructions: kernel_1.PLATFORM.emptyArray,
         dependencies: kernel_1.PLATFORM.emptyArray,
         surrogates: kernel_1.PLATFORM.emptyArray,
+        aliases: kernel_1.PLATFORM.emptyArray,
         containerless: true,
         // tslint:disable-next-line: no-non-null-assertion
         shadowOptions: null,

@@ -8,7 +8,10 @@ import {
   PLATFORM,
   ResourceDescription,
   ResourcePartDescription,
-  toArray
+  toArray,
+  IContainer,
+  IResourceKind,
+  Registration
 } from '@aurelia/kernel';
 
 import {
@@ -101,7 +104,6 @@ export type BindableDefinitions = Record<string, IBindableDescription>;
 
 export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
-  aliases?: string[];
   isTemplateController?: boolean;
   hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription> | string[];
@@ -266,6 +268,7 @@ export class HooksDefinition {
 class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public name: string;
   public cache: '*' | number;
+  public aliases: string[];
   public template: unknown;
   public instructions: ITargetedInstruction[][];
   public dependencies: IRegistry[];
@@ -290,6 +293,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
+    this.aliases = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['aliases'];
     this.containerless = false;
     this.shadowOptions = null!;
     this.hasSlots = false;
@@ -312,13 +316,15 @@ const templateDefinitionAssignables = [
 const templateDefinitionArrays = [
   'instructions',
   'dependencies',
-  'surrogates'
+  'surrogates',
+  'aliases'
 ];
 
 export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  aliases?: string[];
   childrenObservers?: TemplateDefinition['childrenObservers'];
 };
 
@@ -347,7 +353,9 @@ export function buildTemplateDefinition(
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
   strategy?: BindingStrategy | null,
-  childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition;
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null,
+  aliases?: ReadonlyArray<string> | null,
+): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -363,13 +371,17 @@ export function buildTemplateDefinition(
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
   strategy?: BindingStrategy | null,
-  childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition {
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null,
+  aliases?: ReadonlyArray<string> | null,
+): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
+  /* deepscan-disable */
   const argLen = arguments.length;
   switch (argLen) {
+    case 15: if (aliases != null) def.aliases = toArray(aliases);
     case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
     case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
@@ -434,6 +446,7 @@ export function buildTemplateDefinition(
         }
       }
   }
+  /* deepscan-enable */
 
   // special handling for invocations that quack like a @customElement decorator
   if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef!))) {
@@ -441,4 +454,25 @@ export function buildTemplateDefinition(
   }
 
   return def;
+}
+
+type HasAliases = Pick<IResourceDefinition, 'aliases'>;
+function aliasDecorator<T extends Constructable<any>>(target: T & HasAliases, ...aliases: string[]): T {
+  if (target.aliases == null) {
+    target.aliases = aliases;
+    return target;
+  }
+  target.aliases.push(...aliases);
+  return target;
+}
+
+export function alias(...aliases: string[]) {
+  return (instance: Constructable<any>) => aliasDecorator(instance, ...aliases);
+}
+
+export function registerAliases<T, F>(aliases: string[], resource: IResourceKind<T, F>, key: string, container: IContainer) {
+  for (let i = 0, ii = aliases.length; i < ii; ++i) {
+    Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+  }
+
 }

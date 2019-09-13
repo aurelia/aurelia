@@ -61,6 +61,7 @@ export class Compose<T extends INode = Node> {
     instructions: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[][],
     dependencies: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & IRegistry[],
     surrogates: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[],
+    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     containerless: true,
     // tslint:disable-next-line: no-non-null-assertion
     shadowOptions: null!,
@@ -103,9 +104,9 @@ export class Compose<T extends INode = Node> {
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
     this.properties = instruction.instructions
-      .filter((x: ITargetedInstruction & {to?: string}) => !bindables.includes(x.to!))
+      .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
       .reduce<Record<string, TargetedInstruction>>(
-        (acc, item: ITargetedInstruction & {to?: string}) => {
+        (acc, item: ITargetedInstruction & { to?: string }) => {
           if (item.to) {
             acc[item.to!] = item! as TargetedInstruction;
           }

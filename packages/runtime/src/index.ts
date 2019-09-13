@@ -372,7 +372,9 @@ export {
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
+  alias,
+  registerAliases
 } from './definitions';
 export {
   DOM,

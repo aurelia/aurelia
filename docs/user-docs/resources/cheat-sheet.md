@@ -8,7 +8,7 @@ Placeholder...
 
 ## Lifeycles
 
-### Components Lifecycle
+### Component Lifecycle
 
 // TODO
 

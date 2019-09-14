@@ -66,6 +66,15 @@
 * [Routing](examples/routing/README.md)
   * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
 
+## Community Contribution
+
+* [Joining the Community](community-contribution/joining-the-community.md)
+* [Code of Conduct](community-contribution/code-of-conduct.md)
+* [Contributor Guide](community-contribution/contributor-guide.md)
+* [Build and Testing Aurelia](community-contribution/building-and-testing-aurelia.md)
+* [Writing Documentation](community-contribution/writing-documentation.md)
+* [Translating Documentation](community-contribution/translating-documentation.md)
+
 ## Resources
 
 * [FAQ](resources/faq.md)
@@ -76,13 +85,4 @@
 * [The Aurelia Team](resources/the-aurelia-team.md)
 * [Glossary](resources/glossary.md)
 * [Cheat Sheet](resources/cheat-sheet.md)
-
-## Community Contributions
-
-* [Joining the Community](community-contributions/joining-the-community.md)
-* [Code of Conduct](community-contributions/code-of-conduct.md)
-* [Contributor Guide](community-contributions/contributor-guide.md)
-* [Build and Testing Aurelia](community-contributions/building-and-testing-aurelia.md)
-* [Writing Documentation](community-contributions/writing-documentation.md)
-* [Translating Documentation](community-contributions/translating-documentation.md)
 

@@ -1,6 +1,10 @@
+---
+description: Our mutual agreement on proper behavior within the Aurelia community.
+---
+
 # Code of Conduct
 
-As contributors and maintainers of Aurelia, we pledge to respect every contributor.
+**As contributors and maintainers of Aurelia, we pledge to respect every contributor.**
 
 Communication through any channels under the control of Aurelia must always be constructive and professional.
 

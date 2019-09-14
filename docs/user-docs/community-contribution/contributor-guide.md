@@ -1,10 +1,24 @@
+---
+description: Learn about our coding rules and contributing process.
+---
+
 # Contributor Guide
 
-We'd love for you to contribute to our source code and to make our projects even better than they are today! Here are the guidelines we'd like you to follow.
+We'd love for you to contribute to Aurelia's source code and help make our projects even better than they are today! ❤ To help you out, we've put together some guidelines we all like to follow.
+
+{% hint style="success" %}
+**Here's what you'll learn...**
+
+* How to handle bugs, small changes, and major feature work.
+* Guidelines for submitting issues and pull requests.
+* Git/GitHub practices for contributing to our project.
+* Coding rules.
+* Legal
+{% endhint %}
 
 ## Got a Question or Problem?
 
-If you have questions about how to use Aurelia, please direct these to Discord, Discourse, or StackOverflow.
+If you have questions about how to use Aurelia, please direct these to [Discord](https://discordapp.com/channels/448698263508615178/448698263508615180), [Discourse](https://discourse.aurelia.io/), or [StackOverflow](https://stackoverflow.com/questions/tagged/aurelia).
 
 ## Found an Issue?
 
@@ -17,11 +31,11 @@ If you find a bug in the source code or a mistake in the documentation, you can 
 You can request a new feature by submitting an issue. If you would like to implement a new feature then consider what kind of change it is.
 
 * **Major Changes** that you wish to contribute to the project should be discussed first via an RFC so that we can better coordinate our efforts, prevent duplication of work, and help you to craft the change so that it is successfully accepted into the project.
-* **Small Changes** can be crafted and submitted to the GitHub Repository as a Pull Request.
+* **Small Changes** can be crafted and submitted to [the GitHub Repository](https://github.com/aurelia/aurelia) as a Pull Request.
 
 ## Developing
 
-Check out [building and testing Aurelia](building-and-testing-aurelia.md) to get started with setting up the repo, building, testing and debugging.
+Check out [building and testing Aurelia](building-and-testing-aurelia.md) to get started with setting up the repo, building, testing, and debugging.
 
 ## Submission Guidelines
 
@@ -36,7 +50,7 @@ Before you submit your pull request consider the following guidelines:
 * Search the appropriate GitHub Repository for an open or closed Pull Request that relates to your submission. You don't want to duplicate effort.
 * Make your changes in a new git branch:
 
-  ```text
+  ```bash
   git checkout -b my-fix-branch master
   ```
 
@@ -45,21 +59,21 @@ Before you submit your pull request consider the following guidelines:
 * Run the full test suite and ensure that all tests pass.
 * Commit your changes using a descriptive commit message that follows our commit message conventions \(see below\). Adherence to the commit message conventions is required because release notes are automatically generated from these messages.
 
-  ```text
+  ```bash
   git commit -a
   ```
 
-  > Note: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
+  > **Note**: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
 
 * Build your changes locally and ensure all the tests in `__tests__` pass:
 
-  ```text
+  ```bash
   npm run test-chrome
   ```
 
 * Push your branch to GitHub:
 
-  ```text
+  ```bash
   git push origin my-fix-branch
   ```
 
@@ -69,12 +83,16 @@ Before you submit your pull request consider the following guidelines:
   * Re-run the test suite to ensure tests are still passing.
   * Rebase your branch and force push to your GitHub Repository \(this will update your Pull Request\):
 
-    ```text
+    ```bash
     git rebase master -i
     git push -f
     ```
 
-> Note: The first time you submit a PR to a project under the Aurelia organization on GitHub, you will be prompted to sign the Contributor License Agreement \(CLA\). We cannot accept the PR without this \(see below for details\).
+{% hint style="warning" %}
+**Important**
+
+The first time you submit a PR to a project under the Aurelia organization on GitHub, you will be prompted to sign the Contributor License Agreement \(CLA\). We cannot accept the PR without this \(see below for details\).
+{% endhint %}
 
 ### After Your Pull Request is Merged
 
@@ -82,25 +100,25 @@ After your pull request is merged, you can safely delete your branch and pull th
 
 * Delete the remote branch on GitHub either through the GitHub web UI or your local shell as follows:
 
-  ```text
+  ```bash
   git push origin --delete my-fix-branch
   ```
 
 * Check out the master branch:
 
-  ```text
+  ```bash
   git checkout master -f
   ```
 
 * Delete the local branch:
 
-  ```text
+  ```bash
   git branch -D my-fix-branch
   ```
 
 * Update your master with the latest upstream version:
 
-  ```text
+  ```bash
   git pull --ff upstream master
   ```
 

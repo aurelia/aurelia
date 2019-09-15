@@ -263,7 +263,7 @@ ${'  ' /* leading space is untouched */}
   it('strips bindable tag with more attrs', function () {
     const html = `<bindable name="firstName" mode="one-way">
 <bindable name="lastName" mode="TwoWay" attribute="surname">
-<bindable name="foo" mode="one-time"></bindable>
+<bindable name="foo" mode="one_time"></bindable>
 <bindable name="bar" mode="toView">
 <bindable name="lo" mode="from-view"></bindable>
 <template>

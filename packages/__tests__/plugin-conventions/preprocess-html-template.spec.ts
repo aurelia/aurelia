@@ -22,6 +22,26 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
+  it('processes template with file name not in kebab case', function () {
+    const html = '<template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [  ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
+    assert.equal(result.code, expected);
+  });
+
+
   it('processes template with css pair', function () {
     const html = '<template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';

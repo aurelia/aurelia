@@ -10,8 +10,6 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const platform_1 = require("./platform");
-    const camelCaseLookup = {};
-    const kebabCaseLookup = {};
     const isNumericLookup = {};
     /**
      * Efficiently determine whether the provided property key is numeric
@@ -51,61 +49,125 @@
     }
     exports.isNumeric = isNumeric;
     /**
-     * Efficiently convert a kebab-cased string to camelCase.
+     * Base implementation of camel and kebab cases
+     */
+    const baseCase = (function () {
+        let CharKind;
+        (function (CharKind) {
+            CharKind[CharKind["none"] = 0] = "none";
+            CharKind[CharKind["digit"] = 1] = "digit";
+            CharKind[CharKind["upper"] = 2] = "upper";
+            CharKind[CharKind["lower"] = 3] = "lower";
+        })(CharKind || (CharKind = {}));
+        const isDigit = Object.freeze(Object.assign(Object.create(null), {
+            '0': true,
+            '1': true,
+            '2': true,
+            '3': true,
+            '4': true,
+            '5': true,
+            '6': true,
+            '7': true,
+            '8': true,
+            '9': true,
+        }));
+        function charToKind(char) {
+            if (char === '') {
+                // We get this if we do charAt() with an index out of range
+                return 0 /* none */;
+            }
+            if (char !== char.toUpperCase()) {
+                return 3 /* lower */;
+            }
+            if (char !== char.toLowerCase()) {
+                return 2 /* upper */;
+            }
+            if (isDigit[char] === true) {
+                return 1 /* digit */;
+            }
+            return 0 /* none */;
+        }
+        return function (input, cb) {
+            const len = input.length;
+            if (len === 0) {
+                return input;
+            }
+            let sep = false;
+            let output = '';
+            let prevKind;
+            let curChar = '';
+            let curKind = 0 /* none */;
+            let nextChar = input.charAt(0);
+            let nextKind = charToKind(nextChar);
+            for (let i = 0; i < len; ++i) {
+                prevKind = curKind;
+                curChar = nextChar;
+                curKind = nextKind;
+                nextChar = input.charAt(i + 1);
+                nextKind = charToKind(nextChar);
+                if (curKind === 0 /* none */) {
+                    if (output.length > 0) {
+                        // Only set sep to true if it's not at the beginning of output.
+                        sep = true;
+                    }
+                }
+                else {
+                    if (!sep && output.length > 0 && curKind === 2 /* upper */) {
+                        // Separate UAFoo into UA Foo.
+                        // Separate uaFOO into ua FOO.
+                        sep = prevKind === 3 /* lower */ || nextKind === 3 /* lower */;
+                    }
+                    output += cb(curChar, sep);
+                    sep = false;
+                }
+            }
+            return output;
+        };
+    })();
+    /**
+     * Efficiently convert a string to camelCase.
      *
-     * Separators that signal the next character to be capitalized, are: `-`, `.`, `_`.
+     * Non-alphanumeric characters are treated as separators.
      *
      * Primarily used by Aurelia to convert DOM attribute names to ViewModel property names.
      *
      * Results are cached.
      */
-    function camelCase(input) {
-        // benchmark: http://jsben.ch/qIz4Z
-        let value = camelCaseLookup[input];
-        if (value !== void 0)
-            return value;
-        value = '';
-        let first = true;
-        let sep = false;
-        let char;
-        for (let i = 0, ii = input.length; i < ii; ++i) {
-            char = input.charAt(i);
-            if (char === '-' || char === '.' || char === '_') {
-                sep = true; // skip separators
-            }
-            else {
-                value = value + (first ? char.toLowerCase() : (sep ? char.toUpperCase() : char));
-                sep = false;
-            }
-            first = false;
+    exports.camelCase = (function () {
+        const cache = Object.create(null);
+        function callback(char, sep) {
+            return sep ? char.toUpperCase() : char.toLowerCase();
         }
-        return camelCaseLookup[input] = value;
-    }
-    exports.camelCase = camelCase;
+        return function (input) {
+            let output = cache[input];
+            if (output === void 0) {
+                output = cache[input] = baseCase(input, callback);
+            }
+            return output;
+        };
+    })();
     /**
-     * Efficiently convert a camelCased string to kebab-case.
+     * Efficiently convert a string to kebab-case.
+     *
+     * Non-alphanumeric characters are treated as separators.
      *
      * Primarily used by Aurelia to convert ViewModel property names to DOM attribute names.
      *
      * Results are cached.
      */
-    function kebabCase(input) {
-        // benchmark: http://jsben.ch/v7K9T
-        let value = kebabCaseLookup[input];
-        if (value !== void 0)
-            return value;
-        value = '';
-        let first = true;
-        let char, lower;
-        for (let i = 0, ii = input.length; i < ii; ++i) {
-            char = input.charAt(i);
-            lower = char.toLowerCase();
-            value = value + (first ? lower : (char !== lower ? `-${lower}` : lower));
-            first = false;
+    exports.kebabCase = (function () {
+        const cache = Object.create(null);
+        function callback(char, sep) {
+            return sep ? '-' + char.toLowerCase() : char.toLowerCase();
         }
-        return kebabCaseLookup[input] = value;
-    }
-    exports.kebabCase = kebabCase;
+        return function (input) {
+            let output = cache[input];
+            if (output === void 0) {
+                output = cache[input] = baseCase(input, callback);
+            }
+            return output;
+        };
+    })();
     /**
      * Efficiently (up to 10x faster than `Array.from`) convert an `ArrayLike` to a real array.
      *

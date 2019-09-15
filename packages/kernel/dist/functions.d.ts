@@ -10,23 +10,25 @@
  */
 export declare function isNumeric(value: unknown): value is number | string;
 /**
- * Efficiently convert a kebab-cased string to camelCase.
+ * Efficiently convert a string to camelCase.
  *
- * Separators that signal the next character to be capitalized, are: `-`, `.`, `_`.
+ * Non-alphanumeric characters are treated as separators.
  *
  * Primarily used by Aurelia to convert DOM attribute names to ViewModel property names.
  *
  * Results are cached.
  */
-export declare function camelCase(input: string): string;
+export declare const camelCase: (input: string) => string;
 /**
- * Efficiently convert a camelCased string to kebab-case.
+ * Efficiently convert a string to kebab-case.
+ *
+ * Non-alphanumeric characters are treated as separators.
  *
  * Primarily used by Aurelia to convert ViewModel property names to DOM attribute names.
  *
  * Results are cached.
  */
-export declare function kebabCase(input: string): string;
+export declare const kebabCase: (input: string) => string;
 /**
  * Efficiently (up to 10x faster than `Array.from`) convert an `ArrayLike` to a real array.
  *

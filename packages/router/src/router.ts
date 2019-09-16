@@ -29,12 +29,14 @@ export interface IGotoOptions {
   query?: string;
   data?: Record<string, unknown>;
   replace?: boolean;
+  append?: boolean;
   origin?: IRouteableComponent | Element;
 }
 
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
+  statefulHistory?: boolean;
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
@@ -48,6 +50,7 @@ export interface IRouter {
   readonly navigation: BrowserNavigator;
   readonly guardian: Guardian;
   readonly navs: Readonly<Record<string, Nav>>;
+  readonly options: IRouterOptions;
 
   activate(options?: IRouterOptions): void;
   loadUrl(): Promise<void>;
@@ -56,7 +59,7 @@ export interface IRouter {
   linkCallback(info: AnchorEventInfo): void;
 
   processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
-  addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void;
+  // addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void;
 
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
@@ -98,8 +101,9 @@ export class Router implements IRouter {
 
   public addedViewports: ViewportInstruction[] = [];
 
-  private options: IRouterOptions = {};
+  public options: IRouterOptions = {};
   private isActive: boolean = false;
+  private loadedFirst: boolean = false;
 
   private processingNavigation: INavigatorInstruction | null = null;
   private lastNavigation: INavigatorInstruction | null = null;
@@ -129,6 +133,7 @@ export class Router implements IRouter {
       ...{
         transformFromUrl: this.routeTransformer.transformFromUrl,
         transformToUrl: this.routeTransformer.transformToUrl,
+        statefulHistory: true,
       }, ...options
     };
 
@@ -153,7 +158,9 @@ export class Router implements IRouter {
         fromBrowser: false,
       }
     };
-    return this.navigator.navigate(entry);
+    const result = this.navigator.navigate(entry);
+    this.loadedFirst = true;
+    return result;
   }
 
   public deactivate(): void {
@@ -210,7 +217,7 @@ export class Router implements IRouter {
     }
 
     let instructions: ViewportInstruction[];
-    let clearViewports: boolean = fullStateInstruction;
+    let clearUsedViewports: boolean = fullStateInstruction;
     if (typeof instruction.instruction === 'string') {
       let path = instruction.instruction;
       let transformedInstruction: string | ViewportInstruction[] = path;
@@ -235,7 +242,7 @@ export class Router implements IRouter {
     }
 
     if (instructions.some(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-      clearViewports = true;
+      clearUsedViewports = true;
       instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
     }
 
@@ -245,7 +252,7 @@ export class Router implements IRouter {
 
     // TODO: Fetch title (probably when done)
 
-    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
+    let clearViewports = (clearUsedViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
     const doneDefaultViewports: Viewport[] = [];
     let defaultViewports = this.allViewports().filter(viewport =>
       viewport.options.default
@@ -264,7 +271,7 @@ export class Router implements IRouter {
     // TODO: Take care of cancellations down in subsets/iterations
     let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
     let guard = 100;
-    while (viewportInstructions.length || remainingInstructions.length || defaultViewports.length || clearViewports) {
+    while (viewportInstructions.length || remainingInstructions.length || defaultViewports.length || clearUsedViewports) {
       // Guard against endless loop
       if (!guard--) {
         throw Reporter.error(2002);
@@ -294,13 +301,7 @@ export class Router implements IRouter {
         if (viewport.setNextContent(viewportInstruction, instruction)) {
           changedViewports.push(viewport);
         }
-        arrayRemove(usedViewports, value => value === viewport);
-      }
-      // usedViewports is empty if we're not clearing viewports
-      for (const viewport of usedViewports) {
-        if (viewport.setNextContent(this.instructionResolver.clearViewportInstruction, instruction)) {
-          changedViewports.push(viewport);
-        }
+        arrayRemove(clearViewports, value => value === viewport);
       }
 
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
@@ -317,11 +318,13 @@ export class Router implements IRouter {
             return false;
           }
         }
-        for (const viewportInstruction of canEnter) {
-          // TODO: Abort content change in the viewports
-          this.addProcessingViewport(viewportInstruction);
-        }
-        value.abortContentChange().catch(error => { throw error; });
+        await this.goto(canEnter, { append: true });
+        await value.abortContentChange();
+        // for (const viewportInstruction of canEnter) {
+        //   // TODO: Abort content change in the viewports
+        //   this.addProcessingViewport(viewportInstruction);
+        // }
+        // value.abortContentChange().catch(error => { throw error; });
         return true;
       }));
       if (results.some(result => result === false)) {
@@ -353,10 +356,46 @@ export class Router implements IRouter {
         && doneDefaultViewports.every(done => done !== viewport)
         && updatedViewports.every(updated => updated !== viewport)
       );
+
+      // clearViewports is empty if we're not clearing viewports
+      if (viewportInstructions.length === 0 &&
+        remainingInstructions.length === 0 &&
+        defaultViewports.length === 0) {
+        viewportInstructions = [
+          ...viewportInstructions,
+          ...clearViewports.map(viewport => new ViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
+        ];
+        clearViewports = [];
+        // for (const viewport of clearViewports) {
+        //   viewport.setNextContent(this.instructionResolver.clearViewportInstruction, instruction);
+        //   // if (viewport.setNextContent(this.instructionResolver.clearViewportInstruction, instruction)) {
+        //   //   changedViewports.push(viewport);
+        //   // }
+        // }
+        // let clearResults = await Promise.all(clearViewports.map((value) => value.canLeave()));
+        // if (clearResults.some(result => result === false)) {
+        //   return this.cancelNavigation([...clearViewports, ...updatedViewports], instruction);
+        // }
+
+        // clearResults = await Promise.all(clearViewports.map(async (value) => {
+        //   await value.canEnter();
+        //   return value.enter();
+        // }));
+        // if (clearResults.some(result => result === false)) {
+        //   return this.cancelNavigation([...clearViewports, ...updatedViewports], qInstruction);
+        // }
+
+        // for (const viewport of clearViewports) {
+        //   if (updatedViewports.every(value => value !== viewport)) {
+        //     updatedViewports.push(viewport);
+        //   }
+        // }
+      }
+
       // if (!this.allViewports().length) {
       //   viewportsRemaining = false;
       // }
-      clearViewports = false;
+      clearUsedViewports = false;
     }
 
     await Promise.all(updatedViewports.map((value) => value.loadContent()));
@@ -379,28 +418,28 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   };
 
-  public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
-    if (!this.processingNavigation && onlyIfProcessingStatus) {
-      return;
-    }
-    if (this.processingNavigation) {
-      const viewportInstruction = NavigationInstructionResolver.toViewportInstructions(this, componentOrInstruction)[0];
-      if (!viewportInstruction.viewport && viewport) {
-        viewportInstruction.setViewport(viewport);
-        if (!viewportInstruction.viewport) {
-          const viewportInstance = this.allViewports().find(vp => vp.name === viewportInstruction.viewportName);
-          // TODO: Deal with not yet existing viewports
-          if (viewportInstance) {
-            viewportInstruction.setViewport(viewportInstance);
-          }
-        }
-      }
-      this.addedViewports.push(viewportInstruction);
-    } else if (this.lastNavigation) {
-      this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
-      // Don't wait for the (possibly slow) navigation
-    }
-  }
+  // public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
+  //   if (!this.processingNavigation && onlyIfProcessingStatus) {
+  //     return;
+  //   }
+  //   if (this.processingNavigation) {
+  //     const viewportInstruction = NavigationInstructionResolver.toViewportInstructions(this, componentOrInstruction)[0];
+  //     if (!viewportInstruction.viewport && viewport) {
+  //       viewportInstruction.setViewport(viewport);
+  //       if (!viewportInstruction.viewport) {
+  //         const viewportInstance = this.allViewports().find(vp => vp.name === viewportInstruction.viewportName);
+  //         // TODO: Deal with not yet existing viewports
+  //         if (viewportInstance) {
+  //           viewportInstruction.setViewport(viewportInstance);
+  //         }
+  //       }
+  //     }
+  //     this.addedViewports.push(viewportInstruction);
+  //   } else if (this.lastNavigation) {
+  //     this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
+  //     // Don't wait for the (possibly slow) navigation
+  //   }
+  // }
 
   public findScope(element: Element): Scope {
     this.ensureRootScope();
@@ -479,6 +518,21 @@ export class Router implements IRouter {
           instruction.scope = scope;
         }
       }
+    } else {
+      instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
+    }
+
+    if (options.append) {
+      if (this.processingNavigation) {
+        this.addedViewports.push(...(instructions as ViewportInstruction[]));
+        // Can't return current navigation promise since it can lead to deadlock in enter
+        return Promise.resolve();
+      } else {
+        // Can only append after first load has happened (defaults can fire too early)
+        if (!this.loadedFirst) {
+          return Promise.resolve();
+        }
+      }
     }
 
     const entry: INavigatorEntry = {
@@ -488,6 +542,7 @@ export class Router implements IRouter {
       data: options.data,
       query: options.query,
       replacing: options.replace,
+      repeating: options.append,
       fromBrowser: false,
     };
     return this.navigator.navigate(entry);
@@ -645,7 +700,7 @@ export class Router implements IRouter {
     instruction.path = state + query;
 
     const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
-    fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions));
+    fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.options.statefulHistory));
     instruction.fullStateInstruction = fullViewportStates;
     return Promise.resolve();
   }

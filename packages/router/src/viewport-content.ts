@@ -17,6 +17,7 @@ export class ViewportContent {
   public contentStatus: ContentStatus = ContentStatus.none;
   public entered: boolean = false;
   public fromCache: boolean = false;
+  public fromHistory: boolean = false;
   public reentry: boolean = false;
 
   private taggedNodes: Element[] = [];
@@ -66,8 +67,8 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
-    // Don't load cached content
-    if (!this.fromCache) {
+    // Don't load cached content or instantiated history content
+    if (!this.fromCache && !this.fromHistory) {
       this.content.componentInstance = this.toComponentInstance(context);
     }
     this.contentStatus = ContentStatus.created;
@@ -145,8 +146,8 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
       return Promise.resolve();
     }
-    // Don't load cached content
-    if (!this.fromCache) {
+    // Don't load cached content or instantiated history content
+    if (!this.fromCache || !this.fromHistory) {
       const host: INode = element as INode;
       const container = context;
       Controller.forCustomElement(this.content.componentInstance, container, host);
@@ -185,8 +186,8 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
-    // Don't initialize cached content
-    if (!this.fromCache) {
+    // Don't initialize cached content or instantiated history content
+    if (!this.fromCache || !this.fromHistory) {
       ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     }
     this.contentStatus = ContentStatus.initialized;
@@ -207,7 +208,7 @@ export class ViewportContent {
       return;
     }
     ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
-    if (this.fromCache) {
+    if (this.fromCache || this.fromHistory) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
         const attr = el.getAttribute('au-element-scroll');

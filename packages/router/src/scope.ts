@@ -37,7 +37,7 @@ export class Scope {
       {});
   }
 
-  public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], withoutViewports: boolean = false): IFindViewportsResult {
+  public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], disregardViewports: boolean = false): IFindViewportsResult {
     const foundViewports: ViewportInstruction[] = [];
     const remainingInstructions: ViewportInstruction[] = [];
 
@@ -49,18 +49,32 @@ export class Scope {
 
     const viewportInstructions = instructions.slice();
 
+    // The viewport is already known
+    if (!disregardViewports) {
+      for (let i = 0; i < viewportInstructions.length; i++) {
+        const instruction = viewportInstructions[i];
+        if (instruction.viewport) {
+          const remaining = this.foundViewport(instruction, instruction.viewport, disregardViewports);
+          foundViewports.push(instruction);
+          remainingInstructions.push(...remaining);
+          availableViewports[name] = null;
+          viewportInstructions.splice(i--, 1);
+        }
+      }
+    }
+
     // Configured viewport is ruling
     for (let i = 0; i < viewportInstructions.length; i++) {
       const instruction = viewportInstructions[i];
-      if (!withoutViewports && instruction.viewport) {
-        continue;
-      }
+      // if (!withoutViewports && instruction.viewport) {
+      //   continue;
+      // }
       instruction.needsViewportDescribed = true;
       for (const name in availableViewports) {
         const viewport: Viewport | null = availableViewports[name];
         // TODO: Also check if (resolved) component wants a specific viewport
         if (viewport && viewport.wantComponent(instruction.componentName as string)) {
-          const remaining = this.foundViewport(instruction, viewport, withoutViewports, true);
+          const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
           foundViewports.push(instruction);
           remainingInstructions.push(...remaining);
           availableViewports[name] = null;
@@ -70,13 +84,13 @@ export class Scope {
       }
     }
 
-    // Next in line is specified viewport (but not if we're ignoring viewports)
-    if (!withoutViewports) {
+    // Next in line is specified viewport (but not if we're disregarding viewports)
+    if (!disregardViewports) {
       for (let i = 0; i < viewportInstructions.length; i++) {
         const instruction = viewportInstructions[i];
-        if (instruction.viewport) {
-          continue;
-        }
+        // if (instruction.viewport) {
+        //   continue;
+        // }
         const name = instruction.viewportName;
         if (!name || !name.length) {
           continue;
@@ -88,7 +102,7 @@ export class Scope {
         }
         const viewport = availableViewports[name];
         if (viewport && viewport.acceptComponent(instruction.componentName as string)) {
-          const remaining = this.foundViewport(instruction, viewport, withoutViewports, true);
+          const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
           foundViewports.push(instruction);
           remainingInstructions.push(...remaining);
           availableViewports[name] = null;
@@ -100,9 +114,9 @@ export class Scope {
     // Finally, only one accepting viewport left?
     for (let i = 0; i < viewportInstructions.length; i++) {
       const instruction = viewportInstructions[i];
-      if (!withoutViewports && instruction.viewport) {
-        continue;
-      }
+      // if (!withoutViewports && instruction.viewport) {
+      //   continue;
+      // }
       const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
         const viewport: Viewport | null = availableViewports[name];
@@ -112,7 +126,7 @@ export class Scope {
       }
       if (remainingViewports.length === 1) {
         const viewport: Viewport = remainingViewports.shift() as Viewport;
-        const remaining = this.foundViewport(instruction, viewport, withoutViewports, true);
+        const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
         foundViewports.push(instruction);
         remainingInstructions.push(...remaining);
         availableViewports[name] = null;
@@ -122,24 +136,27 @@ export class Scope {
     }
 
     // If we're ignoring viewports, we now match them anyway
-    if (withoutViewports) {
+    if (disregardViewports) {
       for (let i = 0; i < viewportInstructions.length; i++) {
         const instruction = viewportInstructions[i];
-        if (instruction.viewport) {
-          continue;
+        let viewport = instruction.viewport;
+        if (!viewport) {
+          // if (instruction.viewport) {
+          //   continue;
+          // }
+          const name = instruction.viewportName;
+          if (!name || !name.length) {
+            continue;
+          }
+          const newScope = instruction.ownsScope;
+          if (!this.getEnabledViewports()[name]) {
+            this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
+            availableViewports[name] = this.getEnabledViewports()[name];
+          }
+          viewport = availableViewports[name];
         }
-        const name = instruction.viewportName;
-        if (!name || !name.length) {
-          continue;
-        }
-        const newScope = instruction.ownsScope;
-        if (!this.getEnabledViewports()[name]) {
-          this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
-          availableViewports[name] = this.getEnabledViewports()[name];
-        }
-        const viewport = availableViewports[name];
         if (viewport && viewport.acceptComponent(instruction.componentName as string)) {
-          const remaining = this.foundViewport(instruction, viewport, withoutViewports);
+          const remaining = this.foundViewport(instruction, viewport, disregardViewports);
           foundViewports.push(instruction);
           remainingInstructions.push(...remaining);
           availableViewports[name] = null;

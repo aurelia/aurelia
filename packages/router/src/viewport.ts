@@ -212,10 +212,7 @@ export class Viewport {
     // No need to wait for next component activation
     if (this.content.componentInstance && !(this.nextContent as ViewportContent).componentInstance) {
       await this.content.leave((this.nextContent as ViewportContent).instruction);
-      this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
-      this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
-      this.content.unloadComponent();
-      this.content.destroyComponent();
+      this.unloadContent();
     }
 
     if ((this.nextContent as ViewportContent).componentInstance) {
@@ -226,10 +223,7 @@ export class Viewport {
       if (this.content.componentInstance) {
         await this.content.leave((this.nextContent as ViewportContent).instruction);
         if (!this.content.reentry && this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
-          this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
-          this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
-          this.content.unloadComponent();
-          this.content.destroyComponent();
+          this.unloadContent();
         }
       }
 
@@ -359,6 +353,13 @@ export class Viewport {
       this.children.splice(index, 1);
       viewport.parent = null;
     }
+  }
+
+  private unloadContent(): void {
+    this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
+    this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
+    this.content.unloadComponent();
+    this.content.destroyComponent();
   }
 
   private clearState(): void {

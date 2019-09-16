@@ -155,16 +155,16 @@ export class InstructionResolver {
     return flat;
   }
 
-  public cloneViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[] {
+  public cloneViewportInstructions(instructions: ViewportInstruction[], viewportInstances: boolean = false): ViewportInstruction[] {
     const clones: ViewportInstruction[] = [];
     for (const instruction of instructions) {
       const clone = new ViewportInstruction(
         instruction.componentInstance || instruction.componentType || instruction.componentName!,
-        instruction.viewportName!,
+        viewportInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
         instruction.parametersString!
       );
       clone.needsViewportDescribed = instruction.needsViewportDescribed;
-      clone.scope = null; // Since scopes are recreated constantly
+      clone.scope = viewportInstances ? instruction.scope : null; // Since scopes are recreated constantly
       if (instruction.nextScopeInstructions) {
         clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions);
       }

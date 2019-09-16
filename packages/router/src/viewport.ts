@@ -166,6 +166,10 @@ export class Viewport {
   }
 
   public async canLeave(): Promise<boolean> {
+    const results = await Promise.all(this.children.map((child) => child.canLeave()));
+    if (results.some(result => result === false)) {
+      return false;
+    }
     return this.content.canLeave(this.nextContent ? this.nextContent.instruction : null);
   }
 

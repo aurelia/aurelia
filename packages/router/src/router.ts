@@ -455,13 +455,28 @@ export class Router implements IRouter {
   public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
-    return parentScope.addViewport(name, element, context, options);
+    const viewport = parentScope.addViewport(name, element, context, options);
+    let parent = this.closestViewport(element);
+    if (parent === viewport) {
+      if (element.parentElement !== null) {
+        parent = this.closestViewport(element.parentElement);
+      } else {
+        parent = null;
+      }
+    }
+    if (parent !== null) {
+      parent.addChild(viewport);
+    }
+    return viewport;
   }
   // Called from the viewport custom element
   public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
     const scope = viewport.owningScope;
     if (!scope.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
+    }
+    if (viewport.parent !== null) {
+      viewport.parent.removeChild(viewport);
     }
   }
   public allViewports(): Viewport[] {

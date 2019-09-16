@@ -96,9 +96,9 @@ export class ViewportInstruction {
     }
     if (this.componentName !== null && typeof this.componentName === 'string') {
       const container = context.get(IContainer);
-      if (container) {
+      if (container !== null && container.has<IRouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
         const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
-        if (resolver && resolver.getFactory) {
+        if (resolver !== null && resolver.getFactory !== void 0) {
           const factory = resolver.getFactory(container);
           if (factory) {
             return factory.Type;

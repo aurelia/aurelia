@@ -244,10 +244,10 @@ export class Scope {
     this.children.splice(this.children.indexOf(child), 1);
   }
 
-  public allViewports(): Viewport[] {
-    const viewports = this.viewports.filter((viewport) => viewport.enabled);
+  public allViewports(includeDisabled: boolean = false): Viewport[] {
+    const viewports = this.viewports.filter((viewport) => viewport.enabled || includeDisabled);
     for (const scope of this.children) {
-      viewports.push(...scope.allViewports());
+      viewports.push(...scope.allViewports(includeDisabled));
     }
     return viewports;
   }

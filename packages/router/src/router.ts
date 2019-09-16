@@ -69,7 +69,7 @@ export interface IRouter {
   // Called from the viewport custom element
   removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
 
-  allViewports(): Viewport[];
+  allViewports(includeDisabled?: boolean): Viewport[];
   findScope(element: Element | null): Scope;
   removeScope(scope: Scope): void;
 
@@ -471,17 +471,16 @@ export class Router implements IRouter {
   }
   // Called from the viewport custom element
   public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
-    const scope = viewport.owningScope;
-    if (!scope.removeViewport(viewport, element, context)) {
+    if (!viewport.owningScope.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
     if (viewport.parent !== null) {
       viewport.parent.removeChild(viewport);
     }
   }
-  public allViewports(): Viewport[] {
+  public allViewports(includeDisabled: boolean = false): Viewport[] {
     this.ensureRootScope();
-    return (this.rootScope as Scope).allViewports();
+    return (this.rootScope as Scope).allViewports(includeDisabled);
   }
 
   public removeScope(scope: Scope): void {

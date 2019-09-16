@@ -25,7 +25,7 @@ export class Viewport {
   public enabled: boolean = true;
 
   public parent: Viewport | null = null;
-  private children: Viewport[] = [];
+  public children: Viewport[] = [];
 
   private clear: boolean = false;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;

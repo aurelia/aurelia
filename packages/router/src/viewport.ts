@@ -24,6 +24,9 @@ export class Viewport {
 
   public enabled: boolean = true;
 
+  public parent: Viewport | null = null;
+  private children: Viewport[] = [];
+
   private clear: boolean = false;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
 
@@ -336,6 +339,21 @@ export class Viewport {
   public unbinding(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
       this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
+    }
+  }
+
+  public addChild(viewport: Viewport): void {
+    if (!this.children.some(vp => vp === viewport)) {
+      this.children.push(viewport);
+      viewport.parent = this;
+    }
+  }
+
+  public removeChild(viewport: Viewport): void {
+    const index = this.children.indexOf(viewport);
+    if (index >= 0) {
+      this.children.splice(index, 1);
+      viewport.parent = null;
     }
   }
 

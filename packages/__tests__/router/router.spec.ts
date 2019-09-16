@@ -316,6 +316,8 @@ describe('Router', function () {
 
     const { lifecycle, host, router, tearDown } = await setup();
 
+    quxCantLeave = 1;
+
     await $goto('baz@left+qux@right', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
@@ -325,6 +327,28 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+
+    await tearDown();
+  });
+
+  it('cancels if not child canLeave', async function () {
+    this.timeout(5000);
+
+    const { lifecycle, host, router, tearDown } = await setup();
+
+    quxCantLeave = 1;
+
+    await $goto('foo@left/qux@foo+uier@right', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
+
+    await $goto('bar@left+baz@right', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await tearDown();
   });
@@ -985,7 +1009,7 @@ describe('Router', function () {
   /////////
 });
 
-let quxCantLeave = 2;
+let quxCantLeave = 0;
 let plughReentryBehavior = 'default';
 
 const $goto = async (path: string, router: IRouter, lifecycle: ILifecycle) => {

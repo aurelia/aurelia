@@ -59,6 +59,11 @@ export class Viewport {
 
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.context);
+
+    this.nextContent.fromHistory = this.nextContent.componentInstance && instruction.navigation
+      ? !!instruction.navigation.back || !!instruction.navigation.forward
+      : false;
+
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
       const cached = this.cache.find((item) => (this.nextContent as ViewportContent).isCacheEqual(item));
@@ -138,14 +143,19 @@ export class Viewport {
     }
 
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
-      this.router.addProcessingViewport(this.options.default, this, false);
+      const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
+      for (const instruction of instructions) {
+        instruction.setViewport(this);
+      }
+      this.router.goto(instructions, { append: true });
+      // this.router.addProcessingViewport(this.options.default, this, false);
     }
   }
 
   public remove(element: Element | null, context: IRenderContext | IContainer | null): boolean {
     if (this.element === element && this.context === context) {
       if (this.content.componentInstance) {
-        this.content.freeContent(this.element as Element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });
+        this.content.freeContent(this.element as Element, (this.nextContent ? this.nextContent.instruction : null), this.router.options.statefulHistory || this.options.stateful).catch(error => { throw error; });
       }
       return true;
     }
@@ -195,21 +205,22 @@ export class Viewport {
     // No need to wait for next component activation
     if (this.content.componentInstance && !(this.nextContent as ViewportContent).componentInstance) {
       await this.content.leave((this.nextContent as ViewportContent).instruction);
-      this.content.removeComponent(this.element as Element, this.options.stateful);
-      this.content.terminateComponent(this.options.stateful);
+      this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
+      this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
       this.content.unloadComponent();
       this.content.destroyComponent();
     }
 
     if ((this.nextContent as ViewportContent).componentInstance) {
-      (this.nextContent as ViewportContent).addComponent(this.element as Element);
-
+      if (this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
+        (this.nextContent as ViewportContent).addComponent(this.element as Element);
+      }
       // Only when next component activation is done
       if (this.content.componentInstance) {
         await this.content.leave((this.nextContent as ViewportContent).instruction);
-        if (!this.content.reentry) {
-          this.content.removeComponent(this.element as Element, this.options.stateful);
-          this.content.terminateComponent(this.options.stateful);
+        if (!this.content.reentry && this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
+          this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
+          this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
           this.content.unloadComponent();
           this.content.destroyComponent();
         }
@@ -241,7 +252,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    await (this.nextContent as ViewportContent).freeContent(this.element as Element, (this.nextContent as ViewportContent).instruction, this.options.stateful);
+    await (this.nextContent as ViewportContent).freeContent(this.element as Element, (this.nextContent as ViewportContent).instruction, this.router.options.statefulHistory || this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -306,6 +317,8 @@ export class Viewport {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.enabled = true;
     if (this.content.componentInstance) {
+      // Only acts if not already entered
+      this.content.enter(this.content.instruction);
       this.content.addComponent(this.element as Element);
     }
   }
@@ -313,14 +326,16 @@ export class Viewport {
   public detaching(flags: LifecycleFlags): void {
     Reporter.write(10000, 'DETACHING viewport', this.name);
     if (this.content.componentInstance) {
-      this.content.removeComponent(this.element as Element, this.options.stateful);
+      // Only acts if not already left
+      this.content.leave(this.content.instruction);
+      this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
     }
     this.enabled = false;
   }
 
   public unbinding(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
-      this.content.terminateComponent(this.options.stateful);
+      this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
     }
   }
 

@@ -151,7 +151,6 @@ export class Viewport {
         instruction.setViewport(this);
       }
       this.router.goto(instructions, { append: true });
-      // this.router.addProcessingViewport(this.options.default, this, false);
     }
   }
 
@@ -259,26 +258,6 @@ export class Viewport {
     }
   }
 
-  // public description(full: boolean = false): string {
-  //   if (this.content.content) {
-  //     const component = this.content.toComponentName() as string;
-  //     if (full || this.options.forceDescription) {
-  //       return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
-  //     }
-  //     const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
-  //     if (!found || !found.foundViewports || !found.foundViewports.length) {
-  //       return this.router.instructionResolver.stringifyViewportInstruction(this.content.content);
-  //     }
-  //     return this.router.instructionResolver.stringifyViewportInstruction(this.content.content, true);
-  //   }
-  //   return '';
-  // }
-
-  // public scopedDescription(full: boolean = false): string {
-  //   const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
-  //   return this.router.instructionResolver.stringifyScopedViewportInstructions(descriptions.filter((value) => value && value.length));
-  // }
-
   // TODO: Deal with non-string components
   public wantComponent(component: ComponentAppellation): boolean {
     let usedBy = this.options.usedBy || [];
@@ -355,9 +334,6 @@ export class Viewport {
     }
   }
 
-
-
-
   public getEnabledViewports(): Record<string, Viewport> {
     return this.children.filter((viewport) => viewport.enabled).reduce(
       (viewports: Record<string, Viewport>, viewport) => {
@@ -396,9 +372,6 @@ export class Viewport {
     // Configured viewport is ruling
     for (let i = 0; i < viewportInstructions.length; i++) {
       const instruction = viewportInstructions[i];
-      // if (!withoutViewports && instruction.viewport) {
-      //   continue;
-      // }
       instruction.needsViewportDescribed = true;
       for (const name in availableViewports) {
         const viewport: Viewport | null = availableViewports[name];
@@ -418,9 +391,6 @@ export class Viewport {
     if (!disregardViewports) {
       for (let i = 0; i < viewportInstructions.length; i++) {
         const instruction = viewportInstructions[i];
-        // if (instruction.viewport) {
-        //   continue;
-        // }
         const name = instruction.viewportName;
         if (!name || !name.length) {
           continue;
@@ -444,9 +414,6 @@ export class Viewport {
     // Finally, only one accepting viewport left?
     for (let i = 0; i < viewportInstructions.length; i++) {
       const instruction = viewportInstructions[i];
-      // if (!withoutViewports && instruction.viewport) {
-      //   continue;
-      // }
       const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
         const viewport: Viewport | null = availableViewports[name];
@@ -471,9 +438,6 @@ export class Viewport {
         const instruction = viewportInstructions[i];
         let viewport = instruction.viewport;
         if (!viewport) {
-          // if (instruction.viewport) {
-          //   continue;
-          // }
           const name = instruction.viewportName;
           if (!name || !name.length) {
             continue;
@@ -569,12 +533,6 @@ export class Viewport {
     }
     return enabledViewports.map(viewport => viewport.content.content);
   }
-
-
-
-
-
-
 
   private unloadContent(): void {
     this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);

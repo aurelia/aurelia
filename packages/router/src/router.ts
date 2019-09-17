@@ -3,7 +3,7 @@ import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/ru
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, NavigationInstruction, ViewportHandle } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, NavigationInstruction } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
@@ -11,7 +11,6 @@ import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { RouteTable } from './route-table';
-// import { Scope } from './scope';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
@@ -44,7 +43,6 @@ export interface IRouter {
   readonly isNavigating: boolean;
   activeComponents: ViewportInstruction[];
   readonly container: IContainer;
-  // readonly scopes: Scope[];
   readonly instructionResolver: InstructionResolver;
   navigator: Navigator;
   readonly navigation: BrowserNavigator;
@@ -59,7 +57,6 @@ export interface IRouter {
   linkCallback(info: AnchorEventInfo): void;
 
   processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
-  // addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void;
 
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
@@ -71,9 +68,7 @@ export interface IRouter {
 
   allViewports(includeDisabled?: boolean): Viewport[];
   findScope(element: Element | null): Viewport;
-  // removeScope(scope: Scope): void;
 
-  // goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
   goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
   refresh(): Promise<void>;
   back(): Promise<void>;
@@ -92,7 +87,6 @@ export class Router implements IRouter {
   public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, IRouteTransformer, LinkHandler, InstructionResolver];
 
   public rootScope: Viewport | null = null;
-  // public scopes: Scope[] = [];
 
   public guardian: Guardian;
 
@@ -320,11 +314,7 @@ export class Router implements IRouter {
         }
         await this.goto(canEnter, { append: true });
         await value.abortContentChange();
-        // for (const viewportInstruction of canEnter) {
-        //   // TODO: Abort content change in the viewports
-        //   this.addProcessingViewport(viewportInstruction);
-        // }
-        // value.abortContentChange().catch(error => { throw error; });
+        // TODO: Abort content change in the viewports
         return true;
       }));
       if (results.some(result => result === false)) {
@@ -366,32 +356,9 @@ export class Router implements IRouter {
           ...clearViewports.map(viewport => new ViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
         ];
         clearViewports = [];
-        // for (const viewport of clearViewports) {
-        //   viewport.setNextContent(this.instructionResolver.clearViewportInstruction, instruction);
-        //   // if (viewport.setNextContent(this.instructionResolver.clearViewportInstruction, instruction)) {
-        //   //   changedViewports.push(viewport);
-        //   // }
-        // }
-        // let clearResults = await Promise.all(clearViewports.map((value) => value.canLeave()));
-        // if (clearResults.some(result => result === false)) {
-        //   return this.cancelNavigation([...clearViewports, ...updatedViewports], instruction);
-        // }
-
-        // clearResults = await Promise.all(clearViewports.map(async (value) => {
-        //   await value.canEnter();
-        //   return value.enter();
-        // }));
-        // if (clearResults.some(result => result === false)) {
-        //   return this.cancelNavigation([...clearViewports, ...updatedViewports], qInstruction);
-        // }
-
-        // for (const viewport of clearViewports) {
-        //   if (updatedViewports.every(value => value !== viewport)) {
-        //     updatedViewports.push(viewport);
-        //   }
-        // }
       }
 
+      // TODO: Do we still need this? What if no viewport at all?
       // if (!this.allViewports().length) {
       //   viewportsRemaining = false;
       // }
@@ -417,29 +384,6 @@ export class Router implements IRouter {
     this.processingNavigation = null;
     await this.navigator.finalize(instruction);
   };
-
-  // public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
-  //   if (!this.processingNavigation && onlyIfProcessingStatus) {
-  //     return;
-  //   }
-  //   if (this.processingNavigation) {
-  //     const viewportInstruction = NavigationInstructionResolver.toViewportInstructions(this, componentOrInstruction)[0];
-  //     if (!viewportInstruction.viewport && viewport) {
-  //       viewportInstruction.setViewport(viewport);
-  //       if (!viewportInstruction.viewport) {
-  //         const viewportInstance = this.allViewports().find(vp => vp.name === viewportInstruction.viewportName);
-  //         // TODO: Deal with not yet existing viewports
-  //         if (viewportInstance) {
-  //           viewportInstruction.setViewport(viewportInstance);
-  //         }
-  //       }
-  //     }
-  //     this.addedViewports.push(viewportInstruction);
-  //   } else if (this.lastNavigation) {
-  //     this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
-  //     // Don't wait for the (possibly slow) navigation
-  //   }
-  // }
 
   public findScope(element: Element): Viewport {
     this.ensureRootScope();
@@ -482,16 +426,6 @@ export class Router implements IRouter {
     this.ensureRootScope();
     return (this.rootScope as Viewport).allViewports(includeDisabled);
   }
-
-  // public removeScope(scope: Viewport): void {
-  //   if (scope !== this.rootScope) {
-  //     scope.removeScope();
-  //     const index = this.scopes.indexOf(scope);
-  //     if (index >= 0) {
-  //       this.scopes.splice(index, 1);
-  //     }
-  //   }
-  // }
 
   public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
     options = options || {};
@@ -665,9 +599,7 @@ export class Router implements IRouter {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
-      // this.rootScope = new Scope(this, root.host as Element, (root.controller as IController).context as IRenderContext, null);
       this.rootScope = new Viewport(this, 'rootScope', root.host as Element, (root.controller as IController).context as IRenderContext, null, true);
-      // this.scopes.push(this.rootScope as Scope);
     }
   }
 

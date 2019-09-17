@@ -87,12 +87,6 @@ export {
   Router,
 } from './router';
 
-// export {
-//   IFindViewportsResult,
-//   ChildContainer,
-//   Scope,
-// } from './scope';
-
 export {
   IViewportOptions,
   Viewport,

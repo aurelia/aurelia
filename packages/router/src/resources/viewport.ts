@@ -113,11 +113,11 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
     }
   }
 

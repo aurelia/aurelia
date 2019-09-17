@@ -2,7 +2,6 @@ import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
-import { Scope } from './scope';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 
@@ -16,7 +15,7 @@ export class ViewportInstruction {
   public parameters: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
 
-  public scope: Scope | null = null;
+  public scope: Viewport | null = null;
   public needsViewportDescribed: boolean = false;
 
   constructor(

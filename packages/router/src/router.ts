@@ -11,7 +11,7 @@ import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { RouteTable } from './route-table';
-import { Scope } from './scope';
+// import { Scope } from './scope';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
@@ -44,7 +44,7 @@ export interface IRouter {
   readonly isNavigating: boolean;
   activeComponents: ViewportInstruction[];
   readonly container: IContainer;
-  readonly scopes: Scope[];
+  // readonly scopes: Scope[];
   readonly instructionResolver: InstructionResolver;
   navigator: Navigator;
   readonly navigation: BrowserNavigator;
@@ -65,13 +65,13 @@ export interface IRouter {
   getViewport(name: string): Viewport | null;
 
   // Called from the viewport custom element in attached()
-  addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+  connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
+  disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
 
   allViewports(includeDisabled?: boolean): Viewport[];
-  findScope(element: Element | null): Scope;
-  removeScope(scope: Scope): void;
+  findScope(element: Element | null): Viewport;
+  // removeScope(scope: Scope): void;
 
   // goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
   goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
@@ -91,8 +91,8 @@ export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x
 export class Router implements IRouter {
   public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, IRouteTransformer, LinkHandler, InstructionResolver];
 
-  public rootScope: Scope | null = null;
-  public scopes: Scope[] = [];
+  public rootScope: Viewport | null = null;
+  // public scopes: Scope[] = [];
 
   public guardian: Guardian;
 
@@ -441,7 +441,7 @@ export class Router implements IRouter {
   //   }
   // }
 
-  public findScope(element: Element): Scope {
+  public findScope(element: Element): Viewport {
     this.ensureRootScope();
     return this.closestScope(element);
   }
@@ -452,7 +452,7 @@ export class Router implements IRouter {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
+  public connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     const viewport = parentScope.addViewport(name, element, context, options);
@@ -470,8 +470,8 @@ export class Router implements IRouter {
     return viewport;
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
-    if (!viewport.owningScope.removeViewport(viewport, element, context)) {
+  public disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
+    if (!viewport.owningScope!.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
     if (viewport.parent !== null) {
@@ -480,18 +480,18 @@ export class Router implements IRouter {
   }
   public allViewports(includeDisabled: boolean = false): Viewport[] {
     this.ensureRootScope();
-    return (this.rootScope as Scope).allViewports(includeDisabled);
+    return (this.rootScope as Viewport).allViewports(includeDisabled);
   }
 
-  public removeScope(scope: Scope): void {
-    if (scope !== this.rootScope) {
-      scope.removeScope();
-      const index = this.scopes.indexOf(scope);
-      if (index >= 0) {
-        this.scopes.splice(index, 1);
-      }
-    }
-  }
+  // public removeScope(scope: Viewport): void {
+  //   if (scope !== this.rootScope) {
+  //     scope.removeScope();
+  //     const index = this.scopes.indexOf(scope);
+  //     if (index >= 0) {
+  //       this.scopes.splice(index, 1);
+  //     }
+  //   }
+  // }
 
   public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
     options = options || {};
@@ -502,7 +502,7 @@ export class Router implements IRouter {
       options.query = search;
     }
     if (typeof instructions !== 'string' || instructions !== this.instructionResolver.clearViewportInstruction) {
-      let scope = null;
+      let scope: Viewport | null = null;
       if (options.origin) {
         scope = this.closestScope(options.origin as Element);
         if (typeof instructions === 'string') {
@@ -516,7 +516,7 @@ export class Router implements IRouter {
               }
               // Find out how many scopes upwards we should move
               while (instructions.startsWith('../')) {
-                scope = scope.parent || scope;
+                scope = scope!.parent || scope;
                 instructions = instructions.slice(3);
               }
             }
@@ -643,7 +643,7 @@ export class Router implements IRouter {
     const remaining: ViewportInstruction[] = [];
 
     while (instructions.length) {
-      const scope: Scope = instructions[0].scope!;
+      const scope: Viewport = instructions[0].scope!;
       const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
       found.push(...foundViewports);
       remaining.push(...remainingInstructions);
@@ -665,22 +665,23 @@ export class Router implements IRouter {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
-      this.rootScope = new Scope(this, root.host as Element, (root.controller as IController).context as IRenderContext, null);
-      this.scopes.push(this.rootScope as Scope);
+      // this.rootScope = new Scope(this, root.host as Element, (root.controller as IController).context as IRenderContext, null);
+      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, (root.controller as IController).context as IRenderContext, null, true);
+      // this.scopes.push(this.rootScope as Scope);
     }
   }
 
-  private closestScope(element: Element): Scope {
+  private closestScope(element: Element): Viewport {
     const viewport = this.closestViewport(element);
     if (viewport && (viewport.scope || viewport.owningScope)) {
-      return viewport.scope || viewport.owningScope;
+      return viewport.scope || viewport.owningScope!;
     }
     return this.rootScope!;
   }
 
   private replacePaths(instruction: INavigatorInstruction): Promise<void> {
-    (this.rootScope as Scope).reparentViewportInstructions();
-    const viewports: Viewport[] = (this.rootScope as Scope).viewports.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
+    (this.rootScope as Viewport).reparentViewportInstructions();
+    const viewports: Viewport[] = (this.rootScope as Viewport).children.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
     let instructions = viewports.map(viewport => viewport.content.content);
     // TODO: Check if this is really necessary
     instructions = this.instructionResolver.cloneViewportInstructions(instructions);

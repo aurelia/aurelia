@@ -29,6 +29,7 @@ export class Viewport {
   public nextContent: ViewportContent | null = null;
 
   public enabled: boolean = true;
+  public forceRemove: boolean = false;
 
   public parent: Viewport | null = null;
   public children: Viewport[] = [];
@@ -51,6 +52,16 @@ export class Viewport {
   ) {
     this.scope = scope ? this : null;
     this.content = new ViewportContent();
+  }
+
+  public get doForceRemove(): boolean {
+    let viewport: Viewport = this;
+    let forceRemove = viewport.forceRemove;
+    while (!forceRemove && viewport.parent !== null) {
+      viewport = viewport.parent;
+      forceRemove = viewport.forceRemove;
+    }
+    return forceRemove;
   }
 
   public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
@@ -154,10 +165,14 @@ export class Viewport {
     }
   }
 
-  public remove(element: Element | null, context: IRenderContext | IContainer | null): boolean {
+  public async remove(element: Element | null, context: IRenderContext | IContainer | null): Promise<boolean> {
     if (this.element === element && this.context === context) {
       if (this.content.componentInstance) {
-        this.content.freeContent(this.element as Element, (this.nextContent ? this.nextContent.instruction : null), this.router.options.statefulHistory || this.options.stateful).catch(error => { throw error; });
+        await this.content.freeContent(
+          this.element as Element,
+          (this.nextContent ? this.nextContent.instruction : null),
+          this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
+        ); //.catch(error => { throw error; });
       }
       return true;
     }
@@ -252,7 +267,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    await (this.nextContent as ViewportContent).freeContent(this.element as Element, (this.nextContent as ViewportContent).instruction, this.router.options.statefulHistory || this.options.stateful);
+    await (this.nextContent as ViewportContent).freeContent(this.element as Element, (this.nextContent as ViewportContent).instruction, this.router.statefulHistory || this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -308,14 +323,17 @@ export class Viewport {
     if (this.content.componentInstance) {
       // Only acts if not already left
       this.content.leave(this.content.instruction);
-      this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
+      this.content.removeComponent(
+        this.element as Element,
+        this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
+      );
     }
     this.enabled = false;
   }
 
   public unbinding(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
-      this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
+      this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }
   }
 
@@ -532,8 +550,8 @@ export class Viewport {
   }
 
   private unloadContent(): void {
-    this.content.removeComponent(this.element as Element, this.router.options.statefulHistory || this.options.stateful);
-    this.content.terminateComponent(this.router.options.statefulHistory || this.options.stateful);
+    this.content.removeComponent(this.element as Element, this.router.statefulHistory || this.options.stateful);
+    this.content.terminateComponent(this.router.statefulHistory || this.options.stateful);
     this.content.unloadComponent();
     this.content.destroyComponent();
   }

@@ -60,7 +60,9 @@ export interface INavigatorEntry extends IStoredNavigatorEntry {
 export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;
+  statefulHistoryLength?: number;
   callback?(instruction: INavigatorInstruction): void;
+  serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): IStoredNavigatorEntry;
 }
 
 export interface INavigatorFlags {
@@ -84,7 +86,9 @@ export class Navigator {
 
   private readonly pendingNavigations: Queue<INavigatorInstruction>;
 
-  private options: INavigatorOptions = {};
+  private options: INavigatorOptions = {
+    statefulHistoryLength: 0,
+  };
   private isActive: boolean = false;
   private router!: IRouter;
   private uninitializedEntry: INavigatorInstruction;
@@ -221,6 +225,17 @@ export class Navigator {
     }
     const storedEntry = this.toStoredEntry(this.currentEntry);
     this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
+
+    if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength! > 0) {
+      const index = this.entries.length - this.options.statefulHistoryLength!;
+      for (let i = 0; i < index; i++) {
+        const entry = this.entries[i];
+        if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+          this.entries[i] = this.options.serializeCallback(entry, this.entries);
+        }
+      }
+    }
+
     if (!this.options.store) {
       return Promise.resolve();
     }

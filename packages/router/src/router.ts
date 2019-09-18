@@ -6,7 +6,7 @@ import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, Navigator } from './navigator';
+import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
@@ -35,7 +35,7 @@ export interface IGotoOptions {
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
-  statefulHistory?: boolean;
+  statefulHistoryLength?: number;
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
@@ -50,6 +50,7 @@ export interface IRouter {
   readonly navs: Readonly<Record<string, Nav>>;
   readonly options: IRouterOptions;
 
+  readonly statefulHistory: boolean;
   activate(options?: IRouterOptions): void;
   loadUrl(): Promise<void>;
   deactivate(): void;
@@ -95,7 +96,9 @@ export class Router implements IRouter {
 
   public addedViewports: ViewportInstruction[] = [];
 
-  public options: IRouterOptions = {};
+  public options: IRouterOptions = {
+    statefulHistoryLength: 0,
+  };
   private isActive: boolean = false;
   private loadedFirst: boolean = false;
 
@@ -117,6 +120,10 @@ export class Router implements IRouter {
     return this.processingNavigation !== null;
   }
 
+  public get statefulHistory(): boolean {
+    return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
+  }
+
   public activate(options?: IRouterOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated');
@@ -124,10 +131,10 @@ export class Router implements IRouter {
 
     this.isActive = true;
     this.options = {
+      ...this.options,
       ...{
         transformFromUrl: this.routeTransformer.transformFromUrl,
         transformToUrl: this.routeTransformer.transformToUrl,
-        statefulHistory: true,
       }, ...options
     };
 
@@ -135,6 +142,8 @@ export class Router implements IRouter {
     this.navigator.activate(this, {
       callback: this.navigatorCallback,
       store: this.navigation,
+      statefulHistoryLength: this.options.statefulHistoryLength,
+      serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
     this.linkHandler.activate({ callback: this.linkCallback });
     this.navigation.activate({
@@ -183,6 +192,38 @@ export class Router implements IRouter {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   };
+  public navigatorSerializeCallback = (entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): IStoredNavigatorEntry => {
+    console.log('navigatorSerializeCallback', entry, entries);
+    const index = entries.indexOf(entry);
+    let usedViewports = [];
+    for (let i = index + 1; i < entries.length; i++) {
+      if (typeof entry.instruction !== 'string') {
+        usedViewports.push(...this.instructionResolver.flattenViewportInstructions(entries[i].instruction as ViewportInstruction[]).map(instruction => instruction.viewport));
+      }
+      if (typeof entry.fullStateInstruction !== 'string') {
+        usedViewports.push(...this.instructionResolver.flattenViewportInstructions(entries[i].fullStateInstruction as ViewportInstruction[]).map(instruction => instruction.viewport));
+      }
+    }
+    usedViewports = usedViewports.filter(
+      (viewport, i, arr) => viewport !== null && viewport.enabled && arr.indexOf(viewport) === i
+    ) as Viewport[];
+
+    const serialized: IStoredNavigatorEntry = { ...entry };
+    if (serialized.instruction && typeof serialized.instruction !== 'string') {
+      for (const instruction of serialized.instruction) {
+        this.freeViewports(instruction, usedViewports);
+      }
+      serialized.instruction = this.instructionResolver.stringifyViewportInstructions(serialized.instruction);
+    }
+    if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
+      for (const instruction of serialized.fullStateInstruction) {
+        this.freeViewports(instruction, usedViewports);
+      }
+      serialized.fullStateInstruction = this.instructionResolver.stringifyViewportInstructions(serialized.fullStateInstruction);
+    }
+    return serialized;
+  };
+
   public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
     const entry: INavigatorEntry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
       ? browserNavigationEvent.state.currentEntry as INavigatorEntry
@@ -418,9 +459,9 @@ export class Router implements IRouter {
     if (!viewport.owningScope!.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
-    if (viewport.parent !== null) {
-      viewport.parent.removeChild(viewport);
-    }
+    // if (viewport.parent !== null) {
+    //   viewport.parent.removeChild(viewport);
+    // }
   }
   public allViewports(includeDisabled: boolean = false): Viewport[] {
     this.ensureRootScope();
@@ -644,8 +685,23 @@ export class Router implements IRouter {
     instruction.path = state + query;
 
     const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
-    fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.options.statefulHistory));
+    fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
     instruction.fullStateInstruction = fullViewportStates;
     return Promise.resolve();
+  }
+
+  private freeViewports(instruction: ViewportInstruction, excludeViewports: Viewport[]): void {
+    const viewport = instruction.viewport;
+    if (viewport === null) {
+      return;
+    }
+    if (!viewport.enabled && !excludeViewports.some(vp => vp === viewport)) {
+      viewport.forceRemove = true;
+      this.disconnectViewport(viewport, viewport.element, viewport.context as IRenderContext);
+    } else if (instruction.nextScopeInstructions) {
+      for (const nextInstruction of instruction.nextScopeInstructions) {
+        this.freeViewports(nextInstruction, excludeViewports);
+      }
+    }
   }
 }

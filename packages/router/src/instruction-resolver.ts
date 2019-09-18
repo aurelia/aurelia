@@ -164,9 +164,9 @@ export class InstructionResolver {
         instruction.parametersString!
       );
       clone.needsViewportDescribed = instruction.needsViewportDescribed;
-      clone.scope = viewportInstances ? instruction.scope : null; // Since scopes are recreated constantly
+      clone.scope = viewportInstances ? instruction.scope : null;
       if (instruction.nextScopeInstructions) {
-        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions);
+        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, viewportInstances);
       }
       clones.push(clone);
     }

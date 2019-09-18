@@ -616,11 +616,8 @@ export class Router implements IRouter {
     const viewports: Viewport[] = (this.rootScope as Viewport).children.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
     let instructions = viewports.map(viewport => viewport.content.content);
     // TODO: Check if this is really necessary
-    instructions = this.instructionResolver.cloneViewportInstructions(instructions);
+    instructions = this.instructionResolver.cloneViewportInstructions(instructions, true);
 
-    for (const vpInstruction of instructions) {
-      vpInstruction.scope = this.rootScope;
-    }
     const alreadyFound: ViewportInstruction[] = [];
     let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
     let guard = 100;

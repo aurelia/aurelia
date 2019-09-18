@@ -522,13 +522,10 @@ export class Viewport {
     if (!enabledViewports.length) {
       return null;
     }
-    const childInstructions: ViewportInstruction[] = [];
-    for (const child of this.children) {
-      childInstructions.push(...(child.reparentViewportInstructions() || []));
-    }
     for (const viewport of enabledViewports) {
       if (viewport.content.content) {
-        viewport.content.content.nextScopeInstructions = childInstructions && childInstructions.length ? childInstructions : null;
+        const childInstructions = viewport.reparentViewportInstructions();
+        viewport.content.content.nextScopeInstructions = childInstructions !== null && childInstructions.length > 0 ? childInstructions : null;
       }
     }
     return enabledViewports.map(viewport => viewport.content.content);

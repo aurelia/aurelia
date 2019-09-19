@@ -174,7 +174,7 @@ describe('DI.createInterface() -> container.get()', function () {
           [IAlias],
           [ISingleton, undefined],
           [IAlias],
-          [ISingleton, ISingleton],
+          [ISingleton, IAlias],
         ],
         `get.calls`,
       );

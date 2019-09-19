@@ -31,17 +31,6 @@ describe('runtime-aliasing', function () {
             public value: any;
             public value2: any;
         });
-
-    const Foo4 = CustomElement.define({ name: 'foo4', template: `<template>\${value}-Foo4</template>`, bindables: ['value', 'value2'] },
-        class {
-            public value: any;
-            public value2: any;
-        });
-
-    const Foo1Attr = CustomAttribute.define({ name: 'foo1', bindables: ['value'] },
-        class {
-            public value: any;
-        });
         
     const testCases: any[] = [
         {

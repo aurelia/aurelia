@@ -17,6 +17,10 @@ import { Controller } from './controller';
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
 
+  public get parentContextId(): number {
+    return this.template.renderContext.parentId;
+  }
+
   public isCaching: boolean;
   public name: string;
   public parts: TemplatePartDefinitions;

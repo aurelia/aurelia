@@ -5,7 +5,6 @@ import {
 
 import {
   bindable,
-  createRenderContext,
   CustomElement,
   IController,
   ICustomElementType,
@@ -15,6 +14,7 @@ import {
   IRenderingEngine,
   ITemplate,
   LifecycleFlags,
+  RenderContext,
   TemplateDefinition
 } from '@aurelia/runtime';
 
@@ -54,7 +54,7 @@ export class ViewportCustomElement {
     }
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-    (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
+    (template as Writable<ITemplate>).renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
     template.render(this, host, parts);
   }
 

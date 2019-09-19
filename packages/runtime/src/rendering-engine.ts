@@ -3,6 +3,7 @@ import {
   DI,
   IContainer,
   IDisposable,
+  IIndexable,
   InstanceProvider,
   IResolver,
   IResourceDescriptions,
@@ -10,7 +11,6 @@ import {
   Reporter,
   RuntimeCompilationResources,
   Writable,
-  IIndexable,
 } from '@aurelia/kernel';
 
 import {
@@ -39,16 +39,17 @@ import {
 } from './lifecycle';
 import {
   IAccessor,
+  IPropertyObserver,
   ISubscribable,
   ISubscriber,
   ISubscriberCollection,
-  IPropertyObserver,
 } from './observation';
 import { subscriberCollection } from './observation/subscriber-collection';
+import { RenderContext } from './render-context';
 import {
+  CustomElement,
   ICustomElementType,
   IElementProjector,
-  CustomElement,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
@@ -190,6 +191,8 @@ export interface IRenderingEngine {
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
 
+type ViewFactoryRecord = { [key: number]: IViewFactory | undefined };
+
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
   public static readonly inject: readonly Key[] = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
@@ -197,7 +200,8 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly compilers: Record<string, ITemplateCompiler>;
   private readonly container: IContainer;
   private readonly templateFactory: ITemplateFactory;
-  private readonly viewFactoryLookup: Map<ITemplateDefinition, IViewFactory>;
+  private readonly viewFactoryLookup: Map<ITemplateDefinition, ViewFactoryRecord>;
+  private readonly validSourceLookup: Map<ITemplateDefinition, TemplateDefinition>;
   private readonly lifecycle: ILifecycle;
   private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
@@ -205,6 +209,7 @@ export class RenderingEngine implements IRenderingEngine {
     this.container = container;
     this.templateFactory = templateFactory;
     this.viewFactoryLookup = new Map();
+    this.validSourceLookup = new Map();
     this.lifecycle = lifecycle;
     this.templateLookup = new Map();
 
@@ -248,14 +253,25 @@ export class RenderingEngine implements IRenderingEngine {
       throw new Error(`No definition provided`); // TODO: create error code
     }
 
-    let factory = this.viewFactoryLookup.get(definition);
+    let validSource = this.validSourceLookup.get(definition);
+    if (validSource === void 0) {
+      validSource = buildTemplateDefinition(null, definition);
+      this.validSourceLookup.set(definition, validSource);
+    }
 
-    if (!factory) {
-      const validSource = buildTemplateDefinition(null, definition);
+    let factoryRecord = this.viewFactoryLookup.get(validSource);
+    if (factoryRecord === void 0) {
+      factoryRecord = Object.create(null) as ViewFactoryRecord;
+      this.viewFactoryLookup.set(validSource, factoryRecord);
+    }
+
+    const parentContextId = parentContext === void 0 ? 0 : parentContext.id;
+    let factory = factoryRecord[parentContextId];
+    if (factory === void 0) {
       const template = this.templateFromSource(dom, validSource, parentContext, void 0);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
-      this.viewFactoryLookup.set(definition, factory);
+      factoryRecord[parentContextId] = factory;
     }
 
     return factory as IViewFactory<T>;
@@ -272,7 +288,7 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     if (definition.template != void 0) {
-      const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType) as ExposedContext;
+      const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
 
       if (definition.build.required) {
         const compilerName = definition.build.compiler || defaultCompilerName;
@@ -282,122 +298,13 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(dom, definition as ITemplateDefinition, new RuntimeCompilationResources(renderContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(dom, definition as ITemplateDefinition, renderContext.createRuntimeCompilationResources(), ViewCompileFlags.surrogate);
       }
 
       return this.templateFactory.create(renderContext, definition);
     }
 
     return noViewTemplate;
-  }
-}
-
-export function createRenderContext(
-  dom: IDOM,
-  parent: IRenderContext | IContainer,
-  dependencies: Key[],
-  componentType?: ICustomElementType
-): IRenderContext {
-  const context = parent.createChild() as ExposedContext;
-  const renderableProvider = new InstanceProvider();
-  const elementProvider = new InstanceProvider();
-  const instructionProvider = new InstanceProvider<ITargetedInstruction>();
-  const factoryProvider = new ViewFactoryProvider();
-  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
-  const renderer = context.get(IRenderer);
-
-  dom.registerElementResolver(context, elementProvider);
-
-  context.registerResolver(IViewFactory, factoryProvider);
-  context.registerResolver(IController, renderableProvider);
-  context.registerResolver(ITargetedInstruction, instructionProvider);
-  context.registerResolver(IRenderLocation, renderLocationProvider);
-
-  if (dependencies != void 0) {
-    context.register(...dependencies);
-  }
-
-  //If the element has a view, support Recursive Components by adding self to own view template container.
-  if (componentType) {
-    componentType.register(context);
-  }
-
-  context.render = function(
-    this: IRenderContext,
-    flags: LifecycleFlags,
-    renderable: IController,
-    targets: ArrayLike<INode>,
-    templateDefinition: TemplateDefinition,
-    host?: INode,
-    parts?: TemplatePartDefinitions,
-  ): void {
-    renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
-  };
-
-  // @ts-ignore
-  context.beginComponentOperation = function(
-    renderable: IController,
-    target: INode,
-    instruction: ITargetedInstruction,
-    factory: IViewFactory | null,
-    parts?: TemplatePartDefinitions,
-    location?: IRenderLocation,
-  ): IDisposable {
-    renderableProvider.prepare(renderable);
-    elementProvider.prepare(target);
-    instructionProvider.prepare(instruction);
-
-    if (factory) {
-      factoryProvider.prepare(factory, parts!);
-    }
-
-    if (location) {
-      renderLocationProvider.prepare(location);
-    }
-
-    return context;
-  };
-
-  context.dispose = function (): void {
-    factoryProvider.dispose();
-    renderableProvider.dispose();
-    instructionProvider.dispose();
-    elementProvider.dispose();
-    renderLocationProvider.dispose();
-  };
-
-  return context;
-}
-
-/** @internal */
-export class ViewFactoryProvider implements IResolver {
-  private factory!: IViewFactory | null;
-
-  public prepare(factory: IViewFactory, parts: TemplatePartDefinitions): void {
-    this.factory = factory;
-    factory.addParts(parts);
-  }
-
-  public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
-    const factory = this.factory;
-    if (factory == null) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
-    }
-    if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
-      throw Reporter.error(51); // TODO: organize error codes
-    }
-    const found = factory.parts[factory.name];
-    if (found) {
-      const renderingEngine = handler.get(IRenderingEngine);
-      const dom = handler.get(IDOM);
-      return renderingEngine.getViewFactory(dom, found, requestor);
-    }
-
-    return factory;
-  }
-
-  public dispose(): void {
-    this.factory = null;
   }
 }
 

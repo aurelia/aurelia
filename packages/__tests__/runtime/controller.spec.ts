@@ -2,7 +2,7 @@ import {
   Controller,
   LifecycleFlags as LF,
   ITemplateFactory,
-  createRenderContext,
+  RenderContext,
   Interpolation,
   AccessScopeExpression,
   CustomElement,
@@ -201,7 +201,7 @@ describe.skip('controller', function () {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, dom } = ctx;
     const templateFactory = container.get(ITemplateFactory);
-    const renderContext = createRenderContext(dom, container, null);
+    const renderContext = new RenderContext(dom, container, null);
     const $loc = h('div');
     const host = h('div', null, $loc);
     const loc = dom.convertToRenderLocation($loc);

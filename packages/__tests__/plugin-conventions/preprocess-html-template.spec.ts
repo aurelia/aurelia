@@ -573,5 +573,151 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
+  it('processes template with import as', function () {
+    const html = '<template><import as="test" from="foo"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration, importAs } from '@aurelia/kernel';
+import * as d0 from "foo";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ importAs('test',d0) ];
+export const shadowOptions = { mode: 'closed' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'closed' },
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with import as/none', function () {
+    const html = '<template><import as="test" from="foo"><import from="foo2"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration, importAs } from '@aurelia/kernel';
+import * as d0 from "foo";
+import * as d1 from "foo2";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ importAs('test',d0), d1 ];
+export const shadowOptions = { mode: 'closed' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'closed' },
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with import as with resource-name', function () {
+    const html = '<template><import resource-name="CoolCustomElement" as="test" from="foo"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration, importAs } from '@aurelia/kernel';
+import {CoolCustomElement as d0} from "foo";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ importAs('test',d0) ];
+export const shadowOptions = { mode: 'closed' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'closed' },
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with import as + resource name', function () {
+    const html = '<template><import resource-name="CoolCustomElement" as="test" from="foo"><import as="foo3" from="foo2"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration, importAs } from '@aurelia/kernel';
+import {CoolCustomElement as d0} from "foo";
+import * as d1 from "foo2";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ importAs('test',d0), importAs('foo3',d1) ];
+export const shadowOptions = { mode: 'closed' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'closed' },
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+
+  it('processes template with import as + resource name + no as', function () {
+    const html = '<template><import resource-name="CoolCustomElement" as="test" from="foo"><import as="foo3" from="foo2"><import from="foo5"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration, importAs } from '@aurelia/kernel';
+import {CoolCustomElement as d0} from "foo";
+import * as d1 from "foo2";
+import * as d2 from "foo5";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ importAs('test',d0), importAs('foo3',d1), d2 ];
+export const shadowOptions = { mode: 'closed' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'closed' },
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+
 
 });

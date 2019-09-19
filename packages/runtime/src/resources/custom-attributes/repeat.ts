@@ -39,6 +39,8 @@ import {
   InlineObserversLookup,
   IObservable,
   IObservedArray,
+  IOverrideContext,
+  IScope,
   ObservedCollection,
 } from '../../observation';
 import {
@@ -198,9 +200,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private processViewsKeyed(indexMap: IndexMap | undefined, flags: LF): void {
+    const oldLength = this.views.length;
     if (indexMap === void 0) {
       if ((this.$controller.state & State.isBoundOrBinding) > 0) {
-        const oldLength = this.views.length;
         this.detachViewsByRange(0, oldLength, flags);
         if (this.task.done) {
           this.task = this.unbindAndRemoveViewsByRange(0, oldLength, flags, false);
@@ -243,9 +245,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
         // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
         if (this.task.done) {
-          this.task = this.createAndBindNewViewsByKey(indexMap, flags);
+          this.task = this.createAndBindNewViewsByKey(indexMap, flags, oldLength);
         } else {
-          this.task = new ContinuationTask(this.task, this.createAndBindNewViewsByKey, this, indexMap, flags);
+          this.task = new ContinuationTask(this.task, this.createAndBindNewViewsByKey, this, indexMap, flags, oldLength);
         }
       }
 
@@ -380,23 +382,34 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     let view: IController<T>;
-    this.$controller.lifecycle.bound.begin();
-    const part = this.$controller.part;
+    let viewScope: IScope;
+
+    const $controller = this.$controller;
+    const lifecycle = $controller.lifecycle;
+
+    lifecycle.bound.begin();
+
+    const part = $controller.part;
     const factory = this.factory;
     const local = this.local;
     const items = this.items;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
+
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags);
-      view.parent = this.$controller;
+      view.parent = $controller;
+      viewScope = Scope.fromParent(
+        flags,
+        $controller.scope!,
+        BindingContext.create(flags, local, item),
+      );
+
+      setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+
       task = view.bind(
         flags,
-        Scope.fromParent(
-          flags,
-          this.$controller.scope!,
-          BindingContext.create(flags, local, item),
-        ),
+        viewScope,
         part,
       );
 
@@ -409,41 +422,61 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     });
 
     if (tasks === undefined) {
-      this.$controller.lifecycle.bound.end(flags);
+      lifecycle.bound.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      this.$controller.lifecycle.bound.end,
-      this.$controller.lifecycle.bound,
+      lifecycle.bound.end,
+      lifecycle.bound,
       flags,
     );
   }
 
-  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
+  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF, oldLength: number): ILifecycleTask {
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     let view: IController<T>;
+    let viewScope: IScope;
+
     const factory = this.factory;
     const views = this.views;
     const local = this.local;
     const items = this.items;
-    this.$controller.lifecycle.bound.begin();
-    const part = this.$controller.part;
+    const newLen = this.forOf.count(flags, items);
+
+    const $controller = this.$controller;
+    const lifecycle = $controller.lifecycle;
+
+    lifecycle.bound.begin();
+
+    const part = $controller.part;
     const mapLen = indexMap.length;
+    const sameLength = oldLength === newLen;
+
+    // only update views that comes after
+    let firstNewViewIndex = -1;
+
     for (let i = 0; i < mapLen; ++i) {
       if (indexMap[i] === -2) {
+        if (firstNewViewIndex === -1) {
+          firstNewViewIndex = i;
+        }
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-        view.parent = this.$controller;
+        view.parent = $controller;
+        viewScope = Scope.fromParent(
+          flags,
+          $controller.scope!,
+          BindingContext.create(flags, local, (items as any)[i]),
+        );
+        // update oc
+        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+        // update all the rest oc
         task = view.bind(
           flags,
-          Scope.fromParent(
-            flags,
-            this.$controller.scope!,
-            BindingContext.create(flags, local, (items as any)[i]),
-          ),
+          viewScope,
           part,
         );
         views.splice(i, 0, view);
@@ -454,6 +487,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           }
           tasks.push(task);
         }
+      } else {
+        const shouldUpdate = !sameLength || i > firstNewViewIndex && firstNewViewIndex !== -1;
+        if (shouldUpdate) {
+          setContextualProperties(views[i].scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+        }
       }
     }
 
@@ -463,22 +501,27 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (tasks === undefined) {
-      this.$controller.lifecycle.bound.end(flags);
+      lifecycle.bound.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      this.$controller.lifecycle.bound.end,
-      this.$controller.lifecycle.bound,
+      lifecycle.bound.end,
+      lifecycle.bound,
       flags,
     );
   }
 
   private attachViews(indexMap: IndexMap | undefined, flags: LF): void {
     let view: IController<T>;
-    const { views, location } = this;
-    this.$controller.lifecycle.attached.begin();
+
+    const views = this.views;
+    const location = this.location;
+    const lifecycle = this.$controller.lifecycle;
+
+    lifecycle.attached.begin();
+
     if (indexMap === void 0) {
       for (let i = 0, ii = views.length; i < ii; ++i) {
         view = views[i];
@@ -496,7 +539,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
     }
-    this.$controller.lifecycle.attached.end(flags);
+
+    lifecycle.attached.end(flags);
   }
 
   private attachViewsKeyed(flags: LF): void {
@@ -622,3 +666,25 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Int32Array {
   return result;
 }
 
+interface IRepeatOverrideContext extends IOverrideContext {
+  $index: number;
+  $odd: boolean;
+  $even: boolean;
+  $first: boolean;
+  $middle: boolean;
+  $last: boolean;
+  $length: number; // new in v2, there are a few requests, not sure if it should stay
+}
+
+function setContextualProperties(oc: IRepeatOverrideContext, index: number, length: number): void {
+  const isFirst = index === 0;
+  const isLast = index === length - 1;
+  const isEven = index % 2 === 0;
+  oc.$index = index;
+  oc.$first = isFirst;
+  oc.$last = isLast;
+  oc.$middle = !isFirst && !isLast;
+  oc.$even = isEven;
+  oc.$odd = !isEven;
+  oc.$length = length;
+}

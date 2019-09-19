@@ -34,7 +34,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
 
   const testCases: IComposeIntegrationTestCase[] = [
     {
-      title: 'it works in basic scenario',
+      title: 'it works in basic scenario (1 number)',
       template:
         `<div repeat.for="i of 1">\${$index} -- \${$even}</div>`,
       assertFn: (ctx, host, comp) => {
@@ -42,9 +42,47 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
       }
     },
     {
-      title: 'it works in basic scenario',
+      title: 'it works in basic scenario (10 numbers)',
       template:
         `<div repeat.for="i of 10">\${$index} -- \${$even}</div>`,
+      assertFn: (ctx, host, comp) => {
+        let text = '';
+        for (let i = 0; 10 > i; ++i) {
+          text += `${i} -- ${i % 2 === 0}`;
+        }
+        assert.strictEqual(host.textContent, text);
+      }
+    },
+    // {
+    //   title: 'it works in basic scenario (10 numbers -> 20 numbers)',
+    //   template: `<div repeat.for="i of itemCount">\${$index} -- \${$even}</div>`,
+    //   root: class App {
+    //     public itemCount: number = 10;
+    //   },
+    //   assertFn: async (ctx, host, comp: { itemCount: number }) => {
+    //     let text = '';
+    //     for (let i = 0; 10 > i; ++i) {
+    //       text += `${i} -- ${i % 2 === 0}`;
+    //     }
+    //     assert.strictEqual(host.textContent, text);
+
+    //     await waitForFrames(2);
+    //     comp.itemCount = 5;
+    //     for (let i = 0; 5 > i; ++i) {
+    //       text += `${i} -- ${i % 2 === 0}`;
+    //     }
+    //     assert.strictEqual(host.textContent, text);
+    //   }
+    // }
+    {
+      title: 'it works in basic scenario (10 objects)',
+      template:
+        `<div repeat.for="item of items">\${$index} -- \${$even}</div>`,
+      root: class App {
+        public items = Array.from({ length: 10 }).map((_, idx) => {
+          return { name: 'item - ' + idx, value: idx };
+        })
+      },
       assertFn: (ctx, host, comp) => {
         let text = '';
         for (let i = 0; 10 > i; ++i) {

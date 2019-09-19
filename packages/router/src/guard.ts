@@ -73,10 +73,10 @@ class Target {
       instructions.push(new ViewportInstruction(''));
     }
     for (const instruction of instructions) {
-      if (this.componentName === instruction.componentName ||
-        this.componentType === instruction.componentType ||
-        this.viewportName === instruction.viewportName ||
-        this.viewport === instruction.viewport) {
+      if ((this.componentName !== null && this.componentName === instruction.componentName) ||
+        (this.componentType !== null && this.componentType === instruction.componentType) ||
+        (this.viewportName !== null && this.viewportName === instruction.viewportName) ||
+        (this.viewport !== null && this.viewport === instruction.viewport)) {
         return true;
       }
     }

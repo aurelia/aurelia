@@ -231,7 +231,7 @@ export class Navigator {
       for (let i = 0; i < index; i++) {
         const entry = this.entries[i];
         if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
-          this.entries[i] = this.options.serializeCallback(entry, this.entries);
+          this.entries[i] = this.options.serializeCallback(entry, this.entries.slice(index));
         }
       }
     }
@@ -286,6 +286,15 @@ export class Navigator {
       this.entries[index] = this.toStoredEntry(this.currentEntry);
       await this.saveState();
     } else { // New entry (add and discard later entries)
+      if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength! > 0) {
+        // Need to clear the instructions we discard!
+        const indexPreserve = this.entries.length - this.options.statefulHistoryLength!;
+        for (const entry of this.entries.slice(index)) {
+          if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+            this.options.serializeCallback(entry, this.entries.slice(indexPreserve, index));
+          }
+        }
+      }
       this.entries = this.entries.slice(0, index);
       this.entries.push(this.toStoredEntry(this.currentEntry));
       await this.saveState(true);

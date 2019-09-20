@@ -192,19 +192,17 @@ export class Router implements IRouter {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   };
-  public navigatorSerializeCallback = (entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): IStoredNavigatorEntry => {
-    console.log('navigatorSerializeCallback', entry, entries);
-    const index = entries.indexOf(entry);
+  public navigatorSerializeCallback = (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): IStoredNavigatorEntry => {
+    console.log('navigatorSerializeCallback', entry, preservedEntries);
     let excludeComponents = [];
-    for (let i = index + 1; i < entries.length; i++) {
-      const laterEntry = entries[i];
-      if (typeof laterEntry.instruction !== 'string') {
-        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(laterEntry.instruction as ViewportInstruction[])
+    for (const preservedEntry of preservedEntries) {
+      if (typeof preservedEntry.instruction !== 'string') {
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.instruction as ViewportInstruction[])
           .filter(instruction => instruction.viewport !== null)
           .map(instruction => instruction.componentInstance));
       }
-      if (typeof laterEntry.fullStateInstruction !== 'string') {
-        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(laterEntry.fullStateInstruction as ViewportInstruction[])
+      if (typeof preservedEntry.fullStateInstruction !== 'string') {
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction as ViewportInstruction[])
           .filter(instruction => instruction.viewport !== null)
           .map(instruction => instruction.componentInstance));
       }

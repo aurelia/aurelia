@@ -650,6 +650,7 @@ describe('Router', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
+    await wait(0);
     await waitForNavigation(router);
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);

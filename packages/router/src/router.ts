@@ -195,7 +195,6 @@ export class Router implements IRouter {
   public navigatorSerializeCallback = (entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): IStoredNavigatorEntry => {
     console.log('navigatorSerializeCallback', entry, entries);
     const index = entries.indexOf(entry);
-    // let usedViewports = [];
     let excludeComponents = [];
     for (let i = index + 1; i < entries.length; i++) {
       const laterEntry = entries[i];
@@ -210,9 +209,6 @@ export class Router implements IRouter {
           .map(instruction => instruction.componentInstance));
       }
     }
-    // usedViewports = usedViewports.filter(
-    //   (viewport, i, arr) => viewport !== null && arr.indexOf(viewport) === i
-    // ) as Viewport[];
     excludeComponents = excludeComponents.filter(
       (component, i, arr) => component !== null && arr.indexOf(component) === i
     ) as IRouteableComponent[];
@@ -724,19 +720,4 @@ export class Router implements IRouter {
       }
     }
   }
-
-  // private freeViewports(instruction: ViewportInstruction, excludeViewports: Viewport[]): void {
-  //   const viewport = instruction.viewport;
-  //   if (viewport === null) {
-  //     return;
-  //   }
-  //   if (!viewport.enabled && !excludeViewports.some(vp => vp === viewport)) {
-  //     viewport.forceRemove = true;
-  //     this.disconnectViewport(viewport, viewport.element, viewport.context as IRenderContext);
-  //   } else if (instruction.nextScopeInstructions) {
-  //     for (const nextInstruction of instruction.nextScopeInstructions) {
-  //       this.freeViewports(nextInstruction, excludeViewports);
-  //     }
-  //   }
-  // }
 }

@@ -98,6 +98,12 @@ export class Viewport {
       }
     }
 
+    // If we get the same _instance_, don't do anything (happens with cached and history)
+    if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
+      this.nextContent = null;
+      return false;
+    }
+
     // ReentryBehavior 'refresh' takes precedence
     if (!this.content.equalComponent(this.nextContent) ||
       (instruction.navigation as INavigatorFlags).refresh ||
@@ -107,6 +113,7 @@ export class Viewport {
 
     // Explicitly don't allow navigation back to the same component again
     if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
+      this.nextContent = null;
       return false;
     }
 
@@ -122,6 +129,7 @@ export class Viewport {
       return true;
     }
 
+    this.nextContent = null;
     return false;
   }
 

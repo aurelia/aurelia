@@ -10,7 +10,10 @@ import {
   CustomElement,
   ICustomAttributeResource,
   INode,
-  valueConverter
+  valueConverter,
+  CustomAttribute,
+  IDOM,
+  ValueConverter
 } from '@aurelia/runtime';
 
 import {
@@ -18,6 +21,7 @@ import {
   HTMLTestContext,
   TestContext
 } from '@aurelia/testing';
+import { HTMLDOM } from '../../runtime-html/dist';
 
 describe('template-compiler.primary-bindable.spec.ts', function() {
 
@@ -396,6 +400,140 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       }
     });
   }
+
+  describe('mimic vCurrent route-href', function() {
+    class $RouteHref$ {
+
+      public static readonly inject = [INode, IDOM];
+
+      @bindable()
+      public params: any;
+
+      @bindable()
+      public href: string;
+
+      @bindable({ primary: true })
+      public route: string;
+
+      constructor(
+        private readonly el: HTMLAnchorElement,
+        private readonly dom: HTMLDOM
+      ) {
+        /*  */
+      }
+
+      public binding(): void {
+        this.updateAnchor('route');
+      }
+
+      public routeChanged(): void {
+        this.updateAnchor('route');
+      }
+
+      public paramsChanged(): void {
+        this.updateAnchor('params');
+      }
+
+      private updateAnchor(property: 'route' | 'params'): void {
+        this.href = `/?${property}=${JSON.stringify(this[property] || '')}`;
+      }
+    }
+
+    const RouteHref = CustomAttribute.define('route-href', $RouteHref$);
+
+    const DotConverter = ValueConverter.define(
+      {
+        name: 'dot-converter'
+      },
+      class $$DotConverter {
+        public toView(val: string, replaceWith: string): string {
+          return typeof val === 'string' && typeof replaceWith === 'string'
+            ? val.replace(/\./g, replaceWith)
+            : val;
+        }
+      }
+    );
+
+    it('works correctly when binding only route name', async function() {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: `<a route-href="home.main">Home page</a>`
+      });
+      const au = new Aurelia(ctx.container);
+
+      const body = ctx.doc.body;
+      const host = body.appendChild(ctx.createElement('app'));
+      ctx.container.register(RouteHref);
+
+      au.app({ component: App, host });
+      await au.start().wait();
+
+      assert.strictEqual(host.querySelector('a').search, '/?route=home.main');
+
+      await au.stop().wait();
+      host.remove();
+    });
+
+    it('works correctly when using with value converter and a colon', async function() {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: `<a route-href="home.main | dotConverter:'--'">Home page</a>`
+      });
+      const au = new Aurelia(ctx.container);
+
+      const body = ctx.doc.body;
+      const host = body.appendChild(ctx.createElement('app'));
+      ctx.container.register(RouteHref, DotConverter);
+
+      au.app({ component: App, host });
+      await au.start().wait();
+
+      assert.strictEqual(host.querySelector('a').search, '/?route=home--main');
+
+      await au.stop().wait();
+      host.remove();
+    });
+
+    it('works correctly when using multi binding syntax', async function() {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const App = CustomElement.define(
+        {
+          name: 'app',
+          template: `<a route-href="route: home.main; params: { id: appId }">Home page</a>`
+        },
+        class App {
+          public appId: string;
+        }
+      );
+      const au = new Aurelia(ctx.container);
+
+      const body = ctx.doc.body;
+      const host = body.appendChild(ctx.createElement('app'));
+      ctx.container.register(RouteHref);
+
+      au.app({ component: App, host });
+      await au.start().wait();
+
+      assert.strictEqual(
+        host.querySelector('a').search,
+        '/?route=home.main'
+      );
+
+      ctx.container.get(App).appId = 'appId-appId';
+      assert.strictEqual(
+        host.querySelector('a').search,
+        `/?params=${JSON.stringify({ id: 'appId-appId' })}`
+      );
+
+      await au.stop().wait();
+      host.remove();
+    });
+  });
 });
 
 async function waitForFrames(frameCount: number): Promise<void> {

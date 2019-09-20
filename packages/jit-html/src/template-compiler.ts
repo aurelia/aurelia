@@ -190,7 +190,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       this.compileParts(symbol)
     );
 
-    debugger;
     this.instructionRows.push(instructionRow);
 
     this.compileChildNodes(symbol);

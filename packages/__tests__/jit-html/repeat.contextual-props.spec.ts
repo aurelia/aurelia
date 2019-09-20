@@ -81,7 +81,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
       root: class App {
         public items = Array.from({ length: 10 }).map((_, idx) => {
           return { name: 'item - ' + idx, value: idx };
-        })
+        });
       },
       assertFn: (ctx, host, comp) => {
         let text = '';

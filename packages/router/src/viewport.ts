@@ -405,7 +405,7 @@ export class Viewport {
           const remaining = this.foundViewport(instruction, instruction.viewport, disregardViewports);
           foundViewports.push(instruction);
           remainingInstructions.push(...remaining);
-          availableViewports[name] = null;
+          availableViewports[instruction.viewport.name] = null;
           viewportInstructions.splice(i--, 1);
         }
       }

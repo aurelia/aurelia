@@ -195,31 +195,48 @@ export class Router implements IRouter {
   public navigatorSerializeCallback = (entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): IStoredNavigatorEntry => {
     console.log('navigatorSerializeCallback', entry, entries);
     const index = entries.indexOf(entry);
-    let usedViewports = [];
+    // let usedViewports = [];
+    let excludeComponents = [];
     for (let i = index + 1; i < entries.length; i++) {
-      if (typeof entry.instruction !== 'string') {
-        usedViewports.push(...this.instructionResolver.flattenViewportInstructions(entries[i].instruction as ViewportInstruction[]).map(instruction => instruction.viewport));
+      const laterEntry = entries[i];
+      if (typeof laterEntry.instruction !== 'string') {
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(laterEntry.instruction as ViewportInstruction[])
+          .filter(instruction => instruction.viewport !== null)
+          .map(instruction => instruction.componentInstance));
       }
-      if (typeof entry.fullStateInstruction !== 'string') {
-        usedViewports.push(...this.instructionResolver.flattenViewportInstructions(entries[i].fullStateInstruction as ViewportInstruction[]).map(instruction => instruction.viewport));
+      if (typeof laterEntry.fullStateInstruction !== 'string') {
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(laterEntry.fullStateInstruction as ViewportInstruction[])
+          .filter(instruction => instruction.viewport !== null)
+          .map(instruction => instruction.componentInstance));
       }
     }
-    usedViewports = usedViewports.filter(
-      (viewport, i, arr) => viewport !== null && viewport.enabled && arr.indexOf(viewport) === i
-    ) as Viewport[];
+    // usedViewports = usedViewports.filter(
+    //   (viewport, i, arr) => viewport !== null && arr.indexOf(viewport) === i
+    // ) as Viewport[];
+    excludeComponents = excludeComponents.filter(
+      (component, i, arr) => component !== null && arr.indexOf(component) === i
+    ) as IRouteableComponent[];
 
     const serialized: IStoredNavigatorEntry = { ...entry };
+    let instructions = [];
+    if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
+      instructions.push(...serialized.fullStateInstruction);
+      serialized.fullStateInstruction = this.instructionResolver.stringifyViewportInstructions(serialized.fullStateInstruction);
+    }
     if (serialized.instruction && typeof serialized.instruction !== 'string') {
-      for (const instruction of serialized.instruction) {
-        this.freeViewports(instruction, usedViewports);
-      }
+      instructions.push(...serialized.instruction);
       serialized.instruction = this.instructionResolver.stringifyViewportInstructions(serialized.instruction);
     }
-    if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
-      for (const instruction of serialized.fullStateInstruction) {
-        this.freeViewports(instruction, usedViewports);
-      }
-      serialized.fullStateInstruction = this.instructionResolver.stringifyViewportInstructions(serialized.fullStateInstruction);
+    instructions = instructions.filter(
+      (instruction, i, arr) =>
+        instruction !== null
+        && instruction.componentInstance !== null
+        && arr.indexOf(instruction) === i
+    ) as ViewportInstruction[];
+
+    const alreadyDone: IRouteableComponent[] = [];
+    for (const instruction of instructions) {
+      this.freeComponents(instruction, excludeComponents, alreadyDone);
     }
     return serialized;
   };
@@ -690,18 +707,36 @@ export class Router implements IRouter {
     return Promise.resolve();
   }
 
-  private freeViewports(instruction: ViewportInstruction, excludeViewports: Viewport[]): void {
+  private freeComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void {
+    const component = instruction.componentInstance;
     const viewport = instruction.viewport;
-    if (viewport === null) {
+    if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
       return;
     }
-    if (!viewport.enabled && !excludeViewports.some(vp => vp === viewport)) {
-      viewport.forceRemove = true;
-      this.disconnectViewport(viewport, viewport.element, viewport.context as IRenderContext);
-    } else if (instruction.nextScopeInstructions) {
+    if (!excludeComponents.some(exclude => exclude === component)) {
+      viewport.freeContent(component);
+      alreadyDone.push(component);
+      return;
+    }
+    if (instruction.nextScopeInstructions !== null) {
       for (const nextInstruction of instruction.nextScopeInstructions) {
-        this.freeViewports(nextInstruction, excludeViewports);
+        this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
       }
     }
   }
+
+  // private freeViewports(instruction: ViewportInstruction, excludeViewports: Viewport[]): void {
+  //   const viewport = instruction.viewport;
+  //   if (viewport === null) {
+  //     return;
+  //   }
+  //   if (!viewport.enabled && !excludeViewports.some(vp => vp === viewport)) {
+  //     viewport.forceRemove = true;
+  //     this.disconnectViewport(viewport, viewport.element, viewport.context as IRenderContext);
+  //   } else if (instruction.nextScopeInstructions) {
+  //     for (const nextInstruction of instruction.nextScopeInstructions) {
+  //       this.freeViewports(nextInstruction, excludeViewports);
+  //     }
+  //   }
+  // }
 }

@@ -192,14 +192,16 @@ export class ViewportContent {
     }
     this.contentStatus = ContentStatus.initialized;
   }
-  public terminateComponent(stateful: boolean = false): void {
+  public async terminateComponent(cache: ViewportContent[], stateful: boolean = false): Promise<void> {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
     // Don't terminate cached content
     if (!stateful) {
-      ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
       this.contentStatus = ContentStatus.loaded;
+    } else {
+      cache.push(this);
     }
   }
 
@@ -221,11 +223,11 @@ export class ViewportContent {
     }
     this.contentStatus = ContentStatus.added;
   }
-  public removeComponent(element: Element, stateful: boolean = false): void {
+  public removeComponent(element: Element | null, stateful: boolean = false): void {
     if (this.contentStatus !== ContentStatus.added || this.entered) {
       return;
     }
-    if (stateful) {
+    if (stateful && element !== null) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
         if (el.scrollTop > 0 || el.scrollLeft) {
@@ -237,13 +239,13 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.initialized;
   }
 
-  public async freeContent(element: Element, nextInstruction: INavigatorInstruction | null, stateful: boolean = false): Promise<void> {
+  public async freeContent(element: Element | null, nextInstruction: INavigatorInstruction | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatus.added:
         await this.leave(nextInstruction);
         this.removeComponent(element, stateful);
       case ContentStatus.initialized:
-        this.terminateComponent(stateful);
+        await this.terminateComponent(cache, stateful);
       case ContentStatus.loaded:
         this.unloadComponent();
       case ContentStatus.created:

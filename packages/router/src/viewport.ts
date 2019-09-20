@@ -1,8 +1,9 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, ReentryBehavior } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
+import { arrayRemove } from './utils';
 import { IViewportOptions } from './viewport';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
@@ -40,6 +41,7 @@ export class Viewport {
   private previousViewportState: Viewport | null = null;
 
   private cache: ViewportContent[] = [];
+  private historyCache: ViewportContent[] = [];
 
   constructor(
     public readonly router: IRouter,
@@ -171,8 +173,18 @@ export class Viewport {
         await this.content.freeContent(
           this.element as Element,
           (this.nextContent ? this.nextContent.instruction : null),
+          this.historyCache,
           this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
         ); //.catch(error => { throw error; });
+      }
+      if (this.doForceRemove) {
+        await Promise.all(this.historyCache.map(content => content.freeContent(
+          null,
+          null,
+          this.historyCache,
+          false,
+        )));
+        this.historyCache = [];
       }
       return true;
     }
@@ -226,7 +238,7 @@ export class Viewport {
     // No need to wait for next component activation
     if (this.content.componentInstance && !(this.nextContent as ViewportContent).componentInstance) {
       await this.content.leave((this.nextContent as ViewportContent).instruction);
-      this.unloadContent();
+      await this.unloadContent();
     }
 
     if ((this.nextContent as ViewportContent).componentInstance) {
@@ -237,7 +249,7 @@ export class Viewport {
       if (this.content.componentInstance) {
         await this.content.leave((this.nextContent as ViewportContent).instruction);
         if (!this.content.reentry && this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
-          this.unloadContent();
+          await this.unloadContent();
         }
       }
 
@@ -267,7 +279,11 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    await (this.nextContent as ViewportContent).freeContent(this.element as Element, (this.nextContent as ViewportContent).instruction, this.router.statefulHistory || this.options.stateful);
+    await (this.nextContent as ViewportContent).freeContent(
+      this.element as Element,
+      (this.nextContent as ViewportContent).instruction,
+      this.historyCache,
+      this.router.statefulHistory || this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -331,9 +347,9 @@ export class Viewport {
     this.enabled = false;
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public async unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
-      this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
+      await this.content.terminateComponent(this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }
   }
 
@@ -549,9 +565,24 @@ export class Viewport {
     return enabledViewports.map(viewport => viewport.content.content);
   }
 
-  private unloadContent(): void {
+  public async freeContent(component: IRouteableComponent) {
+    const content = this.historyCache.find(cached => cached.componentInstance === component);
+    if (content !== void 0) {
+      this.forceRemove = true;
+      await content.freeContent(
+        null,
+        null,
+        this.historyCache,
+        false,
+      );
+      this.forceRemove = false;
+      arrayRemove(this.historyCache, (cached => cached === content));
+    }
+  }
+
+  private async unloadContent(): Promise<void> {
     this.content.removeComponent(this.element as Element, this.router.statefulHistory || this.options.stateful);
-    this.content.terminateComponent(this.router.statefulHistory || this.options.stateful);
+    await this.content.terminateComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
     this.content.unloadComponent();
     this.content.destroyComponent();
   }

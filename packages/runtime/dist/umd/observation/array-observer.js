@@ -279,10 +279,15 @@
             if (o === void 0) {
                 return $splice.apply($this, arguments);
             }
+            const len = this.length;
+            const relativeStart = start | 0;
+            const actualStart = relativeStart < 0 ? Math.max((len + relativeStart), 0) : Math.min(relativeStart, len);
             const indexMap = o.indexMap;
-            if (deleteCount > 0) {
-                let i = isNaN(start) ? 0 : start;
-                const to = i + deleteCount;
+            const argCount = arguments.length;
+            const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
+            if (actualDeleteCount > 0) {
+                let i = actualStart;
+                const to = i + actualDeleteCount;
                 while (i < to) {
                     if (indexMap[i] > -1) {
                         indexMap.deletedItems.push(indexMap[i]);
@@ -290,7 +295,6 @@
                     i++;
                 }
             }
-            const argCount = arguments.length;
             if (argCount > 2) {
                 const itemCount = argCount - 2;
                 const inserts = new Array(itemCount);
@@ -300,8 +304,8 @@
                 }
                 $splice.call(indexMap, start, deleteCount, ...inserts);
             }
-            else if (argCount === 2) {
-                $splice.call(indexMap, start, deleteCount);
+            else {
+                $splice.apply(indexMap, arguments);
             }
             const deleted = $splice.apply($this, arguments);
             o.notify();
@@ -455,5 +459,48 @@
         return array.$observer;
     }
     exports.getArrayObserver = getArrayObserver;
+    /**
+     * Applies offsets to the non-negative indices in the IndexMap
+     * based on added and deleted items relative to those indices.
+     *
+     * e.g. turn `[-2, 0, 1]` into `[-2, 1, 2]`, allowing the values at the indices to be
+     * used for sorting/reordering items if needed
+     */
+    function applyMutationsToIndices(indexMap) {
+        let offset = 0;
+        let j = 0;
+        const len = indexMap.length;
+        for (let i = 0; i < len; ++i) {
+            while (indexMap.deletedItems[j] <= i - offset) {
+                ++j;
+                --offset;
+            }
+            if (indexMap[i] === -2) {
+                ++offset;
+            }
+            else {
+                indexMap[i] += offset;
+            }
+        }
+    }
+    exports.applyMutationsToIndices = applyMutationsToIndices;
+    /**
+     * After `applyMutationsToIndices`, this function can be used to reorder items in a derived
+     * array (e.g.  the items in the `views` in the repeater are derived from the `items` property)
+     */
+    function synchronizeIndices(items, indexMap) {
+        const copy = items.slice();
+        const len = indexMap.length;
+        let to = 0;
+        let from = 0;
+        while (to < len) {
+            from = indexMap[to];
+            if (from !== -2) {
+                items[to] = copy[from];
+            }
+            ++to;
+        }
+    }
+    exports.synchronizeIndices = synchronizeIndices;
 });
 //# sourceMappingURL=array-observer.js.map

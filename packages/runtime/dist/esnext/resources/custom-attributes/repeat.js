@@ -4,6 +4,7 @@ import { IRenderLocation } from '../../dom';
 import { BindingMode, } from '../../flags';
 import { IController, IViewFactory, } from '../../lifecycle';
 import { AggregateContinuationTask, ContinuationTask, LifecycleTask, } from '../../lifecycle-task';
+import { applyMutationsToIndices, synchronizeIndices, } from '../../observation/array-observer';
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { Bindable } from '../../templating/bindable';
@@ -468,46 +469,5 @@ export function longestIncreasingSubsequence(indexMap) {
     while (i-- > 0)
         prevIndices[i] = 0;
     return result;
-}
-/**
- * Applies offsets to the non-negative indices in the IndexMap
- * based on added and deleted items relative to those indices.
- *
- * e.g. turn `[-2, 0, 1]` into `[-2, 1, 2]`, allowing the values at the indices to be
- * used for sorting/reordering items if needed
- */
-function applyMutationsToIndices(indexMap) {
-    let offset = 0;
-    let j = 0;
-    const len = indexMap.length;
-    for (let i = 0; i < len; ++i) {
-        while (indexMap.deletedItems[j] <= i - offset) {
-            ++j;
-            --offset;
-        }
-        if (indexMap[i] === -2) {
-            ++offset;
-        }
-        else {
-            indexMap[i] += offset;
-        }
-    }
-}
-/**
- * After `applyMutationsToIndices`, this function can be used to reorder items in a derived
- * array (e.g.  the items in the `views` in the repeater are derived from the `items` property)
- */
-function synchronizeIndices(items, indexMap) {
-    const copy = items.slice();
-    const len = indexMap.length;
-    let to = 0;
-    let from = 0;
-    while (to < len) {
-        from = indexMap[to];
-        if (from !== -2) {
-            items[to] = copy[from];
-        }
-        ++to;
-    }
 }
 //# sourceMappingURL=repeat.js.map

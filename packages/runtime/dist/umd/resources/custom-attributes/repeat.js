@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../definitions", "../../dom", "../../flags", "../../lifecycle", "../../lifecycle-task", "../../observation/binding-context", "../../observation/observer-locator", "../../templating/bindable", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../definitions", "../../dom", "../../flags", "../../lifecycle", "../../lifecycle-task", "../../observation/array-observer", "../../observation/binding-context", "../../observation/observer-locator", "../../templating/bindable", "../custom-attribute"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -15,6 +15,7 @@
     const flags_1 = require("../../flags");
     const lifecycle_1 = require("../../lifecycle");
     const lifecycle_task_1 = require("../../lifecycle-task");
+    const array_observer_1 = require("../../observation/array-observer");
     const binding_context_1 = require("../../observation/binding-context");
     const observer_locator_1 = require("../../observation/observer-locator");
     const bindable_1 = require("../../templating/bindable");
@@ -136,7 +137,7 @@
                 }
             }
             else {
-                applyMutationsToIndices(indexMap);
+                array_observer_1.applyMutationsToIndices(indexMap);
                 if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
                     // first detach+unbind+(remove from array) the deleted view indices
                     if (indexMap.deletedItems.length > 0) {
@@ -373,7 +374,7 @@
             // TODO: integrate with tasks
             const location = this.location;
             const views = this.views;
-            synchronizeIndices(views, indexMap);
+            array_observer_1.synchronizeIndices(views, indexMap);
             // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
             // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
             const seq = longestIncreasingSubsequence(indexMap);
@@ -482,46 +483,5 @@
         return result;
     }
     exports.longestIncreasingSubsequence = longestIncreasingSubsequence;
-    /**
-     * Applies offsets to the non-negative indices in the IndexMap
-     * based on added and deleted items relative to those indices.
-     *
-     * e.g. turn `[-2, 0, 1]` into `[-2, 1, 2]`, allowing the values at the indices to be
-     * used for sorting/reordering items if needed
-     */
-    function applyMutationsToIndices(indexMap) {
-        let offset = 0;
-        let j = 0;
-        const len = indexMap.length;
-        for (let i = 0; i < len; ++i) {
-            while (indexMap.deletedItems[j] <= i - offset) {
-                ++j;
-                --offset;
-            }
-            if (indexMap[i] === -2) {
-                ++offset;
-            }
-            else {
-                indexMap[i] += offset;
-            }
-        }
-    }
-    /**
-     * After `applyMutationsToIndices`, this function can be used to reorder items in a derived
-     * array (e.g.  the items in the `views` in the repeater are derived from the `items` property)
-     */
-    function synchronizeIndices(items, indexMap) {
-        const copy = items.slice();
-        const len = indexMap.length;
-        let to = 0;
-        let from = 0;
-        while (to < len) {
-            from = indexMap[to];
-            if (from !== -2) {
-                items[to] = copy[from];
-            }
-            ++to;
-        }
-    }
 });
 //# sourceMappingURL=repeat.js.map

@@ -68,6 +68,8 @@
     exports.ArrayObserver = array_observer_1.ArrayObserver;
     exports.enableArrayObservation = array_observer_1.enableArrayObservation;
     exports.disableArrayObservation = array_observer_1.disableArrayObservation;
+    exports.applyMutationsToIndices = array_observer_1.applyMutationsToIndices;
+    exports.synchronizeIndices = array_observer_1.synchronizeIndices;
     var map_observer_1 = require("./observation/map-observer");
     exports.MapObserver = map_observer_1.MapObserver;
     exports.enableMapObservation = map_observer_1.enableMapObservation;

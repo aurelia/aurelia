@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { Reporter } from '@aurelia/kernel';
 import { INavigatorInstruction } from './interfaces';
 import { Queue, QueueItem } from './queue';
@@ -62,7 +63,7 @@ export interface INavigatorOptions {
   store?: INavigatorStore;
   statefulHistoryLength?: number;
   callback?(instruction: INavigatorInstruction): void;
-  serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): IStoredNavigatorEntry;
+  serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry>;
 }
 
 export interface INavigatorFlags {
@@ -91,7 +92,7 @@ export class Navigator {
   };
   private isActive: boolean = false;
   private router!: IRouter;
-  private uninitializedEntry: INavigatorInstruction;
+  private readonly uninitializedEntry: INavigatorInstruction;
 
   constructor() {
     this.uninitializedEntry = {
@@ -153,8 +154,7 @@ export class Navigator {
     }
     if (entry.index !== void 0 && !entry.replacing && !entry.refreshing) { // History navigation
       entry.historyMovement = entry.index - (this.currentEntry.index !== void 0 ? this.currentEntry.index : 0);
-      entry.instruction = this.entries[entry.index] ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
-      // entry.instruction = entry.fullStateInstruction;
+      entry.instruction = this.entries[entry.index] !== void 0 && this.entries[entry.index] !== null ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
       entry.replacing = true;
       if (entry.historyMovement > 0) {
         navigationFlags.forward = true;
@@ -219,7 +219,7 @@ export class Navigator {
     this.currentEntry = state.currentEntry;
   }
 
-  public saveState(push: boolean = false): Promise<void> {
+  public async saveState(push: boolean = false): Promise<void> {
     if (this.currentEntry === this.uninitializedEntry) {
       return Promise.resolve();
     }
@@ -231,7 +231,7 @@ export class Navigator {
       for (let i = 0; i < index; i++) {
         const entry = this.entries[i];
         if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
-          this.entries[i] = this.options.serializeCallback(entry, this.entries.slice(index));
+          this.entries[i] = await this.options.serializeCallback(entry, this.entries.slice(index));
         }
       }
     }
@@ -291,7 +291,7 @@ export class Navigator {
         const indexPreserve = this.entries.length - this.options.statefulHistoryLength!;
         for (const entry of this.entries.slice(index)) {
           if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
-            this.options.serializeCallback(entry, this.entries.slice(indexPreserve, index));
+            await this.options.serializeCallback(entry, this.entries.slice(indexPreserve, index));
           }
         }
       }

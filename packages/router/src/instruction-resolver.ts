@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IInstructionResolverOptions {
@@ -249,17 +250,19 @@ export class InstructionResolver {
 
     let parametersString: string | undefined = void 0;
     tokens.shift(); // parameters
+    // tslint:disable-next-line:possible-timing-attack
     if (token === seps.parameters) {
       ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
       parametersString = instruction.slice(0, pos);
       instruction = instruction.slice(pos + token.length);
 
-      ({ token, pos } = this.findNextToken(instruction, tokens));
+      ({ token } = this.findNextToken(instruction, tokens));
       instruction = instruction.slice(token.length);
     }
 
     let viewport: string | undefined = void 0;
     tokens.shift(); // viewport
+    // tslint:disable-next-line:possible-timing-attack
     if (token === seps.viewport) {
       ({ token, pos } = this.findNextToken(instruction, tokens));
       viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
@@ -268,11 +271,13 @@ export class InstructionResolver {
 
     let scope: boolean = true;
     tokens.shift(); // noScope
+    // tslint:disable-next-line:possible-timing-attack
     if (token === seps.noScope) {
       scope = false;
     }
 
     // Restore token that belongs to next instruction
+    // tslint:disable-next-line:possible-timing-attack
     if (token === seps.scopeEnd || token === seps.scope || token === seps.sibling) {
       instruction = `${token}${instruction}`;
     }

@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
@@ -114,7 +115,7 @@ export class ViewportInstruction {
     // TODO: Remove once "local registration is fixed"
     // const component = this.toComponentName();
     const container = context.get(IContainer);
-    if (container) {
+    if (container !== void 0 && container !== null) {
       if (this.isComponentType()) {
         return container.get<IRouteableComponent>(this.componentType!);
       } else {

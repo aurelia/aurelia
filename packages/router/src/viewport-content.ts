@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, IController, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
@@ -54,7 +55,7 @@ export class ViewportContent {
   public reentryBehavior(): ReentryBehavior {
     return (this.content.componentInstance !== null &&
       'reentryBehavior' in this.content.componentInstance &&
-      this.content.componentInstance.reentryBehavior)
+      this.content.componentInstance.reentryBehavior !== void 0)
       ? this.content.componentInstance.reentryBehavior
       : ReentryBehavior.default;
   }

@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
@@ -192,17 +193,16 @@ export class Router implements IRouter {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   };
-  public navigatorSerializeCallback = (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): IStoredNavigatorEntry => {
-    console.log('navigatorSerializeCallback', entry, preservedEntries);
+  public navigatorSerializeCallback = async (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry> => {
     let excludeComponents = [];
     for (const preservedEntry of preservedEntries) {
       if (typeof preservedEntry.instruction !== 'string') {
-        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.instruction as ViewportInstruction[])
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.instruction)
           .filter(instruction => instruction.viewport !== null)
           .map(instruction => instruction.componentInstance));
       }
       if (typeof preservedEntry.fullStateInstruction !== 'string') {
-        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction as ViewportInstruction[])
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction)
           .filter(instruction => instruction.viewport !== null)
           .map(instruction => instruction.componentInstance));
       }
@@ -226,11 +226,11 @@ export class Router implements IRouter {
         instruction !== null
         && instruction.componentInstance !== null
         && arr.indexOf(instruction) === i
-    ) as ViewportInstruction[];
+    );
 
     const alreadyDone: IRouteableComponent[] = [];
     for (const instruction of instructions) {
-      this.freeComponents(instruction, excludeComponents, alreadyDone);
+      await this.freeComponents(instruction, excludeComponents, alreadyDone);
     }
     return serialized;
   };
@@ -383,8 +383,8 @@ export class Router implements IRouter {
       alreadyFoundInstructions.push(...viewportInstructions);
       const remaining = this.findViewports(remainingInstructions, alreadyFoundInstructions);
       viewportInstructions = [];
-      let addedViewport: ViewportInstruction;
-      while (addedViewport = this.addedViewports.shift() as ViewportInstruction) {
+      while (this.addedViewports.length > 0) {
+        const addedViewport = this.addedViewports.shift() as ViewportInstruction;
         // TODO: Should this overwrite instead? I think so.
         if (remaining.found.every(value => value.viewport !== addedViewport.viewport)) {
           viewportInstructions.push(addedViewport);
@@ -470,9 +470,6 @@ export class Router implements IRouter {
     if (!viewport.owningScope!.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
-    // if (viewport.parent !== null) {
-    //   viewport.parent.removeChild(viewport);
-    // }
   }
   public allViewports(includeDisabled: boolean = false): Viewport[] {
     this.ensureRootScope();
@@ -562,14 +559,14 @@ export class Router implements IRouter {
 
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
-    if (nav) {
+    if (nav !== void 0 && nav !== null) {
       nav.routes = [];
     }
     this.addNav(name, routes, classes);
   }
   public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     let nav = this.navs[name];
-    if (!nav) {
+    if (nav === void 0 || nav === null) {
       nav = this.navs[name] = new Nav(this, name, [], classes);
     }
     nav.addRoutes(routes);
@@ -580,7 +577,7 @@ export class Router implements IRouter {
       ? [name]
       : Object.keys(this.navs);
     for (const nav of navs) {
-      if (this.navs[nav]) {
+      if (this.navs[nav] !== void 0 && this.navs[nav] !== null) {
         this.navs[nav].update();
       }
     }
@@ -701,20 +698,20 @@ export class Router implements IRouter {
     return Promise.resolve();
   }
 
-  private freeComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void {
+  private async freeComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
     const component = instruction.componentInstance;
     const viewport = instruction.viewport;
     if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
       return;
     }
     if (!excludeComponents.some(exclude => exclude === component)) {
-      viewport.freeContent(component);
+      await viewport.freeContent(component);
       alreadyDone.push(component);
       return;
     }
     if (instruction.nextScopeInstructions !== null) {
       for (const nextInstruction of instruction.nextScopeInstructions) {
-        this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
+        await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
       }
     }
   }

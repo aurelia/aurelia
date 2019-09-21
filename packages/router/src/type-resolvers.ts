@@ -76,7 +76,7 @@ export const NavigationInstructionResolver = {
       if (typeof instruction === 'string') {
         instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
       } else if (instruction instanceof ViewportInstruction) {
-        instructions.push(instruction as ViewportInstruction);
+        instructions.push(instruction);
       } else if ((instruction as IViewportInstruction).component) {
         const viewportComponent = instruction as IViewportInstruction;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));

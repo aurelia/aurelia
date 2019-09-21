@@ -127,16 +127,18 @@ export class ViewportCustomElement {
     }
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public attaching(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.attaching(flags);
+      return this.viewport.attaching(flags);
     }
+    return Promise.resolve();
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public detaching(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.detaching(flags);
+      return this.viewport.detaching(flags);
     }
+    return Promise.resolve();
   }
 
   public async unbinding(flags: LifecycleFlags): Promise<void> {

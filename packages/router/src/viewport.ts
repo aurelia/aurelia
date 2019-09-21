@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
@@ -134,24 +135,25 @@ export class Viewport {
   }
 
   public setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void {
+    options = options || {};
     if (this.element !== element) {
       // TODO: Restore this state on navigation cancel
       this.previousViewportState = { ...this };
       this.clearState();
       this.element = element;
-      if (options && options.usedBy) {
+      if (options.usedBy) {
         this.options.usedBy = options.usedBy;
       }
-      if (options && options.default) {
+      if (options.default) {
         this.options.default = options.default;
       }
-      if (options && options.noLink) {
+      if (options.noLink) {
         this.options.noLink = options.noLink;
       }
-      if (options && options.noHistory) {
+      if (options.noHistory) {
         this.options.noHistory = options.noHistory;
       }
-      if (options && options.stateful) {
+      if (options.stateful) {
         this.options.stateful = options.stateful;
       }
       if (this.elementResolve) {
@@ -171,7 +173,7 @@ export class Viewport {
       for (const instruction of instructions) {
         instruction.setViewport(this);
       }
-      this.router.goto(instructions, { append: true });
+      this.router.goto(instructions, { append: true }).catch(error => { throw error; });
     }
   }
 
@@ -212,7 +214,7 @@ export class Viewport {
       return true;
     }
 
-    if (!(this.nextContent as ViewportContent).content) {
+    if (((this.nextContent as ViewportContent).content || null) === null) {
       return false;
     }
 
@@ -275,7 +277,7 @@ export class Viewport {
   }
 
   public clearTaggedNodes(): void {
-    if (this.content) {
+    if ((this.content || null) !== null) {
       this.content.clearTaggedNodes();
     }
     if (this.nextContent) {
@@ -332,21 +334,21 @@ export class Viewport {
     }
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public async attaching(flags: LifecycleFlags): Promise<void> {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.enabled = true;
     if (this.content.componentInstance) {
       // Only acts if not already entered
-      this.content.enter(this.content.instruction);
+      await this.content.enter(this.content.instruction);
       this.content.addComponent(this.element as Element);
     }
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public async detaching(flags: LifecycleFlags): Promise<void> {
     Reporter.write(10000, 'DETACHING viewport', this.name);
     if (this.content.componentInstance) {
       // Only acts if not already left
-      this.content.leave(this.content.instruction);
+      await this.content.leave(this.content.instruction);
       this.content.removeComponent(
         this.element as Element,
         this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
@@ -391,7 +393,7 @@ export class Viewport {
 
     // Get a shallow copy of all available viewports
     const availableViewports: Record<string, Viewport | null> = { ...this.getEnabledViewports() };
-    for (const instruction of alreadyFound.filter(instruction => instruction.scope === this)) {
+    for (const instruction of alreadyFound.filter(found => found.scope === this)) {
       availableViewports[instruction.viewportName!] = null;
     }
 
@@ -469,6 +471,7 @@ export class Viewport {
         foundViewports.push(instruction);
         remainingInstructions.push(...remaining);
         availableViewports[name] = null;
+        //tslint:disable-next-line:no-dead-store
         viewportInstructions.splice(i--, 1);
         break;
       }
@@ -532,7 +535,7 @@ export class Viewport {
       }
     }
     if (!viewport) {
-      viewport = new Viewport(this.router, name, null, null, this.scope || this.owningScope, !!options.scope, options) as Viewport;
+      viewport = new Viewport(this.router, name, null, null, this.scope || this.owningScope, !!options.scope, options);
       this.addChild(viewport);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant

@@ -470,10 +470,8 @@ export class Viewport {
         const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
         foundViewports.push(instruction);
         remainingInstructions.push(...remaining);
-        availableViewports[name] = null;
-        //tslint:disable-next-line:no-dead-store
+        availableViewports[viewport.name] = null;
         viewportInstructions.splice(i--, 1);
-        break;
       }
     }
 
@@ -568,7 +566,7 @@ export class Viewport {
       return null;
     }
     for (const viewport of enabledViewports) {
-      if (viewport.content.content) {
+      if (viewport.content.content !== void 0 && viewport.content.content !== null) {
         const childInstructions = viewport.reparentViewportInstructions();
         viewport.content.content.nextScopeInstructions = childInstructions !== null && childInstructions.length > 0 ? childInstructions : null;
       }

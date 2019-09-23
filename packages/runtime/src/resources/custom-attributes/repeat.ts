@@ -115,6 +115,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private _items: Items<C>;
 
+  private normalizedItems?: IObservedArray;
+
   constructor(
     location: IRenderLocation<T>,
     renderable: IController<T>,
@@ -130,6 +132,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.views = [];
     this.key = void 0;
     this.noProxy = true;
+    this.normalizedItems = void 0;
 
     this.task = LifecycleTask.done;
   }
@@ -152,7 +155,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
-
+    this.normalizeToArray(flags);
     this.processViewsKeyed(void 0, flags);
     return this.task;
   }
@@ -189,6 +192,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     flags |= this.$controller.flags;
     this.checkCollectionObserver(flags);
     flags |= LF.updateTargetInstance;
+    this.normalizeToArray(flags);
     this.processViewsKeyed(void 0, flags);
   }
 
@@ -196,6 +200,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void {
     flags |= this.$controller.flags;
     flags |= (LF.fromFlush | LF.updateTargetInstance);
+    this.normalizeToArray(flags);
     this.processViewsKeyed(indexMap, flags);
   }
 
@@ -245,9 +250,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
         // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
         if (this.task.done) {
-          this.task = this.createAndBindNewViewsByKey(indexMap, flags, oldLength);
+          this.task = this.createAndBindNewViewsByKey(indexMap, flags);
         } else {
-          this.task = new ContinuationTask(this.task, this.createAndBindNewViewsByKey, this, indexMap, flags, oldLength);
+          this.task = new ContinuationTask(this.task, this.createAndBindNewViewsByKey, this, indexMap, flags);
         }
       }
 
@@ -261,6 +266,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
+  // todo: subscribe to collection from inner expression
   private checkCollectionObserver(flags: LF): void {
     const oldObserver = this.observer;
     if ((this.$controller.state & State.isBoundOrBinding) > 0) {
@@ -271,9 +277,28 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if (newObserver) {
         newObserver.subscribeToCollection(this);
       }
-    } else if (oldObserver) {
-      oldObserver.unsubscribeFromCollection(this);
+    } else {
+      if (oldObserver !== void 0) {
+        oldObserver.unsubscribeFromCollection(this);
+      }
     }
+  }
+
+  private normalizeToArray(flags: LF): void {
+    const items: Items<C> = this._items;
+    if (items instanceof Array) {
+      this.normalizedItems = items;
+      return;
+    }
+    const forOf = this.forOf;
+    if (forOf === void 0) {
+      return;
+    }
+    const normalizedItems: IObservedArray = [];
+    this.forOf.iterate(flags, items, (arr, index, item) => {
+      normalizedItems[index] = item;
+    });
+    this.normalizedItems = normalizedItems;
   }
 
   private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
@@ -386,6 +411,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     const $controller = this.$controller;
     const lifecycle = $controller.lifecycle;
+    const parentScope = $controller.scope!;
 
     lifecycle.bound.begin();
 
@@ -401,7 +427,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       view.parent = $controller;
       viewScope = Scope.fromParent(
         flags,
-        $controller.scope!,
+        parentScope,
         BindingContext.create(flags, local, item),
       );
 
@@ -434,7 +460,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     );
   }
 
-  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF, oldLength: number): ILifecycleTask {
+  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     let view: IController<T>;
@@ -443,36 +469,29 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const factory = this.factory;
     const views = this.views;
     const local = this.local;
-    const items = this.items;
-    const newLen = this.forOf.count(flags, items);
+    const normalizedItems = this.normalizedItems!;
 
     const $controller = this.$controller;
     const lifecycle = $controller.lifecycle;
+    const parentScope = $controller.scope!;
 
     lifecycle.bound.begin();
 
     const part = $controller.part;
     const mapLen = indexMap.length;
-    const sameLength = oldLength === newLen;
-
-    // only update views that comes after
-    let firstNewViewIndex = -1;
 
     for (let i = 0; i < mapLen; ++i) {
       if (indexMap[i] === -2) {
-        if (firstNewViewIndex === -1) {
-          firstNewViewIndex = i;
-        }
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
         view.parent = $controller;
         viewScope = Scope.fromParent(
           flags,
-          $controller.scope!,
-          BindingContext.create(flags, local, (items as any)[i]),
+          parentScope,
+          BindingContext.create(flags, local, normalizedItems[i]),
         );
-        // update oc
-        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+
+        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, mapLen);
         // update all the rest oc
         task = view.bind(
           flags,
@@ -486,11 +505,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
             tasks = [];
           }
           tasks.push(task);
-        }
-      } else {
-        const shouldUpdate = !sameLength || i > firstNewViewIndex && firstNewViewIndex !== -1;
-        if (shouldUpdate) {
-          setContextualProperties(views[i].scope!.overrideContext as IRepeatOverrideContext, i, newLen);
         }
       }
     }
@@ -560,6 +574,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     // TODO: integrate with tasks
     const location = this.location;
     const views = this.views;
+    const newLen = indexMap.length;
     synchronizeIndices(views, indexMap);
 
     // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
@@ -572,22 +587,27 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     let next: IController;
     let j = seqLen - 1;
-    let i = indexMap.length - 1;
+    let i = newLen - 1;
+    let view: IController;
     for (; i >= 0; --i) {
+      view = views[i];
+      // todo: should not have to always update?
+      // update oc
+      setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
       if (indexMap[i] === -2) {
-        views[i].hold(location);
-        views[i].attach(flags);
+        view.hold(location);
+        view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        views[i].attach(flags);
+        view.attach(flags);
       } else {
         --j;
       }
 
       next = views[i + 1];
       if (next !== void 0) {
-        views[i].nodes!.link(next.nodes!);
+        view.nodes!.link(next.nodes!);
       } else {
-        views[i].nodes!.link(location);
+        view.nodes!.link(location);
       }
     }
 

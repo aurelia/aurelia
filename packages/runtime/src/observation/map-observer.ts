@@ -102,11 +102,14 @@ const observe = {
           indexMap.deletedItems!.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
-        return $delete.call($this, value);
+        const deleteResult = $delete.call($this, value);
+        if (deleteResult === true) {
+          o.notify();
+        }
+        return deleteResult;
       }
-      i++;
+      ++i;
     }
-    o.notify();
     return false;
   }
 };

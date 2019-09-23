@@ -8,6 +8,7 @@ import {
   IObserverLocator,
   IRenderingEngine,
   view,
+  ValueConverter,
 } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import {
@@ -32,81 +33,196 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     assertFn_AfterDestroy?(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
-  const testCases: IComposeIntegrationTestCase[] = [
+  interface ISimpleRepeatContextualPropsTestCase {
+    title: string;
+    repeatExpression?: string;
+    textExpression?: string;
+    only?: boolean;
+    testWillThrow?: boolean;
+    getItems?(): any[] | Map<any, any> | Set<any>;
+    mutate(collection: any[] | Map<any, any> | Set<any>, comp: any): void;
+    expectation?(collection: any[] | Map<any, any> | Set<any>, comp: any): string;
+  }
+
+  // todo: enable tests that create new collection via value converter
+  const simpleRepeatPropsTestCases: ISimpleRepeatContextualPropsTestCase[] = [
     {
-      title: 'it works in basic scenario (1 number)',
-      template:
-        `<div repeat.for="i of 1">\${$index} -- \${$even}</div>`,
-      assertFn: (ctx, host, comp) => {
-        assert.strictEqual(host.textContent, '0 -- true');
-      }
+      title: 'Basic - no mutations',
+      mutate() {/* nothing */}
     },
     {
-      title: 'it works in basic scenario (10 numbers)',
-      template:
-        `<div repeat.for="i of 10">\${$index} -- \${$even}</div>`,
-      assertFn: (ctx, host, comp) => {
-        let text = '';
-        for (let i = 0; 10 > i; ++i) {
-          text += `${i} -- ${i % 2 === 0}`;
-        }
-        assert.strictEqual(host.textContent, text);
-      }
+      title: 'Basic - no mutations - with [Identity] value converter',
+      repeatExpression: 'item of items | identity',
+      mutate() {/*  */}
+    },
+    {
+      title: 'Basic - no mutations - with [Clone] value converter',
+      repeatExpression: 'item of items | clone',
+      mutate() {/*  */}
+    },
+    {
+      title: 'Basic - with reverse()',
+      mutate: (items: ITestModel[]) => items.reverse()
+    },
+    {
+      title: 'Basic - with reverse() - with [Identity] value converter',
+      repeatExpression: 'item of items | identity',
+      mutate: (items: ITestModel[]) => items.reverse()
     },
     // {
-    //   title: 'it works in basic scenario (10 numbers -> 20 numbers)',
-    //   template: `<div repeat.for="i of itemCount">\${$index} -- \${$even}</div>`,
-    //   root: class App {
-    //     public itemCount: number = 10;
-    //   },
-    //   assertFn: async (ctx, host, comp: { itemCount: number }) => {
-    //     let text = '';
-    //     for (let i = 0; 10 > i; ++i) {
-    //       text += `${i} -- ${i % 2 === 0}`;
-    //     }
-    //     assert.strictEqual(host.textContent, text);
-
-    //     await waitForFrames(2);
-    //     comp.itemCount = 5;
-    //     for (let i = 0; 5 > i; ++i) {
-    //       text += `${i} -- ${i % 2 === 0}`;
-    //     }
-    //     assert.strictEqual(host.textContent, text);
-    //   }
-    // }
+    //   only: true,
+    //   title: 'Basic - with reverse() - with [Clone] value converter',
+    //   repeatExpression: 'item of items | clone',
+    //   mutate: (items: ITestModel[]) => items.reverse(),
+    //   // expectation: (items: ITestModel[]) => defaultExpectation(items.slice(0).reverse())
+    // },
     {
-      title: 'it works in basic scenario (10 objects)',
-      template:
-        `<div repeat.for="item of items">\${$index} -- \${$even}</div>`,
-      root: class App {
-        public items = Array.from({ length: 10 }).map((_, idx) => {
-          return { name: 'item - ' + idx, value: idx };
-        });
-      },
-      assertFn: (ctx, host, comp) => {
-        let text = '';
-        for (let i = 0; 10 > i; ++i) {
-          text += `${i} -- ${i % 2 === 0}`;
+      title: 'Basic - with sort()',
+      mutate: (items: ITestModel[]) => items.sort(sortDesc)
+    },
+    {
+      title: 'Basic - with sort() - with [Identity] value converter',
+      repeatExpression: 'item of items | identity',
+      mutate: (items: ITestModel[]) => items.sort(sortDesc)
+    },
+    // {
+    //   only: true,
+    //   title: 'Basic - with sort() - with [Clone] value converter',
+    //   repeatExpression: 'item of items | clone',
+    //   mutate: (items: ITestModel[]) => items.sort(sortDesc)
+    // },
+    {
+      title: 'Basic - with push()',
+      mutate(items: any[]) {
+        for (let i = 0; 5 > i; ++i) {
+          items.push({ name: `item - ${i}`, value: i });
         }
-        assert.strictEqual(host.textContent, text);
       }
-    }
+    },
+    {
+      title: 'Basic - with splice()',
+      mutate(items: any[]) {
+        for (let i = 0; 5 > i; ++i) {
+          const index = Math.floor(Math.random() * items.length);
+          items.splice(index, 0, { name: `item - ${items.length}`, value: items.length });
+        }
+      }
+    },
+    {
+      title: 'Basic - with pop()',
+      mutate(items: any[]) {
+        items.pop();
+      }
+    },
+    {
+      title: 'Basic - with shift()',
+      mutate(items: any[]) {
+        items.shift();
+      }
+    },
+    {
+      title: 'Basic - with unshift()',
+      mutate(items: any[]) {
+        items.unshift({ name: 'item - abcd', value: 100 });
+      }
+    },
+    {
+      title: 'Map basic - no mutations',
+      repeatExpression: 'entry of items',
+      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+      mutate() {/*  */}
+    },
+    {
+      title: 'Map basic - with set()',
+      repeatExpression: 'entry of items',
+      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+      mutate(items: Map<string, ITestModel>) {
+        for (let i = 10; 15 > i; ++i) {
+          items.set(`item - ${i}`, { name: `item - ${i}`, value: i });
+        }
+      }
+    },
+    {
+      title: 'Map basic - with set() - with [Identity] value converter',
+      repeatExpression: 'entry of items | identity',
+      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+      mutate(items: Map<string, ITestModel>) {
+        for (let i = 10; 15 > i; ++i) {
+          items.set(`item - ${i}`, { name: `item - ${i}`, value: i });
+        }
+      }
+    },
+    {
+      title: 'Map basic - with delete()',
+      repeatExpression: 'entry of items',
+      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+      mutate(items: Map<string, ITestModel>) {
+        for (let i = 0; 5 > i; ++i) {
+          items.delete(`item - ${i}`);
+        }
+      }
+    },
+    {
+      title: 'Map basic - with delete() - with [Identity] value converter',
+      repeatExpression: 'entry of items | identity',
+      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+      mutate(items: Map<string, ITestModel>) {
+        for (let i = 0; 5 > i; ++i) {
+          items.delete(`item - ${i}`);
+        }
+      }
+    },
+    {
+      title: 'Set basic - with add()',
+      repeatExpression: 'item of items',
+      textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+      getItems: () => new Set(createItems(10)),
+      mutate(items: Set<ITestModel>) {
+        for (let i = 0; 5 > i; ++i) {
+          items.add({ name: `item - ${i + 10}`, value: i + 10 });
+        }
+      }
+    },
   ];
 
-  for (const testCase of testCases) {
+  // Some tests are using, some aren't
+  // but always register these
+  const IdentityValueConverter = ValueConverter.define('identity', class {
+    public toView(val: any): any {
+      return val;
+    }
+  });
+  const CloneValueConverter = ValueConverter.define('clone', class {
+    public toView(val: any): any {
+      return Array.isArray(val)
+        ? val.slice(0)
+        : val instanceof Map
+          ? new Map(val)
+          : val instanceof Set
+            ? new Set(val)
+            : val;
+    }
+  });
+
+  for (const testCase of simpleRepeatPropsTestCases) {
     const {
       title,
-      template,
-      root,
-      resources = [],
+      getItems = () => createItems(10),
+      repeatExpression = 'item of items',
+      textExpression = '[${item.name}] -- ${$index} -- ${$even}',
       only,
-      browserOnly,
-      assertFn,
-      assertFn_AfterDestroy = PLATFORM.noop,
+      mutate = PLATFORM.noop,
+      expectation = defaultExpectation,
       testWillThrow
     } = testCase;
-    if (!PLATFORM.isBrowserLike && browserOnly) {
-      continue;
+    const template = `<div repeat.for="${repeatExpression}">${textExpression}</div>`;
+    class Root {
+      public items = getItems();
     }
     const suit = (_title: string, fn: any) => only
       ? it.only(_title, fn)
@@ -118,19 +234,22 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
       try {
         const ctx = TestContext.createHTMLTestContext();
 
-        const App = CustomElement.define({ name: 'app', template }, root);
+        const App = CustomElement.define({ name: 'app', template }, Root);
         const au = new Aurelia(ctx.container);
 
         body = ctx.doc.body;
         host = body.appendChild(ctx.createElement('app'));
-        ctx.container.register(...resources);
+        ctx.container.register(
+          IdentityValueConverter,
+          CloneValueConverter
+        );
 
         let didThrow = false;
-        let component: any;
+        let component: Root;
         try {
           au.app({ host, component: App });
           await au.start().wait();
-          component = au.root.viewModel;
+          component = au.root.viewModel as unknown as Root;
         } catch (ex) {
           didThrow = true;
           if (testWillThrow) {
@@ -148,10 +267,12 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
           throw new Error('Expected test to throw, but did NOT');
         }
 
-        await assertFn(ctx, host, component);
+        await mutate(component.items, component);
+        await waitForFrames(3);
+
+        assert.strictEqual(host.textContent, expectation(component.items, component));
 
         await au.stop().wait();
-        await assertFn_AfterDestroy(ctx, host, component);
       } finally {
         if (host) {
           host.remove();
@@ -162,6 +283,38 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         await waitForFrames(2);
       }
     });
+  }
+
+  interface ITestModel {
+    name: string;
+    value: number;
+  }
+
+  function createItems(count: number): ITestModel[] {
+    return Array.from({ length: count }, (_, idx) => ({ name: `item - ${idx}`, value: idx }));
+  }
+
+  function defaultExpectation(items: any[] | Map<any, any> | Set<any>): string {
+    if (Array.isArray(items)) {
+      return items.map((item, idx) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`).join('');
+    }
+    if (items instanceof Map) {
+      return Array
+        .from(items.entries())
+        .map(([itemName, item], idx) => `[${itemName}] -- ${idx} -- ${idx % 2 === 0}`)
+        .join('');
+    }
+    if (items instanceof Set) {
+      return Array
+        .from(items)
+        .map((item: ITestModel, idx: number) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`)
+        .join('');
+    }
+    throw new Error('Invalid item types')
+  }
+
+  function sortDesc(item1: ITestModel, item2: ITestModel): -1 | 1 {
+    return item1.value < item2.value ? 1 : -1;
   }
 });
 

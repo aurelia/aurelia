@@ -140,6 +140,7 @@ describe.skip('controller', function () {
         )
       ) as ReadonlyArray<string> & string[],
       instructions,
+      relayInstructions: false,
       dependencies: noDependencies,
       surrogates: noSurrogates,
       aliases: noAliases,

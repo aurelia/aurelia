@@ -84,6 +84,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: unknown;
   instructions?: ITargetedInstruction[][];
+  relayInstructions?: boolean;
   dependencies?: Key[];
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
@@ -187,6 +188,7 @@ export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
+  relayInstructions: ITargetedInstruction[];
   parts?: Record<string, ITemplateDefinition>;
 }
 
@@ -271,6 +273,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public aliases: string[];
   public template: unknown;
   public instructions: ITargetedInstruction[][];
+  public relayInstructions: boolean;
   public dependencies: IRegistry[];
   public build: IBuildInstruction;
   public surrogates: ITargetedInstruction[];
@@ -290,6 +293,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
     this.childrenObservers = PLATFORM.emptyObject;
+    this.relayInstructions = false;
     this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];

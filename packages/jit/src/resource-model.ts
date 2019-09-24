@@ -102,7 +102,7 @@ export class ResourceModel {
 }
 
 function createElementInfo(def: TemplateDefinition): ElementInfo {
-  const info = new ElementInfo(def.name, def.containerless);
+  const info = new ElementInfo(def.name, def.containerless, def.relayInstructions);
   const bindables = def.bindables as Record<string, IBindableDescription>;
   const defaultBindingMode = BindingMode.toView;
 
@@ -220,6 +220,7 @@ export class BindableInfo {
 export class ElementInfo {
   public name: string;
   public containerless: boolean;
+  public relayInstructions: boolean;
 
   /**
    * A lookup of the bindables of this element, indexed by the (pre-processed)
@@ -227,9 +228,10 @@ export class ElementInfo {
    */
   public bindables: Record<string, BindableInfo>;
 
-  constructor(name: string, containerless: boolean) {
+  constructor(name: string, containerless: boolean, relayInstructions: boolean) {
     this.name = name;
     this.containerless = containerless;
+    this.relayInstructions = relayInstructions;
     this.bindables = {};
   }
 }

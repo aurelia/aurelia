@@ -184,12 +184,15 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileCustomElement(symbol: CustomElementSymbol): void {
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
-    instructionRow[0] = new HydrateElementInstruction(
+    const hydrateElementInstruction = instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
       this.compileBindings(symbol),
       this.compileParts(symbol)
     );
 
+    if (symbol.relayInstructions) {
+      hydrateElementInstruction.relayInstructions = instructionRow.splice(1);
+    }
     this.instructionRows.push(instructionRow);
 
     this.compileChildNodes(symbol);

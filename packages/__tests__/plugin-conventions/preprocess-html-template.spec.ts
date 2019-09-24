@@ -87,9 +87,9 @@ export function register(container) {
   it('processes template with dependencies', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -110,9 +110,9 @@ export function register(container) {
   it('supports HTML-only dependency not in html format', function () {
     const html = '<import from="./hello-world.md" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.md";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -133,9 +133,9 @@ export function register(container) {
   it('processes template with dependencies, wrap css module id', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -159,9 +159,9 @@ export function register(container) {
   it('processes template with css dependencies in shadowDOM mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -189,9 +189,9 @@ export function register(container) {
   it('processes template with css dependencies in shadowDOM mode with string module wrap', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -219,9 +219,9 @@ export function register(container) {
   it('processes template with css dependencies in shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -249,9 +249,9 @@ export function register(container) {
   it('processes template with css dependencies in per-file shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
@@ -278,10 +278,10 @@ export function register(container) {
   it('turn off shadowDOM mode for one word element', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
 console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain a dash (-), you have to refactor <foo> to something like <lorem-foo>.");
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "./foo-bar.scss";
 export const name = "foo";
 export const template = "<template></template>";

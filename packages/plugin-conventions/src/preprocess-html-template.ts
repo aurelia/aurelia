@@ -1,4 +1,4 @@
-import { kebabCase } from '@aurelia/kernel';
+import { kebabCase, Registration } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as path from 'path';
 import { IFileUnit, IPreprocessOptions } from './options';
@@ -31,10 +31,8 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
   const viewDeps: string[] = [];
   const statements: string[] = [];
-  let registrationImported = false;
+  let printRegisterImport = false;
   let importAsImported = false;
-  const registrationStatement = `import { Registration } from '@aurelia/kernel';\n`;
-
   // Turn off ShadowDOM for invalid element
   if (!name.includes('-') && shadowMode) {
     shadowMode = null;
@@ -48,19 +46,16 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
     const ext = path.extname(d.from);
     if (ext && ext !== '.js' && ext !== '.ts' && !options.templateExtensions.includes(ext)) {
       // Wrap all other unknown resources (including .css, .scss) in defer.
-      if (!registrationImported) {
-        statements.push(registrationStatement);
-        registrationImported = true;
-      }
       const isCssResource = options.cssExtensions.indexOf(ext) !== -1;
       let stringModuleId = d.from;
-
+      printRegisterImport = true;
       if (isCssResource && shadowMode && options.stringModuleWrap) {
         stringModuleId = options.stringModuleWrap(d.from);
       }
       statements.push(`import d${i} from ${s(stringModuleId)};\n`);
       viewDeps.push(`Registration.defer('${isCssResource ? '.css' : ext}', d${i})`);
     } else {
+
       if (d.resourceName == null) {
         statements.push(`import * as d${i} from ${s(d.from)};\n`);
       }
@@ -70,23 +65,16 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
       if (d.as == null) {
         viewDeps.push(`d${i}`);
+        return;
       }
-      else {
-        if (registrationImported && !importAsImported) {
-          const statementIndex = statements.indexOf(registrationStatement);
-          statements[statementIndex] = statements[statementIndex].replace('import { Registration }', 'import { Registration, importAs }');
-          registrationImported = true;
-        }
-
-        if (!registrationImported) {
-          statements.unshift(`import { Registration, importAs } from '@aurelia/kernel';\n`);
-          registrationImported = true;
-        }
-        importAsImported = true;
-        viewDeps.push(`importAs(\'${d.as}\',d${i})`);
-      }
+      importAsImported = true;
+      viewDeps.push(`importAs(\'${d.as}\',d${i})`);
     }
   });
+
+  if (printRegisterImport || importAsImported) {
+    statements.unshift(`import { Registration${importAsImported ? ', importAs' : ''} } from '@aurelia/kernel';\n`);
+  }
 
   const m = modifyCode('', unit.path);
   m.append(`import { CustomElement } from '@aurelia/runtime';\n`);

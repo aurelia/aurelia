@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/dialog",
-  "version": "0.4.0-dev.201909251553",
+  "version": "0.4.0-dev.201909252302",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,8 +35,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201909251553",
-    "@aurelia/runtime": "0.4.0-dev.201909251553"
+    "@aurelia/kernel": "0.4.0-dev.201909252302",
+    "@aurelia/runtime": "0.4.0-dev.201909252302"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

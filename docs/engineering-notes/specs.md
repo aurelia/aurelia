@@ -11,6 +11,39 @@ Note: The contents in this document may no longer apply or be out of date.
 
 # Application Startup
 
+## New Quick Startup (recommended)
+*Spec: https://github.com/aurelia/aurelia/issues/630* <br />
+*Status: 0/Discussion*
+
+```ts
+import au, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import { MyRootComponent } from './my-root-component';
+au(MyRootComponent); // by default host to element name (<my-root-component> for MyRootComponent),
+                     // or <body> if <my-root-component> is absent.
+
+// or load additional aurelia features
+au(MyRootComponent, {
+  deps: [ // deps or dependencies
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  ]
+});
+
+// or host to <my-start-tag>
+au(MyRootComponent, {
+  host: 'my-start-tag'
+});
+au(MyRootComponent, {
+  host: document.querySelector('my-start-tag'),
+  deps: [
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  ]
+});
+```
+
+## Verbose Startup
+
 *Spec: https://github.com/aurelia/aurelia/issues/397* <br />
 *Status: 0/Discussion*
 

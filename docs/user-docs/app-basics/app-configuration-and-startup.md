@@ -2,6 +2,37 @@
 
 ## Application Startup
 
+### New Quick Startup (recommended)
+
+```ts
+import au, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import { MyRootComponent } from './my-root-component';
+au(MyRootComponent); // by default host to element name (<my-root-component> for MyRootComponent),
+                     // or <body> if <my-root-component> is absent.
+
+// or load additional aurelia features
+au(MyRootComponent, {
+  deps: [ // deps or dependencies
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  ]
+});
+
+// or host to <my-start-tag>
+au(MyRootComponent, {
+  host: 'my-start-tag'
+});
+au(MyRootComponent, {
+  host: document.querySelector('my-start-tag'),
+  deps: [
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  ]
+});
+```
+
+### Verbose Startup
+
 To start an Aurelia application, create a `new Aurelia()` object with a target `host` and a root `component` and call `start()`.
 
 ```typescript
@@ -25,6 +56,10 @@ To make a custom element globally available to your application, pass the custom
 ```typescript
 import { CardCustomElement } from './components/card';
 
+// When using quick startup
+au(..., <any>CardCustomElement);
+
+// When using verbose startup
 new Aurelia()
   .register(...)
   .register(<any>CardCustomElement)
@@ -42,6 +77,10 @@ If you have a package that exports all your custom elements, you can pass the en
 ```TypeScript src/main.ts
 import * as globalComponents from './components';
 
+// When using quick startup
+au(..., <any>globalComponents);
+
+// When using verbose startup
 new Aurelia()
   .register(...)
   .register(<any>globalComponents)

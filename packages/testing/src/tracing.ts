@@ -1,6 +1,6 @@
 import {
   stringifyLifecycleFlags,
-  Tracer as DebugTracer
+  DebugTracer
 } from '@aurelia/debug';
 import {
   ICustomAttributeSymbol,

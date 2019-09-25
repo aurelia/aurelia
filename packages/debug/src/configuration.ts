@@ -1,7 +1,7 @@
-import { IContainer, Reporter as RuntimeReporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
+import { IContainer, Reporter as RuntimeReporter, Tracer } from '@aurelia/kernel';
 import { enableImprovedExpressionDebugging } from './binding/unparser';
 import { Reporter } from './reporter';
-import { Tracer } from './tracer';
+import { DebugTracer } from './tracer';
 
 export const DebugConfiguration = {
   register(container?: IContainer): void {
@@ -13,6 +13,6 @@ export const DebugConfiguration = {
 
 export const TraceConfiguration = {
   register(container?: IContainer): void {
-    Object.assign(RuntimeTracer, Tracer);
+    Object.assign(Tracer, DebugTracer);
   }
 };

@@ -4,7 +4,7 @@ export {
 } from './configuration';
 
 export {
-  Tracer,
+  DebugTracer,
   stringifyLifecycleFlags,
 } from './tracer';
 

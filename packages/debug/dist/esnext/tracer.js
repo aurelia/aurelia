@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
+import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 const marker = {
     objName: 'marker',
     methodName: 'noop',
@@ -43,8 +43,8 @@ class TraceInfo {
 TraceInfo.head = marker;
 TraceInfo.tail = marker;
 TraceInfo.stack = [];
-export const Tracer = {
-    ...RuntimeTracer,
+export const DebugTracer = {
+    ...Tracer,
     /**
      * A convenience property for the user to conditionally call the tracer.
      * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.

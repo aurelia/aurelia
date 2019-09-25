@@ -54,7 +54,7 @@
     TraceInfo.head = marker;
     TraceInfo.tail = marker;
     TraceInfo.stack = [];
-    exports.Tracer = {
+    exports.DebugTracer = {
         ...kernel_1.Tracer,
         /**
          * A convenience property for the user to conditionally call the tracer.

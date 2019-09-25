@@ -1,4 +1,4 @@
-import { stringifyLifecycleFlags, Tracer as DebugTracer } from '@aurelia/debug';
+import { stringifyLifecycleFlags, DebugTracer } from '@aurelia/debug';
 import { Registration, Tracer, } from '@aurelia/kernel';
 import { getOwnPropertyDescriptors, Reflect_apply } from './util';
 const RuntimeTracer = { ...Tracer };

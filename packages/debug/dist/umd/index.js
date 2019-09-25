@@ -13,7 +13,7 @@
     exports.DebugConfiguration = configuration_1.DebugConfiguration;
     exports.TraceConfiguration = configuration_1.TraceConfiguration;
     var tracer_1 = require("./tracer");
-    exports.Tracer = tracer_1.Tracer;
+    exports.DebugTracer = tracer_1.DebugTracer;
     exports.stringifyLifecycleFlags = tracer_1.stringifyLifecycleFlags;
     var unparser_1 = require("./binding/unparser");
     exports.Unparser = unparser_1.Unparser;

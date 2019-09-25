@@ -14,7 +14,7 @@
     const util_1 = require("./util");
     const RuntimeTracer = { ...kernel_1.Tracer };
     function enableTracing() {
-        Object.assign(kernel_1.Tracer, debug_1.Tracer);
+        Object.assign(kernel_1.Tracer, debug_1.DebugTracer);
         kernel_1.Tracer.enabled = true;
     }
     exports.enableTracing = enableTracing;

@@ -22,7 +22,7 @@
     };
     exports.TraceConfiguration = {
         register(container) {
-            Object.assign(kernel_1.Tracer, tracer_1.Tracer);
+            Object.assign(kernel_1.Tracer, tracer_1.DebugTracer);
         }
     };
 });

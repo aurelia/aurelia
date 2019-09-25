@@ -1,5 +1,6 @@
 ### `@aurelia/runtime`
 
+#### Bindings
 - `call-binding`
 
   Assigns the result of the method call to the attribute.
@@ -25,6 +26,14 @@
 - `ref-binding`
 
   Captures the reference to DOM elements, CE, and CE VMs.
+
+#### Observers
+- `array-observer`: Observer for mutation in array?
+- `collection-length-observer`: Observer for array length
+- `collection-size-observer`: Observer for set or map size
+- `computed-observer`: Observer for computed properties
+- `map-observer`: Observer for mutation in Map?
+- `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
 
 ### Test plan
 
@@ -90,16 +99,20 @@ ${value}
 - call-binding
 - property-binding
 
-##### User control
+##### User preference control
 
 Displays the currently logged in user information.
 User object can be bound to the CE using `one-time` binding mode.
 Uses `greeting` CE to display greeting to the user using `to-view` binding mode.
 
+Displays a list of supported locales, and enable selection.
+
 **Potential coverage targets**
 
 - `one-time` binding mode
 - `to-view` binding mode
+- `computed-observer` (`dirty-checker` transitive dep) via a `User` class which has a computed `fullName` property. An instance of `User` is bound to this control
+- `map-observer` via locales dialog + non real life actions of adding and removing locales
 
 ##### Boolean AND, OR demonstrator
 
@@ -116,6 +129,8 @@ Then on change, the change can be asserted.
 Shows a collection of objects in a table (read-only).
 Q: what is the `@processContent` equivalent in vNext?
 
+An add and a delete button can add or remove line item from the grid.
+
 **Potential coverage targets**
 
 - iterator
@@ -123,6 +138,7 @@ Q: what is the `@processContent` equivalent in vNext?
 - `ref` binding
   - DOM element: to HTML table to mark selection of rows (CSS class is added to row)
   - View-model: to Grid view model to programmatically select rows (this needs to be done in client code)
+- `array-observer`, `collection-length-observer` due to change in collection due to add and remove actions
 
 ##### Pagination
 

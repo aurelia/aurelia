@@ -1,4 +1,4 @@
-import { ILiveLoggingOptions, ITraceInfo, ITraceWriter, PLATFORM, Reporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
+import { ILiveLoggingOptions, ITraceInfo, ITraceWriter, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '@aurelia/runtime';
 
 const marker: ITraceInfo = {
@@ -57,8 +57,8 @@ class TraceInfo implements ITraceInfo {
   }
 }
 
-export const Tracer: typeof RuntimeTracer = {
-  ...RuntimeTracer,
+export const DebugTracer: typeof Tracer = {
+  ...Tracer,
   /**
    * A convenience property for the user to conditionally call the tracer.
    * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
@@ -144,13 +144,13 @@ const defaultOptions: ILiveLoggingOptions = Object.freeze({
  * Writes out each trace info item as they are traced.
  * @param writer An object to write the output to.
  */
-function enableLiveLogging(this: typeof Tracer, writer: ITraceWriter): void;
+function enableLiveLogging(this: typeof DebugTracer, writer: ITraceWriter): void;
 /**
  * Writes out each trace info item as they are traced.
  * @param options Optional. Specify which logging categories to output. If omitted, all will be logged.
  */
-function enableLiveLogging(this: typeof Tracer, options?: ILiveLoggingOptions): void;
-function enableLiveLogging(this: typeof Tracer, optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void {
+function enableLiveLogging(this: typeof DebugTracer, options?: ILiveLoggingOptions): void;
+function enableLiveLogging(this: typeof DebugTracer, optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void {
   this.liveLoggingEnabled = true;
   if (optionsOrWriter && 'write' in optionsOrWriter) {
     this.liveWriter = optionsOrWriter;

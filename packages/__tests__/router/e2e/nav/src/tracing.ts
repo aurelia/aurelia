@@ -1,5 +1,5 @@
 import { ITraceInfo, Tracer } from '@aurelia/kernel';
-import { Tracer as DebugTracer } from '../../../../../debug/src/tracer';
+import { DebugTracer } from '../../../../../debug/src/tracer';
 
 export const TraceWriter = {
   write(info: ITraceInfo): void {

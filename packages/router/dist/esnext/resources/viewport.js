@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { bindable, createRenderContext, CustomElement, IDOM, INode, IRenderingEngine } from '@aurelia/runtime';
+import { bindable, CustomElement, IDOM, INode, IRenderingEngine, RenderContext } from '@aurelia/runtime';
 import { IRouter, } from '../router';
 export class ViewportCustomElement {
     constructor(router, element, renderingEngine) {
@@ -22,7 +22,7 @@ export class ViewportCustomElement {
         }
         const dom = parentContext.get(IDOM);
         const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-        template.renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
+        template.renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
         template.render(this, host, parts);
     }
     // public created(...rest): void {

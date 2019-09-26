@@ -53,5 +53,6 @@ export { ViewModelKind, ILifecycle, IController, IViewFactory, Priority, } from 
 export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';
-export { CompiledTemplate, createRenderContext, ChildrenObserver, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
+export { CompiledTemplate, ChildrenObserver, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
+export { RenderContext, } from './render-context';
 //# sourceMappingURL=index.js.map

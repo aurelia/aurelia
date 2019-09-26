@@ -4,10 +4,11 @@ export class RuntimeCompilationResources {
     }
     find(kind, name) {
         const key = kind.keyFrom(name);
-        const resourceLookup = this.context.resourceLookup;
-        let resolver = resourceLookup[key];
+        let resourceResolvers = this.context.resourceResolvers;
+        let resolver = resourceResolvers[key];
         if (resolver === void 0) {
-            resolver = resourceLookup[key] = this.context.getResolver(key, false);
+            resourceResolvers = this.context.root.resourceResolvers;
+            resolver = resourceResolvers[key];
         }
         if (resolver != null && resolver.getFactory) {
             const factory = resolver.getFactory(this.context);
@@ -20,10 +21,11 @@ export class RuntimeCompilationResources {
     }
     create(kind, name) {
         const key = kind.keyFrom(name);
-        const resourceLookup = this.context.resourceLookup;
-        let resolver = resourceLookup[key];
+        let resourceResolvers = this.context.resourceResolvers;
+        let resolver = resourceResolvers[key];
         if (resolver === undefined) {
-            resolver = resourceLookup[key] = this.context.getResolver(key, false);
+            resourceResolvers = this.context.root.resourceResolvers;
+            resolver = resourceResolvers[key];
         }
         if (resolver != null) {
             const instance = resolver.resolve(this.context, this.context);

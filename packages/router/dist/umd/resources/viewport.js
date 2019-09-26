@@ -33,7 +33,7 @@
             }
             const dom = parentContext.get(runtime_1.IDOM);
             const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-            template.renderContext = runtime_1.createRenderContext(dom, parentContext, Type.description.dependencies, Type);
+            template.renderContext = new runtime_1.RenderContext(dom, parentContext, Type.description.dependencies, Type);
             template.render(this, host, parts);
         }
         // public created(...rest): void {

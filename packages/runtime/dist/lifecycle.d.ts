@@ -68,10 +68,10 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
     getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
 }
 export declare const IController: import("@aurelia/kernel").InterfaceSymbol<IController<INode, IViewModel<INode>>>;
-export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
-    createChild(): IRenderContext<T>;
+export interface IRenderContext<T extends INode = INode> extends IContainer {
+    readonly parentId: number;
     render(flags: LifecycleFlags, renderable: IController<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
-    beginComponentOperation(renderable: IController<T>, target: object, instruction: ITargetedInstruction, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
+    beginComponentOperation(renderable: IController<T>, target: object, instruction: ITargetedInstruction, factory?: IViewFactory<T> | null, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 export interface IViewCache<T extends INode = INode> {
     readonly isCaching: boolean;
@@ -80,6 +80,7 @@ export interface IViewCache<T extends INode = INode> {
     tryReturnToCache(view: IController<T>): boolean;
 }
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
+    readonly parentContextId: number;
     readonly name: string;
     readonly parts: TemplatePartDefinitions;
     create(flags?: LifecycleFlags): IController<T>;

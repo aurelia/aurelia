@@ -33,10 +33,10 @@
         constructor() { }
         static createContainer(...params) {
             if (params.length === 0) {
-                return new Container();
+                return new Container(null);
             }
             else {
-                return new Container().register(...params);
+                return new Container(null).register(...params);
             }
         }
         static getDesignParamTypes(target) {
@@ -351,18 +351,33 @@
     function isClass(obj) {
         return obj.prototype !== void 0;
     }
+    const nextContainerId = (function () {
+        let id = 0;
+        return function () {
+            return ++id;
+        };
+    })();
+    function isResourceKey(key) {
+        return typeof key === 'string' && key.indexOf(':') > 0;
+    }
     /** @internal */
     class Container {
-        constructor(configuration = {}) {
-            this.parent = null;
+        constructor(parent) {
+            this.parent = parent;
+            this.id = nextContainerId();
             this.registerDepth = 0;
-            this.resolvers = new Map();
-            this.configuration = configuration;
-            if (configuration.factories == null) {
-                configuration.factories = new Map();
+            if (parent === null) {
+                this.root = this;
+                this.factories = new Map();
+                this.resolvers = new Map();
+                this.resourceResolvers = Object.create(null);
             }
-            this.factories = configuration.factories;
-            this.resourceLookup = configuration.resourceLookup || (configuration.resourceLookup = Object.create(null));
+            else {
+                this.root = parent.root;
+                this.factories = new Map(parent.factories);
+                this.resolvers = new Map();
+                this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
+            }
             this.resolvers.set(exports.IContainer, containerResolver);
         }
         register(...params) {
@@ -411,8 +426,8 @@
             const result = resolvers.get(key);
             if (result == null) {
                 resolvers.set(key, resolver);
-                if (typeof key === 'string') {
-                    this.resourceLookup[key] = resolver;
+                if (isResourceKey(key)) {
+                    this.resourceResolvers[key] = resolver;
                 }
             }
             else if (result instanceof Resolver && result.strategy === 4 /* array */) {
@@ -512,19 +527,17 @@
         getFactory(key) {
             let factory = this.factories.get(key);
             if (factory == null) {
-                factory = Factory.create(key);
-                this.factories.set(key, factory);
+                this.factories.set(key, factory = Factory.create(key));
             }
             return factory;
         }
         createChild() {
-            const config = this.configuration;
-            const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
-            const child = new Container(childConfig);
-            child.parent = this;
-            return child;
+            return new Container(this);
         }
         jitRegister(keyAsValue, handler) {
+            if (typeof keyAsValue !== 'function') {
+                throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+            }
             if (keyAsValue.register !== void 0) {
                 const registrationResolver = keyAsValue.register(handler, keyAsValue);
                 if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {

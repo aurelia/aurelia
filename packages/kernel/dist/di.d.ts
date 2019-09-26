@@ -29,10 +29,11 @@ export interface IRegistry {
     register(container: IContainer, ...params: unknown[]): void;
 }
 export interface IContainer extends IServiceLocator {
+    readonly id: number;
     register(...params: any[]): IContainer;
-    registerResolver<K extends Key>(key: K, resolver: IResolver<K>): IResolver<K>;
-    registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean;
-    getResolver<K extends Key>(key: K | Key, autoRegister?: boolean): IResolver<K> | null;
+    registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
+    registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
+    getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     getFactory<T extends Constructable>(key: T): IFactory<T>;
     createChild(): IContainer;
 }

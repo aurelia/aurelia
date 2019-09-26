@@ -6,6 +6,7 @@ import { IController, ILifecycle, IViewFactory, IViewModel } from '../lifecycle'
 import { ITemplate } from '../rendering-engine';
 export declare class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     static maxCacheSize: number;
+    readonly parentContextId: number;
     isCaching: boolean;
     name: string;
     parts: TemplatePartDefinitions;

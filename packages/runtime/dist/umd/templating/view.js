@@ -23,6 +23,9 @@
             this.template = template;
             this.parts = kernel_1.PLATFORM.emptyObject;
         }
+        get parentContextId() {
+            return this.template.renderContext.parentId;
+        }
         setCacheSize(size, doNotOverrideIfAlreadySet) {
             if (size) {
                 if (size === '*') {

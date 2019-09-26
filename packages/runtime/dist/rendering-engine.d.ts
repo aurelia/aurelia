@@ -1,9 +1,9 @@
-import { IContainer, IResourceDescriptions, Key, IIndexable } from '@aurelia/kernel';
+import { IContainer, IIndexable, IResourceDescriptions } from '@aurelia/kernel';
 import { InstructionTypeName, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode, INodeSequenceFactory } from './dom';
 import { LifecycleFlags } from './flags';
 import { IController, IRenderContext, IViewFactory, IViewModel } from './lifecycle';
-import { IAccessor, ISubscribable, ISubscriberCollection, IPropertyObserver } from './observation';
+import { IAccessor, IPropertyObserver, ISubscribable, ISubscriberCollection } from './observation';
 import { ICustomElementType } from './resources/custom-element';
 export interface ITemplateCompiler {
     readonly name: string;
@@ -52,7 +52,6 @@ export interface IRenderingEngine {
     getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: ITemplateDefinition, parentContext?: IContainer | IRenderContext<T>): IViewFactory<T>;
 }
 export declare const IRenderingEngine: import("@aurelia/kernel").InterfaceSymbol<IRenderingEngine>;
-export declare function createRenderContext(dom: IDOM, parent: IRenderContext | IContainer, dependencies: Key[], componentType?: ICustomElementType): IRenderContext;
 export interface ChildrenObserver extends IAccessor, ISubscribable, ISubscriberCollection, IPropertyObserver<IIndexable, string> {
 }
 //# sourceMappingURL=rendering-engine.d.ts.map

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./observation/subscriber-collection", "./resources/custom-element", "./templating/controller", "./templating/view"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./observation/subscriber-collection", "./render-context", "./resources/custom-element", "./templating/controller", "./templating/view"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -17,6 +17,7 @@
     const dom_1 = require("./dom");
     const lifecycle_1 = require("./lifecycle");
     const subscriber_collection_1 = require("./observation/subscriber-collection");
+    const render_context_1 = require("./render-context");
     const custom_element_1 = require("./resources/custom-element");
     const controller_1 = require("./templating/controller");
     const view_1 = require("./templating/view");
@@ -78,6 +79,7 @@
             this.container = container;
             this.templateFactory = templateFactory;
             this.viewFactoryLookup = new Map();
+            this.validSourceLookup = new Map();
             this.lifecycle = lifecycle;
             this.templateLookup = new Map();
             this.compilers = templateCompilers.reduce((acc, item) => {
@@ -101,13 +103,23 @@
             if (definition == void 0) {
                 throw new Error(`No definition provided`); // TODO: create error code
             }
-            let factory = this.viewFactoryLookup.get(definition);
-            if (!factory) {
-                const validSource = definitions_1.buildTemplateDefinition(null, definition);
+            let validSource = this.validSourceLookup.get(definition);
+            if (validSource === void 0) {
+                validSource = definitions_1.buildTemplateDefinition(null, definition);
+                this.validSourceLookup.set(definition, validSource);
+            }
+            let factoryRecord = this.viewFactoryLookup.get(validSource);
+            if (factoryRecord === void 0) {
+                factoryRecord = Object.create(null);
+                this.viewFactoryLookup.set(validSource, factoryRecord);
+            }
+            const parentContextId = parentContext === void 0 ? 0 : parentContext.id;
+            let factory = factoryRecord[parentContextId];
+            if (factory === void 0) {
                 const template = this.templateFromSource(dom, validSource, parentContext, void 0);
                 factory = new view_1.ViewFactory(validSource.name, template, this.lifecycle);
                 factory.setCacheSize(validSource.cache, true);
-                this.viewFactoryLookup.set(definition, factory);
+                factoryRecord[parentContextId] = factory;
             }
             return factory;
         }
@@ -116,14 +128,14 @@
                 parentContext = this.container;
             }
             if (definition.template != void 0) {
-                const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType);
+                const renderContext = new render_context_1.RenderContext(dom, parentContext, definition.dependencies, componentType);
                 if (definition.build.required) {
                     const compilerName = definition.build.compiler || defaultCompilerName;
                     const compiler = this.compilers[compilerName];
                     if (compiler === undefined) {
                         throw kernel_1.Reporter.error(20, compilerName);
                     }
-                    definition = compiler.compile(dom, definition, new kernel_1.RuntimeCompilationResources(renderContext), ViewCompileFlags.surrogate);
+                    definition = compiler.compile(dom, definition, renderContext.createRuntimeCompilationResources(), ViewCompileFlags.surrogate);
                 }
                 return this.templateFactory.create(renderContext, definition);
             }
@@ -132,79 +144,6 @@
     }
     RenderingEngine.inject = [kernel_1.IContainer, exports.ITemplateFactory, lifecycle_1.ILifecycle, kernel_1.all(exports.ITemplateCompiler)];
     exports.RenderingEngine = RenderingEngine;
-    function createRenderContext(dom, parent, dependencies, componentType) {
-        const context = parent.createChild();
-        const renderableProvider = new kernel_1.InstanceProvider();
-        const elementProvider = new kernel_1.InstanceProvider();
-        const instructionProvider = new kernel_1.InstanceProvider();
-        const factoryProvider = new ViewFactoryProvider();
-        const renderLocationProvider = new kernel_1.InstanceProvider();
-        const renderer = context.get(exports.IRenderer);
-        dom.registerElementResolver(context, elementProvider);
-        context.registerResolver(lifecycle_1.IViewFactory, factoryProvider);
-        context.registerResolver(lifecycle_1.IController, renderableProvider);
-        context.registerResolver(definitions_1.ITargetedInstruction, instructionProvider);
-        context.registerResolver(dom_1.IRenderLocation, renderLocationProvider);
-        if (dependencies != void 0) {
-            context.register(...dependencies);
-        }
-        //If the element has a view, support Recursive Components by adding self to own view template container.
-        if (componentType) {
-            componentType.register(context);
-        }
-        context.render = function (flags, renderable, targets, templateDefinition, host, parts) {
-            renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
-        };
-        // @ts-ignore
-        context.beginComponentOperation = function (renderable, target, instruction, factory, parts, location) {
-            renderableProvider.prepare(renderable);
-            elementProvider.prepare(target);
-            instructionProvider.prepare(instruction);
-            if (factory) {
-                factoryProvider.prepare(factory, parts);
-            }
-            if (location) {
-                renderLocationProvider.prepare(location);
-            }
-            return context;
-        };
-        context.dispose = function () {
-            factoryProvider.dispose();
-            renderableProvider.dispose();
-            instructionProvider.dispose();
-            elementProvider.dispose();
-            renderLocationProvider.dispose();
-        };
-        return context;
-    }
-    exports.createRenderContext = createRenderContext;
-    /** @internal */
-    class ViewFactoryProvider {
-        prepare(factory, parts) {
-            this.factory = factory;
-            factory.addParts(parts);
-        }
-        resolve(handler, requestor) {
-            const factory = this.factory;
-            if (factory == null) { // unmet precondition: call prepare
-                throw kernel_1.Reporter.error(50); // TODO: organize error codes
-            }
-            if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
-                throw kernel_1.Reporter.error(51); // TODO: organize error codes
-            }
-            const found = factory.parts[factory.name];
-            if (found) {
-                const renderingEngine = handler.get(exports.IRenderingEngine);
-                const dom = handler.get(dom_1.IDOM);
-                return renderingEngine.getViewFactory(dom, found, requestor);
-            }
-            return factory;
-        }
-        dispose() {
-            this.factory = null;
-        }
-    }
-    exports.ViewFactoryProvider = ViewFactoryProvider;
     /** @internal */
     let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         constructor(controller, viewModel, flags, propertyName, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {

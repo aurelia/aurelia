@@ -12,6 +12,9 @@ export class ViewFactory {
         this.template = template;
         this.parts = PLATFORM.emptyObject;
     }
+    get parentContextId() {
+        return this.template.renderContext.parentId;
+    }
     setCacheSize(size, doNotOverrideIfAlreadySet) {
         if (size) {
             if (size === '*') {

@@ -1176,14 +1176,11 @@ describe(`The Container class`, function () {
       const { sut } = setup();
       const obj = {};
       Registration.instance('foo', obj).register(sut, 'foo');
-      //assert.strictEqual(sut['resourceLookup'].foo.state, obj, `sut['resourceLookup'].foo.state`);
-      //assert.strictEqual(sut['configuration'].resourceLookup.foo.state, obj, `sut['configuration'].resourceLookup.foo.state`);
+      assert.strictEqual(sut['resourceResolvers'].foo.state, obj, `sut['resourceResolvers'].foo.state`);
       const actual = sut.createChild();
-      //assert.notStrictEqual(actual['configuration'], sut['configuration'], `actual['configuration']`);
-      //assert.strictEqual(actual['configuration'].factories, sut['configuration'].factories, `actual['configuration'].factories`);
-      //assert.notStrictEqual(actual['configuration'].resourceLookup, sut['configuration'].resourceLookup, `actual['configuration'].resourceLookup`);
-      //assert.deepStrictEqual(actual['configuration'].resourceLookup, sut['configuration'].resourceLookup, `actual['configuration'].resourceLookup`);
-      //assert.strictEqual(actual['configuration'].resourceLookup.foo.state, obj, `actual['configuration'].resourceLookup.foo.state`);
+      assert.notStrictEqual(actual['resourceResolvers'], sut['resourceResolvers'], `actual['resourceResolvers']`);
+      assert.deepStrictEqual(actual['resourceResolvers'], sut['resourceResolvers'], `actual['resourceResolvers']`);
+      assert.strictEqual(actual['resourceResolvers'].foo.state, obj, `actual['resourceResolvers'].foo.state`);
       assert.strictEqual(actual['parent'], sut, `actual['parent']`);
       assert.strictEqual(sut['parent'], null, `sut['parent']`);
     });

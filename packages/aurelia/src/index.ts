@@ -9,20 +9,20 @@ export {
   // DebugTracer,
   // stringifyLifecycleFlags,
 
-  Unparser,
-  Serializer
+  // Unparser,
+  // Serializer
 } from '@aurelia/debug';
 
 export {
   Interceptor,
-  RetryConfiguration,
-  RetryableRequest,
-  ValidInterceptorMethodName,
+  // RetryConfiguration,
+  // RetryableRequest,
+  // ValidInterceptorMethodName,
 
-  json,
+  // json,
 
-  retryStrategy,
-  RetryInterceptor,
+  // retryStrategy,
+  // RetryInterceptor,
 
   HttpClientConfiguration,
 
@@ -36,7 +36,7 @@ export {
 
   attributePattern,
   // AttributePatternDefinition,
-  // IAttributePattern,
+  IAttributePattern,
   // IAttributePatternHandler,
   // Interpretation,
   // ISyntaxInterpreter,
@@ -48,11 +48,11 @@ export {
 
   bindingCommand,
   // BindingCommandResource,
-  // IBindingCommand,
+  IBindingCommand,
   // IBindingCommandDefinition,
   // IBindingCommandResource,
   // IBindingCommandType,
-  // getTarget,
+  getTarget,
 
   // CallBindingCommand,
   // DefaultBindingCommand,
@@ -74,7 +74,7 @@ export {
   // AtPrefixedTriggerAttributePatternRegistration,
   // ColonPrefixedBindAttributePatternRegistration,
 
-  // ShortHandBindingSyntax,
+  ShortHandBindingSyntax,
 
   // CallBindingCommandRegistration,
   // DefaultBindingCommandRegistration,
@@ -86,14 +86,14 @@ export {
 
   // DefaultBindingLanguage as JitDefaultBindingLanguage,
 
-  BasicConfiguration as JitBasicConfiguration,
+  // BasicConfiguration as JitBasicConfiguration,
 
   // Access,
   // Precedence,
   // Char,
   // These exports are temporary until we have a proper way to unit test them
 
-  parseExpression,
+  // parseExpression,
   // parse,
   // ParserState,
 
@@ -168,8 +168,8 @@ export {
   all,
   DI,
   IContainer,
-  IDefaultableInterfaceSymbol,
-  IFactory,
+  // IDefaultableInterfaceSymbol,
+  // IFactory,
   inject,
   IRegistration,
   IRegistry,
@@ -178,24 +178,24 @@ export {
   Key,
   lazy,
   optional,
-  RegisterSelf,
+  // RegisterSelf,
   Registration,
-  ResolveCallback,
+  // ResolveCallback,
   singleton,
   transient,
-  Injectable,
-  InterfaceSymbol,
+  // Injectable,
+  // InterfaceSymbol,
   InstanceProvider,
   Resolved,
 
-  // Class,
-  // Constructable,
-  // ConstructableClass,
+  Class,
+  Constructable,
+  ConstructableClass,
   // Diff,
-  // ICallable,
-  // IDisposable,
+  ICallable,
+  IDisposable,
   // IFrameRequestCallback,
-  // IIndexable,
+  IIndexable,
   // IPerformance,
   // ITimerHandler,
   // IWindowOrWorkerGlobalScope,
@@ -224,29 +224,29 @@ export {
   // ReadonlyKeys,
   // WritableKeys,
 
-  relativeToFile,
-  join,
-  buildQueryString,
-  parseQueryString,
-  IQueryParams,
+  // relativeToFile,
+  // join,
+  // buildQueryString,
+  // parseQueryString,
+  // IQueryParams,
 
   PLATFORM,
 
-  ITraceInfo,
-  ITraceWriter,
-  ILiveLoggingOptions,
+  // ITraceInfo,
+  // ITraceWriter,
+  // ILiveLoggingOptions,
   Reporter,
   Tracer,
   LogLevel,
 
   Profiler,
 
-  IResourceDefinition,
-  IResourceDescriptions,
-  IResourceKind,
-  IResourceType,
-  ResourceDescription,
-  ResourcePartDescription,
+  // IResourceDefinition,
+  // IResourceDescriptions,
+  // IResourceKind,
+  // IResourceType,
+  // ResourceDescription,
+  // ResourcePartDescription,
   RuntimeCompilationResources,
 
   EventAggregator,
@@ -257,85 +257,85 @@ export {
   camelCase,
   kebabCase,
   toArray,
-  nextId,
-  resetId,
-  compareNumber,
-  mergeDistinct,
+  // nextId,
+  // resetId,
+  // compareNumber,
+  // mergeDistinct,
 } from '@aurelia/kernel';
 
 export {
-  BrowserNavigator,
+  // BrowserNavigator,
 
-  ILinkHandlerOptions,
-  AnchorEventInfo,
+  // ILinkHandlerOptions,
+  // AnchorEventInfo,
 
-  LinkHandler,
+  // LinkHandler,
 
-  Guard,
+  // Guard,
 
-  GuardTypes,
-  GuardIdentity,
-  IGuardOptions,
-  Guardian,
+  // GuardTypes,
+  // GuardIdentity,
+  // IGuardOptions,
+  // Guardian,
 
-  GuardFunction,
-  GuardTarget,
-  INavigatorInstruction,
-  IRouteableComponent,
-  IRouteableComponentType,
-  IViewportInstruction,
-  NavigationInstruction,
-  ReentryBehavior,
+  // GuardFunction,
+  // GuardTarget,
+  // INavigatorInstruction,
+  // IRouteableComponent,
+  // IRouteableComponentType,
+  // IViewportInstruction,
+  // NavigationInstruction,
+  // ReentryBehavior,
 
-  INavRoute,
-  Nav,
+  // INavRoute,
+  // Nav,
 
-  NavRoute,
+  // NavRoute,
 
-  IStoredNavigatorEntry,
-  INavigatorEntry,
-  INavigatorOptions,
-  INavigatorFlags,
-  INavigatorState,
-  INavigatorStore,
-  INavigatorViewer,
-  INavigatorViewerEvent,
-  Navigator,
+  // IStoredNavigatorEntry,
+  // INavigatorEntry,
+  // INavigatorOptions,
+  // INavigatorFlags,
+  // INavigatorState,
+  // INavigatorStore,
+  // INavigatorViewer,
+  // INavigatorViewerEvent,
+  // Navigator,
 
-  QueueItem,
-  IQueueOptions,
-  Queue,
+  // QueueItem,
+  // IQueueOptions,
+  // Queue,
 
-  RouteHandler,
-  ConfigurableRoute,
-  HandlerEntry,
-  RouteGenerator,
-  TypesRecord,
-  RecognizeResult,
-  RecognizeResults,
-  CharSpec,
-  // State as RouterState, // duplicated in @aurelia/runtime
-  StaticSegment,
-  DynamicSegment,
-  StarSegment,
-  EpsilonSegment,
-  Segment,
-  RouteRecognizer,
+  // RouteHandler,
+  // ConfigurableRoute,
+  // HandlerEntry,
+  // RouteGenerator,
+  // TypesRecord,
+  // RecognizeResult,
+  // RecognizeResults,
+  // CharSpec,
+  // // State as RouterState, // duplicated in @aurelia/runtime
+  // StaticSegment,
+  // DynamicSegment,
+  // StarSegment,
+  // EpsilonSegment,
+  // Segment,
+  // RouteRecognizer,
 
   IRouteTransformer,
   IRouterOptions,
   IRouter,
   Router,
 
-  IFindViewportsResult,
-  ChildContainer,
+  // IFindViewportsResult,
+  // ChildContainer,
   // Scope as RouterScope, // duplicated in @aurelia/runtime
 
-  IViewportOptions,
-  Viewport,
+  // IViewportOptions,
+  // Viewport,
 
-  ContentStatus,
-  ViewportContent,
+  // ContentStatus,
+  // ViewportContent,
 
   ViewportInstruction,
 
@@ -516,9 +516,9 @@ export {
   bindingBehavior,
   BindingBehavior,
   IBindingBehavior,
-  IBindingBehaviorDefinition,
-  IBindingBehaviorResource,
-  IBindingBehaviorType,
+  // IBindingBehaviorDefinition,
+  // IBindingBehaviorResource,
+  // IBindingBehaviorType,
 
   // BindingModeBehavior,
   // OneTimeBindingBehavior,
@@ -538,12 +538,12 @@ export {
   // ThrottleBindingBehavior,
 
   customAttribute,
-  CustomAttributeConstructor,
-  CustomAttributeDecorator,
+  // CustomAttributeConstructor,
+  // CustomAttributeDecorator,
   CustomAttribute,
   dynamicOptions,
-  ICustomAttributeResource,
-  ICustomAttributeType,
+  // ICustomAttributeResource,
+  // ICustomAttributeType,
   templateController,
 
   // FrequentMutations,
@@ -563,45 +563,45 @@ export {
   customElement,
   CustomElementHost,
   CustomElement,
-  ICustomElementDecorator,
-  ICustomElementResource,
-  ICustomElementType,
-  IElementProjector,
-  IProjectorLocator,
+  // ICustomElementDecorator,
+  // ICustomElementResource,
+  // ICustomElementType,
+  // IElementProjector,
+  // IProjectorLocator,
   useShadowDOM,
 
   IValueConverter,
-  IValueConverterDefinition,
-  IValueConverterResource,
-  IValueConverterType,
+  // IValueConverterDefinition,
+  // IValueConverterResource,
+  // IValueConverterType,
   valueConverter,
   ValueConverter,
 
-  ISanitizer,
+  // ISanitizer,
   // SanitizeValueConverter,
 
   // ViewValueConverter,
 
   bindable,
-  BindableDecorator,
-  WithBindables,
+  // BindableDecorator,
+  // WithBindables,
   Bindable,
 
   children,
-  ChildrenDecorator,
-  HasChildrenObservers,
+  // ChildrenDecorator,
+  // HasChildrenObservers,
 
 // These exports are temporary until we have a proper way to unit test them
   Controller,
 
   ViewFactory,
-  IViewLocator,
-  ViewLocator,
-  view,
+  // IViewLocator,
+  // ViewLocator,
+  // view,
 
   Aurelia,
-  IDOMInitializer,
-  ISinglePageApp,
+  // IDOMInitializer,
+  // ISinglePageApp,
   CompositionRoot,
 
   // IfRegistration,
@@ -674,17 +674,17 @@ export {
   registerAliases,
 
   // DOM, should expose the one exported in runtime-html
-  // INode,
-  // IRenderLocation,
-  // IDOM,
+  INode,
+  IRenderLocation,
+  IDOM,
   // NodeSequence,
   // INodeSequence,
   // INodeSequenceFactory,
 
   BindingMode,
   BindingStrategy,
-  ExpressionKind,
-  Hooks,
+  // ExpressionKind,
+  // Hooks,
   LifecycleFlags,
   // State,
 
@@ -705,7 +705,7 @@ export {
 
   // ViewModelKind,
   // IBinding,
-  // ILifecycle,
+  ILifecycle,
   // IViewModel,
   // IController,
   // IRenderContext,
@@ -715,18 +715,18 @@ export {
 
   // PromiseOrTask,
   // MaybePromiseOrTask,
-  // AggregateContinuationTask,
-  // TerminalTask,
-  // AggregateTerminalTask,
-  // ContinuationTask,
-  // ILifecycleTask,
-  // LifecycleTask,
-  // PromiseTask,
-  // TaskSlot,
-  // StartTask,
-  // IStartTask,
-  // IStartTaskManager,
-  // ProviderTask,
+  AggregateContinuationTask,
+  TerminalTask,
+  AggregateTerminalTask,
+  ContinuationTask,
+  ILifecycleTask,
+  LifecycleTask,
+  PromiseTask,
+  TaskSlot,
+  StartTask,
+  IStartTask,
+  IStartTaskManager,
+  ProviderTask,
 
   // AccessorOrObserver,
   // Collection,
@@ -739,7 +739,7 @@ export {
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,
-  // IndexMap,
+  IndexMap,
   // IObservable,
   // IObservedArray,
   // IObservedMap,
@@ -767,10 +767,10 @@ export {
   // cloneIndexMap,
   // createIndexMap,
 
-  // instructionRenderer,
-  // ensureExpression,
-  // addComponent,
-  // addBinding,
+  instructionRenderer,
+  ensureExpression,
+  addComponent,
+  addBinding,
 
   // CompiledTemplate,
   // createRenderContext,
@@ -865,9 +865,9 @@ export {
 
   // DefaultRenderers,
 
-  BasicConfiguration as RuntimeHtmlBasicConfiguration,
+  // BasicConfiguration as RuntimeHtmlBasicConfiguration,
 
-  // createElement,
+  createElement,
   // RenderPlan,
 
   // HTMLAttributeInstruction,
@@ -915,9 +915,9 @@ export {
   // IShadowDOMGlobalStyles
 } from '@aurelia/runtime-html';
 
-export {
-  // IDOMInitializerRegistration,
-  // DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
-  BasicConfiguration as RuntimeHtmlBrowserBasicConfiguration
-} from '@aurelia/runtime-html-browser';
-
+// tslint:disable-next-line:no-commented-code
+// export {
+//   IDOMInitializerRegistration,
+//   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
+//   BasicConfiguration as RuntimeHtmlBrowserBasicConfiguration
+// } from '@aurelia/runtime-html-browser';

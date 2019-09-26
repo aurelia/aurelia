@@ -239,8 +239,8 @@ export {
   Else
 } from './resources/custom-attributes/if';
 export {
-  RelayTarget
-} from './resources/custom-attributes/relay-target';
+  TransferBindings
+} from './resources/custom-attributes/transfer-bindings';
 export {
   Repeat
 } from './resources/custom-attributes/repeat';

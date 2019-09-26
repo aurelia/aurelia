@@ -1,8 +1,8 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 
-describe('relay-target.integration.spec.ts', function() {
+describe.only('relay-target.integration.spec.ts', function() {
 
   interface IRelayInstructionTestCase {
     title: string;
@@ -18,7 +18,7 @@ describe('relay-target.integration.spec.ts', function() {
 
   const testCases: IRelayInstructionTestCase[] = [
     {
-      title: 'Relay basic',
+      title: 'Basic transfer bindings',
       template: `<c-e value.two-way=value></c-e>`,
       root: class {
         public value = new Date().toLocaleDateString();
@@ -28,13 +28,19 @@ describe('relay-target.integration.spec.ts', function() {
           {
             name: 'c-e',
             transferBindings: true,
-            template: `<input relay-target >`
+            template: `<input transfer-bindings >`
           },
           class {}
         )
       ],
       assertFn: (ctx, host, comp) => {
-        debugger;
+        const inputEl = host.querySelector('input');
+        assert.strictEqual(inputEl.value, new Date().toLocaleDateString());
+
+        const newValue = 'hello ' + Date.now();
+        inputEl.value = newValue;
+        inputEl.dispatchEvent(new CustomEvent('input'));
+        assert.strictEqual(comp.value, newValue);
       }
     }
   ];

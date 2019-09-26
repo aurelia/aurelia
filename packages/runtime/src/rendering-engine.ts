@@ -19,9 +19,9 @@ import {
   InstructionTypeName,
   ITargetedInstruction,
   ITemplateDefinition,
+  TargetedInstructionType,
   TemplateDefinition,
   TemplatePartDefinitions,
-  TargetedInstructionType,
 } from './definitions';
 import {
   IDOM,
@@ -50,8 +50,9 @@ import {
 import { subscriberCollection } from './observation/subscriber-collection';
 import {
   CustomElement,
+  ICustomElementInstanceData,
   ICustomElementType,
-  IElementProjector,
+  IElementProjector
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
@@ -295,6 +296,17 @@ export class RenderingEngine implements IRenderingEngine {
   }
 }
 
+class CustomElementInstanceData implements ICustomElementInstanceData {
+  /**
+   * Lazily set via component
+   */
+  public controller!: IController;
+  constructor(
+    public readonly parentController: IController,
+    public readonly instruction: IHydrateElementInstruction
+  ) {}
+}
+
 export function createRenderContext(
   dom: IDOM,
   parent: IRenderContext | IContainer,
@@ -309,7 +321,7 @@ export function createRenderContext(
   const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = context.get(IRenderer);
 
-  let elementInstructionProvider: InstanceProvider<IHydrateElementInstruction>;
+  let elementInstructionProvider: InstanceProvider<ICustomElementInstanceData>;
 
   dom.registerElementResolver(context, elementProvider);
 
@@ -348,11 +360,14 @@ export function createRenderContext(
     parts?: TemplatePartDefinitions,
     location?: IRenderLocation,
   ): IDisposable {
-    if (renderable.vmKind === ViewModelKind.customElement && instruction.type === TargetedInstructionType.hydrateElement) {
+    if (instruction.type === TargetedInstructionType.hydrateElement) {
       elementInstructionProvider = new InstanceProvider();
-      context.registerResolver(IHydrateElementInstruction, elementInstructionProvider);
+      context.registerResolver(ICustomElementInstanceData, elementInstructionProvider);
 
-      elementInstructionProvider.prepare(instruction as IHydrateElementInstruction);
+      elementInstructionProvider.prepare(new CustomElementInstanceData(
+        renderable,
+        instruction as IHydrateElementInstruction
+      ));
     }
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);

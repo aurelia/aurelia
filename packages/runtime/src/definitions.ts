@@ -184,7 +184,6 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
   to: string;
 }
 
-export const IHydrateElementInstruction = DI.createInterface<IHydrateElementInstruction>('IHydrateElementInstruction').noDefault();
 export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;

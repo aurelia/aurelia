@@ -5,17 +5,18 @@ import {
   IContainer,
   IResourceKind,
   IResourceType,
+  PLATFORM,
   Registration,
   Reporter,
-  Writable,
-  PLATFORM
+  Writable
 } from '@aurelia/kernel';
 
 import {
   buildTemplateDefinition,
+  IHydrateElementInstruction,
   ITemplateDefinition,
-  TemplateDefinition,
-  registerAliases
+  registerAliases,
+  TemplateDefinition
 } from '../definitions';
 import {
   IDOM,
@@ -27,6 +28,13 @@ import {
   IController,
   IViewModel,
 } from '../lifecycle';
+
+export const ICustomElementInstanceData = DI.createInterface<ICustomElementInstanceData>('ICustomElementInstance').noDefault();
+export interface ICustomElementInstanceData<T extends INode = INode> {
+  parentController: IController<T>;
+  controller: IController<T>;
+  instruction: IHydrateElementInstruction;
+}
 
 export interface ICustomElementType<C extends Constructable = Constructable> extends
   IResourceType<ITemplateDefinition, InstanceType<C> & IViewModel>,

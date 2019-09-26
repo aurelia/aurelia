@@ -35,9 +35,9 @@ import {
   Else,
   If
 } from './resources/custom-attributes/if';
-import { RelayTarget } from './resources/custom-attributes/relay-target';
 import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
+import { TransferBindings } from './resources/custom-attributes/transfer-bindings';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
@@ -70,7 +70,7 @@ export const InfrequentMutationsRegistration = InfrequentMutations as unknown as
 export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry;
 export const IfRegistration = If as IRegistry;
 export const ElseRegistration = Else as IRegistry;
-export const RelayTargetRegistration = RelayTarget as unknown as IRegistry;
+export const TransferBindingsRegistration = TransferBindings as unknown as IRegistry;
 export const RepeatRegistration = Repeat as IRegistry;
 export const ReplaceableRegistration = Replaceable as unknown as IRegistry;
 export const WithRegistration = With as IRegistry;
@@ -97,7 +97,7 @@ export const DefaultResources = [
   ObserveShallowRegistration,
   IfRegistration,
   ElseRegistration,
-  RelayTargetRegistration,
+  TransferBindingsRegistration,
   RepeatRegistration,
   ReplaceableRegistration,
   WithRegistration,

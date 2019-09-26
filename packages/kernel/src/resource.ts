@@ -39,10 +39,11 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
   public find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null {
     const key = kind.keyFrom(name);
-    const resourceLookup = (this.context as unknown as { resourceLookup: Record<string, IResolver | undefined | null> }).resourceLookup;
-    let resolver = resourceLookup[key];
+    let resourceResolvers = (this.context as unknown as { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
+    let resolver = resourceResolvers[key];
     if (resolver === void 0) {
-      resolver = resourceLookup[key] = this.context.getResolver(key, false);
+      resourceResolvers = (this.context as unknown as { root: { resourceResolvers: Record<string, IResolver | undefined | null> }}).root.resourceResolvers;
+      resolver = resourceResolvers[key];
     }
 
     if (resolver != null && resolver.getFactory) {
@@ -59,15 +60,18 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
   public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null {
     const key = kind.keyFrom(name);
-    const resourceLookup = (this.context as unknown as { resourceLookup: Record<string, IResolver | undefined | null> }).resourceLookup;
-    let resolver = resourceLookup[key];
+    let resourceResolvers = (this.context as unknown as { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
+    let resolver = resourceResolvers[key];
     if (resolver === undefined) {
-      resolver = resourceLookup[key] = this.context.getResolver(key, false);
+      resourceResolvers = (this.context as unknown as { root: { resourceResolvers: Record<string, IResolver | undefined | null> }}).root.resourceResolvers;
+      resolver = resourceResolvers[key];
     }
+
     if (resolver != null) {
       const instance = resolver.resolve(this.context, this.context);
       return instance === undefined ? null : instance;
     }
+
     return null;
   }
 }

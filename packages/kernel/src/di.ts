@@ -49,10 +49,11 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
+  readonly id: number;
   register(...params: any[]): IContainer;
-  registerResolver<K extends Key>(key: K, resolver: IResolver<K>): IResolver<K>;
-  registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean;
-  getResolver<K extends Key>(key: K | Key, autoRegister?: boolean): IResolver<K> | null;
+  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
+  registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
+  getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(): IContainer;
 }
@@ -114,9 +115,9 @@ export class DI {
 
   public static createContainer(...params: any[]): IContainer {
     if (params.length === 0) {
-      return new Container();
+      return new Container(null);
     } else {
-      return new Container().register(...params);
+      return new Container(null).register(...params);
     }
   }
 
@@ -544,25 +545,48 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
 
+const nextContainerId = (function () {
+  let id = 0;
+  return function () {
+    return ++id;
+  };
+})();
+
+function isResourceKey(key: Key): key is string {
+  return typeof key === 'string' && key.indexOf(':') > 0;
+}
+
 /** @internal */
 export class Container implements IContainer {
-  private parent: Container | null;
-  private registerDepth: number;
-  private readonly resolvers: Map<Key, IResolver>;
-  private readonly factories: Map<Key, IFactory>;
-  private readonly configuration: IContainerConfiguration;
-  private readonly resourceLookup: Record<string, IResolver>;
+  public readonly id: number = nextContainerId();
 
-  constructor(configuration: IContainerConfiguration = {}) {
-    this.parent = null;
-    this.registerDepth = 0;
-    this.resolvers = new Map<InterfaceSymbol<IContainer>, IResolver>();
-    this.configuration = configuration;
-    if (configuration.factories == null) {
-      configuration.factories = new Map();
+  private registerDepth: number = 0;
+
+  private readonly root: Container;
+
+  private readonly factories: Map<Key, IFactory>;
+  private readonly resolvers: Map<Key, IResolver>;
+
+  private readonly resourceResolvers: Record<string, IResolver | undefined>;
+
+  constructor(private readonly parent: Container | null) {
+
+    if (parent === null) {
+      this.root = this;
+
+      this.factories = new Map();
+      this.resolvers = new Map();
+
+      this.resourceResolvers = Object.create(null);
+    } else {
+      this.root = parent.root;
+
+      this.factories = new Map(parent.factories);
+      this.resolvers = new Map();
+
+      this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
     }
-    this.factories = configuration.factories;
-    this.resourceLookup = configuration.resourceLookup || (configuration.resourceLookup = Object.create(null));
+
     this.resolvers.set(IContainer, containerResolver);
   }
 
@@ -604,7 +628,7 @@ export class Container implements IContainer {
     return this;
   }
 
-  public registerResolver<K extends Key>(key: K, resolver: IResolver<K>): IResolver<K> {
+  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
     validateKey(key);
 
     const resolvers = this.resolvers;
@@ -612,8 +636,8 @@ export class Container implements IContainer {
 
     if (result == null) {
       resolvers.set(key, resolver);
-      if (typeof key === 'string') {
-        this.resourceLookup[key] = resolver;
+      if (isResourceKey(key)) {
+        this.resourceResolvers[key] = resolver;
       }
     } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {
       (result.state as IResolver[]).push(resolver);
@@ -624,7 +648,7 @@ export class Container implements IContainer {
     return resolver;
   }
 
-  public registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean {
+  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     const resolver = this.getResolver(key);
 
     if (resolver == null) {
@@ -648,7 +672,7 @@ export class Container implements IContainer {
     return false;
   }
 
-  public getResolver<K extends Key>(key: K | Key, autoRegister: boolean = true): IResolver<K> | null {
+  public getResolver<K extends Key, T = K>(key: K | Key, autoRegister: boolean = true): IResolver<T> | null {
     validateKey(key);
 
     if ((key as unknown as IResolver).resolve !== void 0) {
@@ -736,24 +760,21 @@ export class Container implements IContainer {
 
   public getFactory<K extends Constructable>(key: K): IFactory<K> {
     let factory = this.factories.get(key);
-
     if (factory == null) {
-      factory = Factory.create(key);
-      this.factories.set(key, factory);
+      this.factories.set(key, factory = Factory.create(key));
     }
-
     return factory;
   }
 
   public createChild(): IContainer {
-    const config = this.configuration;
-    const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
-    const child = new Container(childConfig);
-    child.parent = this;
-    return child;
+    return new Container(this);
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
+    if (typeof keyAsValue !== 'function') {
+      throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+    }
+
     if (keyAsValue.register !== void 0) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {

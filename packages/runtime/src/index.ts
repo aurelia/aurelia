@@ -486,7 +486,6 @@ export {
 } from './renderer';
 export {
   CompiledTemplate,
-  createRenderContext,
   ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
@@ -497,3 +496,6 @@ export {
   ITemplateFactory,
   ViewCompileFlags,
 } from './rendering-engine';
+export {
+  RenderContext,
+} from './render-context';

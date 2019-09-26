@@ -4,7 +4,7 @@ import {
 } from '@aurelia/kernel';
 import {
   CompiledTemplate,
-  createRenderContext,
+  RenderContext,
   IDOM,
   INode,
   IController,
@@ -22,16 +22,14 @@ import {
   assert
 } from '@aurelia/testing';
 
-describe('createRenderContext', function () {
-  it('properly initializes a renderContext', function () {
+describe('RenderContext', function () {
+  it('constructor properly initializes a renderContext', function () {
     const parent = AuDOMConfiguration.createContainer();
 
     class Foo {}
     class Bar {public static register(container: IContainer) { container.register(Registration.singleton(Bar, Bar)); }}
-    const sut = createRenderContext(new AuDOM(), parent as any, [Foo as any, Bar], null);
+    const sut = new RenderContext(new AuDOM(), parent as any, [Foo as any, Bar], null);
     const viewFactory = new ViewFactory(null, null, null);
-
-    assert.strictEqual(sut['parent'], parent, `sut['parent']`);
 
     assert.strictEqual(sut.has(IViewFactory, false), true, `sut.has(IViewFactory, false)`);
     assert.strictEqual(sut.has(IController, false), true, `sut.has(IController, false)`);

@@ -125,10 +125,25 @@ export interface IController<
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
 
-export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
-  createChild(): IRenderContext<T>;
-  render(flags: LifecycleFlags, renderable: IController<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IController<T>, target: object, instruction: ITargetedInstruction, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
+export interface IRenderContext<T extends INode = INode> extends IContainer {
+  readonly parentId: number;
+  render(
+    flags: LifecycleFlags,
+    renderable: IController<T>,
+    targets: ArrayLike<object>,
+    templateDefinition: TemplateDefinition,
+    host?: T,
+    parts?: TemplatePartDefinitions,
+  ): void;
+  beginComponentOperation(
+    renderable: IController<T>,
+    target: object,
+    instruction: ITargetedInstruction,
+    factory?: IViewFactory<T> | null,
+    parts?: TemplatePartDefinitions,
+    location?: IRenderLocation<T>,
+    locationIsContainer?: boolean,
+  ): IDisposable;
 }
 
 export interface IViewCache<T extends INode = INode> {
@@ -139,6 +154,7 @@ export interface IViewCache<T extends INode = INode> {
 }
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
+  readonly parentContextId: number;
   readonly name: string;
   readonly parts: TemplatePartDefinitions;
   create(flags?: LifecycleFlags): IController<T>;

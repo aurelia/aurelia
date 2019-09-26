@@ -1172,28 +1172,310 @@ describe(`The Container class`, function () {
   // });
 
   describe(`createChild()`, function () {
-    it(`creates a child with same config and sut as parent, and copies over the resourceLookup`, function () {
-      const { sut } = setup();
-      const obj = {};
-      Registration.instance('foo', obj).register(sut, 'foo');
-      assert.strictEqual(sut['resourceLookup'].foo.state, obj, `sut['resourceLookup'].foo.state`);
-      assert.strictEqual(sut['configuration'].resourceLookup.foo.state, obj, `sut['configuration'].resourceLookup.foo.state`);
-      const actual = sut.createChild();
-      assert.notStrictEqual(actual['configuration'], sut['configuration'], `actual['configuration']`);
-      assert.strictEqual(actual['configuration'].factories, sut['configuration'].factories, `actual['configuration'].factories`);
-      assert.notStrictEqual(actual['configuration'].resourceLookup, sut['configuration'].resourceLookup, `actual['configuration'].resourceLookup`);
-      assert.deepStrictEqual(actual['configuration'].resourceLookup, sut['configuration'].resourceLookup, `actual['configuration'].resourceLookup`);
-      assert.strictEqual(actual['configuration'].resourceLookup.foo.state, obj, `actual['configuration'].resourceLookup.foo.state`);
-      assert.strictEqual(actual['parent'], sut, `actual['parent']`);
-      assert.strictEqual(sut['parent'], null, `sut['parent']`);
+    it(`inherits non-resource obj keyed factories from root`, function () {
+      const type = class {};
+      const key = {} as any;
+
+      const parent = DI.createContainer();
+
+      parent.register(Registration.singleton(key, type));
+
+      const factoryFromParent = parent.getFactory(key);
+
+      const child = parent.createChild();
+
+      const factoryFromChild = child.getFactory(key);
+
+      assert.strictEqual(factoryFromParent, factoryFromChild);
     });
 
+    it(`inherits non-resource string keyed factories from root`, function () {
+      const type = class {};
+      const key = 'foo' as any;
+
+      const parent = DI.createContainer();
+
+      parent.register(Registration.singleton(key, type));
+
+      const factoryFromParent = parent.getFactory(key);
+
+      const child = parent.createChild();
+
+      const factoryFromChild = child.getFactory(key);
+
+      assert.strictEqual(factoryFromParent, factoryFromChild);
+    });
+
+    it(`inherits resource factories from root`, function () {
+      const type = class {};
+      const key = 'foo:bar' as any;
+
+      const parent = DI.createContainer();
+
+      parent.register(Registration.singleton(key, type));
+
+      const factoryFromParent = parent.getFactory(key);
+
+      const child = parent.createChild();
+
+      const factoryFromChild = child.getFactory(key);
+
+      assert.strictEqual(factoryFromParent, factoryFromChild);
+    });
+
+    it(`does NOT store non-resource obj keyed resolvers in resourceResolvers`, function () {
+      const type = class {};
+      const key = {} as any;
+
+      const parent = DI.createContainer();
+
+      parent.register(Registration.singleton(key, type));
+
+      const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+
+      const child = parent.createChild();
+
+      const childHasKey = child['resourceResolvers'][key] !== void 0;
+
+      assert.strictEqual(parentHasKey, false, `has@root`);
+      assert.strictEqual(childHasKey, false, `has@child`);
+    });
+
+    it(`does NOT store non-resource string keyed resolvers in resourceResolvers`, function () {
+      const type = class {};
+      const key = 'foo' as any;
+
+      const parent = DI.createContainer();
+
+      parent.register(Registration.singleton(key, type));
+
+      const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+
+      const child = parent.createChild();
+
+      const childHasKey = child['resourceResolvers'][key] !== void 0;
+
+      assert.strictEqual(parentHasKey, false, `has@root`);
+      assert.strictEqual(childHasKey, false, `has@child`);
+    });
+
+    it(`stores resource resolvers in resourceResolvers and inherits them from root`, function () {
+      const type = class {};
+      const key = 'foo:bar' as any;
+
+      const parent = DI.createContainer();
+
+      parent.register(Registration.singleton(key, type));
+
+      const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+
+      const child = parent.createChild();
+
+      const childHasKey = child['resourceResolvers'][key] !== void 0;
+
+      assert.strictEqual(parentHasKey, true, `has@root`);
+      assert.strictEqual(childHasKey, true, `has@child`);
+    });
+
+    describe(`followed by another createChild()`, function () {
+      it(`inherits non-resource obj keyed factories from root`, function () {
+        const type = class {};
+        const key = {} as any;
+
+        const root = DI.createContainer();
+
+        root.register(Registration.singleton(key, type));
+
+        const factoryFromRoot = root.getFactory(key);
+
+        const parent = root.createChild();
+        const child = parent.createChild();
+
+        const factoryFromChild = child.getFactory(key);
+
+        assert.strictEqual(factoryFromRoot, factoryFromChild);
+      });
+
+      it(`inherits non-resource string keyed factories from root`, function () {
+        const type = class {};
+        const key = 'foo' as any;
+
+        const root = DI.createContainer();
+
+        root.register(Registration.singleton(key, type));
+
+        const factoryFromRoot = root.getFactory(key);
+
+        const parent = root.createChild();
+        const child = parent.createChild();
+
+        const factoryFromChild = child.getFactory(key);
+
+        assert.strictEqual(factoryFromRoot, factoryFromChild);
+      });
+
+      it(`inherits resource factories from root`, function () {
+        const type = class {};
+        const key = 'foo:bar' as any;
+
+        const root = DI.createContainer();
+
+        root.register(Registration.singleton(key, type));
+
+        const factoryFromRoot = root.getFactory(key);
+
+        const parent = root.createChild();
+        const child = parent.createChild();
+
+        const factoryFromChild = child.getFactory(key);
+
+        assert.strictEqual(factoryFromRoot, factoryFromChild);
+      });
+
+      it(`inherits non-resource obj keyed factories from parent`, function () {
+        const type = class {};
+        const key = {} as any;
+
+        const root = DI.createContainer();
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(key, type));
+
+        const factoryFromParent = parent.getFactory(key);
+
+        const child = parent.createChild();
+
+        const factoryFromChild = child.getFactory(key);
+
+        assert.strictEqual(factoryFromParent, factoryFromChild);
+      });
+
+      it(`inherits non-resource string keyed factories from parent`, function () {
+        const type = class {};
+        const key = 'foo' as any;
+
+        const root = DI.createContainer();
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(key, type));
+
+        const factoryFromParent = parent.getFactory(key);
+
+        const child = parent.createChild();
+
+        const factoryFromChild = child.getFactory(key);
+
+        assert.strictEqual(factoryFromParent, factoryFromChild);
+      });
+
+      it(`inherits resource factories from parent`, function () {
+        const type = class {};
+        const key = 'foo:bar' as any;
+
+        const root = DI.createContainer();
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(key, type));
+
+        const factoryFromParent = parent.getFactory(key);
+
+        const child = parent.createChild();
+
+        const factoryFromChild = child.getFactory(key);
+
+        assert.strictEqual(factoryFromParent, factoryFromChild);
+      });
+
+      it(`does NOT store non-resource obj keyed resolvers in resourceResolvers`, function () {
+        const type = class {};
+        const key = {} as any;
+
+        const root = DI.createContainer();
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(key, type));
+
+        const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+
+        const child = parent.createChild();
+
+        const childHasKey = child['resourceResolvers'][key] !== void 0;
+
+        assert.strictEqual(parentHasKey, false, `parentHasKey`);
+        assert.strictEqual(childHasKey, false, `childHasKey`);
+      });
+
+      it(`does NOT store non-resource string keyed resolvers in resourceResolvers`, function () {
+        const type = class {};
+        const key = 'foo' as any;
+
+        const root = DI.createContainer();
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(key, type));
+
+        const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+
+        const child = parent.createChild();
+
+        const childHasKey = child['resourceResolvers'][key] !== void 0;
+
+        assert.strictEqual(parentHasKey, false, `parentHasKey`);
+        assert.strictEqual(childHasKey, false, `childHasKey`);
+      });
+
+      it(`stores resource resolvers in resourceResolvers in parent but does not inherit them from parent`, function () {
+        const type = class {};
+        const key = 'foo:bar' as any;
+
+        const root = DI.createContainer();
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(key, type));
+
+        const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+
+        const child = parent.createChild();
+
+        const childHasKey = child['resourceResolvers'][key] !== void 0;
+
+        assert.strictEqual(parentHasKey, true, `parentHasKey`);
+        assert.strictEqual(childHasKey, false, `childHasKey`);
+      });
+
+      it(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
+        const type = class {};
+        const keyFromRoot = 'foo:bar' as any;
+        const keyFromParent = 'foo:baz' as any;
+
+        const root = DI.createContainer();
+
+        root.register(Registration.singleton(keyFromRoot, type));
+
+        const parent = root.createChild();
+
+        parent.register(Registration.singleton(keyFromParent, type));
+
+        const parentHasKeyFromRoot = parent['resourceResolvers'][keyFromRoot] !== void 0;
+        const parentHasKeyFromParent = parent['resourceResolvers'][keyFromParent] !== void 0;
+
+        const child = parent.createChild();
+
+        const childHasKeyFromRoot = child['resourceResolvers'][keyFromRoot] !== void 0;
+        const childHasKeyFromParent = child['resourceResolvers'][keyFromParent] !== void 0;
+
+        assert.strictEqual(parentHasKeyFromRoot, true, `parentHasKeyFromRoot`);
+        assert.strictEqual(parentHasKeyFromParent, true, `parentHasKeyFromParent`);
+
+        assert.strictEqual(childHasKeyFromRoot, true, `childHasKeyFromRoot`);
+        assert.strictEqual(childHasKeyFromParent, false, `childHasKeyFromParent`);
+      });
+    });
   });
 
   describe(`jitRegister()`, function () {
 
   });
-
 });
 
 // describe(`The Registration object`, function () {

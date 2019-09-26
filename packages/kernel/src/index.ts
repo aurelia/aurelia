@@ -21,6 +21,7 @@ export {
   InterfaceSymbol,
   InstanceProvider,
   Resolved,
+  Transformer,
 } from './di';
 export {
   Class,

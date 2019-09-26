@@ -567,7 +567,6 @@ export class Container implements IContainer {
   private readonly factories: Map<Key, IFactory>;
   private readonly resolvers: Map<Key, IResolver>;
 
-  private readonly resourceFactories: Record<string, IFactory | undefined>;
   private readonly resourceResolvers: Record<string, IResolver | undefined>;
 
   constructor(private readonly parent: Container | null) {
@@ -578,7 +577,6 @@ export class Container implements IContainer {
       this.factories = new Map();
       this.resolvers = new Map();
 
-      this.resourceFactories = Object.create(null);
       this.resourceResolvers = Object.create(null);
     } else {
       this.root = parent.root;
@@ -586,7 +584,6 @@ export class Container implements IContainer {
       this.factories = new Map(parent.factories);
       this.resolvers = new Map();
 
-      this.resourceFactories = Object.assign(Object.create(null), this.root.resourceFactories);
       this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
     }
 
@@ -762,19 +759,11 @@ export class Container implements IContainer {
   }
 
   public getFactory<K extends Constructable>(key: K): IFactory<K> {
-    if (isResourceKey(key)) {
-      const factory = this.resourceFactories[key];
-      if (factory === void 0) {
-        throw new Error(`Illegal invocation: getFactory('${key}') on non-registered resource`);
-      }
-      return factory;
-    } else {
-      let factory = this.factories.get(key);
-      if (factory == null) {
-        this.factories.set(key, factory = Factory.create(key));
-      }
-      return factory;
+    let factory = this.factories.get(key);
+    if (factory == null) {
+      this.factories.set(key, factory = Factory.create(key));
     }
+    return factory;
   }
 
   public createChild(): IContainer {

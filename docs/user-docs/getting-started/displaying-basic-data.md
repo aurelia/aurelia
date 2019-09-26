@@ -319,7 +319,7 @@ Your custom element or attribute can invoke the function that was passed to the 
 {% code-tabs %}
 {% code-tabs-item title="Call Bindings with Contextual Properties" %}
 ```markup
-<my-element execute.call="doSomething(x, y)"></my-element>
+<my-element go.call="doSomething(x, y)"></my-element>
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}

@@ -118,7 +118,9 @@ export {
 export {
   ArrayObserver,
   enableArrayObservation,
-  disableArrayObservation
+  disableArrayObservation,
+  applyMutationsToIndices,
+  synchronizeIndices,
 } from './observation/array-observer';
 export {
   MapObserver,

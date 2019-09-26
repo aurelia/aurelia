@@ -38,6 +38,12 @@
 - `set-observer`: Observer for mutation in Set?
 - `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
 
+#### Binding behaviors
+- `debounce`: delays change
+- `throttle`: limits change
+- `priority`: prioritize the change (Not sure how to test that though in real life)
+- `signals` : triggers update via custom signal
+
 ### Test plan
 
 #### Atoms
@@ -143,6 +149,7 @@ An add and a delete button can add or remove line item from the grid.
   - DOM element: to HTML table to mark selection of rows (CSS class is added to row)
   - View-model: to Grid view model to programmatically select rows (this needs to be done in client code)
 - `array-observer`, `collection-length-observer` due to change in collection due to add and remove actions
+- `debounce` binding behavior via a search textbox for filtering the items in grid
 
 ##### Pagination
 
@@ -160,3 +167,19 @@ The client code using this CE can add/remove items to/from the set.
 
 **Potential coverage targets**
 - `set-observer`
+
+##### Interest index
+
+CE that can be used to display number of user currently looking at the current topic.
+Actually, this is a CE that displays a count (of whatever). The underlying property gets updated in every 100ms, but the display is updated in every 300ms via `throttle` binding behavior.
+
+**Potential coverage targets**
+- `throttle` binding behavior
+
+##### Session duration
+
+Shows the remaining time the current session will stay active.
+The update of the display is triggered every 2 seconds via a relative time signal.
+
+**Potential coverage targets**
+- `signal` binding behavior

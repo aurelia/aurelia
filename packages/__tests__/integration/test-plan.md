@@ -34,6 +34,9 @@
 - `computed-observer`: Observer for computed properties
 - `map-observer`: Observer for mutation in Map?
 - `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
+- `self-observer`: utilized for `@bindable`s with change handler
+- `set-observer`: Observer for mutation in Set?
+- `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
 
 ### Test plan
 
@@ -59,6 +62,7 @@ ${value}
 - interpolation binding
 - call-binding (with the help of a higher-level CE that binds the value using a method call)
 - i18n (maybe later)
+- `setter-observer`
 
 ##### Text input
 
@@ -148,3 +152,11 @@ Populates the current page (for data-grid).
 **Potential coverage targets**
 
 - `from-view` binding mode (in the client code) for the current page.
+
+##### Set display control
+
+Simple CE that has `@bindable` set of objects, which are displayed by simply calling the `toString` method on the objects.
+The client code using this CE can add/remove items to/from the set.
+
+**Potential coverage targets**
+- `set-observer`

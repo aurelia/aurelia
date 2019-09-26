@@ -239,6 +239,9 @@ export {
   Else
 } from './resources/custom-attributes/if';
 export {
+  RelayTarget
+} from './resources/custom-attributes/relay-target';
+export {
   Repeat
 } from './resources/custom-attributes/repeat';
 export {

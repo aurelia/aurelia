@@ -168,13 +168,13 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public parts?: Record<string, ITemplateDefinition>;
   public res: string;
 
-  public relayInstructions: ITargetedInstruction[];
+  public transferBindings: ITargetedInstruction[];
 
   constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>) {
     this.type = TargetedInstructionType.hydrateElement;
 
     this.instructions = instructions;
-    this.relayInstructions = PLATFORM.emptyArray;
+    this.transferBindings = PLATFORM.emptyArray;
     this.parts = parts;
     this.res = res;
   }

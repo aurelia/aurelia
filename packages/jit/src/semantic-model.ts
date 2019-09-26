@@ -237,7 +237,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
   public bindables: Record<string, BindableInfo>;
   public isTarget: true;
   public templateController: TemplateControllerSymbol;
-  public relayInstructions: boolean;
+  public transferBindings: boolean;
   public isContainerless: boolean;
   public marker: INode;
 
@@ -292,7 +292,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
     this.physicalNode = node;
     this.bindables = info.bindables;
     this.isTarget = true;
-    this.relayInstructions = info.relayInstructions;
+    this.transferBindings = info.transferBindings;
     this.templateController = null!;
     if (info.containerless) {
       this.isContainerless = true;

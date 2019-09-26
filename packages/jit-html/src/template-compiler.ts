@@ -190,8 +190,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       this.compileParts(symbol)
     );
 
-    if (symbol.relayInstructions) {
-      hydrateElementInstruction.relayInstructions = instructionRow.splice(1);
+    if (symbol.transferBindings) {
+      hydrateElementInstruction.transferBindings = instructionRow.splice(1);
     }
     this.instructionRows.push(instructionRow);
 

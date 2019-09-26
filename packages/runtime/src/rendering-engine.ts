@@ -3,6 +3,7 @@ import {
   DI,
   IContainer,
   IDisposable,
+  IIndexable,
   InstanceProvider,
   IResolver,
   IResourceDescriptions,
@@ -10,16 +11,17 @@ import {
   Reporter,
   RuntimeCompilationResources,
   Writable,
-  IIndexable,
 } from '@aurelia/kernel';
 
 import {
   buildTemplateDefinition,
+  IHydrateElementInstruction,
   InstructionTypeName,
   ITargetedInstruction,
   ITemplateDefinition,
   TemplateDefinition,
   TemplatePartDefinitions,
+  TargetedInstructionType,
 } from './definitions';
 import {
   IDOM,
@@ -36,19 +38,20 @@ import {
   IViewFactory,
   IViewModel,
   Priority,
+  ViewModelKind,
 } from './lifecycle';
 import {
   IAccessor,
+  IPropertyObserver,
   ISubscribable,
   ISubscriber,
   ISubscriberCollection,
-  IPropertyObserver,
 } from './observation';
 import { subscriberCollection } from './observation/subscriber-collection';
 import {
+  CustomElement,
   ICustomElementType,
   IElementProjector,
-  CustomElement,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
@@ -306,6 +309,8 @@ export function createRenderContext(
   const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = context.get(IRenderer);
 
+  let elementInstructionProvider: InstanceProvider<IHydrateElementInstruction>;
+
   dom.registerElementResolver(context, elementProvider);
 
   context.registerResolver(IViewFactory, factoryProvider);
@@ -343,15 +348,21 @@ export function createRenderContext(
     parts?: TemplatePartDefinitions,
     location?: IRenderLocation,
   ): IDisposable {
+    if (renderable.vmKind === ViewModelKind.customElement && instruction.type === TargetedInstructionType.hydrateElement) {
+      elementInstructionProvider = new InstanceProvider();
+      context.registerResolver(IHydrateElementInstruction, elementInstructionProvider);
+
+      elementInstructionProvider.prepare(instruction as IHydrateElementInstruction);
+    }
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
 
-    if (factory) {
+    if (factory != null) {
       factoryProvider.prepare(factory, parts!);
     }
 
-    if (location) {
+    if (location != null) {
       renderLocationProvider.prepare(location);
     }
 
@@ -359,6 +370,9 @@ export function createRenderContext(
   };
 
   context.dispose = function (): void {
+    if (elementInstructionProvider !== void 0) {
+      elementInstructionProvider.dispose();
+    }
     factoryProvider.dispose();
     renderableProvider.dispose();
     instructionProvider.dispose();

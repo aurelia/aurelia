@@ -84,7 +84,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: unknown;
   instructions?: ITargetedInstruction[][];
-  relayInstructions?: boolean;
+  transferBindings?: boolean;
   dependencies?: Key[];
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
@@ -116,7 +116,7 @@ export type AttributeDefinition = Required<IAttributeDefinition>;
 
 export type InstructionTypeName = string;
 
-export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('createInterface').noDefault();
+export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
 }
@@ -184,11 +184,12 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
   to: string;
 }
 
+export const IHydrateElementInstruction = DI.createInterface<IHydrateElementInstruction>('IHydrateElementInstruction').noDefault();
 export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
-  relayInstructions: ITargetedInstruction[];
+  transferBindings: ITargetedInstruction[];
   parts?: Record<string, ITemplateDefinition>;
 }
 
@@ -273,7 +274,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public aliases: string[];
   public template: unknown;
   public instructions: ITargetedInstruction[][];
-  public relayInstructions: boolean;
+  public transferBindings: boolean;
   public dependencies: IRegistry[];
   public build: IBuildInstruction;
   public surrogates: ITargetedInstruction[];
@@ -293,7 +294,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
     this.childrenObservers = PLATFORM.emptyObject;
-    this.relayInstructions = false;
+    this.transferBindings = false;
     this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
@@ -314,7 +315,8 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
-  'hasSlots'
+  'hasSlots',
+  'transferBindings'
 ];
 
 const templateDefinitionArrays = [

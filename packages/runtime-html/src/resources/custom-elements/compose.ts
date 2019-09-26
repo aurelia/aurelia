@@ -59,7 +59,7 @@ export class Compose<T extends INode = Node> {
       },
     }),
     instructions: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[][],
-    relayInstructions: true,
+    transferBindings: true,
     dependencies: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & IRegistry[],
     surrogates: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[],
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
@@ -105,7 +105,7 @@ export class Compose<T extends INode = Node> {
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
     this.properties = instruction
-      .relayInstructions
+      .transferBindings
       .reduce<Record<string, TargetedInstruction>>(
         (acc, item: ITargetedInstruction & { to?: string }) => {
           if (item.to) {

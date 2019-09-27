@@ -29,7 +29,7 @@ const globalResources = [
   .register(
     JitHtmlBrowserConfiguration,
     DebugConfiguration,
-    RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 2 }),
+    RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
     ...globalResources,
   )
   .app({

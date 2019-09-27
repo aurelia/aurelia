@@ -36,6 +36,11 @@ export {
 } from './interfaces';
 
 export {
+  lifecycleLogger,
+  LifecycleClass,
+} from './lifecycle-logger';
+
+export {
   INavRoute,
   Nav,
 } from './nav';

@@ -1,44 +1,76 @@
-import { IContainer } from '@aurelia/kernel';
-import { IHydrateElementInstruction, ITargetedInstruction } from '../../definitions';
+import {
+  ICallBindingInstruction,
+  IHydrateAttributeInstruction,
+  IInterpolationInstruction,
+  IIteratorBindingInstruction,
+  IPropertyBindingInstruction,
+  IRefBindingInstruction,
+  ISetPropertyInstruction,
+  ITargetedInstruction
+} from '../../definitions';
 import { IDOM, INode } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IRenderContext } from '../../lifecycle';
+import { SetPropertyInstruction } from '../../instructions';
+import { IRenderContext } from '../../lifecycle';
 import { IRenderer } from '../../rendering-engine';
 import { customAttribute } from '../custom-attribute';
-import { ICustomElementInstanceData } from '../custom-element';
+import { IHydrateElementInstructionContext } from '../custom-element';
+
+type ITransferableInstructionType =
+  IInterpolationInstruction
+  | IPropertyBindingInstruction
+  | IIteratorBindingInstruction
+  | ICallBindingInstruction
+  | IRefBindingInstruction
+  | ISetPropertyInstruction;
+
 
 @customAttribute('transfer-bindings')
 export class TransferBindings {
 
-  public $controller?: IController;
-
   constructor(
     @INode private readonly el: INode,
-    @ICustomElementInstanceData private parentCustomElement: ICustomElementInstanceData
+    @IHydrateElementInstructionContext private readonly hydrationContext: IHydrateElementInstructionContext,
+    @ITargetedInstruction private readonly attrInstruction: IHydrateAttributeInstruction
   ) {
   }
 
   public created(): void {
 
-    const customElementData = this.parentCustomElement;
-    const sourceController = customElementData.parentController;
-    if (sourceController == null) {
+    const hydrationContext = this.hydrationContext;
+    const owningController = hydrationContext.owningController;
+    if (owningController == null) {
       // inside root template
       // there's no parent
       // bails
       return;
     }
-    const context = sourceController.context! as IRenderContext<INode>;
+    const context = owningController.context! as IRenderContext<INode>;
     const target = this.el;
     const dom = context.get(IDOM);
     const renderer = context.get(IRenderer);
-    const instructionRenderers = renderer.instructionRenderers;
 
-    const instructions: ITargetedInstruction[] = customElementData.instruction.transferBindings;
-    let current: ITargetedInstruction;
-    for (let i = 0, ii = instructions.length; i < ii; ++i) {
-      current = instructions[i];
-      instructionRenderers[current.type](LifecycleFlags.none, dom, context, sourceController, target, current, sourceController.scopeParts);
+    const hydrationContextInstruction = hydrationContext.instruction;
+    const tobeTransferredBindingInstructions = hydrationContextInstruction.transferBindings as ITransferableInstructionType[];
+    const filterValue = (this.attrInstruction.instructions[0] as SetPropertyInstruction).value as string;
+
+    let tobeRenderedInstructions: ITargetedInstruction[];
+    if (filterValue === '') {
+      tobeRenderedInstructions = tobeTransferredBindingInstructions;
+    } else {
+      const validPropertyNames = filterValue.split(',').map(part => part.trim());
+      tobeRenderedInstructions = tobeTransferredBindingInstructions
+        .filter(instruction => validPropertyNames.indexOf(instruction.to) !== -1);
     }
+
+    renderer.renderInstructions(
+      LifecycleFlags.none,
+      dom,
+      context,
+      owningController,
+      target,
+      tobeRenderedInstructions,
+      hydrationContextInstruction.parts
+    );
   }
 }

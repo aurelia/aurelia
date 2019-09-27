@@ -52,7 +52,9 @@ import {
   CustomAttribute,
 } from './resources/custom-attribute';
 import {
-  CustomElement, CustomElementHost, ICustomElementInstanceData,
+  CustomElement,
+  CustomElementHost,
+  IHydrateElementInstructionContext
 } from './resources/custom-element';
 import {
   Controller,
@@ -121,6 +123,8 @@ export class Renderer implements IRenderer {
     let instructions: ITargetedInstruction[];
     let target: INode;
     let current: ITargetedInstruction;
+
+    // do not reuse renderInstructions
     for (let i = 0, ii = targets.length; i < ii; ++i) {
       instructions = targetInstructions[i];
       target = targets[i];
@@ -131,13 +135,31 @@ export class Renderer implements IRenderer {
       }
     }
 
-    if (host) {
+    if (host != null) {
       const surrogateInstructions = definition.surrogates;
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         current = surrogateInstructions[i];
         instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
       }
+    }
+  }
+
+  public renderInstructions(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instructions: ITargetedInstruction[],
+    parts?: TemplatePartDefinitions
+  ): void {
+    const instructionRenderers = this.instructionRenderers;
+    let current: ITargetedInstruction;
+
+    for (let i = 0, ii = instructions.length; i < ii; ++i) {
+      current = instructions[i];
+      instructionRenderers[current.type](flags, dom, context, renderable, target, current, parts);
     }
   }
 }
@@ -241,7 +263,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
       instruction as IElementHydrationOptions,
     );
 
-    context.get(ICustomElementInstanceData).controller = controller;
+    context.get(IHydrateElementInstructionContext).controller = controller;
     setControllerReference(controller, controller.host!, instruction.res);
 
     let current: ITargetedInstruction;

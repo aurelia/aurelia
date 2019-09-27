@@ -1,6 +1,6 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
+import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe.only('relay-target.integration.spec.ts', function() {
 
@@ -18,22 +18,19 @@ describe.only('relay-target.integration.spec.ts', function() {
 
   const testCases: IRelayInstructionTestCase[] = [
     {
-      title: 'Basic transfer bindings',
+      title: 'Basic transfer bindings with two way',
       template: `<c-e value.two-way=value></c-e>`,
       root: class {
         public value = new Date().toLocaleDateString();
       },
       resources: [
-        CustomElement.define(
-          {
-            name: 'c-e',
-            transferBindings: true,
-            template: `<input transfer-bindings >`
-          },
-          class {}
-        )
+        CustomElement.define({
+          name: 'c-e',
+          transferBindings: true,
+          template: `<input transfer-bindings >`
+        })
       ],
-      assertFn: (ctx, host, comp) => {
+      assertFn: (ctx, host, comp: { value: any }) => {
         const inputEl = host.querySelector('input');
         assert.strictEqual(inputEl.value, new Date().toLocaleDateString());
 
@@ -42,7 +39,36 @@ describe.only('relay-target.integration.spec.ts', function() {
         inputEl.dispatchEvent(new CustomEvent('input'));
         assert.strictEqual(comp.value, newValue);
       }
-    }
+    },
+    {
+      title: 'Basic transfer selected bindings only',
+      template: `<md-field type="input" value.two-way="value" min="5" max.bind="max" ></md-field>`,
+      root: class {
+        public value = new Date().toLocaleDateString();
+        public min = 0;
+        public max = 100;
+      },
+      resources: [
+        CustomElement.define({
+          name: 'md-field',
+          transferBindings: true,
+          template: `<input transfer-bindings="value, min, max" >`
+        })
+      ],
+      assertFn: (ctx, host, comp: { value: any }) => {
+        const inputEl = host.querySelector('input');
+
+        assert.strictEqual(inputEl.value, new Date().toLocaleDateString());
+        assert.strictEqual(inputEl.type, 'text');
+        assert.strictEqual(inputEl.min, '', 'min should have been ""');
+        assert.strictEqual(inputEl.max, '100', 'max should have been "100"');
+
+        const newValue = 'hello ' + Date.now();
+        inputEl.value = newValue;
+        inputEl.dispatchEvent(new CustomEvent('input'));
+        assert.strictEqual(comp.value, newValue);
+      }
+    },
   ];
 
   for (const testCase of testCases) {

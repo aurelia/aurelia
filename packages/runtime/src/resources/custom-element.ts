@@ -29,9 +29,9 @@ import {
   IViewModel,
 } from '../lifecycle';
 
-export const ICustomElementInstanceData = DI.createInterface<ICustomElementInstanceData>('ICustomElementInstance').noDefault();
-export interface ICustomElementInstanceData<T extends INode = INode> {
-  parentController: IController<T>;
+export const IHydrateElementInstructionContext = DI.createInterface<IHydrateElementInstructionContext>('ICustomElementInstance').noDefault();
+export interface IHydrateElementInstructionContext<T extends INode = INode> {
+  owningController: IController<T>;
   controller: IController<T>;
   instruction: IHydrateElementInstruction;
 }

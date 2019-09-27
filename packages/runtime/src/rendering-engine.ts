@@ -50,9 +50,9 @@ import {
 import { subscriberCollection } from './observation/subscriber-collection';
 import {
   CustomElement,
-  ICustomElementInstanceData,
   ICustomElementType,
-  IElementProjector
+  IElementProjector,
+  IHydrateElementInstructionContext
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
@@ -171,6 +171,16 @@ export interface IRenderer {
     targets: ArrayLike<INode>,
     templateDefinition: TemplateDefinition,
     host?: INode,
+    parts?: TemplatePartDefinitions
+  ): void;
+
+  renderInstructions(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instructions: ITargetedInstruction[],
     parts?: TemplatePartDefinitions
   ): void;
 }
@@ -296,13 +306,13 @@ export class RenderingEngine implements IRenderingEngine {
   }
 }
 
-class CustomElementInstanceData implements ICustomElementInstanceData {
+class HydrateElementInstructionContext implements IHydrateElementInstructionContext {
   /**
    * Lazily set via component
    */
   public controller!: IController;
   constructor(
-    public readonly parentController: IController,
+    public readonly owningController: IController,
     public readonly instruction: IHydrateElementInstruction
   ) {}
 }
@@ -321,7 +331,7 @@ export function createRenderContext(
   const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = context.get(IRenderer);
 
-  let elementInstructionProvider: InstanceProvider<ICustomElementInstanceData>;
+  let elementHydrationContextProvider: InstanceProvider<IHydrateElementInstructionContext>;
 
   dom.registerElementResolver(context, elementProvider);
 
@@ -361,10 +371,10 @@ export function createRenderContext(
     location?: IRenderLocation,
   ): IDisposable {
     if (instruction.type === TargetedInstructionType.hydrateElement) {
-      elementInstructionProvider = new InstanceProvider();
-      context.registerResolver(ICustomElementInstanceData, elementInstructionProvider);
+      elementHydrationContextProvider = new InstanceProvider();
+      context.registerResolver(IHydrateElementInstructionContext, elementHydrationContextProvider);
 
-      elementInstructionProvider.prepare(new CustomElementInstanceData(
+      elementHydrationContextProvider.prepare(new HydrateElementInstructionContext(
         renderable,
         instruction as IHydrateElementInstruction
       ));
@@ -385,8 +395,8 @@ export function createRenderContext(
   };
 
   context.dispose = function (): void {
-    if (elementInstructionProvider !== void 0) {
-      elementInstructionProvider.dispose();
+    if (elementHydrationContextProvider !== void 0) {
+      elementHydrationContextProvider.dispose();
     }
     factoryProvider.dispose();
     renderableProvider.dispose();

@@ -8,6 +8,9 @@ import {
 } from '@aurelia/kernel';
 
 import { ForOfStatement } from '../../binding/ast';
+import {
+  IForBindingTarget
+} from '../../binding/for-binding';
 import { PropertyBinding } from '../../binding/property-binding';
 import {
   HooksDefinition,
@@ -51,11 +54,12 @@ import {
   BindingContext,
   Scope
 } from '../../observation/binding-context';
-import { getCollectionObserver } from '../../observation/observer-locator';
+import { getCollectionObserver, RepeatableCollection } from '../../observation/observer-locator';
 import { Bindable } from '../../templating/bindable';
 import {
   CustomAttribute,
   ICustomAttributeResource,
+  templateController,
 } from '../custom-attribute';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
@@ -65,7 +69,8 @@ const isMountedOrAttachedOrAttaching = isMountedOrAttached | State.isAttaching;
 const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
 const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
 
-export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
+@templateController('repeat')
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable, IForBindingTarget {
 
   public get items(): Items<C> {
     return this._items;
@@ -77,19 +82,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       this.itemsChanged(this.$controller.flags);
     }
   }
-  public static readonly inject: readonly Key[] = [IRenderLocation, IController, IViewFactory];
-
-  public static readonly kind: ICustomAttributeResource = CustomAttribute;
-  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
-    name: 'repeat',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(Repeat.prototype)),
-  });
 
   public readonly id: number;
 
@@ -115,12 +107,10 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private _items: Items<C>;
 
-  private normalizedItems?: IObservedArray;
-
   constructor(
-    location: IRenderLocation<T>,
-    renderable: IController<T>,
-    factory: IViewFactory<T>
+    @IRenderLocation location: IRenderLocation<T>,
+    @IController renderable: IController<T>,
+    @IViewFactory factory: IViewFactory<T>
   ) {
     this.id = nextId('au$component');
 
@@ -132,31 +122,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.views = [];
     this.key = void 0;
     this.noProxy = true;
-    this.normalizedItems = void 0;
 
     this.task = LifecycleTask.done;
   }
 
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:repeat', this));
-    container.register(Registration.transient(this, this));
-  }
-
   public binding(flags: LF): ILifecycleTask {
-    this.checkCollectionObserver(flags);
-    const bindings = this.renderable.bindings as PropertyBinding[];
-    const { length } = bindings;
-    let binding: PropertyBinding;
-    for (let i = 0; i < length; ++i) {
-      binding = bindings[i];
-      if (binding.target === this && binding.targetProperty === 'items') {
-        this.forOf = binding.sourceExpression as ForOfStatement;
-        break;
-      }
-    }
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
-    this.normalizeToArray(flags);
-    this.processViewsKeyed(void 0, flags);
     return this.task;
   }
 
@@ -177,8 +147,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public unbinding(flags: LF): ILifecycleTask {
-    this.checkCollectionObserver(flags);
-
     if (this.task.done) {
       this.task = this.unbindAndRemoveViewsByRange(0, this.views.length, flags, false);
     } else {
@@ -187,12 +155,30 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
+  /**
+   * From interface `IForBindingTarget`
+   */
+  public setDeclarationName(propertyName: string): void {
+    this.local = propertyName;
+  }
+
+  /**
+   * from interface `IForBindingTarget`
+   */
+  public setItems(collection: IObservedArray | null | undefined, flags: LF, indexMap: IndexMap | undefined): void {
+    this._items = collection as C;
+    this.processViewsKeyed(indexMap, flags);
+  }
+
+  /**
+   * from interface `IForBindingTarget`
+   */
+  public getItems(): IObservedArray | null | undefined {
+    return this._items as IObservedArray;
+  }
+
   // called by SetterObserver
   public itemsChanged(flags: LF): void {
-    flags |= this.$controller.flags;
-    this.checkCollectionObserver(flags);
-    flags |= LF.updateTargetInstance;
-    this.normalizeToArray(flags);
     this.processViewsKeyed(void 0, flags);
   }
 
@@ -200,7 +186,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void {
     flags |= this.$controller.flags;
     flags |= (LF.fromFlush | LF.updateTargetInstance);
-    this.normalizeToArray(flags);
     this.processViewsKeyed(indexMap, flags);
   }
 
@@ -264,41 +249,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
     }
-  }
-
-  // todo: subscribe to collection from inner expression
-  private checkCollectionObserver(flags: LF): void {
-    const oldObserver = this.observer;
-    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
-      const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
-      if (oldObserver !== newObserver && oldObserver) {
-        oldObserver.unsubscribeFromCollection(this);
-      }
-      if (newObserver) {
-        newObserver.subscribeToCollection(this);
-      }
-    } else {
-      if (oldObserver !== void 0) {
-        oldObserver.unsubscribeFromCollection(this);
-      }
-    }
-  }
-
-  private normalizeToArray(flags: LF): void {
-    const items: Items<C> = this._items;
-    if (items instanceof Array) {
-      this.normalizedItems = items;
-      return;
-    }
-    const forOf = this.forOf;
-    if (forOf === void 0) {
-      return;
-    }
-    const normalizedItems: IObservedArray = [];
-    this.forOf.iterate(flags, items, (arr, index, item) => {
-      normalizedItems[index] = item;
-    });
-    this.normalizedItems = normalizedItems;
   }
 
   private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
@@ -469,7 +419,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const factory = this.factory;
     const views = this.views;
     const local = this.local;
-    const normalizedItems = this.normalizedItems!;
+    const items = this._items!;
 
     const $controller = this.$controller;
     const lifecycle = $controller.lifecycle;
@@ -488,7 +438,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         viewScope = Scope.fromParent(
           flags,
           parentScope,
-          BindingContext.create(flags, local, normalizedItems[i]),
+          BindingContext.create(flags, local, (items as IObservedArray)[i]),
         );
 
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, mapLen);

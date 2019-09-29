@@ -1170,7 +1170,12 @@ export class ForOfStatement implements IForOfStatement {
   }
 
   public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result as any, func);
+    const iteratorFn = IterateForOfStatement[toStringTag.call(result)];
+    if (typeof iteratorFn !== 'function') {
+      // todo: error code
+      throw new Error(`${typeof result} is not iterable`);
+    }
+    iteratorFn(flags | LifecycleFlags.isOriginalArray, result as any, func);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {

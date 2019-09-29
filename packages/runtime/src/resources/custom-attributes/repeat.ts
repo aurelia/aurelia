@@ -166,6 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
    * from interface `IForBindingTarget`
    */
   public setItems(collection: IObservedArray | null | undefined, flags: LF, indexMap: IndexMap | undefined): void {
+    // todo: check if there are changes when indexMap !== void 0
     this._items = collection as C;
     this.processViewsKeyed(indexMap, flags);
   }
@@ -369,13 +370,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const part = $controller.part;
     const factory = this.factory;
     const local = this.local;
-    const items = this.items as IObservedArray;
-    const newLen = items.length;
-    const views = this.views = Array(items.length);
+    const items = this._items as IObservedArray | null | undefined;
+    const newLen = items == null ? 0 : items.length;
+    const views = this.views = Array(newLen);
 
     // this.forOf.iterate(flags, items, (arr, i, item) => {
     for (let i = 0; newLen > i; ++i) {
-      item = items[i];
+      item = items![i];
       view = views[i] = factory.create(flags);
       view.parent = $controller;
       viewScope = Scope.fromParent(
@@ -398,7 +399,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
         tasks.push(task);
       }
-    };
+    }
 
     if (tasks === undefined) {
       lifecycle.bound.end(flags);

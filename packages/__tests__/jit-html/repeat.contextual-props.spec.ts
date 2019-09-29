@@ -1,37 +1,17 @@
-import { Constructable, IContainer, PLATFORM } from '@aurelia/kernel';
+import {
+  PLATFORM
+} from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElement,
-  customElement,
-  IDOM,
-  ILifecycle,
-  IObserverLocator,
-  IRenderingEngine,
-  view,
   ValueConverter,
 } from '@aurelia/runtime';
-import { RenderPlan } from '@aurelia/runtime-html';
 import {
   assert,
-  eachCartesianJoin,
-  HTMLTestContext,
-  TestContext,
-  trimFull
+  TestContext
 } from '@aurelia/testing';
 
 describe('[repeat.contextual-prop.spec.ts]', function () {
-
-  interface IComposeIntegrationTestCase {
-    title: string;
-    template: string | HTMLElement;
-    root?: Constructable;
-    only?: boolean;
-    resources?: any[];
-    browserOnly?: boolean;
-    testWillThrow?: boolean;
-    assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
-    assertFn_AfterDestroy?(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
-  }
 
   interface ISimpleRepeatContextualPropsTestCase {
     title: string;
@@ -39,6 +19,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     textExpression?: string;
     only?: boolean;
     testWillThrow?: boolean;
+    mutationWillThrow?: boolean;
     getItems?(): any[] | Map<any, any> | Set<any>;
     mutate(collection: any[] | Map<any, any> | Set<any>, comp: any): void;
     expectation?(collection: any[] | Map<any, any> | Set<any>, comp: any): string;
@@ -46,148 +27,300 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
 
   // todo: enable tests that create new collection via value converter
   const simpleRepeatPropsTestCases: ISimpleRepeatContextualPropsTestCase[] = [
-    {
-      title: 'Basic - no mutations',
-      mutate() {/* nothing */}
-    },
-    {
-      title: 'Basic - no mutations - with [Identity] value converter',
-      repeatExpression: 'item of items | identity',
-      mutate() {/*  */}
-    },
-    {
-      title: 'Basic - no mutations - with [Clone] value converter',
-      repeatExpression: 'item of items | clone',
-      mutate() {/*  */}
-    },
-    {
-      title: 'Basic - with reverse()',
-      mutate: (items: ITestModel[]) => items.reverse()
-    },
-    {
-      title: 'Basic - with reverse() - with [Identity] value converter',
-      repeatExpression: 'item of items | identity',
-      mutate: (items: ITestModel[]) => items.reverse()
-    },
-    // {
-    //   only: true,
-    //   title: 'Basic - with reverse() - with [Clone] value converter',
-    //   repeatExpression: 'item of items | clone',
-    //   mutate: (items: ITestModel[]) => items.reverse(),
-    //   // expectation: (items: ITestModel[]) => defaultExpectation(items.slice(0).reverse())
-    // },
-    {
-      title: 'Basic - with sort()',
-      mutate: (items: ITestModel[]) => items.sort(sortDesc)
-    },
-    {
-      title: 'Basic - with sort() - with [Identity] value converter',
-      repeatExpression: 'item of items | identity',
-      mutate: (items: ITestModel[]) => items.sort(sortDesc)
-    },
-    // {
-    //   only: true,
-    //   title: 'Basic - with sort() - with [Clone] value converter',
-    //   repeatExpression: 'item of items | clone',
-    //   mutate: (items: ITestModel[]) => items.sort(sortDesc)
-    // },
-    {
-      title: 'Basic - with push()',
-      mutate(items: any[]) {
-        for (let i = 0; 5 > i; ++i) {
-          items.push({ name: `item - ${i}`, value: i });
+    ...[
+      {
+        title: 'Basic - no mutation',
+        mutate() {/* nothing */}
+      },
+      {
+        title: 'Basic - set to [null]',
+        mutate(comp: ITestViewModel) {
+          comp.items = null;
+        }
+      },
+      {
+        title: 'Basic - set to [undefined]',
+        mutate(comp: ITestViewModel) {
+          comp.items = undefined;
+        }
+      },
+      {
+        title: 'Basic - with reverse()',
+        mutate: (items: ITestModel[]) => items.reverse()
+      },
+      {
+        title: 'Basic - with sort()',
+        mutate: (items: ITestModel[]) => items.sort(sortDesc)
+      },
+      {
+        title: 'Basic - with push()',
+        mutate(items: any[]) {
+          for (let i = 0; 5 > i; ++i) {
+            items.push({ name: `item - ${i}`, value: i });
+          }
+        }
+      },
+      {
+        title: 'Basic - with splice()',
+        mutate(items: any[]) {
+          for (let i = 0; 5 > i; ++i) {
+            // tslint:disable-next-line:insecure-random
+            const index = Math.floor(Math.random() * items.length);
+            items.splice(index, 0, { name: `item - ${items.length}`, value: items.length });
+          }
+        }
+      },
+      {
+        title: 'Basic - with pop()',
+        mutate(items: any[]) {
+          items.pop();
+        }
+      },
+      {
+        title: 'Basic - with shift()',
+        mutate(items: any[]) {
+          items.shift();
+        }
+      },
+      {
+        title: 'Basic - with unshift()',
+        mutate(items: any[]) {
+          items.unshift({ name: 'item - abcd', value: 100 });
+        }
+      },
+    ].reduce(
+      (allArrayCases, arrayCaseConfig) => {
+        return allArrayCases.concat([
+          arrayCaseConfig,
+          {
+            ...arrayCaseConfig,
+            title: `${arrayCaseConfig.title} - with [Identity] value converter`,
+            repeatExpression: 'item of items | identity'
+          },
+          {
+            ...arrayCaseConfig,
+            title: `${arrayCaseConfig.title} - with [Clone] value converter`,
+            repeatExpression: 'item of items | clone'
+          }
+        ]);
+      },
+      []
+    ),
+    ...[
+      {
+        title: 'Map basic - no mutation',
+        repeatExpression: 'entry of items',
+        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate() {/*  */}
+      },
+      {
+        title: 'Map basic - set to [null]',
+        repeatExpression: 'entry of items',
+        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate(comp: ITestViewModel) {
+          comp.items = null;
+        }
+      },
+      {
+        title: 'Map basic - set to [undefined]',
+        repeatExpression: 'entry of items',
+        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate(comp: ITestViewModel) {
+          comp.items = undefined;
+        }
+      },
+      {
+        title: 'Map basic - with set()',
+        repeatExpression: 'entry of items',
+        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate(items: Map<string, ITestModel>) {
+          for (let i = 10; 15 > i; ++i) {
+            items.set(`item - ${i}`, { name: `item - ${i}`, value: i });
+          }
+        }
+      },
+      {
+        title: 'Map basic - with delete()',
+        repeatExpression: 'entry of items',
+        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate(items: Map<string, ITestModel>) {
+          for (let i = 0; 5 > i; ++i) {
+            items.delete(`item - ${i}`);
+          }
+        }
+      },
+      {
+        title: 'Map basic - with clear()',
+        repeatExpression: 'entry of items',
+        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate(items: Map<string, ITestModel>) {
+          items.clear();
         }
       }
-    },
-    {
-      title: 'Basic - with splice()',
-      mutate(items: any[]) {
-        for (let i = 0; 5 > i; ++i) {
-          const index = Math.floor(Math.random() * items.length);
-          items.splice(index, 0, { name: `item - ${items.length}`, value: items.length });
+    ].reduce(
+      (allMapCases, mapCaseConfig) => {
+        return allMapCases.concat([
+          mapCaseConfig,
+          {
+            ...mapCaseConfig,
+            title: `${mapCaseConfig.title} - with [Identity] value converter`,
+            repeatExpression: `${mapCaseConfig.repeatExpression} | identity`
+          },
+          {
+            ...mapCaseConfig,
+            title: `${mapCaseConfig.title} - with [Clone] value converter`,
+            repeatExpression: `${mapCaseConfig.repeatExpression} | clone`
+          },
+        ]);
+      },
+      []
+    ),
+    ...[
+      {
+        title: 'Set basic - no mutation',
+        repeatExpression: 'item of items',
+        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        getItems: () => new Set(createItems(10)),
+        mutate() {/*  */}
+      },
+      {
+        title: 'Set basic - set to [null]',
+        repeatExpression: 'item of items',
+        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        getItems: () => new Set(createItems(10)),
+        mutate(comp: ITestViewModel) {
+          comp.items = null;
+        }
+      },
+      {
+        title: 'Set basic - set to [undefined]',
+        repeatExpression: 'item of items',
+        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        getItems: () => new Set(createItems(10)),
+        mutate(comp: ITestViewModel) {
+          comp.items = undefined;
+        }
+      },
+      {
+        title: 'Set basic - with add()',
+        repeatExpression: 'item of items',
+        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        getItems: () => new Set(createItems(10)),
+        mutate(items: Set<ITestModel>) {
+          for (let i = 0; 5 > i; ++i) {
+            items.add({ name: `item - ${i + 10}`, value: i + 10 });
+          }
+        }
+      },
+      {
+        title: 'Set basic - with delete()',
+        repeatExpression: 'item of items',
+        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        getItems: () => new Set(createItems(10)),
+        mutate(items: Set<ITestModel>) {
+          const firstFive: ITestModel[] = [];
+          let i = 0;
+          items.forEach((item) => {
+            if (i++ < 6) {
+              firstFive.push(item);
+            }
+          });
+          firstFive.forEach(item => {
+            items.delete(item);
+          });
+        }
+      },
+      {
+        title: 'Set basic - with clear()',
+        repeatExpression: 'item of items',
+        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        getItems: () => new Set(createItems(10)),
+        mutate(items: Set<ITestModel>) {
+          items.clear();
+        }
+      },
+    ].reduce(
+      (allSetCases, setCaseConfig) => {
+        return allSetCases.concat([
+          setCaseConfig,
+          {
+            ...setCaseConfig,
+            title: `${setCaseConfig.title} - with [Identity] value converter`,
+            repeatExpression: `${setCaseConfig.repeatExpression} | identity`
+          },
+          {
+            ...setCaseConfig,
+            title: `${setCaseConfig.title} - with [Clone] value converter`,
+            repeatExpression: `${setCaseConfig.repeatExpression} | clone`
+          }
+        ]);
+      },
+      []
+    ),
+    ...[
+      {
+        title: 'Number basic - no mutation',
+        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        getItems: () => 10,
+        mutate() {/*  */}
+      },
+      {
+        title: 'Number basic - set to [null]',
+        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        getItems: () => 10,
+        mutate(items: any, comp: ITestViewModel) {
+          comp.items = null;
+        }
+      },
+      {
+        title: 'Number basic - set to [undefined]',
+        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        getItems: () => 10,
+        mutate(items: any, comp: ITestViewModel) {
+          comp.items = undefined;
+        }
+      },
+      {
+        title: 'Number basic - set to [0]',
+        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        getItems: () => 10,
+        mutate(items: any, comp: ITestViewModel) {
+          comp.items = 0;
+        }
+      },
+      {
+        title: 'Number basic - set to [-10]',
+        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        mutationWillThrow: true,
+        getItems: () => 10,
+        mutate(items: any, comp: ITestViewModel) {
+          comp.items = -10;
         }
       }
-    },
-    {
-      title: 'Basic - with pop()',
-      mutate(items: any[]) {
-        items.pop();
-      }
-    },
-    {
-      title: 'Basic - with shift()',
-      mutate(items: any[]) {
-        items.shift();
-      }
-    },
-    {
-      title: 'Basic - with unshift()',
-      mutate(items: any[]) {
-        items.unshift({ name: 'item - abcd', value: 100 });
-      }
-    },
-    {
-      title: 'Map basic - no mutations',
-      repeatExpression: 'entry of items',
-      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
-      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
-      mutate() {/*  */}
-    },
-    {
-      title: 'Map basic - with set()',
-      repeatExpression: 'entry of items',
-      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
-      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
-      mutate(items: Map<string, ITestModel>) {
-        for (let i = 10; 15 > i; ++i) {
-          items.set(`item - ${i}`, { name: `item - ${i}`, value: i });
-        }
-      }
-    },
-    {
-      title: 'Map basic - with set() - with [Identity] value converter',
-      repeatExpression: 'entry of items | identity',
-      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
-      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
-      mutate(items: Map<string, ITestModel>) {
-        for (let i = 10; 15 > i; ++i) {
-          items.set(`item - ${i}`, { name: `item - ${i}`, value: i });
-        }
-      }
-    },
-    {
-      title: 'Map basic - with delete()',
-      repeatExpression: 'entry of items',
-      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
-      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
-      mutate(items: Map<string, ITestModel>) {
-        for (let i = 0; 5 > i; ++i) {
-          items.delete(`item - ${i}`);
-        }
-      }
-    },
-    {
-      title: 'Map basic - with delete() - with [Identity] value converter',
-      repeatExpression: 'entry of items | identity',
-      textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
-      getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
-      mutate(items: Map<string, ITestModel>) {
-        for (let i = 0; 5 > i; ++i) {
-          items.delete(`item - ${i}`);
-        }
-      }
-    },
-    {
-      title: 'Set basic - with add()',
-      repeatExpression: 'item of items',
-      textExpression: '[${item.name}] -- ${$index} -- ${$even}',
-      getItems: () => new Set(createItems(10)),
-      mutate(items: Set<ITestModel>) {
-        for (let i = 0; 5 > i; ++i) {
-          items.add({ name: `item - ${i + 10}`, value: i + 10 });
-        }
-      }
-    },
+    ].reduce(
+      (allNumberCases, numberCaseConfig) => {
+        return allNumberCases.concat([
+          numberCaseConfig,
+          {
+            ...numberCaseConfig,
+            title: `${numberCaseConfig.title} - with [Identity] value converter`,
+            repeatExpression: `item of items | identity`
+          },
+          {
+            ...numberCaseConfig,
+            title: `${numberCaseConfig.title} - with [clone] value converter`,
+            repeatExpression: `item of items | clone`
+          }
+        ]);
+      },
+      []
+    )
   ];
 
   // Some tests are using, some aren't
@@ -218,7 +351,8 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
       only,
       mutate = PLATFORM.noop,
       expectation = defaultExpectation,
-      testWillThrow
+      testWillThrow,
+      mutationWillThrow
     } = testCase;
     const template = `<div repeat.for="${repeatExpression}">${textExpression}</div>`;
     class Root {
@@ -267,12 +401,22 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
           throw new Error('Expected test to throw, but did NOT');
         }
 
-        await mutate(component.items, component);
-        await waitForFrames(3);
+        try {
+          await mutate(component.items, component);
+          await waitForFrames(3);
 
-        assert.strictEqual(host.textContent, expectation(component.items, component));
+          assert.strictEqual(host.textContent, expectation(component.items, component));
 
-        await au.stop().wait();
+          await au.stop().wait();
+        } catch (ex) {
+          if (!mutationWillThrow) {
+            try {
+              await au.stop().wait();
+            } catch {/* and ignore all errors trying to stop */}
+            throw ex;
+          }
+        }
+
       } finally {
         if (host) {
           host.remove();
@@ -283,6 +427,10 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         await waitForFrames(2);
       }
     });
+  }
+
+  interface ITestViewModel {
+    items: any;
   }
 
   interface ITestModel {
@@ -301,7 +449,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     if (items instanceof Map) {
       return Array
         .from(items.entries())
-        .map(([itemName, item], idx) => `[${itemName}] -- ${idx} -- ${idx % 2 === 0}`)
+        .map(([itemName], idx) => `[${itemName}] -- ${idx} -- ${idx % 2 === 0}`)
         .join('');
     }
     if (items instanceof Set) {
@@ -310,7 +458,17 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         .map((item: ITestModel, idx: number) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`)
         .join('');
     }
-    throw new Error('Invalid item types')
+    if (items == null) {
+      return '';
+    }
+    if (typeof items === 'number') {
+      let text = '';
+      for (let i = 0; items > i; ++i) {
+        text += `[number:${i}] -- ${i} -- ${i % 2 === 0}`;
+      }
+      return text;
+    }
+    throw new Error('Invalid item types');
   }
 
   function sortDesc(item1: ITestModel, item2: ITestModel): -1 | 1 {

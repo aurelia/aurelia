@@ -261,7 +261,7 @@ export class IteratorBinding implements IPartialConnectableBinding {
   }
 
   private getInnerCollection(flags: LifecycleFlags): unknown {
-    const expression = unwrapExpression(this.sourceExpression);
+    const expression = unwrapExpression(this.sourceExpression.iterable);
     if (expression == null) {
       return void 0;
     }

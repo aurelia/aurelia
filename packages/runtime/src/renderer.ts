@@ -12,6 +12,7 @@ import { AnyBindingExpression } from './ast';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
+import { IteratorBinding, IIteratorBindingTarget } from './binding/iterator-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -41,7 +42,9 @@ import {
   IController,
   IRenderContext,
 } from './lifecycle';
-import { IObserverLocator } from './observation/observer-locator';
+import {
+  IObserverLocator
+} from './observation/observer-locator';
 import {
   IInstructionRenderer,
   IInstructionTypeClassifier,
@@ -52,7 +55,8 @@ import {
   CustomAttribute,
 } from './resources/custom-attribute';
 import {
-  CustomElement, CustomElementHost,
+  CustomElement,
+  CustomElementHost,
 } from './resources/custom-element';
 import {
   Controller,
@@ -431,9 +435,13 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
+  // target is controller because this render fn is invoked inside custom attribute
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IIteratorBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
-    addBinding(renderable, binding);
+    // just leave it here for awhile
+    // const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
+    // addBinding(renderable, binding);
+    const binding2 = new IteratorBinding(expr, getTarget(target) as IIteratorBindingTarget, BindingMode.toView, this.observerLocator, context);
+    addBinding(renderable, binding2);
   }
 }

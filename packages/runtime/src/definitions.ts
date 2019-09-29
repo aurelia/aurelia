@@ -72,7 +72,7 @@ export const enum TargetedInstructionType {
   callBinding = 'rh',
   letBinding = 'ri',
   refBinding = 'rj',
-  iteratorBinding = 'rk',
+  iteratorBinding = 'rk'
 }
 
 export interface IBuildInstruction {

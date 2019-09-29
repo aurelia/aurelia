@@ -9,8 +9,8 @@ import {
 
 import { ForOfStatement } from '../../binding/ast';
 import {
-  IForBindingTarget
-} from '../../binding/for-binding';
+  IIteratorBindingTarget
+} from '../../binding/iterator-binding';
 import { PropertyBinding } from '../../binding/property-binding';
 import {
   HooksDefinition,
@@ -70,7 +70,7 @@ const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
 const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
 
 @templateController('repeat')
-export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable, IForBindingTarget {
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable, IIteratorBindingTarget {
 
   public get items(): Items<C> {
     return this._items;
@@ -89,7 +89,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     items: this,
   });
 
-  public forOf!: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
   public local!: string;
   public location: IRenderLocation<T>;
@@ -127,6 +126,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public binding(flags: LF): ILifecycleTask {
+    this.processViewsKeyed(void 0, flags);
     return this.task;
   }
 
@@ -358,6 +358,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let task: ILifecycleTask;
     let view: IController<T>;
     let viewScope: IScope;
+    let item: unknown;
 
     const $controller = this.$controller;
     const lifecycle = $controller.lifecycle;
@@ -368,11 +369,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const part = $controller.part;
     const factory = this.factory;
     const local = this.local;
-    const items = this.items;
-    const newLen = this.forOf.count(flags, items);
-    const views = this.views = Array(newLen);
+    const items = this.items as IObservedArray;
+    const newLen = items.length;
+    const views = this.views = Array(items.length);
 
-    this.forOf.iterate(flags, items, (arr, i, item) => {
+    // this.forOf.iterate(flags, items, (arr, i, item) => {
+    for (let i = 0; newLen > i; ++i) {
+      item = items[i];
       view = views[i] = factory.create(flags);
       view.parent = $controller;
       viewScope = Scope.fromParent(
@@ -395,7 +398,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
         tasks.push(task);
       }
-    });
+    };
 
     if (tasks === undefined) {
       lifecycle.bound.end(flags);

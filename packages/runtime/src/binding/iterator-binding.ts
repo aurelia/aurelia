@@ -54,7 +54,7 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export interface IForBindingTarget {
+export interface IIteratorBindingTarget {
   // todo: not sure what to do with this ID yet
   id: number;
   setDeclarationName(propertyName: string): void;
@@ -62,7 +62,7 @@ export interface IForBindingTarget {
   getItems(): IObservedArray | null | undefined;
 }
 
-export interface ForBinding extends IConnectableBinding {}
+export interface IteratorBinding extends IConnectableBinding {}
 
 /**
  * For binding needs to:
@@ -72,7 +72,7 @@ export interface ForBinding extends IConnectableBinding {}
  *  - notify subscribers for iterable mutation
  */
 @connectable()
-export class ForBinding implements IPartialConnectableBinding {
+export class IteratorBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;
@@ -83,11 +83,7 @@ export class ForBinding implements IPartialConnectableBinding {
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
   public sourceExpression: IForOfStatement;
-  public target: IForBindingTarget;
-  /**
-   * property name that will be used as entry name in the target of this binding
-   */
-  public targetProperty: string;
+  public target: IIteratorBindingTarget;
 
   public persistentFlags: LifecycleFlags;
 
@@ -95,8 +91,7 @@ export class ForBinding implements IPartialConnectableBinding {
 
   constructor(
     sourceExpression: IForOfStatement,
-    target: IForBindingTarget,
-    targetProperty: string,
+    target: IIteratorBindingTarget,
     mode: BindingMode,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,
@@ -111,7 +106,6 @@ export class ForBinding implements IPartialConnectableBinding {
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;
     this.target = target;
-    this.targetProperty = targetProperty;
     this.persistentFlags = LifecycleFlags.none;
   }
 
@@ -157,7 +151,7 @@ export class ForBinding implements IPartialConnectableBinding {
 
   public handleCollectionMutated(indexMap: IndexMap | undefined, flags: LifecycleFlags): void {
     this.updateTarget(
-      this.normalizeToArray(flags, this.sourceExpression),
+      this.normalizeToArray(flags, this.evaluateExpression(flags, this.sourceExpression)),
       flags,
       indexMap
     );
@@ -165,7 +159,7 @@ export class ForBinding implements IPartialConnectableBinding {
 
   public handleInnerCollectionMutated(indexMap: IndexMap | undefined, flags: LifecycleFlags): void {
     this.updateTarget(
-      this.normalizeToArray(flags, this.sourceExpression),
+      this.normalizeToArray(flags, this.evaluateExpression(flags, this.sourceExpression)),
       flags,
       indexMap
     );
@@ -336,7 +330,7 @@ export class IterableMutationNotifier {
   private _observer?: ICollectionObserver<CollectionKind>;
 
   constructor(
-    private readonly binding: ForBinding,
+    private readonly binding: IteratorBinding,
     isInner: boolean
   ) {
     this.isInner = isInner;

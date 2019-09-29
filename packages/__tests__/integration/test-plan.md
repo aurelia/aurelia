@@ -44,6 +44,34 @@
 - `priority`: prioritize the change (Not sure how to test that though in real life)
 - `signals` : triggers update via custom signal
 
+### `@aurelia/runtime-html`
+
+#### Bindings
+- `attribute`: binds values to view and view-model attribute
+- `listener`: handle event binding between view and view model
+
+#### Observation
+- `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
+- `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
+- `class-attribute-accessor`: manipulates class attributes for an element.
+- `data-attribute-observer`: observes non-class, and non-style HTML attributes.
+  ```html
+  <div aria-disabled.attr="disabled">
+  ```
+- `element-attribute-observer`: handles mutation of `style` and `class` attributes via VM properties.
+  ```html
+  <div selected.class="selected">
+  <div background.style="bg">
+  ```
+- `element-property-accessor`: handles mutation of other attributes via VM properties.
+- `select-value-observer`: handles selection of options in `<select>` element.
+- `style-attribute-accessor`: inline style accessor
+
+#### Binding behaviors
+- `attr`: wrapper for data attribute observer.
+- `self`: triggers function iff the event originated from this element and not bubbled up from any child element.
+- `update-trigger`: registers event as update trigger
+
 ### Test plan
 
 #### Atoms
@@ -69,6 +97,8 @@ ${value}
 - call-binding (with the help of a higher-level CE that binds the value using a method call)
 - i18n (maybe later)
 - `setter-observer`
+- `attribute` binding
+- `ElementPropertyAccessor` (for `textContent`)
 
 ##### Text input
 
@@ -87,6 +117,21 @@ ${value}
 **Potential coverage targets**
 
 - `two-way` binding mode
+- `value-attribute-observer`
+
+##### Text input with predefined events as update trigger
+
+Targets `updateTrigger` binding behavior.
+
+##### Text input with blur effect
+
+Targets `blur` custom attribute.
+
+##### Readonly text factory
+
+Takes a collection of configuration objects, and renders readonly `<b>`, `<i>`, and `<span>`.
+Targets `<compose>` CE.
+
 
 #### Molecules
 
@@ -159,6 +204,7 @@ Populates the current page (for data-grid).
 **Potential coverage targets**
 
 - `from-view` binding mode (in the client code) for the current page.
+- `listener` binding (from previous/next page)
 
 ##### Set display control
 
@@ -179,7 +225,37 @@ Actually, this is a CE that displays a count (of whatever). The underlying prope
 ##### Session duration
 
 Shows the remaining time the current session will stay active.
-The update of the display is triggered every 2 seconds via a relative time signal.
+The update of the display is triggered every 2 seconds via a signal.
 
 **Potential coverage targets**
 - `signal` binding behavior
+
+##### Edit form
+
+- checkbox:
+  - single boolean checkbox: `checked-observer` simple case
+  - collection of checkboxes:
+    - bound to array of models: `checked-observer` with collection as value
+    - with custom matcher
+- collection of radios:
+  - simple id-value pair case
+  - bind model
+  - bind matcher
+  - bind boolean
+- card selector: displays a list of cards and applies a special css class and inline style (I know this is hypothetical, just grouping this here) on the selected card. Should cover `class-attribute-accessor`, `style-attribute-accessor`, and `element-attribute-observer`. Additionally, it applies a `src` attribute on the card images which should cover `data-attribute-accessor`.
+- `<select>`
+  - single select
+    - simple id-value pair case
+    - bind model
+    - bind matcher
+    - bind boolean
+  - multi-select
+    - simple id-value pair case
+    - bind model
+    - bind matcher
+    - bind boolean
+
+##### Random number generator
+A `div` with a random number (as easier to generate :)) + plus a button that does something (for example console.logs the text).
+When the `div` is clicked, a new number is generated.
+Targets `self` binding behavior, as the button click does not trigger the change of number.

@@ -13,7 +13,6 @@ import {
   IResourceKind,
   Registration
 } from '@aurelia/kernel';
-
 import {
   IForOfStatement,
   IInterpolationExpression,
@@ -345,15 +344,15 @@ export function buildTemplateDefinition(
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
-  instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null,
-  dependencies?: ReadonlyArray<unknown> | null,
-  surrogates?: ReadonlyArray<ITargetedInstruction> | null,
+  instructions?: readonly (readonly ITargetedInstruction[])[] | null,
+  dependencies?: readonly unknown[] | null,
+  surrogates?: readonly ITargetedInstruction[] | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
-  aliases?: ReadonlyArray<string> | null,
+  aliases?: readonly string[] | null,
 ): TemplateDefinition;
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -362,15 +361,15 @@ export function buildTemplateDefinition(
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
-  instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null,
-  dependencies?: ReadonlyArray<IRegistry> | null,
-  surrogates?: ReadonlyArray<ITargetedInstruction> | null,
+  instructions?: readonly (readonly ITargetedInstruction[])[] | null,
+  dependencies?: readonly IRegistry[] | null,
+  surrogates?: readonly ITargetedInstruction[] | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
-  aliases?: ReadonlyArray<string> | null,
+  aliases?: readonly string[] | null,
 ): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();

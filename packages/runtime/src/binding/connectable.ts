@@ -2,7 +2,6 @@ import {
   Class,
   Tracer
 } from '@aurelia/kernel';
-
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';

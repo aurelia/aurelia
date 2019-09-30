@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import * as path from 'path';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 

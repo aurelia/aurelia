@@ -11,7 +11,6 @@ import {
   ToViewBindingInstruction,
   TwoWayBindingInstruction,
 } from '@aurelia/runtime';
-
 import {
   bindingCommand,
   getTarget,

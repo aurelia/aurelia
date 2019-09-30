@@ -116,7 +116,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 /** @internal */
 export class AttributeBindingRenderer implements IInstructionRenderer {
   // @ts-ignore
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly InterfaceSymbol[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;

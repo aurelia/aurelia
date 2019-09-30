@@ -6,7 +6,6 @@ import {
   Registration,
   Key,
 } from '@aurelia/kernel';
-
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { IController, IViewModel } from './lifecycle';

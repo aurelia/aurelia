@@ -16,7 +16,7 @@ export class RouteTable implements IRouteTransformer {
   public transformFromUrl = (route: string, router: IRouter): string | ViewportInstruction[] => {
     // TODO: Implement route recognizing to transform a configured route to a set of viewport instructions
     return route;
-  }
+  };
 
   /**
    * Find the route in the route table for a set of viewport instructions.
@@ -28,5 +28,5 @@ export class RouteTable implements IRouteTransformer {
   public transformToUrl = (instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[] => {
     // TODO: Implement mapping from set of viewport instructions to a configured route
     return instructions;
-  }
+  };
 }

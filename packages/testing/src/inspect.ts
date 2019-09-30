@@ -37,7 +37,6 @@ import {
 import {
   DOM,
 } from '@aurelia/runtime-html';
-
 import { Call } from './tracing';
 import {
   Boolean_valueOf,

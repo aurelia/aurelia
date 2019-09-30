@@ -518,7 +518,7 @@ describe('replaceable', function () {
 
   function createItems(count: number, baseName: string = 'item') {
     return Array.from({ length: count }, (_, idx) => {
-      return { idx, name: `${baseName}-${idx}` }
+      return { idx, name: `${baseName}-${idx}` };
     });
   }
 });

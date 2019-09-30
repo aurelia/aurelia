@@ -31,7 +31,6 @@ import {
   TargetedInstruction,
   TemplateDefinition,
 } from '@aurelia/runtime';
-
 import {
   createElement,
   RenderPlan,

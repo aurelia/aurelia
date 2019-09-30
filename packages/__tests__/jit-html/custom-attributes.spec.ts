@@ -6,11 +6,9 @@ import {
 } from '@aurelia/runtime';
 import { assert, setup } from '@aurelia/testing';
 
-;
-
 describe('custom-attributes', function () {
     // custom elements
-    describe('01. Aliases', async function () {
+    describe('01. Aliases', function () {
 
         @customAttribute({ name: 'foo5', aliases: ['foo53'] })
         @alias(...['foo51', 'foo52'])
@@ -53,12 +51,11 @@ describe('custom-attributes', function () {
         }
 
         const resources: any[] = [Fooatt4, Fooatt5, FooMultipleAlias];
-        const app = class { value = 'wOOt' };
+        const app = class { value = 'wOOt'; };
 
         it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
             const options = await setup('<template> <div foo53.bind="value"></div> </template>', app, resources);
             assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
-            
             await options.tearDown();
         });
 

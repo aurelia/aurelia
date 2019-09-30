@@ -991,7 +991,7 @@ let plughReentryBehavior = 'default';
 const $goto = async (path: string, router: IRouter, lifecycle: ILifecycle) => {
   await router.goto(path);
   lifecycle.processRAFQueue(LifecycleFlags.none);
-}
+};
 
 const wait = async (time = 500) => {
   await new Promise((resolve) => {

@@ -52,7 +52,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18nService;
-  private readonly contentAttributes: ReadonlyArray<string> = contentAttributes;
+  private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression!: string;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;

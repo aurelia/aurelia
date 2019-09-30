@@ -7,7 +7,6 @@ import {
   Profiler,
   Registration
 } from '@aurelia/kernel';
-
 import { IActivator } from './activator';
 import {
   IDOM,

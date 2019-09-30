@@ -3,7 +3,6 @@ import {
   kebabCase,
   Reporter,
 } from '@aurelia/kernel';
-
 import {
   BindableSource,
   IBindableDescription,

@@ -88,7 +88,7 @@ export class CharSpec implements ICharSpec {
 }
 
 export class Interpretation {
-  public parts: ReadonlyArray<string>;
+  public parts: readonly string[];
   public get pattern(): string | null {
     const value = this._pattern;
     if (value === '') {
@@ -451,7 +451,7 @@ export interface IAttributePattern {
 }
 
 export interface IAttributePatternHandler {
-  [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
+  [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();

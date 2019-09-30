@@ -27,7 +27,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
     dom: HTMLDOM,
     localStyles: (string | CSSStyleSheet)[],
     styleSheetCache: Map<string, CSSStyleSheet>,
-    private sharedStyles: IShadowDOMStyles | null = null
+    private readonly sharedStyles: IShadowDOMStyles | null = null
   ) {
     this.styleSheets = localStyles.map(x => {
       let sheet: CSSStyleSheet | undefined;
@@ -68,9 +68,9 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
 export class StyleElementStyles implements IShadowDOMStyles {
   constructor(
-    private dom: HTMLDOM,
-    private localStyles: string[],
-    private sharedStyles: IShadowDOMStyles | null = null
+    private readonly dom: HTMLDOM,
+    private readonly localStyles: string[],
+    private readonly sharedStyles: IShadowDOMStyles | null = null
   ) { }
 
   public applyTo(shadowRoot: ShadowRoot) {

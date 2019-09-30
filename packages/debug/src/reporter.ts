@@ -1,6 +1,6 @@
 import { LogLevel, Reporter as RuntimeReporter } from '@aurelia/kernel';
 
-declare var console: {
+declare let console: {
   log(...args: unknown[]): void;
   debug(...args: unknown[]): void;
   info(...args: unknown[]): void;

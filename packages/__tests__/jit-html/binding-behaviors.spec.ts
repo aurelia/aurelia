@@ -15,13 +15,13 @@ import { assert, setup } from '@aurelia/testing';
 describe('value-converters', function () {
 
     // custom elements
-    describe('01. Aliases', async function () {
+    describe('01. Aliases', function () {
 
         const app = class {
             value = 'wOOt';
             method = () => {
                 this.value = 'wOOt1';
-            }
+            };
         };
 
         @bindingBehavior({ name: 'woot1', aliases: ['woot13'] })

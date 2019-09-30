@@ -1,5 +1,4 @@
 import { nextId } from '@aurelia/kernel';
-
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { IController, IViewFactory } from '../../lifecycle';

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { ModifyCodeResult } from 'modify-code';
 import * as path from 'path';
+import { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
 import { preprocessHtmlTemplate } from './preprocess-html-template';
 import { preprocessResource } from './preprocess-resource';

@@ -10,7 +10,7 @@ import { assert, setup } from '@aurelia/testing';
 // TemplateCompiler - value converter integration
 describe('value-converters', function () {
     // custom elements
-    describe('01. Aliases', async function () {
+    describe('01. Aliases', function () {
 
         @valueConverter({ name: 'woot1', aliases: ['woot13'] })
         @alias(...['woot11', 'woot12'])
@@ -56,7 +56,7 @@ describe('value-converters', function () {
 
 
         const resources: any[] = [WootConverter, WootConverter2, FooAttribute2, FooAttribute];
-        const app = class { value = 'wOOt' };
+        const app = class { value = 'wOOt'; };
 
         it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
             const options = await setup('<template> <div foo53.bind="value | woot13"></div> </template>', app, resources);

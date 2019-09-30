@@ -35,14 +35,14 @@ import {
   parse,
   ParserState
 } from '@aurelia/jit';
+import { assert } from '@aurelia/testing';
 import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
 } from './unicode';
-import { assert } from '@aurelia/testing';
 
-function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>): TaggedTemplateExpression {
+function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]): TaggedTemplateExpression {
   return new TaggedTemplateExpression(cooked, cooked, func, expressions);
 }
 

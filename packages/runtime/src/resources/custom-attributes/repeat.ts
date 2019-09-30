@@ -6,7 +6,6 @@ import {
   PLATFORM,
   Registration,
 } from '@aurelia/kernel';
-
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import {

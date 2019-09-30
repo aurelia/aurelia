@@ -11,7 +11,6 @@ import {
   RuntimeCompilationResources,
   Transformer,
 } from '@aurelia/kernel';
-
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';

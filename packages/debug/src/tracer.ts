@@ -333,7 +333,7 @@ const ObservationArgsProcessor = {
   callSource(info: ITraceInfo): string {
     switch (info.objName) {
       case 'Listener':
-        return ((info.params as ReadonlyArray<{ type: string }>)[0]).type;
+        return ((info.params as readonly { type: string }[])[0]).type;
       case 'CallBinding':
         const names: string[] = [];
         if (info.params != null) {
@@ -348,7 +348,7 @@ const ObservationArgsProcessor = {
   },
   setValue(info: ITraceInfo): string {
     let valueText: string;
-    const value = (info.params as ReadonlyArray<unknown>)[0];
+    const value = (info.params as readonly unknown[])[0];
     switch (typeof value) {
       case 'undefined':
         valueText = 'undefined';
@@ -393,7 +393,7 @@ const AttachingArgsProcessor = {
     return flagsText(info);
   },
   hold(info: ITraceInfo): string {
-    return `Node{'${((info.params as ReadonlyArray<{ textContent: string }>)[0]).textContent}'}`;
+    return `Node{'${((info.params as readonly { textContent: string }[])[0]).textContent}'}`;
   },
   release(info: ITraceInfo): string {
     return flagsText(info);

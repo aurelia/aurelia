@@ -9,13 +9,14 @@ export interface Subscription extends IDisposable {
 export declare type EventAggregatorCallback<T = any> = (data?: T, event?: string) => any;
 export declare const IEventAggregator: import("./di").InterfaceSymbol<IEventAggregator>;
 export interface IEventAggregator {
-    publish(channel: string, data?: unknown): void;
-    subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
+    publish<T extends Constructable | string>(channelOrInstance: T extends Constructable ? InstanceType<T> : T, data?: unknown): void;
+    subscribe<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T extends Constructable ? InstanceType<T> : T>): IDisposable;
+    subscribeOnce<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T extends Constructable ? InstanceType<T> : T>): IDisposable;
 }
 /**
  * Enables loosely coupled publish/subscribe messaging.
  */
-export declare class EventAggregator {
+export declare class EventAggregator implements IEventAggregator {
     /**
      * Creates an instance of the EventAggregator class.
      */
@@ -30,7 +31,7 @@ export declare class EventAggregator {
      * Publishes a message.
      * @param instance The instance to publish to.
      */
-    publish(instance: InstanceType<Constructable>): void;
+    publish<T extends Constructable>(instance: InstanceType<T>): void;
     /**
      * Subscribes to a message channel.
      * @param channel The event channel.

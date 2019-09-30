@@ -8,7 +8,7 @@
 </head>
 
 <body>
-  <script src="./node_modules/@aurelia/jit-html-browser/dist/index.iife.full.js"></script>
+  <script src="./node_modules/aurelia/dist/index.iife.full.js"></script>
   <app>
     <template>
       <div>${message}</div>
@@ -19,10 +19,9 @@
       constructor() { this.message = 'Hello World!'; }
     }
     var host = document.querySelector('app');
-    au.runtime.customElement({ name: 'app', template: host.innerHTML })(App)
-    new au.runtime.Aurelia()
-      .register(au.jitHtmlBrowser.JitHtmlBrowserConfiguration)
-      .app({ host, component: new App() })
+    au.aurelia.customElement({ name: 'app', template: host.innerHTML })(App);
+    au.aurelia.Aurelia
+      .app(App)
       .start();
   </script>
 </body>

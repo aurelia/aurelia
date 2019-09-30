@@ -55,7 +55,7 @@
     "ts-node": "^8.3.0",
     "tsconfig-paths": "^3.8.0",
     "tsify": "^4.0.1",
-    "typescript": "^3.5.3",
+    "typescript": "^3.6.3",
     "vinyl-source-stream": "^2.0.0"
   }
 }

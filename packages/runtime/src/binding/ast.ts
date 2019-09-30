@@ -1164,11 +1164,11 @@ export class ForOfStatement implements IForOfStatement {
   }
 
   public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
-    return CountForOfStatement[toStringTag.call(result)](result as any);
+    return CountForOfStatement[toStringTag.call(result)](result as never);
   }
 
   public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result as any, func);
+    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result as never, func);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {

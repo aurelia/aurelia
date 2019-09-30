@@ -11,16 +11,16 @@ export interface IShadowDOMStyles {
     applyTo(shadowRoot: ShadowRoot): void;
 }
 export declare class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
-    private sharedStyles;
+    private readonly sharedStyles;
     private readonly styleSheets;
     constructor(dom: HTMLDOM, localStyles: (string | CSSStyleSheet)[], styleSheetCache: Map<string, CSSStyleSheet>, sharedStyles?: IShadowDOMStyles | null);
     static supported(dom: HTMLDOM): boolean;
     applyTo(shadowRoot: HasAdoptedStyleSheets): void;
 }
 export declare class StyleElementStyles implements IShadowDOMStyles {
-    private dom;
-    private localStyles;
-    private sharedStyles;
+    private readonly dom;
+    private readonly localStyles;
+    private readonly sharedStyles;
     constructor(dom: HTMLDOM, localStyles: string[], sharedStyles?: IShadowDOMStyles | null);
     applyTo(shadowRoot: ShadowRoot): void;
 }

@@ -5,7 +5,7 @@ export interface AttributePatternDefinition {
     symbols: string;
 }
 export declare class Interpretation {
-    parts: ReadonlyArray<string>;
+    parts: readonly string[];
     pattern: string | null;
     private _pattern;
     private readonly currentRecord;
@@ -25,7 +25,7 @@ export interface IAttributePattern {
     $patternDefs: AttributePatternDefinition[];
 }
 export interface IAttributePatternHandler {
-    [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
+    [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 export declare const IAttributePattern: import("@aurelia/kernel").InterfaceSymbol<IAttributePattern>;
 declare type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;

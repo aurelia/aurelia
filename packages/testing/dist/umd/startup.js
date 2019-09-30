@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", ".", "@aurelia/runtime"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./html-test-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const _1 = require(".");
     const runtime_1 = require("@aurelia/runtime");
-    function setup(template, $class, registrations = [], autoStart = true, ctx = _1.TestContext.createHTMLTestContext()) {
+    const html_test_context_1 = require("./html-test-context");
+    function setup(template, $class, registrations = [], autoStart = true, ctx = html_test_context_1.TestContext.createHTMLTestContext()) {
         const { container, lifecycle, observerLocator } = ctx;
         container.register(...registrations);
         const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));

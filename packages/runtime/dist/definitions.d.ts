@@ -176,9 +176,9 @@ export declare type CustomElementConstructor = Constructable & {
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: null, def: ITemplateDefinition): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | ITemplateDefinition): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<ITargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
+export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: readonly (readonly ITargetedInstruction[])[] | null, dependencies?: readonly unknown[] | null, surrogates?: readonly ITargetedInstruction[] | null, containerless?: boolean | null, shadowOptions?: {
     mode: 'open' | 'closed';
-} | null, hasSlots?: boolean | null, strategy?: BindingStrategy | null, childrenObservers?: Record<string, IChildrenObserverDescription> | null, aliases?: ReadonlyArray<string> | null): TemplateDefinition;
+} | null, hasSlots?: boolean | null, strategy?: BindingStrategy | null, childrenObservers?: Record<string, IChildrenObserverDescription> | null, aliases?: readonly string[] | null): TemplateDefinition;
 export declare function alias(...aliases: string[]): (instance: Constructable<any>) => Constructable<any>;
 export declare function registerAliases<T, F>(aliases: string[], resource: IResourceKind<T, F>, key: string, container: IContainer): void;
 //# sourceMappingURL=definitions.d.ts.map

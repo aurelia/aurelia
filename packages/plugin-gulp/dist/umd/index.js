@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/plugin-conventions", "stream"], factory);
+        define(["require", "exports", "stream", "@aurelia/plugin-conventions"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const plugin_conventions_1 = require("@aurelia/plugin-conventions");
     const stream_1 = require("stream");
+    const plugin_conventions_1 = require("@aurelia/plugin-conventions");
     function default_1(options = {}) {
         return plugin({
             ...options,

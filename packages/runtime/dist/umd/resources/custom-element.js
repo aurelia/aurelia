@@ -37,7 +37,6 @@
             const description = definitions_1.buildTemplateDefinition(Type, nameOrDefinition);
             WritableType.kind = exports.CustomElement;
             Type.description = description;
-            WritableType;
             WritableType.aliases = Type.aliases == null ? kernel_1.PLATFORM.emptyArray : Type.aliases;
             Type.register = function register(container) {
                 const aliases = description.aliases;

@@ -25,7 +25,6 @@ export const CustomElement = Object.freeze({
         const description = buildTemplateDefinition(Type, nameOrDefinition);
         WritableType.kind = CustomElement;
         Type.description = description;
-        WritableType;
         WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
         Type.register = function register(container) {
             const aliases = description.aliases;

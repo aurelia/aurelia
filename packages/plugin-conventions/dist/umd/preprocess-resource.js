@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "modify-code", "path", "typescript", "./name-convention"], factory);
+        define(["require", "exports", "path", "@aurelia/kernel", "modify-code", "typescript", "./name-convention"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const path = require("path");
     const kernel_1 = require("@aurelia/kernel");
     const modify_code_1 = require("modify-code");
-    const path = require("path");
     const ts = require("typescript");
     const name_convention_1 = require("./name-convention");
     function preprocessResource(unit, options) {

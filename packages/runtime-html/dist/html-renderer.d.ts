@@ -31,7 +31,7 @@ export declare class StylePropertyBindingRenderer implements IInstructionRendere
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void;
 }
 export declare class AttributeBindingRenderer implements IInstructionRenderer {
-    static readonly inject: ReadonlyArray<InterfaceSymbol>;
+    static readonly inject: readonly InterfaceSymbol[];
     static readonly register: IRegistry['register'];
     private readonly parser;
     private readonly observerLocator;

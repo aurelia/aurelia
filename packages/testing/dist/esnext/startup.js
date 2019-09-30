@@ -1,5 +1,5 @@
-import { TestContext } from '.';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { TestContext } from './html-test-context';
 export function setup(template, $class, registrations = [], autoStart = true, ctx = TestContext.createHTMLTestContext()) {
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations);

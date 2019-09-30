@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode from 'modify-code';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { nameConvention } from './name-convention';
 export function preprocessResource(unit, options) {

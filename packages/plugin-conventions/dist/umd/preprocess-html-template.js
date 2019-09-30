@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "modify-code", "path", "./strip-meta-data"], factory);
+        define(["require", "exports", "path", "@aurelia/kernel", "modify-code", "./strip-meta-data"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const path = require("path");
     const kernel_1 = require("@aurelia/kernel");
     const modify_code_1 = require("modify-code");
-    const path = require("path");
     const strip_meta_data_1 = require("./strip-meta-data");
     // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
     // For webpack:

@@ -11,7 +11,7 @@ export declare class RenderPlan<T extends INode = Node> {
     private readonly instructions;
     private readonly node;
     private lazyDefinition?;
-    constructor(dom: IDOM<T>, node: T, instructions: HTMLTargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>);
+    constructor(dom: IDOM<T>, node: T, instructions: HTMLTargetedInstruction[][], dependencies: readonly IRegistry[]);
     readonly definition: TemplateDefinition;
     getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T>;
     createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IController;

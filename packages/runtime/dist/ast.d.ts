@@ -64,7 +64,7 @@ export interface IBindingBehaviorExpression extends IExpression {
     readonly $kind: ExpressionKind.BindingBehavior;
     readonly expression: IsBindingBehavior;
     readonly name: string;
-    readonly args: ReadonlyArray<IsAssign>;
+    readonly args: readonly IsAssign[];
     readonly behaviorKey: string;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown;
     bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
@@ -74,7 +74,7 @@ export interface IValueConverterExpression extends IExpression {
     readonly $kind: ExpressionKind.ValueConverter;
     readonly expression: IsValueConverter;
     readonly name: string;
-    readonly args: ReadonlyArray<IsAssign>;
+    readonly args: readonly IsAssign[];
     readonly converterKey: string;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown;
     unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
@@ -116,19 +116,19 @@ export interface IAccessKeyedExpression extends IExpression {
 export interface ICallScopeExpression extends IExpression {
     readonly $kind: ExpressionKind.CallScope;
     readonly name: string;
-    readonly args: ReadonlyArray<IsAssign>;
+    readonly args: readonly IsAssign[];
     readonly ancestor: number;
 }
 export interface ICallMemberExpression extends IExpression {
     readonly $kind: ExpressionKind.CallMember;
     readonly object: IsLeftHandSide;
     readonly name: string;
-    readonly args: ReadonlyArray<IsAssign>;
+    readonly args: readonly IsAssign[];
 }
 export interface ICallFunctionExpression extends IExpression {
     readonly $kind: ExpressionKind.CallFunction;
     readonly func: IsLeftHandSide;
-    readonly args: ReadonlyArray<IsAssign>;
+    readonly args: readonly IsAssign[];
 }
 export declare type BinaryOperator = '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 export interface IBinaryExpression extends IExpression {
@@ -149,38 +149,38 @@ export interface IPrimitiveLiteralExpression<TValue extends StrictPrimitive = St
 }
 export interface IHtmlLiteralExpression extends IExpression {
     readonly $kind: ExpressionKind.HtmlLiteral;
-    readonly parts: ReadonlyArray<IHtmlLiteralExpression>;
+    readonly parts: readonly IHtmlLiteralExpression[];
 }
 export interface IArrayLiteralExpression extends IExpression {
     readonly $kind: ExpressionKind.ArrayLiteral;
-    readonly elements: ReadonlyArray<IsAssign>;
+    readonly elements: readonly IsAssign[];
 }
 export interface IObjectLiteralExpression extends IExpression {
     readonly $kind: ExpressionKind.ObjectLiteral;
-    readonly keys: ReadonlyArray<number | string>;
-    readonly values: ReadonlyArray<IsAssign>;
+    readonly keys: readonly (number | string)[];
+    readonly values: readonly IsAssign[];
 }
 export interface ITemplateExpression extends IExpression {
     readonly $kind: ExpressionKind.Template;
-    readonly cooked: ReadonlyArray<string>;
-    readonly expressions: ReadonlyArray<IsAssign>;
+    readonly cooked: readonly string[];
+    readonly expressions: readonly IsAssign[];
 }
 export interface ITaggedTemplateExpression extends IExpression {
     readonly $kind: ExpressionKind.TaggedTemplate;
-    readonly cooked: ReadonlyArray<string> & {
-        raw?: ReadonlyArray<string>;
+    readonly cooked: readonly string[] & {
+        raw?: readonly string[];
     };
     readonly func: IsLeftHandSide;
-    readonly expressions: ReadonlyArray<IsAssign>;
+    readonly expressions: readonly IsAssign[];
 }
 export interface IArrayBindingPattern extends IExpression {
     readonly $kind: ExpressionKind.ArrayBindingPattern;
-    readonly elements: ReadonlyArray<IsAssign>;
+    readonly elements: readonly IsAssign[];
 }
 export interface IObjectBindingPattern extends IExpression {
     readonly $kind: ExpressionKind.ObjectBindingPattern;
-    readonly keys: ReadonlyArray<string | number>;
-    readonly values: ReadonlyArray<IsAssign>;
+    readonly keys: readonly (string | number)[];
+    readonly values: readonly IsAssign[];
 }
 export interface IBindingIdentifier extends IExpression {
     readonly $kind: ExpressionKind.BindingIdentifier;
@@ -198,8 +198,8 @@ export interface IForOfStatement extends IExpression {
 }
 export interface IInterpolationExpression extends IExpression {
     readonly $kind: ExpressionKind.Interpolation;
-    readonly parts: ReadonlyArray<string>;
-    readonly expressions: ReadonlyArray<IsBindingBehavior>;
+    readonly parts: readonly string[];
+    readonly expressions: readonly IsBindingBehavior[];
     readonly isMulti: boolean;
     readonly firstExpression: IsBindingBehavior;
 }

@@ -4,8 +4,8 @@ declare const unset: unique symbol;
 export declare class BlurManager {
     readonly dom: HTMLDOM;
     readonly lifecycle: ILifecycle;
-    private blurs;
-    private handler;
+    private readonly blurs;
+    private readonly handler;
     private constructor();
     static createFor(dom: HTMLDOM, lifecycle: ILifecycle): BlurManager;
     register(blur: Blur): void;

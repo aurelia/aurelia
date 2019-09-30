@@ -8,7 +8,6 @@ describe('BrowserNavigator', function () {
   const callback = ((info) => {
     callbackCount++;
   });
-  interface MockWindow extends Window { }
   class MockWindow {
     public window: Window;
     public history: History;

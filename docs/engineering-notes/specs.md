@@ -16,14 +16,14 @@ Note: The contents in this document may no longer apply or be out of date.
 *Status: 0/Discussion*
 
 ```ts
-import au, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import Aurelia, { StyleConfiguration, RouterConfiguration } from 'aurelia';
 import { MyRootComponent } from './my-root-component';
 // By default host to element name (<my-root-component> for MyRootComponent),
 // or <body> if <my-root-component> is absent.
-au.app(MyRootComponent).start();
+Aurelia.app(MyRootComponent).start();
 
 // Or load additional aurelia features
-au
+Aurelia
   .register(
     StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
@@ -32,7 +32,7 @@ au
   .start();
 
 // Or host to <my-start-tag>
-au
+Aurelia
   .register(
     StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })

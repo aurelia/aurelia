@@ -5,14 +5,14 @@
 ### New Quick Startup (recommended)
 
 ```ts
-import au, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import Aurelia, { StyleConfiguration, RouterConfiguration } from 'aurelia';
 import { MyRootComponent } from './my-root-component';
 // By default host to element name (<my-root-component> for MyRootComponent),
 // or <body> if <my-root-component> is absent.
-au.app(MyRootComponent).start();
+Aurelia.app(MyRootComponent).start();
 
 // Or load additional aurelia features
-au
+Aurelia
   .register(
     StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
@@ -21,7 +21,7 @@ au
   .start();
 
 // Or host to <my-start-tag>
-au
+Aurelia
   .register(
     StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
@@ -59,7 +59,11 @@ To make a custom element globally available to your application, pass the custom
 import { CardCustomElement } from './components/card';
 
 // When using quick startup
-au(..., <any>CardCustomElement);
+Aurelia
+  .register(...)
+  .register(<any>CardCustomElement);
+  .app({ ... })
+  .start();
 
 // When using verbose startup
 new Aurelia()
@@ -80,7 +84,11 @@ If you have a package that exports all your custom elements, you can pass the en
 import * as globalComponents from './components';
 
 // When using quick startup
-au(..., <any>globalComponents);
+Aurelia
+  .register(...)
+  .register(<any>globalComponents)
+  .app({ ... })
+  .start();
 
 // When using verbose startup
 new Aurelia()

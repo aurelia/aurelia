@@ -166,14 +166,14 @@ In practice, most people want to side-step this feature and make most of their g
 {% code-tabs-item title="mail.ts" %}
 ```typescript
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 import { NameTag } from './name-tag';
 
 new Aurelia()
   .register(
-    BasicConfiguration,
+    JitHtmlBrowserConfiguration,
     DebugConfiguration,
     NameTag // Here it is!
   ).app({ host: document.querySelector('app'), component: App })
@@ -195,14 +195,14 @@ export * from './name-tag';
 {% code-tabs-item title="main.ts" %}
 ```typescript
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 import * as globalComponents from './components/registry';
 
 new Aurelia()
   .register(
-    BasicConfiguration,
+    JitHtmlBrowserConfiguration,
     DebugConfiguration,
     globalComponents // This globalizes all the exports of our registry.
   ).app({ host: document.querySelector('app'), component: App })
@@ -214,7 +214,7 @@ new Aurelia()
 {% hint style="info" %}
 **Aurelia Architecture**
 
-Did you notice how the default Aurelia startup code involves importing and registering `BasicConfiguration`? The `BasicConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
+Did you notice how the default Aurelia startup code involves importing and registering `JitHtmlBrowserConfiguration`? The `JitHtmlBrowserConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
 {% endhint %}
 
 ### Working without Conventions

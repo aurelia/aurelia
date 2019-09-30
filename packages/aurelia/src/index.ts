@@ -86,7 +86,7 @@ export {
 
   // DefaultBindingLanguage as JitDefaultBindingLanguage,
 
-  // BasicConfiguration as JitBasicConfiguration,
+  // JitConfiguration,
 
   // Access,
   // Precedence,
@@ -149,7 +149,7 @@ export {
 
   // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
 
-  BasicConfiguration as JitHtmlBasicConfiguration,
+  JitHtmlConfiguration,
 
   // stringifyDOM,
   // stringifyInstructions,
@@ -161,7 +161,7 @@ export {
 } from '@aurelia/jit-html';
 
 export {
-  BasicConfiguration as JitHtmlBrowserBasicConfiguration
+  JitHtmlBrowserConfiguration
 } from '@aurelia/jit-html-browser';
 
 export {
@@ -636,7 +636,7 @@ export {
   // IObserverLocatorRegistration,
   // ILifecycleRegistration,
   // IRendererRegistration,
-  // RuntimeBasicConfiguration,
+  // RuntimeConfiguration,
 
   // AttributeDefinition,
   // AttributeInstruction,
@@ -865,7 +865,7 @@ export {
 
   // DefaultRenderers,
 
-  // BasicConfiguration as RuntimeHtmlBasicConfiguration,
+  // RuntimeHtmlConfiguration,
 
   createElement,
   // RenderPlan,
@@ -919,5 +919,5 @@ export {
 // export {
 //   IDOMInitializerRegistration,
 //   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
-//   BasicConfiguration as RuntimeHtmlBrowserBasicConfiguration
+//   RuntimeHtmlBrowserConfiguration
 // } from '@aurelia/runtime-html-browser';

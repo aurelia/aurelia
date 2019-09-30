@@ -51,7 +51,7 @@ To start an Aurelia application, create a `new Aurelia()` object with a target `
 
 ```ts
 import { Aurelia } from '@aurelia/jit-html-browser';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { ThirdPartyPlugin } from 'third-party-plugin';
 
 // Object API.
@@ -59,7 +59,7 @@ const app = new Aurelia({
   host: 'my-host-element',
   component: MyRootComponent
   plugins: [
-    BasicCofiguration,
+    JitHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ]
 }).start();
@@ -69,7 +69,7 @@ const app = new Aurelia()
   .host('my-host-element')
   .component(MyRootComponent)
   .plugins([
-    BasicCofiguration,
+    JitHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ])
   .start();

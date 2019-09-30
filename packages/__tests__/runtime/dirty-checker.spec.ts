@@ -3,7 +3,7 @@ import {
   DirtyCheckSettings,
   IDirtyChecker,
   LifecycleFlags,
-  RuntimeBasicConfiguration
+  RuntimeConfiguration
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
@@ -13,7 +13,7 @@ describe.skip('DirtyChecker', function () {
   });
 
   function setup() {
-    const container = RuntimeBasicConfiguration.createContainer();
+    const container = RuntimeConfiguration.createContainer();
     const dirtyChecker = container.get(IDirtyChecker);
 
     return { dirtyChecker };

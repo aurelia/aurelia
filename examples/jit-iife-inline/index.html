@@ -21,7 +21,7 @@
     var host = document.querySelector('app');
     au.runtime.customElement({ name: 'app', template: host.innerHTML })(App)
     new au.runtime.Aurelia()
-      .register(au.jitHtmlBrowser.BasicConfiguration)
+      .register(au.jitHtmlBrowser.JitHtmlBrowserConfiguration)
       .app({ host, component: new App() })
       .start();
   </script>

@@ -37,12 +37,12 @@ To start an Aurelia application, create a `new Aurelia()` object with a target `
 
 ```typescript
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { ShellComponent } from './shell';
 
 new Aurelia()
-  .register(BasicConfiguration, DebugConfiguration)
+  .register(JitHtmlBrowserConfiguration, DebugConfiguration)
   .app({ host: document.querySelector('body'), component: ShellComponent })
   .start();
 ```

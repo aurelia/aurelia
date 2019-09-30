@@ -1,11 +1,11 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { IRegistry } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, INode } from '@aurelia/runtime';
 
 function start(component: unknown, host: INode, deps: IRegistry[]): Aurelia {
   const au = new Aurelia();
-  au.register(BasicConfiguration, ...deps);
+  au.register(JitHtmlBrowserConfiguration, ...deps);
 
   if (typeof process !== 'undefined' && typeof process.env === 'object') {
     // Just use NODE_ENV to control build process.

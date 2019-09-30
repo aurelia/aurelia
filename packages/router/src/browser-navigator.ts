@@ -111,7 +111,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   public readonly handlePopstate = (ev: PopStateEvent | null): Promise<void> => {
     return this.enqueue(this, 'popstate', [ev]);
-  }
+  };
 
   private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
     if (!suppressPopstate) {
@@ -202,5 +202,5 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
       method.apply(call.target, call.parameters);
     }
     (qCall.resolve as ((value: void | PromiseLike<void>) => void))();
-  }
+  };
 }

@@ -8,7 +8,6 @@ import {
   PLATFORM,
   Registration,
 } from '@aurelia/kernel';
-
 import {
   HooksDefinition,
   ITargetedInstruction,

@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { preprocessResource, preprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
-import * as path from 'path';
 
 describe('preprocessResource', function () {
   it('ignores file without html pair', function () {

@@ -271,7 +271,7 @@ describe('translation-integration', function () {
     ` })
     class App {
       private readonly obj = { key1: 'simple.text', key2: 'simple.attr' };
-      private readonly status = 'dispatched'
+      private readonly status = 'dispatched';
     }
 
     const host = DOM.createElement('app');

@@ -144,5 +144,5 @@ export class LinkHandler {
       e.preventDefault();
       this.options.callback(info);
     }
-  }
+  };
 }

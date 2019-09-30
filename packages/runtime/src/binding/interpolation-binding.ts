@@ -1,5 +1,4 @@
 import { IServiceLocator } from '@aurelia/kernel';
-
 import {
   IExpression,
   IInterpolationExpression,

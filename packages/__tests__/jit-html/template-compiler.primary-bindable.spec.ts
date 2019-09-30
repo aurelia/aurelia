@@ -1,7 +1,6 @@
 import {
   Constructable, PLATFORM
 } from '@aurelia/kernel';
-
 import {
   Aurelia,
   bindable,
@@ -10,7 +9,6 @@ import {
   ICustomAttributeResource,
   INode
 } from '@aurelia/runtime';
-
 import {
   assert,
   HTMLTestContext,
@@ -41,7 +39,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -66,7 +64,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: number;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -92,7 +90,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -118,7 +116,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -146,7 +144,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -175,7 +173,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -203,7 +201,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -235,7 +233,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
         }
         return [Square];
       },
@@ -259,7 +257,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
         }
         return [Square];
       },

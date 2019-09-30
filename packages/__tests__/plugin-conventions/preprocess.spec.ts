@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { preprocess } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
-import * as path from 'path';
 
 describe('preprocess', function () {
   it('transforms html file', function () {

@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { preprocessHtmlTemplate, preprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
-import * as path from 'path';
 
 describe('preprocessHtmlTemplate', function () {
   it('processes template with no dependencies', function () {

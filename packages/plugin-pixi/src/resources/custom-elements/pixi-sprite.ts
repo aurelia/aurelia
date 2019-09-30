@@ -4,7 +4,6 @@ import {
   IController,
   State
 } from '@aurelia/runtime';
-
 import {
   Circle,
   Container,

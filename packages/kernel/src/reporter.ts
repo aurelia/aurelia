@@ -3,7 +3,7 @@ export interface ITraceInfo {
   readonly objName: string;
   readonly methodName: string;
   readonly depth: number;
-  params: ReadonlyArray<unknown> | null;
+  params: readonly unknown[] | null;
   next: ITraceInfo | null;
   prev: ITraceInfo | null;
 }

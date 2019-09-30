@@ -937,7 +937,7 @@ describe('AccessKeyedExpression', function () {
           assert.strictEqual(binding.calls[0][0], 'observeProperty');
         });
       })
-    )
+    );
   });
 });
 
@@ -1756,7 +1756,7 @@ class Test {
 
   public makeString = (cooked: string[], a: any, b: any): string => {
     return cooked[0] + a + cooked[1] + b + cooked[2] + this.value;
-  }
+  };
 }
 
 describe('LiteralTemplate', function () {

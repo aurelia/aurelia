@@ -2,7 +2,6 @@ import {
   IServiceLocator,
   Tracer,
 } from '@aurelia/kernel';
-
 import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,

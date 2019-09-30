@@ -184,12 +184,12 @@ export class Router implements IRouter {
     }
     // Adds to Navigator's Queue, which makes sure it's serial
     this.goto(href).catch(error => { throw error; });
-  }
+  };
 
   public navigatorCallback = (instruction: INavigatorInstruction): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
-  }
+  };
   public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
     const entry: INavigatorEntry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
       ? browserNavigationEvent.state.currentEntry as INavigatorEntry
@@ -197,7 +197,7 @@ export class Router implements IRouter {
     entry.instruction = browserNavigationEvent.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
-  }
+  };
 
   public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction>): Promise<void> => {
     const instruction: INavigatorInstruction = this.processingNavigation = qInstruction as INavigatorInstruction;
@@ -375,7 +375,7 @@ export class Router implements IRouter {
     }
     this.processingNavigation = null;
     await this.navigator.finalize(instruction);
-  }
+  };
 
   public addProcessingViewport(componentOrInstruction: ComponentAppellation | ViewportInstruction, viewport?: ViewportHandle, onlyIfProcessingStatus?: boolean): void {
     if (this.processingNavigation && (onlyIfProcessingStatus === undefined || onlyIfProcessingStatus)) {

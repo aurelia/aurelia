@@ -1,5 +1,6 @@
 export {
-  quickStart as default
+  Aurelia,
+  Aurelia as default
 } from './quick-start';
 
 export {
@@ -599,7 +600,7 @@ export {
   // ViewLocator,
   // view,
 
-  Aurelia,
+  // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
   // ISinglePageApp,
   CompositionRoot,

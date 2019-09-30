@@ -126,6 +126,6 @@ tslib_1.__decorate([
 tslib_1.__decorate([
     bindable
 ], ViewportCustomElement.prototype, "stateful", void 0);
-// tslint:disable-next-line:no-invalid-template-strings
+// eslint-disable-next-line no-template-curly-in-string
 CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);
 //# sourceMappingURL=viewport.js.map

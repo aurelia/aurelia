@@ -18,7 +18,6 @@
         write(code, ...params) {
             const info = getMessageInfoForCode(code);
             const message = `Code ${code}: ${info.message}`;
-            // tslint:disable:no-console
             switch (info.level) {
                 case 3 /* debug */:
                     if (this.level >= 3 /* debug */) {
@@ -38,7 +37,6 @@
                 case 0 /* error */:
                     throw this.error(code, ...params);
             }
-            // tslint:enable:no-console
         },
         error(code, ...params) {
             const info = getMessageInfoForCode(code);

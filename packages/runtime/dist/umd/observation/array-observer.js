@@ -58,7 +58,6 @@
             indexMap[j + 1] = ielement;
         }
     }
-    // tslint:disable-next-line:cognitive-complexity
     function quickSort(arr, indexMap, from, to, compareFn) {
         let thirdIndex = 0, i = 0;
         let v0, v1, v2;
@@ -67,13 +66,12 @@
         let vtmp, itmp;
         let vpivot, ipivot, lowEnd, highStart;
         let velement, ielement, order, vtopElement;
-        // tslint:disable-next-line:no-constant-condition
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             if (to - from <= 10) {
                 insertionSort(arr, indexMap, from, to, compareFn);
                 return;
             }
-            // tslint:disable:no-statements-same-line
             thirdIndex = from + ((to - from) >> 1);
             v0 = arr[from];
             i0 = indexMap[from];
@@ -138,7 +136,7 @@
                 else if (order > 0) {
                     do {
                         highStart--;
-                        // tslint:disable-next-line:triple-equals
+                        // eslint-disable-next-line eqeqeq
                         if (highStart == i) {
                             break partition;
                         }
@@ -160,7 +158,6 @@
                     }
                 }
             }
-            // tslint:enable:no-statements-same-line
             if (to - highStart < lowEnd - from) {
                 quickSort(arr, indexMap, highStart, to, compareFn);
                 to = lowEnd;
@@ -325,7 +322,6 @@
             const len = $this.length;
             const middle = (len / 2) | 0;
             let lower = 0;
-            // tslint:disable:no-statements-same-line
             while (lower !== middle) {
                 const upper = len - lower - 1;
                 const lowerValue = $this[lower];
@@ -338,7 +334,6 @@
                 o.indexMap[upper] = lowerIndex;
                 lower++;
             }
-            // tslint:enable:no-statements-same-line
             o.notify();
             return this;
         },

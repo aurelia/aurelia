@@ -32,7 +32,6 @@ export class ClassAttributeAccessor {
             const { currentValue, nameIndex } = this;
             let { version } = this;
             this.oldValue = currentValue;
-            // tslint:disable-next-line: no-any
             const classesToAdd = this.getClassesToAdd(currentValue);
             // Get strings split on a space not including empties
             if (classesToAdd.length > 0) {
@@ -95,7 +94,7 @@ export class ClassAttributeAccessor {
             const classes = [];
             for (const property in object) {
                 // Let non typical values also evaluate true so disable bool check
-                // tslint:disable-next-line: strict-boolean-expressions
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
                 if (!!object[property]) {
                     // We must do this in case object property has a space in the name which results in two classes
                     if (property.indexOf(' ') >= 0) {

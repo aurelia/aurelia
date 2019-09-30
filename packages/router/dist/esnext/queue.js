@@ -48,7 +48,6 @@ export class Queue {
         for (const item of items) {
             const qItem = { ...item };
             qItem.cost = costs.shift();
-            // tslint:disable-next-line:promise-must-complete
             promises.push(new Promise((resolve, reject) => {
                 qItem.resolve = () => {
                     resolve();

@@ -264,7 +264,6 @@ export class Viewport {
         if (this.element) {
             return Promise.resolve();
         }
-        // tslint:disable-next-line:promise-must-complete
         return new Promise((resolve) => {
             this.elementResolve = resolve;
         });

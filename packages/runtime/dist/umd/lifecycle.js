@@ -155,8 +155,8 @@
             }
             else {
                 controller.prevBound = this.tail;
-                // tslint:disable-next-line: no-non-null-assertion // implied by boundHead not being undefined
-                this.tail.nextBound = controller;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.tail.nextBound = controller; // implied by boundHead not being undefined
             }
             this.tail = controller;
             controller.state |= 65536 /* inBoundQueue */;
@@ -189,8 +189,8 @@
                     next = cur.nextBound;
                     cur.nextBound = void 0;
                     cur.prevBound = void 0;
-                    // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
-                    cur = next;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cur = next; // we're checking it for undefined the next line
                 } while (cur !== void 0);
             }
         }
@@ -225,8 +225,8 @@
             }
             else {
                 controller.prevUnbound = this.tail;
-                // tslint:disable-next-line: no-non-null-assertion // implied by unboundHead not being undefined
-                this.tail.nextUnbound = controller;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.tail.nextUnbound = controller; // implied by unboundHead not being undefined
             }
             this.tail = controller;
             controller.state |= 131072 /* inUnboundQueue */;
@@ -259,8 +259,8 @@
                     next = cur.nextUnbound;
                     cur.nextUnbound = void 0;
                     cur.prevUnbound = void 0;
-                    // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
-                    cur = next;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cur = next; // we're checking it for undefined the next line
                 } while (cur !== void 0);
             }
         }
@@ -297,8 +297,8 @@
             }
             else {
                 controller.prevAttached = this.tail;
-                // tslint:disable-next-line: no-non-null-assertion // implied by attachedHead not being undefined
-                this.tail.nextAttached = controller;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.tail.nextAttached = controller; // implied by attachedHead not being undefined
             }
             this.tail = controller;
             controller.state |= 262144 /* inAttachedQueue */;
@@ -331,8 +331,8 @@
                     next = cur.nextAttached;
                     cur.nextAttached = void 0;
                     cur.prevAttached = void 0;
-                    // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
-                    cur = next;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cur = next; // we're checking it for undefined the next line
                 } while (cur !== void 0);
             }
         }
@@ -369,8 +369,8 @@
             }
             else {
                 controller.prevDetached = this.tail;
-                // tslint:disable-next-line: no-non-null-assertion // implied by detachedHead not being undefined
-                this.tail.nextDetached = controller;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.tail.nextDetached = controller; // implied by detachedHead not being undefined
             }
             this.tail = controller;
             controller.state |= 524288 /* inDetachedQueue */;
@@ -403,8 +403,8 @@
                     next = cur.nextDetached;
                     cur.nextDetached = void 0;
                     cur.prevDetached = void 0;
-                    // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
-                    cur = next;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cur = next; // we're checking it for undefined the next line
                 } while (cur !== void 0);
             }
         }
@@ -427,8 +427,8 @@
             }
             else {
                 controller.prevMount = this.tail;
-                // tslint:disable-next-line: no-non-null-assertion // implied by mountHead not being undefined
-                this.tail.nextMount = controller;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.tail.nextMount = controller; // implied by mountHead not being undefined
             }
             this.tail = controller;
             controller.state |= 1048576 /* inMountQueue */;
@@ -463,8 +463,8 @@
                     next = cur.nextMount;
                     cur.nextMount = void 0;
                     cur.prevMount = void 0;
-                    // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
-                    cur = next;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cur = next; // we're checking it for undefined the next line
                 } while (cur !== void 0);
             }
         }
@@ -486,8 +486,8 @@
             }
             else {
                 controller.prevUnmount = this.tail;
-                // tslint:disable-next-line: no-non-null-assertion // implied by unmountHead not being undefined
-                this.tail.nextUnmount = controller;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.tail.nextUnmount = controller; // implied by unmountHead not being undefined
             }
             this.tail = controller;
             controller.state |= 2097152 /* inUnmountQueue */;
@@ -522,8 +522,8 @@
                     next = cur.nextUnmount;
                     cur.nextUnmount = void 0;
                     cur.prevUnmount = void 0;
-                    // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
-                    cur = next;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cur = next; // we're checking it for undefined the next line
                 } while (cur !== void 0);
             }
         }
@@ -615,7 +615,6 @@
             this.minFrameDuration = 0;
             this.maxFrameDuration = 1000 / 30;
             this.prevFrameDuration = 0;
-            // tslint:disable-next-line: promise-must-complete
             this.nextFrame = new Promise(resolve => {
                 this.resolveNextFrame = resolve;
             });
@@ -628,7 +627,6 @@
                     }
                     if (++this.currentTick > 1) {
                         this.resolveNextFrame(timestamp);
-                        // tslint:disable-next-line: promise-must-complete
                         this.nextFrame = new Promise(resolve => {
                             this.resolveNextFrame = resolve;
                         });

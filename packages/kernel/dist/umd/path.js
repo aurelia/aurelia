@@ -222,7 +222,6 @@
                 }
                 else if (isNaN(keys[j + 1])) {
                     // Kinda have no choice here
-                    // tslint:disable-next-line: no-object-literal-type-assertion
                     currentParams = currentParams[key] = {};
                 }
                 else {
@@ -264,8 +263,8 @@
             //Else it's basic key
             if (/\[/.test(keys[0]) && /\]$/.test(keys[keysLastIndex])) {
                 keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
-                // tslint:disable-next-line: no-non-null-assertion // outer condition already ensures not-null
-                keys = keys.shift().split('[').concat(keys);
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                keys = keys.shift().split('[').concat(keys); // outer condition already ensures not-null
                 keysLastIndex = keys.length - 1;
             }
             else {

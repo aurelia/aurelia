@@ -203,7 +203,7 @@ Compose.description = Object.freeze({
     surrogates: PLATFORM.emptyArray,
     aliases: PLATFORM.emptyArray,
     containerless: true,
-    // tslint:disable-next-line: no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     shadowOptions: null,
     hasSlots: false,
     strategy: 1 /* getterSetter */,

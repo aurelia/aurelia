@@ -160,7 +160,7 @@
     //   private instructionBuilder: InstructionBuilder;
     //   private instructions: HTMLTargetedInstruction[][];
     //   constructor(name?: string) {
-    //     // tslint:disable-next-line:prefer-template
+    //     // eslint-disable-next-line prefer-template
     //     this.name = name || ('$' + ++DefinitionBuilder.lastId);
     //     this.templateBuilder = new TemplateBuilder();
     //     this.instructionBuilder = new InstructionBuilder();

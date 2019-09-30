@@ -80,7 +80,6 @@
                         if (doRetry) {
                             retryConfig.counter++;
                             const delay = calculateDelay(retryConfig);
-                            // tslint:disable-next-line:no-string-based-set-timeout
                             return new Promise((resolve) => kernel_1.PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
                                 .then(() => {
                                 const newRequest = requestClone.clone();
@@ -133,7 +132,6 @@
         (retryCount, interval) => retryCount === 1 ? interval : Math.pow(interval, retryCount) / 1000,
         // random
         (retryCount, interval, minRandomInterval = 0, maxRandomInterval = 60000) => {
-            // tslint:disable-next-line:insecure-random
             return Math.random() * (maxRandomInterval - minRandomInterval) + minRandomInterval;
         }
     ];

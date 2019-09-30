@@ -240,7 +240,6 @@ export class Unparser {
     visitInterpolation(expr) {
         const { parts, expressions } = expr;
         const length = expressions.length;
-        // tslint:disable-next-line:no-invalid-template-strings
         this.text += '${';
         this.text += parts[0];
         for (let i = 0; i < length; i++) {

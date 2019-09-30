@@ -1,13 +1,13 @@
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
-// tslint:disable: no-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const slice = Array.prototype.slice;
 // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
 // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
 // https://rbuckton.github.io/reflect-metadata/
 // As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
-// tslint:disable:no-any ban-types
 if (!('getOwnMetadata' in Reflect)) {
+    /* eslint-disable @typescript-eslint/ban-types */
     Reflect.getOwnMetadata = function (metadataKey, target) {
         return target[metadataKey];
     };
@@ -104,7 +104,7 @@ export class DI {
                 }
                 if (dependencies.length === 1) {
                     // We know for sure that it's not void 0 due to the above check.
-                    // tslint:disable-next-line: no-non-null-assertion
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     target.inject[descriptor] = dependencies[0];
                 }
             }
@@ -130,7 +130,6 @@ export class DI {
             }
         };
     }
-    // tslint:disable:jsdoc-format
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -150,7 +149,6 @@ export class DI {
   Foo.register(container);
   ```
      */
-    // tslint:enable:jsdoc-format
     static transient(target) {
         target.register = function register(container) {
             const registration = Registration.transient(target, target);
@@ -158,7 +156,6 @@ export class DI {
         };
         return target;
     }
-    // tslint:disable:jsdoc-format
     /**
      * Registers the `target` class as a singleton dependency; the class will only be created once. Each
      * consecutive time the dependency is resolved, the same instance will be returned.
@@ -177,7 +174,6 @@ export class DI {
   Foo.register(container);
   ```
      */
-    // tslint:enable:jsdoc-format
     static singleton(target) {
         target.register = function register(container) {
             const registration = Registration.singleton(target, target);

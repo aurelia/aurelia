@@ -26,16 +26,7 @@ import { isNumeric, } from '@aurelia/kernel';
 import { DOM, } from '@aurelia/runtime-html';
 import { Call } from './tracing';
 import { Boolean_valueOf, colors, Date_getTime, Date_toISOString, Date_toString, defineProperties, defineProperty, Error_toString, escapeAndQuoteString, escapeString, getOwnNonIndexProperties, getOwnPropertyDescriptor, getOwnPropertyDescriptors, getOwnPropertyNames, getOwnPropertySymbols, getPrototypeOf, hasOwnProperty, isAnyArrayBuffer, isArgumentsObject, isArrayBuffer, isBooleanObject, isBoxedPrimitive, isDataView, isDate, isError, isFloat32Array, isFloat64Array, isFunction, isInt16Array, isInt32Array, isInt8Array, isMap, isMapIterator, isNumber, isNumberObject, isObject, isPromise, isRegExp, isSet, isSetIterator, isString, isStringObject, isSymbol, isTypedArray, isUint16Array, isUint32Array, isUint8Array, isUint8ClampedArray, isUndefined, isWeakMap, isWeakSet, join, Map_entries, Number_valueOf, Object_assign, Object_freeze, Object_is, Object_keys, Object_toString, propertyIsEnumerable, RegExp_toString, removeColors, Set_values, String_valueOf, Symbol_valueOf, truncate, } from './util';
-// tslint:disable: no-commented-code
-// tslint:disable: no-big-function
-// tslint:disable: no-any
-// tslint:disable: completed-docs
-// tslint:disable: ban-types
-// tslint:disable: cognitive-complexity
-// tslint:disable: no-nested-template-literals
-// tslint:disable: strict-boolean-expressions
-// tslint:disable: no-non-null-assertion
-// tslint:disable: no-nested-switch
+/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
 let maxStack_ErrorName;
 let maxStack_ErrorMessage;
 function isStackOverflowError(err) {
@@ -206,11 +197,11 @@ export class AssertionError extends Error {
         this.operator = operator;
         if (typeof Error.captureStackTrace === 'function') {
             Error.captureStackTrace(this, stackStartFn);
-            // tslint:disable-next-line: no-unused-expression
+            // eslint-disable-next-line no-unused-expressions
             this.stack;
         }
         else {
-            // tslint:disable-next-line: no-unused-expression
+            // eslint-disable-next-line no-unused-expressions
             Error().stack;
         }
         this.name = 'AssertionError';

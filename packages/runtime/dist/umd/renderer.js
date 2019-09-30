@@ -60,7 +60,6 @@
         static register(container) {
             return kernel_1.Registration.singleton(rendering_engine_1.IRenderer, this).register(container);
         }
-        // tslint:disable-next-line:parameters-max-number
         render(flags, dom, context, renderable, targets, definition, host, parts) {
             const targetInstructions = definition.instructions;
             const instructionRenderers = this.instructionRenderers;

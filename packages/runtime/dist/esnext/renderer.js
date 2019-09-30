@@ -48,7 +48,6 @@ export class Renderer {
     static register(container) {
         return Registration.singleton(IRenderer, this).register(container);
     }
-    // tslint:disable-next-line:parameters-max-number
     render(flags, dom, context, renderable, targets, definition, host, parts) {
         const targetInstructions = definition.instructions;
         const instructionRenderers = this.instructionRenderers;

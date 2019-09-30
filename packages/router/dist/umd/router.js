@@ -92,7 +92,6 @@
                 const instructionNavigation = instruction.navigation;
                 if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
                     fullStateInstruction = true;
-                    // tslint:disable-next-line:no-commented-code
                     // if (!confirm('Perform history navigation?')) {
                     //   this.navigator.cancel(instruction);
                     //   this.processingNavigation = null;

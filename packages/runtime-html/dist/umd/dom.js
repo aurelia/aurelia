@@ -95,7 +95,7 @@
         fetch(input, init) {
             return this.window.fetch(input, init);
         }
-        // tslint:disable-next-line:no-any // this is how the DOM is typed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createCustomEvent(eventType, options) {
             return new this.CustomEvent(eventType, options);
         }
@@ -239,7 +239,7 @@
         }
     }
     exports.TextNodeSequence = TextNodeSequence;
-    // tslint:enable:no-any
+    /* eslint-enable @typescript-eslint/no-explicit-any */
     // This is the most common form of INodeSequence.
     // Every custom element or template controller whose node sequence is based on an HTML template
     // has an instance of this under the hood. Anyone who wants to create a node sequence from
@@ -255,7 +255,6 @@
             this.isLinked = false;
             this.dom = dom;
             this.fragment = fragment;
-            // tslint:disable-next-line:no-any
             const targetNodeList = fragment.querySelectorAll('.au');
             let i = 0;
             let ii = targetNodeList.length;

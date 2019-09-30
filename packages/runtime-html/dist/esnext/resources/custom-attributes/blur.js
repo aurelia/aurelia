@@ -100,7 +100,6 @@ let Blur = class Blur {
             this.triggerBlur();
         }
     }
-    // tslint:disable-next-line:cognitive-complexity
     contains(target) {
         if (!this.value) {
             return false;

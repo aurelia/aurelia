@@ -60,7 +60,6 @@
          */
         disableLiveLogging() { return; }
     };
-    // tslint:disable-next-line:no-redundant-jump
     function enableLiveLogging(optionsOrWriter) { return; }
 });
 //# sourceMappingURL=reporter.js.map

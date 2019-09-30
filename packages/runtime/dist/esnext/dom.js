@@ -4,8 +4,8 @@ export const IRenderLocation = DI.createInterface('IRenderLocation').noDefault()
 export const IDOM = DI.createInterface('IDOM').noDefault();
 const ni = function (...args) {
     throw Reporter.error(1000); // TODO: create error code (not implemented exception)
-    // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
-};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}; // this function doesn't need typing because it is never directly called
 const niDOM = {
     addEventListener: ni,
     appendChild: ni,

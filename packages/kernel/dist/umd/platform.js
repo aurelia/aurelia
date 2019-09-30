@@ -9,11 +9,8 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    // tslint:disable-next-line:no-redundant-jump
     function $noop() { return; }
     const $global = (function () {
-        // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
-        // tslint:disable:no-typeof-undefined
         if (typeof global !== 'undefined') {
             return global;
         }
@@ -23,15 +20,13 @@
         if (typeof window !== 'undefined') {
             return window;
         }
-        // tslint:enable:no-typeof-undefined
         try {
             // Not all environments allow eval and Function. Use only as a last resort:
-            // tslint:disable-next-line:function-constructor
+            // eslint-disable-next-line no-new-func
             return new Function('return this')();
         }
         catch (_a) {
             // If all fails, give up and create an object.
-            // tslint:disable-next-line:no-object-literal-type-assertion
             return {};
         }
     })();
@@ -310,11 +305,11 @@
         clearTimeout(handle) {
             $global.clearTimeout(handle);
         },
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setInterval(handler, timeout, ...args) {
             return $global.setInterval(handler, timeout, ...args);
         },
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setTimeout(handler, timeout, ...args) {
             return $global.setTimeout(handler, timeout, ...args);
         },

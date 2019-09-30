@@ -37,16 +37,7 @@
     const runtime_html_1 = require("@aurelia/runtime-html");
     const tracing_1 = require("./tracing");
     const util_1 = require("./util");
-    // tslint:disable: no-commented-code
-    // tslint:disable: no-big-function
-    // tslint:disable: no-any
-    // tslint:disable: completed-docs
-    // tslint:disable: ban-types
-    // tslint:disable: cognitive-complexity
-    // tslint:disable: no-nested-template-literals
-    // tslint:disable: strict-boolean-expressions
-    // tslint:disable: no-non-null-assertion
-    // tslint:disable: no-nested-switch
+    /* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
     let maxStack_ErrorName;
     let maxStack_ErrorMessage;
     function isStackOverflowError(err) {
@@ -217,11 +208,11 @@
             this.operator = operator;
             if (typeof Error.captureStackTrace === 'function') {
                 Error.captureStackTrace(this, stackStartFn);
-                // tslint:disable-next-line: no-unused-expression
+                // eslint-disable-next-line no-unused-expressions
                 this.stack;
             }
             else {
-                // tslint:disable-next-line: no-unused-expression
+                // eslint-disable-next-line no-unused-expressions
                 Error().stack;
             }
             this.name = 'AssertionError';

@@ -126,8 +126,8 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         return false;
     }
     apply(target, thisArg, argArray = PLATFORM.emptyArray) {
-        // tslint:disable-next-line:ban-types // Reflect API dictates this
-        return Reflect.apply(target, target, argArray);
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        return Reflect.apply(target, target, argArray); // Reflect API dictates this
     }
     subscribe(subscriber, key) {
         if (key === void 0) {

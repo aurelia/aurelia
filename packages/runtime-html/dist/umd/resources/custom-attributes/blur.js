@@ -112,7 +112,6 @@
                 this.triggerBlur();
             }
         }
-        // tslint:disable-next-line:cognitive-complexity
         contains(target) {
             if (!this.value) {
                 return false;

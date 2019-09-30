@@ -15,8 +15,8 @@
     exports.IDOM = kernel_1.DI.createInterface('IDOM').noDefault();
     const ni = function (...args) {
         throw kernel_1.Reporter.error(1000); // TODO: create error code (not implemented exception)
-        // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
-    };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }; // this function doesn't need typing because it is never directly called
     const niDOM = {
         addEventListener: ni,
         appendChild: ni,

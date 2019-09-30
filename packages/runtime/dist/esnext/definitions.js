@@ -92,7 +92,6 @@ const templateDefinitionArrays = [
     'surrogates',
     'aliases'
 ];
-// tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases) {
     const def = new DefaultTemplateDefinition();
     // all cases fall through intentionally

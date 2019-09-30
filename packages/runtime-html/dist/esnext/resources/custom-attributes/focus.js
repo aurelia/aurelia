@@ -30,7 +30,6 @@ let Focus = class Focus {
         // If the element is not currently connect
         // toggle the flag to add pending work for later
         // in attached lifecycle
-        // tslint:disable-next-line:one-line
         else {
             this.needsApply = true;
         }
@@ -72,7 +71,6 @@ let Focus = class Focus {
         // To handle both (1) and (2), only need to check if
         // current active element is still the same element of this focus custom attribute
         // If it's not, it's a blur event happened on Window because the browser tab lost focus
-        // tslint:disable-next-line:one-line
         else if (this.dom.document.activeElement !== this.element) {
             this.value = false;
         }

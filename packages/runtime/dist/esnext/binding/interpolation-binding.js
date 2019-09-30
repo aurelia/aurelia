@@ -50,7 +50,6 @@ export class MultiInterpolationBinding {
     }
 }
 let InterpolationBinding = class InterpolationBinding {
-    // tslint:disable-next-line:parameters-max-number
     constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
         connectable.assignIdTo(this);
         this.$state = 0 /* none */;

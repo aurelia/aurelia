@@ -11,7 +11,7 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
     function subscriberCollection() {
-        // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
+        // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
             proto._subscriberFlags = 0 /* None */;
@@ -28,7 +28,7 @@
     }
     exports.subscriberCollection = subscriberCollection;
     function proxySubscriberCollection() {
-        // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
+        // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
             proto._proxySubscriberFlags = 0 /* None */;
@@ -45,7 +45,7 @@
     }
     exports.proxySubscriberCollection = proxySubscriberCollection;
     function collectionSubscriberCollection() {
-        // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
+        // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
             proto._collectionSubscriberFlags = 0 /* None */;
@@ -83,8 +83,8 @@
             this._subscriberFlags |= 8 /* SubscribersRest */;
         }
         else {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-            this._subscribersRest.push(subscriber);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this._subscribersRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         return true;
     }
@@ -110,8 +110,8 @@
             this._proxySubscriberFlags |= 8 /* SubscribersRest */;
         }
         else {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-            this._proxySubscribersRest.push(subscriber);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this._proxySubscribersRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         return true;
     }
@@ -137,8 +137,8 @@
             this._collectionSubscriberFlags |= 8 /* SubscribersRest */;
         }
         else {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-            this._collectionSubscribersRest.push(subscriber);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this._collectionSubscribersRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         return true;
     }
@@ -160,8 +160,8 @@
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            const subscribers = this._subscribersRest;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const subscribers = this._subscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
@@ -192,8 +192,8 @@
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            const subscribers = this._proxySubscribersRest;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const subscribers = this._proxySubscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
@@ -224,8 +224,8 @@
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            const subscribers = this._collectionSubscribersRest;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const subscribers = this._collectionSubscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
@@ -262,8 +262,8 @@
             return true;
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            const subscribers = this._subscribersRest;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const subscribers = this._subscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     return true;
@@ -284,8 +284,8 @@
             return true;
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            const subscribers = this._proxySubscribersRest;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const subscribers = this._proxySubscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     return true;
@@ -306,8 +306,8 @@
             return true;
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            const subscribers = this._collectionSubscribersRest;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const subscribers = this._collectionSubscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     return true;

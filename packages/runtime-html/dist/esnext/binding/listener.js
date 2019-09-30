@@ -4,7 +4,6 @@ const slice = Array.prototype.slice;
  * Listener binding. Handle event binding between view and view model
  */
 export class Listener {
-    // tslint:disable-next-line:parameters-max-number
     constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
         this.dom = dom;
         this.$state = 0 /* none */;

@@ -1,11 +1,7 @@
 // Significant portion of this code is copy-pasted from the node.js source
 // Modifications consist primarily of removing dependencies on v8 natives and adding typings
 import { ArrayBuffer_isView, Boolean_valueOf, Date_getTime, getEnumerables, getOwnNonIndexProperties, getOwnPropertySymbols, getPrototypeOf, hasOwnProperty, isAnyArrayBuffer, isBooleanObject, isBoxedPrimitive, isDate, isError, isFloat32Array, isFloat64Array, isMap, isNumber, isNumberObject, isObject, isRegExp, isSet, isStringObject, isSymbolObject, Number_isNaN, Number_valueOf, Object_is, Object_keys, Object_toString, propertyIsEnumerable, String_valueOf, Symbol_valueOf, } from './util';
-// tslint:disable: no-commented-code
-// tslint:disable: no-any
-// tslint:disable: cognitive-complexity
-// tslint:disable: no-non-null-assertion
-// tslint:disable: ban-types
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
 export var IterationType;
 (function (IterationType) {
     IterationType[IterationType["noIterator"] = 0] = "noIterator";

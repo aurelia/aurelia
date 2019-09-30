@@ -17,7 +17,7 @@
     exports.default = default_1;
     function loader(contents, _preprocess = plugin_conventions_1.preprocess // for testing
     ) {
-        // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
+        // eslint-disable-next-line no-unused-expressions, @typescript-eslint/strict-boolean-expressions
         this.cacheable && this.cacheable();
         const cb = this.async();
         const options = loader_utils_1.getOptions(this);
@@ -28,7 +28,6 @@
             // contains typing error version: string (should be number).
             // use result.map as any to bypass the typing issue.
             if (result) {
-                // tslint:disable-next-line:no-any
                 cb(null, result.code, result.map);
                 return;
             }

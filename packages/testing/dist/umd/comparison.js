@@ -12,11 +12,7 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const util_1 = require("./util");
-    // tslint:disable: no-commented-code
-    // tslint:disable: no-any
-    // tslint:disable: cognitive-complexity
-    // tslint:disable: no-non-null-assertion
-    // tslint:disable: ban-types
+    /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
     var IterationType;
     (function (IterationType) {
         IterationType[IterationType["noIterator"] = 0] = "noIterator";

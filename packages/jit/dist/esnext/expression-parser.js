@@ -63,14 +63,14 @@ export function parseExpression(input, bindingType) {
 // opportunities are found (which would likely not fix these warnings in any case).
 // It's therefore not considered to have any tangible impact on the maintainability of the code base.
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
-// tslint:disable-next-line:no-big-function cognitive-complexity
+// eslint-disable-next-line max-lines-per-function
 export function parse(state, access, minPrecedence, bindingType) {
     if (bindingType === 284 /* CustomCommand */) {
         return new CustomExpression(state.input);
     }
     if (state.index === 0) {
         if (bindingType & 2048 /* Interpolation */) {
-            // tslint:disable-next-line:no-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return parseInterpolation(state);
         }
         nextToken(state);
@@ -220,11 +220,11 @@ export function parse(state, access, minPrecedence, bindingType) {
                 }
         }
         if (bindingType & 512 /* IsIterator */) {
-            // tslint:disable-next-line:no-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return parseForOfStatement(state, result);
         }
         if (449 /* LeftHandSide */ < minPrecedence) {
-            // tslint:disable-next-line:no-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return result;
         }
         /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
@@ -319,7 +319,7 @@ export function parse(state, access, minPrecedence, bindingType) {
         }
     }
     if (448 /* Binary */ < minPrecedence) {
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return result;
     }
     /** parseBinaryExpression
@@ -359,7 +359,7 @@ export function parse(state, access, minPrecedence, bindingType) {
         state.assignable = false;
     }
     if (63 /* Conditional */ < minPrecedence) {
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return result;
     }
     /**
@@ -380,7 +380,7 @@ export function parse(state, access, minPrecedence, bindingType) {
         state.assignable = false;
     }
     if (62 /* Assign */ < minPrecedence) {
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return result;
     }
     /** parseAssignmentExpression
@@ -401,7 +401,7 @@ export function parse(state, access, minPrecedence, bindingType) {
         result = new AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
     }
     if (61 /* Variadic */ < minPrecedence) {
-        // tslint:disable-next-line:no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return result;
     }
     /** parseValueConverter
@@ -434,7 +434,7 @@ export function parse(state, access, minPrecedence, bindingType) {
     }
     if (state.currentToken !== 1572864 /* EOF */) {
         if (bindingType & 2048 /* Interpolation */) {
-            // tslint:disable-next-line:no-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return result;
         }
         if (state.tokenRaw === 'of') {
@@ -442,7 +442,7 @@ export function parse(state, access, minPrecedence, bindingType) {
         }
         throw Reporter.error(101 /* UnconsumedToken */, { state });
     }
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result;
 }
 /**
@@ -776,7 +776,6 @@ function scanTemplateTail(state) {
     return scanTemplate(state);
 }
 function consumeOpt(state, token) {
-    // tslint:disable-next-line:possible-timing-attack
     if (state.currentToken === token) {
         nextToken(state);
         return true;
@@ -784,7 +783,6 @@ function consumeOpt(state, token) {
     return false;
 }
 function consume(state, token) {
-    // tslint:disable-next-line:possible-timing-attack
     if (state.currentToken === token) {
         nextToken(state);
     }
@@ -870,9 +868,9 @@ const AsciiIdParts = new Set();
 decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 // IdentifierPart lookup
 const IdParts = new Uint8Array(0xFFFF);
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts, null, codes.IdStart, 1);
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts, null, codes.Digit, 1);
 // Character scanning function lookup
 const CharScanners = new Array(0xFFFF);

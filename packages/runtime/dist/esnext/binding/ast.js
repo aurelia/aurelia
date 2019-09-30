@@ -547,14 +547,14 @@ export class BinaryExpression {
         return this.left.evaluate(f, s, l, p) || this.right.evaluate(f, s, l, p);
     }
     ['=='](f, s, l, p) {
-        // tslint:disable-next-line:triple-equals
+        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, l, p) == this.right.evaluate(f, s, l, p);
     }
     ['==='](f, s, l, p) {
         return this.left.evaluate(f, s, l, p) === this.right.evaluate(f, s, l, p);
     }
     ['!='](f, s, l, p) {
-        // tslint:disable-next-line:triple-equals
+        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, l, p) != this.right.evaluate(f, s, l, p);
     }
     ['!=='](f, s, l, p) {
@@ -605,7 +605,6 @@ export class BinaryExpression {
     ['>='](f, s, l, p) {
         return this.left.evaluate(f, s, l, p) >= this.right.evaluate(f, s, l, p);
     }
-    // tslint:disable-next-line:member-ordering
     accept(visitor) {
         return visitor.visitBinary(this);
     }

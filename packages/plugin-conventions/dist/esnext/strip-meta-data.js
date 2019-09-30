@@ -42,9 +42,7 @@ export function stripMetaData(rawHtml) {
     html += rawHtml.slice(lastIdx);
     return { html, deps, shadowMode, containerless, bindables, aliases };
 }
-// tslint:disable-next-line:no-any
 function traverse(tree, cb) {
-    // tslint:disable-next-line:no-any
     tree.childNodes.forEach((n) => {
         cb(n);
         if (n.childNodes)

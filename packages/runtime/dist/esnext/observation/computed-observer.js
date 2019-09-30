@@ -37,8 +37,8 @@ let CustomSetterObserver = class CustomSetterObserver {
         this.observing = false;
     }
     setValue(newValue) {
-        // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without setters won't end up here
-        this.descriptor.set.call(this.obj, newValue);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.descriptor.set.call(this.obj, newValue); // Non-null is implied because descriptors without setters won't end up here
         if (this.currentValue !== newValue) {
             this.oldValue = this.currentValue;
             this.currentValue = newValue;
@@ -95,12 +95,12 @@ let GetterObserver = class GetterObserver {
     }
     getValue() {
         if (this.subscriberCount === 0 || this.isCollecting) {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
-            this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
         }
         else {
-            // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
-            this.currentValue = Reflect.apply(this.descriptor.get, this.obj, PLATFORM.emptyArray);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this.currentValue = Reflect.apply(this.descriptor.get, this.obj, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
         }
         return this.currentValue;
     }
@@ -194,8 +194,8 @@ function createGetterTraps(flags, observerLocator, observer) {
 function proxyOrValue(flags, target, key, observerLocator, observer) {
     const value = Reflect.get(target, key, target);
     if (typeof value === 'function') {
-        // tslint:disable-next-line: ban-types // We need Function's bind() method here
-        return target[key].bind(target);
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        return target[key].bind(target); // We need Function's bind() method here
     }
     if (typeof value !== 'object' || value === null) {
         return value;

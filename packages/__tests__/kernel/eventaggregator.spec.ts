@@ -209,7 +209,7 @@ describe('event aggregator', function () {
         let data = null;
 
         const callback = function () { data = 'something'; };
-        ea.subscribeOnce('dinner', callback)
+        ea.subscribeOnce('dinner', callback);
 
         assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
         assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, `ea.eventLookup.dinner[0] === callback`);

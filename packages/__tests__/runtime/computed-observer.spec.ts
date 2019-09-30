@@ -18,7 +18,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-declare var document;
+declare let document;
 
 describe.skip('ComputedObserver', function () {
   function setup() {

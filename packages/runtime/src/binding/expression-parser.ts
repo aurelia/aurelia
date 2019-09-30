@@ -3,7 +3,6 @@ import {
   PLATFORM,
   Reporter,
 } from '@aurelia/kernel';
-
 import {
   AnyBindingExpression,
   IForOfStatement,

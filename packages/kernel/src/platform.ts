@@ -2,10 +2,10 @@ import { IPerformance, IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalSc
 
 function $noop(): void { return; }
 
-declare var process: { versions: { node: unknown } };
-declare var global: IWindowOrWorkerGlobalScope;
-declare var self: IWindowOrWorkerGlobalScope;
-declare var window: IWindowOrWorkerGlobalScope;
+declare let process: { versions: { node: unknown } };
+declare let global: IWindowOrWorkerGlobalScope;
+declare let self: IWindowOrWorkerGlobalScope;
+declare let window: IWindowOrWorkerGlobalScope;
 declare function setTimeout(handler: (...args: unknown[]) => void, timeout: number): unknown;
 
 const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalScope {

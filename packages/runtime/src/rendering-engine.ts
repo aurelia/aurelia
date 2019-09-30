@@ -12,7 +12,6 @@ import {
   RuntimeCompilationResources,
   Writable,
 } from '@aurelia/kernel';
-
 import {
   buildTemplateDefinition,
   InstructionTypeName,

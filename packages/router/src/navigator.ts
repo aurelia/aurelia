@@ -85,7 +85,7 @@ export class Navigator {
   private options: INavigatorOptions = {};
   private isActive: boolean = false;
 
-  private uninitializedEntry: INavigatorInstruction;
+  private readonly uninitializedEntry: INavigatorInstruction;
 
   constructor() {
     this.uninitializedEntry = {
@@ -158,7 +158,7 @@ export class Navigator {
       entry.index = (entry.replacing ? entry.index : this.entries.length);
     }
     this.invokeCallback(entry, navigationFlags, this.currentEntry);
-  }
+  };
 
   public refresh(): Promise<void> {
     const entry = this.currentEntry;

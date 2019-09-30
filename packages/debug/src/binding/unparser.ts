@@ -275,7 +275,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '}';
   }
 
-  private writeArgs(args: ReadonlyArray<AST.IExpression>): void {
+  private writeArgs(args: readonly AST.IExpression[]): void {
     this.text += '(';
     for (let i = 0, length = args.length; i < length; ++i) {
       if (i !== 0) {
@@ -341,7 +341,7 @@ export class Serializer implements AST.IVisitor<string> {
   }
 
   public visitTaggedTemplate(expr: AST.TaggedTemplateExpression): string {
-    return `{"type":"TaggedTemplateExpression","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as ReadonlyArray<unknown>)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"type":"TaggedTemplateExpression","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   public visitUnary(expr: AST.UnaryExpression): string {
@@ -390,7 +390,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
-  private serializeExpressions(args: ReadonlyArray<AST.IExpression>): string {
+  private serializeExpressions(args: readonly AST.IExpression[]): string {
     let text = '[';
     for (let i = 0, ii = args.length; i < ii; ++i) {
       if (i !== 0) {
@@ -403,7 +403,7 @@ export class Serializer implements AST.IVisitor<string> {
   }
 }
 
-function serializePrimitives(values: ReadonlyArray<unknown>): string {
+function serializePrimitives(values: readonly unknown[]): string {
   let text = '[';
   for (let i = 0, ii = values.length; i < ii; ++i) {
     if (i !== 0) {

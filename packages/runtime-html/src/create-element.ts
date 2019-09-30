@@ -4,7 +4,6 @@ import {
   IRegistry,
   Tracer
 } from '@aurelia/kernel';
-
 import {
   buildTemplateDefinition,
   CustomElement,
@@ -22,7 +21,6 @@ import {
   TargetedInstructionType,
   TemplateDefinition
 } from '@aurelia/runtime';
-
 import {
   HTMLTargetedInstruction,
   isHTMLTargetedInstruction
@@ -51,7 +49,7 @@ export function createElement<T extends INode = Node, C extends Constructable = 
  */
 export class RenderPlan<T extends INode = Node> {
   private readonly dom: IDOM<T>;
-  private readonly dependencies: ReadonlyArray<IRegistry>;
+  private readonly dependencies: readonly IRegistry[];
   private readonly instructions: HTMLTargetedInstruction[][];
   private readonly node: T;
 
@@ -61,7 +59,7 @@ export class RenderPlan<T extends INode = Node> {
     dom: IDOM<T>,
     node: T,
     instructions: HTMLTargetedInstruction[][],
-    dependencies: ReadonlyArray<IRegistry>
+    dependencies: readonly IRegistry[]
   ) {
     this.dom = dom;
     this.dependencies = dependencies;

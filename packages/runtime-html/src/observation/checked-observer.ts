@@ -13,7 +13,6 @@ import {
   SetterObserver,
   subscriberCollection,
 } from '@aurelia/runtime';
-
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 

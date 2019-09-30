@@ -66,7 +66,7 @@ export class InstructionResolver {
     if (typeof instruction === 'string') {
       return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
-      let stringified = this.stringifyAViewportInstruction(instruction, excludeViewport)
+      let stringified = this.stringifyAViewportInstruction(instruction, excludeViewport);
       if (instruction.nextScopeInstructions && instruction.nextScopeInstructions.length) {
         stringified += instruction.nextScopeInstructions.length === 1
           ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport)}`

@@ -8,8 +8,8 @@ import {
 import { TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
-interface Person { firstName?: string, lastName?: string, fullName?: string };
-const app = class { value = 'wOOt' };
+interface Person { firstName?: string; lastName?: string; fullName?: string }
+const app = class { value = 'wOOt'; };
 
 describe('custom-elements', function () {
 
@@ -173,7 +173,7 @@ describe('custom-elements', function () {
         }
 
         const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
-        const { lifecycle, component, appHost, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t' }, [...resources, TestConfiguration])
+        const { lifecycle, component, appHost, tearDown } = await setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t'; }, [...resources, TestConfiguration]);
 
         assert.strictEqual(boundCalls, 5, `boundCalls`);
 
@@ -189,7 +189,7 @@ describe('custom-elements', function () {
 
     });
 
-    describe('06. Aliasing', async function () {
+    describe('06. Aliasing', function () {
 
         @customElement({ name: 'foo1', template: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>`, aliases: ['foo11', 'foo12'] })
         class FooContainerless1 {
@@ -330,7 +330,7 @@ describe('custom-elements', function () {
         });
     });
 
-    describe('07. Containerless', async function () {
+    describe('07. Containerless', function () {
         @customElement({ name: 'foo1', template: `<template><div><foo2 value.bind="value" value2.bind="value1"></foo2></div>\${value}</template>`, aliases: ['foo11', 'foo12'], containerless: true })
         class Foo1 {
             @bindable()
@@ -392,5 +392,5 @@ describe('custom-elements', function () {
             await options.tearDown();
         });
 
-    })
+    });
 });

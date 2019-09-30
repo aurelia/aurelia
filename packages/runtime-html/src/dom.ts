@@ -8,7 +8,6 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-
 import {
   CompiledTemplate,
   DOM,

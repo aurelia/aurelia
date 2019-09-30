@@ -2,7 +2,6 @@ import {
   Key,
   Writable
 } from '@aurelia/kernel';
-
 import {
   bindable,
   CustomElement,
@@ -17,7 +16,6 @@ import {
   RenderContext,
   TemplateDefinition
 } from '@aurelia/runtime';
-
 import {
   IRouter,
 } from '../router';

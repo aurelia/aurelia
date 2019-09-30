@@ -144,7 +144,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
               public static inject = [INode];
               public lvl: number;
               constructor(
-                private el: HTMLElement
+                private readonly el: HTMLElement
               ) {}
 
               public binding() {
@@ -207,7 +207,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           public static inject = [INode];
 
           public value: any;
-          constructor(private element: HTMLElement) {}
+          constructor(private readonly element: HTMLElement) {}
           public binding(): void {
             this.valueChanged();
           }

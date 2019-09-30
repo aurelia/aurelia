@@ -3,7 +3,6 @@ import {
   Reporter,
   Tracer,
 } from '@aurelia/kernel';
-
 import {
   IForOfStatement,
   IsBindingBehavior,

@@ -27,7 +27,6 @@ import {
   IIndexable,
   Primitive,
 } from '@aurelia/kernel';
-
 import {
   ArrayBuffer_isView,
   Boolean_valueOf,

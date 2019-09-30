@@ -11,7 +11,7 @@ const spec = 'repeater-if-else';
 
 describe(spec, function () {
 
-  type Comp = { items: any[]; display: boolean; };
+  type Comp = { items: any[]; display: boolean };
   interface Spec {
     t: string;
   }

@@ -7,7 +7,6 @@ import {
   Registration,
   Reporter,
 } from '@aurelia/kernel';
-
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {

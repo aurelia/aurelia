@@ -222,7 +222,7 @@ describe(`ArrayObserver`, function () {
           }
         });
       },
-    )
+    );
   });
 
   describe(`observeUnshift`, function () {

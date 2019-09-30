@@ -3,7 +3,6 @@ import {
   IContainer,
   IRegistry
 } from '@aurelia/kernel';
-
 import { Lifecycle } from './lifecycle';
 import { StartTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';

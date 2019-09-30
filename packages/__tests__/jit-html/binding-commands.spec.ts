@@ -12,7 +12,7 @@ describe('binding-commands', function () {
         value = 'wOOt';
     };
 
-    describe('01. Aliases', async function () {
+    describe('01. Aliases', function () {
 
         @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
         @alias(...['woot11', 'woot12'])

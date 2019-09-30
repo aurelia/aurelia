@@ -1,7 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
-import { TestContext } from '.';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
-import { HTMLTestContext } from './html-test-context';
+import { HTMLTestContext, TestContext } from './html-test-context';
 
 export function setup<T>(template: string | Node,
     $class?: Constructable<T>,

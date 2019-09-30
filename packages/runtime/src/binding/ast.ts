@@ -6,7 +6,6 @@ import {
   Reporter,
   StrictPrimitive,
 } from '@aurelia/kernel';
-
 import {
   BinaryOperator,
   BindingIdentifierOrPattern,
@@ -112,7 +111,7 @@ export function hasUnbind(expr: IsExpressionOrStatement): expr is HasUnbind {
 export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
   return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
 }
-export function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement> | undefined): expressions is IsLiteral[] {
+export function arePureLiterals(expressions: readonly IsExpressionOrStatement[] | undefined): expressions is IsLiteral[] {
   if (expressions === void 0 || expressions.length === 0) {
     return true;
   }
@@ -162,10 +161,10 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public readonly $kind: ExpressionKind.BindingBehavior;
   public expression: IsBindingBehavior;
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
   public readonly behaviorKey: string;
 
-  constructor(expression: IsBindingBehavior, name: string, args: ReadonlyArray<IsAssign>) {
+  constructor(expression: IsBindingBehavior, name: string, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.BindingBehavior;
     this.expression = expression;
     this.name = name;
@@ -236,10 +235,10 @@ export class ValueConverterExpression implements IValueConverterExpression {
   public readonly $kind: ExpressionKind.ValueConverter;
   public readonly expression: IsValueConverter;
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
   public readonly converterKey: string;
 
-  constructor(expression: IsValueConverter, name: string, args: ReadonlyArray<IsAssign>) {
+  constructor(expression: IsValueConverter, name: string, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ValueConverter;
     this.expression = expression;
     this.name = name;
@@ -581,10 +580,10 @@ export class CallScopeExpression implements ICallScopeExpression {
   public readonly $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
   public readonly ancestor: number;
 
-  constructor(name: string, args: ReadonlyArray<IsAssign>, ancestor: number = 0) {
+  constructor(name: string, args: readonly IsAssign[], ancestor: number = 0) {
     this.$kind = ExpressionKind.CallScope;
     this.assign = PLATFORM.noop as () => unknown;
     this.name = name;
@@ -619,9 +618,9 @@ export class CallMemberExpression implements ICallMemberExpression {
   public assign: IExpression['assign'];
   public readonly object: IsLeftHandSide;
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
 
-  constructor(object: IsLeftHandSide, name: string, args: ReadonlyArray<IsAssign>) {
+  constructor(object: IsLeftHandSide, name: string, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.CallMember;
     this.assign = PLATFORM.noop as () => unknown;
     this.object = object;
@@ -661,9 +660,9 @@ export class CallFunctionExpression implements ICallFunctionExpression {
   public readonly $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   public readonly func: IsLeftHandSide;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
 
-  constructor(func: IsLeftHandSide, args: ReadonlyArray<IsAssign>) {
+  constructor(func: IsLeftHandSide, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.CallFunction;
     this.assign = PLATFORM.noop as () => unknown;
     this.func = func;
@@ -875,9 +874,9 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
 export class HtmlLiteralExpression implements IHtmlLiteralExpression {
   public readonly $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
-  public readonly parts: ReadonlyArray<HtmlLiteralExpression>;
+  public readonly parts: readonly HtmlLiteralExpression[];
 
-  constructor(parts: ReadonlyArray<HtmlLiteralExpression>) {
+  constructor(parts: readonly HtmlLiteralExpression[]) {
     this.$kind = ExpressionKind.HtmlLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
@@ -912,15 +911,15 @@ export class ArrayLiteralExpression implements IArrayLiteralExpression {
   public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
   public readonly $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
-  public readonly elements: ReadonlyArray<IsAssign>;
+  public readonly elements: readonly IsAssign[];
 
-  constructor(elements: ReadonlyArray<IsAssign>) {
+  constructor(elements: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ArrayLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.elements = elements;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): ReadonlyArray<unknown> {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): readonly unknown[] {
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -946,10 +945,10 @@ export class ObjectLiteralExpression implements IObjectLiteralExpression {
   public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
   public readonly $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
-  public readonly keys: ReadonlyArray<number | string>;
-  public readonly values: ReadonlyArray<IsAssign>;
+  public readonly keys: readonly (number | string)[];
+  public readonly values: readonly IsAssign[];
 
-  constructor(keys: ReadonlyArray<number | string>, values: ReadonlyArray<IsAssign>) {
+  constructor(keys: readonly (number | string)[], values: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ObjectLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.keys = keys;
@@ -983,10 +982,10 @@ export class TemplateExpression implements ITemplateExpression {
   public static readonly $empty: TemplateExpression = new TemplateExpression(['']);
   public readonly $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
-  public readonly cooked: ReadonlyArray<string>;
-  public readonly expressions: ReadonlyArray<IsAssign>;
+  public readonly cooked: readonly string[];
+  public readonly expressions: readonly IsAssign[];
 
-  constructor(cooked: ReadonlyArray<string>, expressions?: ReadonlyArray<IsAssign>) {
+  constructor(cooked: readonly string[], expressions?: readonly IsAssign[]) {
     this.$kind = ExpressionKind.Template;
     this.assign = PLATFORM.noop as () => unknown;
     this.cooked = cooked;
@@ -1020,11 +1019,11 @@ export class TemplateExpression implements ITemplateExpression {
 export class TaggedTemplateExpression implements ITaggedTemplateExpression {
   public readonly $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
-  public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> };
+  public readonly cooked: readonly string[] & { raw?: readonly string[] };
   public readonly func: IsLeftHandSide;
-  public readonly expressions: ReadonlyArray<IsAssign>;
+  public readonly expressions: readonly IsAssign[];
 
-  constructor(cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> }, raw: ReadonlyArray<string>, func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>) {
+  constructor(cooked: readonly string[] & { raw?: readonly string[] }, raw: readonly string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]) {
     this.$kind = ExpressionKind.TaggedTemplate;
     this.assign = PLATFORM.noop as () => unknown;
     this.cooked = cooked;
@@ -1062,10 +1061,10 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
 
 export class ArrayBindingPattern implements IArrayBindingPattern {
   public readonly $kind: ExpressionKind.ArrayBindingPattern;
-  public readonly elements: ReadonlyArray<IsAssign>;
+  public readonly elements: readonly IsAssign[];
 
   // We'll either have elements, or keys+values, but never all 3
-  constructor(elements: ReadonlyArray<IsAssign>) {
+  constructor(elements: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ArrayBindingPattern;
     this.elements = elements;
   }
@@ -1091,11 +1090,11 @@ export class ArrayBindingPattern implements IArrayBindingPattern {
 
 export class ObjectBindingPattern implements IObjectBindingPattern {
   public readonly $kind: ExpressionKind.ObjectBindingPattern;
-  public readonly keys: ReadonlyArray<string | number>;
-  public readonly values: ReadonlyArray<IsAssign>;
+  public readonly keys: readonly (string | number)[];
+  public readonly values: readonly IsAssign[];
 
   // We'll either have elements, or keys+values, but never all 3
-  constructor(keys: ReadonlyArray<string | number>, values: ReadonlyArray<IsAssign>) {
+  constructor(keys: readonly (string | number)[], values: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ObjectBindingPattern;
     this.keys = keys;
     this.values = values;
@@ -1202,11 +1201,11 @@ export class ForOfStatement implements IForOfStatement {
 export class Interpolation implements IInterpolationExpression {
   public readonly $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
-  public readonly parts: ReadonlyArray<string>;
-  public readonly expressions: ReadonlyArray<IsBindingBehavior>;
+  public readonly parts: readonly string[];
+  public readonly expressions: readonly IsBindingBehavior[];
   public readonly isMulti: boolean;
   public readonly firstExpression: IsBindingBehavior;
-  constructor(parts: ReadonlyArray<string>, expressions?: ReadonlyArray<IsBindingBehavior>) {
+  constructor(parts: readonly string[], expressions?: readonly IsBindingBehavior[]) {
     this.$kind = ExpressionKind.Interpolation;
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
@@ -1240,7 +1239,7 @@ export class Interpolation implements IInterpolationExpression {
 }
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: ReadonlyArray<IExpression>, part?: string): ReadonlyArray<IExpression> {
+function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: readonly IExpression[], part?: string): readonly IExpression[] {
   const len = list.length;
   const result = Array(len);
   for (let i = 0; i < len; ++i) {

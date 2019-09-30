@@ -26,11 +26,9 @@
 import {
   IIndexable,
 } from '@aurelia/kernel';
-
 import {
   CompositionRoot, CustomElement, CustomAttribute,
 } from '@aurelia/runtime';
-
 import {
   isDeepEqual,
   isDeepStrictEqual,

@@ -7,7 +7,6 @@ import {
   PLATFORM,
   Writable,
 } from '@aurelia/kernel';
-
 import {
   PropertyBinding,
 } from '../binding/property-binding';

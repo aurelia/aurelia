@@ -8,7 +8,6 @@ import {
   Priority,
   subscriberCollection,
 } from '@aurelia/runtime';
-
 import { IEventSubscriber } from './event-manager';
 
 export interface ValueAttributeObserver

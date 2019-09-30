@@ -20,7 +20,7 @@ export {
   // RetryableRequest,
   // ValidInterceptorMethodName,
 
-  // json,
+  json,
 
   // retryStrategy,
   // RetryInterceptor,
@@ -288,10 +288,10 @@ export {
   // NavigationInstruction,
   // ReentryBehavior,
 
-  // INavRoute,
+  INavRoute,
   // Nav,
 
-  // NavRoute,
+  NavRoute,
 
   // IStoredNavigatorEntry,
   // INavigatorEntry,
@@ -492,7 +492,7 @@ export {
   // DirtyCheckSettings,
 
   // IObjectObservationAdapter,
-  // IObserverLocator,
+  IObserverLocator,
   // ITargetObserverLocator,
   // ITargetAccessorLocator,
   // getCollectionObserver,
@@ -707,7 +707,7 @@ export {
   // ViewModelKind,
   // IBinding,
   ILifecycle,
-  // IViewModel,
+  IViewModel,
   // IController,
   // IRenderContext,
   // IViewCache,

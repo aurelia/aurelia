@@ -1,5 +1,3 @@
-// tslint:disable:mocha-no-side-effect-code
-// tslint:disable:typedef
 import { expect } from 'chai';
 import { browser, loadUrl } from './common/browser';
 import { processMeasurements } from './common/measurements';

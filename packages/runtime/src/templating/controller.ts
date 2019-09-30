@@ -158,7 +158,6 @@ export class Controller<
   public location?: IRenderLocation<T>;
 
   // todo: refactor
-  // tslint:disable-next-line:cognitive-complexity
   constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
@@ -403,8 +402,8 @@ export class Controller<
   public release(flags: LifecycleFlags): boolean {
     this.state |= State.canBeCached;
     if ((this.state & State.isAttached) > 0) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      return this.viewCache!.canReturnToCache(this);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return this.viewCache!.canReturnToCache(this); // non-null is implied by the hook
     }
 
     return this.unmountSynthetic(flags);
@@ -444,13 +443,13 @@ export class Controller<
   }
 
   public bound(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.bound(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.bound(flags); // non-null is implied by the hook
   }
 
   public unbound(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.unbound(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.unbound(flags); // non-null is implied by the hook
   }
 
   public attach(flags: LifecycleFlags): void {
@@ -490,13 +489,13 @@ export class Controller<
   }
 
   public attached(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.attached(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.attached(flags); // non-null is implied by the hook
   }
 
   public detached(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.detached(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.detached(flags); // non-null is implied by the hook
   }
 
   public mount(flags: LifecycleFlags): void {
@@ -927,14 +926,14 @@ export class Controller<
     }
 
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.projector!.project(this.nodes!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.projector!.project(this.nodes!); // non-null is implied by the hook
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.insertBefore(this.location!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.nodes!.insertBefore(this.location!); // non-null is implied by the hook
   }
 
   private unmountCustomElement(flags: LifecycleFlags): void {
@@ -943,8 +942,8 @@ export class Controller<
     }
 
     this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.projector!.take(this.nodes!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.projector!.take(this.nodes!); // non-null is implied by the hook
   }
 
   private unmountSynthetic(flags: LifecycleFlags): boolean {
@@ -953,14 +952,14 @@ export class Controller<
     }
 
     this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.remove();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.nodes!.remove(); // non-null is implied by the hook
     this.nodes!.unlink();
 
     if ((this.state & State.canBeCached) > 0) {
       this.state = (this.state | State.canBeCached) ^ State.canBeCached;
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      if (this.viewCache!.tryReturnToCache(this)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (this.viewCache!.tryReturnToCache(this)) { // non-null is implied by the hook
         this.state |= State.isCached;
         return true;
       }
@@ -971,16 +970,16 @@ export class Controller<
   private cacheCustomElement(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromCache;
     if (this.hooks.hasCaching) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      this.bindingContext!.caching(flags);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.bindingContext!.caching(flags); // non-null is implied by the hook
     }
   }
 
   private cacheCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromCache;
     if (this.hooks.hasCaching) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      this.bindingContext!.caching(flags);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.bindingContext!.caching(flags); // non-null is implied by the hook
     }
 
     const { controllers } = this;

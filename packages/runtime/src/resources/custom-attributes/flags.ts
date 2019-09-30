@@ -11,7 +11,6 @@ abstract class FlagsTemplateController<T extends INode = INode> {
 
   public readonly view: IController<T>;
 
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;
 
   constructor(

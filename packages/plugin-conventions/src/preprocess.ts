@@ -60,7 +60,6 @@ export function preprocess(
 
 function fileExists(p: string): boolean {
   try {
-    // tslint:disable-next-line:non-literal-fs-path
     const stats = fs.statSync(p);
     return stats.isFile();
   } catch (e) {

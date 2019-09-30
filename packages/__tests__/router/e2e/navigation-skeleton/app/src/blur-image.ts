@@ -14,7 +14,7 @@ export class BlurImageCustomAttribute {
   }
 }
 
-/* tslint:disable */
+/* eslint-disable */
 
 /*
 This Snippet is using a modified Stack Blur js lib for blurring the header images.

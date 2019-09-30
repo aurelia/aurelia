@@ -126,7 +126,7 @@ export function parseExpression<TType extends BindingType = BindingType.BindComm
 // opportunities are found (which would likely not fix these warnings in any case).
 // It's therefore not considered to have any tangible impact on the maintainability of the code base.
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
-// tslint:disable-next-line:no-big-function cognitive-complexity
+// eslint-disable-next-line max-lines-per-function
 export function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType):
   TPrec extends Precedence.Unary ? IsUnary :
   TPrec extends Precedence.Binary ? IsBinary :
@@ -151,7 +151,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
 
   if (state.index === 0) {
     if (bindingType & BindingType.Interpolation) {
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseInterpolation(state) as any;
     }
     nextToken(state);
@@ -298,11 +298,11 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     }
 
     if (bindingType & BindingType.IsIterator) {
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseForOfStatement(state, result as BindingIdentifierOrPattern) as any;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
 
@@ -396,7 +396,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   }
 
   if (Precedence.Binary < minPrecedence) {
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -437,7 +437,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     state.assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -460,7 +460,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     state.assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -482,7 +482,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType));
   }
   if (Precedence.Variadic < minPrecedence) {
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -517,7 +517,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   }
   if (state.currentToken !== Token.EOF) {
     if (bindingType & BindingType.Interpolation) {
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
     if (state.tokenRaw === 'of') {
@@ -525,7 +525,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     }
     throw Reporter.error(SyntaxError.UnconsumedToken, { state });
   }
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result as any;
 }
 
@@ -868,7 +868,6 @@ function scanTemplateTail(state: ParserState): Token {
 }
 
 function consumeOpt(state: ParserState, token: Token): boolean {
-  // tslint:disable-next-line:possible-timing-attack
   if (state.currentToken === token) {
     nextToken(state);
     return true;
@@ -878,7 +877,6 @@ function consumeOpt(state: ParserState, token: Token): boolean {
 }
 
 function consume(state: ParserState, token: Token): void {
-  // tslint:disable-next-line:possible-timing-attack
   if (state.currentToken === token) {
     nextToken(state);
   } else {
@@ -974,9 +972,9 @@ decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 
 // IdentifierPart lookup
 const IdParts = new Uint8Array(0xFFFF);
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts as any, null, codes.IdStart, 1);
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts as any, null, codes.Digit, 1);
 
 type CharScanner = ((p: ParserState) => Token | null) & { notMapped?: boolean };

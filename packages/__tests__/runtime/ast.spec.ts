@@ -2527,7 +2527,7 @@ describe('ValueConverterExpression', function () {
 });
 
 const e = new PrimitiveLiteralExpression('') as any;
-// tslint:disable:space-within-parens
+/* eslint-disable space-in-parens */
 describe('helper functions', function () {
   it('connects', function () {
     assert.strictEqual(connects(new AccessThisExpression()                ), false, `connects(new AccessThisExpression()                )`);

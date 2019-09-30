@@ -296,7 +296,7 @@ describe('SelfObserver', function () {
 
 function createObjectArr(): any[] {
   return [
-    // tslint:disable-next-line:use-primitive-type no-construct
+    // eslint-disable-next-line no-new-wrappers, no-new-wrappers
     {}, Object.create(null), new Number(), new Boolean(), new String(),
     new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse('{}'),
     /asdf/, function () { return; }, Promise.resolve(), new Proxy({}, {})

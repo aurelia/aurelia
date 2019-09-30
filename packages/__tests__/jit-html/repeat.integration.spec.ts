@@ -1,4 +1,4 @@
-// tslint:disable:quotemark member-access no-all-duplicated-branches
+/* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
 import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, assert, h } from "@aurelia/testing";
 

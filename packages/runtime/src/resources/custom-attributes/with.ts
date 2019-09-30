@@ -66,8 +66,8 @@ export class With<T extends INode = INode> {
 
   public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
   private _value: object | undefined;
 

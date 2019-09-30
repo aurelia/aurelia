@@ -38,7 +38,6 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   if (!name.includes('-') && shadowMode) {
     shadowMode = null;
     const error = `WARN: ShadowDOM is disabled for ${unit.path}. ShadowDOM requires element name to contain a dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
-    // tslint:disable-next-line:no-console
     console.warn(error);
     statements.push(`console.warn(${JSON.stringify(error)});\n`);
   }

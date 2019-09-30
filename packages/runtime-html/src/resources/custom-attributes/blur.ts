@@ -178,7 +178,6 @@ export class Blur {
     }
   }
 
-  // tslint:disable-next-line:cognitive-complexity
   public contains(target: Element): boolean {
     if (!this.value) {
       return false;

@@ -1,6 +1,7 @@
 .idea
 .DS_STORE
 .rpt2_cache
+.eslintcache
 TESTS-*.xml
 
 **/node_modules

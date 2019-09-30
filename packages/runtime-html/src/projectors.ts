@@ -54,6 +54,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
   public shadowRoot: CustomElementHost<ShadowRoot>;
   public dom: IDOM<Node>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller: IController<Node>;
 
   constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {

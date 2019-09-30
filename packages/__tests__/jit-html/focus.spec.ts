@@ -139,7 +139,6 @@ describe('focus.spec.ts', function() {
         (shadowMode, ceTemplate, ceProp) => {
           const hasShadowRoot = shadowMode !== null;
           const isFocusable = ceProp && (typeof ceProp.tabIndex !== undefined || ceProp.contentEditable);
-          // tslint:disable-next-line:insecure-random
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
 
           it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function() {
@@ -407,7 +406,7 @@ describe('focus.spec.ts', function() {
   type TemplateFn = (focusAttrBindingCommand: string) => string;
 
   interface AssertionFn<T extends IApp = IApp> {
-    // tslint:disable-next-line:callable-types
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type
     (ctx: HTMLTestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

@@ -36,7 +36,6 @@ export class Listener implements IBinding {
   private readonly eventManager: IEventManager;
   private handler!: IDisposable;
 
-  // tslint:disable-next-line:parameters-max-number
   constructor(
     dom: IDOM,
     targetEvent: string,

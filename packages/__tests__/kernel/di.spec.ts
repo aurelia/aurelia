@@ -170,7 +170,7 @@ describe(`The DI object`, function () {
   //     const VarFuncInterface: VarFuncInterface = function () { return; };
 
   //     interface Func {}
-  //     // tslint:disable-next-line:no-empty
+  //     // eslint-disable-next-line no-empty
   //     function Func() {}
 
   //     interface Arrow {}
@@ -264,7 +264,7 @@ describe(`The DI object`, function () {
 
   //     const VarFunc = function () { return; };
 
-  //     // tslint:disable-next-line:no-empty
+  //     // eslint-disable-next-line no-empty
   //     function Func() {}
 
   //     const Arrow = () => { return; };
@@ -846,9 +846,9 @@ describe(`The singleton decorator`, function () {
 //       const container = new Container();
 //       class Foo {public bar; public baz; }
 //       const sut = Factory.create(Foo);
-//       // tslint:disable-next-line:prefer-object-spread
+//       // eslint-disable-next-line prefer-object-spread
 //       sut.registerTransformer(foo2 => Object.assign(foo2, { bar: 1 }));
-//       // tslint:disable-next-line:prefer-object-spread
+//       // eslint-disable-next-line prefer-object-spread
 //       sut.registerTransformer(foo2 => Object.assign(foo2, { baz: 2 }));
 //       const foo = sut.construct(container);
 //       assert.strictEqual(foo.bar, 1, `foo.bar`);

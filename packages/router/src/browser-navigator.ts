@@ -153,7 +153,6 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     if (suppressPopstate !== undefined) {
       // Due to (browser) events not having a promise, we create and propagate one
       let resolve: ((value: void | PromiseLike<void>) => void) | null = null;
-      // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise(_resolve => {
         resolve = _resolve;
       }));

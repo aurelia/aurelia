@@ -161,8 +161,8 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   }
 
   public apply(target: TObj, thisArg: unknown, argArray: ArrayLike<unknown> = PLATFORM.emptyArray): unknown {
-    // tslint:disable-next-line:ban-types // Reflect API dictates this
-    return Reflect.apply(target as Function, target, argArray);
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    return Reflect.apply(target as Function, target, argArray); // Reflect API dictates this
   }
 
   public subscribe(subscriber: IProxySubscriber): void;

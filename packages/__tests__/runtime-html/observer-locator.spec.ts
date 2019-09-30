@@ -225,7 +225,6 @@ describe('ObserverLocator', function () {
                       }
                       const descriptor: PropertyDescriptor = { configurable, enumerable };
                       if (hasGetter) {
-                        // tslint:disable-next-line:no-empty
                         function getter() { }
                         if (hasGetObserver) {
                           getter['getObserver'] = () => dummyObserver;
@@ -233,7 +232,6 @@ describe('ObserverLocator', function () {
                         descriptor.get = getter;
                       }
                       if (hasSetter) {
-                        // tslint:disable-next-line:no-empty
                         function setter() { }
                         descriptor.set = setter;
                       }

@@ -54,7 +54,7 @@ npm run dev           # Same as npm run build, but in "--watch" mode (useful for
 npm run build-all     # Same as npm run build, but for multiple module systems (only needed when publishing)
 npm run test          # Runs unit tests for all packages (you do not need to build first)
 npm run test:watch    # Same as npm run test, but in "--watch" mode
-npm run lint          # Runs tslint for all packages
+npm run lint          # Runs eslint for all packages
 npm run publish:local # Runs npm pack for all packages
 ```
 

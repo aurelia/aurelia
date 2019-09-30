@@ -386,7 +386,7 @@ describe('blur.integration.spec.ts', () => {
   type TemplateFn = (focusAttrBindingCommand: string) => string;
 
   interface AssertionFn<T extends IApp = IApp> {
-    // tslint:disable-next-line:callable-types
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type
     (ctx: HTMLTestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

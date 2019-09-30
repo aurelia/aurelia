@@ -342,7 +342,6 @@ describe('I18N', function () {
       { input: '- 123,456,789.12' },
     ];
     for (const { input, locale } of cases) {
-      // tslint:disable-next-line: no-nested-template-literals
       it(`returns 123456789.12 given ${input}${locale ? ` - ${locale}` : ''}`, async function () {
         const { sut } = await setup();
         assert.equal(

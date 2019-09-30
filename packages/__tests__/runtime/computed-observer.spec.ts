@@ -18,8 +18,6 @@ import {
   assert,
 } from '@aurelia/testing';
 
-// tslint:disable:no-statements-same-line
-
 declare var document;
 
 describe.skip('ComputedObserver', function () {

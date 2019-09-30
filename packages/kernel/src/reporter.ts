@@ -81,5 +81,4 @@ function enableLiveLogging(writer: ITraceWriter): void;
  * @param options Optional. Specify which logging categories to output. If omitted, all will be logged.
  */
 function enableLiveLogging(options?: ILiveLoggingOptions): void;
-// tslint:disable-next-line:no-redundant-jump
 function enableLiveLogging(optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void { return; }

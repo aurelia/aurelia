@@ -149,7 +149,7 @@ export {
 
   // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
 
-  JitHtmlConfiguration,
+  // JitHtmlConfiguration,
 
   // stringifyDOM,
   // stringifyInstructions,

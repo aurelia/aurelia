@@ -393,7 +393,8 @@ export {
   ExpressionKind,
   Hooks,
   LifecycleFlags,
-  State
+  State,
+  BehaviorStrategy
 } from './flags';
 export {
   CallBindingInstruction,

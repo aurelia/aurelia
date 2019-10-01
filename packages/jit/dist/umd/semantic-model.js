@@ -37,6 +37,18 @@
      * A html attribute that is associated with a registered resource, specifically a template controller.
      */
     class TemplateControllerSymbol {
+        constructor(dom, syntax, info, partName) {
+            this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
+            this.res = info.name;
+            this.partName = info.name === 'replaceable' ? partName : null;
+            this.physicalNode = null;
+            this.syntax = syntax;
+            this.template = null;
+            this.templateController = null;
+            this.marker = createMarker(dom);
+            this._bindings = null;
+            this._parts = null;
+        }
         get bindings() {
             if (this._bindings == null) {
                 this._bindings = [];
@@ -50,18 +62,6 @@
                 this.flags |= 16384 /* hasParts */;
             }
             return this._parts;
-        }
-        constructor(dom, syntax, info, partName) {
-            this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
-            this.res = info.name;
-            this.partName = info.name === 'replaceable' ? partName : null;
-            this.physicalNode = null;
-            this.syntax = syntax;
-            this.template = null;
-            this.templateController = null;
-            this.marker = createMarker(dom);
-            this._bindings = null;
-            this._parts = null;
         }
     }
     exports.TemplateControllerSymbol = TemplateControllerSymbol;
@@ -85,18 +85,18 @@
      * A html attribute that is associated with a registered resource, but not a template controller.
      */
     class CustomAttributeSymbol {
+        constructor(syntax, info) {
+            this.flags = 4 /* isCustomAttribute */;
+            this.res = info.name;
+            this.syntax = syntax;
+            this._bindings = null;
+        }
         get bindings() {
             if (this._bindings == null) {
                 this._bindings = [];
                 this.flags |= 4096 /* hasBindings */;
             }
             return this._bindings;
-        }
-        constructor(syntax, info) {
-            this.flags = 4 /* isCustomAttribute */;
-            this.res = info.name;
-            this.syntax = syntax;
-            this._bindings = null;
         }
     }
     exports.CustomAttributeSymbol = CustomAttributeSymbol;
@@ -138,6 +138,28 @@
      * or the value of its `as-element` attribute.
      */
     class CustomElementSymbol {
+        constructor(dom, node, info) {
+            this.flags = 16 /* isCustomElement */;
+            this.res = info.name;
+            this.physicalNode = node;
+            this.bindables = info.bindables;
+            this.isTarget = true;
+            this.templateController = null;
+            if (info.containerless) {
+                this.isContainerless = true;
+                this.marker = createMarker(dom);
+                this.flags |= 512 /* hasMarker */;
+            }
+            else {
+                this.isContainerless = false;
+                this.marker = null;
+            }
+            this._customAttributes = null;
+            this._plainAttributes = null;
+            this._bindings = null;
+            this._childNodes = null;
+            this._parts = null;
+        }
         get customAttributes() {
             if (this._customAttributes == null) {
                 this._customAttributes = [];
@@ -173,44 +195,22 @@
             }
             return this._parts;
         }
-        constructor(dom, node, info) {
-            this.flags = 16 /* isCustomElement */;
-            this.res = info.name;
-            this.physicalNode = node;
-            this.bindables = info.bindables;
-            this.isTarget = true;
-            this.templateController = null;
-            if (info.containerless) {
-                this.isContainerless = true;
-                this.marker = createMarker(dom);
-                this.flags |= 512 /* hasMarker */;
-            }
-            else {
-                this.isContainerless = false;
-                this.marker = null;
-            }
-            this._customAttributes = null;
-            this._plainAttributes = null;
-            this._bindings = null;
-            this._childNodes = null;
-            this._parts = null;
-        }
     }
     exports.CustomElementSymbol = CustomElementSymbol;
     class LetElementSymbol {
-        get bindings() {
-            if (this._bindings == null) {
-                this._bindings = [];
-                this.flags |= 4096 /* hasBindings */;
-            }
-            return this._bindings;
-        }
         constructor(dom, node) {
             this.flags = 32 /* isLetElement */ | 512 /* hasMarker */;
             this.physicalNode = node;
             this.toViewModel = false;
             this.marker = createMarker(dom);
             this._bindings = null;
+        }
+        get bindings() {
+            if (this._bindings == null) {
+                this._bindings = [];
+                this.flags |= 4096 /* hasBindings */;
+            }
+            return this._bindings;
         }
     }
     exports.LetElementSymbol = LetElementSymbol;
@@ -220,6 +220,15 @@
      * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
      */
     class PlainElementSymbol {
+        constructor(node) {
+            this.flags = 64 /* isPlainElement */;
+            this.physicalNode = node;
+            this.isTarget = false;
+            this.templateController = null;
+            this._customAttributes = null;
+            this._plainAttributes = null;
+            this._childNodes = null;
+        }
         get customAttributes() {
             if (this._customAttributes == null) {
                 this._customAttributes = [];
@@ -240,15 +249,6 @@
                 this.flags |= 8192 /* hasChildNodes */;
             }
             return this._childNodes;
-        }
-        constructor(node) {
-            this.flags = 64 /* isPlainElement */;
-            this.physicalNode = node;
-            this.isTarget = false;
-            this.templateController = null;
-            this._customAttributes = null;
-            this._plainAttributes = null;
-            this._childNodes = null;
         }
     }
     exports.PlainElementSymbol = PlainElementSymbol;

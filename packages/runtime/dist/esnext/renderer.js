@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { all, Registration, Reporter, } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
@@ -151,7 +151,7 @@ class SetPropertyRenderer {
         getTarget(target)[instruction.to] = (instruction.value === '' ? true : instruction.value); // Yeah, yeah..
     }
 };
-SetPropertyRenderer = tslib_1.__decorate([
+SetPropertyRenderer = __decorate([
     instructionRenderer("re" /* setProperty */)
     /** @internal */
 ], SetPropertyRenderer);
@@ -175,7 +175,7 @@ class CustomElementRenderer {
         operation.dispose();
     }
 };
-CustomElementRenderer = tslib_1.__decorate([
+CustomElementRenderer = __decorate([
     instructionRenderer("ra" /* hydrateElement */)
     /** @internal */
 ], CustomElementRenderer);
@@ -199,7 +199,7 @@ class CustomAttributeRenderer {
         operation.dispose();
     }
 };
-CustomAttributeRenderer = tslib_1.__decorate([
+CustomAttributeRenderer = __decorate([
     instructionRenderer("rb" /* hydrateAttribute */)
     /** @internal */
 ], CustomAttributeRenderer);
@@ -247,12 +247,12 @@ class TemplateControllerRenderer {
         operation.dispose();
     }
 };
-TemplateControllerRenderer = tslib_1.__decorate([
+TemplateControllerRenderer = __decorate([
     instructionRenderer("rc" /* hydrateTemplateController */)
     /** @internal */
     ,
-    tslib_1.__param(0, IRenderingEngine),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IRenderingEngine),
+    __param(1, IObserverLocator)
 ], TemplateControllerRenderer);
 export { TemplateControllerRenderer };
 let LetElementRenderer = 
@@ -277,12 +277,12 @@ class LetElementRenderer {
         }
     }
 };
-LetElementRenderer = tslib_1.__decorate([
+LetElementRenderer = __decorate([
     instructionRenderer("rd" /* hydrateLetElement */)
     /** @internal */
     ,
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], LetElementRenderer);
 export { LetElementRenderer };
 let CallBindingRenderer = 
@@ -298,12 +298,12 @@ class CallBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-CallBindingRenderer = tslib_1.__decorate([
+CallBindingRenderer = __decorate([
     instructionRenderer("rh" /* callBinding */)
     /** @internal */
     ,
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], CallBindingRenderer);
 export { CallBindingRenderer };
 let RefBindingRenderer = 
@@ -318,11 +318,11 @@ class RefBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-RefBindingRenderer = tslib_1.__decorate([
+RefBindingRenderer = __decorate([
     instructionRenderer("rj" /* refBinding */)
     /** @internal */
     ,
-    tslib_1.__param(0, IExpressionParser)
+    __param(0, IExpressionParser)
 ], RefBindingRenderer);
 export { RefBindingRenderer };
 let InterpolationBindingRenderer = 
@@ -344,12 +344,12 @@ class InterpolationBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-InterpolationBindingRenderer = tslib_1.__decorate([
+InterpolationBindingRenderer = __decorate([
     instructionRenderer("rf" /* interpolation */)
     /** @internal */
     ,
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], InterpolationBindingRenderer);
 export { InterpolationBindingRenderer };
 let PropertyBindingRenderer = 
@@ -365,12 +365,12 @@ class PropertyBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-PropertyBindingRenderer = tslib_1.__decorate([
+PropertyBindingRenderer = __decorate([
     instructionRenderer("rg" /* propertyBinding */)
     /** @internal */
     ,
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], PropertyBindingRenderer);
 export { PropertyBindingRenderer };
 let IteratorBindingRenderer = 
@@ -386,12 +386,12 @@ class IteratorBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-IteratorBindingRenderer = tslib_1.__decorate([
+IteratorBindingRenderer = __decorate([
     instructionRenderer("rk" /* iteratorBinding */)
     /** @internal */
     ,
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], IteratorBindingRenderer);
 export { IteratorBindingRenderer };
 //# sourceMappingURL=renderer.js.map

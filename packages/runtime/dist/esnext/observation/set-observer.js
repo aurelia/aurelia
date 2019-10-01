@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -155,7 +155,7 @@ let SetObserver = class SetObserver {
         }
     }
 };
-SetObserver = tslib_1.__decorate([
+SetObserver = __decorate([
     collectionSubscriberCollection()
 ], SetObserver);
 export { SetObserver };

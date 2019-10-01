@@ -15,6 +15,24 @@
     const runtime_1 = require("@aurelia/runtime");
     const slice = Array.prototype.slice;
     class AuNode {
+        constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
+            this.nodeName = name;
+            this.isWrapper = isWrapper;
+            this.isMarker = isMarker;
+            this.isRenderLocation = isRenderLocation;
+            this.$start = null;
+            this.$nodes = null;
+            this.isTarget = isTarget;
+            this.isMounted = isMounted;
+            this._isConnected = isConnected;
+            this.parentNode = null;
+            this.childNodes = [];
+            this._textContent = '';
+            this.nextSibling = null;
+            this.previousSibling = null;
+            this.firstChild = null;
+            this.lastChild = null;
+        }
         get isConnected() {
             return this._isConnected;
         }
@@ -41,24 +59,6 @@
         }
         set textContent(value) {
             this._textContent = value;
-        }
-        constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
-            this.nodeName = name;
-            this.isWrapper = isWrapper;
-            this.isMarker = isMarker;
-            this.isRenderLocation = isRenderLocation;
-            this.$start = null;
-            this.$nodes = null;
-            this.isTarget = isTarget;
-            this.isMounted = isMounted;
-            this._isConnected = isConnected;
-            this.parentNode = null;
-            this.childNodes = [];
-            this._textContent = '';
-            this.nextSibling = null;
-            this.previousSibling = null;
-            this.firstChild = null;
-            this.lastChild = null;
         }
         static createHost() {
             return new AuNode('#au-host', false, false, false, false, true, true);
@@ -474,8 +474,8 @@
             return dom;
         }
     }
-    AuDOMInitializer.inject = [kernel_1.IContainer];
     exports.AuDOMInitializer = AuDOMInitializer;
+    AuDOMInitializer.inject = [kernel_1.IContainer];
     class AuTemplateFactory {
         constructor(dom) {
             this.dom = dom;
@@ -484,8 +484,8 @@
             return new runtime_1.CompiledTemplate(this.dom, definition, new AuNodeSequenceFactory(this.dom, definition.template), parentRenderContext);
         }
     }
-    AuTemplateFactory.inject = [runtime_1.IDOM];
     exports.AuTemplateFactory = AuTemplateFactory;
+    AuTemplateFactory.inject = [runtime_1.IDOM];
     class AuObserverLocator {
         getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
             return null;

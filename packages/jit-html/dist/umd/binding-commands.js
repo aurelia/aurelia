@@ -17,9 +17,6 @@
      * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
      */
     let TriggerBindingCommand = class TriggerBindingCommand {
-        /**
-         * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
-         */
         constructor() {
             this.bindingType = 4182 /* TriggerCommand */;
         }
@@ -35,9 +32,6 @@
      * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
      */
     let DelegateBindingCommand = class DelegateBindingCommand {
-        /**
-         * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
-         */
         constructor() {
             this.bindingType = 4184 /* DelegateCommand */;
         }
@@ -53,9 +47,6 @@
      * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
      */
     let CaptureBindingCommand = class CaptureBindingCommand {
-        /**
-         * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
-         */
         constructor() {
             this.bindingType = 4183 /* CaptureCommand */;
         }
@@ -71,9 +62,6 @@
      * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
      */
     let AttrBindingCommand = class AttrBindingCommand {
-        /**
-         * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
-         */
         constructor() {
             this.bindingType = 32 /* IsProperty */;
         }
@@ -90,9 +78,6 @@
      * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
      */
     let StyleBindingCommand = class StyleBindingCommand {
-        /**
-         * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
-         */
         constructor() {
             this.bindingType = 32 /* IsProperty */;
         }
@@ -108,9 +93,6 @@
      * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
      */
     let ClassBindingCommand = class ClassBindingCommand {
-        /**
-         * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
-         */
         constructor() {
             this.bindingType = 32 /* IsProperty */;
         }
@@ -126,9 +108,6 @@
      * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
      */
     let RefBindingCommand = class RefBindingCommand {
-        /**
-         * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
-         */
         constructor() {
             this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
         }

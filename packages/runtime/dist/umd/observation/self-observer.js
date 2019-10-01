@@ -11,7 +11,6 @@
     var SelfObserver_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    "use strict";
     const kernel_1 = require("@aurelia/kernel");
     const proxy_observer_1 = require("./proxy-observer");
     const subscriber_collection_1 = require("./subscriber-collection");

@@ -42,8 +42,8 @@
             }
         }
     }
+    exports.AttributeParser = AttributeParser;
     // @ts-ignore
     AttributeParser.inject = [attribute_pattern_1.ISyntaxInterpreter, kernel_1.all(attribute_pattern_1.IAttributePattern)];
-    exports.AttributeParser = AttributeParser;
 });
 //# sourceMappingURL=attribute-parser.js.map

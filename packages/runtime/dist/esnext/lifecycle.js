@@ -9,6 +9,15 @@ export var ViewModelKind;
 export const IController = DI.createInterface('IController').noDefault();
 export const IViewFactory = DI.createInterface('IViewFactory').noDefault();
 class LinkedCallback {
+    constructor(cb, context = void 0, priority = 16384 /* normal */, once = false) {
+        this.cb = cb;
+        this.context = context;
+        this.priority = priority;
+        this.once = once;
+        this.next = void 0;
+        this.prev = void 0;
+        this.unlinked = false;
+    }
     get first() {
         let cur = this;
         while (cur.prev !== void 0 && cur.prev.priority === this.priority) {
@@ -22,15 +31,6 @@ class LinkedCallback {
             cur = cur.next;
         }
         return cur;
-    }
-    constructor(cb, context = void 0, priority = 16384 /* normal */, once = false) {
-        this.cb = cb;
-        this.context = context;
-        this.priority = priority;
-        this.once = once;
-        this.next = void 0;
-        this.prev = void 0;
-        this.unlinked = false;
     }
     equals(fn, context) {
         return this.cb === fn && this.context === context;
@@ -556,29 +556,6 @@ export class BatchQueue {
     }
 }
 export class Lifecycle {
-    get FPS() {
-        return 1000 / this.prevFrameDuration;
-    }
-    get minFPS() {
-        return 1000 / this.maxFrameDuration;
-    }
-    set minFPS(fps) {
-        this.maxFrameDuration = 1000 / min(max(0, min(this.maxFPS, fps)), 60);
-    }
-    get maxFPS() {
-        if (this.minFrameDuration > 0) {
-            return 1000 / this.minFrameDuration;
-        }
-        return 60;
-    }
-    set maxFPS(fps) {
-        if (fps >= 60) {
-            this.minFrameDuration = 0;
-        }
-        else {
-            this.minFrameDuration = 1000 / min(max(1, max(this.minFPS, fps)), 60);
-        }
-    }
     constructor() {
         this.rafHead = new LinkedCallback(void 0, void 0, Infinity);
         this.rafTail = (void 0);
@@ -619,6 +596,29 @@ export class Lifecycle {
         this.timeslicingEnabled = false;
         this.adaptiveTimeslicing = false;
         this.frameDurationFactor = 1;
+    }
+    get FPS() {
+        return 1000 / this.prevFrameDuration;
+    }
+    get minFPS() {
+        return 1000 / this.maxFrameDuration;
+    }
+    set minFPS(fps) {
+        this.maxFrameDuration = 1000 / min(max(0, min(this.maxFPS, fps)), 60);
+    }
+    get maxFPS() {
+        if (this.minFrameDuration > 0) {
+            return 1000 / this.minFrameDuration;
+        }
+        return 60;
+    }
+    set maxFPS(fps) {
+        if (fps >= 60) {
+            this.minFrameDuration = 0;
+        }
+        else {
+            this.minFrameDuration = 1000 / min(max(1, max(this.minFPS, fps)), 60);
+        }
     }
     static register(container) {
         return Registration.singleton(ILifecycle, this).register(container);

@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { BindingMode, CallBindingInstruction, FromViewBindingInstruction, IteratorBindingInstruction, OneTimeBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, } from '@aurelia/runtime';
 import { bindingCommand, getTarget, } from './binding-command';
 import { BindingSymbol, } from './semantic-model';
@@ -10,7 +10,7 @@ let OneTimeBindingCommand = class OneTimeBindingCommand {
         return new OneTimeBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-OneTimeBindingCommand = tslib_1.__decorate([
+OneTimeBindingCommand = __decorate([
     bindingCommand('one-time')
 ], OneTimeBindingCommand);
 export { OneTimeBindingCommand };
@@ -22,7 +22,7 @@ let ToViewBindingCommand = class ToViewBindingCommand {
         return new ToViewBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-ToViewBindingCommand = tslib_1.__decorate([
+ToViewBindingCommand = __decorate([
     bindingCommand('to-view')
 ], ToViewBindingCommand);
 export { ToViewBindingCommand };
@@ -34,7 +34,7 @@ let FromViewBindingCommand = class FromViewBindingCommand {
         return new FromViewBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-FromViewBindingCommand = tslib_1.__decorate([
+FromViewBindingCommand = __decorate([
     bindingCommand('from-view')
 ], FromViewBindingCommand);
 export { FromViewBindingCommand };
@@ -46,7 +46,7 @@ let TwoWayBindingCommand = class TwoWayBindingCommand {
         return new TwoWayBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-TwoWayBindingCommand = tslib_1.__decorate([
+TwoWayBindingCommand = __decorate([
     bindingCommand('two-way')
 ], TwoWayBindingCommand);
 export { TwoWayBindingCommand };
@@ -90,7 +90,7 @@ let DefaultBindingCommand = class DefaultBindingCommand {
         }
     }
 };
-DefaultBindingCommand = tslib_1.__decorate([
+DefaultBindingCommand = __decorate([
     bindingCommand('bind')
 ], DefaultBindingCommand);
 export { DefaultBindingCommand };
@@ -102,7 +102,7 @@ let CallBindingCommand = class CallBindingCommand {
         return new CallBindingInstruction(binding.expression, getTarget(binding, true));
     }
 };
-CallBindingCommand = tslib_1.__decorate([
+CallBindingCommand = __decorate([
     bindingCommand('call')
 ], CallBindingCommand);
 export { CallBindingCommand };
@@ -114,7 +114,7 @@ let ForBindingCommand = class ForBindingCommand {
         return new IteratorBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-ForBindingCommand = tslib_1.__decorate([
+ForBindingCommand = __decorate([
     bindingCommand('for')
 ], ForBindingCommand);
 export { ForBindingCommand };

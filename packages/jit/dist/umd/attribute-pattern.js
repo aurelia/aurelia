@@ -69,6 +69,12 @@
     }
     exports.CharSpec = CharSpec;
     class Interpretation {
+        constructor() {
+            this._pattern = '';
+            this.parts = kernel_1.PLATFORM.emptyArray;
+            this.currentRecord = {};
+            this.partsRecord = {};
+        }
         get pattern() {
             const value = this._pattern;
             if (value === '') {
@@ -87,12 +93,6 @@
                 this._pattern = value;
                 this.parts = this.partsRecord[value];
             }
-        }
-        constructor() {
-            this._pattern = '';
-            this.parts = kernel_1.PLATFORM.emptyArray;
-            this.currentRecord = {};
-            this.partsRecord = {};
         }
         append(pattern, ch) {
             const { currentRecord } = this;
@@ -120,15 +120,15 @@
     exports.Interpretation = Interpretation;
     /** @internal */
     class State {
-        get pattern() {
-            return this.isEndpoint ? this.patterns[0] : null;
-        }
         constructor(charSpec, ...patterns) {
             this.charSpec = charSpec;
             this.nextStates = [];
             this.types = null;
             this.patterns = patterns;
             this.isEndpoint = false;
+        }
+        get pattern() {
+            return this.isEndpoint ? this.patterns[0] : null;
         }
         findChild(charSpec) {
             const nextStates = this.nextStates;

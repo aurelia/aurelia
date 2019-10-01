@@ -341,9 +341,9 @@
             return visitor.visitAccessThis(this);
         }
     }
+    exports.AccessThisExpression = AccessThisExpression;
     AccessThisExpression.$this = new AccessThisExpression(0);
     AccessThisExpression.$parent = new AccessThisExpression(1);
-    exports.AccessThisExpression = AccessThisExpression;
     class AccessScopeExpression {
         constructor(name, ancestor = 0) {
             this.$kind = 10082 /* AccessScope */;
@@ -695,12 +695,12 @@
             return visitor.visitPrimitiveLiteral(this);
         }
     }
+    exports.PrimitiveLiteralExpression = PrimitiveLiteralExpression;
     PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
     PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
     PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
     PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
     PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
-    exports.PrimitiveLiteralExpression = PrimitiveLiteralExpression;
     class HtmlLiteralExpression {
         constructor(parts) {
             this.$kind = 51 /* HtmlLiteral */;
@@ -755,8 +755,8 @@
             return visitor.visitArrayLiteral(this);
         }
     }
-    ArrayLiteralExpression.$empty = new ArrayLiteralExpression(kernel_1.PLATFORM.emptyArray);
     exports.ArrayLiteralExpression = ArrayLiteralExpression;
+    ArrayLiteralExpression.$empty = new ArrayLiteralExpression(kernel_1.PLATFORM.emptyArray);
     class ObjectLiteralExpression {
         constructor(keys, values) {
             this.$kind = 17956 /* ObjectLiteral */;
@@ -784,8 +784,8 @@
             return visitor.visitObjectLiteral(this);
         }
     }
-    ObjectLiteralExpression.$empty = new ObjectLiteralExpression(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
     exports.ObjectLiteralExpression = ObjectLiteralExpression;
+    ObjectLiteralExpression.$empty = new ObjectLiteralExpression(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
     class TemplateExpression {
         constructor(cooked, expressions) {
             this.$kind = 17958 /* Template */;
@@ -814,8 +814,8 @@
             return visitor.visitTemplate(this);
         }
     }
-    TemplateExpression.$empty = new TemplateExpression(['']);
     exports.TemplateExpression = TemplateExpression;
+    TemplateExpression.$empty = new TemplateExpression(['']);
     class TaggedTemplateExpression {
         constructor(cooked, raw, func, expressions) {
             this.$kind = 1197 /* TaggedTemplate */;
@@ -925,10 +925,26 @@
             return this.iterable.evaluate(flags, scope, locator, part);
         }
         count(flags, result) {
-            return exports.CountForOfStatement[toStringTag.call(result)](result);
+            switch (toStringTag.call(result)) {
+                case '[object Array]': return result.length;
+                case '[object Map]': return result.size;
+                case '[object Set]': return result.size;
+                case '[object Number]': return result;
+                case '[object Null]': return 0;
+                case '[object Undefined]': return 0;
+                default: throw kernel_1.Reporter.error(0); // TODO: Set error code
+            }
         }
         iterate(flags, result, func) {
-            exports.IterateForOfStatement[toStringTag.call(result)](flags | 16777216 /* isOriginalArray */, result, func);
+            switch (toStringTag.call(result)) {
+                case '[object Array]': return $array(flags | 16777216 /* isOriginalArray */, result, func);
+                case '[object Map]': return $map(flags | 16777216 /* isOriginalArray */, result, func);
+                case '[object Set]': return $set(flags | 16777216 /* isOriginalArray */, result, func);
+                case '[object Number]': return $number(flags | 16777216 /* isOriginalArray */, result, func);
+                case '[object Null]': return;
+                case '[object Undefined]': return;
+                default: throw kernel_1.Reporter.error(0); // TODO: Set error code
+            }
         }
         connect(flags, scope, binding, part) {
             this.declaration.connect(flags, scope, binding, part);
@@ -1007,69 +1023,55 @@
         throw kernel_1.Reporter.error(207 /* NotAFunction */, obj, name, func);
     }
     const proxyAndOriginalArray = 2 /* proxyStrategy */ | 16777216 /* isOriginalArray */;
-    /** @internal */
-    exports.IterateForOfStatement = {
-        ['[object Array]'](flags, result, func) {
-            if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
-                // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-                // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-                // observers are explicitly created
-                const rawArray = proxy_observer_1.ProxyObserver.getRawIfProxy(result);
-                const len = rawArray.length;
-                let item;
-                let i = 0;
-                for (; i < len; ++i) {
-                    item = rawArray[i];
-                    if (item instanceof Object) {
-                        item = rawArray[i] = proxy_observer_1.ProxyObserver.getOrCreate(item).proxy;
-                    }
-                    func(rawArray, i, item);
+    function $array(flags, result, func) {
+        if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
+            // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
+            // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
+            // observers are explicitly created
+            const rawArray = proxy_observer_1.ProxyObserver.getRawIfProxy(result);
+            const len = rawArray.length;
+            let item;
+            let i = 0;
+            for (; i < len; ++i) {
+                item = rawArray[i];
+                if (item instanceof Object) {
+                    item = rawArray[i] = proxy_observer_1.ProxyObserver.getOrCreate(item).proxy;
                 }
+                func(rawArray, i, item);
             }
-            else {
-                for (let i = 0, ii = result.length; i < ii; ++i) {
-                    func(result, i, result[i]);
-                }
-            }
-        },
-        ['[object Map]'](flags, result, func) {
-            const arr = Array(result.size);
-            let i = -1;
-            for (const entry of result.entries()) {
-                arr[++i] = entry;
-            }
-            exports.IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
-        },
-        ['[object Set]'](flags, result, func) {
-            const arr = Array(result.size);
-            let i = -1;
-            for (const key of result.keys()) {
-                arr[++i] = key;
-            }
-            exports.IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
-        },
-        ['[object Number]'](flags, result, func) {
-            const arr = Array(result);
-            for (let i = 0; i < result; ++i) {
-                arr[i] = i;
-            }
-            exports.IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
-        },
-        ['[object Null]'](flags, result, func) {
-            return;
-        },
-        ['[object Undefined]'](flags, result, func) {
-            return;
         }
-    };
-    /** @internal */
-    exports.CountForOfStatement = {
-        ['[object Array]'](result) { return result.length; },
-        ['[object Map]'](result) { return result.size; },
-        ['[object Set]'](result) { return result.size; },
-        ['[object Number]'](result) { return result; },
-        ['[object Null]'](result) { return 0; },
-        ['[object Undefined]'](result) { return 0; }
-    };
+        else {
+            for (let i = 0, ii = result.length; i < ii; ++i) {
+                func(result, i, result[i]);
+            }
+        }
+    }
+    ;
+    function $map(flags, result, func) {
+        const arr = Array(result.size);
+        let i = -1;
+        for (const entry of result.entries()) {
+            arr[++i] = entry;
+        }
+        $array(flags & ~16777216 /* isOriginalArray */, arr, func);
+    }
+    ;
+    function $set(flags, result, func) {
+        const arr = Array(result.size);
+        let i = -1;
+        for (const key of result.keys()) {
+            arr[++i] = key;
+        }
+        $array(flags & ~16777216 /* isOriginalArray */, arr, func);
+    }
+    ;
+    function $number(flags, result, func) {
+        const arr = Array(result);
+        for (let i = 0; i < result; ++i) {
+            arr[i] = i;
+        }
+        $array(flags & ~16777216 /* isOriginalArray */, arr, func);
+    }
+    ;
 });
 //# sourceMappingURL=ast.js.map

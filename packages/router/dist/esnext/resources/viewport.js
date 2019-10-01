@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindable, CustomElement, IDOM, INode, IRenderingEngine, RenderContext } from '@aurelia/runtime';
 import { IRouter, } from '../router';
 export class ViewportCustomElement {
@@ -105,25 +105,25 @@ export class ViewportCustomElement {
     }
 }
 ViewportCustomElement.inject = [IRouter, INode, IRenderingEngine];
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "name", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "usedBy", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "default", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "noScope", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "noLink", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "noHistory", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], ViewportCustomElement.prototype, "stateful", void 0);
 // eslint-disable-next-line no-template-curly-in-string

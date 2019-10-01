@@ -168,10 +168,10 @@ export declare class ParameterizedRegistry implements IRegistry {
 }
 export declare const Registration: Readonly<{
     instance<T>(key: Key, value: T): IRegistration<T>;
-    singleton<T extends Constructable<{}>>(key: Key, value: T): IRegistration<InstanceType<T>>;
-    transient<T extends Constructable<{}>>(key: Key, value: T): IRegistration<InstanceType<T>>;
-    callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<T extends InterfaceSymbol<infer T> ? T : T extends Constructable<{}> ? InstanceType<T> : T extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T>;
-    alias<T>(originalKey: T, aliasKey: Key): IRegistration<T extends InterfaceSymbol<infer T> ? T : T extends Constructable<{}> ? InstanceType<T> : T extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T>;
+    singleton<T_1 extends Constructable<{}>>(key: Key, value: T_1): IRegistration<InstanceType<T_1>>;
+    transient<T_2 extends Constructable<{}>>(key: Key, value: T_2): IRegistration<InstanceType<T_2>>;
+    callback<T_3>(key: Key, callback: ResolveCallback<T_3>): IRegistration<T_3 extends InterfaceSymbol<infer T_4> ? T_4 : T_3 extends Constructable<{}> ? InstanceType<T_3> : T_3 extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T_3>;
+    alias<T_5>(originalKey: T_5, aliasKey: Key): IRegistration<T_5 extends InterfaceSymbol<infer T_4> ? T_4 : T_5 extends Constructable<{}> ? InstanceType<T_5> : T_5 extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T_5>;
     defer(key: Key, ...params: unknown[]): IRegistry;
 }>;
 export declare class InstanceProvider<K extends Key> implements IResolver<K | null> {

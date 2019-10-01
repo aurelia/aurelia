@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 const slice = Array.prototype.slice;
@@ -61,7 +61,7 @@ let CustomSetterObserver = class CustomSetterObserver {
         Reflect.defineProperty(this.obj, this.propertyKey, { set });
     }
 };
-CustomSetterObserver = tslib_1.__decorate([
+CustomSetterObserver = __decorate([
     subscriberCollection()
 ], CustomSetterObserver);
 export { CustomSetterObserver };
@@ -154,7 +154,7 @@ let GetterObserver = class GetterObserver {
         this.collectionDeps.length = 0;
     }
 };
-GetterObserver = tslib_1.__decorate([
+GetterObserver = __decorate([
     subscriberCollection()
 ], GetterObserver);
 export { GetterObserver };

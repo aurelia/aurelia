@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { AttrSyntax, BindingCommandResource, getTarget, IAttributePattern } from '@aurelia/jit';
 import { Registration } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, instructionRenderer, IObserverLocator } from '@aurelia/runtime';
@@ -63,10 +63,10 @@ let TranslationBindingRenderer = class TranslationBindingRenderer {
         TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
     }
 };
-TranslationBindingRenderer = tslib_1.__decorate([
+TranslationBindingRenderer = __decorate([
     instructionRenderer(TranslationInstructionType),
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], TranslationBindingRenderer);
 export { TranslationBindingRenderer };
 export const TranslationBindInstructionType = 'tbt';
@@ -132,10 +132,10 @@ let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
         TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
     }
 };
-TranslationBindBindingRenderer = tslib_1.__decorate([
+TranslationBindBindingRenderer = __decorate([
     instructionRenderer(TranslationBindInstructionType),
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], TranslationBindBindingRenderer);
 export { TranslationBindBindingRenderer };
 //# sourceMappingURL=translation-renderer.js.map

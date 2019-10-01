@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { inject } from '@aurelia/kernel';
 import { bindable, customElement, INode } from '@aurelia/runtime';
 import { IRouter } from '../router';
@@ -33,19 +33,19 @@ let NavCustomElement = class NavCustomElement {
         return 'Active';
     }
 };
-tslib_1.__decorate([
+__decorate([
     bindable
 ], NavCustomElement.prototype, "name", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], NavCustomElement.prototype, "routes", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], NavCustomElement.prototype, "level", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], NavCustomElement.prototype, "classes", void 0);
-NavCustomElement = tslib_1.__decorate([
+NavCustomElement = __decorate([
     inject(IRouter, INode),
     customElement({
         name: 'au-nav', template: `<template>

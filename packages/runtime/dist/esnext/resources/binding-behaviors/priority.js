@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindingBehavior, } from '../binding-behavior';
 let PriorityBindingBehavior = class PriorityBindingBehavior {
     bind(binding, priority = 4096 /* low */) {
@@ -43,7 +43,7 @@ let PriorityBindingBehavior = class PriorityBindingBehavior {
         }
     }
 };
-PriorityBindingBehavior = tslib_1.__decorate([
+PriorityBindingBehavior = __decorate([
     bindingBehavior('priority')
 ], PriorityBindingBehavior);
 export { PriorityBindingBehavior };

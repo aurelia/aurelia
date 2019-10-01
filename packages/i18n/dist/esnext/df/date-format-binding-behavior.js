@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
 let DateFormatBindingBehavior = class DateFormatBindingBehavior {
@@ -6,7 +6,7 @@ let DateFormatBindingBehavior = class DateFormatBindingBehavior {
         createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
     }
 };
-DateFormatBindingBehavior = tslib_1.__decorate([
+DateFormatBindingBehavior = __decorate([
     bindingBehavior("df" /* dateFormatValueConverterName */)
 ], DateFormatBindingBehavior);
 export { DateFormatBindingBehavior };

@@ -472,7 +472,7 @@
             return Promise.resolve();
         }
     }
-    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_navigator_1.BrowserNavigator, exports.IRouteTransformer, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver];
     exports.Router = Router;
+    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_navigator_1.BrowserNavigator, exports.IRouteTransformer, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver];
 });
 //# sourceMappingURL=router.js.map

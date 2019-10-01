@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { IViewLocator } from '../../templating/view';
 import { valueConverter } from '../value-converter';
 let ViewValueConverter = class ViewValueConverter {
@@ -9,9 +9,9 @@ let ViewValueConverter = class ViewValueConverter {
         return this.viewLocator.getViewComponentForObject(object, viewNameOrSelector);
     }
 };
-ViewValueConverter = tslib_1.__decorate([
+ViewValueConverter = __decorate([
     valueConverter('view'),
-    tslib_1.__param(0, IViewLocator)
+    __param(0, IViewLocator)
 ], ViewValueConverter);
 export { ViewValueConverter };
 //# sourceMappingURL=view.js.map

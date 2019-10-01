@@ -195,6 +195,7 @@
                 : this.$controller.projector.children).createView(flags, this.renderingEngine, this.renderable.context);
         }
     }
+    exports.Compose = Compose;
     Compose.inject = [runtime_1.IDOM, runtime_1.IController, runtime_1.ITargetedInstruction, runtime_1.IRenderingEngine];
     Compose.kind = runtime_1.CustomElement;
     Compose.description = Object.freeze({
@@ -222,6 +223,5 @@
         scopeParts: kernel_1.PLATFORM.emptyArray,
         childrenObservers: kernel_1.PLATFORM.emptyObject
     });
-    exports.Compose = Compose;
 });
 //# sourceMappingURL=compose.js.map

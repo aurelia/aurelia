@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -28,7 +28,7 @@ class TextBindingRenderer {
     }
 };
 TextBindingRenderer.inject = [IExpressionParser, IObserverLocator];
-TextBindingRenderer = tslib_1.__decorate([
+TextBindingRenderer = __decorate([
     instructionRenderer("ha" /* textBinding */)
     /** @internal */
 ], TextBindingRenderer);
@@ -47,7 +47,7 @@ class ListenerBindingRenderer {
     }
 };
 ListenerBindingRenderer.inject = [IExpressionParser, IEventManager];
-ListenerBindingRenderer = tslib_1.__decorate([
+ListenerBindingRenderer = __decorate([
     instructionRenderer("hb" /* listenerBinding */)
     /** @internal */
 ], ListenerBindingRenderer);
@@ -59,7 +59,7 @@ class SetAttributeRenderer {
         target.setAttribute(instruction.to, instruction.value);
     }
 };
-SetAttributeRenderer = tslib_1.__decorate([
+SetAttributeRenderer = __decorate([
     instructionRenderer("he" /* setAttribute */)
     /** @internal */
 ], SetAttributeRenderer);
@@ -78,7 +78,7 @@ class StylePropertyBindingRenderer {
     }
 };
 StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
-StylePropertyBindingRenderer = tslib_1.__decorate([
+StylePropertyBindingRenderer = __decorate([
     instructionRenderer("hd" /* stylePropertyBinding */)
     /** @internal */
 ], StylePropertyBindingRenderer);
@@ -98,7 +98,7 @@ class AttributeBindingRenderer {
 };
 // @ts-ignore
 AttributeBindingRenderer.inject = [IExpressionParser, IObserverLocator];
-AttributeBindingRenderer = tslib_1.__decorate([
+AttributeBindingRenderer = __decorate([
     instructionRenderer("hc" /* attributeBinding */)
     /** @internal */
 ], AttributeBindingRenderer);

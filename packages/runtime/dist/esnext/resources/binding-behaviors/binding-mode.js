@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { BindingMode } from '../../flags';
 import { bindingBehavior } from '../binding-behavior';
 export class BindingModeBehavior {
@@ -19,7 +19,7 @@ let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBeh
         super(BindingMode.oneTime);
     }
 };
-OneTimeBindingBehavior = tslib_1.__decorate([
+OneTimeBindingBehavior = __decorate([
     bindingBehavior('oneTime')
 ], OneTimeBindingBehavior);
 export { OneTimeBindingBehavior };
@@ -28,7 +28,7 @@ let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehav
         super(BindingMode.toView);
     }
 };
-ToViewBindingBehavior = tslib_1.__decorate([
+ToViewBindingBehavior = __decorate([
     bindingBehavior('toView')
 ], ToViewBindingBehavior);
 export { ToViewBindingBehavior };
@@ -37,7 +37,7 @@ let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeB
         super(BindingMode.fromView);
     }
 };
-FromViewBindingBehavior = tslib_1.__decorate([
+FromViewBindingBehavior = __decorate([
     bindingBehavior('fromView')
 ], FromViewBindingBehavior);
 export { FromViewBindingBehavior };
@@ -46,7 +46,7 @@ let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehav
         super(BindingMode.twoWay);
     }
 };
-TwoWayBindingBehavior = tslib_1.__decorate([
+TwoWayBindingBehavior = __decorate([
     bindingBehavior('twoWay')
 ], TwoWayBindingBehavior);
 export { TwoWayBindingBehavior };

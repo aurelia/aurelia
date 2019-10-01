@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { DI, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { subscriberCollection } from './subscriber-collection';
@@ -120,7 +120,7 @@ let DirtyCheckProperty = class DirtyCheckProperty {
         }
     }
 };
-DirtyCheckProperty = tslib_1.__decorate([
+DirtyCheckProperty = __decorate([
     subscriberCollection()
 ], DirtyCheckProperty);
 export { DirtyCheckProperty };

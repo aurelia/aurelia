@@ -164,8 +164,8 @@
             return new setter_observer_1.SetterObserver(this.lifecycle, flags, obj, propertyName);
         }
     }
-    ObserverLocator.inject = [lifecycle_1.ILifecycle, dirty_checker_1.IDirtyChecker, exports.ITargetObserverLocator, exports.ITargetAccessorLocator];
     exports.ObserverLocator = ObserverLocator;
+    ObserverLocator.inject = [lifecycle_1.ILifecycle, dirty_checker_1.IDirtyChecker, exports.ITargetObserverLocator, exports.ITargetAccessorLocator];
     function getCollectionObserver(flags, lifecycle, collection) {
         // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
         // when we ask for getCollectionObserver

@@ -57,6 +57,12 @@ export class CharSpec {
     }
 }
 export class Interpretation {
+    constructor() {
+        this._pattern = '';
+        this.parts = PLATFORM.emptyArray;
+        this.currentRecord = {};
+        this.partsRecord = {};
+    }
     get pattern() {
         const value = this._pattern;
         if (value === '') {
@@ -75,12 +81,6 @@ export class Interpretation {
             this._pattern = value;
             this.parts = this.partsRecord[value];
         }
-    }
-    constructor() {
-        this._pattern = '';
-        this.parts = PLATFORM.emptyArray;
-        this.currentRecord = {};
-        this.partsRecord = {};
     }
     append(pattern, ch) {
         const { currentRecord } = this;
@@ -107,15 +107,15 @@ export class Interpretation {
 }
 /** @internal */
 export class State {
-    get pattern() {
-        return this.isEndpoint ? this.patterns[0] : null;
-    }
     constructor(charSpec, ...patterns) {
         this.charSpec = charSpec;
         this.nextStates = [];
         this.types = null;
         this.patterns = patterns;
         this.isEndpoint = false;
+    }
+    get pattern() {
+        return this.isEndpoint ? this.patterns[0] : null;
     }
     findChild(charSpec) {
         const nextStates = this.nextStates;

@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { bindable, customAttribute, IDOM, ILifecycle, INode } from '@aurelia/runtime';
 const unset = Symbol();
@@ -183,32 +183,32 @@ let Blur = class Blur {
         }
     }
 };
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], Blur.prototype, "value", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], Blur.prototype, "onBlur", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], Blur.prototype, "linkedWith", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], Blur.prototype, "linkedMultiple", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], Blur.prototype, "searchSubTree", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], Blur.prototype, "linkingContext", void 0);
-Blur = tslib_1.__decorate([
+Blur = __decorate([
     customAttribute({
         name: 'blur',
         hasDynamicOptions: true
     }),
-    tslib_1.__param(0, INode),
-    tslib_1.__param(1, IDOM),
-    tslib_1.__param(2, ILifecycle)
+    __param(0, INode),
+    __param(1, IDOM),
+    __param(2, ILifecycle)
 ], Blur);
 export { Blur };
 const containsElementOrShadowRoot = (container, target) => {

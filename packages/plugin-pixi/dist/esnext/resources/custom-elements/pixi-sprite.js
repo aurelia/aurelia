@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindable, customElement } from '@aurelia/runtime';
 import { loader, Sprite } from 'pixi.js';
 const directProps = [
@@ -96,124 +96,124 @@ let PixiSprite = class PixiSprite {
         }
     }
 };
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "container", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "src", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "alpha", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "buttomMode", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "cacheAsBitmap", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "cursor", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "filterArea", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "filters", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "hitArea", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "interactive", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "mask", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "name", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "pivotX", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "pivotY", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "positionX", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "positionY", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "renderable", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "rotation", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "scaleX", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "scaleY", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "skewX", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "skewY", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "transform", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "visible", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "x", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "y", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "zIndex", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "height", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "interactiveChildren", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "sortableChildren", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "sortDirty", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "width", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "anchor", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "blendMode", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "pluginName", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "roundPixels", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "shader", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "texture", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiSprite.prototype, "tint", void 0);
-PixiSprite = tslib_1.__decorate([
+PixiSprite = __decorate([
     customElement({ name: 'pixi-sprite', template: '<template></template>' })
 ], PixiSprite);
 export { PixiSprite };

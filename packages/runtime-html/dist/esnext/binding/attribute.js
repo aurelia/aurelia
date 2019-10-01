@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { BindingMode, connectable, hasBind, hasUnbind, ILifecycle } from '@aurelia/runtime';
 import { AttributeObserver } from '../observation/element-attribute-observer';
@@ -143,7 +143,7 @@ let AttributeBinding = class AttributeBinding {
         }
     }
 };
-AttributeBinding = tslib_1.__decorate([
+AttributeBinding = __decorate([
     connectable()
 ], AttributeBinding);
 export { AttributeBinding };

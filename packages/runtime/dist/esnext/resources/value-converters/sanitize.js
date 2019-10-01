@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { DI } from '@aurelia/kernel';
 import { valueConverter } from '../value-converter';
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
@@ -25,9 +25,9 @@ let SanitizeValueConverter = class SanitizeValueConverter {
         return this.sanitizer.sanitize(untrustedMarkup);
     }
 };
-SanitizeValueConverter = tslib_1.__decorate([
+SanitizeValueConverter = __decorate([
     valueConverter('sanitize'),
-    tslib_1.__param(0, ISanitizer)
+    __param(0, ISanitizer)
 ], SanitizeValueConverter);
 export { SanitizeValueConverter };
 //# sourceMappingURL=sanitize.js.map

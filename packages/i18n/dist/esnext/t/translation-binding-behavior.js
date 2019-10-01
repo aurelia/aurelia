@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindingBehavior, ValueConverterExpression } from '@aurelia/runtime';
 let TranslationBindingBehavior = class TranslationBindingBehavior {
     bind(flags, scope, binding) {
@@ -9,7 +9,7 @@ let TranslationBindingBehavior = class TranslationBindingBehavior {
         }
     }
 };
-TranslationBindingBehavior = tslib_1.__decorate([
+TranslationBindingBehavior = __decorate([
     bindingBehavior("t" /* translationValueConverterName */)
 ], TranslationBindingBehavior);
 export { TranslationBindingBehavior };

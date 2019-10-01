@@ -1,5 +1,5 @@
 var TranslationBinding_1;
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { IEventAggregator, toArray } from '@aurelia/kernel';
 import { addBinding, connectable, CustomElement, CustomExpression, DOM, ensureExpression, Interpolation } from '@aurelia/runtime';
 import { I18N } from '../i18n';
@@ -177,7 +177,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.targetObservers.clear();
     }
 };
-TranslationBinding = TranslationBinding_1 = tslib_1.__decorate([
+TranslationBinding = TranslationBinding_1 = __decorate([
     connectable()
 ], TranslationBinding);
 export { TranslationBinding };

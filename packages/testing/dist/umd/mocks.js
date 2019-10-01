@@ -288,17 +288,17 @@
     }
     exports.MockBrowserHistoryLocation = MockBrowserHistoryLocation;
     class ChangeSet {
-        get newValue() {
-            return this._newValue;
-        }
-        get oldValue() {
-            return this._oldValue;
-        }
         constructor(index, flags, newValue, oldValue) {
             this.index = index;
             this.flags = flags;
             this._newValue = newValue;
             this._oldValue = oldValue;
+        }
+        get newValue() {
+            return this._newValue;
+        }
+        get oldValue() {
+            return this._oldValue;
         }
         dispose() {
             this._newValue = (void 0);
@@ -307,18 +307,18 @@
     }
     exports.ChangeSet = ChangeSet;
     class ProxyChangeSet {
-        get newValue() {
-            return this._newValue;
-        }
-        get oldValue() {
-            return this._oldValue;
-        }
         constructor(index, flags, key, newValue, oldValue) {
             this.index = index;
             this.flags = flags;
             this.key = key;
             this._newValue = newValue;
             this._oldValue = oldValue;
+        }
+        get newValue() {
+            return this._newValue;
+        }
+        get oldValue() {
+            return this._oldValue;
         }
         dispose() {
             this._newValue = (void 0);
@@ -327,13 +327,13 @@
     }
     exports.ProxyChangeSet = ProxyChangeSet;
     class CollectionChangeSet {
-        get indexMap() {
-            return this._indexMap;
-        }
         constructor(index, flags, indexMap) {
             this.index = index;
             this.flags = flags;
             this._indexMap = indexMap;
+        }
+        get indexMap() {
+            return this._indexMap;
         }
         dispose() {
             this._indexMap = (void 0);
@@ -341,6 +341,12 @@
     }
     exports.CollectionChangeSet = CollectionChangeSet;
     class SpySubscriber {
+        constructor() {
+            this._changes = void 0;
+            this._proxyChanges = void 0;
+            this._collectionChanges = void 0;
+            this._callCount = 0;
+        }
         get changes() {
             if (this._changes === void 0) {
                 return kernel_1.PLATFORM.emptyArray;
@@ -370,12 +376,6 @@
         }
         get callCount() {
             return this._callCount;
-        }
-        constructor() {
-            this._changes = void 0;
-            this._proxyChanges = void 0;
-            this._collectionChanges = void 0;
-            this._callCount = 0;
         }
         handleChange(newValue, oldValue, flags) {
             if (this._changes === void 0) {

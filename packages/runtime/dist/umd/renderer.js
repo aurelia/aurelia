@@ -91,8 +91,8 @@
             }
         }
     }
-    Renderer.inject = [kernel_1.all(rendering_engine_1.IInstructionRenderer)];
     exports.Renderer = Renderer;
+    Renderer.inject = [kernel_1.all(rendering_engine_1.IInstructionRenderer)];
     function ensureExpression(parser, srcOrExpr, bindingType) {
         if (typeof srcOrExpr === 'string') {
             return parser.parse(srcOrExpr, bindingType);

@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { valueConverter } from '@aurelia/runtime';
 import { I18N } from '../i18n';
 let NumberFormatValueConverter = class NumberFormatValueConverter {
@@ -13,9 +13,9 @@ let NumberFormatValueConverter = class NumberFormatValueConverter {
         return this.i18n.nf(value, options, locale);
     }
 };
-NumberFormatValueConverter = tslib_1.__decorate([
+NumberFormatValueConverter = __decorate([
     valueConverter("nf" /* numberFormatValueConverterName */),
-    tslib_1.__param(0, I18N)
+    __param(0, I18N)
 ], NumberFormatValueConverter);
 export { NumberFormatValueConverter };
 //# sourceMappingURL=number-format-value-converter.js.map

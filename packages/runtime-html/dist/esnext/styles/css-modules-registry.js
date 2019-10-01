@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { bindable, customAttribute, INode } from '@aurelia/runtime';
 export class CSSModulesProcessorRegistry {
     register(container, ...params) {
@@ -20,12 +20,12 @@ export class CSSModulesProcessorRegistry {
                     .join(' ');
             }
         };
-        tslib_1.__decorate([
+        __decorate([
             bindable
         ], ClassCustomAttribute.prototype, "value", void 0);
-        ClassCustomAttribute = tslib_1.__decorate([
+        ClassCustomAttribute = __decorate([
             customAttribute('class'),
-            tslib_1.__param(0, INode)
+            __param(0, INode)
         ], ClassCustomAttribute);
         container.register(ClassCustomAttribute);
     }

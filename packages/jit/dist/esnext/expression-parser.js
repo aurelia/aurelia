@@ -10,9 +10,6 @@ const $this = AccessThisExpression.$this;
 const $parent = AccessThisExpression.$parent;
 /** @internal */
 export class ParserState {
-    get tokenRaw() {
-        return this.input.slice(this.startIndex, this.index);
-    }
     constructor(input) {
         this.index = 0;
         this.startIndex = 0;
@@ -23,6 +20,9 @@ export class ParserState {
         this.tokenValue = '';
         this.currentChar = input.charCodeAt(0);
         this.assignable = true;
+    }
+    get tokenRaw() {
+        return this.input.slice(this.startIndex, this.index);
     }
 }
 const $state = new ParserState('');

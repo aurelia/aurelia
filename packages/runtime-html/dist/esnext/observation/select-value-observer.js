@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { subscriberCollection, } from '@aurelia/runtime';
 const childObserverOptions = {
     childList: true,
@@ -240,7 +240,7 @@ let SelectValueObserver = class SelectValueObserver {
         }
     }
 };
-SelectValueObserver = tslib_1.__decorate([
+SelectValueObserver = __decorate([
     subscriberCollection()
 ], SelectValueObserver);
 export { SelectValueObserver };

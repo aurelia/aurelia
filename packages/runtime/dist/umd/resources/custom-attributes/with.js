@@ -66,6 +66,7 @@
             this.view.bind(flags, scope, this.$controller.part);
         }
     }
+    exports.With = With;
     With.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];
     With.kind = custom_attribute_1.CustomAttribute;
     With.description = Object.freeze({
@@ -78,6 +79,5 @@
         strategy: 1 /* getterSetter */,
         hooks: Object.freeze(new definitions_1.HooksDefinition(With.prototype)),
     });
-    exports.With = With;
 });
 //# sourceMappingURL=with.js.map

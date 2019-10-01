@@ -193,6 +193,7 @@
             }
         }
     }
+    exports.If = If;
     If.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];
     If.kind = custom_attribute_1.CustomAttribute;
     If.description = Object.freeze({
@@ -205,7 +206,6 @@
         strategy: 1 /* getterSetter */,
         hooks: Object.freeze(new definitions_1.HooksDefinition(If.prototype)),
     });
-    exports.If = If;
     class Else {
         constructor(factory) {
             this.factory = factory;
@@ -225,6 +225,7 @@
             }
         }
     }
+    exports.Else = Else;
     Else.inject = [lifecycle_1.IViewFactory];
     Else.kind = custom_attribute_1.CustomAttribute;
     Else.description = {
@@ -237,6 +238,5 @@
         strategy: 1 /* getterSetter */,
         hooks: definitions_1.HooksDefinition.none,
     };
-    exports.Else = Else;
 });
 //# sourceMappingURL=if.js.map

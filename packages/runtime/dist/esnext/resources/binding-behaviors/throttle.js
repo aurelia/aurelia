@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode } from '../../flags';
@@ -61,7 +61,7 @@ let ThrottleBindingBehavior = class ThrottleBindingBehavior {
         binding.throttleState = null;
     }
 };
-ThrottleBindingBehavior = tslib_1.__decorate([
+ThrottleBindingBehavior = __decorate([
     bindingBehavior('throttle')
 ], ThrottleBindingBehavior);
 export { ThrottleBindingBehavior };

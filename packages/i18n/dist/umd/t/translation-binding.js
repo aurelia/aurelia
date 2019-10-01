@@ -11,7 +11,6 @@
     var TranslationBinding_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    "use strict";
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const i18n_1 = require("../i18n");

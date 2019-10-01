@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 let SetterObserver = class SetterObserver {
@@ -67,7 +67,7 @@ let SetterObserver = class SetterObserver {
         this.addSubscriber(subscriber);
     }
 };
-SetterObserver = tslib_1.__decorate([
+SetterObserver = __decorate([
     subscriberCollection()
 ], SetterObserver);
 export { SetterObserver };

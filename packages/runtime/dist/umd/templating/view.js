@@ -81,8 +81,8 @@
             }
         }
     }
-    ViewFactory.maxCacheSize = 0xFFFF;
     exports.ViewFactory = ViewFactory;
+    ViewFactory.maxCacheSize = 0xFFFF;
     function view(v) {
         return function (target) {
             const views = target.$views || (target.$views = []);

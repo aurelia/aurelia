@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { BindingMode, } from '../flags';
 import { connectable, } from './connectable';
 const { toView, oneTime } = BindingMode;
@@ -123,7 +123,7 @@ let InterpolationBinding = class InterpolationBinding {
         this.unobserve(true);
     }
 };
-InterpolationBinding = tslib_1.__decorate([
+InterpolationBinding = __decorate([
     connectable()
 ], InterpolationBinding);
 export { InterpolationBinding };

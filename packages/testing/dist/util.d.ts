@@ -16,13 +16,13 @@ export declare const Object_keys: {
 export declare const Object_is: (value1: any, value2: any) => boolean;
 export declare const Object_freeze: {
     <T>(a: T[]): readonly T[];
-    <T extends Function>(f: T): T;
-    <T>(o: T): Readonly<T>;
+    <T_1 extends Function>(f: T_1): T_1;
+    <T_2>(o: T_2): Readonly<T_2>;
 };
 export declare const Object_assign: {
     <T, U>(target: T, source: U): T & U;
-    <T, U, V>(target: T, source1: U, source2: V): T & U & V;
-    <T, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
+    <T_1, U_1, V>(target: T_1, source1: U_1, source2: V): T_1 & U_1 & V;
+    <T_2, U_2, V_1, W>(target: T_2, source1: U_2, source2: V_1, source3: W): T_2 & U_2 & V_1 & W;
     (target: object, ...sources: any[]): any;
 };
 export declare const Object_create: {

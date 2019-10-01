@@ -1,5 +1,5 @@
 var ChildrenObserver_1;
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { all, DI, IContainer, Reporter, } from '@aurelia/kernel';
 import { buildTemplateDefinition, } from './definitions';
 import { NodeSequence, } from './dom';
@@ -181,7 +181,7 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         }
     }
 };
-ChildrenObserver = ChildrenObserver_1 = tslib_1.__decorate([
+ChildrenObserver = ChildrenObserver_1 = __decorate([
     subscriberCollection()
 ], ChildrenObserver);
 export { ChildrenObserver };

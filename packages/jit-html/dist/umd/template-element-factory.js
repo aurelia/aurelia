@@ -67,7 +67,7 @@
             return input;
         }
     }
-    HTMLTemplateElementFactory.inject = [runtime_1.IDOM];
     exports.HTMLTemplateElementFactory = HTMLTemplateElementFactory;
+    HTMLTemplateElementFactory.inject = [runtime_1.IDOM];
 });
 //# sourceMappingURL=template-element-factory.js.map

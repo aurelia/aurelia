@@ -155,8 +155,8 @@
             return new AggregateTerminalTask(tasks);
         }
     }
-    StartTaskManager.inject = [kernel_1.IServiceLocator];
     exports.StartTaskManager = StartTaskManager;
+    StartTaskManager.inject = [kernel_1.IServiceLocator];
     class PromiseTask {
         constructor(promise, next, context, ...args) {
             this.done = false;

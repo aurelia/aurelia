@@ -1,5 +1,5 @@
 var ProxyObserver_1;
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
 const slice = Array.prototype.slice;
@@ -29,7 +29,7 @@ let ProxySubscriberCollection = class ProxySubscriberCollection {
     flushBatch(flags) {
     }
 };
-ProxySubscriberCollection = tslib_1.__decorate([
+ProxySubscriberCollection = __decorate([
     subscriberCollection()
 ], ProxySubscriberCollection);
 export { ProxySubscriberCollection };
@@ -159,7 +159,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         }
     }
 };
-ProxyObserver = ProxyObserver_1 = tslib_1.__decorate([
+ProxyObserver = ProxyObserver_1 = __decorate([
     proxySubscriberCollection()
 ], ProxyObserver);
 export { ProxyObserver };

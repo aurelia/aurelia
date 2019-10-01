@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { subscriberCollection, } from '@aurelia/runtime';
 // TODO: handle file attribute properly again, etc
 let ValueAttributeObserver = class ValueAttributeObserver {
@@ -74,7 +74,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         }
     }
 };
-ValueAttributeObserver = tslib_1.__decorate([
+ValueAttributeObserver = __decorate([
     subscriberCollection()
 ], ValueAttributeObserver);
 export { ValueAttributeObserver };

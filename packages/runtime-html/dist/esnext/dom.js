@@ -417,12 +417,12 @@ export class NodeSequenceFactory {
 }
 /** @internal */
 export class AuMarker {
-    get parentNode() {
-        return this.nextSibling.parentNode;
-    }
     constructor(next) {
         this.nextSibling = next;
         this.textContent = '';
+    }
+    get parentNode() {
+        return this.nextSibling.parentNode;
     }
     remove() { }
 }

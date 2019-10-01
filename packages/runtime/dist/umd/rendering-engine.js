@@ -11,7 +11,6 @@
     var ChildrenObserver_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    "use strict";
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("./definitions");
     const dom_1 = require("./dom");
@@ -142,8 +141,8 @@
             return exports.noViewTemplate;
         }
     }
-    RenderingEngine.inject = [kernel_1.IContainer, exports.ITemplateFactory, lifecycle_1.ILifecycle, kernel_1.all(exports.ITemplateCompiler)];
     exports.RenderingEngine = RenderingEngine;
+    RenderingEngine.inject = [kernel_1.IContainer, exports.ITemplateFactory, lifecycle_1.ILifecycle, kernel_1.all(exports.ITemplateCompiler)];
     /** @internal */
     let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         constructor(controller, viewModel, flags, propertyName, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {

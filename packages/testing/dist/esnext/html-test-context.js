@@ -3,6 +3,30 @@ import { DI, Registration, } from '@aurelia/kernel';
 import { IDOM, ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, IRenderingEngine, ITemplateCompiler, } from '@aurelia/runtime';
 import { HTMLDOM, } from '@aurelia/runtime-html';
 export class HTMLTestContext {
+    constructor(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
+        this.config = config;
+        this.wnd = wnd;
+        this.UIEvent = UIEventType;
+        this.Event = EventType;
+        this.CustomEvent = CustomEventType;
+        this.Node = NodeType;
+        this.Element = ElementType;
+        this.HTMLElement = HTMLElementType;
+        this.HTMLDivElement = HTMLDivElementType;
+        this.Text = TextType;
+        this.Comment = CommentType;
+        this.DOMParser = DOMParserType;
+        this.doc = wnd.document;
+        this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
+        this._container = void 0;
+        this._templateCompiler = void 0;
+        this._observerLocator = void 0;
+        this._lifecycle = void 0;
+        this._renderer = void 0;
+        this._projectorLocator = void 0;
+        this._renderingEngine = void 0;
+        this._domParser = void 0;
+    }
     get container() {
         if (this._container === void 0) {
             this._container = DI.createContainer(this.config);
@@ -53,30 +77,6 @@ export class HTMLTestContext {
             this._domParser = this.doc.createElement('div');
         }
         return this._domParser;
-    }
-    constructor(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
-        this.config = config;
-        this.wnd = wnd;
-        this.UIEvent = UIEventType;
-        this.Event = EventType;
-        this.CustomEvent = CustomEventType;
-        this.Node = NodeType;
-        this.Element = ElementType;
-        this.HTMLElement = HTMLElementType;
-        this.HTMLDivElement = HTMLDivElementType;
-        this.Text = TextType;
-        this.Comment = CommentType;
-        this.DOMParser = DOMParserType;
-        this.doc = wnd.document;
-        this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
-        this._container = void 0;
-        this._templateCompiler = void 0;
-        this._observerLocator = void 0;
-        this._lifecycle = void 0;
-        this._renderer = void 0;
-        this._projectorLocator = void 0;
-        this._renderingEngine = void 0;
-        this._domParser = void 0;
     }
     static create(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
         return new HTMLTestContext(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType);

@@ -163,7 +163,7 @@
             return promises[0];
         }
     }
-    BrowserNavigator.inject = [runtime_1.ILifecycle, runtime_1.IDOM];
     exports.BrowserNavigator = BrowserNavigator;
+    BrowserNavigator.inject = [runtime_1.ILifecycle, runtime_1.IDOM];
 });
 //# sourceMappingURL=browser-navigator.js.map

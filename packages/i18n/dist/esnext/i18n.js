@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
 import { ISignaler, PromiseTask } from '@aurelia/runtime';
 import { I18nInitOptions } from './i18n-configuration-options';
@@ -192,11 +192,11 @@ let I18nService = class I18nService {
         await this.i18next.init(this.options);
     }
 };
-I18nService = tslib_1.__decorate([
-    tslib_1.__param(0, I18nWrapper),
-    tslib_1.__param(1, I18nInitOptions),
-    tslib_1.__param(2, IEventAggregator),
-    tslib_1.__param(3, ISignaler)
+I18nService = __decorate([
+    __param(0, I18nWrapper),
+    __param(1, I18nInitOptions),
+    __param(2, IEventAggregator),
+    __param(3, ISignaler)
 ], I18nService);
 export { I18nService };
 //# sourceMappingURL=i18n.js.map

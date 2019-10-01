@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { createIndexMap } from '../observation';
 import { CollectionLengthObserver } from './collection-length-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -430,7 +430,7 @@ let ArrayObserver = class ArrayObserver {
         }
     }
 };
-ArrayObserver = tslib_1.__decorate([
+ArrayObserver = __decorate([
     collectionSubscriberCollection()
 ], ArrayObserver);
 export { ArrayObserver };

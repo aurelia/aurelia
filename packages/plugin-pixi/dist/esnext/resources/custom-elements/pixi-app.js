@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindable, customElement } from '@aurelia/runtime';
 import { Application } from 'pixi.js';
 let PixiApp = class PixiApp {
@@ -63,61 +63,61 @@ let PixiApp = class PixiApp {
     }
 };
 PixiApp.inject = [Element];
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "options", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "width", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "height", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "view", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "transparent", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "antialias", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "preserveDrawingBuffer", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "resolution", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "forceCanvas", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "backgroundColor", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "clearBeforeRender", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "roundPixels", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "forceFXAA", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "legacy", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "context", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "autoResize", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "powerPreference", void 0);
-tslib_1.__decorate([
+__decorate([
     bindable
 ], PixiApp.prototype, "tick", void 0);
-PixiApp = tslib_1.__decorate([
+PixiApp = __decorate([
     customElement({ name: 'pixi-app', template: '<template><div replaceable part="children"></div></template>' })
 ], PixiApp);
 export { PixiApp };

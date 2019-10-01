@@ -32,11 +32,11 @@
             };
         }
     }
+    exports.TranslationAttributePattern = TranslationAttributePattern;
     /**
      * Enables aliases for translation/localization attribute.
      */
     TranslationAttributePattern.aliases = ['t'];
-    exports.TranslationAttributePattern = TranslationAttributePattern;
     class TranslationBindingInstruction {
         constructor(from, to) {
             this.from = from;
@@ -63,11 +63,11 @@
             return new TranslationBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
     }
+    exports.TranslationBindingCommand = TranslationBindingCommand;
     /**
      * Enables aliases for translation/localization attribute.
      */
     TranslationBindingCommand.aliases = ['t'];
-    exports.TranslationBindingCommand = TranslationBindingCommand;
     let TranslationBindingRenderer = class TranslationBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;
@@ -104,11 +104,11 @@
             };
         }
     }
+    exports.TranslationBindAttributePattern = TranslationBindAttributePattern;
     /**
      * Enables aliases for translation/localization attribute.
      */
     TranslationBindAttributePattern.aliases = ['t'];
-    exports.TranslationBindAttributePattern = TranslationBindAttributePattern;
     class TranslationBindBindingInstruction {
         constructor(from, to) {
             this.from = from;
@@ -135,11 +135,11 @@
             return new TranslationBindBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
     }
+    exports.TranslationBindBindingCommand = TranslationBindBindingCommand;
     /**
      * Enables aliases for translation/localization attribute.
      */
     TranslationBindBindingCommand.aliases = ['t'];
-    exports.TranslationBindBindingCommand = TranslationBindBindingCommand;
     let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
         constructor(parser, observerLocator) {
             this.parser = parser;

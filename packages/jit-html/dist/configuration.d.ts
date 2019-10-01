@@ -12,7 +12,7 @@ export declare const DefaultComponents: IRegistry[];
 /**
  * Default HTML-specific (but environment-agnostic) implementations for style binding
  */
-export declare const JitAttrBindingSyntax: (typeof StyleAttributePattern | typeof ClassAttributePattern | typeof AttrAttributePattern)[];
+export declare const JitAttrBindingSyntax: (typeof AttrAttributePattern | typeof StyleAttributePattern | typeof ClassAttributePattern)[];
 export declare const RefBindingCommandRegistration: IRegistry;
 export declare const TriggerBindingCommandRegistration: IRegistry;
 export declare const DelegateBindingCommandRegistration: IRegistry;

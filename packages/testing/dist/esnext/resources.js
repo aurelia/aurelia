@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindable, customElement, valueConverter } from '@aurelia/runtime';
 let SortValueConverter = class SortValueConverter {
     toView(arr, prop, dir = 'asc') {
@@ -14,7 +14,7 @@ let SortValueConverter = class SortValueConverter {
         return arr;
     }
 };
-SortValueConverter = tslib_1.__decorate([
+SortValueConverter = __decorate([
     valueConverter('sort')
 ], SortValueConverter);
 export { SortValueConverter };
@@ -26,16 +26,16 @@ let JsonValueConverter = class JsonValueConverter {
         return JSON.parse(input);
     }
 };
-JsonValueConverter = tslib_1.__decorate([
+JsonValueConverter = __decorate([
     valueConverter('json')
 ], JsonValueConverter);
 export { JsonValueConverter };
 let NameTag = class NameTag {
 };
-tslib_1.__decorate([
+__decorate([
     bindable()
 ], NameTag.prototype, "name", void 0);
-NameTag = tslib_1.__decorate([
+NameTag = __decorate([
     customElement({
         name: 'name-tag',
         template: '<template>${name}</template>',

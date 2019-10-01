@@ -406,6 +406,7 @@
             this.$controller.lifecycle.attached.end(flags);
         }
     }
+    exports.Repeat = Repeat;
     Repeat.inject = [dom_1.IRenderLocation, lifecycle_1.IController, lifecycle_1.IViewFactory];
     Repeat.kind = custom_attribute_1.CustomAttribute;
     Repeat.description = Object.freeze({
@@ -418,7 +419,6 @@
         strategy: 1 /* getterSetter */,
         hooks: Object.freeze(new definitions_1.HooksDefinition(Repeat.prototype)),
     });
-    exports.Repeat = Repeat;
     let prevIndices;
     let tailIndices;
     let maxLen = 0;

@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { AttrSyntax } from './ast';
 import { attributePattern } from './attribute-pattern';
 let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
@@ -9,7 +9,7 @@ let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
         return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
     }
 };
-DotSeparatedAttributePattern = tslib_1.__decorate([
+DotSeparatedAttributePattern = __decorate([
     attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
 ], DotSeparatedAttributePattern);
 export { DotSeparatedAttributePattern };
@@ -21,7 +21,7 @@ let RefAttributePattern = class RefAttributePattern {
         return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
     }
 };
-RefAttributePattern = tslib_1.__decorate([
+RefAttributePattern = __decorate([
     attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'PART.ref', symbols: '.' })
 ], RefAttributePattern);
 export { RefAttributePattern };
@@ -30,7 +30,7 @@ let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern 
         return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
     }
 };
-ColonPrefixedBindAttributePattern = tslib_1.__decorate([
+ColonPrefixedBindAttributePattern = __decorate([
     attributePattern({ pattern: ':PART', symbols: ':' })
 ], ColonPrefixedBindAttributePattern);
 export { ColonPrefixedBindAttributePattern };
@@ -39,7 +39,7 @@ let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern 
         return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
     }
 };
-AtPrefixedTriggerAttributePattern = tslib_1.__decorate([
+AtPrefixedTriggerAttributePattern = __decorate([
     attributePattern({ pattern: '@PART', symbols: '@' })
 ], AtPrefixedTriggerAttributePattern);
 export { AtPrefixedTriggerAttributePattern };

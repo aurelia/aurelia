@@ -75,7 +75,7 @@
             return controller_1.Controller.forCustomElement(component, (void 0), (void 0));
         }
     }
-    Activator.inject = [lifecycle_task_1.IStartTaskManager];
     exports.Activator = Activator;
+    Activator.inject = [lifecycle_task_1.IStartTaskManager];
 });
 //# sourceMappingURL=activator.js.map

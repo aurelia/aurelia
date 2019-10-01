@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import { mergeDistinct, PLATFORM, Profiler, Registration, } from '@aurelia/kernel';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IExpressionParser, InterpolationInstruction, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, SetPropertyInstruction } from '@aurelia/runtime';
@@ -282,11 +282,11 @@ let TemplateCompiler = class TemplateCompiler {
         return parts;
     }
 };
-TemplateCompiler = tslib_1.__decorate([
-    tslib_1.__param(0, ITemplateElementFactory),
-    tslib_1.__param(1, IAttributeParser),
-    tslib_1.__param(2, IExpressionParser),
-    tslib_1.__param(3, IAttrSyntaxTransformer)
+TemplateCompiler = __decorate([
+    __param(0, ITemplateElementFactory),
+    __param(1, IAttributeParser),
+    __param(2, IExpressionParser),
+    __param(3, IAttrSyntaxTransformer)
 ], TemplateCompiler);
 export { TemplateCompiler };
 //# sourceMappingURL=template-compiler.js.map

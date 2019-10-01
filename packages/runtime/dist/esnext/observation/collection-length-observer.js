@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { subscriberCollection } from './subscriber-collection';
 let CollectionLengthObserver = class CollectionLengthObserver {
     constructor(obj) {
@@ -16,7 +16,7 @@ let CollectionLengthObserver = class CollectionLengthObserver {
         }
     }
 };
-CollectionLengthObserver = tslib_1.__decorate([
+CollectionLengthObserver = __decorate([
     subscriberCollection()
 ], CollectionLengthObserver);
 export { CollectionLengthObserver };

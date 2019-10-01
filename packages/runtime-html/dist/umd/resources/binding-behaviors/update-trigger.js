@@ -42,8 +42,8 @@
             binding.targetObserver.originalHandler = null;
         }
     }
-    UpdateTriggerBindingBehavior.inject = [runtime_1.IObserverLocator];
     exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
+    UpdateTriggerBindingBehavior.inject = [runtime_1.IObserverLocator];
     runtime_1.BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);
 });
 //# sourceMappingURL=update-trigger.js.map

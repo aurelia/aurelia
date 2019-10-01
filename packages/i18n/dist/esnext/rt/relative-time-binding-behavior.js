@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
 let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
@@ -6,7 +6,7 @@ let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
         createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
     }
 };
-RelativeTimeBindingBehavior = tslib_1.__decorate([
+RelativeTimeBindingBehavior = __decorate([
     bindingBehavior("rt" /* relativeTimeValueConverterName */)
 ], RelativeTimeBindingBehavior);
 export { RelativeTimeBindingBehavior };

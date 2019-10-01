@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
@@ -32,10 +32,10 @@ let InfrequentMutations = class InfrequentMutations extends FlagsTemplateControl
         super(factory, location, 536870912 /* noTargetObserverQueue */);
     }
 };
-InfrequentMutations = tslib_1.__decorate([
+InfrequentMutations = __decorate([
     templateController('infrequent-mutations'),
-    tslib_1.__param(0, IViewFactory),
-    tslib_1.__param(1, IRenderLocation)
+    __param(0, IViewFactory),
+    __param(1, IRenderLocation)
 ], InfrequentMutations);
 export { InfrequentMutations };
 let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
@@ -43,10 +43,10 @@ let FrequentMutations = class FrequentMutations extends FlagsTemplateController 
         super(factory, location, 1073741824 /* persistentTargetObserverQueue */);
     }
 };
-FrequentMutations = tslib_1.__decorate([
+FrequentMutations = __decorate([
     templateController('frequent-mutations'),
-    tslib_1.__param(0, IViewFactory),
-    tslib_1.__param(1, IRenderLocation)
+    __param(0, IViewFactory),
+    __param(1, IRenderLocation)
 ], FrequentMutations);
 export { FrequentMutations };
 let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
@@ -54,10 +54,10 @@ let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
         super(factory, location, 268435456 /* observeLeafPropertiesOnly */);
     }
 };
-ObserveShallow = tslib_1.__decorate([
+ObserveShallow = __decorate([
     templateController('observe-shallow'),
-    tslib_1.__param(0, IViewFactory),
-    tslib_1.__param(1, IRenderLocation)
+    __param(0, IViewFactory),
+    __param(1, IRenderLocation)
 ], ObserveShallow);
 export { ObserveShallow };
 //# sourceMappingURL=flags.js.map

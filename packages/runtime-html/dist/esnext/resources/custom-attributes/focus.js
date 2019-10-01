@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { bindable, BindingMode, customAttribute, IDOM, INode } from '@aurelia/runtime';
 /**
  * Focus attribute for element focus binding
@@ -88,13 +88,13 @@ let Focus = class Focus {
         }
     }
 };
-tslib_1.__decorate([
+__decorate([
     bindable({ mode: BindingMode.twoWay })
 ], Focus.prototype, "value", void 0);
-Focus = tslib_1.__decorate([
+Focus = __decorate([
     customAttribute('focus'),
-    tslib_1.__param(0, INode),
-    tslib_1.__param(1, IDOM)
+    __param(0, INode),
+    __param(1, IDOM)
 ], Focus);
 export { Focus };
 //# sourceMappingURL=focus.js.map

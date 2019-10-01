@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate, __param } from "tslib";
 import { attributePattern, AttrSyntax, bindingCommand, getTarget } from '@aurelia/jit';
 import { BindingMode, IExpressionParser, instructionRenderer, IObserverLocator } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
@@ -10,7 +10,7 @@ let TranslationParametersAttributePattern = class TranslationParametersAttribute
         return new AttrSyntax(rawName, rawValue, '', attribute);
     }
 };
-TranslationParametersAttributePattern = tslib_1.__decorate([
+TranslationParametersAttributePattern = __decorate([
     attributePattern({ pattern: attribute, symbols: '' })
 ], TranslationParametersAttributePattern);
 export { TranslationParametersAttributePattern };
@@ -30,7 +30,7 @@ let TranslationParametersBindingCommand = class TranslationParametersBindingComm
         return new TranslationParametersBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-TranslationParametersBindingCommand = tslib_1.__decorate([
+TranslationParametersBindingCommand = __decorate([
     bindingCommand(attribute)
 ], TranslationParametersBindingCommand);
 export { TranslationParametersBindingCommand };
@@ -43,10 +43,10 @@ let TranslationParametersBindingRenderer = class TranslationParametersBindingRen
         TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction, isParameterContext: true });
     }
 };
-TranslationParametersBindingRenderer = tslib_1.__decorate([
+TranslationParametersBindingRenderer = __decorate([
     instructionRenderer(TranslationParametersInstructionType),
-    tslib_1.__param(0, IExpressionParser),
-    tslib_1.__param(1, IObserverLocator)
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], TranslationParametersBindingRenderer);
 export { TranslationParametersBindingRenderer };
 //# sourceMappingURL=translation-parameters-renderer.js.map

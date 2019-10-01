@@ -65,8 +65,8 @@
             this.hasCaching = 'caching' in target;
         }
     }
-    HooksDefinition.none = Object.freeze(new HooksDefinition({}));
     exports.HooksDefinition = HooksDefinition;
+    HooksDefinition.none = Object.freeze(new HooksDefinition({}));
     // Note: this is a little perf thing; having one predefined class with the properties always
     // assigned in the same order ensures the browser can keep reusing the same generated hidden
     // class

@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { bindingCommand, getTarget, } from '@aurelia/jit';
 import { RefBindingInstruction } from '@aurelia/runtime';
 import { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, TriggerBindingInstruction } from '@aurelia/runtime-html';
@@ -6,9 +6,6 @@ import { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBinding
  * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
  */
 let TriggerBindingCommand = class TriggerBindingCommand {
-    /**
-     * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
-     */
     constructor() {
         this.bindingType = 4182 /* TriggerCommand */;
     }
@@ -16,7 +13,7 @@ let TriggerBindingCommand = class TriggerBindingCommand {
         return new TriggerBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-TriggerBindingCommand = tslib_1.__decorate([
+TriggerBindingCommand = __decorate([
     bindingCommand('trigger')
 ], TriggerBindingCommand);
 export { TriggerBindingCommand };
@@ -24,9 +21,6 @@ export { TriggerBindingCommand };
  * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
  */
 let DelegateBindingCommand = class DelegateBindingCommand {
-    /**
-     * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
-     */
     constructor() {
         this.bindingType = 4184 /* DelegateCommand */;
     }
@@ -34,7 +28,7 @@ let DelegateBindingCommand = class DelegateBindingCommand {
         return new DelegateBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-DelegateBindingCommand = tslib_1.__decorate([
+DelegateBindingCommand = __decorate([
     bindingCommand('delegate')
 ], DelegateBindingCommand);
 export { DelegateBindingCommand };
@@ -42,9 +36,6 @@ export { DelegateBindingCommand };
  * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
  */
 let CaptureBindingCommand = class CaptureBindingCommand {
-    /**
-     * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
-     */
     constructor() {
         this.bindingType = 4183 /* CaptureCommand */;
     }
@@ -52,7 +43,7 @@ let CaptureBindingCommand = class CaptureBindingCommand {
         return new CaptureBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-CaptureBindingCommand = tslib_1.__decorate([
+CaptureBindingCommand = __decorate([
     bindingCommand('capture')
 ], CaptureBindingCommand);
 export { CaptureBindingCommand };
@@ -60,9 +51,6 @@ export { CaptureBindingCommand };
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
  */
 let AttrBindingCommand = class AttrBindingCommand {
-    /**
-     * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
-     */
     constructor() {
         this.bindingType = 32 /* IsProperty */;
     }
@@ -71,7 +59,7 @@ let AttrBindingCommand = class AttrBindingCommand {
         return new AttributeBindingInstruction(target, binding.expression, target);
     }
 };
-AttrBindingCommand = tslib_1.__decorate([
+AttrBindingCommand = __decorate([
     bindingCommand('attr')
 ], AttrBindingCommand);
 export { AttrBindingCommand };
@@ -79,9 +67,6 @@ export { AttrBindingCommand };
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
  */
 let StyleBindingCommand = class StyleBindingCommand {
-    /**
-     * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
-     */
     constructor() {
         this.bindingType = 32 /* IsProperty */;
     }
@@ -89,7 +74,7 @@ let StyleBindingCommand = class StyleBindingCommand {
         return new AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
     }
 };
-StyleBindingCommand = tslib_1.__decorate([
+StyleBindingCommand = __decorate([
     bindingCommand('style')
 ], StyleBindingCommand);
 export { StyleBindingCommand };
@@ -97,9 +82,6 @@ export { StyleBindingCommand };
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
  */
 let ClassBindingCommand = class ClassBindingCommand {
-    /**
-     * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
-     */
     constructor() {
         this.bindingType = 32 /* IsProperty */;
     }
@@ -107,7 +89,7 @@ let ClassBindingCommand = class ClassBindingCommand {
         return new AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
     }
 };
-ClassBindingCommand = tslib_1.__decorate([
+ClassBindingCommand = __decorate([
     bindingCommand('class')
 ], ClassBindingCommand);
 export { ClassBindingCommand };
@@ -115,9 +97,6 @@ export { ClassBindingCommand };
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 let RefBindingCommand = class RefBindingCommand {
-    /**
-     * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
-     */
     constructor() {
         this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
     }
@@ -125,7 +104,7 @@ let RefBindingCommand = class RefBindingCommand {
         return new RefBindingInstruction(binding.expression, getTarget(binding, false));
     }
 };
-RefBindingCommand = tslib_1.__decorate([
+RefBindingCommand = __decorate([
     bindingCommand('ref')
 ], RefBindingCommand);
 export { RefBindingCommand };

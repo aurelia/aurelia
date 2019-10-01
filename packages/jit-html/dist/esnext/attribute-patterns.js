@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { attributePattern, AttrSyntax } from '@aurelia/jit';
 /**
  * Attribute syntax pattern recognizer, helping Aurelia understand template:
@@ -15,7 +15,7 @@ let AttrAttributePattern = class AttrAttributePattern {
         return new AttrSyntax(rawName, rawValue, parts[0], 'attr');
     }
 };
-AttrAttributePattern = tslib_1.__decorate([
+AttrAttributePattern = __decorate([
     attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr', symbols: '.' })
 ], AttrAttributePattern);
 export { AttrAttributePattern };
@@ -40,7 +40,7 @@ let StyleAttributePattern = class StyleAttributePattern {
         return new AttrSyntax(rawName, rawValue, parts[0], 'style');
     }
 };
-StyleAttributePattern = tslib_1.__decorate([
+StyleAttributePattern = __decorate([
     attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style', symbols: '.' })
 ], StyleAttributePattern);
 export { StyleAttributePattern };
@@ -61,7 +61,7 @@ let ClassAttributePattern = class ClassAttributePattern {
         return new AttrSyntax(rawName, rawValue, parts[0], 'class');
     }
 };
-ClassAttributePattern = tslib_1.__decorate([
+ClassAttributePattern = __decorate([
     attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })
 ], ClassAttributePattern);
 export { ClassAttributePattern };

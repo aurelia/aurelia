@@ -1,9 +1,27 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration } from '@aurelia/kernel';
 import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeBasicConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
 const slice = Array.prototype.slice;
 export class AuNode {
+    constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
+        this.nodeName = name;
+        this.isWrapper = isWrapper;
+        this.isMarker = isMarker;
+        this.isRenderLocation = isRenderLocation;
+        this.$start = null;
+        this.$nodes = null;
+        this.isTarget = isTarget;
+        this.isMounted = isMounted;
+        this._isConnected = isConnected;
+        this.parentNode = null;
+        this.childNodes = [];
+        this._textContent = '';
+        this.nextSibling = null;
+        this.previousSibling = null;
+        this.firstChild = null;
+        this.lastChild = null;
+    }
     get isConnected() {
         return this._isConnected;
     }
@@ -30,24 +48,6 @@ export class AuNode {
     }
     set textContent(value) {
         this._textContent = value;
-    }
-    constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
-        this.nodeName = name;
-        this.isWrapper = isWrapper;
-        this.isMarker = isMarker;
-        this.isRenderLocation = isRenderLocation;
-        this.$start = null;
-        this.$nodes = null;
-        this.isTarget = isTarget;
-        this.isMounted = isMounted;
-        this._isConnected = isConnected;
-        this.parentNode = null;
-        this.childNodes = [];
-        this._textContent = '';
-        this.nextSibling = null;
-        this.previousSibling = null;
-        this.firstChild = null;
-        this.lastChild = null;
     }
     static createHost() {
         return new AuNode('#au-host', false, false, false, false, true, true);
@@ -506,7 +506,7 @@ class AuTextRenderer {
         addBinding(renderable, bindable);
     }
 };
-AuTextRenderer = tslib_1.__decorate([
+AuTextRenderer = __decorate([
     inject(IObserverLocator),
     instructionRenderer('au')
     /** @internal */

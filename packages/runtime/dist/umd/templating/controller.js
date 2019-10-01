@@ -672,8 +672,8 @@
             }
         }
     }
-    Controller.lookup = new WeakMap();
     exports.Controller = Controller;
+    Controller.lookup = new WeakMap();
     function createObservers(controller, description, flags, instance) {
         const hasLookup = instance.$observers != void 0;
         const observers = hasLookup ? instance.$observers : {};

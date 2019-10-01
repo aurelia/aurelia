@@ -1,5 +1,5 @@
 var SelfObserver_1;
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
@@ -84,7 +84,7 @@ let SelfObserver = SelfObserver_1 = class SelfObserver {
         }
     }
 };
-SelfObserver = SelfObserver_1 = tslib_1.__decorate([
+SelfObserver = SelfObserver_1 = __decorate([
     subscriberCollection()
 ], SelfObserver);
 export { SelfObserver };

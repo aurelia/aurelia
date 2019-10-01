@@ -21,9 +21,6 @@
     const $parent = runtime_1.AccessThisExpression.$parent;
     /** @internal */
     class ParserState {
-        get tokenRaw() {
-            return this.input.slice(this.startIndex, this.index);
-        }
         constructor(input) {
             this.index = 0;
             this.startIndex = 0;
@@ -34,6 +31,9 @@
             this.tokenValue = '';
             this.currentChar = input.charCodeAt(0);
             this.assignable = true;
+        }
+        get tokenRaw() {
+            return this.input.slice(this.startIndex, this.index);
         }
     }
     exports.ParserState = ParserState;

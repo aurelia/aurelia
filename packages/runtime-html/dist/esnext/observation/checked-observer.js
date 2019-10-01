@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { subscriberCollection, } from '@aurelia/runtime';
 function defaultMatcher(a, b) {
     return a === b;
@@ -164,7 +164,7 @@ let CheckedObserver = class CheckedObserver {
         }
     }
 };
-CheckedObserver = tslib_1.__decorate([
+CheckedObserver = __decorate([
     subscriberCollection()
 ], CheckedObserver);
 export { CheckedObserver };

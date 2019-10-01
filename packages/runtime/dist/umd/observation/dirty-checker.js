@@ -101,8 +101,8 @@
             }
         }
     }
-    DirtyChecker.inject = [lifecycle_1.ILifecycle];
     exports.DirtyChecker = DirtyChecker;
+    DirtyChecker.inject = [lifecycle_1.ILifecycle];
     const slice = Array.prototype.slice;
     let DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {

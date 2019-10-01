@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode } from '../../flags';
@@ -69,7 +69,7 @@ let DebounceBindingBehavior = class DebounceBindingBehavior {
         binding.debounceState = null;
     }
 };
-DebounceBindingBehavior = tslib_1.__decorate([
+DebounceBindingBehavior = __decorate([
     bindingBehavior('debounce')
 ], DebounceBindingBehavior);
 export { DebounceBindingBehavior };

@@ -268,8 +268,8 @@
             return this.fetch(input, init);
         }
     }
-    HttpClient.inject = [runtime_1.IDOM];
     exports.HttpClient = HttpClient;
+    HttpClient.inject = [runtime_1.IDOM];
     function parseHeaderValues(headers) {
         const parsedHeaders = {};
         const $headers = headers !== undefined ? headers : {};

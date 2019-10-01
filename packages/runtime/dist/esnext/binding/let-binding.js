@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { Reporter, } from '@aurelia/kernel';
 import { ILifecycle, } from '../lifecycle';
 import { connectable, } from './connectable';
@@ -70,7 +70,7 @@ let LetBinding = class LetBinding {
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
     }
 };
-LetBinding = tslib_1.__decorate([
+LetBinding = __decorate([
     connectable()
 ], LetBinding);
 export { LetBinding };

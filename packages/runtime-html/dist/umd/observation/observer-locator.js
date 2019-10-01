@@ -117,8 +117,8 @@
             return this.dom.isNodeInstance(obj);
         }
     }
-    TargetObserverLocator.inject = [runtime_1.IDOM, svg_analyzer_1.ISVGAnalyzer];
     exports.TargetObserverLocator = TargetObserverLocator;
+    TargetObserverLocator.inject = [runtime_1.IDOM, svg_analyzer_1.ISVGAnalyzer];
     class TargetAccessorLocator {
         constructor(dom, svgAnalyzer) {
             this.dom = dom;
@@ -159,8 +159,8 @@
             return this.dom.isNodeInstance(obj);
         }
     }
-    TargetAccessorLocator.inject = [runtime_1.IDOM, svg_analyzer_1.ISVGAnalyzer];
     exports.TargetAccessorLocator = TargetAccessorLocator;
+    TargetAccessorLocator.inject = [runtime_1.IDOM, svg_analyzer_1.ISVGAnalyzer];
     const IsDataAttribute = {};
     function isDataAttribute(obj, propertyName, svgAnalyzer) {
         if (IsDataAttribute[propertyName] === true) {

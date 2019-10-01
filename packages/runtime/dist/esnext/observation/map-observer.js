@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -165,7 +165,7 @@ let MapObserver = class MapObserver {
         }
     }
 };
-MapObserver = tslib_1.__decorate([
+MapObserver = __decorate([
     collectionSubscriberCollection()
 ], MapObserver);
 export { MapObserver };

@@ -432,12 +432,12 @@
     exports.NodeSequenceFactory = NodeSequenceFactory;
     /** @internal */
     class AuMarker {
-        get parentNode() {
-            return this.nextSibling.parentNode;
-        }
         constructor(next) {
             this.nextSibling = next;
             this.textContent = '';
+        }
+        get parentNode() {
+            return this.nextSibling.parentNode;
         }
         remove() { }
     }
@@ -460,7 +460,7 @@
             return new runtime_1.CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
         }
     }
-    HTMLTemplateFactory.inject = [runtime_1.IDOM];
     exports.HTMLTemplateFactory = HTMLTemplateFactory;
+    HTMLTemplateFactory.inject = [runtime_1.IDOM];
 });
 //# sourceMappingURL=dom.js.map

@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __decorate } from "tslib";
 import { DOM, subscriberCollection, } from '@aurelia/runtime';
 /**
  * Observer for handling two-way binding with attributes
@@ -122,7 +122,7 @@ let AttributeObserver = class AttributeObserver {
         }
     }
 };
-AttributeObserver = tslib_1.__decorate([
+AttributeObserver = __decorate([
     subscriberCollection()
 ], AttributeObserver);
 export { AttributeObserver };

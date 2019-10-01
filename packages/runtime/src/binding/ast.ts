@@ -57,6 +57,7 @@ import {
 import {
   ExpressionKind,
   LifecycleFlags,
+  BehaviorStrategy,
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
@@ -453,7 +454,12 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
-    return (BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext)[this.name] as IBindingContext | IBinding | IOverrideContext;
+    const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
+    let evaluatedValue = obj[this.name] as IBindingContext | IBinding | IOverrideContext;
+    if (flags & BehaviorStrategy.strict) {
+      return evaluatedValue;
+    }
+    return evaluatedValue == null ? '' as unknown as IBinding : evaluatedValue;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {

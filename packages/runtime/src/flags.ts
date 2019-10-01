@@ -34,6 +34,12 @@ export const enum BindingStrategy {
   proxies      = 0b10,
 }
 
+export const enum BehaviorStrategy {
+  safe        = 0b011,
+  strict      = 0b100,
+}
+
+
 const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies;
 
 export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {

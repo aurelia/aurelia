@@ -15,7 +15,8 @@ import {
 } from './dom';
 import {
   BindingStrategy,
-  LifecycleFlags
+  LifecycleFlags,
+  BehaviorStrategy
 } from './flags';
 import {
   IController,
@@ -39,6 +40,7 @@ export interface ISinglePageApp<THost extends INode = INode> {
   enableTimeSlicing?: boolean;
   adaptiveTimeSlicing?: boolean;
   strategy?: BindingStrategy;
+  mode?: BehaviorStrategy;
   dom?: IDOM;
   host: THost;
   component: unknown;
@@ -81,6 +83,7 @@ export class CompositionRoot<T extends INode = INode> {
       throw new Error(`No host element found.`);
     }
     this.strategy = config.strategy != void 0 ? config.strategy : BindingStrategy.getterSetter;
+    this.strategy = this.strategy | (config.mode != void 0 ? config.mode : BehaviorStrategy.safe);
 
     const initializer = this.container.get(IDOMInitializer);
     this.dom = initializer.initialize(config) as IDOM<T>;

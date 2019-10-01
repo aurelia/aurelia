@@ -39,12 +39,12 @@
     "html-webpack-plugin": "latest",
     "http-server": "latest",
     "rimraf": "latest",
-    "start-server-and-test": "^1.10.0",
-    "ts-loader": "^6.0.4",
+    "start-server-and-test": "^1.10.2",
+    "ts-loader": "^6.2.0",
     "typescript": "^3.6.3",
-    "webpack": "^4.39.2",
+    "webpack": "^4.41.0",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest",
-    "copy-webpack-plugin": "^5.0.0"
+    "copy-webpack-plugin": "^5.0.4"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/fetch-client",
-  "version": "0.4.0-dev.201910012034",
+  "version": "0.4.0-dev.201910012204",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,9 +35,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201910012034",
-    "@aurelia/runtime": "0.4.0-dev.201910012034",
-    "@aurelia/runtime-html": "0.4.0-dev.201910012034"
+    "@aurelia/kernel": "0.4.0-dev.201910012204",
+    "@aurelia/runtime": "0.4.0-dev.201910012204",
+    "@aurelia/runtime-html": "0.4.0-dev.201910012204"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

@@ -25,31 +25,31 @@ describe('template-compiler.binding-commands.class', function() {
     '🤷‍♂️', // double characters
     '🤯',
     ...[
-    '@',
-    '#',
-    '$',
-    '!',
-    '^',
-    '~',
-    '&',
-    '*',
-    '(',
-    ')',
-    '+',
-    // '=', // todo: better test for this scenario
-    '*',
-    // '/', // todo: better test for this scenario
-    '\\',
-    ':',
-    '[',
-    ']',
-    '{',
-    '}',
-    '|',
-    '<',
-    // '>', // todo: better test for this scenario
-    ',',
-    '%'].map(s => `${s}1`)
+      '@',
+      '#',
+      '$',
+      '!',
+      '^',
+      '~',
+      '&',
+      '*',
+      '(',
+      ')',
+      '+',
+      // '=', // todo: better test for this scenario
+      '*',
+      // '/', // todo: better test for this scenario
+      '\\',
+      ':',
+      '[',
+      ']',
+      '{',
+      '}',
+      '|',
+      '<',
+      // '>', // todo: better test for this scenario
+      ',',
+      '%'].map(s => `${s}1`)
   ];
 
   const testCases: ITestCase[] = [

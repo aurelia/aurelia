@@ -193,7 +193,7 @@ export function toArray<T = unknown>(input: ArrayLike<T>): T[] {
   const { length } = input;
   const arr = Array(length);
   for (let i = 0; i < length; ++i) {
-      arr[i] = input[i];
+    arr[i] = input[i];
   }
   return arr;
 }

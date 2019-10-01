@@ -482,12 +482,12 @@ describe('AST', function () {
         ...SimpleCallScopeList,
         ...SimpleCallMemberList
       ]) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -533,12 +533,12 @@ describe('AST', function () {
 
     describe('assign() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleUnaryList) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -582,12 +582,12 @@ describe('AST', function () {
         ...SimpleLogicalANDList,
         ...SimpleLogicalORList
       ]) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -624,12 +624,12 @@ describe('AST', function () {
 
     describe('assign() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleConditionalList) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -834,8 +834,8 @@ describe('AST', function () {
       }
     });
 
-      // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
-      // tests (which need to be fixed of course)
+    // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
+    // tests (which need to be fixed of course)
     // describe('bind() throws when returned behavior is already present', function () {
     //   const behavior = {};
     //   const locator = { get() {
@@ -928,16 +928,15 @@ describe('AccessKeyedExpression', function () {
     const inputs: [typeof objects, typeof keys] = [objects, keys];
 
     eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
-          const binding = new MockBinding();
-          sut.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.length, 1);
-          assert.strictEqual(binding.calls[0][0], 'observeProperty');
-        });
-      })
-    );
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
+        const binding = new MockBinding();
+        sut.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.length, 1);
+        assert.strictEqual(binding.calls[0][0], 'observeProperty');
+      });
+    }));
   });
 });
 
@@ -1035,35 +1034,35 @@ describe('AccessMemberExpression', function () {
   const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
 
   eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
-      it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
-        const scope = createScopeForTest({ foo: obj });
-        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-        const actual = sut.evaluate(LF.none, scope, null);
-        if (canHaveProperty) {
-          assert.strictEqual(actual, value, `actual`);
+    it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+      const scope = createScopeForTest({ foo: obj });
+      const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+      const actual = sut.evaluate(LF.none, scope, null);
+      if (canHaveProperty) {
+        assert.strictEqual(actual, value, `actual`);
+      } else {
+        if (obj === null) {
+          assert.strictEqual(actual, null, `actual`);
         } else {
-          if (obj === null) {
-            assert.strictEqual(actual, null, `actual`);
-          } else {
-            assert.strictEqual(actual, undefined, `actual`);
-          }
+          assert.strictEqual(actual, undefined, `actual`);
         }
-        const binding = new MockBinding();
-        sut.connect(LF.none, scope, binding);
-        if (canHaveProperty) {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        } else {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        }
+      }
+      const binding = new MockBinding();
+      sut.connect(LF.none, scope, binding);
+      if (canHaveProperty) {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      } else {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      }
 
-        if (!(obj instanceof Object)) {
-          assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          sut.assign(LF.none, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
-        }
-      });
-    })
+      if (!(obj instanceof Object)) {
+        assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        sut.assign(LF.none, scope, null, 42);
+        assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+      }
+    });
+  })
   );
 
   it('evaluates member on bindingContext', function () {
@@ -1097,11 +1096,11 @@ describe('AccessMemberExpression', function () {
 
   describe('does not attempt to observe property when object is falsey', function () {
     const objects2: [string, any][] = [
-        [`     null`, null],
-        [`undefined`, undefined],
-        [`       ''`, ''],
-        [`    false`, false]
-      ];
+      [`     null`, null],
+      [`undefined`, undefined],
+      [`       ''`, ''],
+      [`    false`, false]
+    ];
     const props2: [string, any][] = [
       [`.0`, 0],
       [`.a`, 'a']
@@ -1109,15 +1108,14 @@ describe('AccessMemberExpression', function () {
     const inputs2: [typeof objects2, typeof props2] = [objects2, props2];
 
     eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          sut.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        });
-      })
-    );
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const binding = new MockBinding();
+        sut.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      });
+    }));
   });
 
   describe('does not observe if object does not / cannot have the property', function () {
@@ -1135,15 +1133,14 @@ describe('AccessMemberExpression', function () {
     const inputs3: [typeof objects3, typeof props3] = [objects3, props3];
 
     eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          expression2.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        });
-      })
-    );
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const binding = new MockBinding();
+        expression2.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      });
+    }));
   });
 });
 
@@ -1777,11 +1774,13 @@ describe('LiteralTemplate', function () {
       expected: 'a1c2e',
       ctx: { b: 1, d: 2 }
     },
-    { expr: new TaggedTemplateExpression(
-      [''], [],
-      new AccessScopeExpression('foo', 0)),
+    {
+      expr: new TaggedTemplateExpression(
+        [''], [],
+        new AccessScopeExpression('foo', 0)),
       expected: 'foo',
-      ctx: { foo: () => 'foo' } },
+      ctx: { foo: () => 'foo' }
+    },
     {
       expr: new TaggedTemplateExpression(
         ['foo'], ['bar'],
@@ -2153,15 +2152,15 @@ describe('BindingBehaviorExpression', function () {
     = [flagVariations, kindVariations, inputVariations, bindVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], bind, evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
-        bind();
-        evaluate1();
-        connect();
-        const newValue = assign();
-        evaluate2(newValue);
-        unbind();
-      });
-    }
+    it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+      bind();
+      evaluate1();
+      connect();
+      const newValue = assign();
+      evaluate2(newValue);
+      unbind();
+    });
+  }
   );
 });
 
@@ -2515,14 +2514,14 @@ describe('ValueConverterExpression', function () {
     = [flagVariations, kindVariations, inputVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
-        evaluate1();
-        connect();
-        const newValue = assign();
-        evaluate2(newValue);
-        unbind();
-      });
-    }
+    it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+      evaluate1();
+      connect();
+      const newValue = assign();
+      evaluate2(newValue);
+      unbind();
+    });
+  }
   );
 });
 

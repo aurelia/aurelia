@@ -1095,8 +1095,7 @@ export function formatArrayBuffer(
   const buffer = new Uint8Array(value);
   let str = join(
     (
-      buffer
-      .slice(0, Math.min(ctx.maxArrayLength, buffer.length)) as unknown as number[]
+      buffer.slice(0, Math.min(ctx.maxArrayLength, buffer.length)) as unknown as number[]
     ).map(val => val.toString(16)),
     ' ',
   );

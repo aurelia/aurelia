@@ -279,7 +279,7 @@ describe('event aggregator', function () {
     describe('string events', function () {
 
       it('calls the callback functions for the event', function () {
-        const ea: IEventAggregator = new EventAggregator()
+        const ea: IEventAggregator = new EventAggregator();
 
         let someData: unknown, someData2: unknown;
 
@@ -301,7 +301,7 @@ describe('event aggregator', function () {
       });
 
       it('does not call the callback functions if subscriber does not exist', function () {
-        const ea: IEventAggregator = new EventAggregator()
+        const ea: IEventAggregator = new EventAggregator();
 
         let someData: unknown;
 
@@ -316,7 +316,7 @@ describe('event aggregator', function () {
       });
 
       it('handles errors in subscriber callbacks', function () {
-        const ea: IEventAggregator = new EventAggregator()
+        const ea: IEventAggregator = new EventAggregator();
 
         let someMessage: unknown;
 
@@ -344,7 +344,7 @@ describe('event aggregator', function () {
     describe('handler events', function () {
 
       it('calls the callback functions for the event', function () {
-        const ea: IEventAggregator = new EventAggregator()
+        const ea: IEventAggregator = new EventAggregator();
 
         let someMessage: { message: string };
 
@@ -365,7 +365,7 @@ describe('event aggregator', function () {
       });
 
       it('does not call the callback funtions if message is not an instance of the messageType', function () {
-        const ea: IEventAggregator = new EventAggregator()
+        const ea: IEventAggregator = new EventAggregator();
 
         let someMessage: unknown;
 
@@ -380,7 +380,7 @@ describe('event aggregator', function () {
       });
 
       it('handles errors in subscriber callbacks', function () {
-        const ea: IEventAggregator = new EventAggregator()
+        const ea: IEventAggregator = new EventAggregator();
 
         let someMessage: { message: unknown };
 
@@ -405,7 +405,7 @@ describe('event aggregator', function () {
     });
 
     describe('invalid events', function () {
-      const ea: IEventAggregator = new EventAggregator()
+      const ea: IEventAggregator = new EventAggregator();
 
       it('throws if channelOrType is undefined', function () {
         assert.throws(() => { ea.publish(undefined, {}); }, 'Code 0');

@@ -43,7 +43,7 @@ export function stringify(value: any): string {
     case '[object Number]':
       return value;
     case '[object Array]':
-    return `[${value.map(stringify).join(',')}]`;
+      return `[${value.map(stringify).join(',')}]`;
     case '[object Event]':
       return `'${value.type}'`;
     case '[object Object]': {

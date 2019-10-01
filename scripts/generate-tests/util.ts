@@ -67,7 +67,7 @@ export function emit(path: string, ...nodes: Node[]): void {
       content += `${printer.printNode(EmitHint.Unspecified, node, emptyFile)}\n`;
     }
   }
-  writeFileSync(path, `// tslint:disable:quotemark member-access no-all-duplicated-branches\r\n${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
+  writeFileSync(path, `/* eslint-disable @typescript-eslint/quotes, @typescript-eslint/explicit-member-accessibility, @typescript-eslint/indent */\r\n${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
 }
 
 export function addRange(start: number, end: number, ...records: Record<string, boolean>[]): void {

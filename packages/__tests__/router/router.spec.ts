@@ -747,8 +747,8 @@ describe('Router', function () {
       const component = new App();
 
       const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
-      .app({ host: host, component: App });
+        .register(DebugConfiguration, RouterConfiguration)
+        .app({ host: host, component: App });
 
       const router = container.get(IRouter);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

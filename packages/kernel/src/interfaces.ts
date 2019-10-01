@@ -156,9 +156,9 @@ export type Primitive = undefined | null | number | boolean | string | symbol;
 
 export type Unwrap<T> =
     T extends (infer U)[] ? U :
-    T extends (...args: unknown[]) => infer U ? U :
-    T extends Promise<infer U> ? U :
-    T;
+      T extends (...args: unknown[]) => infer U ? U :
+        T extends Promise<infer U> ? U :
+          T;
 
 export type StrictPrimitive = string | number | boolean | null | undefined;
 

@@ -1141,7 +1141,7 @@ export class BindingIdentifier implements IBindingIdentifier {
 }
 
 const toStringTag = Object.prototype.toString as {
-  call(obj: unknown): keyof typeof CountForOfStatement;
+  call(obj: unknown): keyof '[object Array]'|'[object Map]'|'[object Set]'|'[object Number]'|'[object Null]'|'[object Undefined]';
 };
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements
@@ -1164,11 +1164,27 @@ export class ForOfStatement implements IForOfStatement {
   }
 
   public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
-    return CountForOfStatement[toStringTag.call(result)](result as any);
+    switch (toStringTag.call(result)) {
+      case '[object Array]': return (result as unknown[]).length;
+      case '[object Map]': return (result as Map<unknown, unknown>).size;
+      case '[object Set]': return (result as Set<unknown>).size;
+      case '[object Number]': return result as number;
+      case '[object Null]': return 0;
+      case '[object Undefined]': return 0;
+      default: throw Reporter.error(0); // TODO: Set error code
+    }
   }
 
   public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result as any, func);
+    switch (toStringTag.call(result)) {
+      case '[object Array]': return $array(flags | LifecycleFlags.isOriginalArray, result as unknown[], func);
+      case '[object Map]': return $map(flags | LifecycleFlags.isOriginalArray, result as Map<unknown, unknown>, func);
+      case '[object Set]': return $set(flags | LifecycleFlags.isOriginalArray, result as Set<unknown>, func);
+      case '[object Number]': return $number(flags | LifecycleFlags.isOriginalArray, result as number, func);
+      case '[object Null]': return;
+      case '[object Undefined]': return;
+      default: throw Reporter.error(0); // TODO: Set error code
+    }
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -1261,67 +1277,51 @@ function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...arg
 
 const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;
 
-/** @internal */
-export const IterateForOfStatement = {
-  ['[object Array]'](flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-    if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
-      // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-      // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-      // observers are explicitly created
-      const rawArray = ProxyObserver.getRawIfProxy(result);
-      const len = rawArray.length;
-      let item: unknown;
-      let i = 0;
-      for (; i < len; ++i) {
-        item = rawArray[i];
-        if (item instanceof Object) {
-          item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
-        }
-        func(rawArray, i, item);
+function $array(flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
+  if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
+    // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
+    // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
+    // observers are explicitly created
+    const rawArray = ProxyObserver.getRawIfProxy(result);
+    const len = rawArray.length;
+    let item: unknown;
+    let i = 0;
+    for (; i < len; ++i) {
+      item = rawArray[i];
+      if (item instanceof Object) {
+        item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
       }
-    } else {
-      for (let i = 0, ii = result.length; i < ii; ++i) {
-        func(result, i, result[i]);
-      }
+      func(rawArray, i, item);
     }
-  },
-  ['[object Map]'](flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
-    const arr = Array(result.size);
-    let i = -1;
-    for (const entry of result.entries()) {
-      arr[++i] = entry;
+  } else {
+    for (let i = 0, ii = result.length; i < ii; ++i) {
+      func(result, i, result[i]);
     }
-    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
-  },
-  ['[object Set]'](flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
-    const arr = Array(result.size);
-    let i = -1;
-    for (const key of result.keys()) {
-      arr[++i] = key;
-    }
-    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
-  },
-  ['[object Number]'](flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
-    const arr = Array(result);
-    for (let i = 0; i < result; ++i) {
-      arr[i] = i;
-    }
-    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
-  },
-  ['[object Null]'](flags: LifecycleFlags, result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
-    return;
-  },
-  ['[object Undefined]'](flags: LifecycleFlags, result: undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    return;
   }
 };
 
-/** @internal */
-export const CountForOfStatement = {
-  ['[object Array]'](result: unknown[]): number { return result.length; },
-  ['[object Map]'](result: Map<unknown, unknown>): number { return result.size; },
-  ['[object Set]'](result: Set<unknown>): number { return result.size; },
-  ['[object Number]'](result: number): number { return result; },
-  ['[object Null]'](result: null): number { return 0; },
-  ['[object Undefined]'](result: undefined): number { return 0; }
+function $map(flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  const arr = Array(result.size);
+  let i = -1;
+  for (const entry of result.entries()) {
+    arr[++i] = entry;
+  }
+  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+};
+
+function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  const arr = Array(result.size);
+  let i = -1;
+  for (const key of result.keys()) {
+    arr[++i] = key;
+  }
+  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+};
+
+function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
+  const arr = Array(result);
+  for (let i = 0; i < result; ++i) {
+    arr[i] = i;
+  }
+  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
 };

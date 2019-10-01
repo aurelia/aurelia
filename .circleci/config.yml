@@ -538,6 +538,7 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
+          npm_command: "test-chrome"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox

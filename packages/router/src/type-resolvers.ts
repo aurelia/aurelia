@@ -1,3 +1,4 @@
+import { Constructable } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, IRouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
@@ -16,25 +17,25 @@ export const ComponentAppellationResolver = {
   },
 
   getName: function (component: ComponentAppellation): string {
-    if (ComponentAppellationResolver.isName(component)) {
+    if (ComponentAppellationResolver.isName(component as string)) {
       return component as string;
-    } else if (ComponentAppellationResolver.isType(component)) {
+    } else if (ComponentAppellationResolver.isType(component as ICustomElementType)) {
       return (component as ICustomElementType).description.name;
     } else {
       return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
     }
   },
   getType: function (component: ComponentAppellation): IRouteableComponentType | null {
-    if (ComponentAppellationResolver.isName(component)) {
+    if (ComponentAppellationResolver.isName(component as Constructable & string)) {
       return null;
-    } else if (ComponentAppellationResolver.isType(component)) {
-      return component;
+    } else if (ComponentAppellationResolver.isType(component as IRouteableComponentType)) {
+      return component as IRouteableComponentType;
     } else {
       return ((component as IRouteableComponent).constructor as IRouteableComponentType);
     }
   },
   getInstance: function (component: ComponentAppellation): IRouteableComponent | null {
-    if (ComponentAppellationResolver.isName(component) || ComponentAppellationResolver.isType(component)) {
+    if (ComponentAppellationResolver.isName(component as Constructable & string) || ComponentAppellationResolver.isType(component as Constructable & string)) {
       return null;
     } else {
       return component as IRouteableComponent;

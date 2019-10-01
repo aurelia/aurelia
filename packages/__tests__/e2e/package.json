@@ -41,7 +41,7 @@
     "rimraf": "latest",
     "start-server-and-test": "^1.10.0",
     "ts-loader": "^6.0.4",
-    "typescript": "^3.5.3",
+    "typescript": "^3.6.3",
     "webpack": "^4.39.2",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest",

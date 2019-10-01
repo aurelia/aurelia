@@ -4,16 +4,16 @@
   "scripts": {},
   "dependencies": {},
   "devDependencies": {
-    "@types/chai": "^4.2.0",
+    "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^10.14.13",
-    "@types/selenium-webdriver": "^4.0.2",
+    "@types/selenium-webdriver": "^4.0.3",
     "chai": "^4.2.0",
     "chromedriver": "^76.0.1",
     "esm": "^3.2.25",
     "mocha": "~6.1.4",
     "path": "^0.12.7",
-    "selenium-webdriver": "^4.0.0-alpha.4",
-    "ts-node": "^8.3.0"
+    "selenium-webdriver": "^4.0.0-alpha.5",
+    "ts-node": "^8.4.1"
   }
 }

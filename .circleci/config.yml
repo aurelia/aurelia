@@ -389,6 +389,12 @@ jobs:
     parameters:
       path:
         type: string
+      use_verdaccio:
+        type: boolean
+        default: true
+      registry:
+        type: string
+        default: "http://localhost:4873"
     steps:
       - checkout_install_bootstrap_build_bundle_publish_verdaccio:
           from: ${CIRCLE_BRANCH}
@@ -400,11 +406,26 @@ jobs:
           command: |
             cd test/wdio
             npm ci
+      - when:
+          condition: << parameters.use_verdaccio >>
+          steps:
+            - run:
+                name: "Install app via verdaccio"
+                command: |
+                  cd << parameters.path >>
+                  npm install --registry << parameters.registry >>
+      - unless:
+          condition: << parameters.use_verdaccio >>
+          steps:
+            - run:
+                name: "Install app via npm"
+                command: |
+                  cd << parameters.path >>
+                  npm install
       - run:
-          name: "Install & build test app"
+          name: "Build test app"
           command: |
             cd << parameters.path >>
-            npm install
             npm run build
       - run:
           name: "Serve wdio test app"
@@ -538,6 +559,7 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
+          npm_command: "test-chrome"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox

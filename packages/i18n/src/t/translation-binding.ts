@@ -97,8 +97,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
     if (this.parametersExpr) {
-      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as i18next.TOptions;
-      this.parametersExpr.connect(flags, scope, this as any, part);
+      const parametersFlags = flags | LifecycleFlags.secondaryExpression;
+      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
+      this.parametersExpr.connect(parametersFlags, scope, this as any, part);
     }
 
     const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
@@ -122,7 +123,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     if (this.parametersExpr && this.parametersExpr.unbind) {
-      this.parametersExpr.unbind(flags, this.scope, this as any);
+      this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this as any);
     }
     this.unobserveTargets(flags);
 
@@ -131,19 +132,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    // @ToDo, @Fixme: This is the wrong kind of check to distiniguish whether this.expr or this.parametersExpr has changed!
-    if (typeof newValue === 'object') {
-     if (this.parametersExpr) {
-        // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)? What does "part" it mean?
-        this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
-      } else {
-        // @ToDo, @Cleanup: this should not be needed once we fix handleChange’s top problem
-        this.translationParameters = newValue;
-      }
+    if (flags & LifecycleFlags.secondaryExpression) {
+        // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
+        this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
         ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
-        : newValue;
+        : newValue as string;
     }
     this.updateTranslations(flags);
   }

@@ -359,7 +359,7 @@ export class Viewport {
 
   public async unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
-      await this.content.terminateComponent(this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
+      await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }
   }
 
@@ -591,8 +591,8 @@ export class Viewport {
 
   private async unloadContent(): Promise<void> {
     this.content.removeComponent(this.element as Element, this.router.statefulHistory || this.options.stateful);
-    await this.content.terminateComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
-    this.content.unloadComponent();
+    await this.content.terminateComponent(this.router.statefulHistory || this.options.stateful);
+    this.content.unloadComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
     this.content.destroyComponent();
   }
 

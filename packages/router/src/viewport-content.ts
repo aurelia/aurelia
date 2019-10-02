@@ -165,7 +165,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
   }
-  public unloadComponent(): void {
+  public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
     // TODO: We might want to do something here eventually, who knows?
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
@@ -174,7 +174,11 @@ export class ViewportContent {
     this.clearTaggedNodes();
 
     // Don't unload components when stateful
-    this.contentStatus = ContentStatus.created;
+    if (!stateful) {
+      this.contentStatus = ContentStatus.created;
+    } else {
+      cache.push(this);
+    }
   }
   public clearTaggedNodes(): void {
     for (const node of this.taggedNodes) {
@@ -188,22 +192,20 @@ export class ViewportContent {
       return;
     }
     // Don't initialize cached content or instantiated history content
-    if (!this.fromCache || !this.fromHistory) {
-      ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-    }
+    // if (!this.fromCache || !this.fromHistory) {
+    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+    // }
     this.contentStatus = ContentStatus.initialized;
   }
-  public async terminateComponent(cache: ViewportContent[], stateful: boolean = false): Promise<void> {
+  public async terminateComponent(stateful: boolean = false): Promise<void> {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
     // Don't terminate cached content
-    if (!stateful) {
-      await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
-      this.contentStatus = ContentStatus.loaded;
-    } else {
-      cache.push(this);
-    }
+    // if (!stateful) {
+    await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
+    // }
+    this.contentStatus = ContentStatus.loaded;
   }
 
   public addComponent(element: Element): void {
@@ -246,9 +248,9 @@ export class ViewportContent {
         await this.leave(nextInstruction);
         this.removeComponent(element, stateful);
       case ContentStatus.initialized:
-        await this.terminateComponent(cache, stateful);
+        await this.terminateComponent(stateful);
       case ContentStatus.loaded:
-        this.unloadComponent();
+        this.unloadComponent(cache, stateful);
       case ContentStatus.created:
         this.destroyComponent();
     }

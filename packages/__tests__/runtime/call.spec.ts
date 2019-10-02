@@ -8,7 +8,7 @@ import {
   ILifecycle,
   IScope,
   LifecycleFlags as LF,
-  RuntimeBasicConfiguration,
+  RuntimeConfiguration,
   SetterObserver
 } from '@aurelia/runtime';
 import {
@@ -20,7 +20,7 @@ import {
 
 describe.skip('CallBinding', function () {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
-    const container = RuntimeBasicConfiguration.createContainer();
+    const container = RuntimeConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
     const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);

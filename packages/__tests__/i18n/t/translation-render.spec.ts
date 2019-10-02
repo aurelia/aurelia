@@ -2,7 +2,7 @@ import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttribut
 import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
@@ -117,7 +117,7 @@ describe('TranslationBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -281,7 +281,7 @@ describe('TranslationBindBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 

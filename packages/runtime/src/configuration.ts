@@ -152,7 +152,7 @@ export const DefaultRenderers = [
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-export const RuntimeBasicConfiguration = {
+export const RuntimeConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */

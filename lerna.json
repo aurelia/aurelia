@@ -8,6 +8,7 @@
     "packages/__tests__",
     "packages/__tests__/e2e",
     "packages/aot",
+    "packages/aurelia",
     "packages/debug",
     "packages/fetch-client",
     "packages/i18n",

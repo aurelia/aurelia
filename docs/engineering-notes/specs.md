@@ -11,6 +11,41 @@ Note: The contents in this document may no longer apply or be out of date.
 
 # Application Startup
 
+## New Quick Startup (recommended)
+*Spec: https://github.com/aurelia/aurelia/issues/630* <br />
+*Status: 0/Discussion*
+
+```ts
+import Aurelia, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import { MyRootComponent } from './my-root-component';
+// By default host to element name (<my-root-component> for MyRootComponent),
+// or <body> if <my-root-component> is absent.
+Aurelia.app(MyRootComponent).start();
+
+// Or load additional aurelia features
+Aurelia
+  .register(
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  )
+  .app(MyRootComponent)
+  .start();
+
+// Or host to <my-start-tag>
+Aurelia
+  .register(
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  )
+  .app({
+    component: MyRootComponent,
+    host: document.querySelector('my-start-tag')
+  })
+  .start();
+```
+
+## Verbose Startup
+
 *Spec: https://github.com/aurelia/aurelia/issues/397* <br />
 *Status: 0/Discussion*
 
@@ -18,7 +53,7 @@ To start an Aurelia application, create a `new Aurelia()` object with a target `
 
 ```ts
 import { Aurelia } from '@aurelia/jit-html-browser';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { ThirdPartyPlugin } from 'third-party-plugin';
 
 // Object API.
@@ -26,7 +61,7 @@ const app = new Aurelia({
   host: 'my-host-element',
   component: MyRootComponent
   plugins: [
-    BasicCofiguration,
+    JitHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ]
 }).start();
@@ -36,7 +71,7 @@ const app = new Aurelia()
   .host('my-host-element')
   .component(MyRootComponent)
   .plugins([
-    BasicCofiguration,
+    JitHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ])
   .start();

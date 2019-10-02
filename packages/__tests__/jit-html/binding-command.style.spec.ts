@@ -1,7 +1,7 @@
 import { PLATFORM, Constructable } from '@aurelia/kernel';
 import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
-import { BasicConfiguration } from '@aurelia/jit-html';
+import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, assert } from '@aurelia/testing';
 
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
@@ -148,7 +148,7 @@ describe('template-compiler.binding-commands.style', () => {
           class App {
             public value: string = ruleValue;
           },
-          BasicConfiguration,
+          JitHtmlConfiguration,
           CustomElement.define(
             {
               name: 'child',

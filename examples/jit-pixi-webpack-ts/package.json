@@ -7,14 +7,8 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "@aurelia/jit-html-browser": "file:../../packages/jit-html-browser",
-    "@aurelia/jit-html": "file:../../packages/jit-html",
-    "@aurelia/jit": "file:../../packages/jit",
-    "@aurelia/kernel": "file:../../packages/kernel",
-    "@aurelia/plugin-pixi": "file:../../packages/plugin-pixi",
-    "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser",
-    "@aurelia/runtime-html": "file:../../packages/runtime-html",
-    "@aurelia/runtime": "file:../../packages/runtime",
+    "aurelia": "dev",
+    "@aurelia/plugin-pixi": "dev",
     "pixi.js": "^4.8.8"
   },
   "devDependencies": {

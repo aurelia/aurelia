@@ -1,5 +1,5 @@
 import { parseExpression } from '@aurelia/jit';
-import { BasicConfiguration } from '@aurelia/jit-html';
+import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import {
   Class,
   Constructable,
@@ -350,7 +350,7 @@ import {
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = BasicConfiguration.createContainer();
+//     this.container = JitHtmlConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }

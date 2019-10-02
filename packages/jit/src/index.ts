@@ -61,7 +61,7 @@ export {
 
   DefaultBindingLanguage,
 
-  BasicConfiguration
+  JitConfiguration
 } from './configuration';
 export {
   Access,

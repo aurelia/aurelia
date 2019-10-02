@@ -508,7 +508,7 @@ export {
 
   // SetterObserver,
 
-  // ISignaler,
+  ISignaler,
 
   subscriberCollection,
   collectionSubscriberCollection,
@@ -884,7 +884,7 @@ export {
   // ITextBindingInstruction,
 
   // NodeType,
-  // HTMLDOM,
+  HTMLDOM,
   DOM, // on top of DOM in @aurelia/runtime
   // NodeSequenceFactory,
   // FragmentNodeSequence,

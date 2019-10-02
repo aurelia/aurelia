@@ -38,9 +38,7 @@ Aurelia
 To start an Aurelia application, create a `new Aurelia()` object with a target `host` and a root `component` and call `start()`.
 
 ```typescript
-import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import Aurelia, { DebugConfiguration, JitHtmlBrowserConfiguration } from 'aurelia';
 import { ShellComponent } from './shell';
 
 new Aurelia()

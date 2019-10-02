@@ -131,8 +131,15 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
+    // @ToDo, @Fixme: This is the wrong kind of check to distiniguish whether this.expr or this.parametersExpr has changed!
     if (typeof newValue === 'object') {
-      this.translationParameters = newValue;
+     if (this.parametersExpr) {
+        // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)? What does "part" it mean?
+        this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
+      } else {
+        // @ToDo, @Cleanup: this should not be needed once we fix handleChange’s top problem
+        this.translationParameters = newValue;
+      }
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
         ? this.expr.evaluate(flags, this.scope, this.locator, '') as string

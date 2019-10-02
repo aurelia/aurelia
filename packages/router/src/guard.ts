@@ -1,6 +1,5 @@
-import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { ComponentAppellation, GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -57,7 +56,9 @@ class Target {
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       if (cvTarget.component) {
-        this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
+        this.componentType = ComponentAppellationResolver.isType(cvTarget.component)
+          ? ComponentAppellationResolver.getType(cvTarget.component)
+          : null;
         this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {

@@ -13,22 +13,22 @@
     const jit_html_1 = require("@aurelia/jit-html");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_jsdom_1 = require("@aurelia/runtime-html-jsdom");
-    const { enter, leave } = kernel_1.Profiler.createTimer('BasicConfiguration');
+    const { enter, leave } = kernel_1.Profiler.createTimer('JitHtmlJsdomConfiguration');
     /**
      * A DI configuration object containing html-specific, jsdom-specific registrations:
-     * - `BasicConfiguration` from `@aurelia/runtime-html-jsdom`
+     * - `RuntimeHtmlJsdomConfiguration` from `@aurelia/runtime-html-jsdom`
      * - `DefaultComponents` from `@aurelia/jit`
      * - `DefaultBindingSyntax` from `@aurelia/jit`
      * - `DefaultBindingLanguage` from `@aurelia/jit`
      * - `DefaultComponents` from `@aurelia/jit-html`
      * - `DefaultBindingLanguage` from `@aurelia/jit-html`
      */
-    exports.BasicConfiguration = {
+    exports.JitHtmlJsdomConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */
         register(container) {
-            runtime_html_jsdom_1.BasicConfiguration
+            runtime_html_jsdom_1.RuntimeHtmlJsdomConfiguration
                 .register(container)
                 .register(...jit_1.DefaultBindingLanguage, ...jit_1.DefaultBindingSyntax, ...jit_1.DefaultComponents, ...jit_html_1.DefaultBindingLanguage, ...jit_html_1.DefaultComponents);
             return container;

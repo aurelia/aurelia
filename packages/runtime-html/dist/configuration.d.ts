@@ -38,12 +38,12 @@ export declare const TextBindingRendererRegistration: IRegistry;
 export declare const DefaultRenderers: IRegistry[];
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-export declare const BasicConfiguration: {
+export declare const RuntimeHtmlConfiguration: {
     /**
      * Apply this configuration to the provided container.
      */

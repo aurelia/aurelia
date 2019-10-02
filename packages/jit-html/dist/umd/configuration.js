@@ -60,19 +60,19 @@
     ];
     /**
      * A DI configuration object containing html-specific (but environment-agnostic) registrations:
-     * - `BasicConfiguration` from `@aurelia/runtime-html`
+     * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
      * - `DefaultComponents` from `@aurelia/jit`
      * - `DefaultBindingSyntax` from `@aurelia/jit`
      * - `DefaultBindingLanguage` from `@aurelia/jit`
      * - `DefaultComponents`
      * - `DefaultBindingLanguage`
      */
-    exports.BasicConfiguration = {
+    exports.JitHtmlConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return runtime_html_1.BasicConfiguration
+            return runtime_html_1.RuntimeHtmlConfiguration
                 .register(container)
                 .register(...jit_1.DefaultComponents, ...jit_1.DefaultBindingSyntax, ...exports.JitAttrBindingSyntax, ...jit_1.DefaultBindingLanguage, ...exports.DefaultComponents, ...exports.DefaultBindingLanguage);
         },

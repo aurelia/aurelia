@@ -27,14 +27,14 @@ export declare const StyleBindingCommandRegistration: IRegistry;
 export declare const DefaultBindingLanguage: IRegistry[];
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents` from `@aurelia/jit`
  * - `DefaultBindingSyntax` from `@aurelia/jit`
  * - `DefaultBindingLanguage` from `@aurelia/jit`
  * - `DefaultComponents`
  * - `DefaultBindingLanguage`
  */
-export declare const BasicConfiguration: {
+export declare const JitHtmlConfiguration: {
     /**
      * Apply this configuration to the provided container.
      */

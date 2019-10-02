@@ -68,7 +68,7 @@ export declare const DefaultRenderers: IRegistry[];
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-export declare const RuntimeBasicConfiguration: {
+export declare const RuntimeConfiguration: {
     /**
      * Apply this configuration to the provided container.
      */

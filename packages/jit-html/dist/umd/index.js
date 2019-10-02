@@ -30,7 +30,7 @@
     exports.ClassBindingCommandRegistration = configuration_1.ClassBindingCommandRegistration;
     exports.StyleBindingCommandRegistration = configuration_1.StyleBindingCommandRegistration;
     exports.DefaultBindingLanguage = configuration_1.DefaultBindingLanguage;
-    exports.BasicConfiguration = configuration_1.BasicConfiguration;
+    exports.JitHtmlConfiguration = configuration_1.JitHtmlConfiguration;
     var debugging_1 = require("./debugging");
     exports.stringifyDOM = debugging_1.stringifyDOM;
     exports.stringifyInstructions = debugging_1.stringifyInstructions;

@@ -37,12 +37,12 @@ export declare const TwoWayBindingCommandRegistration: IRegistry;
 export declare const DefaultBindingLanguage: IRegistry[];
 /**
  * A DI configuration object containing runtime/environment-agnostic registrations:
- * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultBindingSyntax`
  * - `DefaultBindingLanguage`
  */
-export declare const BasicConfiguration: {
+export declare const JitConfiguration: {
     /**
      * Apply this configuration to the provided container.
      */

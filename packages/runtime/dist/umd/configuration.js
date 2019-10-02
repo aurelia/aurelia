@@ -132,7 +132,7 @@
      * - `DefaultResources`
      * - `DefaultRenderers`
      */
-    exports.RuntimeBasicConfiguration = {
+    exports.RuntimeConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */

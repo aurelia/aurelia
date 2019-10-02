@@ -58,15 +58,15 @@
     ];
     /**
      * A DI configuration object containing html-specific, jsdom-specific registrations:
-     * - `BasicConfiguration` from `@aurelia/runtime-html`
+     * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
      * - `DefaultComponents`
      */
-    exports.BasicConfiguration = {
+    exports.RuntimeHtmlJsdomConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return runtime_html_1.BasicConfiguration
+            return runtime_html_1.RuntimeHtmlConfiguration
                 .register(container)
                 .register(...exports.DefaultComponents);
         },

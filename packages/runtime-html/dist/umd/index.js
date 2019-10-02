@@ -71,7 +71,7 @@
     exports.StylePropertyBindingRendererRegistration = configuration_1.StylePropertyBindingRendererRegistration;
     exports.TextBindingRendererRegistration = configuration_1.TextBindingRendererRegistration;
     exports.DefaultRenderers = configuration_1.DefaultRenderers;
-    exports.BasicConfiguration = configuration_1.BasicConfiguration;
+    exports.RuntimeHtmlConfiguration = configuration_1.RuntimeHtmlConfiguration;
     var create_element_1 = require("./create-element");
     exports.createElement = create_element_1.createElement;
     exports.RenderPlan = create_element_1.RenderPlan;

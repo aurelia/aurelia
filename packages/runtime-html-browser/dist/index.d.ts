@@ -7,10 +7,10 @@ export declare const IDOMInitializerRegistration: IRegistry;
 export declare const DefaultComponents: IRegistry[];
 /**
  * A DI configuration object containing html-specific, browser-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export declare const BasicConfiguration: {
+export declare const RuntimeHtmlBrowserConfiguration: {
     /**
      * Apply this configuration to the provided container.
      */

@@ -52,7 +52,7 @@
     exports.ToViewBindingCommandRegistration = configuration_1.ToViewBindingCommandRegistration;
     exports.TwoWayBindingCommandRegistration = configuration_1.TwoWayBindingCommandRegistration;
     exports.DefaultBindingLanguage = configuration_1.DefaultBindingLanguage;
-    exports.BasicConfiguration = configuration_1.BasicConfiguration;
+    exports.JitConfiguration = configuration_1.JitConfiguration;
     var common_1 = require("./common");
     exports.Access = common_1.Access;
     exports.Precedence = common_1.Precedence;

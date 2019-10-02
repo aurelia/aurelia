@@ -535,7 +535,7 @@
     exports.AuTextRenderer = AuTextRenderer;
     exports.AuDOMConfiguration = {
         register(container) {
-            container.register(runtime_1.RuntimeBasicConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITemplateFactory, AuTemplateFactory));
+            container.register(runtime_1.RuntimeConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITemplateFactory, AuTemplateFactory));
         },
         createContainer() {
             const container = kernel_1.DI.createContainer();

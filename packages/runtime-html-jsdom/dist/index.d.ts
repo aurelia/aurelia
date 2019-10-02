@@ -7,10 +7,10 @@ export declare const IDOMInitializerRegistration: IRegistry;
 export declare const DefaultComponents: IRegistry[];
 /**
  * A DI configuration object containing html-specific, jsdom-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export declare const BasicConfiguration: {
+export declare const RuntimeHtmlJsdomConfiguration: {
     /**
      * Apply this configuration to the provided container.
      */

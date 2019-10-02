@@ -17,7 +17,7 @@ export { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/upda
 export { Blur, BlurManager } from './resources/custom-attributes/blur';
 export { Focus } from './resources/custom-attributes/focus';
 export { Compose } from './resources/custom-elements/compose';
-export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration } from './configuration';
+export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';
 export { HTMLTargetedInstructionType, isHTMLTargetedInstruction } from './definitions';
 export { NodeType, HTMLDOM, DOM, NodeSequenceFactory, FragmentNodeSequence } from './dom';

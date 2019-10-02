@@ -75,17 +75,17 @@
     ];
     /**
      * A DI configuration object containing runtime/environment-agnostic registrations:
-     * - `BasicConfiguration` from `@aurelia/runtime`
+     * - `RuntimeConfiguration` from `@aurelia/runtime`
      * - `DefaultComponents`
      * - `DefaultBindingSyntax`
      * - `DefaultBindingLanguage`
      */
-    exports.BasicConfiguration = {
+    exports.JitConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return runtime_1.RuntimeBasicConfiguration
+            return runtime_1.RuntimeConfiguration
                 .register(container)
                 .register(...exports.DefaultComponents, ...exports.DefaultBindingSyntax, ...exports.DefaultBindingLanguage);
         },

@@ -212,7 +212,7 @@
     exports.IObserverLocatorRegistration = configuration_1.IObserverLocatorRegistration;
     exports.ILifecycleRegistration = configuration_1.ILifecycleRegistration;
     exports.IRendererRegistration = configuration_1.IRendererRegistration;
-    exports.RuntimeBasicConfiguration = configuration_1.RuntimeBasicConfiguration;
+    exports.RuntimeConfiguration = configuration_1.RuntimeConfiguration;
     var definitions_1 = require("./definitions");
     exports.buildTemplateDefinition = definitions_1.buildTemplateDefinition;
     exports.HooksDefinition = definitions_1.HooksDefinition;

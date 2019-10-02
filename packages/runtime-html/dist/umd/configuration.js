@@ -78,17 +78,17 @@
     ];
     /**
      * A DI configuration object containing html-specific (but environment-agnostic) registrations:
-     * - `BasicConfiguration` from `@aurelia/runtime`
+     * - `RuntimeConfiguration` from `@aurelia/runtime`
      * - `DefaultComponents`
      * - `DefaultResources`
      * - `DefaultRenderers`
      */
-    exports.BasicConfiguration = {
+    exports.RuntimeHtmlConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return runtime_1.RuntimeBasicConfiguration
+            return runtime_1.RuntimeConfiguration
                 .register(container)
                 .register(...exports.DefaultComponents, ...exports.DefaultResources, ...exports.DefaultRenderers);
         },

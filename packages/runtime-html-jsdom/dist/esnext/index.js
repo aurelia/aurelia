@@ -1,6 +1,6 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer } from '@aurelia/runtime';
-import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
+import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 class JSDOMInitializer {
     constructor(container) {
@@ -47,10 +47,10 @@ export const DefaultComponents = [
 ];
 /**
  * A DI configuration object containing html-specific, jsdom-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export const BasicConfiguration = {
+export const RuntimeHtmlJsdomConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */

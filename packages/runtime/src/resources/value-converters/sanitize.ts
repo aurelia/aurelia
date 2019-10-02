@@ -4,19 +4,18 @@ import { valueConverter } from '../value-converter';
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
 export interface ISanitizer {
- /**
-  * Sanitizes the provided input.
-  * @param input The input to be sanitized.
-  */
+  /**
+   * Sanitizes the provided input.
+   * @param input The input to be sanitized.
+   */
   sanitize(input: string): string;
 }
 
 export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefault(x => x.singleton(class {
-    public sanitize(input: string): string {
-      return input.replace(SCRIPT_REGEX, '');
-    }
-  })
-);
+  public sanitize(input: string): string {
+    return input.replace(SCRIPT_REGEX, '');
+  }
+}));
 
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
@@ -27,10 +26,10 @@ export class SanitizeValueConverter {
     @ISanitizer private readonly sanitizer: ISanitizer,
   ) {}
 
- /**
-  * Process the provided markup that flows to the view.
-  * @param untrustedMarkup The untrusted markup to be sanitized.
-  */
+  /**
+   * Process the provided markup that flows to the view.
+   * @param untrustedMarkup The untrusted markup to be sanitized.
+   */
   public toView(untrustedMarkup: string): string|null {
     if (untrustedMarkup == null) {
       return null;

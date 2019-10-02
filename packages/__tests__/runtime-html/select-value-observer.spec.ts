@@ -266,9 +266,10 @@ describe('SelectValueObserver', function () {
       describe('with <optgroup>', function () {
         it('synchronizes with array', function () {
           const { sut } = createMutiSelectSut([], [
-            optgroup({},
-                     option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
-                     option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
+            optgroup(
+              {},
+              option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
+              option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
             ),
             option({ text: 'C', value: 'CC' })
           ]);
@@ -310,9 +311,10 @@ describe('SelectValueObserver', function () {
 
       function select(...options: SelectValidChild[]): (ctx: HTMLTestContext) => HTMLSelectElement {
         return function(ctx: HTMLTestContext) {
-          return h('select',
-                   { multiple: true },
-                   ...options
+          return h(
+            'select',
+            { multiple: true },
+            ...options
           );
         };
       }

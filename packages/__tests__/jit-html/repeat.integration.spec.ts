@@ -3,67 +3,67 @@ import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, assert, h } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
-    function setup() {
-        const ctx = TestContext.createHTMLTestContext();
-        const au = new Aurelia(ctx.container);
-        const host = ctx.createElement("div");
-        return { au, host };
-    }
-    it("10 _", function () {
-        const { au, host } = setup();
-        const App = CustomElement.define(
-          {
-            name: "app",
-            template: `<div repeat.for="i of items">\${i}</div>`
-          },
-          class {
-            items = [1, 0];
-          }
-        );
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        assert.strictEqual(host.textContent, '10');
-        component.items.sort();
-        assert.strictEqual(host.textContent, '01');
-    });
-    it("01 _", function () {
-        const { au, host } = setup();
-        const App = CustomElement.define(
-          {
-            name: "app",
-            template: `<div repeat.for="i of items">\${i}</div>`
-          },
-          class {
-            items = [0, 1];
-          }
-        );
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        assert.strictEqual(host.textContent, '01');
-        component.items.sort();
-        assert.strictEqual(host.textContent, '01');
-    });
+  function setup() {
+    const ctx = TestContext.createHTMLTestContext();
+    const au = new Aurelia(ctx.container);
+    const host = ctx.createElement("div");
+    return { au, host };
+  }
+  it("10 _", function () {
+    const { au, host } = setup();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `<div repeat.for="i of items">\${i}</div>`
+      },
+      class {
+        items = [1, 0];
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    au.start();
+    assert.strictEqual(host.textContent, '10');
+    component.items.sort();
+    assert.strictEqual(host.textContent, '01');
+  });
+  it("01 _", function () {
+    const { au, host } = setup();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `<div repeat.for="i of items">\${i}</div>`
+      },
+      class {
+        items = [0, 1];
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    au.start();
+    assert.strictEqual(host.textContent, '01');
+    component.items.sort();
+    assert.strictEqual(host.textContent, '01');
+  });
 
 
-    it("012 _", function () {
-      const { au, host } = setup();
-      const App = CustomElement.define(
-        {
-          name: "app",
-          template: `<div repeat.for="i of items">\${i}</div>`
-        },
-        class {
-          items = [0, 1, 2];
-        }
-      );
-      const component = new App();
-      au.app({ host, component });
-      au.start();
-      assert.strictEqual(host.textContent, '012');
-      component.items.sort();
-      assert.strictEqual(host.textContent, '012');
+  it("012 _", function () {
+    const { au, host } = setup();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `<div repeat.for="i of items">\${i}</div>`
+      },
+      class {
+        items = [0, 1, 2];
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    au.start();
+    assert.strictEqual(host.textContent, '012');
+    component.items.sort();
+    assert.strictEqual(host.textContent, '012');
   });
   it("021 _", function () {
     const { au, host } = setup();

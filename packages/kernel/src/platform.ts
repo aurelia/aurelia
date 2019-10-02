@@ -99,7 +99,7 @@ const {
   $getEntriesByType: IWindowOrWorkerGlobalScope['performance']['getEntriesByType'];
   $clearMarks: IWindowOrWorkerGlobalScope['performance']['clearMarks'];
   $clearMeasures: IWindowOrWorkerGlobalScope['performance']['clearMeasures'];
- } {
+} {
   if (
     $global.performance != null &&
     $global.performance.mark != null &&

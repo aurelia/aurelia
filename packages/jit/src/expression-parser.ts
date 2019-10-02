@@ -107,9 +107,9 @@ const enum SemanticError {
 }
 
 export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
-  TType extends BindingType.Interpolation ? IInterpolationExpression :
+TType extends BindingType.Interpolation ? IInterpolationExpression :
   TType extends BindingType.ForCommand ? IForOfStatement :
-  IsBindingBehavior {
+    IsBindingBehavior {
 
   $state.input = input;
   $state.length = input.length;
@@ -128,22 +128,22 @@ export function parseExpression<TType extends BindingType = BindingType.BindComm
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // eslint-disable-next-line max-lines-per-function
 export function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType):
-  TPrec extends Precedence.Unary ? IsUnary :
+TPrec extends Precedence.Unary ? IsUnary :
   TPrec extends Precedence.Binary ? IsBinary :
-  TPrec extends Precedence.LeftHandSide ? IsLeftHandSide :
-  TPrec extends Precedence.Assign ? IsAssign :
-  TPrec extends Precedence.Conditional ? IsConditional :
-  TPrec extends Precedence.Primary ? IsPrimary :
-  TPrec extends Precedence.Multiplicative ? IsBinary :
-  TPrec extends Precedence.Additive ? IsBinary :
-  TPrec extends Precedence.Relational ? IsBinary :
-  TPrec extends Precedence.Equality ? IsBinary :
-  TPrec extends Precedence.LogicalAND ? IsBinary :
-  TPrec extends Precedence.LogicalOR ? IsBinary :
-  TPrec extends Precedence.Variadic ?
-    TType extends BindingType.Interpolation ? IInterpolationExpression :
-    TType extends BindingType.ForCommand ? IForOfStatement :
-    never : never {
+    TPrec extends Precedence.LeftHandSide ? IsLeftHandSide :
+      TPrec extends Precedence.Assign ? IsAssign :
+        TPrec extends Precedence.Conditional ? IsConditional :
+          TPrec extends Precedence.Primary ? IsPrimary :
+            TPrec extends Precedence.Multiplicative ? IsBinary :
+              TPrec extends Precedence.Additive ? IsBinary :
+                TPrec extends Precedence.Relational ? IsBinary :
+                  TPrec extends Precedence.Equality ? IsBinary :
+                    TPrec extends Precedence.LogicalAND ? IsBinary :
+                      TPrec extends Precedence.LogicalOR ? IsBinary :
+                        TPrec extends Precedence.Variadic ?
+                          TType extends BindingType.Interpolation ? IInterpolationExpression :
+                            TType extends BindingType.ForCommand ? IForOfStatement :
+                              never : never {
 
   if (bindingType === BindingType.CustomCommand) {
     return new CustomExpression(state.input) as any;
@@ -212,89 +212,89 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      *   2 = true
      */
     primary: switch (state.currentToken) {
-    case Token.ParentScope: // $parent
-      state.assignable = false;
-      do {
-        nextToken(state);
-        access++; // ancestor
-        if (consumeOpt(state, Token.Dot)) {
-          if ((state.currentToken as Token) === Token.Dot) {
-            throw Reporter.error(SyntaxError.DoubleDot, { state });
-          } else if ((state.currentToken as Token) === Token.EOF) {
-            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
+      case Token.ParentScope: // $parent
+        state.assignable = false;
+        do {
+          nextToken(state);
+          access++; // ancestor
+          if (consumeOpt(state, Token.Dot)) {
+            if ((state.currentToken as Token) === Token.Dot) {
+              throw Reporter.error(SyntaxError.DoubleDot, { state });
+            } else if ((state.currentToken as Token) === Token.EOF) {
+              throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
+            }
+          } else if (state.currentToken & Token.AccessScopeTerminal) {
+            const ancestor = access & Access.Ancestor;
+            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
+            access = Access.This;
+            break primary;
+          } else {
+            throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
           }
-        } else if (state.currentToken & Token.AccessScopeTerminal) {
-          const ancestor = access & Access.Ancestor;
-          result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
-          access = Access.This;
-          break primary;
+        } while (state.currentToken === Token.ParentScope);
+        // falls through
+      case Token.Identifier: // identifier
+        if (bindingType & BindingType.IsIterator) {
+          result = new BindingIdentifier(state.tokenValue as string);
         } else {
-          throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
+          result = new AccessScopeExpression(state.tokenValue as string, access & Access.Ancestor);
+          access = Access.Scope;
         }
-      } while (state.currentToken === Token.ParentScope);
-    // falls through
-    case Token.Identifier: // identifier
-      if (bindingType & BindingType.IsIterator) {
-        result = new BindingIdentifier(state.tokenValue as string);
-      } else {
-        result = new AccessScopeExpression(state.tokenValue as string, access & Access.Ancestor);
-        access = Access.Scope;
-      }
-      state.assignable = true;
-      nextToken(state);
-      break;
-    case Token.ThisScope: // $this
-      state.assignable = false;
-      nextToken(state);
-      result = $this;
-      access = Access.This;
-      break;
-    case Token.OpenParen: // parenthesized expression
-      nextToken(state);
-      result = parse(state, Access.Reset, Precedence.Assign, bindingType);
-      consume(state, Token.CloseParen);
-      access = Access.Reset;
-      break;
-    case Token.OpenBracket:
-      result = parseArrayLiteralExpression(state, access, bindingType);
-      access = Access.Reset;
-      break;
-    case Token.OpenBrace:
-      result = parseObjectLiteralExpression(state, bindingType);
-      access = Access.Reset;
-      break;
-    case Token.TemplateTail:
-      result = new TemplateExpression([state.tokenValue as string]);
-      state.assignable = false;
-      nextToken(state);
-      access = Access.Reset;
-      break;
-    case Token.TemplateContinuation:
-      result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
-      access = Access.Reset;
-      break;
-    case Token.StringLiteral:
-    case Token.NumericLiteral:
-      result = new PrimitiveLiteralExpression(state.tokenValue);
-      state.assignable = false;
-      nextToken(state);
-      access = Access.Reset;
-      break;
-    case Token.NullKeyword:
-    case Token.UndefinedKeyword:
-    case Token.TrueKeyword:
-    case Token.FalseKeyword:
-      result = TokenValues[state.currentToken & Token.Type] as IPrimitiveLiteralExpression;
-      state.assignable = false;
-      nextToken(state);
-      access = Access.Reset;
-      break;
-    default:
-      if (state.index >= state.length) {
-        throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
-      } else {
-        throw Reporter.error(SyntaxError.UnconsumedToken, { state });
-      }
+        state.assignable = true;
+        nextToken(state);
+        break;
+      case Token.ThisScope: // $this
+        state.assignable = false;
+        nextToken(state);
+        result = $this;
+        access = Access.This;
+        break;
+      case Token.OpenParen: // parenthesized expression
+        nextToken(state);
+        result = parse(state, Access.Reset, Precedence.Assign, bindingType);
+        consume(state, Token.CloseParen);
+        access = Access.Reset;
+        break;
+      case Token.OpenBracket:
+        result = parseArrayLiteralExpression(state, access, bindingType);
+        access = Access.Reset;
+        break;
+      case Token.OpenBrace:
+        result = parseObjectLiteralExpression(state, bindingType);
+        access = Access.Reset;
+        break;
+      case Token.TemplateTail:
+        result = new TemplateExpression([state.tokenValue as string]);
+        state.assignable = false;
+        nextToken(state);
+        access = Access.Reset;
+        break;
+      case Token.TemplateContinuation:
+        result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
+        access = Access.Reset;
+        break;
+      case Token.StringLiteral:
+      case Token.NumericLiteral:
+        result = new PrimitiveLiteralExpression(state.tokenValue);
+        state.assignable = false;
+        nextToken(state);
+        access = Access.Reset;
+        break;
+      case Token.NullKeyword:
+      case Token.UndefinedKeyword:
+      case Token.TrueKeyword:
+      case Token.FalseKeyword:
+        result = TokenValues[state.currentToken & Token.Type] as IPrimitiveLiteralExpression;
+        state.assignable = false;
+        nextToken(state);
+        access = Access.Reset;
+        break;
+      default:
+        if (state.index >= state.length) {
+          throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
+        } else {
+          throw Reporter.error(SyntaxError.UnconsumedToken, { state });
+        }
     }
 
     if (bindingType & BindingType.IsIterator) {

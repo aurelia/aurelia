@@ -9,7 +9,7 @@ export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |
   (CheckedObserver & Required<CheckedObserver>) |
   (SelectValueObserver & Required<SelectValueObserver>)
-  ) & {
+) & {
   originalHandler?: IEventSubscriber;
 };
 

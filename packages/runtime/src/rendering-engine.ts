@@ -338,7 +338,7 @@ export class ChildrenObserver {
     filter = defaultChildFilter,
     map = defaultChildMap,
     options?: MutationObserverInit
-    ) {
+  ) {
     this.propertyKey = propertyName;
     this.obj = viewModel;
     this.callback = viewModel[cbName] as typeof ChildrenObserver.prototype.callback;

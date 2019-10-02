@@ -701,7 +701,7 @@ describe('Router', function () {
       await tearDown();
     });
   }
-  it('keeps input when grandparent stateful', async function () {
+  it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 
     const { lifecycle, host, router, tearDown } = await setup();
@@ -737,7 +737,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('keeps children\'s custom element\'s input when navigation history stateful', async function () {
+  it.skip('keeps children\'s custom element\'s input when navigation history stateful', async function () {
     this.timeout(5000);
 
     const { lifecycle, host, router, tearDown, container } = await setup({ statefulHistoryLength: 2 });

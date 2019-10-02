@@ -6,13 +6,13 @@ import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export const ComponentAppellationResolver = {
-  isName: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & string {
+  isName: function (component: ComponentAppellation): component is string {
     return typeof component === 'string';
   },
-  isType: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & IRouteableComponentType {
+  isType: function (component: ComponentAppellation): component is IRouteableComponentType {
     return CustomElement.isType(component);
   },
-  isInstance: function <T>(component: T & ComponentAppellation): component is T & ComponentAppellation & IRouteableComponent {
+  isInstance: function (component: ComponentAppellation): component is IRouteableComponent {
     return !ComponentAppellationResolver.isName(component) && !ComponentAppellationResolver.isType(component);
   },
 
@@ -44,20 +44,20 @@ export const ComponentAppellationResolver = {
 };
 
 export const ViewportHandleResolver = {
-  isName: function <T>(viewport: T & ViewportHandle): viewport is T & ViewportHandle {
+  isName: function (viewport: ViewportHandle): viewport is string {
     return typeof viewport === 'string';
   },
-  isInstance: function <T>(viewport: T & ViewportHandle): viewport is T & ViewportHandle {
+  isInstance: function (viewport: ViewportHandle): viewport is Viewport {
     return viewport instanceof Viewport;
   },
-  getName: function <T>(viewport: T & ViewportHandle): string | null {
+  getName: function (viewport: ViewportHandle): string | null {
     if (ViewportHandleResolver.isName(viewport)) {
       return viewport as string;
     } else {
       return viewport ? (viewport as Viewport).name : null;
     }
   },
-  getInstance: function <T>(viewport: T & ViewportHandle): Viewport | null {
+  getInstance: function (viewport: ViewportHandle): Viewport | null {
     if (ViewportHandleResolver.isName(viewport)) {
       return null;
     } else {

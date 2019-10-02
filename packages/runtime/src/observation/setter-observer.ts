@@ -6,6 +6,11 @@ import { subscriberCollection } from './subscriber-collection';
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
+/**
+ * Observer for the mutation of object property value employing getter-setter strategy.
+ * This is used for observing object properties that has no decorator.
+ * @export
+ */
 @subscriberCollection()
 export class SetterObserver {
   public readonly lifecycle: ILifecycle;

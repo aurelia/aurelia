@@ -1,5 +1,6 @@
 export {
   assert,
+  fail
 } from './assert';
 
 export {

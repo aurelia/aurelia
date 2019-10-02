@@ -47,6 +47,7 @@ function importAll (r) {
 // Explicitly add to browser test
 importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
 importAll(require.context('./i18n/', true, /\.spec\.js$/));
+importAll(require.context('./integration/', true, /\.spec\.js$/));
 importAll(require.context('./jit/', true, /\.spec\.js$/));
 importAll(require.context('./jit-html/', true, /\.spec\.js$/));
 importAll(require.context('./kernel/', true, /\.spec\.js$/));

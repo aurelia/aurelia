@@ -1,0 +1,11 @@
+<template>
+
+  <div frequent-mutations>
+    <button id="staticTextChanger" click.delegate="changeTexts()">Change texts</button>
+    <read-only-text value="text0"></read-only-text>
+    <read-only-text value.one-time="text1"></read-only-text>
+    <read-only-text value.bind="text2"></read-only-text>
+    <read-only-text value.to-view="text3"></read-only-text>
+  </div>
+
+</template>

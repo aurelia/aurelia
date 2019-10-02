@@ -1,9 +1,9 @@
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 import { DebugConfiguration } from '../debug/configuration';
-import { BasicConfiguration } from '../jit/configuration';
+import { JitConfiguration } from '../jit/configuration';
 
 window['au'] = new Aurelia()
-  .register(BasicConfiguration, DebugConfiguration)
+  .register(JitConfiguration, DebugConfiguration)
   .app({ host: document.querySelector('app'), component: new App() })
   .start();

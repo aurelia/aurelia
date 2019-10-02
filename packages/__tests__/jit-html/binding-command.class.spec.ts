@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia, BindingMode, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
-import { BasicConfiguration } from '@aurelia/jit-html';
+import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 
 // TemplateCompiler - Binding Commands integration
@@ -133,7 +133,7 @@ describe('template-compiler.binding-commands.class', function() {
           class App {
             public value: unknown = true;
           },
-          BasicConfiguration,
+          JitHtmlConfiguration,
           CustomElement.define(
             {
               name: 'child',

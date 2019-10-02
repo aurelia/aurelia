@@ -1,14 +1,14 @@
 import * as faker from 'faker';
 
 import { Aurelia } from '@aurelia/runtime';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { App } from './app';
 import { DI } from '@aurelia/kernel';
 
 window['faker'] = faker;
 
 const container = DI.createContainer().register(
-  BasicConfiguration,
+  JitHtmlBrowserConfiguration,
 );
 
 const au = window['au'] = new Aurelia(container);

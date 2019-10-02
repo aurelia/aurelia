@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
 import * as template from './app.html';
 
 @customElement({ name: 'app', template })

@@ -49,7 +49,7 @@ import {
   LetElementInstruction,
   LifecycleFlags,
   PropertyBinding,
-  RuntimeBasicConfiguration,
+  RuntimeConfiguration,
   TargetedInstruction,
   TemplateDefinition,
   ToViewBindingInstruction
@@ -675,7 +675,7 @@ export class AuTextRenderer implements IInstructionRenderer {
 export const AuDOMConfiguration = {
   register(container: IContainer): void {
     container.register(
-      RuntimeBasicConfiguration,
+      RuntimeConfiguration,
       AuTextRenderer as unknown as IRegistry,
       Registration.singleton(IDOM, AuDOM),
       Registration.singleton(IDOMInitializer, AuDOMInitializer),

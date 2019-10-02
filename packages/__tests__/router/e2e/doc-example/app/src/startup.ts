@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { RouterConfiguration } from '@aurelia/router';
 import { registerComponent } from './utils';
@@ -24,7 +24,7 @@ import { LoginSpecial } from './components/login-special';
 import { Main } from './components/main';
 import { State } from './state';
 
-const container = BasicConfiguration.createContainer();
+const container = JitHtmlBrowserConfiguration.createContainer();
 
 container.register(
   App as any,

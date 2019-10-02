@@ -103,7 +103,7 @@ export {
 
   DefaultRenderers,
 
-  BasicConfiguration
+  RuntimeHtmlConfiguration
 } from './configuration';
 export {
   createElement,

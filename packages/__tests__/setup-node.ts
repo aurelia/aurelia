@@ -3,7 +3,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  BasicConfiguration as BasicJSDOMConfiguration
+  JitHtmlJsdomConfiguration
 } from '@aurelia/jit-html-jsdom';
 import {
   Reporter,
@@ -17,7 +17,7 @@ function createJSDOMTestContext(): HTMLTestContext {
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 
   return HTMLTestContext.create(
-    BasicJSDOMConfiguration,
+    JitHtmlJsdomConfiguration,
     jsdom.window,
     jsdom.window.UIEvent,
     jsdom.window.Event,

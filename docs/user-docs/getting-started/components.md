@@ -55,7 +55,7 @@ The `say-hello` custom element we've created isn't very interesting yet, so lets
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { bindable } from '@aurelia/runtime';
+import { bindable } from 'aurelia';
 
 export class SayHello {
   @bindable to = 'World';
@@ -89,7 +89,7 @@ Now, what if we want our component to do something in response to user interacti
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { bindable } from '@aurelia/runtime';
+import { bindable } from 'aurelia';
 
 export class SayHello {
   @bindable to = 'World';
@@ -140,7 +140,7 @@ By default, components you create aren't global. What that means is that you can
 
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { bindable } from '@aurelia/runtime';
+import { bindable } from 'aurelia';
 
 export class SayHello {
   @bindable to = 'World';
@@ -165,19 +165,16 @@ In practice, most people want to side-step this feature and make most of their g
 {% code-tabs %}
 {% code-tabs-item title="mail.ts" %}
 ```typescript
-import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import Aurelia from 'aurelia';
 import { App } from './app';
 import { NameTag } from './name-tag';
 
-new Aurelia()
+Aurelia
   .register(
-    JitHtmlBrowserConfiguration,
-    DebugConfiguration,
     NameTag // Here it is!
-  ).app({ host: document.querySelector('app'), component: App })
-   .start();
+  )
+  .app(App)
+  .start();
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
@@ -194,19 +191,16 @@ export * from './name-tag';
 
 {% code-tabs-item title="main.ts" %}
 ```typescript
-import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import Aurelia from 'aurelia';
 import { App } from './app';
 import * as globalComponents from './components/registry';
 
-new Aurelia()
+Aurelia
   .register(
-    JitHtmlBrowserConfiguration,
-    DebugConfiguration,
     globalComponents // This globalizes all the exports of our registry.
-  ).app({ host: document.querySelector('app'), component: App })
-   .start();
+  )
+  .app(App)
+  .start();
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
@@ -224,7 +218,7 @@ So far, we've described how components are created by simply naming your JavaScr
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { customElement, bindable } from '@aurelia/runtime';
+import { customElement, bindable } from 'aurelia';
 import template from './say-hello.html';
 
 @customElement({
@@ -291,7 +285,7 @@ To tap into any of these hooks, simply implement the method on your class:
 {% code-tabs %}
 {% code-tabs-item title="say-hello.ts" %}
 ```typescript
-import { bindable } from '@aurelia/runtime';
+import { bindable } from 'aurelia';
 
 export class SayHello {
   @bindable to = 'World';

@@ -60,9 +60,9 @@ npm i @aurelia/i18n
 
 ```typescript
 import { I18nConfiguration } from '@aurelia/i18n';
-import { Aurelia } from '@aurelia/runtime';
+import Aurelia from 'aurelia';
 
-new Aurelia()
+Aurelia
   .register(
     I18nConfiguration.customize((options) => {
       options.initOptions = {
@@ -73,7 +73,7 @@ new Aurelia()
       };
     })
   )
-  .app({ host, component })
+  .app(component)
   .start();
 ```
 
@@ -376,7 +376,7 @@ The example sets the `[title]` attribute of the `span`. A useful example would b
 
 The same syntax of attribute translation also works for translating `@bindable`s of custom elements.
 
-\`\`\`typescript custom-message.ts import { bindable, customElement } from '@aurelia/runtime';. import template from './custom-message.html';
+\`\`\`typescript custom-message.ts import { bindable, customElement } from 'aurelia';. import template from './custom-message.html';
 
 @customElement\({ name: 'custom-message', template }\) export class CustomMessage { @bindable public message: string; }
 
@@ -680,7 +680,7 @@ export class MyDemoVm {
 }
 ```
 
-\`\`\`html my-demo-vm.html  ${ date \| rt }   ${ date & rt : { style: 'short' } : 'de' } 
+\`\`\`html my-demo-vm.html  ${ date \| rt }   ${ date & rt : { style: 'short' } : 'de' }
 
 ```text
 The `rt` ValueConverter and BindingBehavior can be used to relatively format dates in a declarative way from the view.
@@ -701,7 +701,7 @@ See the example below.
 
 ```typescript my-demo-vm.ts
 import { Signals } from '@aurelia/i18n';
-import { ISignaler } from '@aurelia/runtime';
+import { ISignaler } from 'aurelia';
 
 export class MyDemoVm {
 

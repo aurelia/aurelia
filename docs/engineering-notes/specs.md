@@ -52,8 +52,7 @@ Aurelia
 To start an Aurelia application, create a `new Aurelia()` object with a target `host`, a root `component`, and an optional list of `plugins`, and call `start()`.
 
 ```ts
-import { Aurelia } from '@aurelia/jit-html-browser';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import Aurelia, { JitHtmlBrowserConfiguration } from 'aurelia';
 import { ThirdPartyPlugin } from 'third-party-plugin';
 
 // Object API.

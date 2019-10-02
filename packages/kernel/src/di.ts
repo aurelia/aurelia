@@ -79,8 +79,8 @@ export type Resolved<K> = (
       ? InstanceType<K>
       : K extends IResolverLike<infer T1, any>
         ? T1 extends Constructable
-            ? InstanceType<T1>
-            : T1
+          ? InstanceType<T1>
+          : T1
         : K
 );
 
@@ -691,8 +691,8 @@ export class Container implements IContainer {
     return this.resolvers.has(key)
       ? true
       : searchAncestors && this.parent != null
-      ? this.parent.has(key, true)
-      : false;
+        ? this.parent.has(key, true)
+        : false;
   }
 
   public get<K extends Key>(key: K): Resolved<K> {

@@ -1053,7 +1053,7 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`nf` binding-behavior', function () {
@@ -1128,7 +1128,7 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`rt` value-converter', function () {

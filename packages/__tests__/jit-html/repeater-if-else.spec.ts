@@ -525,68 +525,68 @@ describe(spec, function () {
     [strategySpecs, behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
     (strategySpec, behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
-    it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, async function () {
-      const { strategy } = strategySpec;
-      const { behaviors } = behaviorsSpec;
-      const { createCETemplate } = ceTemplateSpec;
-      const { createAppTemplate } = appTemplateSpec;
-      const { ifText, elseText, createItems } = itemsSpec;
-      const { count } = countSpec;
-      const { execute } = mutationSpec;
+      it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, async function () {
+        const { strategy } = strategySpec;
+        const { behaviors } = behaviorsSpec;
+        const { createCETemplate } = ceTemplateSpec;
+        const { createAppTemplate } = appTemplateSpec;
+        const { ifText, elseText, createItems } = itemsSpec;
+        const { count } = countSpec;
+        const { execute } = mutationSpec;
 
-      const ctx = TestContext.createHTMLTestContext();
-      const { container } = ctx;
+        const ctx = TestContext.createHTMLTestContext();
+        const { container } = ctx;
 
-      const initialItems = createItems();
+        const initialItems = createItems();
 
-      const Component = CustomElement.define(
-        {
-          name: 'app',
-          template: createAppTemplate(behaviors),
-          strategy,
-          dependencies: [
-            CustomElement.define(
-              {
-                name: 'foo',
-                template: createCETemplate(behaviors),
-                strategy
-              },
-              class Foo {
-                public static bindables = ['items', 'display'];
-                public items: any[];
-                public display: boolean;
-              }
-            )
-          ]
-        },
-        class App {
-          public items: any[];
-          public display: boolean;
-          public count: number;
-          public created() {
-            this.items = initialItems;
-            this.display = false;
-            this.count = count;
+        const Component = CustomElement.define(
+          {
+            name: 'app',
+            template: createAppTemplate(behaviors),
+            strategy,
+            dependencies: [
+              CustomElement.define(
+                {
+                  name: 'foo',
+                  template: createCETemplate(behaviors),
+                  strategy
+                },
+                class Foo {
+                  public static bindables = ['items', 'display'];
+                  public items: any[];
+                  public display: boolean;
+                }
+              )
+            ]
+          },
+          class App {
+            public items: any[];
+            public display: boolean;
+            public count: number;
+            public created() {
+              this.items = initialItems;
+              this.display = false;
+              this.count = count;
+            }
           }
-        }
-      );
+        );
 
-      const host = ctx.createElement('div');
+        const host = ctx.createElement('div');
 
-      const au = new Aurelia(container);
-      const task = au.register(TestConfiguration)
-        .app({ host, component: Component, strategy })
-        .start();
-      const component = au.root.controller.bindingContext;
-      await task.wait();
+        const au = new Aurelia(container);
+        const task = au.register(TestConfiguration)
+          .app({ host, component: Component, strategy })
+          .start();
+        const component = au.root.controller.bindingContext;
+        await task.wait();
 
-      assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent) === elseText.repeat(count)`);
+        assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent) === elseText.repeat(count)`);
 
-      execute(component as any, ctx.lifecycle, host, count, ifText, elseText);
+        execute(component as any, ctx.lifecycle, host, count, ifText, elseText);
 
-      au.stop();
-      assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
+        au.stop();
+        assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
+      });
     });
-  });
 
 });

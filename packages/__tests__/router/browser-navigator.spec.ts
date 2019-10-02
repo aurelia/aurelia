@@ -224,7 +224,7 @@ describe('BrowserNavigator', function () {
         function (state) {
           instruction = state;
         },
-        useUrlFragmentHash: false,
+      useUrlFragmentHash: false,
     });
 
     await sut.pushNavigatorState(toNavigatorState('one'));

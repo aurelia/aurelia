@@ -151,8 +151,8 @@ const retryStrategies = [
     return Math.random() * (maxRandomInterval - minRandomInterval) + minRandomInterval;
   }
 ] as [
-    (interval: number) => number,
-    (retryCount: number, interval: number) => number,
-    (retryCount: number, interval: number) => number,
-    (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
-  ];
+  (interval: number) => number,
+  (retryCount: number, interval: number) => number,
+  (retryCount: number, interval: number) => number,
+  (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
+];

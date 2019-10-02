@@ -32,7 +32,7 @@ module.exports = {
   reportUnusedDisableDirectives: true,
   rules: {
     // Opinionated overrides of the default recommended rules:
-    '@typescript-eslint/indent': ['warn', 2],
+    '@typescript-eslint/indent': ['error', 2],
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-inferrable-types': 'off', // Turn no-inferrable-types off in order to make the code consistent in its use of type decorations.
@@ -62,6 +62,7 @@ module.exports = {
     '@typescript-eslint/no-require-imports': 'error',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/prefer-function-type': 'error',
+    '@typescript-eslint/semi': 'error',
     '@typescript-eslint/triple-slash-reference': ['error', { path: 'never', types: 'always', lib: 'never' }],
     'new-parens': ['error', 'always'],
     'no-caller': 'error',
@@ -114,7 +115,6 @@ module.exports = {
     '@typescript-eslint/no-use-before-define': 'warn',
     '@typescript-eslint/prefer-readonly': 'warn',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
-    '@typescript-eslint/semi': 'warn',
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/type-annotation-spacing': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],

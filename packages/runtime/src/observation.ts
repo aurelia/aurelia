@@ -152,31 +152,31 @@ export const enum CollectionKind {
 
 export type LengthPropertyName<T> =
   T extends unknown[] ? 'length' :
-  T extends Set<unknown> ? 'size' :
-  T extends Map<unknown, unknown> ? 'size' :
-  never;
+    T extends Set<unknown> ? 'size' :
+      T extends Map<unknown, unknown> ? 'size' :
+        never;
 
 export type CollectionTypeToKind<T> =
   T extends unknown[] ? CollectionKind.array | CollectionKind.indexed :
-  T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed :
-  T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed :
-  never;
+    T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed :
+      T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed :
+        never;
 
 export type CollectionKindToType<T> =
   T extends CollectionKind.array ? unknown[] :
-  T extends CollectionKind.indexed ? unknown[] :
-  T extends CollectionKind.map ? Map<unknown, unknown> :
-  T extends CollectionKind.set ? Set<unknown> :
-  T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> :
-  never;
+    T extends CollectionKind.indexed ? unknown[] :
+      T extends CollectionKind.map ? Map<unknown, unknown> :
+        T extends CollectionKind.set ? Set<unknown> :
+          T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> :
+            never;
 
 export type ObservedCollectionKindToType<T> =
   T extends CollectionKind.array ? IObservedArray :
-  T extends CollectionKind.indexed ? IObservedArray :
-  T extends CollectionKind.map ? IObservedMap :
-  T extends CollectionKind.set ? IObservedSet :
-  T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
-  never;
+    T extends CollectionKind.indexed ? IObservedArray :
+      T extends CollectionKind.map ? IObservedMap :
+        T extends CollectionKind.set ? IObservedSet :
+          T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
+            never;
 
 export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCollection {
   proxy: IProxy<TObj>;
@@ -203,7 +203,7 @@ export interface IBindingTargetAccessor<
   TProp = keyof TObj,
   TValue = unknown>
   extends IAccessor<TValue>,
-          IPropertyChangeTracker<TObj, TProp> {
+  IPropertyChangeTracker<TObj, TProp> {
   priority?: Priority;
   bind?(flags: LifecycleFlags): void;
   unbind?(flags: LifecycleFlags): void;
@@ -217,8 +217,8 @@ export interface IBindingTargetObserver<
   TProp = keyof TObj,
   TValue = unknown>
   extends IBindingTargetAccessor<TObj, TProp, TValue>,
-          ISubscribable,
-          ISubscriberCollection {}
+  ISubscribable,
+  ISubscriberCollection {}
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
@@ -308,13 +308,13 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection,
   IBatchable {
-    inBatch: boolean;
-    lifecycle: ILifecycle;
-    persistentFlags: LifecycleFlags;
-    collection: ObservedCollectionKindToType<T>;
-    lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
-    getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
-    notify(): void;
+  inBatch: boolean;
+  lifecycle: ILifecycle;
+  persistentFlags: LifecycleFlags;
+  collection: ObservedCollectionKindToType<T>;
+  lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+  getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+  notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
@@ -343,17 +343,14 @@ export interface IScope {
   readonly overrideContext: IOverrideContext;
 }
 
-export type ObserversLookup = IIndexable<
-  {
-    getOrCreate(
-      lifecycle: ILifecycle,
-      flags: LifecycleFlags,
-      obj: IBindingContext | IOverrideContext,
-      key: string,
-    ): PropertyObserver;
-  },
-  PropertyObserver
->;
+export type ObserversLookup = IIndexable<{
+  getOrCreate(
+    lifecycle: ILifecycle,
+    flags: LifecycleFlags,
+    obj: IBindingContext | IOverrideContext,
+    key: string,
+  ): PropertyObserver;
+}, PropertyObserver>;
 
 export type InlineObserversLookup<T> = IIndexable<{}, T>;
 

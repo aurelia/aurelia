@@ -105,15 +105,15 @@ export class Compose<T extends INode = Node> {
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
       .reduce<Record<string, TargetedInstruction>>(
-        (acc, item: ITargetedInstruction & { to?: string }) => {
-          if (item.to) {
-            acc[item.to!] = item! as TargetedInstruction;
-          }
+      (acc, item: ITargetedInstruction & { to?: string }) => {
+        if (item.to) {
+          acc[item.to!] = item! as TargetedInstruction;
+        }
 
-          return acc;
-        },
-        {}
-      );
+        return acc;
+      },
+      {}
+    );
 
     this.task = LifecycleTask.done;
     this.lastSubject = void 0;

@@ -83,6 +83,7 @@ export class ExpressionParser {
         }
     }
 }
+/* eslint-disable @typescript-eslint/indent */
 export var BindingType;
 (function (BindingType) {
     BindingType[BindingType["None"] = 0] = "None";
@@ -112,4 +113,5 @@ export var BindingType;
     BindingType[BindingType["ForCommand"] = 539] = "ForCommand";
     BindingType[BindingType["CustomCommand"] = 284] = "CustomCommand";
 })(BindingType || (BindingType = {}));
+/* eslint-enable @typescript-eslint/indent */
 //# sourceMappingURL=expression-parser.js.map

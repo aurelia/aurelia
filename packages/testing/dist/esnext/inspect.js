@@ -770,8 +770,7 @@ export function formatSpecialArray(ctx, value, recurseTimes, maxLength, output, 
 }
 export function formatArrayBuffer(ctx, value) {
     const buffer = new Uint8Array(value);
-    let str = join(buffer
-        .slice(0, Math.min(ctx.maxArrayLength, buffer.length)).map(val => val.toString(16)), ' ');
+    let str = join(buffer.slice(0, Math.min(ctx.maxArrayLength, buffer.length)).map(val => val.toString(16)), ' ');
     const remaining = buffer.length - ctx.maxArrayLength;
     if (remaining > 0) {
         str += ` ... ${remaining} more byte${remaining > 1 ? 's' : ''}`;

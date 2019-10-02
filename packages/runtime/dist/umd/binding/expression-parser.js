@@ -95,6 +95,7 @@
         }
     }
     exports.ExpressionParser = ExpressionParser;
+    /* eslint-disable @typescript-eslint/indent */
     var BindingType;
     (function (BindingType) {
         BindingType[BindingType["None"] = 0] = "None";
@@ -125,4 +126,5 @@
         BindingType[BindingType["CustomCommand"] = 284] = "CustomCommand";
     })(BindingType = exports.BindingType || (exports.BindingType = {}));
 });
+/* eslint-enable @typescript-eslint/indent */
 //# sourceMappingURL=expression-parser.js.map

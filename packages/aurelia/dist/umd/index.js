@@ -308,7 +308,7 @@
     // ProxyObserver,
     // SelfObserver,
     // SetterObserver,
-    // ISignaler,
+    exports.ISignaler = runtime_1.ISignaler;
     exports.subscriberCollection = runtime_1.subscriberCollection;
     exports.collectionSubscriberCollection = runtime_1.collectionSubscriberCollection;
     exports.proxySubscriberCollection = runtime_1.proxySubscriberCollection;
@@ -590,7 +590,7 @@
     // IStylePropertyBindingInstruction,
     // ITextBindingInstruction,
     // NodeType,
-    // HTMLDOM,
+    exports.HTMLDOM = runtime_html_1.HTMLDOM;
     exports.DOM = runtime_html_1.DOM;
     // NodeSequenceFactory,
     // FragmentNodeSequence,

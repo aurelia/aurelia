@@ -23,6 +23,7 @@ export class App {
   }
 
   public async binding(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     loader.add('logo', require('img/aurelia-icon-256x256.png'));
     await loader.load();
 

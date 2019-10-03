@@ -29,7 +29,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
 
     let runBenchmarks = benchmarks.filter(b => benchmarkNames.some(name => b.id.toLowerCase().indexOf(name) > -1));
 
-    let restart: string = undefined; // 'rx-domh-rxjs-v0.0.2-keyed';
+    let restart: string; // 'rx-domh-rxjs-v0.0.2-keyed';
     let index = runFrameworks.findIndex(f => f.fullNameWithKeyedAndVersion===restart);
     if (index>-1) {
         runFrameworks = runFrameworks.slice(index);

@@ -100,11 +100,11 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             title: `${arrayCaseConfig.title} - with [Identity] value converter`,
             repeatExpression: 'item of items | identity'
           },
-          {
-            ...arrayCaseConfig,
-            title: `${arrayCaseConfig.title} - with [Clone] value converter`,
-            repeatExpression: 'item of items | clone'
-          }
+          // {
+          //   ...arrayCaseConfig,
+          //   title: `${arrayCaseConfig.title} - with [Clone] value converter`,
+          //   repeatExpression: 'item of items | clone'
+          // }
         ]);
       },
       []
@@ -175,11 +175,11 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             title: `${mapCaseConfig.title} - with [Identity] value converter`,
             repeatExpression: `${mapCaseConfig.repeatExpression} | identity`
           },
-          {
-            ...mapCaseConfig,
-            title: `${mapCaseConfig.title} - with [Clone] value converter`,
-            repeatExpression: `${mapCaseConfig.repeatExpression} | clone`
-          },
+          // {
+          //   ...mapCaseConfig,
+          //   title: `${mapCaseConfig.title} - with [Clone] value converter`,
+          //   repeatExpression: `${mapCaseConfig.repeatExpression} | clone`
+          // },
         ]);
       },
       []
@@ -257,11 +257,11 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             title: `${setCaseConfig.title} - with [Identity] value converter`,
             repeatExpression: `${setCaseConfig.repeatExpression} | identity`
           },
-          {
-            ...setCaseConfig,
-            title: `${setCaseConfig.title} - with [Clone] value converter`,
-            repeatExpression: `${setCaseConfig.repeatExpression} | clone`
-          }
+          // {
+          //   ...setCaseConfig,
+          //   title: `${setCaseConfig.title} - with [Clone] value converter`,
+          //   repeatExpression: `${setCaseConfig.repeatExpression} | clone`
+          // }
         ]);
       },
       []
@@ -315,11 +315,11 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             title: `${numberCaseConfig.title} - with [Identity] value converter`,
             repeatExpression: `item of items | identity`
           },
-          {
-            ...numberCaseConfig,
-            title: `${numberCaseConfig.title} - with [clone] value converter`,
-            repeatExpression: `item of items | clone`
-          }
+          // {
+          //   ...numberCaseConfig,
+          //   title: `${numberCaseConfig.title} - with [clone] value converter`,
+          //   repeatExpression: `item of items | clone`
+          // }
         ]);
       },
       []

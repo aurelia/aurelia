@@ -206,13 +206,14 @@ function sortBy(metric, sortDir) {
     // cpu, memory, startup
     var benchType = typeNum[0];
     var num = typeNum[1];
+    var cmp;
 
     if (benchType == "name")
-        var cmp = (a, b) => STORE.sortDir * a.name.localeCompare(b.name);
+        cmp = (a, b) => STORE.sortDir * a.name.localeCompare(b.name);
     else if (num == null)
-        var cmp = (a, b) => STORE.sortDir * (a.factors[benchType] - b.factors[benchType]);
+        cmp = (a, b) => STORE.sortDir * (a.factors[benchType] - b.factors[benchType]);
     else {
-        var cmp = (a, b) => {
+        cmp = (a, b) => {
             var aVals = a.bench[benchType][num],
                 bVals = b.bench[benchType][num];
 

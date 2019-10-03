@@ -546,11 +546,11 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.fromCache) { flagNames.push('fromCache'); }
   if (flags & LifecycleFlags.fromDOMEvent) { flagNames.push('fromDOMEvent'); }
   if (flags & LifecycleFlags.fromLifecycleTask) { flagNames.push('fromLifecycleTask'); }
-  if (flags & LifecycleFlags.parentUnmountQueued) { flagNames.push('parentUnmountQueued'); }
   if (flags & LifecycleFlags.isTraversingParentScope) { flagNames.push('isTraversingParentScope'); }
   if (flags & LifecycleFlags.allowParentScopeTraversal) { flagNames.push('allowParentScopeTraversal'); }
   if (flags & LifecycleFlags.getterSetterStrategy) { flagNames.push('getterSetterStrategy'); }
   if (flags & LifecycleFlags.proxyStrategy) { flagNames.push('proxyStrategy'); }
+  if (flags & LifecycleFlags.secondaryExpression) { flagNames.push('secondaryExpression'); }
 
   if (flagNames.length === 0) {
     return 'none';

@@ -13,15 +13,15 @@ function combine(browsers, oses) {
       for (const { versions: os_versions, name: os } of oses) {
         for (const os_version of os_versions) {
           capabilities.push({
-            browser: browserName,
+            "browser": browserName,
             browserName,
             browser_version,
-            browserVersion: browser_version,
-            version: browser_version,
+            "browserVersion": browser_version,
+            "version": browser_version,
             os,
-            platform: os,
-            platformName: os,
-            platformVersion: os_version,
+            "platform": os,
+            "platformName": os,
+            "platformVersion": os_version,
             os_version,
             'project': 'Aurelia vNext',
             'name': `${CIEnv.CIRCLE_PROJECT_REPONAME}_${CIEnv.CIRCLE_BRANCH}`,

@@ -224,11 +224,11 @@ export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver
 
     console.time("chromedriver");
     let caps = new Capabilities({
-        browserName: 'chrome',
-        platform: 'ANY',
-        version: 'stable',
+        "browserName": 'chrome',
+        "platform": 'ANY',
+        "version": 'stable',
         "goog:chromeOptions": {
-            args: args,
+            "args": args,
             "perfLoggingPrefs": {
                 "enableNetwork": true,
                 "enablePage": true,

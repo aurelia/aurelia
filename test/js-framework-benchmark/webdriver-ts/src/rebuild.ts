@@ -7,7 +7,7 @@ import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError
 var exec = require('child_process').execSync;
 
 async function main() {
-let frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
+let frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 
 if (frameworks.length === 0) {
     console.log("usage: rebuild.js [directory1, directory2, ...]");

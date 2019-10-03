@@ -54,7 +54,7 @@ async function stopContainerIfRunnning() {
         console.log("js-framework-benchmark container runs. Stopping this container.");
         let res = exec('docker stop js-framework-benchmark', {
             stdio: r
-        });    
+        });
     }
 }
 
@@ -128,7 +128,7 @@ main()
 let updatePackages = args.update;
 console.log("ARGS", args._.slice(2, args._.length));
 let directories = args._.slice(2, args._.length);
-let checkDirectory = (keyedType:string, folderName: string) => directories.length===0 || args._.includes(path.join(keyedType, folderName));
+let checkDirectory = (keyedType:string, folderName: string) => directories.length===0 || args._.includes(path.join(keyedType, folderName));
 
 async function ncuReportsUpdatedVersion(packageVersionInfo: PackageVersionInformationResult) {
     let ncuInfo = await ncu.run({

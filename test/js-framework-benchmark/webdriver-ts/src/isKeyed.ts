@@ -14,7 +14,7 @@ let args = yargs(process.argv)
     .boolean('headless')
     .array("framework").argv;
 
-let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
+let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 let runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
 // necessary to launch without specifiying a path

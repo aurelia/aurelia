@@ -94,7 +94,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
     }
 }
 
-let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
+let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 // if no --option is passed we interpret the arguments as directory names that should be ru-run
 
 let args = yargs(process.argv)

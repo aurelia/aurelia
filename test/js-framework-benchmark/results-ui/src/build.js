@@ -121,7 +121,7 @@ async function build() {
 	};
 
 	const uglifyOpts = {
-		compress: Object.assign({}, compressDefaults, {
+		compress: {...compressDefaults, ...{
 			booleans: false,
 			inline: 0,
 			keep_fargs: false,
@@ -130,7 +130,7 @@ async function build() {
 			reduce_funcs: false,
 			unsafe: true,
 			unsafe_math: true,
-		}),
+		}},
 	};
 
     const { output } = await bundle.generate({

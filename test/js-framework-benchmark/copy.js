@@ -36,12 +36,7 @@ function include(name) {
 					return name.endsWith('/target') || name.indexOf("/target/web")>-1;
 				}
 		}
-		if (excludes.every(ex => name.indexOf(ex)==-1)) {
-			// console.log("<- filter", name);
-			return true;
-		} else {
-			return false;
-		}
+		return excludes.every(ex => name.indexOf(ex)==-1);
 }
 
 function copyFolderRecursiveSync( source, target ) {

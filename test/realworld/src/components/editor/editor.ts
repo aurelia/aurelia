@@ -1,17 +1,27 @@
 import { inject } from "@aurelia/kernel";
-import { IRouter } from "@aurelia/router";
+import { IRouter, lifecycleLogger } from "@aurelia/router";
 import { bindable, BindingMode } from "@aurelia/runtime";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
 
+@lifecycleLogger('editor')
 @inject(ArticleService, IRouter)
 export class Editor {
   @bindable({ mode: BindingMode.twoWay }) public tag?: string;
   private article?: Article;
   private slug?: string;
 
-  constructor(private readonly articleService: ArticleService, private readonly router: IRouter) {
-  }
+  constructor(private readonly articleService: ArticleService, private readonly router: IRouter) { }
+
+  public created() { }
+  public binding() { }
+  public bound() { }
+  public attaching() { }
+  public attached() { }
+  public detaching() { }
+  public detached() { }
+  public unbinding() { }
+  public unbound() { }
 
   public enter(params: { slug: any; }) {
     this.slug = params.slug;
@@ -21,7 +31,7 @@ export class Editor {
         .then((article) => {
           this.article = article;
         });
-    } else {
+    } else if (!this.article) {
       this.article = {
         body: '',
         description: '',
@@ -56,7 +66,7 @@ export class Editor {
     this.articleService.save(this.article)
       .then((article) => {
         this.slug = article.slug;
-        this.router.goto('article', 'article', { slug: this.slug });
+        this.router.goto({ component: 'article', parameters: { slug: this.slug } });
       });
   }
 }

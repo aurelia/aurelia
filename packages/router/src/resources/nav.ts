@@ -42,12 +42,12 @@ export class NavCustomElement {
 
   get navRoutes(): NavRoute[] {
     const nav = this.router.navs[this.name as string];
-    return (nav ? nav.routes : []);
+    return (nav !== void 0 && nav !== null ? nav.routes : []);
   }
 
   get navClasses(): INavClasses {
     const nav = this.router.navs[this.name as string];
-    const navClasses = (nav ? nav.classes : {});
+    const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
     return {
       ... {
         nav: '',

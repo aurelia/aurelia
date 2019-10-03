@@ -4,22 +4,23 @@ module.exports = function(env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
+    devtool: production ? 'source-maps' : 'inline-source-map',
     entry: './src/startup.ts',
-    devtool: production ? 'source-map' : 'eval-source-map',
     resolve: {
       extensions: ['.ts', '.js'],
       modules: ['src', 'node_modules']
     },
     devServer: {
-      port: 9000,
       historyApiFallback: true,
-      open: true,
+      open: !process.env.CI,
+      port: 9000,
       lazy: false
     },
     module: {
       rules: [
-        { test: /\.ts$/i, loader: 'ts-loader' },
-        { test: /\.html$/i, loader: 'html-loader' }
+        { test: /\.css$/i, use: ["style-loader", "css-loader"] },
+        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
+        { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]

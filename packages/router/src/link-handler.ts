@@ -32,6 +32,7 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
+  // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = { callback: () => { } };
   private isActive: boolean = false;
 
@@ -87,7 +88,7 @@ export class LinkHandler {
    * @returns The link element that is the closest ancestor.
    */
   private static closestAnchor(el: Element): Element | null {
-    while (el) {
+    while (el !== null && el !== void 0) {
       if (el.tagName === 'A') {
         return el;
       }

@@ -45,7 +45,7 @@ export class App implements IViewModel {
 
   public async binding() {
     this.router.guardian.addGuard(
-      () => {
+      (instructions) => {
         if (this.state.isAuthenticated) { return true; }
         this.router.goto(`auth(type=login)`);
         return [];

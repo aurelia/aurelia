@@ -198,7 +198,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         this.forwardedState.suppressPopstate = false;
       }
     }
-    // tslint:disable-next-line:ban-types
+    // eslint-disable-next-line @typescript-eslint/ban-types
     const method = (call.target as { [key: string]: Function | undefined })[call.methodName];
     Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
     if (method) {

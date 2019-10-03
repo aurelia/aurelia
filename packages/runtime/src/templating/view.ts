@@ -130,6 +130,7 @@ export interface IViewLocator {
 }
 
 export type ClassInstance<T> = T & {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly constructor: Function;
 };
 

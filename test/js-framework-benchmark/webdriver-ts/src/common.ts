@@ -15,7 +15,7 @@ export interface BenchmarkError {
 
 export interface ErrorsAndWarning {
   errors: BenchmarkError[];
-  warnings: String[];
+  warnings: string[];
 }
 
 export interface BenchmarkDriverOptions {

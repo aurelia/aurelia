@@ -186,7 +186,7 @@ async function runBench(frameworkNames: string[]) {
   }
   console.log("Frameworks that will be checked", runFrameworks.map(f => f.fullNameWithKeyedAndVersion).join(' '));
 
-  let frameworkMap = new Map<String, FrameworkData>();
+  let frameworkMap = new Map<string, FrameworkData>();
 
   let allCorrect = true;
 

@@ -169,7 +169,7 @@ async function runLighthouse(framework: FrameworkData, benchmarkOptions: Benchma
   }
 }
 
-async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkOptions, framework: FrameworkData, benchmark: Benchmark, warnings: String[]): Promise<number[]> {
+async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkOptions, framework: FrameworkData, benchmark: Benchmark, warnings: string[]): Promise<number[]> {
   let entriesBrowser = await driver.manage().logs().get(logging.Type.BROWSER);
   if (config.LOG_DEBUG) console.log("browser entries", entriesBrowser);
   const perfLogEvents = (await fetchEventsFromPerformanceLog(driver));
@@ -237,7 +237,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
   return results;
 }
 
-async function computeResultsMEM(driver: WebDriver, benchmarkOptions: BenchmarkOptions, framework: FrameworkData, benchmark: Benchmark, warnings: String[]): Promise<number> {
+async function computeResultsMEM(driver: WebDriver, benchmarkOptions: BenchmarkOptions, framework: FrameworkData, benchmark: Benchmark, warnings: string[]): Promise<number> {
   let entriesBrowser = await driver.manage().logs().get(logging.Type.BROWSER);
   if (config.LOG_DEBUG) console.log("browser entries", entriesBrowser);
   let filteredEvents = (await fetchEventsFromPerformanceLog(driver)).timingResults;
@@ -375,7 +375,7 @@ const wait = (delay = 1000) => new Promise(res => setTimeout(res, delay));
 async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
 {
   let errors: BenchmarkError[] = [];
-  let warnings: String[] = [];
+  let warnings: string[] = [];
 
 
   console.log("benchmarking ", framework, benchmark.id);
@@ -442,7 +442,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
 async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
 {
   let errors: BenchmarkError[] = [];
-  let warnings: String[] = [];
+  let warnings: string[] = [];
   let allResults: number[] = [];
 
   console.log("benchmarking ", framework, benchmark.id);

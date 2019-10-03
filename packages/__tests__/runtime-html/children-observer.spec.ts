@@ -114,7 +114,7 @@ describe('ChildrenObserver', () => {
     });
   });
 
-  function waitForUpdate(callback: Function) {
+  function waitForUpdate(callback: () => void) {
     Promise.resolve().then(() => callback());
   }
 

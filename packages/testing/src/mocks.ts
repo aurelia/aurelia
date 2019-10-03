@@ -279,7 +279,7 @@ export class MockBrowserHistoryLocation {
     this.notifyChange();
   }
 
-  public activate(callback: Function): void { }
+  public activate(): void { }
   public deactivate(): void { }
 
   // TODO: Fix a better split

@@ -25,7 +25,7 @@ function forkedRun(frameworks: FrameworkData[], frameworkName: string, keyed: bo
 
 async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]) {
   let errors: BenchmarkError[] = [];
-  let warnings: String[] = [];
+  let warnings: string[] = [];
 
   let runBenchmarks = benchmarks.filter(b => benchmarkNames.some(name => b.id.toLowerCase().indexOf(name) > -1));
 

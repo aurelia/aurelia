@@ -636,7 +636,7 @@ This can be useful if you want to cache the `Intl.NumberFormat` instance and reu
 Numeric strings can be converted back to a number using the `I18nService#uf` method.
 The method takes the numeric string as first argument, followed by an optional second argument for locale, as shown in the following example.
 
-```typescript my-demo-vm.ts
+```typescript
 import { I18N, I18nService } from '@aurelia/i18n';
 
 export class MyDemoVm {

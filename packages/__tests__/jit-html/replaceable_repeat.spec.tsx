@@ -384,6 +384,62 @@ describe('replaceable', function () {
     });
   });
 
+  describe('when having multiple component instances next to each other', () => {
+    [
+      [
+        'when there’s no repeat',
+        '<template>Start<div replaceable part="bar"></div>End</template>',
+        'StartFirstEndStartSecondEnd',
+      ],
+      [
+        'when the templates are instantiated in a repeat',
+        '<template>Start<div repeat.for="item of items">${item}<div replaceable part="bar"></div>End</template>',
+        'Start1First2FirstEndStart1Second2SecondEnd',
+      ]
+    ].forEach(([description, componentTemplate, expectedContent]) => {
+      it(`doesn’t confuse the templates ${description}`, function () {
+
+        const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">First</div></foo><foo><div replace-part="bar">Second</div></foo></template>` }, class { public baz = 'def'; });
+        const Foo = CustomElement.define({ name: 'foo', template: componentTemplate }, class { public items = [1, 2]; });
+
+        const ctx = TestContext.createHTMLTestContext();
+        ctx.container.register(Foo);
+        const au = new Aurelia(ctx.container);
+
+        const host = ctx.createElement('div');
+        const component = new App();
+
+        au.app({ host, component });
+
+        au.start();
+
+        assert.strictEqual(host.textContent, expectedContent, `host.textContent`);
+
+        tearDown(au);
+      });
+    });
+
+    // it(`doesn’t confuse the templates when they are instantiated in a repeat`, function () {
+
+    //   const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">First</div></foo><foo><div replace-part="bar">Second</div></foo></template>` }, class { public baz = 'def'; });
+    //   const Foo = CustomElement.define({ name: 'foo', template:  }, class { public items = [1, 2]; });
+
+    //   const ctx = TestContext.createHTMLTestContext();
+    //   ctx.container.register(Foo);
+    //   const au = new Aurelia(ctx.container);
+
+    //   const host = ctx.createElement('div');
+    //   const component = new App();
+
+    //   au.app({ host, component });
+
+    //   au.start();
+
+    //   assert.strictEqual(host.textContent, 'X1First2FirstXX1Second2SecondX', `host.textContent`);
+
+    // });
+  });
+
   interface ITestItem {
     idx: number;
     name: string;

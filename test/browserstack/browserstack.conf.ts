@@ -4,7 +4,7 @@ import * as browserstack from 'browserstack-local';
 import { CIEnv } from '../../scripts/ci-env';
 declare var browser: any;
 
-const build = `e2e_${Date.now()}`
+const build = `e2e_${Date.now()}`;
 
 function combine(browsers, oses) {
   const capabilities = [];
@@ -231,4 +231,4 @@ exports.config = {
       console.log(`Error - marking session ${browser.sessionId} as failed - ${message}`);
       CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message });
     }
-}
+};

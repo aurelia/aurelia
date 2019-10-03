@@ -5,7 +5,7 @@ var lastMeasure;
 var startMeasure = function(name) {
     startTime = performance.now();
     lastMeasure = name;
-}
+};
 var stopMeasure = function() {
     var last = lastMeasure;
     if (lastMeasure) {
@@ -16,7 +16,7 @@ var stopMeasure = function() {
             console.log(last+" took "+(stop-startTime));
         }, 0);
     }
-}
+};
 
 function _random(max) {
     return Math.round(Math.random()*1000)%max;
@@ -102,7 +102,7 @@ var getParentId = function(elem) {
         elem = elem.parentNode;
     }
     return undefined;
-}
+};
 class Main {
     constructor(props) {
         this.store = new Store();
@@ -296,8 +296,8 @@ class Main {
             this.data[1] = this.store.data[1];
             this.data[998] = this.store.data[998];
 
-            this.tbody.insertBefore(this.rows[998], this.rows[2])
-            this.tbody.insertBefore(this.rows[1], this.rows[999])
+            this.tbody.insertBefore(this.rows[998], this.rows[2]);
+            this.tbody.insertBefore(this.rows[1], this.rows[999]);
 
             let tmp = this.rows[998];
             this.rows[998] = this.rows[1];

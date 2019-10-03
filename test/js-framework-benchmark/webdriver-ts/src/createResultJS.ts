@@ -1,7 +1,7 @@
-import * as _ from 'lodash'
+import * as _ from 'lodash';
 import * as fs from 'fs';
-import {JSONResult, config, FrameworkData, initializeFrameworks} from './common'
-import {BenchmarkType, Benchmark, benchmarks, fileName, BenchmarkInfo} from './benchmarks'
+import {JSONResult, config, FrameworkData, initializeFrameworks} from './common';
+import {BenchmarkType, Benchmark, benchmarks, fileName, BenchmarkInfo} from './benchmarks';
 import * as yargs from 'yargs';
 
 async function main() {
@@ -30,11 +30,11 @@ async function main() {
                 let data : JSONResult = JSON.parse(fs.readFileSync(file, {
                     encoding:'utf-8'
                 }));
-                if (data.values.some(v => v==null)) console.log(`Found null value for ${framework.fullNameWithKeyedAndVersion} and benchmark ${benchmarkInfo.id}`)
+                if (data.values.some(v => v==null)) console.log(`Found null value for ${framework.fullNameWithKeyedAndVersion} and benchmark ${benchmarkInfo.id}`);
                 let result = {f:data.framework, b:data.benchmark, v:data.values.filter(v => v!=null)};
                 let resultNice = {framework:data.framework, benchmark:data.benchmark, values:data.values.filter(v => v!=null)};
                 resultJS += '\n' + JSON.stringify(result) + ',';
-                jsonResult.push(resultNice)
+                jsonResult.push(resultNice);
             } else {
                 console.log("MISSING FILE",file);
             }
@@ -50,4 +50,4 @@ fs.writeFileSync('./results.json', JSON.stringify(jsonResult), {encoding: 'utf-8
 
 }
 
-main().catch(e => {console.log("error processing results",e); process.exit(1)});
+main().catch(e => {console.log("error processing results",e); process.exit(1);});

@@ -5,13 +5,13 @@ var lastMeasure: string;
 var startMeasure = function(name) {
     startTime = performance.now();
     lastMeasure = name;
-}
+};
 var stopMeasure = function() {
     window.setTimeout(function() {
         var stop = performance.now();
         console.log(lastMeasure+" took "+(stop-startTime));
     }, 0);
-}
+};
 
 export class App {
     store: Store;

@@ -52,7 +52,7 @@ export let config = {
     FORK_CHROMEDRIVER: true,
     WRITE_RESULTS: true,
     RESULTS_DIRECTORY: "results"
-}
+};
 export type TConfig = typeof config;
 
 export interface FrameworkData {
@@ -106,7 +106,7 @@ export class FrameworkVersionInformationStatic extends FrameworkVersionInformati
             uri: this.url,
             keyed: this.keyedType === 'keyed',
             useShadowRoot: this.useShadowRoot
-        }
+        };
     }
 }
 
@@ -211,7 +211,7 @@ export class PackageVersionInformationResult {
             uri: this.framework.url,
             keyed: this.framework.keyedType === 'keyed',
             useShadowRoot: this.framework.useShadowRoot
-        }
+        };
     }
 }
 
@@ -219,7 +219,7 @@ export async function determineInstalledVersions(framework: FrameworkVersionInfo
 
     let versions = new PackageVersionInformationResult(framework);
     try {
-        console.log(`http://localhost:${config.PORT}/frameworks/${framework.keyedType}/${framework.directory}/package-lock.json`)
+        console.log(`http://localhost:${config.PORT}/frameworks/${framework.keyedType}/${framework.directory}/package-lock.json`);
         let packageLock: any = (await axios.get(`http://localhost:${config.PORT}/frameworks/${framework.keyedType}/${framework.directory}/package-lock.json`)).data;
         for (let packageName of framework.packageNames) {
             if (packageLock.dependencies[packageName]) {
@@ -253,7 +253,7 @@ export async function initializeFrameworks(matchPredicate: IMatchPredicate = mat
         } else if (frameworkVersionInformation instanceof FrameworkVersionInformationStatic) {
             frameworks.push(frameworkVersionInformation.getFrameworkData());
         } else {
-            console.log(`WARNING: Ignoring package ${frameworkVersionInformation.keyedType}/${frameworkVersionInformation.directory}: ${frameworkVersionInformation.error}`)
+            console.log(`WARNING: Ignoring package ${frameworkVersionInformation.keyedType}/${frameworkVersionInformation.directory}: ${frameworkVersionInformation.error}`);
             frameworks.push(null);
         }
     }

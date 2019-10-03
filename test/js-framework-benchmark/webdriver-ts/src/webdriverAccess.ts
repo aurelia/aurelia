@@ -1,7 +1,7 @@
-import * as chrome from 'selenium-webdriver/chrome'
-import {By, until, Builder, Capabilities, WebDriver, Locator, promise, logging, WebElement, Condition} from 'selenium-webdriver'
+import * as chrome from 'selenium-webdriver/chrome';
+import {By, until, Builder, Capabilities, WebDriver, Locator, promise, logging, WebElement, Condition} from 'selenium-webdriver';
 
-import {config, BenchmarkDriverOptions} from './common'
+import {config, BenchmarkDriverOptions} from './common';
 
 interface PathPart {
     tagName: string;
@@ -24,7 +24,7 @@ function convertPath(path: string): Array<PathPart> {
         if (components.length==2) {
             index = Number(components[1]);
             if (!index) {
-                console.log("Index can't be parsed", components[1])
+                console.log("Index can't be parsed", components[1]);
                 throw "Index can't be parsed "+components[1];
             }
         } else {
@@ -43,7 +43,7 @@ export async function findByXPath(node: WebElement, path: string): Promise<WebEl
         for (let p of paths) {
             // n = n.then(nd => nd.findElements(By.tagName(p.tagName))).then(elems => { // costly since it fetches all elements
            let elems = await n.findElements(By.css(p.tagName+":nth-child("+(p.index)+")"));
-           if (elems==null || elems.length==0) { return null};
+           if (elems==null || elems.length==0) { return null; }
            n = elems[0];
         }
      } catch (e) {
@@ -61,7 +61,7 @@ function elemNull(v: any) {
 function waitForCondition(driver: WebDriver) {
     return async function(text: string, fn: (driver:WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
         return await driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
-    }
+    };
 }
 
 // driver.findElement(By.xpath("//tbody/tr[1]/td[1]")).getText().then(...) can throw a stale element error:
@@ -91,7 +91,7 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
                 let v = await elem.getText();
                 return v && v.indexOf(text)==-1;
             } catch(err) {
-                console.log("ignoring error in testTextNotContained for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0])
+                console.log("ignoring error in testTextNotContained for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
             }
         }, timeout);
 }
@@ -106,7 +106,7 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
                 let v = await elem.getAttribute("class");
                 return v && v.indexOf(text)>-1;
             } catch(err) {
-                console.log("ignoring error in testClassContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0])
+                console.log("ignoring error in testClassContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
             }
         }, timeout);
 }
@@ -119,7 +119,7 @@ export function testElementLocatedByXpath(driver: WebDriver, xpath: string, time
                 elem = await findByXPath(elem, xpath);
                 return elem ? true : false;
             } catch(err) {
-                console.log("ignoring error in testElementLocatedByXpath for xpath = "+xpath,err.toString())
+                console.log("ignoring error in testElementLocatedByXpath for xpath = "+xpath,err.toString());
             }
         }, timeout);
 }

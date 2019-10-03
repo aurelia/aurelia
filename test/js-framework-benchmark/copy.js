@@ -11,7 +11,7 @@ fs.copySync("webdriver-ts"+path.sep+"table.html", "dist"+path.sep+"webdriver-ts"
 fs.copySync("index.html", "dist"+path.sep+"index.html");
 fs.copySync("css", "dist"+path.sep+"css");
 
-var excludes = ["node_modules","elm-stuff","project",".DS_Store"]
+var excludes = ["node_modules","elm-stuff","project",".DS_Store"];
 var excludedDirectories = ['css', 'dist','node_modules','webdriver-ts'];
 
 // http://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js

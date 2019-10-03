@@ -1,13 +1,13 @@
-import {WebDriver, logging} from 'selenium-webdriver'
-import {BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData} from './benchmarks'
-import {setUseShadowRoot, buildDriver} from './webdriverAccess'
+import {WebDriver, logging} from 'selenium-webdriver';
+import {BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData} from './benchmarks';
+import {setUseShadowRoot, buildDriver} from './webdriverAccess';
 
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {TConfig, config as defaultConfig, JSONResult, FrameworkData, BenchmarkError, ErrorsAndWarning, BenchmarkOptions, BenchmarkDriverOptions} from './common'
+import {TConfig, config as defaultConfig, JSONResult, FrameworkData, BenchmarkError, ErrorsAndWarning, BenchmarkOptions, BenchmarkDriverOptions} from './common';
 import * as R from 'ramda';
 
 let config:TConfig = defaultConfig;
@@ -32,10 +32,10 @@ function extractRelevantEvents(entries: logging.Entry[]) {
         let e = JSON.parse(x.message).message;
         if (config.LOG_DETAILS) console.log(JSON.stringify(e));
         if (e.method === 'Tracing.dataCollected') {
-            protocolEvents.push(e)
+            protocolEvents.push(e);
         }
         if (e.method && (e.method.startsWith('Page') || e.method.startsWith('Network'))) {
-            protocolEvents.push(e)
+            protocolEvents.push(e);
         } else if (e.params.name==='EventDispatch') {
             if (e.params.args.data.type==="click") {
                 if (config.LOG_TIMELINE) console.log("CLICK ",JSON.stringify(e));
@@ -187,7 +187,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
 
             if (config.LOG_DEBUG) console.log("eventsDuringBenchmark ", eventsDuringBenchmark);
 
-            let clicks = R.filter(type_eq('click'))(eventsDuringBenchmark)
+            let clicks = R.filter(type_eq('click'))(eventsDuringBenchmark);
             if (clicks.length !== 1) {
                 console.log("exactly one click event is expected", eventsDuringBenchmark);
                 throw "exactly one click event is expected";
@@ -210,7 +210,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
             }
             paints.forEach(p => {
                 console.log("duration to paint ",((p.end - clicks[0].ts)/1000.0));
-            })
+            });
             let lastPaint = R.reduce((max, elem) => max.end > elem.end ? max : elem, {end: 0} as Timingresult, paints);
 
             let upperBoundForSoundnessCheck = (R.last(eventsDuringBenchmark).end - eventsDuringBenchmark[0].ts)/1000.0;
@@ -313,7 +313,7 @@ async function afterBenchmark(driver: WebDriver, benchmark: Benchmark, framework
 }
 
 async function initBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData): Promise<any> {
-    await benchmark.init(driver, framework)
+    await benchmark.init(driver, framework);
     if (config.LOG_PROGRESS) console.log("after initialized ",benchmark.id, benchmark.type, framework.name);
     if (benchmark.type === BenchmarkType.MEM) {
         await forceGC(framework, driver);
@@ -356,7 +356,7 @@ function writeResult<T>(res: Result<T>) {
             "geometricMean": s.geomean(),
             "standardDeviation": s.stdev(true),
             "values": data
-        }
+        };
         fs.writeFileSync(`${config.RESULTS_DIRECTORY}/${fileName(res.framework, resultKind)}`, JSON.stringify(result), {encoding: "utf8"});
     }
 }
@@ -397,7 +397,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
                     //     downloadThroughput: 780 * 1024 / 8, // 780 kb/s
                     //     uploadThroughput: 330 * 1024 / 8, // 330 kb/s
                     // });
-                    console.log("driver timerstamp *")
+                    console.log("driver timerstamp *");
                 await driver.executeScript("console.timeStamp('initBenchmark')");
 
                 if (framework.name.startsWith("scarletsframe")) {
@@ -434,7 +434,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
         console.log("ERROR:", e);
         await driver.close();
         await driver.quit();
-        if (config.EXIT_ON_ERROR) { throw "Benchmarking failed" }
+        if (config.EXIT_ON_ERROR) { throw "Benchmarking failed"; }
     }
     return {errors, warnings};
 }
@@ -481,7 +481,7 @@ async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, b
             errors.push(await registerError(driver, framework, benchmark, e, ));
             console.log(e);
             throw e;
-            if (config.EXIT_ON_ERROR) { throw "Benchmarking failed" }
+            if (config.EXIT_ON_ERROR) { throw "Benchmarking failed"; }
         } finally {
             await driver.close();
             await driver.quit();

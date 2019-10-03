@@ -29,7 +29,7 @@ let run = (production) => {
             .watch();
         fuse.dev();
     } else {
-        fuse.bundle('app').instructions(" > [startup.ts]")
+        fuse.bundle('app').instructions(" > [startup.ts]");
     }
     fuse.run();
 };

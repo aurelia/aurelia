@@ -33,5 +33,5 @@ module.exports = function (env, { mode }) {
       new HtmlWebpackPlugin({ template: 'index.ejs' }),
       new CopyWebpackPlugin([{ from: './css', to: './css' }])
     ]
-  }
-}
+  };
+};

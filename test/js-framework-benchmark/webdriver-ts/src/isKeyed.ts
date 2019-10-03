@@ -1,6 +1,6 @@
 import * as yargs from 'yargs';
-import {buildDriver, setUseShadowRoot, testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath, shadowRoot, findByXPath} from './webdriverAccess'
-import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './common'
+import {buildDriver, setUseShadowRoot, testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath, shadowRoot, findByXPath} from './webdriverAccess';
+import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './common';
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import * as R from 'ramda';
 
@@ -181,7 +181,7 @@ async function runBench(frameworkNames: string[]) {
         let frameworks = await initializeFrameworks();
         runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.indexOf(name)>-1));
     } else {
-        let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName)
+        let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName);
         runFrameworks = await initializeFrameworks(matchesDirectoryArg);
     }
     console.log("Frameworks that will be checked", runFrameworks.map(f => f.fullNameWithKeyedAndVersion).join(' '));
@@ -247,7 +247,7 @@ async function runBench(frameworkNames: string[]) {
             await driver.quit();
         }
     }
-    if (!allCorrect) process.exit(1)
+    if (!allCorrect) process.exit(1);
 }
 
 config.PORT = Number(args.port);
@@ -263,7 +263,7 @@ let benchmarkOptions: BenchmarkOptions = {
     numIterationsForCPUBenchmarks: config.REPEAT_RUN,
     numIterationsForMemBenchmarks: config.REPEAT_RUN_MEM,
     numIterationsForStartupBenchmark: config.REPEAT_RUN_STARTUP
-}
+};
 async function main() {
     if (args.help) {
         yargs.showHelp();

@@ -109,10 +109,10 @@ export class App implements IViewModel {
     ];
   }
 
-  public authenticated = (): boolean => {
+  public authenticated(): boolean {
     return this.state.currentUser && this.state.isAuthenticated;
   }
-  public notAuthenticated = (): boolean => {
+  public notAuthenticated(): boolean {
     return !this.authenticated();
   }
 }

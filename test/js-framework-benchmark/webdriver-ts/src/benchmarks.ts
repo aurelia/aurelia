@@ -1,6 +1,6 @@
-import { testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath } from './webdriverAccess'
-import { Builder, WebDriver, promise, logging } from 'selenium-webdriver'
-import { config, FrameworkData } from './common'
+import { testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath } from './webdriverAccess';
+import { Builder, WebDriver, promise, logging } from 'selenium-webdriver';
+import { config, FrameworkData } from './common';
 
 export enum BenchmarkType { CPU, MEM, STARTUP };
 
@@ -55,14 +55,14 @@ const benchRun = new class extends Benchmark {
             label: "create rows",
             description: "creating 1,000 rows",
             type: BenchmarkType.CPU
-        })
+        });
     }
     async init(driver: WebDriver) { await testElementLocatedById(driver, "add", SHORT_TIMEOUT); }
     async run(driver: WebDriver) {
         await clickElementById(driver, "add");
         await testElementLocatedByXpath(driver, "//tbody/tr[1000]/td[2]/a");
     }
-}
+};
 
 const benchReplaceAll = new class extends Benchmark {
     constructor() {
@@ -71,7 +71,7 @@ const benchReplaceAll = new class extends Benchmark {
             label: "replace all rows",
             description: "updating all 1,000 rows (" + config.WARMUP_COUNT + " warmup runs).",
             type: BenchmarkType.CPU
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, 'run', SHORT_TIMEOUT);
@@ -84,7 +84,7 @@ const benchReplaceAll = new class extends Benchmark {
         await clickElementById(driver, 'run');
         await testTextContains(driver, '//tbody/tr[1]/td[1]', '5001');
     }
-}
+};
 
 // const benchUpdate = new class extends Benchmark {
 //     constructor() {
@@ -93,7 +93,7 @@ const benchReplaceAll = new class extends Benchmark {
 //             label: "partial update",
 //             description: "Time to update the text of every 10th row (with " + config.WARMUP_COUNT + " warmup iterations) for a table with 10k rows.",
 //             type: BenchmarkType.CPU
-//         })
+//         });
 //     }
 //     async init(driver: WebDriver) {
 //         await testElementLocatedById(driver, "runlots", SHORT_TIMEOUT);
@@ -108,7 +108,7 @@ const benchReplaceAll = new class extends Benchmark {
 //         await clickElementById(driver, 'update');
 //         await testTextContains(driver, '//tbody/tr[9991]/td[2]/a', ' !!!'.repeat(config.WARMUP_COUNT + 1));
 //     }
-// }
+// };
 
 const benchUpdate = new class extends Benchmark {
     constructor() {
@@ -118,7 +118,7 @@ const benchUpdate = new class extends Benchmark {
             description: "updating every 10th row for 1,000 rows (3 warmup runs). 16x CPU slowdown.",
             type: BenchmarkType.CPU,
             throttleCPU: 16
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "run", SHORT_TIMEOUT);
@@ -133,7 +133,7 @@ const benchUpdate = new class extends Benchmark {
         await clickElementById(driver, 'update');
         await testTextContains(driver, '//tbody/tr[991]/td[2]/a', ' !!!'.repeat(3 + 1));
     }
-}
+};
 
 const benchSelect = new class extends Benchmark {
     constructor() {
@@ -143,7 +143,7 @@ const benchSelect = new class extends Benchmark {
             description: "highlighting a selected row. (" + config.WARMUP_COUNT + " warmup runs). 16x CPU slowdown.",
             type: BenchmarkType.CPU,
             throttleCPU: 16
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "run", SHORT_TIMEOUT);
@@ -157,7 +157,7 @@ const benchSelect = new class extends Benchmark {
         await clickElementByXPath(driver, "//tbody/tr[2]/td[2]/a");
         await testClassContains(driver, "//tbody/tr[2]", "danger");
     }
-}
+};
 
 const benchSwapRows = new class extends Benchmark {
     constructor() {
@@ -167,14 +167,14 @@ const benchSwapRows = new class extends Benchmark {
             description: "swap 2 rows for table with 1,000 rows. (" + config.WARMUP_COUNT + " warmup runs). 4x CPU slowdown.",
             type: BenchmarkType.CPU,
             throttleCPU: 4
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "run", SHORT_TIMEOUT);
         await clickElementById(driver, 'run');
         await testElementLocatedByXpath(driver, "//tbody/tr[1]/td[2]/a");
         for (let i = 0; i <= config.WARMUP_COUNT; i++) {
-            let text = await getTextByXPath(driver, "//tbody/tr[2]/td[2]/a")
+            let text = await getTextByXPath(driver, "//tbody/tr[2]/td[2]/a");
             await clickElementById(driver, 'swaprows');
             await testTextContains(driver, "//tbody/tr[999]/td[2]/a", text);
         }
@@ -184,7 +184,7 @@ const benchSwapRows = new class extends Benchmark {
         await clickElementById(driver, 'swaprows');
         await testTextContains(driver, "//tbody/tr[999]/td[2]/a", text);
     }
-}
+};
 
 const benchRemove = new class extends Benchmark {
     constructor() {
@@ -193,7 +193,7 @@ const benchRemove = new class extends Benchmark {
             label: "remove row",
             description: "removing one row. (" + config.WARMUP_COUNT + " warmup runs).",
             type: BenchmarkType.CPU
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "run", SHORT_TIMEOUT);
@@ -211,7 +211,7 @@ const benchRemove = new class extends Benchmark {
         await clickElementByXPath(driver, "//tbody/tr[4]/td[3]/a/span[1]");
         await testTextContains(driver, '//tbody/tr[4]/td[1]', '10');
     }
-}
+};
 
 const benchRunBig = new class extends Benchmark {
     constructor() {
@@ -220,7 +220,7 @@ const benchRunBig = new class extends Benchmark {
             label: "create many rows",
             description: "creating 10,000 rows",
             type: BenchmarkType.CPU
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "runlots", SHORT_TIMEOUT);
@@ -229,7 +229,7 @@ const benchRunBig = new class extends Benchmark {
         await clickElementById(driver, 'runlots');
         await testElementLocatedByXpath(driver, "//tbody/tr[10000]/td[2]/a");
     }
-}
+};
 
 // const benchAppendToManyRows = new class extends Benchmark {
 //     constructor() {
@@ -238,7 +238,7 @@ const benchRunBig = new class extends Benchmark {
 //             label: "append rows to large table",
 //             description: "Duration for adding 1000 rows on a table of 10,000 rows.",
 //             type: BenchmarkType.CPU
-//         })
+//         });
 //     }
 //     async init(driver: WebDriver) {
 //         await testElementLocatedById(driver, "runlots", SHORT_TIMEOUT);
@@ -249,7 +249,7 @@ const benchRunBig = new class extends Benchmark {
 //         await clickElementById(driver, 'add');
 //         await testElementLocatedByXpath(driver, "//tbody/tr[11000]/td[2]/a");
 //     }
-// }
+// };
 
 const benchAppendToManyRows = new class extends Benchmark {
     constructor() {
@@ -259,7 +259,7 @@ const benchAppendToManyRows = new class extends Benchmark {
             description: "appending 1,000 to a table of 10,000 rows. 2x CPU slowdown",
             type: BenchmarkType.CPU,
             throttleCPU: 2
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "run", SHORT_TIMEOUT);
@@ -270,7 +270,7 @@ const benchAppendToManyRows = new class extends Benchmark {
         await clickElementById(driver, 'add');
         await testElementLocatedByXpath(driver, "//tbody/tr[1100]/td[2]/a");
     }
-}
+};
 
 // const benchClear = new class extends Benchmark {
 //     constructor() {
@@ -279,7 +279,7 @@ const benchAppendToManyRows = new class extends Benchmark {
 //             label: "clear rows",
 //             description: "Duration to clear the table filled with 10.000 rows.",
 //             type: BenchmarkType.CPU
-//         })
+//         });
 //     }
 //     async init(driver: WebDriver) {
 //         await testElementLocatedById(driver, "runlots", SHORT_TIMEOUT);
@@ -290,7 +290,7 @@ const benchAppendToManyRows = new class extends Benchmark {
 //         await clickElementById(driver, 'clear');
 //         await testElementNotLocatedByXPath(driver, "//tbody/tr[1]");
 //     }
-// }
+// };
 
 const benchClear = new class extends Benchmark {
     constructor() {
@@ -300,7 +300,7 @@ const benchClear = new class extends Benchmark {
             description: "clearing a table with 1,000 rows. 8x CPU slowdown",
             type: BenchmarkType.CPU,
             throttleCPU: 8
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "run", SHORT_TIMEOUT);
@@ -311,7 +311,7 @@ const benchClear = new class extends Benchmark {
         await clickElementById(driver, 'clear');
         await testElementNotLocatedByXPath(driver, "//tbody/tr[1]");
     }
-}
+};
 
 const benchReadyMemory = new class extends Benchmark {
     constructor() {
@@ -320,7 +320,7 @@ const benchReadyMemory = new class extends Benchmark {
             label: "ready memory",
             description: "Memory usage after page load.",
             type: BenchmarkType.MEM,
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "add", SHORT_TIMEOUT);
@@ -332,7 +332,7 @@ const benchReadyMemory = new class extends Benchmark {
         await clickElementById(driver, 'run');
         await testElementLocatedByXpath(driver, "//tbody/tr[1]/td[2]/a");
     }
-}
+};
 
 const benchRunMemory = new class extends Benchmark {
     constructor() {
@@ -341,7 +341,7 @@ const benchRunMemory = new class extends Benchmark {
             label: "run memory",
             description: "Memory usage after adding 1000 rows.",
             type: BenchmarkType.MEM,
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "add", SHORT_TIMEOUT);
@@ -350,7 +350,7 @@ const benchRunMemory = new class extends Benchmark {
         await clickElementById(driver, 'run');
         await testElementLocatedByXpath(driver, "//tbody/tr[1]/td[2]/a");
     }
-}
+};
 
 const benchUpdate5Memory = new class extends Benchmark {
     constructor() {
@@ -359,7 +359,7 @@ const benchUpdate5Memory = new class extends Benchmark {
             label: "update eatch 10th row for 1k rows (5 cycles)",
             description: "Memory usage after clicking update every 10th row 5 times",
             type: BenchmarkType.MEM,
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "add", SHORT_TIMEOUT);
@@ -371,7 +371,7 @@ const benchUpdate5Memory = new class extends Benchmark {
             await testTextContains(driver, '//tbody/tr[1]/td[2]/a', ' !!!'.repeat(i));
         }
     }
-}
+};
 
 const benchReplace5Memory = new class extends Benchmark {
     constructor() {
@@ -380,7 +380,7 @@ const benchReplace5Memory = new class extends Benchmark {
             label: "replace 1k rows (5 cycles)",
             description: "Memory usage after clicking create 1000 rows 5 times",
             type: BenchmarkType.MEM,
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "add", SHORT_TIMEOUT);
@@ -391,7 +391,7 @@ const benchReplace5Memory = new class extends Benchmark {
             await testTextContains(driver, "//tbody/tr[1000]/td[1]", (1000 * (i + 1)).toFixed());
         }
     }
-}
+};
 
 const benchCreateClear5Memory = new class extends Benchmark {
     constructor() {
@@ -400,7 +400,7 @@ const benchCreateClear5Memory = new class extends Benchmark {
             label: "creating/clearing 1k rows (5 cycles)",
             description: "Memory usage after creating and clearing 1000 rows 5 times",
             type: BenchmarkType.MEM,
-        })
+        });
     }
     async init(driver: WebDriver) {
         await testElementLocatedById(driver, "add", SHORT_TIMEOUT);
@@ -413,7 +413,7 @@ const benchCreateClear5Memory = new class extends Benchmark {
             await testElementNotLocatedByXPath(driver, "//tbody/tr[1000]/td[1]");
         }
     }
-}
+};
 
 const benchStartupConsistentlyInteractive: StartupBenchmarkResult = {
     id: "31_startup-ci",
@@ -421,7 +421,7 @@ const benchStartupConsistentlyInteractive: StartupBenchmarkResult = {
     description: "a pessimistic TTI - when the CPU and network are both definitely very idle. (no more CPU tasks over 50ms)",
     type: BenchmarkType.STARTUP,
     property: "TimeToConsistentlyInteractive"
-}
+};
 
 const benchStartupBootup: StartupBenchmarkResult = {
     id: "32_startup-bt",
@@ -429,7 +429,7 @@ const benchStartupBootup: StartupBenchmarkResult = {
     description: "the total ms required to parse/compile/evaluate all the page's scripts",
     type: BenchmarkType.STARTUP,
     property: "ScriptBootUpTtime"
-}
+};
 
 const benchStartupMainThreadWorkCost: StartupBenchmarkResult = {
     id: "33_startup-mainthreadcost",
@@ -437,7 +437,7 @@ const benchStartupMainThreadWorkCost: StartupBenchmarkResult = {
     description: "total amount of time spent doing work on the main thread. includes style/layout/etc.",
     type: BenchmarkType.STARTUP,
     property: "MainThreadWorkCost"
-}
+};
 
 const benchStartupTotalBytes: StartupBenchmarkResult = {
     id: "34_startup-totalbytes",
@@ -445,7 +445,7 @@ const benchStartupTotalBytes: StartupBenchmarkResult = {
     description: "network transfer cost (post-compression) of all the resources loaded into the page.",
     type: BenchmarkType.STARTUP,
     property: "TotalKiloByteWeight"
-}
+};
 
 class BenchStartup extends Benchmark {
     constructor() {
@@ -454,7 +454,7 @@ class BenchStartup extends Benchmark {
             label: "startup time",
             description: "Time for loading, parsing and starting up",
             type: BenchmarkType.STARTUP,
-        })
+        });
     }
     async init(driver: WebDriver) { await driver.get(`http://localhost:${config.PORT}/`); }
     async run(driver: WebDriver, framework: FrameworkData) {

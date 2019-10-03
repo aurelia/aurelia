@@ -29,7 +29,7 @@ gulp.task('default', () => {
   browserSync.init({ watch: true, server: '.', port: 9000 });
   b.on('update', bundle);
   b.on('change', browserSync.reload);
-  return bundle(watchify(b))
+  return bundle(watchify(b));
 });
 
 gulp.task('build', () => bundle(b));

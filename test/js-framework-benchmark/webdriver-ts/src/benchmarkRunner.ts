@@ -1,7 +1,7 @@
-import { BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData } from './benchmarks'
+import { BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData } from './benchmarks';
 import * as fs from 'fs';
 import * as yargs from 'yargs';
-import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError, ErrorsAndWarning, BenchmarkOptions } from './common'
+import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError, ErrorsAndWarning, BenchmarkOptions } from './common';
 import * as R from 'ramda';
 import { fork } from 'child_process';
 import { executeBenchmark } from './forkedBenchmarkRunner';
@@ -59,7 +59,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
             numIterationsForCPUBenchmarks: config.REPEAT_RUN,
             numIterationsForMemBenchmarks: config.REPEAT_RUN_MEM,
             numIterationsForStartupBenchmark: config.REPEAT_RUN_STARTUP
-        }
+        };
 
         try {
             let errorsAndWarnings: ErrorsAndWarning = await forkedRun(runFrameworks, framework.name, framework.keyed, benchmark.id, benchmarkOptions);
@@ -114,13 +114,13 @@ let args = yargs(process.argv)
 let runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
 async function main() {
-    
-    
+
+
     let runBenchmarks = (args.benchmark && args.benchmark.length > 0 ? args.benchmark : [""]).map(v => v.toString());
     let runFrameworks: FrameworkData[];
-    if (runBenchmarksFromDirectoryNamesArgs) {    
+    if (runBenchmarksFromDirectoryNamesArgs) {
         console.log("MODE: Directory names. Using arguments as the directory names to be re-run.");
-        let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName)
+        let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName);
         runFrameworks = await initializeFrameworks(matchesDirectoryArg);
     } else {
         console.log("MODE: Classic command line options.");
@@ -138,7 +138,7 @@ async function main() {
 
     console.log(args, "no-results", args.noResults, config.WRITE_RESULTS);
 
-    let exitOnError = args.exitOnError === 'true'
+    let exitOnError = args.exitOnError === 'true';
 
     config.EXIT_ON_ERROR = exitOnError;
 
@@ -158,4 +158,4 @@ main().then(_ => {
     console.log("successful run");
 }).catch(error => {
     console.log("run was not completely sucessful", error);
-})
+});

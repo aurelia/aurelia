@@ -33,7 +33,7 @@ export class Store {
     }
     run() {
         // faster: 178 msecs
-        this.data = []
+        this.data = [];
         setTimeout(() => {this.data = this.buildData();});
         // slower: 194 msecs
         // this.data.splice(0, this.data.length, ...this.buildData());

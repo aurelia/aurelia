@@ -3,7 +3,7 @@ import * as faker from 'faker';
 import './app.scss';
 
 import { customElement, IDOM, IteratorBindingInstruction, HydrateTemplateController, bindable, BindingStrategy, IController } from '@aurelia/runtime';
-import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html'
+import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html';
 
 startFPSMonitor();
 startMemMonitor();

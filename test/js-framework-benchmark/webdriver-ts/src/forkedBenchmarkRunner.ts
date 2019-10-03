@@ -421,7 +421,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
                 await driver.executeScript("console.timeStamp('afterBenchmark')");
             } catch (e) {
                 console.log(e);
-                errors.push(await registerError(driver, framework, benchmark, e, ));
+                errors.push(await registerError(driver, framework, benchmark, e));
                 throw e;
             }
         }
@@ -478,7 +478,7 @@ async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, b
             if (config.LOG_DETAILS) console.log("comparison of memory usage. GC log:", result,  " :takeHeapSnapshot", snapshotSize);
             allResults.push(result);
         } catch (e) {
-            errors.push(await registerError(driver, framework, benchmark, e, ));
+            errors.push(await registerError(driver, framework, benchmark, e));
             console.log(e);
             throw e;
         } finally {
@@ -490,7 +490,7 @@ async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, b
     return {errors, warnings};
 }
 
-async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions ): Promise<ErrorsAndWarning>
+async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
 {
     console.log("benchmarking startup", framework, benchmark.id);
 

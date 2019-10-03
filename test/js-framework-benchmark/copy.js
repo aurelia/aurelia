@@ -15,13 +15,13 @@ var excludes = ["node_modules","elm-stuff","project",".DS_Store"];
 var excludedDirectories = ['css', 'dist','node_modules','webdriver-ts'];
 
 // http://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
-function copyFileSync( source, target ) {
+function copyFileSync(source, target) {
 
     var targetFile = target;
 
     //if target is a directory a new file with the same name will be created
-    if ( fs.existsSync( target ) && fs.lstatSync( target ).isDirectory() ) {
-        targetFile = path.join( target, path.basename( source ) );
+    if (fs.existsSync(target) && fs.lstatSync(target).isDirectory()) {
+        targetFile = path.join(target, path.basename(source));
     }
 
     fs.writeFileSync(targetFile, fs.readFileSync(source));
@@ -37,32 +37,32 @@ function include(name) {
 		return excludes.every(ex => name.indexOf(ex)==-1);
 }
 
-function copyFolderRecursiveSync( source, target ) {
+function copyFolderRecursiveSync(source, target) {
     var files = [];
 
     //check if folder needs to be created or integrated
-    var targetFolder = path.join( target, path.basename( source ) );
-    if ( !fs.existsSync( targetFolder ) ) {
-        fs.mkdirSync( targetFolder );
+    var targetFolder = path.join(target, path.basename(source));
+    if (!fs.existsSync(targetFolder)) {
+        fs.mkdirSync(targetFolder);
     }
 
     //copy
-    if ( fs.lstatSync( source ).isDirectory() ) {
-        files = fs.readdirSync( source );
-        files.forEach( function ( file ) {
-			var curSource = path.join( source, file );
+    if (fs.lstatSync(source).isDirectory()) {
+        files = fs.readdirSync(source);
+        files.forEach(function (file) {
+			var curSource = path.join(source, file);
 			if (include(curSource)) {
-				if ( fs.lstatSync( curSource ).isDirectory() ) {
+				if (fs.lstatSync(curSource).isDirectory()) {
 					console.log("copy dir "+curSource);
-					copyFolderRecursiveSync( curSource, targetFolder );
-				} else if ( fs.lstatSync( curSource ).isSymbolicLink() ) {
+					copyFolderRecursiveSync(curSource, targetFolder);
+				} else if (fs.lstatSync(curSource).isSymbolicLink()) {
 					console.log("**** LINK");
 				} else {
 					// console.log("copy file "+curSource);
-					copyFileSync( curSource, targetFolder );
+					copyFileSync(curSource, targetFolder);
 				}
 			}
-        } );
+        });
     }
 }
 

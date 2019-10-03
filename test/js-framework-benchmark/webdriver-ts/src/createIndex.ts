@@ -5,7 +5,7 @@ import {BenchmarkType, Benchmark, benchmarks} from './benchmarks';
 async function main() {
 	let frameworks = await initializeFrameworks();
 
-	frameworks.sort( (a,b) => a.fullNameWithKeyedAndVersion.localeCompare(b.fullNameWithKeyedAndVersion));
+	frameworks.sort((a,b) => a.fullNameWithKeyedAndVersion.localeCompare(b.fullNameWithKeyedAndVersion));
 
 	const dots = require('dot').process({
 		path: './'

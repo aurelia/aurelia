@@ -74,7 +74,7 @@ module.exports = {
     'no-new-wrappers': 'error',
     'no-octal-escape': 'error',
     'no-restricted-properties': ['error',
-      { property: 'substr', message: "'substr' is considered a legacy function and should be avoided when possible. Use 'substring' instead." }
+      { property: 'substr', message: '"substr" is considered a legacy function and should be avoided when possible. Use "substring" instead.' }
     ],
     'no-restricted-syntax': ['error',
       { selector: 'MemberExpression[object.name=\'document\'][property.name=\'cookies\']', message: 'Usage of document.cookies is forbidden.' },
@@ -192,11 +192,12 @@ module.exports = {
     '@typescript-eslint/quotes': ['off'],
     'jsdoc/require-jsdoc': 'off'
   },
-  overrides: [{ // Specific overrides for JS files as some TS rules son't make sense there.
-      "files": ['**/*.js'],
-      "rules": {
-        "@typescript-eslint/no-var-requires": 'off'
-      }
+  overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
+    files: ['**/*.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off'
+    }
   }],
   settings: {
     polyfills: [

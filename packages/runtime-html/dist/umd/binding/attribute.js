@@ -94,7 +94,7 @@
             this.$state |= 1 /* isBinding */;
             // Store flags which we can only receive during $bind and need to pass on
             // to the AST during evaluate/connect/assign
-            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
             this.$scope = scope;
             this.part = part;
             let sourceExpression = this.sourceExpression;

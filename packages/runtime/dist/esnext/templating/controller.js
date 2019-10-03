@@ -213,7 +213,7 @@ export class Controller {
         this.bindingContext.unbound(flags); // non-null is implied by the hook
     }
     attach(flags) {
-        if ((this.state & 40 /* isAttachedOrAttaching */) > 0 && (flags & 67108864 /* reorderNodes */) === 0) {
+        if ((this.state & 40 /* isAttachedOrAttaching */) > 0 && (flags & 33554432 /* reorderNodes */) === 0) {
             return;
         }
         flags |= 16384 /* fromAttach */;
@@ -522,7 +522,7 @@ export class Controller {
         this.lifecycle.attached.end(flags);
     }
     attachSynthetic(flags) {
-        if (((this.state & 32 /* isAttached */) > 0 && flags & 67108864 /* reorderNodes */) > 0) {
+        if (((this.state & 32 /* isAttached */) > 0 && flags & 33554432 /* reorderNodes */) > 0) {
             this.lifecycle.mount.add(this);
         }
         else {

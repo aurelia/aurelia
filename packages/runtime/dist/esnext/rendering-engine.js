@@ -143,7 +143,7 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         this.children = (void 0);
         this.controller = controller;
         this.observing = false;
-        this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
         this.createGetterSetter();
     }
     getValue() {

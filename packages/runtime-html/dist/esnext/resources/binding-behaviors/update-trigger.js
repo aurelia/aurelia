@@ -12,7 +12,7 @@ export class UpdateTriggerBindingBehavior {
         if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
             throw Reporter.error(10);
         }
-        this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
         // ensure the binding's target observer has been set.
         const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
         if (!targetObserver.handler) {

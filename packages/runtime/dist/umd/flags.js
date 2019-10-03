@@ -105,12 +105,13 @@
         LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
         // Bitmask for flags that need to be stored on a binding during $bind for mutation
         // callbacks outside of $bind
-        LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 2013265935] = "persistentBindingFlags";
-        LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 134217728] = "allowParentScopeTraversal";
-        LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 268435456] = "observeLeafPropertiesOnly";
-        LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 1610612751] = "targetObserverFlags";
-        LifecycleFlags[LifecycleFlags["noTargetObserverQueue"] = 536870912] = "noTargetObserverQueue";
-        LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 1073741824] = "persistentTargetObserverQueue";
+        LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 2080374799] = "persistentBindingFlags";
+        LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 67108864] = "allowParentScopeTraversal";
+        LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 134217728] = "observeLeafPropertiesOnly";
+        LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 805306383] = "targetObserverFlags";
+        LifecycleFlags[LifecycleFlags["noTargetObserverQueue"] = 268435456] = "noTargetObserverQueue";
+        LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 536870912] = "persistentTargetObserverQueue";
+        LifecycleFlags[LifecycleFlags["secondaryExpression"] = 1073741824] = "secondaryExpression";
         LifecycleFlags[LifecycleFlags["bindingStrategy"] = 15] = "bindingStrategy";
         LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
         LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
@@ -135,11 +136,10 @@
         LifecycleFlags[LifecycleFlags["allowPublishRoundtrip"] = 524288] = "allowPublishRoundtrip";
         LifecycleFlags[LifecycleFlags["isPublishing"] = 1048576] = "isPublishing";
         LifecycleFlags[LifecycleFlags["mustEvaluate"] = 2097152] = "mustEvaluate";
-        LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 4194304] = "parentUnmountQueued";
-        LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 8388608] = "isTraversingParentScope";
-        LifecycleFlags[LifecycleFlags["isOriginalArray"] = 16777216] = "isOriginalArray";
-        LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 33554432] = "isCollectionMutation";
-        LifecycleFlags[LifecycleFlags["reorderNodes"] = 67108864] = "reorderNodes";
+        LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
+        LifecycleFlags[LifecycleFlags["isOriginalArray"] = 8388608] = "isOriginalArray";
+        LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 16777216] = "isCollectionMutation";
+        LifecycleFlags[LifecycleFlags["reorderNodes"] = 33554432] = "reorderNodes";
     })(LifecycleFlags = exports.LifecycleFlags || (exports.LifecycleFlags = {}));
     var ExpressionKind;
     (function (ExpressionKind) {

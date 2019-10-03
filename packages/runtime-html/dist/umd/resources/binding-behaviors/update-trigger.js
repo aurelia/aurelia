@@ -23,7 +23,7 @@
             if (binding.mode !== runtime_1.BindingMode.twoWay && binding.mode !== runtime_1.BindingMode.fromView) {
                 throw kernel_1.Reporter.error(10);
             }
-            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
             // ensure the binding's target observer has been set.
             const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
             if (!targetObserver.handler) {

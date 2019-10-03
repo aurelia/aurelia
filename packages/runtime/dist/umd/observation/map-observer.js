@@ -144,7 +144,7 @@
             }
             this.inBatch = false;
             this.collection = map;
-            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
             this.indexMap = observation_1.createIndexMap(map.size);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);

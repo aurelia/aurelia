@@ -494,7 +494,7 @@ export function stringifyLifecycleFlags(flags) {
     if (flags & 2097152 /* mustEvaluate */) {
         flagNames.push('mustEvaluate');
     }
-    if (flags & 33554432 /* isCollectionMutation */) {
+    if (flags & 16777216 /* isCollectionMutation */) {
         flagNames.push('isCollectionMutation');
     }
     if (flags & 16 /* updateTargetInstance */) {
@@ -539,13 +539,10 @@ export function stringifyLifecycleFlags(flags) {
     if (flags & 262144 /* fromLifecycleTask */) {
         flagNames.push('fromLifecycleTask');
     }
-    if (flags & 4194304 /* parentUnmountQueued */) {
-        flagNames.push('parentUnmountQueued');
-    }
-    if (flags & 8388608 /* isTraversingParentScope */) {
+    if (flags & 4194304 /* isTraversingParentScope */) {
         flagNames.push('isTraversingParentScope');
     }
-    if (flags & 134217728 /* allowParentScopeTraversal */) {
+    if (flags & 67108864 /* allowParentScopeTraversal */) {
         flagNames.push('allowParentScopeTraversal');
     }
     if (flags & 1 /* getterSetterStrategy */) {
@@ -553,6 +550,9 @@ export function stringifyLifecycleFlags(flags) {
     }
     if (flags & 2 /* proxyStrategy */) {
         flagNames.push('proxyStrategy');
+    }
+    if (flags & 1073741824 /* secondaryExpression */) {
+        flagNames.push('secondaryExpression');
     }
     if (flagNames.length === 0) {
         return 'none';

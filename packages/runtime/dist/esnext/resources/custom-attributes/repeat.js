@@ -369,7 +369,7 @@ export class Repeat {
         const seq = longestIncreasingSubsequence(indexMap);
         const seqLen = seq.length;
         this.$controller.lifecycle.attached.begin();
-        flags |= 67108864 /* reorderNodes */;
+        flags |= 33554432 /* reorderNodes */;
         let next;
         let j = seqLen - 1;
         let i = indexMap.length - 1;

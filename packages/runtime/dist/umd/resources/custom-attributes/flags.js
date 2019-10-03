@@ -40,7 +40,7 @@
     }
     let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
         constructor(factory, location) {
-            super(factory, location, 536870912 /* noTargetObserverQueue */);
+            super(factory, location, 268435456 /* noTargetObserverQueue */);
         }
     };
     InfrequentMutations = tslib_1.__decorate([
@@ -51,7 +51,7 @@
     exports.InfrequentMutations = InfrequentMutations;
     let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
         constructor(factory, location) {
-            super(factory, location, 1073741824 /* persistentTargetObserverQueue */);
+            super(factory, location, 536870912 /* persistentTargetObserverQueue */);
         }
     };
     FrequentMutations = tslib_1.__decorate([
@@ -62,7 +62,7 @@
     exports.FrequentMutations = FrequentMutations;
     let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
         constructor(factory, location) {
-            super(factory, location, 268435456 /* observeLeafPropertiesOnly */);
+            super(factory, location, 134217728 /* observeLeafPropertiesOnly */);
         }
     };
     ObserveShallow = tslib_1.__decorate([

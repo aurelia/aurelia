@@ -22,7 +22,7 @@ let SelectValueObserver = class SelectValueObserver {
         this.arrayObserver = void 0;
         this.nodeObserver = void 0;
         this.handleNodeChange = this.handleNodeChange.bind(this);
-        this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
+        this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
     }
     getValue() {
         return this.currentValue;
@@ -30,10 +30,10 @@ let SelectValueObserver = class SelectValueObserver {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
+        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
             this.flushRAF(flags);
         }
-        else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+        else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
             this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
         }
     }
@@ -59,31 +59,31 @@ let SelectValueObserver = class SelectValueObserver {
         }
     }
     handleCollectionChange(indexMap, flags) {
-        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
+        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
             this.synchronizeOptions();
         }
         else {
             this.hasChanges = true;
         }
-        if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+        if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
             this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
         }
         this.callSubscribers(this.currentValue, this.oldValue, flags);
     }
     handleChange(newValue, previousValue, flags) {
-        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
+        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
             this.synchronizeOptions();
         }
         else {
             this.hasChanges = true;
         }
-        if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+        if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
             this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
         }
         this.callSubscribers(newValue, previousValue, flags);
     }
     notify(flags) {
-        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
+        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
             return;
         }
         const oldValue = this.oldValue;
@@ -205,14 +205,14 @@ let SelectValueObserver = class SelectValueObserver {
     }
     bind(flags) {
         this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange, childObserverOptions);
-        if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+        if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
             this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
         }
     }
     unbind(flags) {
         this.nodeObserver.disconnect();
         this.nodeObserver = null;
-        if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+        if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
             this.lifecycle.dequeueRAF(this.flushRAF, this);
         }
         if (this.arrayObserver) {

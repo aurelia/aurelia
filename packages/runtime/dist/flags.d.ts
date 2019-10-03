@@ -70,12 +70,13 @@ export declare const enum Hooks {
 }
 export declare const enum LifecycleFlags {
     none = 0,
-    persistentBindingFlags = 2013265935,
-    allowParentScopeTraversal = 134217728,
-    observeLeafPropertiesOnly = 268435456,
-    targetObserverFlags = 1610612751,
-    noTargetObserverQueue = 536870912,
-    persistentTargetObserverQueue = 1073741824,
+    persistentBindingFlags = 2080374799,
+    allowParentScopeTraversal = 67108864,
+    observeLeafPropertiesOnly = 134217728,
+    targetObserverFlags = 805306383,
+    noTargetObserverQueue = 268435456,
+    persistentTargetObserverQueue = 536870912,
+    secondaryExpression = 1073741824,
     bindingStrategy = 15,
     getterSetterStrategy = 1,
     proxyStrategy = 2,
@@ -100,11 +101,10 @@ export declare const enum LifecycleFlags {
     allowPublishRoundtrip = 524288,
     isPublishing = 1048576,
     mustEvaluate = 2097152,
-    parentUnmountQueued = 4194304,
-    isTraversingParentScope = 8388608,
-    isOriginalArray = 16777216,
-    isCollectionMutation = 33554432,
-    reorderNodes = 67108864
+    isTraversingParentScope = 4194304,
+    isOriginalArray = 8388608,
+    isCollectionMutation = 16777216,
+    reorderNodes = 33554432
 }
 export declare const enum ExpressionKind {
     Connects = 32,

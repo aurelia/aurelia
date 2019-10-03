@@ -44,8 +44,9 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
         this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part);
         if (this.parametersExpr) {
-            this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part);
-            this.parametersExpr.connect(flags, scope, this, part);
+            const parametersFlags = flags | 1073741824 /* secondaryExpression */;
+            this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part);
+            this.parametersExpr.connect(parametersFlags, scope, this, part);
         }
         const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? this.expr.expressions : [this.expr] : [];
         for (const expr of expressions) {
@@ -63,15 +64,16 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             this.expr.unbind(flags, this.scope, this);
         }
         if (this.parametersExpr && this.parametersExpr.unbind) {
-            this.parametersExpr.unbind(flags, this.scope, this);
+            this.parametersExpr.unbind(flags | 1073741824 /* secondaryExpression */, this.scope, this);
         }
         this.unobserveTargets(flags);
         this.scope = (void 0);
         this.unobserve(true);
     }
     handleChange(newValue, _previousValue, flags) {
-        if (typeof newValue === 'object') {
-            this.translationParameters = newValue;
+        if (flags & 1073741824 /* secondaryExpression */) {
+            // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
+            this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.locator);
         }
         else {
             this.keyExpression = this.isInterpolatedSourceExpr

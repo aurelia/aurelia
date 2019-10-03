@@ -30,7 +30,7 @@ let SelfObserver = SelfObserver_1 = class SelfObserver {
                 this.createGetterSetter();
             }
         }
-        this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
     }
     handleChange(newValue, oldValue, flags) {
         this.setValue(newValue, flags);

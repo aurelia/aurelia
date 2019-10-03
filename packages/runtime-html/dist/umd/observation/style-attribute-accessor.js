@@ -20,7 +20,7 @@
             this.version = 0;
             this.hasChanges = false;
             this.priority = 12288 /* propagate */;
-            this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
+            this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
         }
         getValue() {
             return this.obj.style.cssText;
@@ -28,10 +28,10 @@
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
+            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
                 this.flushRAF(flags);
             }
-            else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+            else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
                 this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
             }
         }
@@ -130,13 +130,13 @@
             this.obj.style.setProperty(style, value, priority);
         }
         bind(flags) {
-            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+            if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
                 this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
             }
             this.oldValue = this.currentValue = this.obj.style.cssText;
         }
         unbind(flags) {
-            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+            if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
                 this.lifecycle.dequeueRAF(this.flushRAF, this);
             }
         }

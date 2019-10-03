@@ -319,7 +319,7 @@
             if (scope == null) {
                 throw kernel_1.Reporter.error(250 /* NilScope */, this);
             }
-            if ((flags & 134217728 /* allowParentScopeTraversal */) > 0) {
+            if ((flags & 67108864 /* allowParentScopeTraversal */) > 0) {
                 let parent = scope.parentScope;
                 while (parent !== null) {
                     if (!parent.scopeParts.includes(part)) {
@@ -402,7 +402,7 @@
         }
         connect(flags, scope, binding, part) {
             const obj = this.object.evaluate(flags, scope, null, part);
-            if ((flags & 268435456 /* observeLeafPropertiesOnly */) === 0) {
+            if ((flags & 134217728 /* observeLeafPropertiesOnly */) === 0) {
                 this.object.connect(flags, scope, binding, part);
             }
             if (obj instanceof Object) {
@@ -435,7 +435,7 @@
         }
         connect(flags, scope, binding, part) {
             const obj = this.object.evaluate(flags, scope, null, part);
-            if ((flags & 268435456 /* observeLeafPropertiesOnly */) === 0) {
+            if ((flags & 134217728 /* observeLeafPropertiesOnly */) === 0) {
                 this.object.connect(flags, scope, binding, part);
             }
             if (obj instanceof Object) {
@@ -506,7 +506,7 @@
         }
         connect(flags, scope, binding, part) {
             const obj = this.object.evaluate(flags, scope, null, part);
-            if ((flags & 268435456 /* observeLeafPropertiesOnly */) === 0) {
+            if ((flags & 134217728 /* observeLeafPropertiesOnly */) === 0) {
                 this.object.connect(flags, scope, binding, part);
             }
             if (getFunction(flags & ~2097152 /* mustEvaluate */, obj, this.name)) {
@@ -937,10 +937,10 @@
         }
         iterate(flags, result, func) {
             switch (toStringTag.call(result)) {
-                case '[object Array]': return $array(flags | 16777216 /* isOriginalArray */, result, func);
-                case '[object Map]': return $map(flags | 16777216 /* isOriginalArray */, result, func);
-                case '[object Set]': return $set(flags | 16777216 /* isOriginalArray */, result, func);
-                case '[object Number]': return $number(flags | 16777216 /* isOriginalArray */, result, func);
+                case '[object Array]': return $array(flags | 8388608 /* isOriginalArray */, result, func);
+                case '[object Map]': return $map(flags | 8388608 /* isOriginalArray */, result, func);
+                case '[object Set]': return $set(flags | 8388608 /* isOriginalArray */, result, func);
+                case '[object Number]': return $number(flags | 8388608 /* isOriginalArray */, result, func);
                 case '[object Null]': return;
                 case '[object Undefined]': return;
                 default: throw kernel_1.Reporter.error(0); // TODO: Set error code
@@ -1022,7 +1022,7 @@
         }
         throw kernel_1.Reporter.error(207 /* NotAFunction */, obj, name, func);
     }
-    const proxyAndOriginalArray = 2 /* proxyStrategy */ | 16777216 /* isOriginalArray */;
+    const proxyAndOriginalArray = 2 /* proxyStrategy */ | 8388608 /* isOriginalArray */;
     function $array(flags, result, func) {
         if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
             // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
@@ -1053,7 +1053,7 @@
         for (const entry of result.entries()) {
             arr[++i] = entry;
         }
-        $array(flags & ~16777216 /* isOriginalArray */, arr, func);
+        $array(flags & ~8388608 /* isOriginalArray */, arr, func);
     }
     ;
     function $set(flags, result, func) {
@@ -1062,7 +1062,7 @@
         for (const key of result.keys()) {
             arr[++i] = key;
         }
-        $array(flags & ~16777216 /* isOriginalArray */, arr, func);
+        $array(flags & ~8388608 /* isOriginalArray */, arr, func);
     }
     ;
     function $number(flags, result, func) {
@@ -1070,7 +1070,7 @@
         for (let i = 0; i < result; ++i) {
             arr[i] = i;
         }
-        $array(flags & ~16777216 /* isOriginalArray */, arr, func);
+        $array(flags & ~8388608 /* isOriginalArray */, arr, func);
     }
     ;
 });

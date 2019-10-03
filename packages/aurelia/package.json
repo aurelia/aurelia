@@ -48,9 +48,6 @@
   "devDependencies": {
     "@types/node": "^10.14.13",
     "tslib": "^1.10.0",
-    "tslint": "^5.19.0",
-    "tslint-microsoft-contrib": "^6.2.0",
-    "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.3"
   }
 }

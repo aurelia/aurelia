@@ -23,7 +23,7 @@ if (frameworks.length === 0) {
                     cwd: dir,
                     stdio: 'inherit'
                 });
-            } catch {}
+            } catch {} // eslint-disable-line no-empty
             console.log("running npm install && npm run build-prod");
             exec('npm install && npm run build-prod', {
                 cwd: path.resolve(dir),

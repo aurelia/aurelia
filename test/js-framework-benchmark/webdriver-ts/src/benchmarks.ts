@@ -48,6 +48,7 @@ export interface StartupBenchmarkResult extends BenchmarkInfo {
     property: keyof LighthouseData;
 }
 
+/* eslint-disable new-parens */
 const benchRun = new class extends Benchmark {
     constructor() {
         super({
@@ -414,6 +415,8 @@ const benchCreateClear5Memory = new class extends Benchmark {
         }
     }
 };
+
+/* eslint-enable new-parens */
 
 const benchStartupConsistentlyInteractive: StartupBenchmarkResult = {
     id: "31_startup-ci",

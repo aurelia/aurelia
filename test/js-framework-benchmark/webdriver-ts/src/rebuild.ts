@@ -15,7 +15,7 @@ if (frameworks.length === 0) {
     for (let framework of frameworks) {
         let dir = path.resolve(path.join('..','frameworks',framework));
         console.log("rebuilding "+framework+" in directory ", dir);
-        if (!fs.existsSync(dir)) throw "ERROR: directory "+dir+" not found";
+        if (!fs.existsSync(dir)) throw new Error("ERROR: directory "+dir+" not found");
         else {
             console.log("running rm -rf package-lock.json yarn.lock dist elm-stuff bower_components node_modules");
             try {

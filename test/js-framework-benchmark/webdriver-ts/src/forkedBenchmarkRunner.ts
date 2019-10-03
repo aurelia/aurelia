@@ -190,7 +190,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
             let clicks = R.filter(type_eq('click'))(eventsDuringBenchmark);
             if (clicks.length !== 1) {
                 console.log("exactly one click event is expected", eventsDuringBenchmark);
-                throw "exactly one click event is expected";
+                throw new Error("exactly one click event is expected");
             }
 
             let eventsAfterClick = (R.dropWhile(type_neq('click'))(eventsDuringBenchmark));
@@ -200,7 +200,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
             let paints = R.filter(type_eq('paint'))(eventsAfterClick);
             if (paints.length == 0) {
                 console.log("at least one paint event is expected after the click event", eventsAfterClick);
-                throw "at least one paint event is expected after the click event";
+                throw new Error("at least one paint event is expected after the click event");
             }
 
             console.log("# of paint events ",paints.length);
@@ -219,12 +219,12 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
             console.log("*** duration", duration, "upper bound ", upperBoundForSoundnessCheck);
             if (duration<0) {
                 console.log("soundness check failed. reported duration is less 0", asString(eventsDuringBenchmark));
-                throw "soundness check failed. reported duration is less 0";
+                throw new Error("soundness check failed. reported duration is less 0");
             }
 
             if (duration > upperBoundForSoundnessCheck) {
                 console.log("soundness check failed. reported duration is bigger than whole benchmark duration", asString(eventsDuringBenchmark));
-                throw "soundness check failed. reported duration is bigger than whole benchmark duration";
+                throw new Error("soundness check failed. reported duration is bigger than whole benchmark duration");
             }
             results.push(duration);
         }
@@ -232,7 +232,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
     }
     if (results.length !== benchmarkOptions.numIterationsForCPUBenchmarks) {
         console.log(`soundness check failed. number or results isn't ${benchmarkOptions.numIterationsForCPUBenchmarks}`, results, asString(filteredEvents));
-        throw `soundness check failed. number or results isn't ${benchmarkOptions.numIterationsForCPUBenchmarks}`;
+        throw new Error(`soundness check failed. number or results isn't ${benchmarkOptions.numIterationsForCPUBenchmarks}`);
     }
     return results;
 }
@@ -264,7 +264,7 @@ async function computeResultsMEM(driver: WebDriver, benchmarkOptions: BenchmarkO
     // if (results.length !== benchmarkOptions.numIterationsForMemBenchmarks) {
     if (results.length !== 1) { //benchmarkOptions.numIterationsForAllBenchmarks) {
         console.log(`soundness check failed. number or results isn't 1*`, results, asString(filteredEvents));
-        throw `soundness check failed. number or results isn't 1`;
+        throw new Error(`soundness check failed. number or results isn't 1`);
     }
     return results[0];
 }
@@ -434,7 +434,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
         console.log("ERROR:", e);
         await driver.close();
         await driver.quit();
-        if (config.EXIT_ON_ERROR) { throw "Benchmarking failed"; }
+        if (config.EXIT_ON_ERROR) { throw new Error("Benchmarking failed"); }
     }
     return {errors, warnings};
 }
@@ -512,8 +512,8 @@ async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmar
 export async function executeBenchmark(frameworks: FrameworkData[], keyed: boolean, frameworkName: string, benchmarkName: string, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
     let runFrameworks = frameworks.filter(f => f.keyed === keyed).filter(f => frameworkName === f.name);
     let runBenchmarks = benchmarks.filter(b => benchmarkName === b.id);
-    if (runFrameworks.length!=1) throw `Framework name ${frameworkName} is not unique`;
-    if (runBenchmarks.length!=1) throw `Benchmark name ${benchmarkName} is not unique`;
+    if (runFrameworks.length!=1) throw new Error(`Framework name ${frameworkName} is not unique`);
+    if (runBenchmarks.length!=1) throw new Error(`Benchmark name ${benchmarkName} is not unique`);
 
     let framework = runFrameworks[0];
     let benchmark = runBenchmarks[0];

@@ -90,7 +90,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
             console.log(e.exception);
             console.log();
         });
-        throw "Benchmarking failed with errors";
+        throw new Error("Benchmarking failed with errors");
     }
 }
 

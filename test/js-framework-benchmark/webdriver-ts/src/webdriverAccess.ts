@@ -25,7 +25,7 @@ function convertPath(path: string): Array<PathPart> {
             index = Number(components[1]);
             if (!index) {
                 console.log("Index can't be parsed", components[1]);
-                throw "Index can't be parsed "+components[1];
+                throw new Error("Index can't be parsed "+components[1]);
             }
         } else {
             index = 1;

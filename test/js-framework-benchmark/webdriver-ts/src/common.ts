@@ -144,7 +144,7 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
         keyedType = "non-keyed";
         directory = pathInFrameworksDir.substring(10);
     } else {
-        throw "pathInFrameworksDir must start with keyed or non-keyed, but is "+pathInFrameworksDir;
+        throw new Error("pathInFrameworksDir must start with keyed or non-keyed, but is "+pathInFrameworksDir);
     }
     let frameworksPath = path.resolve('..','frameworks');
     let packageJSONPath = path.resolve(frameworksPath, pathInFrameworksDir, 'package.json');
@@ -229,7 +229,7 @@ export async function determineInstalledVersions(framework: FrameworkVersionInfo
     } catch (err) {
         if (err.errno==='ECONNREFUSED') {
             console.log("Can't load package-lock.json via http. Make sure the local-web-server is running on port 8080");
-            throw "Can't load package-lock.json via http. Make sure the local-web-server is running on port 8080";
+            throw new Error("Can't load package-lock.json via http. Make sure the local-web-server is running on port 8080");
         } else if (err.response && err.response.status === 404) {
             console.log(`package-lock.json not found for ${framework.keyedType}/${framework.directory}`);
             versions.add(new PackageVersionInformationErrorNoPackageJSONLock());

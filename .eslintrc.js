@@ -201,6 +201,7 @@ module.exports = {
   }, { // Specific overrides for TS files within tests as some rules don't make sense there.
     files: ['test/**/*.ts'],
     rules: {
+      '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off'
     }
   }],

@@ -266,6 +266,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           $$call('au.register', [tag.elName])
         ];
       }
+      // eslint-disable-next-line sonarjs/no-collapsible-if
       if (tag.isCustom) {
         if (ifText.static || elseText.static) {
           continue;

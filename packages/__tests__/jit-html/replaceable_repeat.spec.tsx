@@ -418,26 +418,6 @@ describe('replaceable', function () {
         tearDown(au);
       });
     });
-
-    // it(`doesn’t confuse the templates when they are instantiated in a repeat`, function () {
-
-    //   const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">First</div></foo><foo><div replace-part="bar">Second</div></foo></template>` }, class { public baz = 'def'; });
-    //   const Foo = CustomElement.define({ name: 'foo', template:  }, class { public items = [1, 2]; });
-
-    //   const ctx = TestContext.createHTMLTestContext();
-    //   ctx.container.register(Foo);
-    //   const au = new Aurelia(ctx.container);
-
-    //   const host = ctx.createElement('div');
-    //   const component = new App();
-
-    //   au.app({ host, component });
-
-    //   au.start();
-
-    //   assert.strictEqual(host.textContent, 'X1First2FirstXX1Second2SecondX', `host.textContent`);
-
-    // });
   });
 
   interface ITestItem {

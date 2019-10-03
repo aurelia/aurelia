@@ -15,7 +15,7 @@ export class ArticleMeta {
   }
 
   get canModify() {
-    if (!this.article || !this.article.author) { return; }
+    if (!this.article || !this.article.author) { return false; }
     return this.article.author.username === this.sharedState.currentUser.username;
   }
 

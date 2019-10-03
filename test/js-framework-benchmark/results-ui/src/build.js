@@ -22,7 +22,7 @@ function filterFramework(file) {
 function encodeBench(obj) {
 	console.log(obj);
     return [
-        obj.benchmark.substr(0,2),
+        obj.benchmark.substring(0,2),
     //  +obj.min.toFixed(2),
     //  +obj.max.toFixed(2),
         +obj.mean.toFixed(2),

@@ -390,7 +390,7 @@ Object.keys(results).forEach(implType => {
     results[implType].forEach(lib => {
         inflateBenches(lib);
         // todo: use this hash in url to show only specific libs (e.g. #libs=abcd,3745)
-        lib.hash = hash(lib.name).toString(16).substr(0, 4);
+        lib.hash = hash(lib.name).toString(16).substring(0, 4);
         STORE.enabled.frameworks[implType][lib.name] = true;
     });
 });

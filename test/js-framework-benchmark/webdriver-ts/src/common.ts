@@ -130,9 +130,7 @@ export class PackageVersionInformationErrorNoPackageJSONLock  {
 
 export type PackageVersionInformation = PackageVersionInformationValid | PackageVersionInformationErrorUnknownPackage | PackageVersionInformationErrorNoPackageJSONLock;
 
-export interface IMatchPredicate {
-    (frameworkDirectory: string): boolean
-}
+type IMatchPredicate = (frameworkDirectory: string) => boolean;
 
 const matchAll : IMatchPredicate= (frameworkDirectory: string) => true;
 

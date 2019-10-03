@@ -11,8 +11,8 @@ export class FollowButton {
   @bindable public toggle: any;
 
   constructor(private readonly router: IRouter,
-              private readonly sharedState: SharedState,
-              private readonly profileService: ProfileService) {
+    private readonly sharedState: SharedState,
+    private readonly profileService: ProfileService) {
   }
 
   public onToggleFollowing() {

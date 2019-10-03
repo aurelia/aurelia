@@ -10,8 +10,8 @@ export class ArticleMeta {
   @bindable public article?: Article;
 
   constructor(private readonly articleService: ArticleService,
-              private readonly sharedState: SharedState,
-              private readonly router: IRouter) {
+    private readonly sharedState: SharedState,
+    private readonly router: IRouter) {
   }
 
   get canModify() {

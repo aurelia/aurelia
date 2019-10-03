@@ -61,32 +61,32 @@ export class App {
       createElement<Node>(dom, 'thead', {}, [
         createElement<Node>(dom, 'tr', {
           $1: new HydrateTemplateController({
-              name: '',
-              template: '<th><au-m class="au"></au-m> </th>',
-              instructions: [[new TextBindingInstruction('${col | pascal}')]],
-              strategy
-            },
-            'repeat',
-            [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
+            name: '',
+            template: '<th><au-m class="au"></au-m> </th>',
+            instructions: [[new TextBindingInstruction('${col | pascal}')]],
+            strategy
+          },
+          'repeat',
+          [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
           )
         })
       ]),
       createElement<Node>(dom, 'tbody', {
         $1: new HydrateTemplateController({
+          name: '',
+          template: '<tr><au-m class="au"></au-m></tr>',
+          instructions: [[new HydrateTemplateController({
             name: '',
-            template: '<tr><au-m class="au"></au-m></tr>',
-            instructions: [[new HydrateTemplateController({
-                name: '',
-                template: '<td><au-m class="au"></au-m> </td>',
-                instructions: [[new TextBindingInstruction('${row[col]}')]],
-                strategy
-              },
-              'repeat',
-              [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
-            )]]
+            template: '<td><au-m class="au"></au-m> </td>',
+            instructions: [[new TextBindingInstruction('${row[col]}')]],
+            strategy
           },
           'repeat',
-          [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows' : 'row of rows', 'items')]
+          [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
+          )]]
+        },
+        'repeat',
+        [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows' : 'row of rows', 'items')]
         )
       })
     ]);

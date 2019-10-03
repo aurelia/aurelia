@@ -9,12 +9,12 @@ const stringify = require('stringify');
 
 
 const b = browserify({
-    baseDir: '.',
-    debug: true,
-    entries: ['src/startup.ts'],
-    cache: {},
-    packageCache: {}
-  })
+  baseDir: '.',
+  debug: true,
+  entries: ['src/startup.ts'],
+  cache: {},
+  packageCache: {}
+})
   .plugin(tsify)
   .transform(stringify, { appliesTo: { includeExtensions: ['.html'] } });
 

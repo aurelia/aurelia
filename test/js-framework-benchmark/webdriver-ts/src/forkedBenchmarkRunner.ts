@@ -481,7 +481,6 @@ async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, b
             errors.push(await registerError(driver, framework, benchmark, e, ));
             console.log(e);
             throw e;
-            if (config.EXIT_ON_ERROR) { throw "Benchmarking failed"; }
         } finally {
             await driver.close();
             await driver.quit();

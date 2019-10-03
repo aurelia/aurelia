@@ -188,7 +188,7 @@ export async function loadFrameworkVersionInformation(matchPredicate: IMatchPred
             }
         }
     });
-    return await Promise.all(results);
+    return Promise.all(results);
 }
 
 export class PackageVersionInformationResult {

@@ -60,7 +60,7 @@ function elemNull(v: any) {
 
 function waitForCondition(driver: WebDriver) {
     return async function(text: string, fn: (driver:WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
-        return await driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
+        return driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
     };
 }
 
@@ -182,17 +182,17 @@ export function clickElementByXPath(driver: WebDriver, xpath: string) {
 }
 
 export async function getTextByXPath(driver: WebDriver, xpath: string): Promise<string> {
-    return await retry(5, driver, async function(driver, count) {
+    return retry(5, driver, async function(driver, count) {
         if (count>1 && config.LOG_DETAILS) console.log("getTextByXPath ",xpath," attempt #",count);
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
-        return await elem.getText();
+        return elem.getText();
     });
 }
 
 export async function shadowRoot(driver: WebDriver) : Promise<WebElement> {
-    return useShadowRoot ? await driver.executeScript('return document.querySelector("main-element").shadowRoot') as WebElement
-        : await driver.findElement(By.tagName("body"));
+    return useShadowRoot ? driver.executeScript('return document.querySelector("main-element").shadowRoot') as Promise<WebElement>
+        : driver.findElement(By.tagName("body"));
 }
 
 // node_modules\.bin\chromedriver.cmd --verbose --port=9998 --log-path=chromedriver.log

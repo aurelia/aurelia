@@ -34,6 +34,6 @@ let run = (production) => {
     fuse.run();
 };
 
-task('clean', async () => await src('dist/*').clean('dist').exec());
+task('clean', async () => src('dist/*').clean('dist').exec());
 task("dev",     ['clean'], () => run(false));
 task("prod",    ['clean'], () => run(true));

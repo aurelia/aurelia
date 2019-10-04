@@ -27,7 +27,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
   let errors: BenchmarkError[] = [];
   let warnings: string[] = [];
 
-  let runBenchmarks = benchmarks.filter(b => benchmarkNames.some(name => b.id.toLowerCase().indexOf(name) > -1));
+  let runBenchmarks = benchmarks.filter(b => benchmarkNames.some(name => b.id.toLowerCase().includes(name)));
 
   let restart: string; // 'rx-domh-rxjs-v0.0.2-keyed';
   let index = runFrameworks.findIndex(f => f.fullNameWithKeyedAndVersion===restart);
@@ -126,7 +126,7 @@ async function main() {
     console.log("MODE: Classic command line options.");
     let frameworkNames = (args.framework && args.framework.length > 0 ? args.framework : [""]).map(v => v.toString());
     let frameworks = await initializeFrameworks();
-    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.indexOf(name) > -1));
+    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.includes(name)));
   }
   let count = Number(args.count);
   config.PORT = Number(args.port);

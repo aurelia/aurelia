@@ -137,7 +137,7 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
         if (!!object[property]) {
           // We must do this in case object property has a space in the name which results in two classes
-          if (property.indexOf(' ') >= 0) {
+          if (property.includes(' ')) {
             classes.push(...this.splitClassString(property));
           } else {
             classes.push(property);

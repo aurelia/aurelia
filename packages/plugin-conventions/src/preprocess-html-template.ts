@@ -50,7 +50,7 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
         statements.push(`import { Registration } from '@aurelia/kernel';\n`);
         registrationImported = true;
       }
-      const isCssResource = options.cssExtensions.indexOf(ext) !== -1;
+      const isCssResource = options.cssExtensions.includes(ext);
       let stringModuleId = d;
 
       if (isCssResource && shadowMode && options.stringModuleWrap) {

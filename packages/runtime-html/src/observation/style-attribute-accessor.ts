@@ -157,7 +157,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public setProperty(style: string, value: string): void {
     let priority = '';
 
-    if (value != null && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+    if (value != null && typeof value.indexOf === 'function' && value.includes('!important')) {
       priority = 'important';
       value = value.replace('!important', '');
     }

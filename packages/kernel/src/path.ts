@@ -264,7 +264,7 @@ export function parseQueryString(queryString: string): IQueryParams {
     // If the first keys part contains [ and the last ends with ], then []
     // are correctly balanced, split key to parts
     //Else it's basic key
-    if (/\[/.test(keys[0]) && /\]$/.test(keys[keysLastIndex])) {
+    if (keys[0].includes("[") && /\]$/.test(keys[keysLastIndex])) {
       keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       keys = keys.shift()!.split('[').concat(keys); // outer condition already ensures not-null

@@ -428,7 +428,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
         new AccessScopeExpression(value.split(' of ')[1])),
       to: 'items'
     }];
-  } else if (attr.indexOf('.') !== -1) {
+  } else if (attr.includes('.')) {
     return [{
       type: TT.propertyBinding,
       from: value.length === 0 ? PrimitiveLiteralExpression.$empty : new AccessScopeExpression(value),
@@ -590,7 +590,7 @@ function createAttributeInstruction(bindableDescription: IBindableDescription | 
   const oneTime = mode === BindingMode.oneTime;
 
   if (!!bindableDescription) {
-    if (!!cmd && validCommands.indexOf(cmd) !== -1) {
+    if (!!cmd && validCommands.includes(cmd)) {
       const type = TT.propertyBinding;
       const to = bindableDescription.property;
       const from = parseExpression(attributeValue);
@@ -611,7 +611,7 @@ function createAttributeInstruction(bindableDescription: IBindableDescription | 
   } else {
     const type = TT.propertyBinding;
     const to = attr;
-    if (!!cmd && validCommands.indexOf(cmd) !== -1) {
+    if (!!cmd && validCommands.includes(cmd)) {
       const from = parseExpression(attributeValue);
       return { type, to, mode, from, oneTime };
     } else {

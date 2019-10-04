@@ -63,7 +63,7 @@ export class CharSpec implements ICharSpec {
   }
 
   private hasOfMultiple(char: string): boolean {
-    return this.chars.indexOf(char) !== -1;
+    return this.chars.includes(char);
   }
 
   private hasOfSingle(char: string): boolean {
@@ -75,7 +75,7 @@ export class CharSpec implements ICharSpec {
   }
 
   private hasOfMultipleInverse(char: string): boolean {
-    return this.chars.indexOf(char) === -1;
+    return !this.chars.includes(char);
   }
 
   private hasOfSingleInverse(char: string): boolean {
@@ -174,7 +174,7 @@ export class State {
 
   public append(charSpec: ICharSpec, pattern: string): State {
     const { patterns } = this;
-    if (patterns.indexOf(pattern) === -1) {
+    if (!patterns.includes(pattern)) {
       patterns.push(pattern);
     }
     let state = this.findChild(charSpec);
@@ -404,7 +404,7 @@ export class SyntaxInterpreter {
 
     while (i < len) {
       c = pattern.charAt(i);
-      if (def.symbols.indexOf(c) === -1) {
+      if (!def.symbols.includes(c)) {
         if (i === start) {
           if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
             start = i = (i + 4);

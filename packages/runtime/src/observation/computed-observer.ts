@@ -154,13 +154,13 @@ export class GetterObserver implements GetterObserver {
   }
 
   public addPropertyDep(subscribable: ISubscribable): void {
-    if (this.propertyDeps.indexOf(subscribable) === -1) {
+    if (!this.propertyDeps.includes(subscribable)) {
       this.propertyDeps.push(subscribable);
     }
   }
 
   public addCollectionDep(subscribable: ICollectionSubscribable): void {
-    if (this.collectionDeps.indexOf(subscribable) === -1) {
+    if (!this.collectionDeps.includes(subscribable)) {
       this.collectionDeps.push(subscribable);
     }
   }

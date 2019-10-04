@@ -305,7 +305,7 @@ export class Viewport {
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
     }
-    return usedBy.indexOf(component as string) >= 0;
+    return usedBy.includes(component as string);
   }
   // TODO: Deal with non-string components
   public acceptComponent(component: ComponentAppellation): boolean {
@@ -319,10 +319,10 @@ export class Viewport {
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
     }
-    if (usedBy.indexOf(component as string) >= 0) {
+    if (usedBy.includes(component as string)) {
       return true;
     }
-    if (usedBy.filter((value) => value.indexOf('*') >= 0).length) {
+    if (usedBy.filter((value) => value.includes('*')).length) {
       return true;
     }
     return false;

@@ -71,7 +71,7 @@ export function jsonStringify(o: unknown): string {
         if (value.nodeType > 0) {
           return htmlStringify(value);
         }
-        if (cache.indexOf(value) !== -1) {
+        if (cache.includes(value)) {
           try {
             return JSON.parse(JSON.stringify(value));
           } catch (error) {

@@ -57,7 +57,7 @@ describe('template-compiler.binding-commands.style', () => {
       },
       assert: async (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
         const childEls = host.querySelectorAll('child') as ArrayLike<HTMLElement>;
-        const hasImportant = ruleValue.indexOf('!important') > -1;
+        const hasImportant = ruleValue.includes('!important');
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
 
         assert.strictEqual(childEls.length, 6, `childEls.length`);
@@ -168,7 +168,7 @@ describe('template-compiler.binding-commands.style', () => {
             ? host.querySelectorAll(testCase.selector)
             : testCase.selector(ctx.doc);
           const ii = els.length;
-          const hasImportant = ruleValue.indexOf('!important') > -1;
+          const hasImportant = ruleValue.includes('!important');
           const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
 
           for (let i = 0; ii > i; ++i) {

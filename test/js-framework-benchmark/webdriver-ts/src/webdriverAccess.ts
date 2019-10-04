@@ -74,7 +74,7 @@ export async function testTextContains(driver: WebDriver, xpath: string, text: s
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
         let v = await elem.getText();
-        return v && v.indexOf(text)>-1;
+        return v && v.includes(text);
       } catch(err) {
         console.log("ignoring error in testTextContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
       }
@@ -89,7 +89,7 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
         let v = await elem.getText();
-        return v && v.indexOf(text)==-1;
+        return v && !v.includes(text);
       } catch(err) {
         console.log("ignoring error in testTextNotContained for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
       }
@@ -104,7 +104,7 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
         let v = await elem.getAttribute("class");
-        return v && v.indexOf(text)>-1;
+        return v && v.includes(text);
       } catch(err) {
         console.log("ignoring error in testClassContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
       }

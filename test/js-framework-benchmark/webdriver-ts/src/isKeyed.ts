@@ -179,7 +179,7 @@ async function runBench(frameworkNames: string[]) {
   let runFrameworks;
   if (!runBenchmarksFromDirectoryNamesArgs) {
     let frameworks = await initializeFrameworks();
-    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.indexOf(name)>-1));
+    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.includes(name)));
   } else {
     let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName);
     runFrameworks = await initializeFrameworks(matchesDirectoryArg);

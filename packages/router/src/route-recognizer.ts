@@ -257,7 +257,7 @@ export class RouteRecognizer {
       let match = part.match(/^:([^?]+)(\?)?$/);
       if (match) {
         const [, name, optional] = match;
-        if (name.indexOf('=') !== -1) {
+        if (name.includes('=')) {
           throw new Error(`Parameter ${name} in route ${route} has a default value, which is not supported.`);
         }
         segments.push(segment = new DynamicSegment(name, !!optional));
@@ -476,11 +476,11 @@ export class RouteRecognizer {
       states.forEach(state => {
         state.nextStates.forEach(nextState => {
           if ((nextState.charSpec as CharSpec).validChars !== null) {
-            if (((nextState.charSpec as CharSpec).validChars as string).indexOf(ch) !== -1) {
+            if (((nextState.charSpec as CharSpec).validChars as string).includes(ch)) {
               nextStates.push(nextState);
             }
           } else if ((nextState.charSpec as CharSpec).invalidChars !== null
-            && ((nextState.charSpec as CharSpec).invalidChars as string).indexOf(ch) === -1) {
+            && !((nextState.charSpec as CharSpec).invalidChars as string).includes(ch)) {
             nextStates.push(nextState);
           }
         });

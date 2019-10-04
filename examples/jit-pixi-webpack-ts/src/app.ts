@@ -34,7 +34,7 @@ export class App {
 
   public update({delta}: {delta: number}): void {
     this.timestamp += delta;
-    let sprite: App['sprites'] extends Array<infer S> ? S : never;
+    let sprite: App['sprites'] extends (infer S)[] ? S : never;
     const sprites = this.sprites;
     const len = sprites.length;
     let entropy: number;

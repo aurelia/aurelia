@@ -288,7 +288,7 @@ export function $method(name: string, statements: Statement[], params?: Paramete
     return createMethod([], modifiers, undefined, $id(name), undefined, undefined, params, undefined, createBlock(statements, true));
   }
 }
-export function $class(elements: ReadonlyArray<ClassElement>): ClassExpression {
+export function $class(elements: readonly ClassElement[]): ClassExpression {
   return createClassExpression([], undefined, [], [], elements);
 }
 export function $functionExpr(parameters: ParameterDeclaration[], statements: Statement[]): Expression;

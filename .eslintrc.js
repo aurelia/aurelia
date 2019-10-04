@@ -46,6 +46,7 @@ module.exports = {
 
     // Opinionated non default rules:
     '@typescript-eslint/adjacent-overload-signatures': 'error',
+    '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
       'types': {
         '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
@@ -97,7 +98,6 @@ module.exports = {
     'space-in-parens': 'error',
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
-    '@typescript-eslint/array-type': 'warn',
     '@typescript-eslint/await-thenable': 'warn',
     '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/camelcase': 'warn',

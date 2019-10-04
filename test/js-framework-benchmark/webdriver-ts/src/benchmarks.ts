@@ -32,7 +32,7 @@ export abstract class Benchmark {
   abstract run(driver: WebDriver, framework: FrameworkData): Promise<any>;
   after(driver: WebDriver, framework: FrameworkData): Promise<any> { return null; }
   // Good fit for a single result creating Benchmark
-  resultKinds(): Array<BenchmarkInfo> { return [this.benchmarkInfo]; }
+  resultKinds(): BenchmarkInfo[] { return [this.benchmarkInfo]; }
   extractResult(results: any[], resultKind: BenchmarkInfo): number[] { return results; };
 }
 
@@ -479,7 +479,7 @@ class BenchStartup extends Benchmark {
 }
 const benchStartup = new BenchStartup();
 
-export let benchmarks : Array<Benchmark> = [
+export let benchmarks : Benchmark[] = [
   benchRun,
   benchReplaceAll,
   benchUpdate,

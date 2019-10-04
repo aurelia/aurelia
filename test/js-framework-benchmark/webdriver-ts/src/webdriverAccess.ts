@@ -14,9 +14,9 @@ export function setUseShadowRoot(val: boolean) {
   useShadowRoot = val;
 }
 
-function convertPath(path: string): Array<PathPart> {
+function convertPath(path: string): PathPart[] {
   let parts = path.split(/\//).filter(v => !!v);
-  let res: Array<PathPart> = [];
+  let res: PathPart[] = [];
   for (let part of parts) {
     let components = part.split(/\[|]/).filter(v => !!v);
     let tagName = components[0];

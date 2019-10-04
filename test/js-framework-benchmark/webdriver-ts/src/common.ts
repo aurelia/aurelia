@@ -5,7 +5,7 @@ import axios from 'axios';
 export interface JSONResult {
   framework: string, keyed: boolean, benchmark: string, type: string, min: number,
   max: number, mean: number, geometricMean: number,
-  standardDeviation: number, median: number, values: Array<number>
+  standardDeviation: number, median: number, values: number[]
 }
 
 export interface BenchmarkError {
@@ -175,7 +175,7 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
 }
 
 export async function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkVersionInformation[]> {
-  let results = new Array<Promise<FrameworkVersionInformation>>();
+  let results: FrameworkVersionInformation[] = [];
   let frameworksPath = path.resolve('..','frameworks');
   ['keyed'/*,'non-keyed'*/].forEach((keyedType: KeyedType) => {
     let directories = fs.readdirSync(path.resolve(frameworksPath, keyedType));
@@ -192,7 +192,7 @@ export async function loadFrameworkVersionInformation(matchPredicate: IMatchPred
 }
 
 export class PackageVersionInformationResult {
-  public versions: Array<PackageVersionInformation> = [];
+  public versions: PackageVersionInformation[] = [];
   constructor(public framework: FrameworkVersionInformationDynamic) {}
   public add(packageVersionInformation: PackageVersionInformation) {
     this.versions.push(packageVersionInformation);

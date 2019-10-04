@@ -51,7 +51,7 @@ export default {
       'path': join(rootPath, 'examples', app)
     };
     return acc;
-  }, {} as Record<typeof testApps extends Array<infer K> ? K : never, { path: string }>),
+  }, {} as Record<typeof testApps extends (infer K)[] ? K : never, { path: string }>),
   'node_modules': {
     'path': join(rootPath, 'node_modules')
   },

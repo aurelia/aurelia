@@ -113,7 +113,7 @@ function rmDir(dirPath: string) {
         rmDir(filePath);
     }
   fs.rmdirSync(dirPath);
-};
+}
 
 async function runLighthouse(framework: FrameworkData, benchmarkOptions: BenchmarkOptions): Promise<LighthouseData> {
   const opts = {

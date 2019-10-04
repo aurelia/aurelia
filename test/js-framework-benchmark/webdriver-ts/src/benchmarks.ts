@@ -2,7 +2,7 @@ import { testTextContains, testTextNotContained, testClassContains, testElementL
 import { Builder, WebDriver, promise, logging } from 'selenium-webdriver';
 import { config, FrameworkData } from './common';
 
-export enum BenchmarkType { CPU, MEM, STARTUP };
+export enum BenchmarkType { CPU, MEM, STARTUP }
 
 const SHORT_TIMEOUT = 20 * 1000;
 
@@ -33,7 +33,7 @@ export abstract class Benchmark {
   after(driver: WebDriver, framework: FrameworkData): Promise<any> { return null; }
   // Good fit for a single result creating Benchmark
   resultKinds(): BenchmarkInfo[] { return [this.benchmarkInfo]; }
-  extractResult(results: any[], resultKind: BenchmarkInfo): number[] { return results; };
+  extractResult(results: any[], resultKind: BenchmarkInfo): number[] { return results; }
 }
 
 export interface LighthouseData {

@@ -1298,7 +1298,7 @@ function $array(flags: LifecycleFlags, result: unknown[], func: (arr: Collection
       func(result, i, result[i]);
     }
   }
-};
+}
 
 function $map(flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result.size);
@@ -1307,7 +1307,7 @@ function $map(flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: 
     arr[++i] = entry;
   }
   $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
-};
+}
 
 function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result.size);
@@ -1316,7 +1316,7 @@ function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collectio
     arr[++i] = key;
   }
   $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
-};
+}
 
 function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result);
@@ -1324,4 +1324,4 @@ function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, 
     arr[i] = i;
   }
   $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
-};
+}

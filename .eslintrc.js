@@ -7,7 +7,6 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:security/recommended',
     'plugin:sonarjs/recommended',
     'plugin:import/typescript'
   ],
@@ -28,7 +27,6 @@ module.exports = {
     'compat',
     'import',
     'jsdoc',
-    'security',
     'sonarjs'
   ],
   reportUnusedDisableDirectives: true,
@@ -166,10 +164,6 @@ module.exports = {
     'jsdoc/require-param-type': 'off',
     'jsdoc/require-returns': 'off',
     'jsdoc/require-returns-type': 'off',
-    'security/detect-non-literal-fs-filename': 'warn',
-    'security/detect-non-literal-regexp': 'warn',
-    'security/detect-possible-timing-attacks': 'warn',
-    'security/detect-unsafe-regex': 'warn',
     'sonarjs/no-all-duplicated-branches': 'warn',
     'sonarjs/no-duplicated-branches': 'warn',
     'sonarjs/no-extra-arguments': 'warn',

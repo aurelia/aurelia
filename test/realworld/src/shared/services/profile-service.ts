@@ -10,7 +10,7 @@ export class ProfileService {
 
   public get(username: string): Promise<Profile> {
     return this.apiService.get('/profiles/' + username)
-      .then((data: { profile: any; }) => data.profile);
+      .then((data: { profile: any }) => data.profile);
   }
 
   public follow(username: string) {

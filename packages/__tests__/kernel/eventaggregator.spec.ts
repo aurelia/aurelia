@@ -2,7 +2,7 @@ import { EventAggregator, IEventAggregator, EventAggregatorCallback } from '@aur
 import { assert } from '@aurelia/testing';
 
 type EA = IEventAggregator & {
-  eventLookup: Record<string, EventAggregatorCallback[]>,
+  eventLookup: Record<string, EventAggregatorCallback[]>;
   messageHandlers: any[];
 };
 

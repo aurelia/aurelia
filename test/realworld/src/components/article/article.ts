@@ -17,7 +17,7 @@ export class Article {
     private readonly sharedState: SharedState) {
   }
 
-  public async enter(params: { slug: any; }) {
+  public async enter(params: { slug: any }) {
     this.slug = params.slug;
 
     const result = await Promise.all([this.articleService.get(this.slug), this.commentService.getList(this.slug)]);

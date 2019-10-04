@@ -32,12 +32,12 @@ export class App {
     this.store.add();
     stopMeasure();
   }
-  remove(item: { id: any; }) {
+  remove(item: { id: any }) {
     startMeasure("delete");
     this.store.delete(item.id);
     stopMeasure();
   }
-  select(item: { id: any; }) {
+  select(item: { id: any }) {
     startMeasure("select");
     this.store.select(item.id);
     stopMeasure();

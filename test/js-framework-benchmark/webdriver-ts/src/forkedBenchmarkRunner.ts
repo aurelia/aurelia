@@ -71,7 +71,7 @@ function extractRelevantEvents(entries: logging.Entry[]) {
   return {filteredEvents, protocolEvents};
 }
 
-async function fetchEventsFromPerformanceLog(driver: WebDriver): Promise<{timingResults: Timingresult[], protocolResults: any[]}> {
+async function fetchEventsFromPerformanceLog(driver: WebDriver): Promise<{timingResults: Timingresult[]; protocolResults: any[]}> {
   let timingResults : Timingresult[] = [];
   let protocolResults : any[] = [];
   let entries = [];
@@ -324,7 +324,7 @@ async function initBenchmark(driver: WebDriver, benchmark: Benchmark, framework:
 interface Result<T> {
   framework: FrameworkData;
   results: T[];
-  benchmark: Benchmark
+  benchmark: Benchmark;
 }
 
 
@@ -544,7 +544,7 @@ process.on('message', (msg) => {
   console.log("START BENCHMARK. Write results? ", config.WRITE_RESULTS);
   if (config.LOG_DEBUG) console.log("child process got message", msg);
 
-  let {frameworks, keyed, frameworkName, benchmarkName, benchmarkOptions} : {frameworks: FrameworkData[], keyed: boolean, frameworkName: string, benchmarkName: string, benchmarkOptions: BenchmarkOptions} = msg;
+  let {frameworks, keyed, frameworkName, benchmarkName, benchmarkOptions} : {frameworks: FrameworkData[]; keyed: boolean; frameworkName: string; benchmarkName: string; benchmarkOptions: BenchmarkOptions} = msg;
   if (!benchmarkOptions.port) benchmarkOptions.port = config.PORT.toFixed();
   performBenchmark(frameworks, keyed, frameworkName, benchmarkName, benchmarkOptions).catch((err) => {
     console.log("error in forkedBenchmarkRunner", err);

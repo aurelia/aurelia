@@ -36,6 +36,7 @@ module.exports = {
     // Opinionated overrides of the default recommended rules:
     '@typescript-eslint/indent': ['error', 2],
     '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-inferrable-types': 'off', // Turn no-inferrable-types off in order to make the code consistent in its use of type decorations.
     'security/detect-object-injection': 'off',
@@ -61,7 +62,7 @@ module.exports = {
     }],
     '@typescript-eslint/class-name-casing': 'error',
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
-    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/member-delimiter-style': 'error',
     '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
     '@typescript-eslint/no-for-in-array': 'error',
     '@typescript-eslint/no-misused-new': 'error',
@@ -104,7 +105,6 @@ module.exports = {
     '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/camelcase': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'warn',
-    '@typescript-eslint/member-delimiter-style': 'warn',
     '@typescript-eslint/no-empty-function': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-floating-promises': 'warn',

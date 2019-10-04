@@ -385,7 +385,7 @@ describe('DI.createInterface() -> container.get()', function () {
   // });
 
   describe('transient parent', function () {
-    interface ITransientParent { dep: any; }
+    interface ITransientParent { dep: any }
     let ITransientParent: InterfaceSymbol<ITransientParent>;
 
     function register(cls: any) {
@@ -518,7 +518,7 @@ describe('DI.createInterface() -> container.get()', function () {
   });
 
   describe('singleton parent', function () {
-    interface ISingletonParent { dep: any; }
+    interface ISingletonParent { dep: any }
     let ISingletonParent: InterfaceSymbol<ISingletonParent>;
 
     function register(cls: any) {
@@ -646,7 +646,7 @@ describe('DI.createInterface() -> container.get()', function () {
   });
 
   describe('instance parent', function () {
-    interface IInstanceParent { dep: any; }
+    interface IInstanceParent { dep: any }
     let IInstanceParent: InterfaceSymbol<IInstanceParent>;
     let instanceParent: IInstanceParent;
 

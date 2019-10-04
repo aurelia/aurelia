@@ -23,7 +23,7 @@ export class Editor {
   public unbinding() { }
   public unbound() { }
 
-  public enter(params: { slug: any; }) {
+  public enter(params: { slug: any }) {
     this.slug = params.slug;
 
     if (this.slug) {

@@ -13,7 +13,7 @@ async function main() {
 
   let allBenchmarks : BenchmarkInfo[] = [];
 
-  let jsonResult: {framework: string, benchmark:string, values: number[]}[] = [];
+  let jsonResult: {framework: string; benchmark:string; values: number[]}[] = [];
 
   benchmarks.forEach((benchmark, bIdx) => {
     let r = benchmark.resultKinds ? benchmark.resultKinds() : [benchmark];

@@ -11,7 +11,7 @@ export interface BenchmarkInfo {
   type: BenchmarkType;
   label: string;
   description: string;
-  throttleCPU?: number
+  throttleCPU?: number;
 }
 
 export abstract class Benchmark {

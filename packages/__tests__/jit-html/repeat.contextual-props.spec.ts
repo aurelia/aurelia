@@ -387,7 +387,6 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             CloneValueConverter
           );
 
-          let didThrow = false;
           let component: Root;
           try {
             au.app({ host, component: App });
@@ -395,7 +394,6 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             component = au.root.viewModel as unknown as Root;
             assert.strictEqual(host.textContent, expectation(component.items, component), '#before mutation');
           } catch (ex) {
-            didThrow = true;
             if (testWillThrow) {
               // dont try to assert anything on throw
               // just bails
@@ -407,7 +405,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             throw ex;
           }
 
-          if (testWillThrow && !didThrow) {
+          if (testWillThrow) {
             throw new Error('Expected test to throw, but did NOT');
           }
 

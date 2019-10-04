@@ -35,6 +35,7 @@ export interface IGotoOptions {
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
+  useHref?: boolean;
   statefulHistoryLength?: number;
   reportCallback?(instruction: INavigatorInstruction): void;
 }
@@ -97,6 +98,7 @@ export class Router implements IRouter {
   public addedViewports: ViewportInstruction[] = [];
 
   public options: IRouterOptions = {
+    useHref: true,
     statefulHistoryLength: 0,
   };
   private isActive: boolean = false;
@@ -145,7 +147,7 @@ export class Router implements IRouter {
       statefulHistoryLength: this.options.statefulHistoryLength,
       serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
-    this.linkHandler.activate({ callback: this.linkCallback });
+    this.linkHandler.activate({ callback: this.linkCallback, useHref: this.options.useHref });
     this.navigation.activate({
       callback: this.browserNavigatorCallback,
       useUrlFragmentHash: this.options.useUrlFragmentHash

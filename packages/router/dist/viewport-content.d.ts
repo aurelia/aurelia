@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRenderContext } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export declare const enum ContentStatus {
@@ -11,15 +11,16 @@ export declare const enum ContentStatus {
     added = 4
 }
 export declare class ViewportContent {
-    content: ComponentAppellation | null;
-    parameters: string;
+    content: ViewportInstruction;
     instruction: INavigatorInstruction;
-    componentInstance: IRouteableComponent | null;
     contentStatus: ContentStatus;
     entered: boolean;
     fromCache: boolean;
+    fromHistory: boolean;
     reentry: boolean;
-    constructor(content?: ComponentAppellation | null, parameters?: string, instruction?: INavigatorInstruction, context?: IRenderContext | IContainer | null);
+    private taggedNodes;
+    constructor(content?: ViewportInstruction, instruction?: INavigatorInstruction, context?: IRenderContext | IContainer | null);
+    readonly componentInstance: IRouteableComponent | null;
     equalComponent(other: ViewportContent): boolean;
     equalParameters(other: ViewportContent): boolean;
     reentryBehavior(): ReentryBehavior;
@@ -30,13 +31,14 @@ export declare class ViewportContent {
     canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean>;
     enter(previousInstruction: INavigatorInstruction): Promise<void>;
     leave(nextInstruction: INavigatorInstruction | null): Promise<void>;
-    loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void>;
-    unloadComponent(): void;
+    loadComponent(context: IRenderContext | IContainer, element: Element, viewport: Viewport): Promise<void>;
+    unloadComponent(cache: ViewportContent[], stateful?: boolean): void;
+    clearTaggedNodes(): void;
     initializeComponent(): void;
-    terminateComponent(stateful?: boolean): void;
+    terminateComponent(stateful?: boolean): Promise<void>;
     addComponent(element: Element): void;
-    removeComponent(element: Element, stateful?: boolean): void;
-    freeContent(element: Element, nextInstruction: INavigatorInstruction | null, stateful?: boolean): Promise<void>;
+    removeComponent(element: Element | null, stateful?: boolean): void;
+    freeContent(element: Element | null, nextInstruction: INavigatorInstruction | null, cache: ViewportContent[], stateful?: boolean): Promise<void>;
     toComponentName(): string | null;
     toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null;
     toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null;

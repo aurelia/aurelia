@@ -6,11 +6,11 @@ import { Aurelia as $Aurelia } from '@aurelia/runtime';
 function createAurelia() {
     const au = new Aurelia();
     au.register(JitHtmlBrowserConfiguration);
+    // eslint-disable-next-line sonarjs/no-collapsible-if
     if (typeof process !== 'undefined' && typeof process.env === 'object') {
         // Just use NODE_ENV to control build process.
         // Bundlers (at least webpack/dumber/parcel) have feature to remove this branch in production.
         // Then tree-shaking/minifier will remove unused DebugConfiguration import.
-        // tslint:disable-next-line:no-collapsible-if
         if (process.env.NODE_ENV !== 'production') {
             au.register(DebugConfiguration);
         }

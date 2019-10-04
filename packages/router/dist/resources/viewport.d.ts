@@ -20,11 +20,12 @@ export declare class ViewportCustomElement {
     render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void;
     bound(): void;
     unbound(): void;
+    attached(): void;
     connect(): void;
     disconnect(): void;
     binding(flags: LifecycleFlags): void;
-    attaching(flags: LifecycleFlags): void;
-    detaching(flags: LifecycleFlags): void;
-    unbinding(flags: LifecycleFlags): void;
+    attaching(flags: LifecycleFlags): Promise<void>;
+    detaching(flags: LifecycleFlags): Promise<void>;
+    unbinding(flags: LifecycleFlags): Promise<void>;
 }
 //# sourceMappingURL=viewport.d.ts.map

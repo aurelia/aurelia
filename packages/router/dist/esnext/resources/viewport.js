@@ -59,6 +59,11 @@ export class ViewportCustomElement {
     unbound() {
         this.disconnect();
     }
+    attached() {
+        if (this.viewport) {
+            this.viewport.clearTaggedNodes();
+        }
+    }
     connect() {
         const options = { scope: !this.element.hasAttribute('no-scope') };
         if (this.usedBy && this.usedBy.length) {
@@ -76,11 +81,11 @@ export class ViewportCustomElement {
         if (this.element.hasAttribute('stateful')) {
             options.stateful = true;
         }
-        this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context, options);
+        this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context, options);
     }
     disconnect() {
         if (this.viewport) {
-            this.router.removeViewport(this.viewport, this.element, this.$controller.context);
+            this.router.disconnectViewport(this.viewport, this.element, this.$controller.context);
         }
     }
     binding(flags) {
@@ -90,17 +95,19 @@ export class ViewportCustomElement {
     }
     attaching(flags) {
         if (this.viewport) {
-            this.viewport.attaching(flags);
+            return this.viewport.attaching(flags);
         }
+        return Promise.resolve();
     }
     detaching(flags) {
         if (this.viewport) {
-            this.viewport.detaching(flags);
+            return this.viewport.detaching(flags);
         }
+        return Promise.resolve();
     }
-    unbinding(flags) {
+    async unbinding(flags) {
         if (this.viewport) {
-            this.viewport.unbinding(flags);
+            await this.viewport.unbinding(flags);
         }
     }
 }

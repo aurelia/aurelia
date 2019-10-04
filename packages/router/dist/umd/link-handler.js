@@ -15,6 +15,7 @@
      */
     class LinkHandler {
         constructor() {
+            // tslint:disable-next-line:no-empty
             this.options = { callback: () => { } };
             this.isActive = false;
             this.handler = (e) => {
@@ -67,7 +68,7 @@
          * @returns The link element that is the closest ancestor.
          */
         static closestAnchor(el) {
-            while (el) {
+            while (el !== null && el !== void 0) {
                 if (el.tagName === 'A') {
                     return el;
                 }

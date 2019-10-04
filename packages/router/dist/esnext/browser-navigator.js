@@ -8,6 +8,7 @@ export class BrowserNavigator {
         this.isActive = false;
         this.options = {
             useUrlFragmentHash: true,
+            // tslint:disable-next-line:no-empty
             callback: () => { },
         };
         this.forwardedState = {};
@@ -25,6 +26,7 @@ export class BrowserNavigator {
                     this.forwardedState.suppressPopstate = false;
                 }
             }
+            // tslint:disable-next-line:ban-types
             const method = call.target[call.methodName];
             Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
             if (method) {
@@ -55,6 +57,7 @@ export class BrowserNavigator {
         }
         this.window.removeEventListener('popstate', this.handlePopstate);
         this.pendingCalls.deactivate();
+        // tslint:disable-next-line:no-empty
         this.options = { useUrlFragmentHash: true, callback: () => { } };
         this.isActive = false;
     }
@@ -99,7 +102,7 @@ export class BrowserNavigator {
                 },
             });
         }
-        if (resolve) {
+        if (resolve !== null && resolve !== void 0) {
             resolve();
         }
     }

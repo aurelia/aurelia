@@ -85,7 +85,7 @@
             const instructions = [];
             for (const instruction of navigationInstructions) {
                 if (typeof instruction === 'string') {
-                    instructions.push(router.instructionResolver.parseViewportInstruction(instruction));
+                    instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
                 }
                 else if (instruction instanceof viewport_instruction_1.ViewportInstruction) {
                     instructions.push(instruction);

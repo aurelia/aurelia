@@ -1,5 +1,7 @@
 import { INavigatorInstruction } from './interfaces';
 import { QueueItem } from './queue';
+import { IRouter } from './router';
+import { ViewportInstruction } from './viewport-instruction';
 export interface INavigatorStore {
     length: number;
     state: Record<string, unknown>;
@@ -26,8 +28,8 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
     state?: INavigatorState;
 }
 export interface IStoredNavigatorEntry {
-    instruction: string;
-    fullStateInstruction: string;
+    instruction: string | ViewportInstruction[];
+    fullStateInstruction: string | ViewportInstruction[];
     index?: number;
     firstEntry?: boolean;
     path?: string;
@@ -50,7 +52,9 @@ export interface INavigatorEntry extends IStoredNavigatorEntry {
 export interface INavigatorOptions {
     viewer?: INavigatorViewer;
     store?: INavigatorStore;
+    statefulHistoryLength?: number;
     callback?(instruction: INavigatorInstruction): void;
+    serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry>;
 }
 export interface INavigatorFlags {
     first?: boolean;
@@ -71,10 +75,11 @@ export declare class Navigator {
     private readonly pendingNavigations;
     private options;
     private isActive;
+    private router;
     private readonly uninitializedEntry;
     constructor();
     readonly queued: number;
-    activate(options?: INavigatorOptions): void;
+    activate(router: IRouter, options?: INavigatorOptions): void;
     deactivate(): void;
     navigate(entry: INavigatorEntry): Promise<void>;
     processNavigations: (qEntry: QueueItem<INavigatorInstruction>) => void;
@@ -85,9 +90,10 @@ export declare class Navigator {
     getState(): INavigatorState;
     loadState(): void;
     saveState(push?: boolean): Promise<void>;
-    toStorableEntry(entry: INavigatorInstruction): IStoredNavigatorEntry;
+    toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry;
     finalize(instruction: INavigatorInstruction): Promise<void>;
     cancel(instruction: INavigatorInstruction): Promise<void>;
     private invokeCallback;
+    private toStoreableEntry;
 }
 //# sourceMappingURL=navigator.d.ts.map

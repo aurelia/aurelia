@@ -22,22 +22,23 @@ export declare class InstructionResolver {
     separators: ISeparators;
     activate(options?: IInstructionResolverOptions): void;
     readonly clearViewportInstruction: string;
+    isClearViewportInstruction(instruction: string | ViewportInstruction): boolean;
+    isClearAllViewportsInstruction(instruction: string | ViewportInstruction): boolean;
     parseViewportInstructions(instructions: string): ViewportInstruction[];
     parseViewportInstruction(instruction: string): ViewportInstruction;
-    stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport?: boolean): string;
-    stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean): string;
+    stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport?: boolean, viewportContext?: boolean): string;
+    stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean, viewportContext?: boolean): string;
     stringifyScopedViewportInstructions(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
     encodeViewportInstructions(instructions: ViewportInstruction[]): string;
     decodeViewportInstructions(instructions: string): ViewportInstruction[];
     buildScopedLink(scopeContext: string, href: string): string;
     shouldClearViewports(path: string): {
-        clear: boolean;
+        clearViewports: boolean;
         newPath: string;
     };
     mergeViewportInstructions(instructions: (string | ViewportInstruction)[]): ViewportInstruction[];
-    removeStateDuplicates(states: string[]): string[];
     flattenViewportInstructions(instructions: ViewportInstruction[]): ViewportInstruction[];
-    stateStringsToString(stateStrings: string[], clear?: boolean): string;
+    cloneViewportInstructions(instructions: ViewportInstruction[], viewportInstances?: boolean): ViewportInstruction[];
     private parseViewportInstructionsWorker;
     private findNextToken;
     private parseAViewportInstruction;

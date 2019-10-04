@@ -18,7 +18,7 @@
             this.type = "before" /* Before */;
             this.includeTargets = [];
             this.excludeTargets = [];
-            if (options.type) {
+            if (options.type !== void 0) {
                 this.type = options.type;
             }
             for (const target of options.include || []) {
@@ -58,7 +58,9 @@
             else {
                 const cvTarget = target;
                 if (cvTarget.component) {
-                    this.componentType = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component) ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component) : null;
+                    this.componentType = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component)
+                        ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component)
+                        : null;
                     this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(cvTarget.component);
                 }
                 if (cvTarget.viewport) {
@@ -73,10 +75,10 @@
                 instructions.push(new viewport_instruction_1.ViewportInstruction(''));
             }
             for (const instruction of instructions) {
-                if (this.componentName === instruction.componentName ||
-                    this.componentType === instruction.componentType ||
-                    this.viewportName === instruction.viewportName ||
-                    this.viewport === instruction.viewport) {
+                if ((this.componentName !== null && this.componentName === instruction.componentName) ||
+                    (this.componentType !== null && this.componentType === instruction.componentType) ||
+                    (this.viewportName !== null && this.viewportName === instruction.viewportName) ||
+                    (this.viewport !== null && this.viewport === instruction.viewport)) {
                     return true;
                 }
             }

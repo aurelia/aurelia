@@ -12,11 +12,11 @@ let NavCustomElement = class NavCustomElement {
     }
     get navRoutes() {
         const nav = this.router.navs[this.name];
-        return (nav ? nav.routes : []);
+        return (nav !== void 0 && nav !== null ? nav.routes : []);
     }
     get navClasses() {
         const nav = this.router.navs[this.name];
-        const navClasses = (nav ? nav.classes : {});
+        const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
         return {
             ...{
                 nav: '',

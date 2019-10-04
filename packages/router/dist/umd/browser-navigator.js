@@ -19,6 +19,7 @@
             this.isActive = false;
             this.options = {
                 useUrlFragmentHash: true,
+                // tslint:disable-next-line:no-empty
                 callback: () => { },
             };
             this.forwardedState = {};
@@ -36,6 +37,7 @@
                         this.forwardedState.suppressPopstate = false;
                     }
                 }
+                // tslint:disable-next-line:ban-types
                 const method = call.target[call.methodName];
                 kernel_1.Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
                 if (method) {
@@ -66,6 +68,7 @@
             }
             this.window.removeEventListener('popstate', this.handlePopstate);
             this.pendingCalls.deactivate();
+            // tslint:disable-next-line:no-empty
             this.options = { useUrlFragmentHash: true, callback: () => { } };
             this.isActive = false;
         }
@@ -110,7 +113,7 @@
                     },
                 });
             }
-            if (resolve) {
+            if (resolve !== null && resolve !== void 0) {
                 resolve();
             }
         }

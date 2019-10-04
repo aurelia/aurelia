@@ -74,7 +74,7 @@ export const NavigationInstructionResolver = {
         const instructions = [];
         for (const instruction of navigationInstructions) {
             if (typeof instruction === 'string') {
-                instructions.push(router.instructionResolver.parseViewportInstruction(instruction));
+                instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
             }
             else if (instruction instanceof ViewportInstruction) {
                 instructions.push(instruction);

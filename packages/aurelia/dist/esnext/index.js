@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-default-export
 export { Aurelia, Aurelia as default } from './quick-start';
 export { DebugConfiguration, TraceConfiguration, } from '@aurelia/debug';
 export { 

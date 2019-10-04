@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { ViewportInstruction } from './viewport-instruction';
 export class InstructionResolver {
     constructor() {
@@ -23,6 +24,16 @@ export class InstructionResolver {
     get clearViewportInstruction() {
         return this.separators.clear;
     }
+    isClearViewportInstruction(instruction) {
+        return instruction instanceof ViewportInstruction
+            ? instruction.componentName === this.clearViewportInstruction && !!instruction.viewportName
+            : instruction.startsWith(this.clearViewportInstruction) && instruction !== this.clearViewportInstruction;
+    }
+    isClearAllViewportsInstruction(instruction) {
+        return instruction instanceof ViewportInstruction
+            ? instruction.componentName === this.clearViewportInstruction && !instruction.viewportName
+            : instruction === this.clearViewportInstruction;
+    }
     parseViewportInstructions(instructions) {
         return this.parseViewportInstructionsWorker(instructions, true).instructions;
     }
@@ -33,19 +44,31 @@ export class InstructionResolver {
         }
         return new ViewportInstruction('');
     }
-    stringifyViewportInstructions(instructions, excludeViewport = false) {
-        return instructions.map((instruction) => this.stringifyViewportInstruction(instruction, excludeViewport)).join(this.separators.sibling);
+    stringifyViewportInstructions(instructions, excludeViewport = false, viewportContext = false) {
+        return instructions
+            .map(instruction => this.stringifyViewportInstruction(instruction, excludeViewport, viewportContext))
+            .filter(instruction => instruction && instruction.length)
+            .join(this.separators.sibling);
     }
-    stringifyViewportInstruction(instruction, excludeViewport = false) {
+    stringifyViewportInstruction(instruction, excludeViewport = false, viewportContext = false) {
         if (typeof instruction === 'string') {
             return this.stringifyAViewportInstruction(instruction, excludeViewport);
         }
         else {
-            let stringified = this.stringifyAViewportInstruction(instruction, excludeViewport);
+            let excludeCurrentViewport = excludeViewport;
+            if (viewportContext) {
+                if (instruction.viewport && instruction.viewport.options.noLink) {
+                    return '';
+                }
+                if (!instruction.needsViewportDescribed && instruction.viewport && !instruction.viewport.options.forceDescription) {
+                    excludeCurrentViewport = true;
+                }
+            }
+            let stringified = this.stringifyAViewportInstruction(instruction, excludeCurrentViewport);
             if (instruction.nextScopeInstructions && instruction.nextScopeInstructions.length) {
                 stringified += instruction.nextScopeInstructions.length === 1
-                    ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport)}`
-                    : `${this.separators.scope}${this.separators.scopeStart}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport)}${this.separators.scopeEnd}`;
+                    ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}`
+                    : `${this.separators.scope}${this.separators.scopeStart}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}${this.separators.scopeEnd}`;
             }
             return stringified;
         }
@@ -71,7 +94,7 @@ export class InstructionResolver {
     shouldClearViewports(path) {
         const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
         const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
-        return { clear: clearViewports, newPath };
+        return { clearViewports, newPath };
     }
     mergeViewportInstructions(instructions) {
         const merged = [];
@@ -89,25 +112,6 @@ export class InstructionResolver {
         }
         return merged;
     }
-    removeStateDuplicates(states) {
-        let sorted = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
-        sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
-        let unique = [];
-        if (sorted.length) {
-            unique.push(sorted.shift());
-            while (sorted.length) {
-                const state = sorted.shift();
-                if (state && unique.every(value => {
-                    return value.indexOf(state) === -1;
-                })) {
-                    unique.push(state);
-                }
-            }
-        }
-        unique = unique.map((value) => value.substring(1, value.length - 1));
-        unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
-        return unique;
-    }
     flattenViewportInstructions(instructions) {
         const flat = [];
         for (const instruction of instructions) {
@@ -118,12 +122,18 @@ export class InstructionResolver {
         }
         return flat;
     }
-    stateStringsToString(stateStrings, clear = false) {
-        const strings = stateStrings.slice();
-        if (clear) {
-            strings.unshift(this.clearViewportInstruction);
+    cloneViewportInstructions(instructions, viewportInstances = false) {
+        const clones = [];
+        for (const instruction of instructions) {
+            const clone = new ViewportInstruction(instruction.componentInstance || instruction.componentType || instruction.componentName, viewportInstances ? instruction.viewport || instruction.viewportName : instruction.viewportName, instruction.parametersString);
+            clone.needsViewportDescribed = instruction.needsViewportDescribed;
+            clone.scope = viewportInstances ? instruction.scope : null;
+            if (instruction.nextScopeInstructions) {
+                clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, viewportInstances);
+            }
+            clones.push(clone);
         }
-        return strings.join(this.separators.sibling);
+        return clones;
     }
     parseViewportInstructionsWorker(instructions, grouped = false) {
         if (!instructions) {
@@ -175,8 +185,8 @@ export class InstructionResolver {
         const matches = {};
         // Tokens can have length > 1
         for (const token of tokens) {
-            const pos = instruction.indexOf(token);
-            if (pos > -1) {
+            const tokenPos = instruction.indexOf(token);
+            if (tokenPos > -1) {
                 matches[token] = instruction.indexOf(token);
             }
         }
@@ -196,15 +206,17 @@ export class InstructionResolver {
         instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
         let parametersString = void 0;
         tokens.shift(); // parameters
+        // tslint:disable-next-line:possible-timing-attack
         if (token === seps.parameters) {
             ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
             parametersString = instruction.slice(0, pos);
             instruction = instruction.slice(pos + token.length);
-            ({ token, pos } = this.findNextToken(instruction, tokens));
+            ({ token } = this.findNextToken(instruction, tokens));
             instruction = instruction.slice(token.length);
         }
         let viewport = void 0;
         tokens.shift(); // viewport
+        // tslint:disable-next-line:possible-timing-attack
         if (token === seps.viewport) {
             ({ token, pos } = this.findNextToken(instruction, tokens));
             viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
@@ -212,10 +224,12 @@ export class InstructionResolver {
         }
         let scope = true;
         tokens.shift(); // noScope
+        // tslint:disable-next-line:possible-timing-attack
         if (token === seps.noScope) {
             scope = false;
         }
         // Restore token that belongs to next instruction
+        // tslint:disable-next-line:possible-timing-attack
         if (token === seps.scopeEnd || token === seps.scope || token === seps.sibling) {
             instruction = `${token}${instruction}`;
         }

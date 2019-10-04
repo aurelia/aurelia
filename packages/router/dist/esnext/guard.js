@@ -7,7 +7,7 @@ export class Guard {
         this.type = "before" /* Before */;
         this.includeTargets = [];
         this.excludeTargets = [];
-        if (options.type) {
+        if (options.type !== void 0) {
             this.type = options.type;
         }
         for (const target of options.include || []) {
@@ -46,7 +46,9 @@ class Target {
         else {
             const cvTarget = target;
             if (cvTarget.component) {
-                this.componentType = ComponentAppellationResolver.isType(cvTarget.component) ? ComponentAppellationResolver.getType(cvTarget.component) : null;
+                this.componentType = ComponentAppellationResolver.isType(cvTarget.component)
+                    ? ComponentAppellationResolver.getType(cvTarget.component)
+                    : null;
                 this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
             }
             if (cvTarget.viewport) {
@@ -61,10 +63,10 @@ class Target {
             instructions.push(new ViewportInstruction(''));
         }
         for (const instruction of instructions) {
-            if (this.componentName === instruction.componentName ||
-                this.componentType === instruction.componentType ||
-                this.viewportName === instruction.viewportName ||
-                this.viewport === instruction.viewport) {
+            if ((this.componentName !== null && this.componentName === instruction.componentName) ||
+                (this.componentType !== null && this.componentType === instruction.componentType) ||
+                (this.viewportName !== null && this.viewportName === instruction.viewportName) ||
+                (this.viewport !== null && this.viewport === instruction.viewport)) {
                 return true;
             }
         }

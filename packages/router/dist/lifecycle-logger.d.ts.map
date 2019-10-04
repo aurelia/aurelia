@@ -1,0 +1,1 @@
+{"version":3,"file":"lifecycle-logger.d.ts","sourceRoot":"","sources":["../src/lifecycle-logger.ts"],"names":[],"mappings":"AAAA,wBAAgB,eAAe,CAAC,IAAI,EAAE,MAAM,yBA6B3C;AAED,qBAAa,cAAc;IAClB,QAAQ;IACR,KAAK,CAAC,MAAM,EAAE,GAAG;IACjB,OAAO;IACP,OAAO;IACP,KAAK;IACL,SAAS;IACT,QAAQ;IACR,QAAQ;IACR,KAAK;IACL,SAAS;IACT,QAAQ;IACR,SAAS;IACT,OAAO;CACf"}

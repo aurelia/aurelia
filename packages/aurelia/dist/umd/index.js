@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // eslint-disable-next-line import/no-default-export
     var quick_start_1 = require("./quick-start");
     exports.Aurelia = quick_start_1.Aurelia;
     exports.default = quick_start_1.Aurelia;

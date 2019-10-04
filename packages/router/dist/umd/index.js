@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./browser-navigator", "./link-handler", "./guard", "./guardian", "./interfaces", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
+        define(["require", "exports", "./browser-navigator", "./link-handler", "./guard", "./guardian", "./instruction-resolver", "./interfaces", "./lifecycle-logger", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -18,8 +18,13 @@
     var guardian_1 = require("./guardian");
     exports.GuardTypes = guardian_1.GuardTypes;
     exports.Guardian = guardian_1.Guardian;
+    var instruction_resolver_1 = require("./instruction-resolver");
+    exports.InstructionResolver = instruction_resolver_1.InstructionResolver;
     var interfaces_1 = require("./interfaces");
     exports.ReentryBehavior = interfaces_1.ReentryBehavior;
+    var lifecycle_logger_1 = require("./lifecycle-logger");
+    exports.lifecycleLogger = lifecycle_logger_1.lifecycleLogger;
+    exports.LifecycleClass = lifecycle_logger_1.LifecycleClass;
     var nav_1 = require("./nav");
     exports.Nav = nav_1.Nav;
     var nav_route_1 = require("./nav-route");
@@ -44,8 +49,6 @@
     exports.IRouteTransformer = router_1.IRouteTransformer;
     exports.IRouter = router_1.IRouter;
     exports.Router = router_1.Router;
-    var scope_1 = require("./scope");
-    exports.Scope = scope_1.Scope;
     var viewport_1 = require("./viewport");
     exports.Viewport = viewport_1.Viewport;
     var viewport_content_1 = require("./viewport-content");

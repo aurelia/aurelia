@@ -1,6 +1,5 @@
 import { IRouter, ViewportContent, ViewportInstruction } from '@aurelia/router';
-import { IRenderContext } from '@aurelia/runtime';
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 const define = (CustomElement as any).define;

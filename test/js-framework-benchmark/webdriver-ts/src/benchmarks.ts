@@ -479,7 +479,7 @@ class BenchStartup extends Benchmark {
 }
 const benchStartup = new BenchStartup();
 
-export let benchmarks: Benchmark[] = [
+export const benchmarks: Benchmark[] = [
   benchRun,
   benchReplaceAll,
   benchUpdate,

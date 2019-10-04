@@ -1,6 +1,7 @@
 import * as l from 'fancy-log';
-const log = l as unknown as typeof import('fancy-log');
 import * as c from 'chalk';
+
+const log = l as unknown as typeof import('fancy-log');
 const chalk = (c.default || c) as import('chalk').Chalk;
 
 export function logAction(msg: string) {

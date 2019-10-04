@@ -3,7 +3,7 @@ import {
   defineElement as el,
   defineView as vw,
   createView as cv,
-} from '../node_modules/domvm/dist/pico/domvm.pico.es.js';
+} from '../node_modules/domvm/dist/pico/domvm.pico.es.js'; // eslint-disable-line import/extensions
 
 // https://github.com/darkskyapp/string-hash/blob/master/index.js
 function hash(str) {

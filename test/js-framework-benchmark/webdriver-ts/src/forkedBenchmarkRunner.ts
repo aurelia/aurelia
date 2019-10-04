@@ -1,20 +1,17 @@
 import {WebDriver, logging} from 'selenium-webdriver';
 import {BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData} from './benchmarks';
 import {setUseShadowRoot, buildDriver} from './webdriverAccess';
-
-const lighthouse = require('lighthouse');
-const chromeLauncher = require('chrome-launcher');
-
 import * as fs from 'fs';
 import * as path from 'path';
 import {TConfig, config as defaultConfig, JSONResult, FrameworkData, BenchmarkError, ErrorsAndWarning, BenchmarkOptions, BenchmarkDriverOptions} from './common';
 import * as R from 'ramda';
-
-let config: TConfig = defaultConfig;
-
+const lighthouse = require('lighthouse');
+const chromeLauncher = require('chrome-launcher');
 // necessary to launch without specifiying a path
 var chromedriver: any = require('chromedriver');
 var jStat: any = require('jstat').jStat;
+
+let config: TConfig = defaultConfig;
 
 interface Timingresult {
   type: string;

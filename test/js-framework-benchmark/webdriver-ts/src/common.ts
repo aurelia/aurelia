@@ -32,7 +32,7 @@ export interface BenchmarkOptions extends BenchmarkDriverOptions {
   numIterationsForStartupBenchmark: number;
 }
 
-export let config = {
+export const config = {
   PORT: 8080,
   REMOTE_DEBUGGING_PORT: 9999,
   CHROME_PORT: 9998,

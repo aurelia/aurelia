@@ -1,5 +1,6 @@
 import * as c from 'chalk';
 import * as l from 'fancy-log';
+
 const chalk = (c.default || c) as import('chalk').Chalk;
 const log = (l.default || l) as typeof import('fancy-log');
 

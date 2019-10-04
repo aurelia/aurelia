@@ -1,9 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-const ncu = require('npm-check-updates');
 import * as semver from 'semver';
 import * as yargs from 'yargs';
-
+const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
 async function prepareDockerVolume() {

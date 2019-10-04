@@ -1,6 +1,5 @@
 import * as chrome from 'selenium-webdriver/chrome';
 import {By, until, Builder, Capabilities, WebDriver, Locator, promise, logging, WebElement, Condition} from 'selenium-webdriver';
-
 import {config, BenchmarkDriverOptions} from './common';
 
 interface PathPart {

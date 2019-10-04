@@ -1,7 +1,7 @@
 //http://webdriver.io/guide/testrunner/configurationfile.html
-
 import * as browserstack from 'browserstack-local';
 import { CIEnv } from '../../scripts/ci-env';
+
 declare var browser: any;
 
 const build = `e2e_${Date.now()}`;

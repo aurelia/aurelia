@@ -1,7 +1,7 @@
 import { inject } from 'aurelia-dependency-injection';
 import { Project, ProjectItem, CLIOptions, UI } from 'aurelia-cli';
-
 var path = require('path');
+
 
 @inject(Project, CLIOptions, UI)
 export default class ElementGenerator {

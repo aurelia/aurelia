@@ -4,7 +4,7 @@ import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { IRegistry } from '@aurelia/kernel';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
-import 'promise-polyfill/lib/polyfill';
+import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
 import { App } from './app';
 import { Auth } from './components/auth/auth';
 import { DateValueConverter } from './resources/value-converters/date';

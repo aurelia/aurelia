@@ -5,7 +5,6 @@ import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, Reent
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
-import { IViewportOptions } from './viewport';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 

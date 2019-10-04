@@ -1,14 +1,13 @@
 import {startFPSMonitor, startMemMonitor} from 'perf-monitor';
 import * as faker from 'faker';
-import './app.scss';
-
 import { customElement, IDOM, IteratorBindingInstruction, HydrateTemplateController, bindable, BindingStrategy, IController } from '@aurelia/runtime';
 import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html';
+import './app.scss'; // eslint-disable-line import/no-unassigned-import
+import template from './app.html';
 
 startFPSMonitor();
 startMemMonitor();
 
-import template from './app.html';
 
 function createItem() {
   return {

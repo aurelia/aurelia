@@ -3,7 +3,8 @@ import {buildDriver, setUseShadowRoot, testTextContains, testTextNotContained, t
 import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './common';
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import * as R from 'ramda';
-
+// necessary to launch without specifiying a path
+var chromedriver: any = require('chromedriver');
 
 let args = yargs(process.argv)
   .usage("$0 [--framework Framework1 Framework2 ...] [--benchmark Benchmark1 Benchmark2 ...]")
@@ -16,9 +17,6 @@ let args = yargs(process.argv)
 
 let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 let runBenchmarksFromDirectoryNamesArgs = !args.framework;
-
-// necessary to launch without specifiying a path
-var chromedriver: any = require('chromedriver');
 
 let init = `
 window.nonKeyedDetector_reset = function() {

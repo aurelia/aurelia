@@ -24,7 +24,6 @@
   "include": ["."],
   "exclude": [
     "router/e2e",
-    "dist",
-    "e2e"
+    "dist"
   ]
 }

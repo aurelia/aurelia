@@ -5,8 +5,8 @@
     }
   },
   "packages": [
+    "packages/__e2e__",
     "packages/__tests__",
-    "packages/__tests__/e2e",
     "packages/aot",
     "packages/aurelia",
     "packages/debug",

@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/e2e-tests",
+  "name": "@aurelia/__e2e__",
   "private": true,
   "license": "MIT",
   "engines": {

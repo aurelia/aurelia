@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-default-export
 export {
   Aurelia,
   Aurelia as default
@@ -592,7 +593,7 @@ export {
   // ChildrenDecorator,
   // HasChildrenObservers,
 
-// These exports are temporary until we have a proper way to unit test them
+  // These exports are temporary until we have a proper way to unit test them
   Controller,
 
   ViewFactory,

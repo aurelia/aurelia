@@ -830,8 +830,8 @@ describe(`TemplateCompiler - combinations`, function () {
             // @ts-ignore
             sut.compile(dom, input, resources);
           } catch (err) {
-            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             e = err;
           }
           assert.instanceOf(e, Error);
@@ -845,8 +845,8 @@ describe(`TemplateCompiler - combinations`, function () {
           try {
             verifyBindingInstructionsEqual(actual, output);
           } catch (err) {
-            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             throw err;
           }
         }
@@ -908,8 +908,8 @@ describe(`TemplateCompiler - combinations`, function () {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -970,8 +970,8 @@ describe(`TemplateCompiler - combinations`, function () {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -1032,17 +1032,17 @@ describe(`TemplateCompiler - combinations`, function () {
           build: buildNotRequired,
           scopeParts: [],
         };
-        //enableTracing();
-        //Tracer.enableLiveLogging(SymbolTraceWriter);
+        // enableTracing();
+        // Tracer.enableLiveLogging(SymbolTraceWriter);
         // @ts-ignore
         const actual = sut.compile(dom, input, resources);
-        //console.log('\n'+stringifyTemplateDefinition(actual, 0));
-        //disableTracing();
+        // console.log('\n'+stringifyTemplateDefinition(actual, 0));
+        // disableTracing();
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
-          //console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
-          //console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
+          // console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          // console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
           throw err;
         }
       });
@@ -1111,8 +1111,8 @@ describe(`TemplateCompiler - combinations`, function () {
             // @ts-ignore
             sut.compile(dom, input, resources);
           } catch (err) {
-            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             e = err;
           }
           assert.instanceOf(e, Error);
@@ -1126,8 +1126,8 @@ describe(`TemplateCompiler - combinations`, function () {
           try {
             verifyBindingInstructionsEqual(actual, output);
           } catch (err) {
-            //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-            //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             throw err;
           }
         }
@@ -1155,7 +1155,7 @@ describe(`TemplateCompiler - combinations`, function () {
       //   ($1, [input, output]) => createCustomElement(`bar`, true, [], [], [], output.instructions, output, input),
       //   ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
       // ]
-    //], ($1, $2, [input, output]) => {
+      // ], ($1, $2, [input, output]) => {
     ],                       (ctx, [input, output]) => {
       it(`${input.template}`, function () {
 

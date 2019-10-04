@@ -118,7 +118,7 @@ main()
     console.log('error', err);
   });
 
-/*let args = yargs(process.argv)
+/* let args = yargs(process.argv)
     .usage("$0 --updade true|false --dir")
     .default('update', 'true')
     .array('dir')

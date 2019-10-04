@@ -151,7 +151,7 @@ async function runLighthouse(framework: FrameworkData, benchmarkOptions: Benchma
       await chrome.kill();
       throw error;
     }
-    //console.log("lh result", results);
+    // console.log("lh result", results);
 
     let LighthouseData: LighthouseData = {
       TimeToConsistentlyInteractive: extractRawValue(results.lhr, 'interactive'),
@@ -260,7 +260,7 @@ async function computeResultsMEM(driver: WebDriver, benchmarkOptions: BenchmarkO
     remaining = R.drop(1, evts[1]);
   }
   // if (results.length !== benchmarkOptions.numIterationsForMemBenchmarks) {
-  if (results.length !== 1) { //benchmarkOptions.numIterationsForAllBenchmarks) {
+  if (results.length !== 1) { // benchmarkOptions.numIterationsForAllBenchmarks) {
     console.log(`soundness check failed. number or results isn't 1*`, results, asString(filteredEvents));
     throw new Error(`soundness check failed. number or results isn't 1`);
   }

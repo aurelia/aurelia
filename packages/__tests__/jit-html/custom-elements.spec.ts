@@ -22,10 +22,10 @@ describe('custom-elements', function () {
     await tearDown();
   });
 
-  //[as-element]
+  // [as-element]
   describe('02.', function () {
 
-    //works with custom element with [as-element]
+    // works with custom element with [as-element]
     it('01.', async function () {
       const { tearDown, appHost } = setup(`<template><div as-element="name-tag" name="bigopon"></div></template>`, undefined, registrations);
 
@@ -34,7 +34,7 @@ describe('custom-elements', function () {
 
     });
 
-    //ignores tag name
+    // ignores tag name
     it('02.', async function () {
       const { tearDown, appHost } = setup(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, undefined, registrations);
 

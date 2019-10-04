@@ -183,7 +183,7 @@ export class Viewport {
           (this.nextContent ? this.nextContent.instruction : null),
           this.historyCache,
           this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
-        ); //.catch(error => { throw error; });
+        ); // .catch(error => { throw error; });
       }
       if (this.doForceRemove) {
         await Promise.all(this.historyCache.map(content => content.freeContent(

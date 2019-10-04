@@ -13,7 +13,7 @@ function rmIfExists(base, name) {
   }
 }
 
-for (let keyedType of ['keyed'/*, 'non-keyed'*/]) {
+for (let keyedType of ['keyed'/* , 'non-keyed' */]) {
   let dir = path.resolve('frameworks', keyedType);
   let directories = fs.readdirSync(dir);
 

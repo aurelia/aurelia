@@ -1074,7 +1074,7 @@ describe('Router', function () {
       }
     });
   });
-  /////////
+  /*******************/
 });
 
 let quxCantLeave = 0;

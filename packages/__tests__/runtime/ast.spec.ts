@@ -1910,9 +1910,9 @@ describe('UnaryExpression', function () {
 });
 
 describe('BindingBehaviorExpression', function () {
-  type $1 = [/*title*/string, /*flags*/LF];
-  type $2 = [/*title*/string, /*$kind*/ExpressionKind];
-  type $3 = [/*title*/string, /*scope*/IScope, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]];
+  type $1 = [/* title */string, /* flags */LF];
+  type $2 = [/* title */string, /* $kind */ExpressionKind];
+  type $3 = [/* title */string, /* scope */IScope, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -1988,7 +1988,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const bindVariations: (($1: $1, $2: $2, $3: $3) => /*bind*/() => void)[] = [
+  const bindVariations: (($1: $1, $2: $2, $3: $3) => /* bind */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding['binding-behavior:mock'], undefined, `binding['binding-behavior:mock']`);
 
@@ -2032,7 +2032,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/() => void)[] = [
+  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2054,7 +2054,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const connectVariations: (($1: $1, $2: $2, $3: $3) => /*connect*/() => void)[] = [
+  const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
@@ -2078,7 +2078,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const assignVariations: (($1: $1, $2: $2, $3: $3) => /*assign*/() => void)[] = [
+  const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       const newValue = {};
 
@@ -2104,7 +2104,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/(value: any) => void)[] = [
+  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => (newValue) => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2126,7 +2126,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /*unbind*/() => void)[] = [
+  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding['binding-behavior:mock'], mock, `binding['binding-behavior:mock']`);
 
@@ -2176,9 +2176,9 @@ describe('BindingBehaviorExpression', function () {
 });
 
 describe('ValueConverterExpression', function () {
-  type $1 = [/*title*/string, /*flags*/LF];
-  type $2 = [/*title*/string, /*signals*/string[], /*signaler*/MockSignaler];
-  type $3 = [/*title*/string, /*scope*/IScope, /*sut*/ValueConverterExpression, /*mock*/MockValueConverter, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[], /*methods*/string[]];
+  type $1 = [/* title */string, /* flags */LF];
+  type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler];
+  type $3 = [/* title */string, /* scope */IScope, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2307,7 +2307,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/() => void)[] = [
+  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2353,7 +2353,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const connectVariations: (($1: $1, $2: $2, $3: $3) => /*connect*/() => void)[] = [
+  const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
@@ -2401,7 +2401,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const assignVariations: (($1: $1, $2: $2, $3: $3) => /*assign*/() => void)[] = [
+  const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       const newValue = {};
 
@@ -2450,7 +2450,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/(value: any) => void)[] = [
+  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => (newValue) => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2495,7 +2495,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /*unbind*/() => void)[] = [
+  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       // act
       sut.unbind(flags, scope, binding);

@@ -36,11 +36,11 @@ export function relativeToFile(name: string, file: string): string {
   const nameParts = name.trim().split('/');
 
   if (nameParts[0].startsWith('.') && fileParts) {
-    //Convert file to array, and lop off the last part,
-    //so that . matches that 'directory' and not name of the file's
-    //module. For instance, file of 'one/two/three', maps to
-    //'one/two/three.js', but we want the directory, 'one/two' for
-    //this normalization.
+    // Convert file to array, and lop off the last part,
+    // so that . matches that 'directory' and not name of the file's
+    // module. For instance, file of 'one/two/three', maps to
+    // 'one/two/three.js', but we want the directory, 'one/two' for
+    // this normalization.
     const normalizedBaseParts = fileParts.slice(0, fileParts.length - 1);
     nameParts.unshift(...normalizedBaseParts);
   }
@@ -257,13 +257,13 @@ export function parseQueryString(queryString: string): IQueryParams {
     if (!key) {
       continue;
     }
-    //split object key into its parts
+    // split object key into its parts
     let keys = key.split('][');
     let keysLastIndex = keys.length - 1;
 
     // If the first keys part contains [ and the last ends with ], then []
     // are correctly balanced, split key to parts
-    //Else it's basic key
+    // Else it's basic key
     if (keys[0].includes("[") && keys[keysLastIndex].endsWith("]")) {
       keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

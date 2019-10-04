@@ -156,8 +156,8 @@ export class HTMLDOM implements IDOM {
     if (typeof MutationObserver === 'undefined') {
       // TODO: find a proper response for this scenario
       return {
-        disconnect(): void { /*empty*/ },
-        observe(): void { /*empty*/ },
+        disconnect(): void { /* empty */ },
+        observe(): void { /* empty */ },
         takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & MutationRecord[]; }
       };
     }

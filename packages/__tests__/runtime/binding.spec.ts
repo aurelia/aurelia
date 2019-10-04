@@ -172,14 +172,14 @@ describe('PropertyBinding', function () {
         const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
         const srcVal = expr.evaluate(LF.none, scope, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
-        //const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
-        //$stub.withArgs(LF.none, target, prop);
+        // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
+        // $stub.withArgs(LF.none, target, prop);
 
-        //massSpy(targetObserver, 'setValue', 'getValue');
-        //massSpy(expr, 'evaluate');
+        // massSpy(targetObserver, 'setValue', 'getValue');
+        // massSpy(expr, 'evaluate');
 
-        //ensureNotCalled(sut, 'handleChange');
-        //ensureNotCalled(expr, 'assign', 'connect');
+        // ensureNotCalled(sut, 'handleChange');
+        // ensureNotCalled(expr, 'assign', 'connect');
 
         // - Act -
         sut.$bind(flags, scope);
@@ -190,12 +190,12 @@ describe('PropertyBinding', function () {
         assert.strictEqual(target['$observers'], undefined, `target['$observers']`);
 
         // verify the behavior inside $bind
-        //expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
-        //expect(expr.evaluate, `expr.evaluate`).to.have.been.calledWithExactly(flags, scope, container);
+        // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
+        // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledWithExactly(flags, scope, container);
 
-        //expect(targetObserver.setValue, `targetObserver.setValue`).to.have.been.calledOnce;
-        //expect(targetObserver.setValue, `targetObserver.setValue`).to.have.been.calledWithExactly(srcVal, flags);
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
+        // expect(targetObserver.setValue, `targetObserver.setValue`).to.have.been.calledOnce;
+        // expect(targetObserver.setValue, `targetObserver.setValue`).to.have.been.calledWithExactly(srcVal, flags);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
       });
     }
     );
@@ -246,14 +246,14 @@ describe('PropertyBinding', function () {
         const srcVal = expr.evaluate(LF.none, scope, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
-        //const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
-        //$stub.withArgs(LF.none, target, prop);
+        // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
+        // $stub.withArgs(LF.none, target, prop);
 
-        //massSpy(targetObserver, 'setValue', 'getValue');
-        //massSpy(expr, 'evaluate', 'connect');
-        //massSpy(sut, 'addObserver', 'observeProperty');
+        // massSpy(targetObserver, 'setValue', 'getValue');
+        // massSpy(expr, 'evaluate', 'connect');
+        // massSpy(sut, 'addObserver', 'observeProperty');
 
-        //ensureNotCalled(sut, 'handleChange');
+        // ensureNotCalled(sut, 'handleChange');
 
         // - Act - Part 1
         sut.$bind(flags, scope);
@@ -276,31 +276,31 @@ describe('PropertyBinding', function () {
         assert.instanceOf(sut.targetObserver, PropertyAccessor, `sut.targetObserver #07`);
         assert.strictEqual(target['$observers'], undefined, `target['$observers'] #08`);
 
-        //expect(expr.evaluate, `expr.evaluate #09`).to.have.been.calledOnce;
-        //expect(expr.evaluate, `expr.evaluate #10`).to.have.been.calledWithExactly(flags, scope, container);
+        // expect(expr.evaluate, `expr.evaluate #09`).to.have.been.calledOnce;
+        // expect(expr.evaluate, `expr.evaluate #10`).to.have.been.calledWithExactly(flags, scope, container);
 
-        //expect(expr.connect, `expr.connect #11`).to.have.been.calledOnce;
-        //expect(expr.connect, `expr.connect #12`).to.have.been.calledWithExactly(flags, sut.$scope, sut);
+        // expect(expr.connect, `expr.connect #11`).to.have.been.calledOnce;
+        // expect(expr.connect, `expr.connect #12`).to.have.been.calledWithExactly(flags, sut.$scope, sut);
 
-        //expect(targetObserver.setValue, `targetObserver.setValue #13`).to.have.been.calledOnce;
-        //expect(targetObserver.setValue, `targetObserver.setValue #14`).to.have.been.calledWithExactly(srcVal, flags);
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #15`);
+        // expect(targetObserver.setValue, `targetObserver.setValue #13`).to.have.been.calledOnce;
+        // expect(targetObserver.setValue, `targetObserver.setValue #14`).to.have.been.calledWithExactly(srcVal, flags);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #15`);
 
         // verify the behavior of the sourceExpression (redundant)
         if (expr instanceof AccessMemberExpression) {
-          //expect(sut.addObserver, `sut.addObserver #16`).to.have.been.calledTwice;
-          //expect(sut.observeProperty, `sut.observeProperty #17`).to.have.been.calledTwice;
+          // expect(sut.addObserver, `sut.addObserver #16`).to.have.been.calledTwice;
+          // expect(sut.observeProperty, `sut.observeProperty #17`).to.have.been.calledTwice;
 
           const obj = scope.bindingContext[expr.object['name']];
-          //expect(sut.observeProperty, `sut.observeProperty #18`).to.have.been.calledWithExactly(flags , obj, expr.name);
-          //expect(sut.observeProperty, `sut.observeProperty #19`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+          // expect(sut.observeProperty, `sut.observeProperty #18`).to.have.been.calledWithExactly(flags , obj, expr.name);
+          // expect(sut.observeProperty, `sut.observeProperty #19`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
         } else if (expr instanceof AccessScopeExpression) {
-          //expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledOnce;
-          //expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledOnce;
-          //expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+          // expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledOnce;
+          // expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledOnce;
+          // expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
         } else {
-          //expect(sut.addObserver).not.to.have.been.called;
-          //expect(sut.observeProperty).not.to.have.been.called;
+          // expect(sut.addObserver).not.to.have.been.called;
+          // expect(sut.observeProperty).not.to.have.been.called;
         }
 
         if (srcVal instanceof Object) {
@@ -310,24 +310,24 @@ describe('PropertyBinding', function () {
         }
 
         // - Arrange - Part 2
-        //$stub.restore();
-        //massRestore(targetObserver);
-        //massRestore(sut);
-        //massRestore(expr);
+        // $stub.restore();
+        // massRestore(targetObserver);
+        // massRestore(sut);
+        // massRestore(expr);
         if (observer00) {
-          //ensureNotCalled(observer00, 'addSubscriber', 'removeSubscriber');
-          //massSpy(observer00, 'setValue', 'getValue');
+          // ensureNotCalled(observer00, 'addSubscriber', 'removeSubscriber');
+          // massSpy(observer00, 'setValue', 'getValue');
           if (observer01) {
-            //ensureNotCalled(observer01, 'addSubscriber', 'removeSubscriber');
-            //massSpy(observer01, 'setValue', 'getValue');
+            // ensureNotCalled(observer01, 'addSubscriber', 'removeSubscriber');
+            // massSpy(observer01, 'setValue', 'getValue');
           }
-          //massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
-          //massSpy(targetObserver, 'setValue', 'getValue');
-          //massSpy(expr, 'evaluate', 'connect');
+          // massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
+          // massSpy(targetObserver, 'setValue', 'getValue');
+          // massSpy(expr, 'evaluate', 'connect');
         } else {
-          //ensureNotCalled(targetObserver, 'setValue', 'getValue');
-          //ensureNotCalled(sut, 'handleChange');
-          //ensureNotCalled(expr, 'evaluate', 'connect');
+          // ensureNotCalled(targetObserver, 'setValue', 'getValue');
+          // ensureNotCalled(sut, 'handleChange');
+          // ensureNotCalled(expr, 'evaluate', 'connect');
         }
 
         const newValue = {};
@@ -356,71 +356,71 @@ describe('PropertyBinding', function () {
         if (observer00) {
           // verify the behavior of the sourceExpression / sourceObserver (redundant)
           if (observer01) {
-            //expect(observer00.setValue).not.to.have.been.called;
-            //expect(observer01.setValue, `observer01.setValue #34`).to.have.been.calledOnce;
-            //expect(observer01.setValue, `observer01.setValue #35`).to.have.been.calledWithExactly(newValue, flags);
+            // expect(observer00.setValue).not.to.have.been.called;
+            // expect(observer01.setValue, `observer01.setValue #34`).to.have.been.calledOnce;
+            // expect(observer01.setValue, `observer01.setValue #35`).to.have.been.calledWithExactly(newValue, flags);
           } else {
-            //expect(observer00.setValue, `observer00.setValue #36`).to.have.been.calledOnce;
-            //expect(observer00.setValue, `observer00.setValue #37`).to.have.been.calledWithExactly(newValue, flags);
+            // expect(observer00.setValue, `observer00.setValue #36`).to.have.been.calledOnce;
+            // expect(observer00.setValue, `observer00.setValue #37`).to.have.been.calledWithExactly(newValue, flags);
           }
 
           if (flags & LF.fromBind) {
-            //expect(sut.handleChange, `sut.handleChange #38`).not.to.have.been.called;
-            //expect(expr.evaluate).not.to.have.been.called;
-            //expect(targetObserver.getValue, `targetObserver.getValue #42`).not.to.have.been.called;
-            //expect(targetObserver.setValue, `targetObserver.setValue #44`).not.to.have.been.called;
-            //expect(expr.connect, `expr.connect #46`).not.to.have.been.called;
-            //expect(sut.unobserve, `sut.unobserve #48`).not.to.have.been.called;
-            //expect(sut.addObserver, `sut.addObserver #56`).not.to.have.been.called;
-            //expect(sut.observeProperty, `sut.observeProperty #57`).not.to.have.been.called;
+            // expect(sut.handleChange, `sut.handleChange #38`).not.to.have.been.called;
+            // expect(expr.evaluate).not.to.have.been.called;
+            // expect(targetObserver.getValue, `targetObserver.getValue #42`).not.to.have.been.called;
+            // expect(targetObserver.setValue, `targetObserver.setValue #44`).not.to.have.been.called;
+            // expect(expr.connect, `expr.connect #46`).not.to.have.been.called;
+            // expect(sut.unobserve, `sut.unobserve #48`).not.to.have.been.called;
+            // expect(sut.addObserver, `sut.addObserver #56`).not.to.have.been.called;
+            // expect(sut.observeProperty, `sut.observeProperty #57`).not.to.have.been.called;
             assert.notStrictEqual(target[prop], newValue, `target[prop] #60`);
-            //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
+            // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
           } else {
-            //expect(sut.handleChange, `sut.handleChange #38`).to.have.been.calledOnce;
-            //expect(sut.handleChange, `sut.handleChange #39`).to.have.been.calledWithExactly(newValue, srcVal, flags);
+            // expect(sut.handleChange, `sut.handleChange #38`).to.have.been.calledOnce;
+            // expect(sut.handleChange, `sut.handleChange #39`).to.have.been.calledWithExactly(newValue, srcVal, flags);
 
             // verify the behavior inside handleChange
             if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
-              //expect(expr.evaluate).not.to.have.been.called;
+              // expect(expr.evaluate).not.to.have.been.called;
             } else {
-              //expect(expr.evaluate, `expr.evaluate #40`).to.have.been.calledOnce;
-              //expect(expr.evaluate, `expr.evaluate #41`).to.have.been.calledWithExactly(flags, scope, container);
+              // expect(expr.evaluate, `expr.evaluate #40`).to.have.been.calledOnce;
+              // expect(expr.evaluate, `expr.evaluate #41`).to.have.been.calledWithExactly(flags, scope, container);
             }
 
-            //expect(targetObserver.getValue, `targetObserver.getValue #42`).to.have.been.calledOnce;
-            //expect(targetObserver.getValue, `targetObserver.getValue #43`).to.have.been.calledWithExactly();
+            // expect(targetObserver.getValue, `targetObserver.getValue #42`).to.have.been.calledOnce;
+            // expect(targetObserver.getValue, `targetObserver.getValue #43`).to.have.been.calledWithExactly();
 
-            //expect(targetObserver.setValue, `targetObserver.setValue #44`).to.have.been.calledOnce;
-            //expect(targetObserver.setValue, `targetObserver.setValue #48`).to.have.been.calledWithExactly(newValue, flags);
+            // expect(targetObserver.setValue, `targetObserver.setValue #44`).to.have.been.calledOnce;
+            // expect(targetObserver.setValue, `targetObserver.setValue #48`).to.have.been.calledWithExactly(newValue, flags);
 
-            //expect(expr.connect, `expr.connect #46`).to.have.been.calledOnce;
-            //expect(expr.connect, `expr.connect #47`).to.have.been.calledWithExactly(flags, scope, sut);
+            // expect(expr.connect, `expr.connect #46`).to.have.been.calledOnce;
+            // expect(expr.connect, `expr.connect #47`).to.have.been.calledWithExactly(flags, scope, sut);
 
-            //expect(sut.unobserve, `sut.unobserve #48`).to.have.been.calledOnce;
-            //expect(sut.unobserve, `sut.unobserve #49`).to.have.been.calledWithExactly(false);
+            // expect(sut.unobserve, `sut.unobserve #48`).to.have.been.calledOnce;
+            // expect(sut.unobserve, `sut.unobserve #49`).to.have.been.calledWithExactly(false);
 
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMemberExpression) {
-              //expect(sut.addObserver, `sut.addObserver #50`).to.have.been.calledTwice;
-              //expect(sut.observeProperty, `sut.observeProperty #51`).to.have.been.calledTwice;
+              // expect(sut.addObserver, `sut.addObserver #50`).to.have.been.calledTwice;
+              // expect(sut.observeProperty, `sut.observeProperty #51`).to.have.been.calledTwice;
 
               const obj = scope.bindingContext[expr.object['name']];
-              //expect(sut.observeProperty, `sut.observeProperty #52`).to.have.been.calledWithExactly(flags, obj, expr.name);
-              //expect(sut.observeProperty, `sut.observeProperty #53`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+              // expect(sut.observeProperty, `sut.observeProperty #52`).to.have.been.calledWithExactly(flags, obj, expr.name);
+              // expect(sut.observeProperty, `sut.observeProperty #53`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
 
-              //expect(sut.addObserver, `sut.addObserver #54`).to.have.been.calledWithExactly(observer00);
-              //expect(sut.addObserver, `sut.addObserver #55`).to.have.been.calledWithExactly(observer01);
+              // expect(sut.addObserver, `sut.addObserver #54`).to.have.been.calledWithExactly(observer00);
+              // expect(sut.addObserver, `sut.addObserver #55`).to.have.been.calledWithExactly(observer01);
             } else if (expr instanceof AccessScopeExpression) {
-              //expect(sut.addObserver, `sut.addObserver #56`).to.have.been.calledOnce;
-              //expect(sut.observeProperty, `sut.observeProperty #57`).to.have.been.calledOnce;
-              //expect(sut.observeProperty, `sut.observeProperty #58`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+              // expect(sut.addObserver, `sut.addObserver #56`).to.have.been.calledOnce;
+              // expect(sut.observeProperty, `sut.observeProperty #57`).to.have.been.calledOnce;
+              // expect(sut.observeProperty, `sut.observeProperty #58`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
 
-              //expect(sut.addObserver, `sut.addObserver #59`).to.have.been.calledWithExactly(observer00);
+              // expect(sut.addObserver, `sut.addObserver #59`).to.have.been.calledWithExactly(observer00);
             }
 
             // verify the behavior of the targetObserver (redundant)
             assert.strictEqual(target[prop], newValue, `target[prop] #60`);
-            //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
+            // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
           }
         }
       });
@@ -470,11 +470,11 @@ describe('PropertyBinding', function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
-        //massSpy(targetObserver, 'subscribe');
+        // massSpy(targetObserver, 'subscribe');
 
-        //ensureNotCalled(expr, 'evaluate', 'connect', 'assign');
-        //ensureNotCalled(targetObserver, 'setValue', 'getValue', 'removeSubscriber', 'callSubscribers');
-        //ensureNotCalled(sut, 'handleChange');
+        // ensureNotCalled(expr, 'evaluate', 'connect', 'assign');
+        // ensureNotCalled(targetObserver, 'setValue', 'getValue', 'removeSubscriber', 'callSubscribers');
+        // ensureNotCalled(sut, 'handleChange');
 
         const initialVal = target[prop];
 
@@ -482,7 +482,7 @@ describe('PropertyBinding', function () {
         sut.$bind(flags, scope);
 
         // - Assert - Part 1
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
         assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop]`);
@@ -491,17 +491,17 @@ describe('PropertyBinding', function () {
         assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
 
         // verify the behavior inside $bind
-        //expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledOnce;
-        //expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledWithExactly(sut);
+        // expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledOnce;
+        // expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledWithExactly(sut);
 
         // - Arrange - Part 2
-        //massReset(targetObserver);
-        //massReset(sut);
-        //massReset(expr);
-        //ensureNotCalled(targetObserver, 'subscribe');
-        //massRestore(targetObserver, 'setValue', 'callSubscribers');
-        //massSpy(sut, 'handleChange');
-        //massSpy(expr, 'evaluate', 'assign');
+        // massReset(targetObserver);
+        // massReset(sut);
+        // massReset(expr);
+        // ensureNotCalled(targetObserver, 'subscribe');
+        // massRestore(targetObserver, 'setValue', 'callSubscribers');
+        // massSpy(sut, 'handleChange');
+        // massSpy(expr, 'evaluate', 'assign');
 
         flags = LF.updateSourceExpression;
 
@@ -509,33 +509,33 @@ describe('PropertyBinding', function () {
         targetObserver.setValue(newValue, flags);
 
         // - Assert - Part 2
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
         // verify the behavior of the targetObserver (redundant)
         assert.strictEqual(sut['_observer0'], undefined, `sut['_observer0']`);
         assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
 
         if (initialVal !== newValue) {
-          //expect(sut.handleChange, `sut.handleChange`).to.have.been.calledOnce;
-          //expect(sut.handleChange, `sut.handleChange`).to.have.been.calledWithExactly(newValue, initialVal, flags);
+          // expect(sut.handleChange, `sut.handleChange`).to.have.been.calledOnce;
+          // expect(sut.handleChange, `sut.handleChange`).to.have.been.calledWithExactly(newValue, initialVal, flags);
 
           // verify the behavior inside handleChange
           if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
-            //expect(expr.evaluate).not.to.have.been.called;
+            // expect(expr.evaluate).not.to.have.been.called;
           } else {
-            //expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
-            //expect(expr.evaluate, `expr.evaluate`).to.have.been.calledWithExactly(flags, scope, container);
+            // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
+            // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledWithExactly(flags, scope, container);
           }
 
-          //expect(expr.assign, `expr.assign`).to.have.been.calledOnce;
-          //expect(expr.assign, `expr.assign`).to.have.been.calledWithExactly(flags, scope, container, newValue);
+          // expect(expr.assign, `expr.assign`).to.have.been.calledOnce;
+          // expect(expr.assign, `expr.assign`).to.have.been.calledWithExactly(flags, scope, container, newValue);
         } else {
           // verify the behavior of the targetObserver (redundant)
-          //expect(sut.handleChange).not.to.have.been.called;
+          // expect(sut.handleChange).not.to.have.been.called;
 
           // verify the behavior inside handleChange
-          //expect(expr.evaluate).not.to.have.been.called;
-          //expect(expr.assign).not.to.have.been.called;
+          // expect(expr.evaluate).not.to.have.been.called;
+          // expect(expr.assign).not.to.have.been.called;
         }
       });
     }
@@ -594,9 +594,9 @@ describe('PropertyBinding', function () {
         const srcVal = expr.evaluate(LF.none, scope, container);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
-        //massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
-        //massSpy(expr, 'evaluate', 'connect', 'assign');
-        //massSpy(sut, 'addObserver', 'observeProperty', 'handleChange', 'unobserve');
+        // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
+        // massSpy(expr, 'evaluate', 'connect', 'assign');
+        // massSpy(sut, 'addObserver', 'observeProperty', 'handleChange', 'unobserve');
 
         // - Act - Part 1
         sut.$bind(flags, scope);
@@ -627,39 +627,39 @@ describe('PropertyBinding', function () {
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver #10`);
         assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop] #11`);
 
-        //expect(expr.assign).not.to.have.been.called;
+        // expect(expr.assign).not.to.have.been.called;
 
-        //expect(expr.evaluate, `expr.evaluate #12`).to.have.been.calledOnce;
-        //expect(expr.evaluate, `expr.evaluate #13`).to.have.been.calledWithExactly(flags, scope, container);
+        // expect(expr.evaluate, `expr.evaluate #12`).to.have.been.calledOnce;
+        // expect(expr.evaluate, `expr.evaluate #13`).to.have.been.calledWithExactly(flags, scope, container);
 
-        //expect(expr.connect, `expr.connect #14`).to.have.been.calledOnce;
-        //expect(expr.connect, `expr.connect #15`).to.have.been.calledWithExactly(flags, scope, sut);
+        // expect(expr.connect, `expr.connect #14`).to.have.been.calledOnce;
+        // expect(expr.connect, `expr.connect #15`).to.have.been.calledWithExactly(flags, scope, sut);
 
-        //expect(targetObserver.setValue, `targetObserver.setValue #16`).to.have.been.calledOnce;
-        //expect(targetObserver.setValue, `targetObserver.setValue #17`).to.have.been.calledWithExactly(srcVal, flags);
+        // expect(targetObserver.setValue, `targetObserver.setValue #16`).to.have.been.calledOnce;
+        // expect(targetObserver.setValue, `targetObserver.setValue #17`).to.have.been.calledWithExactly(srcVal, flags);
 
-        //expect(targetObserver.subscribe, `targetObserver.subscribe #18`).to.have.been.calledOnce;
-        //expect(targetObserver.subscribe, `targetObserver.subscribe #19`).to.have.been.calledWithExactly(sut);
+        // expect(targetObserver.subscribe, `targetObserver.subscribe #18`).to.have.been.calledOnce;
+        // expect(targetObserver.subscribe, `targetObserver.subscribe #19`).to.have.been.calledWithExactly(sut);
 
         // verify the behavior of the sourceExpression (redundant)
         if (expr instanceof AccessMemberExpression) {
-          //expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledTwice;
-          //expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledTwice;
+          // expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledTwice;
+          // expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledTwice;
           const obj = scope.bindingContext[expr.object['name']];
-          //expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, obj, expr.name);
-          //expect(sut.observeProperty, `sut.observeProperty #23`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+          // expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, obj, expr.name);
+          // expect(sut.observeProperty, `sut.observeProperty #23`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
         } else if (expr instanceof AccessScopeExpression) {
-          //expect(sut.addObserver, `sut.addObserver #24`).to.have.been.calledOnce;
-          //expect(sut.observeProperty, `sut.observeProperty #25`).to.have.been.calledOnce;
-          //expect(sut.observeProperty, `sut.observeProperty #26`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+          // expect(sut.addObserver, `sut.addObserver #24`).to.have.been.calledOnce;
+          // expect(sut.observeProperty, `sut.observeProperty #25`).to.have.been.calledOnce;
+          // expect(sut.observeProperty, `sut.observeProperty #26`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
         } else {
-          //expect(sut.addObserver).not.to.have.been.called;
-          //expect(sut.observeProperty).not.to.have.been.called;
+          // expect(sut.addObserver).not.to.have.been.called;
+          // expect(sut.observeProperty).not.to.have.been.called;
         }
 
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #27`);
-        //expect(targetObserver['setValue'], `targetObserver['setValue'] #28`).to.have.been.calledOnce;
-        //expect(targetObserver['setValue'], `targetObserver['setValue'] #29`).to.have.been.calledWithExactly(srcVal, flags);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #27`);
+        // expect(targetObserver['setValue'], `targetObserver['setValue'] #28`).to.have.been.calledOnce;
+        // expect(targetObserver['setValue'], `targetObserver['setValue'] #29`).to.have.been.calledWithExactly(srcVal, flags);
 
         // verify the behavior of the targetObserver (redundant)
         if (srcVal instanceof Object) {
@@ -671,35 +671,35 @@ describe('PropertyBinding', function () {
         }
 
         if (!(flags & LF.fromBind)) {
-          //expect(targetObserver.callSubscribers, `targetObserver.callSubscribers #34`).to.have.been.calledOnce;
+          // expect(targetObserver.callSubscribers, `targetObserver.callSubscribers #34`).to.have.been.calledOnce;
         } else {
-          //expect(targetObserver.callSubscribers, `targetObserver.callSubscribers #35`).not.to.have.been.called;
+          // expect(targetObserver.callSubscribers, `targetObserver.callSubscribers #35`).not.to.have.been.called;
         }
-        //expect(sut.handleChange, `sut.handleChange #36`).not.to.have.been.called;
+        // expect(sut.handleChange, `sut.handleChange #36`).not.to.have.been.called;
 
         // - Arrange - Part 2
-        //massReset(targetObserver);
-        //massReset(sut);
-        //massReset(expr);
+        // massReset(targetObserver);
+        // massReset(sut);
+        // massReset(expr);
         if (observer00) {
-          //massSpy(observer00, 'setValue', 'getValue');
+          // massSpy(observer00, 'setValue', 'getValue');
           if (observer01) {
-            //massSpy(observer01, 'setValue', 'getValue');
+            // massSpy(observer01, 'setValue', 'getValue');
           }
-          //massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
-          //massSpy(targetObserver, 'setValue', 'getValue');
-          //massSpy(expr, 'evaluate', 'connect');
+          // massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
+          // massSpy(targetObserver, 'setValue', 'getValue');
+          // massSpy(expr, 'evaluate', 'connect');
         } else {
-          //ensureNotCalled(targetObserver, 'setValue');
-          //ensureNotCalled(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
-          //ensureNotCalled(expr, 'evaluate');
+          // ensureNotCalled(targetObserver, 'setValue');
+          // ensureNotCalled(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
+          // ensureNotCalled(expr, 'evaluate');
         }
 
         // - Act - Part 2
         expr.assign(flags, scope, container, newValue1);
 
         // - Assert - Part 2
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
         // verify that no observers were added/removed/changed (redundant)
         const observer10: SetterObserver = sut['_observer0'];
         const observer11: SetterObserver = sut['_observer1'];
@@ -728,76 +728,76 @@ describe('PropertyBinding', function () {
         if (observer00) {
           // verify the behavior of the sourceExpression / sourceObserver (redundant)
           if (observer01) {
-            //expect(observer00.setValue).not.to.have.been.called;
-            //expect(observer01.setValue, `observer01.setValue #50`).to.have.been.calledOnce;
-            //expect(observer01.setValue, `observer01.setValue #51`).to.have.been.calledWithExactly(newValue1, flags);
+            // expect(observer00.setValue).not.to.have.been.called;
+            // expect(observer01.setValue, `observer01.setValue #50`).to.have.been.calledOnce;
+            // expect(observer01.setValue, `observer01.setValue #51`).to.have.been.calledWithExactly(newValue1, flags);
           } else {
-            //expect(observer00.setValue, `observer00.setValue #52`).to.have.been.calledOnce;
-            //expect(observer00.setValue, `observer00.setValue #53`).to.have.been.calledWithExactly(newValue1, flags);
+            // expect(observer00.setValue, `observer00.setValue #52`).to.have.been.calledOnce;
+            // expect(observer00.setValue, `observer00.setValue #53`).to.have.been.calledWithExactly(newValue1, flags);
           }
 
           if (flags & LF.fromBind) {
-            //expect(sut.handleChange, `sut.handleChange #54`).not.to.have.been.called;
-            //expect(expr.evaluate, `expr.evaluate #56`).not.to.have.been.called;
-            //expect(targetObserver.getValue, `targetObserver.getValue #59`).not.to.have.been.called;
-            //expect(targetObserver.setValue, `targetObserver.setValue #61`).not.to.have.been.called;
-            //expect(expr.connect, `expr.connect #63`).not.to.have.been.called;
-            //expect(sut.unobserve, `sut.unobserve #65`).not.to.have.been.called;
-            //expect(expr.assign, `expr.assign #67`).to.have.been.calledOnce;
+            // expect(sut.handleChange, `sut.handleChange #54`).not.to.have.been.called;
+            // expect(expr.evaluate, `expr.evaluate #56`).not.to.have.been.called;
+            // expect(targetObserver.getValue, `targetObserver.getValue #59`).not.to.have.been.called;
+            // expect(targetObserver.setValue, `targetObserver.setValue #61`).not.to.have.been.called;
+            // expect(expr.connect, `expr.connect #63`).not.to.have.been.called;
+            // expect(sut.unobserve, `sut.unobserve #65`).not.to.have.been.called;
+            // expect(expr.assign, `expr.assign #67`).to.have.been.calledOnce;
 
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMemberExpression) {
-              //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #68`);
-              //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
+              // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #68`);
+              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
             } else if (expr instanceof AccessScopeExpression) {
-              //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #74`);
-              //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
+              // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #74`);
+              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
             }
             assert.notStrictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
             assert.notStrictEqual(target[prop], newValue1, `target[prop] #79`);
           } else {
-            //expect(sut.handleChange, `sut.handleChange #54`).to.have.been.calledOnce;
-            //expect(sut.handleChange, `sut.handleChange #55`).to.have.been.calledWithExactly(newValue1, srcVal, flags);
+            // expect(sut.handleChange, `sut.handleChange #54`).to.have.been.calledOnce;
+            // expect(sut.handleChange, `sut.handleChange #55`).to.have.been.calledWithExactly(newValue1, srcVal, flags);
 
             // verify the behavior inside handleChange
             if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
-              //expect(expr.evaluate, `expr.evaluate #56`).not.to.have.been.called;
+              // expect(expr.evaluate, `expr.evaluate #56`).not.to.have.been.called;
             } else {
-              //expect(expr.evaluate, `expr.evaluate #57`).to.have.been.calledOnce;
-              //expect(expr.evaluate, `expr.evaluate #58`).to.have.been.calledWithExactly(flags, scope, container);
+              // expect(expr.evaluate, `expr.evaluate #57`).to.have.been.calledOnce;
+              // expect(expr.evaluate, `expr.evaluate #58`).to.have.been.calledWithExactly(flags, scope, container);
             }
 
-            //expect(targetObserver.getValue, `targetObserver.getValue #59`).to.have.been.calledOnce;
-            //expect(targetObserver.getValue, `targetObserver.getValue #60`).to.have.been.calledWithExactly();
+            // expect(targetObserver.getValue, `targetObserver.getValue #59`).to.have.been.calledOnce;
+            // expect(targetObserver.getValue, `targetObserver.getValue #60`).to.have.been.calledWithExactly();
 
-            //expect(targetObserver.setValue, `targetObserver.setValue #61`).to.have.been.calledOnce;
-            //expect(targetObserver.setValue, `targetObserver.setValue #62`).to.have.been.calledWithExactly(newValue1, flags);
+            // expect(targetObserver.setValue, `targetObserver.setValue #61`).to.have.been.calledOnce;
+            // expect(targetObserver.setValue, `targetObserver.setValue #62`).to.have.been.calledWithExactly(newValue1, flags);
 
-            //expect(expr.connect, `expr.connect #63`).to.have.been.calledOnce;
-            //expect(expr.connect, `expr.connect #64`).to.have.been.calledWithExactly(flags, scope, sut);
+            // expect(expr.connect, `expr.connect #63`).to.have.been.calledOnce;
+            // expect(expr.connect, `expr.connect #64`).to.have.been.calledWithExactly(flags, scope, sut);
 
-            //expect(sut.unobserve, `sut.unobserve #65`).to.have.been.calledOnce;
-            //expect(sut.unobserve, `sut.unobserve #66`).to.have.been.calledWithExactly(false);
+            // expect(sut.unobserve, `sut.unobserve #65`).to.have.been.calledOnce;
+            // expect(sut.unobserve, `sut.unobserve #66`).to.have.been.calledWithExactly(false);
 
-            //expect(expr.assign, `expr.assign #67`).to.have.been.calledOnce;
+            // expect(expr.assign, `expr.assign #67`).to.have.been.calledOnce;
 
             // verify the behavior of the sourceExpression (connect) (redundant)
             if (expr instanceof AccessMemberExpression) {
-              //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 2, `(sut.addObserver as SinonSpy).getCalls().length #68`);
-              //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 2, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
+              // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 2, `(sut.addObserver as SinonSpy).getCalls().length #68`);
+              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 2, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
               const obj = scope.bindingContext[expr.object['name']];
-              //expect(sut.observeProperty, `sut.observeProperty #70`).to.have.been.calledWithExactly(flags, obj, expr.name);
-              //expect(sut.observeProperty, `sut.observeProperty #71`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
-              //expect(sut.addObserver, `sut.addObserver #72`).to.have.been.calledWithExactly(observer00);
+              // expect(sut.observeProperty, `sut.observeProperty #70`).to.have.been.calledWithExactly(flags, obj, expr.name);
+              // expect(sut.observeProperty, `sut.observeProperty #71`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
+              // expect(sut.addObserver, `sut.addObserver #72`).to.have.been.calledWithExactly(observer00);
               if (observer01) {
-                //expect(sut.addObserver, `sut.addObserver #73`).to.have.been.calledWithExactly(observer01);
+                // expect(sut.addObserver, `sut.addObserver #73`).to.have.been.calledWithExactly(observer01);
               }
             } else if (expr instanceof AccessScopeExpression) {
-              //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 1, `(sut.addObserver as SinonSpy).getCalls().length #74`);
-              //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 1, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
-              //expect(sut.observeProperty, `sut.observeProperty #76`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
+              // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 1, `(sut.addObserver as SinonSpy).getCalls().length #74`);
+              // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 1, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
+              // expect(sut.observeProperty, `sut.observeProperty #76`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
 
-              //expect(sut.addObserver, `sut.addObserver #77`).to.have.been.calledWithExactly(observer00);
+              // expect(sut.addObserver, `sut.addObserver #77`).to.have.been.calledWithExactly(observer00);
             }
 
             assert.strictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
@@ -807,20 +807,20 @@ describe('PropertyBinding', function () {
 
         // - Arrange - Part 3
         const initialVal = target[prop];
-        //massRestore(targetObserver);
-        //massRestore(sut);
-        //massRestore(expr);
+        // massRestore(targetObserver);
+        // massRestore(sut);
+        // massRestore(expr);
         if (observer00) {
-          //massRestore(observer00);
-          //massSpy(observer00, 'setValue', 'getValue');
+          // massRestore(observer00);
+          // massSpy(observer00, 'setValue', 'getValue');
         }
         if (observer01) {
-          //massRestore(observer01);
-          //massSpy(observer01, 'setValue', 'getValue');
+          // massRestore(observer01);
+          // massSpy(observer01, 'setValue', 'getValue');
         }
-        //massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers');
-        //massSpy(sut, 'handleChange');
-        //massSpy(expr, 'evaluate', 'assign');
+        // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers');
+        // massSpy(sut, 'handleChange');
+        // massSpy(expr, 'evaluate', 'assign');
 
         flags = LF.updateSourceExpression;
 
@@ -828,24 +828,24 @@ describe('PropertyBinding', function () {
         targetObserver.setValue(newValue2, flags);
 
         // - Assert - Part 3
-        //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #80`);
+        // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #80`);
 
         // verify the behavior of the targetObserver (redundant)
-        //expect(sut.handleChange, `sut.handleChange #81`).to.have.been.called;
-        //expect(sut.handleChange, `sut.handleChange #82`).to.have.been.calledWithExactly(newValue2, initialVal, flags);
+        // expect(sut.handleChange, `sut.handleChange #81`).to.have.been.called;
+        // expect(sut.handleChange, `sut.handleChange #82`).to.have.been.calledWithExactly(newValue2, initialVal, flags);
 
-        //expect(expr.evaluate, `expr.evaluate #83`).to.have.been.called;
-        //expect(expr.evaluate, `expr.evaluate #84`).to.have.been.calledWithExactly(flags, scope, container);
+        // expect(expr.evaluate, `expr.evaluate #83`).to.have.been.called;
+        // expect(expr.evaluate, `expr.evaluate #84`).to.have.been.calledWithExactly(flags, scope, container);
 
         // verify the behavior inside handleChange
-        //expect(expr.assign, `expr.assign #85`).to.have.been.calledOnce;
-        //expect(expr.assign, `expr.assign #86`).to.have.been.calledWithExactly(flags, scope, container, newValue2);
+        // expect(expr.assign, `expr.assign #85`).to.have.been.calledOnce;
+        // expect(expr.assign, `expr.assign #86`).to.have.been.calledWithExactly(flags, scope, container, newValue2);
 
         // TODO: put in separate test / make a bit more thorough (this is quite rubbish but better than nothing)
         // - Arrange - Part 4
-        //massRestore(targetObserver);
-        //massRestore(sut, 'unobserve');
-        //massRestore(expr);
+        // massRestore(targetObserver);
+        // massRestore(sut, 'unobserve');
+        // massRestore(expr);
         sut.$bind(flags, originalScope);
 
         verifyEqual(target[prop], srcVal);
@@ -876,8 +876,8 @@ describe('PropertyBinding', function () {
       sut.$unbind(LF.fromUnbind);
       assert.strictEqual(sut['$scope'], undefined, `sut['$scope']`);
       assert.strictEqual(sut['$state'] & State.isBound, 0, `sut['$state'] & State.isBound`);
-      ////expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
-      ////expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);
+      // expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
+      // expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);
     });
   });
 
@@ -927,7 +927,7 @@ describe('PropertyBinding', function () {
         while (i < count) {
           const observer = sut[`_observer${i}`];
           sut.addObserver(observer);
-          //expect(observer.subscribe).not.to.have.been.called;
+          // expect(observer.subscribe).not.to.have.been.called;
           i++;
         }
       });

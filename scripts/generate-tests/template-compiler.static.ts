@@ -350,7 +350,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$01`}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], ifText.markup) +
               $(tag, [$if], ''),
@@ -375,7 +375,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$03'}],
             resources)
           );
-          //}
+          // }
 
           // only if branch (nested)
           ifElseTests.push($$test(
@@ -385,7 +385,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
               $(tag, [$if], ''),
@@ -426,7 +426,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$05'}],
             resources)
           );
-          //}
+          // }
         }
 
         if (!tag.isCustom || $else.value === true) {
@@ -439,7 +439,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$02`}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$else], elseText.markup) +
@@ -470,7 +470,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$03'}],
             resources)
           );
-          //}
+          // }
 
           // only else branch (nested)
           ifElseTests.push($$test(
@@ -483,7 +483,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$else], $(tag, [$if], '') +
@@ -550,7 +550,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           [tag, ifText, $if, {id: `${branchId}$04`}],
           resources)
         );
-        //if (!tag.hasReplaceable) {
+        // if (!tag.hasReplaceable) {
         ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup) +
@@ -581,7 +581,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$03'}],
           resources)
         );
-        //}
+        // }
 
         // if + else branch (nested)
         ifElseTests.push($$test(
@@ -596,7 +596,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}],
           resources)
         );
-        //if (!tag.hasReplaceable) {
+        // if (!tag.hasReplaceable) {
         ifElseDoubleTests.push($$test(
           $(tag, [$if], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
@@ -701,7 +701,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         //   $(tag, [$else], elseText.markup),
         //   expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$04'}], resources)
         // );
-        //}
+        // }
 
         for (const $repeat of repeaters) {
           // skip repeated templates with replaceable since the generated tests don't make sense
@@ -736,7 +736,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, $repeat, {id: 'variant$01'}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
             $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $if], fixup(elseText)) +
@@ -748,7 +748,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, $repeat, {id: 'variant$01$double'}],
             resources)
           );
-          //}
+          // }
 
           // the inverse of the fullIfElse wrapped by repeater (repeater wrapped by if/else)
           ifElseRepeatTests.push($$test(
@@ -759,7 +759,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, $repeat, {id: 'variant$02'}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else, $if], $(tag, [$repeat], fixup(elseText))) +
@@ -770,7 +770,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, $repeat, {id: 'variant$02$double'}],
             resources)
           );
-          //}
+          // }
           // same as the test above but with the template controllers on the same element
           ifElseRepeatTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
@@ -780,7 +780,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, $repeat, {id: 'variant$03'}],
             resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
               $(tag, [$else, $if, $repeat], fixup(elseText)) +
@@ -801,7 +801,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             [tag, ifText, $if, $repeat, {id: 'variant$03$double$02'}],
             resources)
           );
-          //}
+          // }
 
           if (!$else.value) {
             ifElseRepeatTests.push($$test(
@@ -869,7 +869,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               [tag, ifText, $if, $repeat, {id: 'variant$09$empty'}],
               resources)
             );
-            //if (!tag.hasReplaceable) {
+            // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
                 $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
@@ -890,7 +890,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               [tag, ifText, $if, $repeat, {id: 'variant$09$double$02'}],
               resources)
             );
-            //}
+            // }
           }
 
           if (!$if.value) {
@@ -928,7 +928,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               [tag, ifText, $if, $repeat, {id: 'variant$11$empty'}],
               resources)
             );
-            //if (!tag.hasReplaceable) {
+            // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
@@ -959,7 +959,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               [tag, ifText, $if, $repeat, {id: 'variant$11$double$03'}],
               resources)
             );
-            //}
+            // }
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
@@ -969,7 +969,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               [tag, ifText, $if, $repeat, {id: 'variant$12'}],
               resources)
             );
-            //if (!tag.hasReplaceable) {
+            // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $repeat, $if], fixup(elseText)) +
@@ -990,7 +990,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               [tag, ifText, $if, $repeat, {id: 'variant$12$double$02'}],
               resources)
             );
-            //}
+            // }
           }
         }
       }

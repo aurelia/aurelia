@@ -28,7 +28,7 @@ export function isNumeric(value: unknown): value is number | string {
       let ch = 0;
       for (let i = 0; i < length; ++i) {
         ch = value.charCodeAt(i);
-        if (ch < 0x30 /*0*/ || ch > 0x39/*9*/) {
+        if (ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
           return isNumericLookup[value] = false;
         }
       }

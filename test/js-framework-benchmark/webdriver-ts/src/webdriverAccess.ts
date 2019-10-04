@@ -46,7 +46,7 @@ export async function findByXPath(node: WebElement, path: string): Promise<WebEl
       n = elems[0];
     }
   } catch (e) {
-    //can happen for StaleElementReferenceError
+    // can happen for StaleElementReferenceError
     return null;
   }
   return n;

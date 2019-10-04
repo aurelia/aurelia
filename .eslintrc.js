@@ -129,6 +129,10 @@ module.exports = {
     'quotes': ['off'],
     'radix': 'error',
     'space-in-parens': 'error',
+    'spaced-comment': ['error', 'always', {
+      line: { markers: ['/'], exceptions: ['-', '+'] },
+      block: { markers: ['!'], exceptions: ['*'], balanced: true }
+    }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
     '@typescript-eslint/ban-ts-ignore': 'warn',
@@ -199,10 +203,6 @@ module.exports = {
     'prefer-spread': 'warn',
     'prefer-template': 'warn',
     'require-atomic-updates': 'warn',
-    'spaced-comment': ['warn', 'always', {
-      line: { markers: ['/'], exceptions: ['-', '+'] },
-      block: { markers: ['!'], exceptions: ['*'], balanced: true }
-    }],
 
     // Off for now as they create way to much noise
     '@typescript-eslint/quotes': ['off']

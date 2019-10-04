@@ -76,7 +76,7 @@ const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
 const codes = {
-  //SyntaxError
+  // SyntaxError
   InvalidExpressionStart: 'Code 100',
   UnconsumedToken: 'Code 101',
   DoubleDot: 'Code 102',
@@ -90,7 +90,7 @@ const codes = {
   MissingExpectedToken: 'Code 110',
   UnexpectedCharacter: 'Code 111',
 
-  //SemanticError
+  // SemanticError
   NotAssignable: 'Code 150',
   UnexpectedForOf: 'Code 151'
 };

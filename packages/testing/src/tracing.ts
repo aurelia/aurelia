@@ -49,13 +49,13 @@ export const SymbolTraceWriter = {
             if ((p as ISymbol).flags !== undefined) {
               const symbol = p as INodeSymbol | IPlainAttributeSymbol | ICustomAttributeSymbol;
               if ('target' in symbol) {
-                //@ts-ignore
+                // @ts-ignore
                 output += `attr: ${symbol.target}=${symbol.rawValue}`;
               } else if ('interpolation' in symbol) {
-                //@ts-ignore
+                // @ts-ignore
                 output += `text: "${symbol.physicalNode.textContent}"`;
               } else {
-                //@ts-ignore
+                // @ts-ignore
                 output += `element: ${symbol.physicalNode.outerHTML}`;
               }
             } else {

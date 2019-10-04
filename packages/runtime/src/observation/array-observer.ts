@@ -333,7 +333,7 @@ const observe = {
       }
       i++;
     }
-    if (compareFn === void 0 || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
+    if (compareFn === void 0 || typeof compareFn !== 'function'/* spec says throw a TypeError, should we do that too? */) {
       compareFn = sortCompare;
     }
     quickSort($this, o.indexMap, 0, i, compareFn);

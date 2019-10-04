@@ -39,7 +39,7 @@ describe(`createElement() creates element based on tag`, function () {
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, function () {
           const ctx = TestContext.createHTMLTestContext();
-          //@ts-ignore
+          // @ts-ignore
           const actual = sut(ctx.dom, tag, props);
 
           const node = actual['node'] as Element;
@@ -72,7 +72,7 @@ describe(`createElement() creates element based on tag`, function () {
         t => {
           it(`understands targeted instruction type=${t}`, function () {
             const ctx = TestContext.createHTMLTestContext();
-            //@ts-ignore
+            // @ts-ignore
             const actual = sut(ctx.dom, tag, { prop: { type: t }});
 
             const instruction = actual['instructions'][0][0] as TargetedInstruction;
@@ -157,7 +157,7 @@ describe(`createElement() creates element based on type`, function () {
         it(`can handle ${str} props`, function () {
           const type = createType();
           const ctx = TestContext.createHTMLTestContext();
-          //@ts-ignore
+          // @ts-ignore
           const actual = sut(ctx.dom, type, props);
 
           const node = actual['node'] as Element;
@@ -194,7 +194,7 @@ describe(`createElement() creates element based on type`, function () {
           it(`understands targeted instruction type=${t}`, function () {
             const type = createType();
             const ctx = TestContext.createHTMLTestContext();
-            //@ts-ignore
+            // @ts-ignore
             const actual = sut(ctx.dom, type, { prop: { type: t }});
 
             const node = actual['node'] as Element;

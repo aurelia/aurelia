@@ -132,8 +132,8 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
     const binding = new AttributeBinding(
       expr,
       target,
-      instruction.attr/*targetAttribute*/,
-      instruction.to/*targetKey*/,
+      instruction.attr/* targetAttribute */,
+      instruction.to/* targetKey */,
       BindingMode.toView,
       this.observerLocator,
       context

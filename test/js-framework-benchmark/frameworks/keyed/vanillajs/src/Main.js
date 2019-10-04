@@ -117,59 +117,59 @@ class Main {
     this.selectedRow = undefined;
 
     document.getElementById("main").addEventListener('click', e => {
-      //console.log("listener",e);
+      // console.log("listener",e);
       if (e.target.matches('#add')) {
         e.preventDefault();
-        //console.log("add");
+        // console.log("add");
         this.add();
       }
       else if (e.target.matches('#run')) {
         e.preventDefault();
-        //console.log("run");
+        // console.log("run");
         this.run();
       }
       else if (e.target.matches('#update')) {
         e.preventDefault();
-        //console.log("update");
+        // console.log("update");
         this.update();
       }
       else if (e.target.matches('#hideall')) {
         e.preventDefault();
-        //console.log("hideAll");
+        // console.log("hideAll");
         this.hideAll();
       }
       else if (e.target.matches('#showall')) {
         e.preventDefault();
-        //console.log("showAll");
+        // console.log("showAll");
         this.showAll();
       }
       else if (e.target.matches('#runlots')) {
         e.preventDefault();
-        //console.log("runLots");
+        // console.log("runLots");
         this.runLots();
       }
       else if (e.target.matches('#clear')) {
         e.preventDefault();
-        //console.log("clear");
+        // console.log("clear");
         this.clear();
       }
       else if (e.target.matches('#swaprows')) {
         e.preventDefault();
-        //console.log("swapRows");
+        // console.log("swapRows");
         this.swapRows();
       }
       else if (e.target.matches('.remove')) {
         e.preventDefault();
         let id = getParentId(e.target);
         let idx = this.findIdx(id);
-        //console.log("delete",idx);
+        // console.log("delete",idx);
         this.delete(idx);
       }
       else if (e.target.matches('.lbl')) {
         e.preventDefault();
         let id = getParentId(e.target);
         let idx = this.findIdx(id);
-        //console.log("select",idx);
+        // console.log("select",idx);
         this.select(idx);
       }
     });

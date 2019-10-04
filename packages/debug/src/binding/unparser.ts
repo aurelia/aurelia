@@ -168,7 +168,7 @@ export class Unparser implements AST.IVisitor<void> {
 
   public visitUnary(expr: AST.UnaryExpression): void {
     this.text += `(${expr.operation}`;
-    if (expr.operation.charCodeAt(0) >= /*a*/97) {
+    if (expr.operation.charCodeAt(0) >= /* a */97) {
       this.text += ' ';
     }
     expr.expression.accept(this);
@@ -178,7 +178,7 @@ export class Unparser implements AST.IVisitor<void> {
   public visitBinary(expr: AST.BinaryExpression): void {
     this.text += '(';
     expr.left.accept(this);
-    if (expr.operation.charCodeAt(0) === /*i*/105) {
+    if (expr.operation.charCodeAt(0) === /* i */105) {
       this.text += ` ${expr.operation} `;
     } else {
       this.text += expr.operation;

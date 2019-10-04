@@ -19,7 +19,7 @@ function copyFileSync(source, target) {
 
   var targetFile = target;
 
-  //if target is a directory a new file with the same name will be created
+  // if target is a directory a new file with the same name will be created
   if (fs.existsSync(target) && fs.lstatSync(target).isDirectory()) {
     targetFile = path.join(target, path.basename(source));
   }
@@ -40,13 +40,13 @@ function include(name) {
 function copyFolderRecursiveSync(source, target) {
   var files = [];
 
-  //check if folder needs to be created or integrated
+  // check if folder needs to be created or integrated
   var targetFolder = path.join(target, path.basename(source));
   if (!fs.existsSync(targetFolder)) {
     fs.mkdirSync(targetFolder);
   }
 
-  //copy
+  // copy
   if (fs.lstatSync(source).isDirectory()) {
     files = fs.readdirSync(source);
     files.forEach(function (file) {

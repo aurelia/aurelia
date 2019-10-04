@@ -96,10 +96,10 @@ export function htmlStringify(node: object & { nodeName?: string; content?: any;
   if (node === undefined) {
     return 'undefined';
   }
-  if ((node.textContent != null && node.textContent.length) || node.nodeType === 3 /*Text*/ || node.nodeType === 8 /*Comment*/) {
+  if ((node.textContent != null && node.textContent.length) || node.nodeType === 3 /* Text */ || node.nodeType === 8 /* Comment */) {
     return node.textContent!.replace(newline, '');
   }
-  if (node.nodeType === 1/*Element*/) {
+  if (node.nodeType === 1/* Element */) {
     if (node.innerHTML!.length) {
       return node.innerHTML!.replace(newline, '');
     }

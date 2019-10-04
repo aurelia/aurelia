@@ -437,7 +437,7 @@ describe('ClassAccessor', function () {
     { fooo: 'true', baaar: 'false' }, { foo: true, bar: false, fooo: true }, { foo: false, bar: false },
     { 'fooo baaar': true, 'baar': true, 'fono': false },
     ['fooo', ['bar', { baz: true }], 'bazz'],
-    ['fooo', { baar: true }, 'bazz'], []]; //empty array test
+    ['fooo', { baar: true }, 'bazz'], []]; // empty array test
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 

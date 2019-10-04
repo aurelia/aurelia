@@ -1,4 +1,4 @@
-//http://webdriver.io/guide/testrunner/configurationfile.html
+// http://webdriver.io/guide/testrunner/configurationfile.html
 import * as browserstack from 'browserstack-local';
 import { CIEnv } from '../../scripts/ci-env';
 
@@ -61,7 +61,7 @@ exports.config = {
 
   capabilities: [
     ...combine([
-      //{ versions: ['17'], name: 'Edge' },
+      // { versions: ['17'], name: 'Edge' },
       { versions: ['71'], name: 'Chrome' },
       // { versions: ['65'], name: 'Firefox' }
     ], [

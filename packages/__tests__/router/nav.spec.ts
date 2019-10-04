@@ -71,7 +71,7 @@ describe('Nav', function () {
     router.activeComponents = [new ViewportInstruction('baz', 'main-viewport')];
     await waitForNavigation(router);
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
-    //assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
+    // assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
     await tearDown();
   });
 

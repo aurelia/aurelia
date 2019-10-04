@@ -35,7 +35,7 @@ export function relativeToFile(name: string, file: string): string {
   const fileParts = !file ? file : file.split('/');
   const nameParts = name.trim().split('/');
 
-  if (nameParts[0].charAt(0) === '.' && fileParts) {
+  if (nameParts[0].startsWith('.') && fileParts) {
     //Convert file to array, and lop off the last part,
     //so that . matches that 'directory' and not name of the file's
     //module. For instance, file of 'one/two/three', maps to
@@ -69,17 +69,17 @@ export function join(path1: string, path2: string): string {
   path1 = path1.slice(scheme.length);
 
   let urlPrefix: string;
-  if (path1.indexOf('///') === 0 && scheme === 'file:') {
+  if (path1.startsWith('///') && scheme === 'file:') {
     urlPrefix = '///';
-  } else if (path1.indexOf('//') === 0) {
+  } else if (path1.startsWith('//')) {
     urlPrefix = '//';
-  } else if (path1.indexOf('/') === 0) {
+  } else if (path1.startsWith('/')) {
     urlPrefix = '/';
   } else {
     urlPrefix = '';
   }
 
-  const trailingSlash = path2.slice(-1) === '/' ? '/' : '';
+  const trailingSlash = path2.endsWith('/') ? '/' : '';
 
   const url1 = path1.split('/');
   const url2 = path2.split('/');
@@ -246,7 +246,7 @@ export function parseQueryString(queryString: string): IQueryParams {
   }
 
   let query = queryString;
-  if (query.charAt(0) === '?') {
+  if (query.startsWith('?')) {
     query = query.slice(1);
   }
 
@@ -264,7 +264,7 @@ export function parseQueryString(queryString: string): IQueryParams {
     // If the first keys part contains [ and the last ends with ], then []
     // are correctly balanced, split key to parts
     //Else it's basic key
-    if (keys[0].includes("[") && /\]$/.test(keys[keysLastIndex])) {
+    if (keys[0].includes("[") && keys[keysLastIndex].endsWith("]")) {
       keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       keys = keys.shift()!.split('[').concat(keys); // outer condition already ensures not-null

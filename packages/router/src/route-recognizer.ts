@@ -241,7 +241,7 @@ export class RouteRecognizer {
     let isEmpty = true;
 
     let normalizedRoute = route.path;
-    if (normalizedRoute.charAt(0) === '/') {
+    if (normalizedRoute.startsWith('/')) {
       normalizedRoute = normalizedRoute.slice(1);
     }
 
@@ -420,7 +420,7 @@ export class RouteRecognizer {
       }
     }
 
-    if (output.charAt(0) !== '/') {
+    if (!output.startsWith('/')) {
       output = `/${output}`;
     }
 
@@ -458,7 +458,7 @@ export class RouteRecognizer {
 
     normalizedPath = decodeURI(normalizedPath);
 
-    if (normalizedPath.charAt(0) !== '/') {
+    if (!normalizedPath.startsWith('/')) {
       normalizedPath = `/${normalizedPath}`;
     }
 
@@ -533,7 +533,7 @@ export class RouteRecognizer {
     if (solution && solution.handlers) {
       // if a trailing slash was dropped and a star segment is the last segment
       // specified, put the trailing slash back
-      if (isSlashDropped && solution.regex.source.slice(-5) === '(.+)$') {
+      if (isSlashDropped && solution.regex.source.endsWith('(.+)$')) {
         normalizedPath = `${normalizedPath}/`;
       }
       const captures = normalizedPath.match(solution.regex);

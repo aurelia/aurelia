@@ -537,12 +537,12 @@ function createErrDiff(actual: any, expected: any, operator: keyof IOperatorText
       let actualLine = actualLines[i];
       let divergingLines = (
         actualLine !== expectedLine && (!actualLine.endsWith(',')
-        || actualLine.slice(0, -1) !== expectedLine)
+        || actualLine.slice(0, -1) !== expectedLine) // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
       );
       if (
         divergingLines
         && expectedLine.endsWith(',')
-        && expectedLine.slice(0, -1) === actualLine
+        && expectedLine.slice(0, -1) === actualLine // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
       ) {
         divergingLines = false;
         actualLine += ',';

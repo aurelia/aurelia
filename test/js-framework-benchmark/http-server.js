@@ -16,7 +16,7 @@ const url = require('url');
       const parsedUrl = url.parse(req.url);
       let relativePath = parsedUrl.path;
 
-      if (relativePath && relativePath[0] === '/') {
+      if (relativePath && relativePath.startsWith('/')) {
         relativePath = relativePath.slice(1);
       }
 

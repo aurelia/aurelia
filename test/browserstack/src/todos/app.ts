@@ -47,7 +47,7 @@ export class App {
   public log: boolean = false;
   public count: number = 1;
   public description: string = 'Hello World';
-  public todos: ObservedTodos = <any>[];
+  public todos: ObservedTodos = [] as any;
 
   public addTodo(): void {
     for (let i = 0; i < this.count; ++i) {

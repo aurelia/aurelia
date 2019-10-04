@@ -38,7 +38,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
   console.log("Frameworks that will be benchmarked", runFrameworks.map(f => f.fullNameWithKeyedAndVersion));
   console.log("Benchmarks that will be run", runBenchmarks.map(b => b.id));
 
-  let data: [[FrameworkData, Benchmark]] = <any>[];
+  let data: [[FrameworkData, Benchmark]] = [] as any;
   for (let i = 0; i < runFrameworks.length; i++) {
     for (let j = 0; j < runBenchmarks.length; j++) {
       data.push([runFrameworks[i], runBenchmarks[j]]);

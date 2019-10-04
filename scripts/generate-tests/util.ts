@@ -116,7 +116,7 @@ export function $access(nameOrPath: string | [string | Expression | Identifier, 
 export function $access(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): PropertyAccessExpression | Identifier {
   if (Array.isArray(nameOrPath)) {
     let left = $id(nameOrPath[0]);
-    const rest = <(string | Identifier)[]>nameOrPath.slice(1);
+    const rest = nameOrPath.slice(1) as (string | Identifier)[];
     rest.forEach(name => {
       left = createPropertyAccess(left, $id(name));
     });

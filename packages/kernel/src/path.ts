@@ -222,6 +222,7 @@ function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[],
         currentParams = currentParams[key] = prevValue as typeof currentParams;
       } else if (isNaN(keys[j + 1] as number)) {
         // Kinda have no choice here
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         currentParams = currentParams[key] = {} as typeof currentParams;
       } else {
         currentParams = currentParams[key] = [] as [] & typeof currentParams;

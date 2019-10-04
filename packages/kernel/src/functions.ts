@@ -50,6 +50,7 @@ const baseCase = (function () {
     lower = 3,
   }
 
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const isDigit = Object.freeze(Object.assign(Object.create(null) as {}, {
     '0': true,
     '1': true,

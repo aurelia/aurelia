@@ -58,6 +58,7 @@ module.exports = {
         Symbol: { message: 'Use symbol instead', fixWith: 'symbol' }
       }
     }],
+    '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
     '@typescript-eslint/no-for-in-array': 'error',
@@ -102,7 +103,6 @@ module.exports = {
     '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/camelcase': 'warn',
     '@typescript-eslint/class-name-casing': 'warn',
-    '@typescript-eslint/consistent-type-assertions': ['warn', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
     '@typescript-eslint/explicit-member-accessibility': 'warn',
     '@typescript-eslint/member-delimiter-style': 'warn',
     '@typescript-eslint/no-empty-function': 'warn',

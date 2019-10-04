@@ -211,6 +211,7 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
       paints.forEach(p => {
         console.log("duration to paint ",((p.end - clicks[0].ts)/1000.0));
       });
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       let lastPaint = R.reduce((max, elem) => max.end > elem.end ? max : elem, {end: 0} as Timingresult, paints);
 
       let upperBoundForSoundnessCheck = (R.last(eventsDuringBenchmark).end - eventsDuringBenchmark[0].ts)/1000.0;

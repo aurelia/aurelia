@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';

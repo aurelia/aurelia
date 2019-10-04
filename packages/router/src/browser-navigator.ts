@@ -34,7 +34,6 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private isActive: boolean = false;
   private options: IBrowserNavigatorOptions = {
     useUrlFragmentHash: true,
-    // tslint:disable-next-line:no-empty
     callback: () => { },
   };
 
@@ -69,7 +68,6 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     }
     this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.deactivate();
-    // tslint:disable-next-line:no-empty
     this.options = { useUrlFragmentHash: true, callback: () => { } };
     this.isActive = false;
   }

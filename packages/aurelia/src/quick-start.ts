@@ -41,7 +41,6 @@ export class Aurelia extends $Aurelia<HTMLElement> {
 
   public app(config: ISinglePageApp<HTMLElement> | unknown): this {
     const comp = config as ICustomElementType;
-    // tslint:disable-next-line:no-collapsible-if
     if (comp && comp.kind && comp.kind.name === 'custom-element') {
       // Default to custom element element name
       const elementName = comp.description && comp.description.name;

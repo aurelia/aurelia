@@ -32,7 +32,6 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
-  // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = { callback: () => { } };
   private isActive: boolean = false;
 

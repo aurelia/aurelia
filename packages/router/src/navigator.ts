@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { Reporter } from '@aurelia/kernel';
 import { INavigatorInstruction } from './interfaces';
 import { Queue, QueueItem } from './queue';

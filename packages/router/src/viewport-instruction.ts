@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';

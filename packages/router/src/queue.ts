@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { ILifecycle, Priority } from '@aurelia/runtime';
 
 export interface QueueItem<T> {

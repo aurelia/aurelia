@@ -45,6 +45,7 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
+    '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
@@ -100,7 +101,6 @@ module.exports = {
     'space-in-parens': 'error',
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
-    '@typescript-eslint/await-thenable': 'warn',
     '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/camelcase': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'warn',

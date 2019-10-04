@@ -22,10 +22,10 @@ export class App {
     this.sprites = [];
   }
 
-  public async binding(): Promise<void> {
+  public binding(): void {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     loader.add('logo', require('img/aurelia-icon-256x256.png'));
-    await loader.load();
+    loader.load();
 
     for (let i = 0; i < 50; ++i) {
       this.addSprite();

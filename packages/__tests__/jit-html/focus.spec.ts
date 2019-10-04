@@ -303,7 +303,7 @@ describe('focus.spec.ts', function() {
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
         it(title(command), async function() {
-          const { testHost, start, dispose, component, ctx } = await setup<IApp>(
+          const { testHost, start, dispose, component, ctx } = setup<IApp>(
             template(command),
             app,
             false

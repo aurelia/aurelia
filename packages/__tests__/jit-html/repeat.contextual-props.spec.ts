@@ -68,10 +68,12 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         mutate(items: any[]) {
           // todo: fix fail tests when doing multiple consecutive splices
           // for (let i = 0; 5 > i; ++i) {
-            // tslint:disable-next-line:insecure-random
-            const index = Math.floor(Math.random() * items.length);
-            items.splice(index, 0, { name: `item - ${items.length}`, value: items.length });
+          //   // tslint:disable-next-line:insecure-random
+          //   const index = Math.floor(Math.random() * items.length);
+          //   items.splice(index, 0, { name: `item - ${items.length}`, value: items.length });
           // }
+          const index = Math.floor(Math.random() * items.length);
+          items.splice(index, 0, { name: `item - ${items.length}`, value: items.length });
         }
       },
       {
@@ -368,7 +370,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
 
     for (const bindingStrategy of [BindingStrategy.getterSetter, BindingStrategy.proxies]) {
 
-      suit(title, async function() {
+      suit(title, async function(): Promise<void> {
         let body: HTMLElement;
         let host: HTMLElement;
         try {

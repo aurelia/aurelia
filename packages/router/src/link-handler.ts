@@ -1,9 +1,16 @@
-import { DOM } from '@aurelia/runtime-html';
+import { IDOM } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
+import { Key } from '@aurelia/kernel';
 
 /**
  * Provides information about how to handle an anchor event.
  */
 export interface ILinkHandlerOptions {
+  /**
+   * Attribute href should be used for route if present and
+   * attribute au-href is not present
+   */
+  useHref?: boolean;
   /**
    * Callback method for when a link is clicked
    */
@@ -32,17 +39,32 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
-  private options: ILinkHandlerOptions = { callback: () => { } };
+  public static readonly inject: readonly Key[] = [IDOM];
+
+  public window: Window;
+  public document: Document;
+
+  // tslint:disable-next-line:no-empty
+  private options: ILinkHandlerOptions = {
+    useHref: false,
+    callback: () => { }
+  };
   private isActive: boolean = false;
 
   // private handler: EventListener;
 
+  constructor(
+    dom: HTMLDOM
+  ) {
+    this.window = dom.window;
+    this.document = dom.document;
+  }
   /**
    * Gets the href and a "should handle" recommendation, given an Event.
    *
    * @param event - The Event to inspect for target anchor and href.
    */
-  private static getEventInfo(event: Event): AnchorEventInfo {
+  private static getEventInfo(event: Event, win: Window, options: ILinkHandlerOptions): AnchorEventInfo {
     const info: AnchorEventInfo = {
       shouldHandleEvent: false,
       href: null,
@@ -50,7 +72,7 @@ export class LinkHandler {
     };
 
     const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
-    if (!target || !LinkHandler.targetIsThisWindow(target)) {
+    if (!target || !LinkHandler.targetIsThisWindow(target, win)) {
       return info;
     }
 
@@ -62,19 +84,16 @@ export class LinkHandler {
       return info;
     }
 
-    if (!target.hasAttribute('href')) {
-      return info;
-    }
-
-    const href = target.getAttribute('href');
-    if (!href || !href.length) {
+    const auHref: string | null = target.hasAttribute('au-href') ? target.getAttribute('au-href') : null;
+    const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    if ((auHref === null || auHref.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.href = href;
+    info.href = auHref || href;
 
-    const leftButtonClicked = (event as MouseEvent).which === 1;
+    const leftButtonClicked: boolean = (event as MouseEvent).which === 1;
 
     info.shouldHandleEvent = leftButtonClicked;
     return info;
@@ -102,9 +121,8 @@ export class LinkHandler {
    * @param target - The anchor element whose target should be inspected.
    * @returns True if the target of the link element is this window; false otherwise.
    */
-  private static targetIsThisWindow(target: Element): boolean {
+  private static targetIsThisWindow(target: Element, win: Window): boolean {
     const targetWindow = target.getAttribute('target');
-    const win = DOM.window;
 
     return !targetWindow ||
       targetWindow === win.name ||
@@ -123,7 +141,7 @@ export class LinkHandler {
     this.isActive = true;
     this.options = { ...options };
 
-    DOM.document.addEventListener('click', this.handler, true);
+    this.document.addEventListener('click', this.handler, true);
   }
 
   /**
@@ -133,12 +151,12 @@ export class LinkHandler {
     if (!this.isActive) {
       throw new Error('Link handler has not been activated');
     }
-    DOM.document.removeEventListener('click', this.handler, true);
+    this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 
   private readonly handler: EventListener = (e) => {
-    const info = LinkHandler.getEventInfo(e);
+    const info = LinkHandler.getEventInfo(e, this.window, this.options);
 
     if (info.shouldHandleEvent) {
       e.preventDefault();

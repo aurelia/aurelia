@@ -1776,37 +1776,46 @@ describe('LiteralTemplate', function () {
     },
     {
       expr: new TaggedTemplateExpression(
-        [''], [],
-        new AccessScopeExpression('foo', 0)),
+        [''],
+        [],
+        new AccessScopeExpression('foo', 0)
+      ),
       expected: 'foo',
       ctx: { foo: () => 'foo' }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['foo'], ['bar'],
-        new AccessScopeExpression('baz', 0)),
+        ['foo'],
+        ['bar'],
+        new AccessScopeExpression('baz', 0)
+      ),
       expected: 'foobar',
       ctx: { baz: cooked => cooked[0] + cooked.raw[0] }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2'], [],
+        ['1', '2'],
+        [],
         new AccessScopeExpression('makeString', 0),
-        [new PrimitiveLiteralExpression('foo')]),
+        [new PrimitiveLiteralExpression('foo')]
+      ),
       expected: '1foo2',
       ctx: { makeString: (cooked, foo) => cooked[0] + foo + cooked[1] }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2'], [],
+        ['1', '2'],
+        [],
         new AccessScopeExpression('makeString', 0),
-        [new AccessScopeExpression('foo', 0)]),
+        [new AccessScopeExpression('foo', 0)]
+      ),
       expected: '1bar2',
       ctx: { foo: 'bar', makeString: (cooked, foo) => cooked[0] + foo + cooked[1] }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2', '3'], [],
+        ['1', '2', '3'],
+        [],
         new AccessScopeExpression('makeString', 0),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
@@ -1815,7 +1824,8 @@ describe('LiteralTemplate', function () {
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2', '3'], [],
+        ['1', '2', '3'],
+        [],
         new AccessMemberExpression(new AccessScopeExpression('test', 0), 'makeString'),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
@@ -1824,7 +1834,8 @@ describe('LiteralTemplate', function () {
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2', '3'], [],
+        ['1', '2', '3'],
+        [],
         new AccessKeyedExpression(new AccessScopeExpression('test', 0), new PrimitiveLiteralExpression('makeString')),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),

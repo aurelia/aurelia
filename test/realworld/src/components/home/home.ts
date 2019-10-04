@@ -51,24 +51,27 @@ export class Home {
   }
 
   public setupNav(): void {
-    this.router.setNav('home', [
-      {
-        execute: (route: NavRoute): void => { this.setListTo('feed', ''); this.router.updateNav('home'); },
-        title: 'Your Feed',
-        condition: () => this.sharedState.isAuthenticated,
-        consideredActive: (): boolean => this.shownList === 'feed' && !this.filterTag,
+    this.router.setNav(
+      'home',
+      [
+        {
+          execute: (route: NavRoute): void => { this.setListTo('feed', ''); this.router.updateNav('home'); },
+          title: 'Your Feed',
+          condition: () => this.sharedState.isAuthenticated,
+          consideredActive: (): boolean => this.shownList === 'feed' && !this.filterTag,
+        },
+        {
+          execute: (route: NavRoute): void => { this.setListTo('all', ''); this.router.updateNav('home'); },
+          title: 'Global Feed',
+          consideredActive: () => this.shownList === 'all' && !this.filterTag,
+        },
+      ], {
+        ul: 'nav nav-pills outline-active',
+        li: 'nav-item',
+        a: 'nav-link',
+        aActive: 'active',
       },
-      {
-        execute: (route: NavRoute): void => { this.setListTo('all', ''); this.router.updateNav('home'); },
-        title: 'Global Feed',
-        consideredActive: () => this.shownList === 'all' && !this.filterTag,
-      },
-    ], {
-      ul: 'nav nav-pills outline-active',
-      li: 'nav-item',
-      a: 'nav-link',
-      aActive: 'active',
-    });
+    );
   }
 
   public setListTo(type: string, tag: string) {

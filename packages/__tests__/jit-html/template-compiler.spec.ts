@@ -83,9 +83,10 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             []
           );
           verifyInstructions(instructions, []);
-          verifyInstructions(surrogates, [
-            { toVerify: ['type', 'value', 'to'], type: HTT.setAttribute, value: 'h-100', to: 'class' }
-          ]);
+          verifyInstructions(
+            surrogates,
+            [{ toVerify: ['type', 'value', 'to'], type: HTT.setAttribute, value: 'h-100', to: 'class' }]
+          );
         });
 
         it('compiles surrogate with binding expression', function () {
@@ -94,9 +95,11 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             []
           );
           verifyInstructions(instructions, [], 'normal');
-          verifyInstructions(surrogates, [
-            { toVerify: ['type', 'to'], type: TT.propertyBinding, to: 'class' }
-          ],                 'surrogate');
+          verifyInstructions(
+            surrogates,
+            [{ toVerify: ['type', 'to'], type: TT.propertyBinding, to: 'class' }],
+            'surrogate'
+          );
         });
 
         it('compiles surrogate with interpolation expression', function () {
@@ -105,9 +108,11 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             []
           );
           verifyInstructions(instructions, [], 'normal');
-          verifyInstructions(surrogates, [
-            { toVerify: ['type', 'to'], type: TT.interpolation, to: 'class' }
-          ],                 'surrogate');
+          verifyInstructions(
+            surrogates,
+            [{ toVerify: ['type', 'to'], type: TT.interpolation, to: 'class' }],
+            'surrogate'
+          );
         });
 
         it('throws on attributes that require to be unique', function () {

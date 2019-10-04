@@ -152,13 +152,17 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
     let packageJSON = JSON.parse(fs.readFileSync(packageJSONPath, 'utf8'));
     if (packageJSON['js-framework-benchmark']) {
       if (packageJSON['js-framework-benchmark']['frameworkVersionFromPackage']) {
-        return new FrameworkVersionInformationDynamic(keyedType, directory,
+        return new FrameworkVersionInformationDynamic(
+          keyedType,
+          directory,
           packageJSON['js-framework-benchmark']['frameworkVersionFromPackage'].split(':'),
           packageJSON['js-framework-benchmark']['customURL'],
           packageJSON['js-framework-benchmark']['useShadowRoot']
         );
       } else if (typeof packageJSON['js-framework-benchmark']['frameworkVersion'] === 'string') {
-        return new FrameworkVersionInformationStatic(keyedType, directory,
+        return new FrameworkVersionInformationStatic(
+          keyedType,
+          directory,
           packageJSON['js-framework-benchmark']['frameworkVersion'],
           packageJSON['js-framework-benchmark']['customURL'],
           packageJSON['js-framework-benchmark']['useShadowRoot']

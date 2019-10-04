@@ -15,7 +15,8 @@ export default class ElementGenerator {
 
     const subFolders = await this.ui.ensureAnswer(
       this.options.args[1],
-      'What sub-folder would you like to add it to?\nIf it doesn\'t exist it will be created for you.\n\nDefault folder is the source folder (src).', "."
+      'What sub-folder would you like to add it to?\nIf it doesn\'t exist it will be created for you.\n\nDefault folder is the source folder (src).',
+      "."
     );
 
     let fileName = this.project.makeFileName(name);

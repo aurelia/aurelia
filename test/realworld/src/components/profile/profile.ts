@@ -36,21 +36,24 @@ export class Profile {
     console.log(`profile enter`);
     this.username = parameters.name;
     const profile = await this.profileService.get(this.username);
-    this.router.setNav('profile-posts', [
-      {
-        route: `profile-article(${this.username})`,
-        title: 'My Posts',
+    this.router.setNav(
+      'profile-posts',
+      [
+        {
+          route: `profile-article(${this.username})`,
+          title: 'My Posts',
+        },
+        {
+          route: `profile-favorites(${this.username})`,
+          title: 'Favorited Posts',
+        },
+      ], {
+        ul: 'nav nav-pills outline-active',
+        li: 'nav-item',
+        a: 'nav-link',
+        aActive: 'active',
       },
-      {
-        route: `profile-favorites(${this.username})`,
-        title: 'Favorited Posts',
-      },
-    ], {
-      ul: 'nav nav-pills outline-active',
-      li: 'nav-item',
-      a: 'nav-link',
-      aActive: 'active',
-    });
+    );
     // this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
     this.profile = profile;
   }

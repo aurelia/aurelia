@@ -433,7 +433,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView!.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0];
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -834,7 +834,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView!.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0];
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(

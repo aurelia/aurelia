@@ -105,7 +105,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       ],
       browserOnly: true,
       assertFn: async (ctx, host) => {
-        const ceEl = host.querySelector('c-e') as CustomElementHost<HTMLElement>;
+        const ceEl: CustomElementHost<HTMLElement> = host.querySelector('c-e');
         const $ceViewModel = ceEl.$controller.viewModel as { hasFocus: boolean; focus: number; blur: number };
         assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
         assert.equal($ceViewModel.focus, undefined);
@@ -157,7 +157,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           // it should work
           // todo: self-recursive does not work
           // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
-          const leafCeHost = host.querySelector(`[lvl=lvl-${idx}]`) as CustomElementHost<HTMLElement>;
+          const leafCeHost: CustomElementHost<HTMLElement> = host.querySelector(`[lvl=lvl-${idx}]`);
           const $leafCeVm = leafCeHost.$controller.viewModel as { focus: number };
           assert.strictEqual(ctx.doc.activeElement, leafCeHost, `activeElement === <c-e lvl=lvl-${idx}>`);
           assert.equal($leafCeVm.focus, 1);

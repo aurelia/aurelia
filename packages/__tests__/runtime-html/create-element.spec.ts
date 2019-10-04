@@ -130,7 +130,7 @@ describe(`createElement() creates element based on type`, function () {
         const actual = sut(ctx.dom, type, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
-        const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
+        const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
 
         assert.strictEqual(node.getAttribute('title'), null, `node.getAttribute('title')`);
         assert.strictEqual(node.getAttribute('foo'), null, `node.getAttribute('foo')`);
@@ -161,7 +161,7 @@ describe(`createElement() creates element based on type`, function () {
           const actual = sut(ctx.dom, type, props);
 
           const node = actual['node'] as Element;
-          const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
+          const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
 
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
@@ -198,7 +198,7 @@ describe(`createElement() creates element based on type`, function () {
             const actual = sut(ctx.dom, type, { prop: { type: t }});
 
             const node = actual['node'] as Element;
-            const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
+            const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
 
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
             assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
@@ -230,7 +230,7 @@ describe(`createElement() creates element based on type`, function () {
           const actual = sut(ctx.dom, type, null, children);
 
           const node = actual['node'] as Element;
-          const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
+          const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
 
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);

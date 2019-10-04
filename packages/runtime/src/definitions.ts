@@ -380,15 +380,15 @@ export function buildTemplateDefinition(
     case 15: if (aliases != null) def.aliases = toArray(aliases);
     case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
-    case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
-    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions!;
-    case 10: if (containerless != null) def.containerless = containerless!;
-    case 9: if (surrogates != null) def.surrogates = toArray(surrogates!);
-    case 8: if (dependencies != null) def.dependencies = toArray(dependencies!);
-    case 7: if (instructions != null) def.instructions = toArray(instructions!) as ITargetedInstruction[][];
+    case 12: if (hasSlots != null) def.hasSlots = hasSlots;
+    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions;
+    case 10: if (containerless != null) def.containerless = containerless;
+    case 9: if (surrogates != null) def.surrogates = toArray(surrogates);
+    case 8: if (dependencies != null) def.dependencies = toArray(dependencies);
+    case 7: if (instructions != null) def.instructions = toArray(instructions) as ITargetedInstruction[][];
     case 6: if (bindables != null) def.bindables = { ...bindables };
-    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build! };
-    case 4: if (cache != null) def.cache = cache!;
+    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
+    case 4: if (cache != null) def.cache = cache;
     case 3: if (template != null) def.template = template;
     case 2:
       if (ctor != null) {

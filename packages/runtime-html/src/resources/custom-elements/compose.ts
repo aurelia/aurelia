@@ -107,7 +107,7 @@ export class Compose<T extends INode = Node> {
       .reduce<Record<string, TargetedInstruction>>(
       (acc, item: ITargetedInstruction & { to?: string }) => {
         if (item.to) {
-          acc[item.to!] = item! as TargetedInstruction;
+          acc[item.to] = item as TargetedInstruction;
         }
 
         return acc;

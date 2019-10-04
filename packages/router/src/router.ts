@@ -499,7 +499,7 @@ export class Router implements IRouter {
               }
               // Find out how many scopes upwards we should move
               while (instructions.startsWith('../')) {
-                scope = scope!.parent || scope;
+                scope = scope.parent || scope;
                 instructions = instructions.slice(3);
               }
             }

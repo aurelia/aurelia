@@ -227,7 +227,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateElementInstruction): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null!, null!, target, true);
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null!, target, true);
     const component = context.get<object>(CustomElement.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;

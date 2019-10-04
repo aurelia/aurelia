@@ -333,7 +333,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           }
         ] as IRefIntegrationTestCase[];
       })
-      .reduce((arr, cases) => arr.concat(cases), []) as IRefIntegrationTestCase[],
+      .reduce((arr, cases) => arr.concat(cases), []),
     // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[

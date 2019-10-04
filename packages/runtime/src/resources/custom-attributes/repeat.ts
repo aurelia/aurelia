@@ -538,7 +538,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       next = views[i + 1];
       if (next !== void 0) {
-        views[i].nodes!.link(next.nodes!);
+        views[i].nodes!.link(next.nodes);
       } else {
         views[i].nodes!.link(location);
       }

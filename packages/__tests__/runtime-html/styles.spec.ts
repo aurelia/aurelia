@@ -220,7 +220,7 @@ describe('Styles', () => {
       controller.context = context;
 
       const seq = { appendTo() {} };
-      const projector = controller.projector!;
+      const projector = controller.projector;
 
       projector.project(seq as any);
 

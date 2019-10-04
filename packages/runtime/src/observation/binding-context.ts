@@ -208,7 +208,7 @@ export class Scope implements IScope {
    */
   public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
   public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {

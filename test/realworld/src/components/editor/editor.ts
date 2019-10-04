@@ -58,7 +58,7 @@ export class Editor {
   }
 
   public removeTag(tag: string) {
-    this.article!.tagList!.splice(this.article!.tagList!.indexOf(tag), 1);
+    this.article.tagList!.splice(this.article.tagList!.indexOf(tag), 1);
   }
 
   public publishArticle() {

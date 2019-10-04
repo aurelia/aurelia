@@ -201,7 +201,7 @@ export class TemplateBinder {
 
     if (manifestRoot != null && manifestRoot.isContainerless) {
       node.parentNode!.replaceChild(manifestRoot.marker as Node, node);
-    } else if (this.manifest!.isTarget) {
+    } else if (this.manifest.isTarget) {
       node.classList.add('au');
     }
 
@@ -598,7 +598,7 @@ function processTemplateControllers(dom: IDOM, manifestProxy: IParentNodeSymbol,
   while ((current as IParentNodeSymbol) !== manifest) {
     if (current.template === manifest) {
       // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
-      manifestNode!.parentNode!.replaceChild(current.marker as Node, manifestNode);
+      manifestNode.parentNode!.replaceChild(current.marker as Node, manifestNode);
 
       // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
       // and simply use the template directly, saving a bit of work

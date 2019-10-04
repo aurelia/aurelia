@@ -37,7 +37,7 @@ export class Home {
     };
 
     if (this.filterTag) {
-      params.tag = this.filterTag!;
+      params.tag = this.filterTag;
     }
 
     const response = await this.articleService.getList(this.shownList, params);

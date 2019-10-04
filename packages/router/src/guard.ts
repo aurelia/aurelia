@@ -62,7 +62,7 @@ class Target {
         this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {
-        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport as Viewport : null;
+        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
         this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
       }
     }

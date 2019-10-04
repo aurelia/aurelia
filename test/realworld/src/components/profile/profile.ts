@@ -68,9 +68,9 @@ export class Profile {
     if (!this.profile) { return; }
     this.profile.following = !this.profile.following;
     if (this.profile.following) {
-      this.profileService.follow(this.profile!.username!);
+      this.profileService.follow(this.profile.username!);
     } else {
-      this.profileService.unfollow(this.profile!.username!);
+      this.profileService.unfollow(this.profile.username!);
     }
   }
 }

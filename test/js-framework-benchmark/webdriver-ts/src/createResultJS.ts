@@ -11,9 +11,9 @@ async function main() {
 
   let resultJS = "import {RawResult} from './Common';\n\nexport let results: RawResult[]=[";
 
-  let allBenchmarks : BenchmarkInfo[] = [];
+  let allBenchmarks: BenchmarkInfo[] = [];
 
-  let jsonResult: {framework: string; benchmark:string; values: number[]}[] = [];
+  let jsonResult: {framework: string; benchmark: string; values: number[]}[] = [];
 
   benchmarks.forEach((benchmark, bIdx) => {
     let r = benchmark.resultKinds ? benchmark.resultKinds() : [benchmark];
@@ -27,7 +27,7 @@ async function main() {
       let name = `${fileName(framework, benchmarkInfo)}`;
       let file = './results/' + name;
       if (fs.existsSync(file)) {
-        let data : JSONResult = JSON.parse(fs.readFileSync(file, {
+        let data: JSONResult = JSON.parse(fs.readFileSync(file, {
           encoding:'utf-8'
         }));
         if (data.values.some(v => v==null)) console.log(`Found null value for ${framework.fullNameWithKeyedAndVersion} and benchmark ${benchmarkInfo.id}`);

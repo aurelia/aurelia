@@ -58,7 +58,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     const styleTuples: [string, string][] = [];
     const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
     let pair: RegExpExecArray;
-    let name:string;
+    let name: string;
     while ((pair = rx.exec(currentValue)!) !== null) {
       name = pair[1];
       if (name.length === 0) {

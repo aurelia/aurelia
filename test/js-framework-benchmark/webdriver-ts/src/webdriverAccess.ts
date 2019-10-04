@@ -20,7 +20,7 @@ function convertPath(path: string): PathPart[] {
   for (let part of parts) {
     let components = part.split(/\[|]/).filter(v => !!v);
     let tagName = components[0];
-    let index:number = 0;
+    let index: number = 0;
     if (components.length==2) {
       index = Number(components[1]);
       if (!index) {
@@ -59,7 +59,7 @@ function elemNull(v: any) {
 }
 
 function waitForCondition(driver: WebDriver) {
-  return async function(text: string, fn: (driver:WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
+  return async function(text: string, fn: (driver: WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
     return driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
   };
 }
@@ -150,7 +150,7 @@ export function testElementLocatedById(driver: WebDriver, id: string, timeout = 
     }, timeout);
 }
 
-async function retry<T>(retryCount: number, driver: WebDriver, fun : (driver:  WebDriver, retryCount: number) => Promise<T>):  Promise<T> {
+async function retry<T>(retryCount: number, driver: WebDriver, fun: (driver:  WebDriver, retryCount: number) => Promise<T>):  Promise<T> {
   for (let i=0; i<retryCount; i++) {
     try {
       return fun(driver, i);
@@ -190,7 +190,7 @@ export async function getTextByXPath(driver: WebDriver, xpath: string): Promise<
   });
 }
 
-export async function shadowRoot(driver: WebDriver) : Promise<WebElement> {
+export async function shadowRoot(driver: WebDriver): Promise<WebElement> {
   return useShadowRoot ? driver.executeScript('return document.querySelector("main-element").shadowRoot') as Promise<WebElement>
     : driver.findElement(By.tagName("body"));
 }

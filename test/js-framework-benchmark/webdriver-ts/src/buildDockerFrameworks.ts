@@ -46,7 +46,7 @@ async function clearDockerVolume() {
 
 async function stopContainerIfRunnning() {
   console.log("checking if js-framework-benchmark container runs.");
-  let r : string[] = [];
+  let r: string[] = [];
   let res = exec('docker ps', {
     stdio: r
   });

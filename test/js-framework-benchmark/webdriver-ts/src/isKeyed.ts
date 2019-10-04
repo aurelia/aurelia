@@ -18,7 +18,7 @@ let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.le
 let runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
 // necessary to launch without specifiying a path
-var chromedriver:any = require('chromedriver');
+var chromedriver: any = require('chromedriver');
 
 let init = `
 window.nonKeyedDetector_reset = function() {

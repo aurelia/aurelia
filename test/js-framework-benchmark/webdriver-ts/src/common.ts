@@ -9,8 +9,8 @@ export interface JSONResult {
 }
 
 export interface BenchmarkError {
-  imageFile : string;
-  exception : string;
+  imageFile: string;
+  exception: string;
 }
 
 export interface ErrorsAndWarning {
@@ -132,7 +132,7 @@ export type PackageVersionInformation = PackageVersionInformationValid | Package
 
 type IMatchPredicate = (frameworkDirectory: string) => boolean;
 
-const matchAll : IMatchPredicate= (frameworkDirectory: string) => true;
+const matchAll: IMatchPredicate= (frameworkDirectory: string) => true;
 
 async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<FrameworkVersionInformation> {
   let keyedType: KeyedType;

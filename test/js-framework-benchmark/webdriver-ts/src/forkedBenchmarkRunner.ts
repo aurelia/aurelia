@@ -10,11 +10,11 @@ import * as path from 'path';
 import {TConfig, config as defaultConfig, JSONResult, FrameworkData, BenchmarkError, ErrorsAndWarning, BenchmarkOptions, BenchmarkDriverOptions} from './common';
 import * as R from 'ramda';
 
-let config:TConfig = defaultConfig;
+let config: TConfig = defaultConfig;
 
 // necessary to launch without specifiying a path
-var chromedriver:any = require('chromedriver');
-var jStat:any = require('jstat').jStat;
+var chromedriver: any = require('chromedriver');
+var jStat: any = require('jstat').jStat;
 
 interface Timingresult {
   type: string;
@@ -72,8 +72,8 @@ function extractRelevantEvents(entries: logging.Entry[]) {
 }
 
 async function fetchEventsFromPerformanceLog(driver: WebDriver): Promise<{timingResults: Timingresult[]; protocolResults: any[]}> {
-  let timingResults : Timingresult[] = [];
-  let protocolResults : any[] = [];
+  let timingResults: Timingresult[] = [];
+  let protocolResults: any[] = [];
   let entries = [];
   do {
     entries = await driver.manage().logs().get(logging.Type.PERFORMANCE);
@@ -141,7 +141,7 @@ async function runLighthouse(framework: FrameworkData, benchmarkOptions: Benchma
   };
 
   try {
-    let options : any = {chromeFlags: opts.chromeFlags, logLevel: "info"};
+    let options: any = {chromeFlags: opts.chromeFlags, logLevel: "info"};
     if (benchmarkOptions.chromeBinaryPath) options.chromePath = benchmarkOptions.chromeBinaryPath;
     let chrome = await chromeLauncher.launch(options);
     opts.port = chrome.port;
@@ -298,7 +298,7 @@ async function snapMemorySize(driver: WebDriver): Promise<number> {
   return memory;
 }
 
-async function runBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData) : Promise<any> {
+async function runBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData): Promise<any> {
   await benchmark.run(driver, framework);
   if (config.LOG_PROGRESS) console.log("after run ",benchmark.id, benchmark.type, framework.name);
   if (benchmark.type === BenchmarkType.MEM) {
@@ -306,7 +306,7 @@ async function runBenchmark(driver: WebDriver, benchmark: Benchmark, framework: 
   }
 }
 
-async function afterBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData) : Promise<any> {
+async function afterBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData): Promise<any> {
   if (benchmark.after) {
     await benchmark.after(driver, framework);
     if (config.LOG_PROGRESS) console.log("after benchmark ",benchmark.id, benchmark.type, framework.name);
@@ -519,7 +519,7 @@ export async function executeBenchmark(frameworks: FrameworkData[], keyed: boole
   let framework = runFrameworks[0];
   let benchmark = runBenchmarks[0];
 
-  let errorsAndWarnings : ErrorsAndWarning;
+  let errorsAndWarnings: ErrorsAndWarning;
   if (benchmark.type == BenchmarkType.STARTUP) {
     errorsAndWarnings = await runStartupBenchmark(framework, benchmark, benchmarkOptions);
   } else if (benchmark.type == BenchmarkType.CPU) {
@@ -544,7 +544,7 @@ process.on('message', (msg) => {
   console.log("START BENCHMARK. Write results? ", config.WRITE_RESULTS);
   if (config.LOG_DEBUG) console.log("child process got message", msg);
 
-  let {frameworks, keyed, frameworkName, benchmarkName, benchmarkOptions} : {frameworks: FrameworkData[]; keyed: boolean; frameworkName: string; benchmarkName: string; benchmarkOptions: BenchmarkOptions} = msg;
+  let {frameworks, keyed, frameworkName, benchmarkName, benchmarkOptions}: {frameworks: FrameworkData[]; keyed: boolean; frameworkName: string; benchmarkName: string; benchmarkOptions: BenchmarkOptions} = msg;
   if (!benchmarkOptions.port) benchmarkOptions.port = config.PORT.toFixed();
   performBenchmark(frameworks, keyed, frameworkName, benchmarkName, benchmarkOptions).catch((err) => {
     console.log("error in forkedBenchmarkRunner", err);

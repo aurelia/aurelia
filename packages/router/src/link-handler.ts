@@ -84,7 +84,7 @@ export class LinkHandler {
       return info;
     }
 
-    const auHref: string | null = target.hasAttribute('au-href') ? target.getAttribute('au-href') : null;
+    const auHref: string | null = '$auHref' in target ? Reflect.get(target, '$auHref') : null;
     const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
     if ((auHref === null || auHref.length === 0) && (href === null || href.length === 0)) {
       return info;

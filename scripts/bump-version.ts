@@ -32,7 +32,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
 export async function getRecommendedVersionBump(): Promise<'minor' | 'patch'> {
   const gitLog = await getGitLog(`v${project.lerna.version}`, 'HEAD', project.path);
   const lines = gitLog.split('\n');
-  if (lines.some(line => /feat(\([^\)]+\))?:/.test(line))) {
+  if (lines.some(line => /feat(\([^)]+\))?:/.test(line))) {
     return 'minor';
   } else {
     return 'patch';

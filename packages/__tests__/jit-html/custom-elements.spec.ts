@@ -47,7 +47,7 @@ describe('custom-elements', function () {
 
   // //<let/>
   it('03.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class { firstName = undefined; lastName = undefined; });
+    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class { firstName = undefined; lastName = undefined; });
     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
     component.firstName = 'bi';
@@ -64,7 +64,7 @@ describe('custom-elements', function () {
 
   // //<let [to-binding-context] />
   it('04.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup<Person>('<template><let to-binding-context full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { });
+    const { tearDown, lifecycle, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class implements Person { });
     component.firstName = 'bi';
     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
     component.lastName = 'go';
@@ -172,7 +172,7 @@ describe('custom-elements', function () {
     }
 
     const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
-    const { lifecycle, component, appHost, tearDown } = setup('<template><foo1 value.bind="value"></foo1>\${value}</template>', class { value = 'w00t'; }, [...resources, TestConfiguration]);
+    const { lifecycle, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { value = 'w00t'; }, [...resources, TestConfiguration]);
 
     assert.strictEqual(boundCalls, 5, `boundCalls`);
 

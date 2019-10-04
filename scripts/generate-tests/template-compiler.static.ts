@@ -97,7 +97,7 @@ const text$02_1: TextBinding = {
 };
 const text$02_2: TextBinding = {
   id: 'text$02',
-  markup: '\${not}',
+  markup: `\${not}`,
   variable: 'not',
   value: 'b',
   properties: [$property('not', 'b')]
@@ -107,14 +107,14 @@ text$02_2.opposite = text$02_1;
 
 const text$03_1: TextBinding = {
   id: 'text$03',
-  markup: '\${msg}',
+  markup: `\${msg}`,
   variable: 'msg',
   value: 'a',
   properties: [$property('msg', 'a')]
 };
 const text$03_2: TextBinding = {
   id: 'text$03',
-  markup: '\${not}',
+  markup: `\${not}`,
   variable: 'not',
   value: 'b',
   properties: [$property('not', 'b')]
@@ -124,7 +124,7 @@ text$03_2.opposite = text$03_1;
 
 const text$04_1: TextBinding = {
   id: 'text$04',
-  markup: '\${msg}',
+  markup: `\${msg}`,
   variable: 'msg',
   value: 'a',
   properties: [$property('msg', 'a')],
@@ -132,7 +132,7 @@ const text$04_1: TextBinding = {
 };
 const text$04_2: TextBinding = {
   id: 'text$04',
-  markup: '\${not}',
+  markup: `\${not}`,
   variable: 'not',
   value: 'b',
   properties: [$property('not', 'b')]

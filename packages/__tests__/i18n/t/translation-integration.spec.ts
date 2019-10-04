@@ -295,7 +295,7 @@ describe('translation-integration', function () {
     assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
   });
 
-  it('works for interpolated keys are used - t="\${obj.key1}"', async function () {
+  it(`works for interpolated keys are used - t="\${obj.key1}"`, async function () {
 
     @customElement({
       name: 'app', template: `

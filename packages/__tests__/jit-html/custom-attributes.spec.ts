@@ -138,6 +138,7 @@ describe('custom-attributes', function () {
         aResult: boolean;
         bResult: string;
         constructor(@INode private readonly element: Element) {
+          this.element.innerHTML = 'Created';
         }
         aChanged() {
           this.aResult = this.a;
@@ -158,6 +159,7 @@ describe('custom-attributes', function () {
         aResult: boolean;
         bResult: string;
         constructor(@INode private readonly element: Element) {
+          this.element.innerHTML = 'Created';
         }
         aChanged() {
           this.aResult = this.a;
@@ -172,23 +174,22 @@ describe('custom-attributes', function () {
         }
     }
 
-    const resources: any[] = [Multi, Multi2];
     const app = class { value = 'bound'; };
 
     it('binds to multiple properties correctly', async function () {
-      const options = await setup('<template> <div multi="a.bind: true; b.bind: value"></div> </template>', app, resources);
+      const options = await setup('<template> <div multi="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: bound');
       await options.tearDown();
     });
 
     it('binds to multiple properties correctly when there’s a default property', async function () {
-      const options = await setup('<template> <div multi2="a.bind: true; b.bind: value"></div> </template>', app, resources);
+      const options = await setup('<template> <div multi2="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi2]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: bound');
       await options.tearDown();
     });
 
     it('binds to the default property correctly', async function () {
-      const options = await setup('<template> <div multi2.bind="value"></div> </template>', app, resources);
+      const options = await setup('<template> <div multi2.bind="value">Initial</div> </template>', app, [Multi2]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: bound');
       await options.tearDown();
     });

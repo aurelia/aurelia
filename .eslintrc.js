@@ -88,6 +88,7 @@ module.exports = {
       optionalDependencies: false,
       peerDependencies: false
     }],
+    'import/no-nodejs-modules': 'error',
     'new-parens': ['error', 'always'],
     'no-caller': 'error',
     'no-constant-condition': 'error',
@@ -216,10 +217,11 @@ module.exports = {
       '@typescript-eslint/no-var-requires': 'off'
     }
   }, { // Specific overrides for TS files within tests as some rules don't make sense there.
-    files: ['test/**/*.ts'],
+    files: ['examples/**', 'scripts/**', 'test/**'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-var-requires': 'off'
+      '@typescript-eslint/no-var-requires': 'off',
+      'import/no-nodejs-modules': 'off'
     }
   }],
   settings: {

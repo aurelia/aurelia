@@ -14,6 +14,7 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+    'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
     'mocha/no-hooks-for-single-case': 'off', // Disabled to avoid duplicates, because 'no-hooks' is enabled
     'max-lines-per-function': 'off',

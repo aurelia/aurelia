@@ -74,6 +74,7 @@ async function build() {
   });
 
   // from docs (https://github.com/mishoo/UglifyJS2)
+  /* eslint-disable @typescript-eslint/camelcase */
   const compressDefaults = {
     arguments: true,
     booleans: true,
@@ -132,6 +133,7 @@ async function build() {
       unsafe_math: true,
     }},
   };
+  /* eslint-enable @typescript-eslint/camelcase */
 
   const { output } = await bundle.generate({
     format: "iife",

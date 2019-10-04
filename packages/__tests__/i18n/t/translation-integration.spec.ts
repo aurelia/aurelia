@@ -16,6 +16,7 @@ describe('translation-integration', function () {
   }
 
   async function setup(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
+    /* eslint-disable @typescript-eslint/camelcase */
     const translation = {
       simple: {
         text: 'simple text',
@@ -68,6 +69,7 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
+    /* eslint-enable @typescript-eslint/camelcase */
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     await au.register(

@@ -97,7 +97,7 @@ class Store {
 var getParentId = function(elem) {
   while (elem) {
     if (elem.tagName==="TR") {
-      return elem.data_id;
+      return elem.dataId;
     }
     elem = elem.parentNode;
   }
@@ -224,11 +224,11 @@ class Main {
     stopMeasure();
   }
   recreateSelection() {
-    let old_selection = this.store.selected;
-    let sel_idx = this.store.data.findIndex(d => d.id === old_selection);
-    if (sel_idx >= 0) {
-      this.store.select(this.data[sel_idx].id);
-      this.selectedRow = this.rows[sel_idx];
+    let oldSelection = this.store.selected;
+    let selIdx = this.store.data.findIndex(d => d.id === oldSelection);
+    if (selIdx >= 0) {
+      this.store.select(this.data[selIdx].id);
+      this.selectedRow = this.rows[selIdx];
       this.selectedRow.className = "danger";
     }
   }
@@ -305,12 +305,12 @@ class Main {
     }
 
 
-    // let old_selection = this.store.selected;
+    // let oldSelection = this.store.selected;
     // this.store.swapRows();
     // this.updateRows();
     // this.unselect();
-    // if (old_selection>=0) {
-    //     let idx = this.store.data.findIndex(d => d.id === old_selection);
+    // if (oldSelection>=0) {
+    //     let idx = this.store.data.findIndex(d => d.id === oldSelection);
     //     if (idx > 0) {
     //         this.store.select(this.data[idx].id);
     //         this.selectedRow = this.rows[idx];
@@ -331,11 +331,11 @@ class Main {
     // this.tbody.appendChild(docfrag);
 
     // ... than adding directly
-    var rows = this.rows, s_data = this.store.data, data = this.data, tbody = this.tbody;
-    for(let i=rows.length;i<s_data.length; i++) {
-      let tr = this.createRow(s_data[i]);
+    var rows = this.rows, sData = this.store.data, data = this.data, tbody = this.tbody;
+    for(let i=rows.length;i<sData.length; i++) {
+      let tr = this.createRow(sData[i]);
       rows[i] = tr;
-      data[i] = s_data[i];
+      data[i] = sData[i];
       tbody.appendChild(tr);
     }
   }
@@ -343,7 +343,7 @@ class Main {
     const tr = rowTemplate.cloneNode(true),
       td1 = tr.firstChild,
       a2 = td1.nextSibling.firstChild;
-    tr.data_id = data.id;
+    tr.dataId = data.id;
     td1.textContent = data.id;
     a2.textContent = data.label;
     return tr;

@@ -69,6 +69,7 @@ const tags: Tag[] = [
   { id: 'tag$10', name: 'template', elName: 'MyFoo', isCustom: true, hasReplaceable: true , shadowMode: 'closed' }
 ];
 
+/* eslint-disable @typescript-eslint/camelcase */
 const text$01_1: TextBinding = {
   id: 'text$01',
   markup: 'a',
@@ -221,6 +222,7 @@ repeat$13_1.opposite = repeat$13_2;
 repeat$13_2.opposite = repeat$13_1;
 
 const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
+/* eslint-enable @typescript-eslint/camelcase */
 
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
   const tests: Record<string, Statement[]> = {};

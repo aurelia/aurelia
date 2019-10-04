@@ -84,10 +84,10 @@ async function fetchEventsFromPerformanceLog(driver: WebDriver): Promise<{timing
   return {timingResults, protocolResults};
 }
 
-function type_eq(requiredType: string) {
+function typeEq(requiredType: string) {
   return (e: Timingresult) => e.type=== requiredType;
 }
-function type_neq(requiredType: string) {
+function typeNeq(requiredType: string) {
   return (e: Timingresult) => e.type !== requiredType;
 }
 
@@ -98,10 +98,10 @@ function asString(res: Timingresult[]): string {
 function extractRawValue(results: any, id: string) {
   let audits = results.audits;
   if (!audits) return null;
-  let audit_with_id = audits[id];
-  if (typeof audit_with_id === 'undefined') return null;
-  if (typeof audit_with_id.numericValue === 'undefined') return null;
-  return audit_with_id.numericValue;
+  let auditWithId = audits[id];
+  if (typeof auditWithId === 'undefined') return null;
+  if (typeof auditWithId.numericValue === 'undefined') return null;
+  return auditWithId.numericValue;
 }
 
 function rmDir(dirPath: string) {
@@ -177,27 +177,27 @@ async function computeResultsCPU(driver: WebDriver, benchmarkOptions: BenchmarkO
 
   if (config.LOG_DEBUG) console.log("filteredEvents ", asString(filteredEvents));
 
-  let remaining  = R.dropWhile(type_eq('initBenchmark'))(filteredEvents);
+  let remaining  = R.dropWhile(typeEq('initBenchmark'))(filteredEvents);
   let results = [];
 
   while (remaining.length >0) {
-    let evts = R.splitWhen(type_eq('finishedBenchmark'))(remaining);
-    if (R.find(type_neq('runBenchmark'))(evts[0]) && evts[1].length>0) {
-      let eventsDuringBenchmark = R.dropWhile(type_neq('runBenchmark'))(evts[0]);
+    let evts = R.splitWhen(typeEq('finishedBenchmark'))(remaining);
+    if (R.find(typeNeq('runBenchmark'))(evts[0]) && evts[1].length>0) {
+      let eventsDuringBenchmark = R.dropWhile(typeNeq('runBenchmark'))(evts[0]);
 
       if (config.LOG_DEBUG) console.log("eventsDuringBenchmark ", eventsDuringBenchmark);
 
-      let clicks = R.filter(type_eq('click'))(eventsDuringBenchmark);
+      let clicks = R.filter(typeEq('click'))(eventsDuringBenchmark);
       if (clicks.length !== 1) {
         console.log("exactly one click event is expected", eventsDuringBenchmark);
         throw new Error("exactly one click event is expected");
       }
 
-      let eventsAfterClick = (R.dropWhile(type_neq('click'))(eventsDuringBenchmark));
+      let eventsAfterClick = (R.dropWhile(typeNeq('click'))(eventsDuringBenchmark));
 
       if (config.LOG_DEBUG) console.log("eventsAfterClick", eventsAfterClick);
 
-      let paints = R.filter(type_eq('paint'))(eventsAfterClick);
+      let paints = R.filter(typeEq('paint'))(eventsAfterClick);
       if (paints.length == 0) {
         console.log("at least one paint event is expected after the click event", eventsAfterClick);
         throw new Error("at least one paint event is expected after the click event");
@@ -245,17 +245,17 @@ async function computeResultsMEM(driver: WebDriver, benchmarkOptions: BenchmarkO
 
   if (config.LOG_DEBUG) console.log("filteredEvents ", filteredEvents);
 
-  let remaining  = R.dropWhile(type_eq('initBenchmark'))(filteredEvents);
+  let remaining  = R.dropWhile(typeEq('initBenchmark'))(filteredEvents);
   let results = [];
 
   while (remaining.length >0) {
-    let evts = R.splitWhen(type_eq('finishedBenchmark'))(remaining);
-    if (R.find(type_neq('runBenchmark'))(evts[0]) && evts[1].length>0) {
-      let eventsDuringBenchmark = R.dropWhile(type_neq('runBenchmark'))(evts[0]);
+    let evts = R.splitWhen(typeEq('finishedBenchmark'))(remaining);
+    if (R.find(typeNeq('runBenchmark'))(evts[0]) && evts[1].length>0) {
+      let eventsDuringBenchmark = R.dropWhile(typeNeq('runBenchmark'))(evts[0]);
 
       if (config.LOG_DEBUG) console.log("eventsDuringBenchmark ", eventsDuringBenchmark);
 
-      let gcs = R.filter(type_eq('gc'))(eventsDuringBenchmark);
+      let gcs = R.filter(typeEq('gc'))(eventsDuringBenchmark);
 
       let mem = R.last(gcs).mem;
       results.push(mem);
@@ -284,17 +284,17 @@ async function forceGC(framework: FrameworkData, driver: WebDriver): Promise<any
 async function snapMemorySize(driver: WebDriver): Promise<number> {
   // currently needed due to https://github.com/krausest/js-framework-benchmark/issues/538
   let heapSnapshot: any = await driver.executeScript(":takeHeapSnapshot");
-  let node_fields: any = heapSnapshot.snapshot.meta.node_fields;
+  let nodeFields: any = heapSnapshot.snapshot.meta.node_fields;
   let nodes: any = heapSnapshot.nodes;
 
-  let k = node_fields.indexOf("self_size");
+  let k = nodeFields.indexOf("self_size");
 
-  let self_size = 0;
-  for(let l = nodes.length, d = node_fields.length; k < l; k += d) {
-    self_size += nodes[k];
+  let selfSize = 0;
+  for(let l = nodes.length, d = nodeFields.length; k < l; k += d) {
+    selfSize += nodes[k];
   }
 
-  let memory = self_size / 1024.0 / 1024.0;
+  let memory = selfSize / 1024.0 / 1024.0;
   return memory;
 }
 

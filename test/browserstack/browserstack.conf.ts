@@ -6,6 +6,7 @@ declare var browser: any;
 
 const build = `e2e_${Date.now()}`;
 
+/* eslint-disable @typescript-eslint/camelcase */
 function combine(browsers, oses) {
   const capabilities = [];
   for (const { versions: browser_versions, name: browserName } of browsers) {
@@ -42,6 +43,7 @@ function combine(browsers, oses) {
   }
   return capabilities;
 }
+/* eslint-enable @typescript-eslint/camelcase */
 
 exports.config = {
   user: CIEnv.BS_USER,
@@ -107,6 +109,7 @@ exports.config = {
   onPrepare: function (config, capabilities) {
     console.log('Connecting local');
     return new Promise(function(resolve, reject){
+      // eslint-disable-next-line @typescript-eslint/camelcase
       exports.bs_local = new browserstack.Local();
       exports.bs_local.start({'key': exports.config.key }, function(error) {
         if (error) return reject(error);

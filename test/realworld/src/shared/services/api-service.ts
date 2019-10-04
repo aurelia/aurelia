@@ -34,7 +34,7 @@ export class ApiService {
       method: 'GET',
     };
     try {
-      const response = await this.http.fetch(`${config.api_url}${path}?${qs.stringify(params)}`, options);
+      const response = await this.http.fetch(`${config.apiUrl}${path}?${qs.stringify(params)}`, options);
       return status(response);
     } catch (error) {
       return parseError(error);
@@ -48,7 +48,7 @@ export class ApiService {
       method: 'PUT',
     };
     try {
-      const response = await this.http.fetch(`${config.api_url}${path}`, options);
+      const response = await this.http.fetch(`${config.apiUrl}${path}`, options);
       return status(response);
     } catch (error) {
       return parseError(error);
@@ -62,7 +62,7 @@ export class ApiService {
       method: 'POST',
     };
     try {
-      const response = await this.http.fetch(`${config.api_url}${path}`, options);
+      const response = await this.http.fetch(`${config.apiUrl}${path}`, options);
       return status(response);
     } catch (error) {
       return parseError(error);
@@ -75,7 +75,7 @@ export class ApiService {
       method: 'DELETE',
     };
     try {
-      const response = await this.http.fetch(`${config.api_url}${path}`, options);
+      const response = await this.http.fetch(`${config.apiUrl}${path}`, options);
       return status(response);
     } catch (error) {
       return parseError(error);

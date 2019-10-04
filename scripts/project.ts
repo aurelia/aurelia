@@ -60,7 +60,7 @@ export default {
     const camelName = camelCase(kebabName);
 
     const path = join(packagesPath, kebabName);
-    const node_modules = join(path, 'node_modules');
+    const nodeModules = join(path, 'node_modules');
     const coverage = join(rootPath, 'coverage', kebabName);
     const tsconfig = join(path, 'tsconfig.json');
     const changelog = join(path, 'CHANGELOG.md');
@@ -98,7 +98,7 @@ export default {
       namespace: 'au',
       iife: `au.${camelName}`,
     };
-    return { path, node_modules, coverage, tsconfig, changelog, src, test, dist, name };
+    return { path, nodeModules, coverage, tsconfig, changelog, src, test, dist, name };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts'),

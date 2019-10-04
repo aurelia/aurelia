@@ -46,6 +46,7 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
+    '@typescript-eslint/camelcase': 'error',
     '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': 'error',
@@ -108,7 +109,6 @@ module.exports = {
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
     '@typescript-eslint/ban-ts-ignore': 'warn',
-    '@typescript-eslint/camelcase': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'warn',
     '@typescript-eslint/no-empty-function': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',

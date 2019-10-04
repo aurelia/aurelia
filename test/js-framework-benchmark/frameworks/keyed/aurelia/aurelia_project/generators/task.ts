@@ -3,7 +3,7 @@ import {Project, ProjectItem, CLIOptions, UI} from 'aurelia-cli';
 
 @inject(Project, CLIOptions, UI)
 export default class TaskGenerator {
-  constructor(private project: Project, private options: CLIOptions, private ui: UI) { }
+  constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
 
   async execute() {
     const name = await this.ui.ensureAnswer(

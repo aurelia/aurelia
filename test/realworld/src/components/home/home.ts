@@ -13,10 +13,10 @@ export class Home {
   private shownList = 'all';
   private tags: string[] = [];
   private filterTag?: string;
-  private pageNumber?: number;
+  private readonly pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
-  private limit = 10;
+  private readonly limit = 10;
 
   constructor(
     private readonly sharedState: SharedState,

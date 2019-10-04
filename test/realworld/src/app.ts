@@ -33,7 +33,7 @@ import template from './app.html';
   template,
 })
 export class App implements IViewModel {
-  private message: string;
+  private readonly message: string;
 
   constructor(
     private readonly router: IRouter,

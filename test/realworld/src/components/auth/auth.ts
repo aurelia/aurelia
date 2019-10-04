@@ -5,7 +5,7 @@ import { UserService } from 'shared/services/user-service';
 
 @inject(UserService, IRouter)
 export class Auth {
-  private user: User = {};
+  private readonly user: User = {};
   private type: string = 'login';
   private errors?: string[];
 

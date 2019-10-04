@@ -10,6 +10,7 @@ abstract class FlagsTemplateController<T extends INode = INode> {
 
   public readonly view: IController<T>;
 
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller!: IController<T>;
 
   constructor(

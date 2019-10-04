@@ -225,7 +225,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         @customAttribute({ name: 'square' })
         class Square {
           public value: string;
-          constructor(@INode private el: HTMLElement) {}
+          constructor(@INode private readonly el: HTMLElement) {}
           public binding() {
             this.el.style.background = this.value;
           }
@@ -248,7 +248,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @customAttribute({ name: 'square' })
           class Square {
             public value: string;
-            constructor(@INode private el: HTMLElement) {}
+            constructor(@INode private readonly el: HTMLElement) {}
             public binding() {
               const value = this.value === 'literal:literal' ? 'red' : this.value;
               this.el.style.background = value;

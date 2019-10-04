@@ -16,7 +16,7 @@ export class Store {
   backup: any;
   selectedIdx: number;
   constructor(
-    private lifecycle: ILifecycle,
+    private readonly lifecycle: ILifecycle,
   ) {
     this.data = [];
     this.id = 1;

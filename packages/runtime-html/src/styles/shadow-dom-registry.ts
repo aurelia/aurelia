@@ -6,8 +6,8 @@ export type ShadowDOMStylesFactory =
 
 export class ShadowDOMRegistry implements IRegistry {
   constructor(
-    private sharedStyles: IShadowDOMStyles,
-    private createStyles: ShadowDOMStylesFactory
+    private readonly sharedStyles: IShadowDOMStyles,
+    private readonly createStyles: ShadowDOMStylesFactory
   ) { }
 
   public register(container: IContainer, ...params: (string | CSSStyleSheet)[]) {

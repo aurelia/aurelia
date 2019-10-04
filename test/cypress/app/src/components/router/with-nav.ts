@@ -10,5 +10,5 @@ import template from './with-nav.html';
   template
 })
 export class RouterWithNav {
-  constructor(private router: IRouter) { }
+  constructor(private readonly router: IRouter) { }
 }

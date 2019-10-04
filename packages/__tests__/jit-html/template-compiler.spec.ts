@@ -29,7 +29,8 @@ import {
   ITemplateCompiler,
   ITemplateDefinition,
   PrimitiveLiteralExpression,
-  TargetedInstructionType as TT
+  TargetedInstructionType as TT,
+  IHydrateLetElementInstruction
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -182,7 +183,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         const expectedElInstructions = [
           { toVerify: ['type', 'to', 'value'], type: TT.setProperty, to: 'name', value: 'name' }
         ];
-        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as IHydrateElementInstruction).instructions, expectedElInstructions);
       });
 
       it('understands element property casing', function () {
@@ -204,7 +205,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         const expectedElInstructions = [
           { toVerify: ['type', 'value', 'to'], type: TT.setProperty, value: 'label', to: 'backgroundColor' },
         ];
-        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as IHydrateElementInstruction).instructions, expectedElInstructions);
       });
 
       it('understands binding commands', function () {
@@ -240,7 +241,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           e.type = TT.propertyBinding;
           return e;
         });
-        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as IHydrateElementInstruction).instructions, expectedElInstructions);
       });
 
       describe('with template controller', function () {
@@ -341,7 +342,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
         it('does not generate instructions when there is no bindings', function () {
           const { instructions } = compileWith(`<template><let></let></template>`);
-          assert.strictEqual((instructions[0][0]).instructions.length, 0, `(instructions[0][0]).instructions.length`);
+          assert.strictEqual((instructions[0][0] as IHydrateLetElementInstruction).instructions.length, 0, `(instructions[0][0]).instructions.length`);
         });
 
         it('ignores custom element resource', function () {
@@ -359,7 +360,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
         it('compiles with attributes', function () {
           const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
-          verifyInstructions((instructions[0][0]).instructions, [
+          verifyInstructions((instructions[0][0] as IHydrateLetElementInstruction).instructions, [
             { toVerify: ['type', 'to', 'srcOrExp'],
               type: TT.letBinding, to: 'a', from: 'b' },
             { toVerify: ['type', 'to'],
@@ -370,7 +371,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         describe('[to-binding-context]', function () {
           it('understands [to-binding-context]', function () {
             const { instructions } = compileWith(`<template><let to-binding-context></let></template>`);
-            assert.strictEqual((instructions[0][0]).toBindingContext, true, `(instructions[0][0]).toBindingContext`);
+            assert.strictEqual((instructions[0][0] as IHydrateLetElementInstruction).toBindingContext, true, `(instructions[0][0]).toBindingContext`);
           });
 
           it('ignores [to-binding-context] order', function () {
@@ -394,8 +395,8 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
     function compileWith(markup: string | Element, extraResources: any[] = []) {
       extraResources.forEach(e => e.register(container));
-      // @ts-ignore
-      return sut.compile(dom, { template: markup, instructions: [], surrogates: [] }, resources);
+      const templateDefinition: ITemplateDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as ITemplateDefinition;
+      return sut.compile(dom, templateDefinition, resources);
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
@@ -479,17 +480,16 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
     };
-    const input = {
+    const input: ITemplateDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
-    };
-    const output = {
+    } as unknown as ITemplateDefinition;
+    const output: ITemplateDefinition = {
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
       build: buildNotRequired,
       scopeParts: [],
-    };
-    // @ts-ignore
+    } as unknown as ITemplateDefinition;
     return [input, output];
   } else {
     let compiledMarkup;
@@ -515,17 +515,16 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       link: attr === 'else'
     };
     const rawMarkup = `<${tagName} ${attr}="${value || ''}">${childTpl || ''}</${tagName}>`;
-    const input = {
+    const input: ITemplateDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
-    };
-    const output = {
+    } as unknown as ITemplateDefinition;
+    const output: ITemplateDefinition = {
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]],
       build: buildNotRequired,
       scopeParts: [],
-    };
-    // @ts-ignore
+    } as unknown as ITemplateDefinition;
     return [input, output];
   }
 }
@@ -680,11 +679,11 @@ describe(`TemplateCompiler - combinations`, function () {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
       it(markup, function () {
-        const input = {
+        const input: ITemplateDefinition = {
           template: markup,
           instructions: [],
           surrogates: [],
-        };
+        } as unknown as ITemplateDefinition;
         const expected = {
           template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],
@@ -695,7 +694,6 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(ctx);
 
-        // @ts-ignore
         const actual = sut.compile(dom, input, resources);
 
         verifyBindingInstructionsEqual(actual, expected);
@@ -747,11 +745,11 @@ describe(`TemplateCompiler - combinations`, function () {
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
-        const input = {
+        const input: ITemplateDefinition = {
           template: markup,
           instructions: [],
           surrogates: [],
-        };
+        } as unknown as ITemplateDefinition;
         const instruction = {
           type: TT.hydrateAttribute,
           res: def.name,
@@ -768,7 +766,6 @@ describe(`TemplateCompiler - combinations`, function () {
         const $def = CustomAttribute.define(def, ctor);
         const { sut, resources, dom  } = setup(ctx, $def);
 
-        // @ts-ignore
         const actual = sut.compile(dom, input, resources);
 
         verifyBindingInstructionsEqual(actual, expected);
@@ -822,12 +819,11 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
 
-        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []);
+        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [ITemplateDefinition, ITemplateDefinition];
 
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            // @ts-ignore
             sut.compile(dom, input, resources);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
@@ -838,7 +834,6 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          // @ts-ignore
           const actual = sut.compile(dom, input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
@@ -1011,10 +1006,10 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)); }
       ] as ((ctx: HTMLTestContext, results: CTCResult[]) => void)[]
     ],                       (ctx, [[input1, output1], [input2, output2], [input3, output3]]) => {
-      const input = {
+      const input: ITemplateDefinition = {
         template: `<div>${input1.template}${input2.template}${input3.template}</div>`,
         instructions: []
-      };
+      } as unknown as ITemplateDefinition;
 
       it(`${input.template}`, function () {
 
@@ -1026,7 +1021,6 @@ describe(`TemplateCompiler - combinations`, function () {
         );
 
         const output = {
-          // @ts-ignore
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           build: buildNotRequired,
@@ -1034,7 +1028,6 @@ describe(`TemplateCompiler - combinations`, function () {
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        // @ts-ignore
         const actual = sut.compile(dom, input, resources);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
@@ -1103,12 +1096,11 @@ describe(`TemplateCompiler - combinations`, function () {
         const childInstructions = !!bindableDescription ? instructions : [];
         const siblingInstructions = !bindableDescription ? instructions : [];
 
-        const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
+        const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []) as [ITemplateDefinition, ITemplateDefinition];
 
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            // @ts-ignore
             sut.compile(dom, input, resources);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
@@ -1119,7 +1111,6 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          // @ts-ignore
           const actual = sut.compile(dom, input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();

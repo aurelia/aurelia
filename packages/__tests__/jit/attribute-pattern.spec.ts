@@ -145,7 +145,6 @@ describe('@attributePattern', function () {
           let receivedRawValue: string;
           let receivedParts: string[];
           @attributePattern(...defs)
-          // @ts-ignore
           class ThePattern {}
           for (const { pattern } of defs) {
             ThePattern.prototype[pattern] = (rawName, rawValue, parts) => {

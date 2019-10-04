@@ -75,7 +75,7 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T> {
+  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T>|undefined {
     return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
   }
 

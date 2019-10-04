@@ -12,7 +12,6 @@ const { enter, leave } = Profiler.createTimer('AttributeParser');
 
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  // @ts-ignore
   public static readonly inject: readonly Key[] = [ISyntaxInterpreter, all(IAttributePattern)];
 
   private readonly interpreter: ISyntaxInterpreter;

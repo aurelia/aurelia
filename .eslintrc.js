@@ -32,6 +32,7 @@ module.exports = {
   reportUnusedDisableDirectives: true,
   rules: {
     // Opinionated overrides of the default recommended rules:
+    '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/indent': ['error', 2],
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -136,7 +137,6 @@ module.exports = {
     }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
-    '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'warn',
     '@typescript-eslint/no-empty-function': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',

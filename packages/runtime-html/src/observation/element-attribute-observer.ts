@@ -186,8 +186,7 @@ const startObservation = (element: IHtmlElement, subscription: ElementMutationSu
   if (element.$mObserver === undefined) {
     element.$mObserver = DOM.createNodeObserver!(
       element,
-      // @ts-ignore
-      handleMutation,
+      handleMutation as (...args: unknown[]) => void,
       { attributes: true }
     ) as MutationObserver;
   }

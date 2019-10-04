@@ -416,13 +416,13 @@ export function buildTemplateDefinition(
         def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {
-            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
+            // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
             def[prop] = nameOrDef[prop as keyof typeof nameOrDef];
           }
         });
         templateDefinitionArrays.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {
-            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
+            // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
             def[prop] = toArray(nameOrDef[prop as keyof typeof nameOrDef] as unknown[]);
           }
         });

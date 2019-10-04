@@ -9,7 +9,6 @@ describe(`@valueConverter('foo')`, function () {
     container = DI.createContainer();
   });
 
-  // @ts-ignore
   @valueConverter('foo')
   class FooValueConverter { }
 

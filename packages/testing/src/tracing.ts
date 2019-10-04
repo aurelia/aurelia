@@ -7,6 +7,7 @@ import {
   INodeSymbol,
   IPlainAttributeSymbol,
   ISymbol,
+  AttrSyntax,
 } from '@aurelia/jit';
 import {
   Class,
@@ -49,14 +50,11 @@ export const SymbolTraceWriter = {
             if ((p as ISymbol).flags !== undefined) {
               const symbol = p as INodeSymbol | IPlainAttributeSymbol | ICustomAttributeSymbol;
               if ('target' in symbol) {
-                // @ts-ignore
-                output += `attr: ${symbol.target}=${symbol.rawValue}`;
+                output += `attr: ${(symbol as AttrSyntax).target}=${(symbol as AttrSyntax).rawValue}`;
               } else if ('interpolation' in symbol) {
-                // @ts-ignore
-                output += `text: "${symbol.physicalNode.textContent}"`;
+                output += `text: "${((symbol as INodeSymbol).physicalNode as HTMLElement).textContent}"`;
               } else {
-                // @ts-ignore
-                output += `element: ${symbol.physicalNode.outerHTML}`;
+                output += `element: ${((symbol as INodeSymbol).physicalNode as HTMLElement).outerHTML}`;
               }
             } else {
               if ('outerHTML' in (p as HTMLElement)) {

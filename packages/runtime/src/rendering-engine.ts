@@ -179,7 +179,7 @@ export interface IRenderingEngine {
     definition: TemplateDefinition,
     parentContext?: IContainer | IRenderContext<T>,
     componentType?: ICustomElementType,
-  ): ITemplate<T>;
+  ): ITemplate<T>|undefined;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
@@ -221,7 +221,6 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  // @ts-ignore
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,

@@ -307,9 +307,7 @@ describe('dependency injection', function () {
 //       }
 //     };
 
-//     //@ts-ignore
 //     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
-//     //@ts-ignore
 //     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
 
 //     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
@@ -319,14 +317,10 @@ describe('dependency injection', function () {
 //     (sut as Writable<If>).$scope = null;
 //     (elseSut as Writable<Else>).$scope = null;
 
-//     //@ts-ignore
 //     const ifBehavior = RuntimeBehavior.create(If);
-//     //@ts-ignore
 //     ifBehavior.applyTo(sut, lifecycle);
 
-//     //@ts-ignore
 //     const elseBehavior = RuntimeBehavior.create(Else);
-//     //@ts-ignore
 //     elseBehavior.applyTo(elseSut, lifecycle);
 
 //     let firstBindInitialNodesText: string;

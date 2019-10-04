@@ -75,7 +75,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
       // other if special attribute like data, or ones start with _
       // assign as well
       else if (attr in el || attr === 'data' || attr.startsWith('_')) {
-        // @ts-ignore // https://github.com/microsoft/TypeScript/issues/31904
+        // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
         (el as Writable<typeof el>)[attr as keyof typeof el] = value;
       }
       // if it's an asElement attribute, camel case it

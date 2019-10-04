@@ -255,8 +255,7 @@ export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycl
       }
       this.hasStarted = true;
       if (next !== null) {
-        // @ts-ignore
-        const nextResult = next.call(context, value, ...args);
+        const nextResult = (next as (this: (result?: T, ...args: TArgs) => MaybePromiseOrTask, value: T, ...args: TArgs[]) => MaybePromiseOrTask).call(context as (result?: T, ...args: TArgs) => MaybePromiseOrTask, value, ...args as TArgs[]);
         if (nextResult === void 0) {
           this.done = true;
         } else {

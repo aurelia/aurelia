@@ -455,7 +455,6 @@ describe('FragmentNodeSequence', function () {
           const ref2 = ctx.dom.createElement('div');
           parent.appendChild(ref1);
           parent.appendChild(ref2);
-          // @ts-ignore
           sut.insertBefore(ref2);
           assert.strictEqual(parent.childNodes.length, width + 2, `parent.childNodes.length`);
           assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);

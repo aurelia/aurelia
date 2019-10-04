@@ -705,7 +705,6 @@ export const AuDOMTest = {
       build: { required: false },
       name,
       template: AuNode.createText().makeTarget(),
-      // @ts-ignore
       instructions: [[new AuTextInstruction(parseExpression(expression))]]
     };
   },
@@ -733,7 +732,6 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'if',
-      // @ts-ignore
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
@@ -744,7 +742,6 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'repeat',
-      // @ts-ignore
       [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')]
     );
   },
@@ -755,21 +752,18 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'with',
-      // @ts-ignore
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
   createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, ITemplateDefinition>): HydrateElementInstruction {
     return new HydrateElementInstruction(
       name,
-      // @ts-ignore
       bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)),
       parts
     );
   },
   createLetInstruction(bindings: [string, string][], toBindingContext: boolean = false): LetElementInstruction {
     return new LetElementInstruction(
-      // @ts-ignore
       bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)),
       toBindingContext
     );

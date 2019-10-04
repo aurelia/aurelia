@@ -9,7 +9,8 @@ import {
 import {
   createElement as sut,
   HTMLTargetedInstructionType,
-  RenderPlan
+  RenderPlan,
+  HTMLTargetedInstruction
 } from '@aurelia/runtime-html';
 import {
   _,
@@ -39,8 +40,7 @@ describe(`createElement() creates element based on tag`, function () {
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, function () {
           const ctx = TestContext.createHTMLTestContext();
-          // @ts-ignore
-          const actual = sut(ctx.dom, tag, props);
+          const actual = sut(ctx.dom, tag, props as unknown as Record<string, string>);
 
           const node = actual['node'] as Element;
 
@@ -72,8 +72,7 @@ describe(`createElement() creates element based on tag`, function () {
         t => {
           it(`understands targeted instruction type=${t}`, function () {
             const ctx = TestContext.createHTMLTestContext();
-            // @ts-ignore
-            const actual = sut(ctx.dom, tag, { prop: { type: t }});
+            const actual = sut(ctx.dom, tag, { prop: { type: t }  as unknown as string|HTMLTargetedInstruction});
 
             const instruction = actual['instructions'][0][0] as TargetedInstruction;
             const node = actual['node'] as Element;
@@ -157,8 +156,7 @@ describe(`createElement() creates element based on type`, function () {
         it(`can handle ${str} props`, function () {
           const type = createType();
           const ctx = TestContext.createHTMLTestContext();
-          // @ts-ignore
-          const actual = sut(ctx.dom, type, props);
+          const actual = sut(ctx.dom, type, props as unknown as Record<string, string|HTMLTargetedInstruction>);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -194,8 +192,7 @@ describe(`createElement() creates element based on type`, function () {
           it(`understands targeted instruction type=${t}`, function () {
             const type = createType();
             const ctx = TestContext.createHTMLTestContext();
-            // @ts-ignore
-            const actual = sut(ctx.dom, type, { prop: { type: t }});
+            const actual = sut(ctx.dom, type, { prop: { type: t } as unknown as string|HTMLTargetedInstruction});
 
             const node = actual['node'] as Element;
             const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;

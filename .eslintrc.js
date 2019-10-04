@@ -78,6 +78,16 @@ module.exports = {
     '@typescript-eslint/semi': 'error',
     '@typescript-eslint/triple-slash-reference': ['error', { path: 'never', types: 'always', lib: 'never' }],
     '@typescript-eslint/type-annotation-spacing': 'error',
+    'import/no-extraneous-dependencies': ['error', {
+      devDependencies: [
+        'examples/**',
+        'scripts/**',
+        'test/**',
+        'gulpfile.js'
+      ],
+      optionalDependencies: false,
+      peerDependencies: false
+    }],
     'new-parens': ['error', 'always'],
     'no-caller': 'error',
     'no-constant-condition': 'error',
@@ -131,7 +141,6 @@ module.exports = {
     'import/no-absolute-path': 'warn',
     'import/no-deprecated': 'warn',
     'import/no-default-export': 'warn',
-    'import/no-extraneous-dependencies': ['warn', { devDependencies: false, optionalDependencies: false, peerDependencies: false}],
     'import/no-mutable-exports': 'warn',
     'import/no-unassigned-import': 'warn',
     'import/no-useless-path-segments': ['warn', { noUselessIndex: true }],

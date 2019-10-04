@@ -20,7 +20,6 @@ module.exports = {
     'no-console': 'off',
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
-    'import/no-extraneous-dependencies': ['warn', { devDependencies: true, optionalDependencies: false, peerDependencies: false}],
     'mocha/max-top-level-suites': 'warn',
     'mocha/no-async-describe': 'warn',
     'mocha/no-exclusive-tests': 'warn',

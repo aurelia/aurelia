@@ -51,7 +51,7 @@ describe('custom-attributes', function () {
     }
 
     const resources: any[] = [Fooatt4, Fooatt5, FooMultipleAlias];
-    const app = class { value = 'wOOt'; };
+    const app = class App { value = 'wOOt'; };
 
     it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
       const options = await setup('<template> <div foo53.bind="value"></div> </template>', app, resources);

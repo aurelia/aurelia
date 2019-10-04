@@ -60,6 +60,7 @@ const enum TaskType {
   from,
 }
 
+// eslint-disable-next-line @typescript-eslint/class-name-casing
 export const StartTask = class $StartTask implements IStartTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {

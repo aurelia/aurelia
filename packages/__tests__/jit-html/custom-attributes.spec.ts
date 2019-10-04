@@ -129,4 +129,69 @@ describe('custom-attributes', function () {
 
   });
 
+  describe('with multiple bindings', () => {
+
+    @customAttribute('multi')
+    class Multi {
+        @bindable a: boolean;
+        @bindable b: string;
+        aResult: boolean;
+        bResult: string;
+        constructor(@INode private readonly element: Element) {
+        }
+        aChanged() {
+          this.aResult = this.a;
+          this.updateContent();
+        }
+        bChanged() {
+          this.bResult = this.b;
+          this.updateContent();
+        }
+        updateContent() {
+          this.element.innerHTML = `a: ${this.aResult}, b:${this.bResult}`;
+        }
+    }
+    @customAttribute('multi2')
+    class Multi2 {
+        @bindable a: boolean;
+        @bindable({ primary: true }) b: string;
+        aResult: boolean;
+        bResult: string;
+        constructor(@INode private readonly element: Element) {
+        }
+        aChanged() {
+          this.aResult = this.a;
+          this.updateContent();
+        }
+        bChanged() {
+          this.bResult = this.b;
+          this.updateContent();
+        }
+        updateContent() {
+          this.element.innerHTML = `a: ${this.aResult}, b:${this.bResult}`;
+        }
+    }
+
+    const resources: any[] = [Multi, Multi2];
+    const app = class { value = 'bound'; };
+
+    it('binds to multiple properties correctly', async function () {
+      const options = await setup('<template> <div multi="a.bind: true; b.bind: value"></div> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: bound');
+      await options.tearDown();
+    });
+
+    it('binds to multiple properties correctly when there’s a default property', async function () {
+      const options = await setup('<template> <div multi2="a.bind: true; b.bind: value"></div> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: bound');
+      await options.tearDown();
+    });
+
+    it('binds to the default property correctly', async function () {
+      const options = await setup('<template> <div multi2.bind="value"></div> </template>', app, resources);
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: bound');
+      await options.tearDown();
+    });
+  });
+
 });

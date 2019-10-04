@@ -7,7 +7,7 @@ export class Store {
   selected: any;
   id: number;
   backup: any;
-    
+
   constructor() {
     this.data = [];
     this.selected = undefined;

@@ -53,6 +53,8 @@
                             return 'formNoValidate';
                         case 'formtarget':
                             return 'formTarget';
+                        case 'inputmode':
+                            return 'inputMode';
                         default:
                             return attr;
                     }

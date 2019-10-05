@@ -344,7 +344,7 @@ export class LetElementRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateLetElementInstruction): void {
     dom.remove(target);
     const childInstructions = instruction.instructions;
-    const toViewModel = instruction.toViewModel;
+    const toBindingContext = instruction.toBindingContext;
 
     let childInstruction: ILetBindingInstruction;
     let expr: AnyBindingExpression;
@@ -352,7 +352,7 @@ export class LetElementRenderer implements IInstructionRenderer {
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
-      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
+      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext);
       addBinding(renderable, binding);
     }
   }

@@ -365,17 +365,17 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         describe('[to-view-model]', function () {
           it('understands [to-view-model]', function () {
             const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
-            assert.strictEqual((instructions[0][0]).toViewModel, true, `(instructions[0][0]).toViewModel`);
+            assert.strictEqual((instructions[0][0]).toBindingContext, true, `(instructions[0][0]).toBindingContext`);
           });
 
           it('ignores [to-view-model] order', function () {
             let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
             ]);
             instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
             ]);
           });
         });

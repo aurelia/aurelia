@@ -114,7 +114,7 @@ export type AttributeDefinition = Required<IAttributeDefinition>;
 
 export type InstructionTypeName = string;
 
-export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('createInterface').noDefault();
+export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
 }
@@ -207,7 +207,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
-  toViewModel: boolean;
+  toBindingContext: boolean;
 }
 
 export interface ILetBindingInstruction extends ITargetedInstruction {

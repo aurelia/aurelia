@@ -63,6 +63,7 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
     ['input', 'formmethod', 'formMethod'],
     ['input', 'formnovalidate', 'formNoValidate'],
     ['input', 'formtarget', 'formTarget'],
+    ['input', 'inputmode', 'inputMode'],
     ['textarea', 'maxlength', 'maxLength'],
     ['td', 'rowspan', 'rowSpan'],
     ['td', 'colspan', 'colSpan'],

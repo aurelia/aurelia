@@ -10,6 +10,11 @@ describe.only('app', function () {
     return el && el.textContent.replace(/\s\s+/g, ' ').trim();
   }
 
+  function getViewModel<T>(element: Element) {
+    const { viewModel } = CustomElement.behaviorFor(element) as unknown as { viewModel: T };
+    return viewModel;
+  }
+
   async function executeTest(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     const ctx = await startup();
     try {
@@ -49,16 +54,22 @@ describe.only('app', function () {
       const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
       const toView: HTMLInputElement = host.querySelector('#input-to-view input');
       const fromView: HTMLInputElement = host.querySelector('#input-from-view input');
+      const blurredInputTw: HTMLInputElement = host.querySelector('#blurred-input-two-way input');
+      const blurredInputFv: HTMLInputElement = host.querySelector('#blurred-input-from-view input');
+
+      const vm = getViewModel<App>(host);
 
       assert.equal(_static.value, 'input0');
-      assert.equal(oneTime.value, 'input1');
-      assert.equal(twoWay.value, 'input2');
-      assert.equal(toView.value, 'input3');
+      assert.equal(oneTime.value, vm.inputOneTime);
+      assert.equal(twoWay.value, vm.inputTwoWay);
+      assert.equal(toView.value, vm.inputToView);
       assert.equal(fromView.value, '');
+      assert.equal(blurredInputTw.value, vm.inputBlrTw);
+      assert.equal(blurredInputFv.value, '');
     });
   });
 
-  it('changes in the text-input are reflected correctly', async function () {
+  it('changes in the text-input are reflected correctly as per binding mode', async function () {
     await executeTest(async ({ host, ctx }) => {
       const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
       const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
@@ -81,22 +92,22 @@ describe.only('app', function () {
 
       ctx.lifecycle.processRAFQueue(undefined);
 
-      const { viewModel } = CustomElement.behaviorFor(host) as unknown as { viewModel: App };
-      assert.equal(viewModel.inputOneTime, 'input1');
-      assert.equal(viewModel.inputTwoWay, newInputs[1]);
-      assert.equal(viewModel.inputToView, 'input3');
-      assert.equal(viewModel.inputFromView, newInputs[3]);
+      const vm = getViewModel<App>(host);
+      assert.equal(vm.inputOneTime, 'input1');
+      assert.equal(vm.inputTwoWay, newInputs[1]);
+      assert.equal(vm.inputToView, 'input3');
+      assert.equal(vm.inputFromView, newInputs[3]);
     });
   });
 
-  it('changes in the vm property are reflected in text-inputs correctly', async function () {
+  it('changes in the vm property are reflected in text-inputs correctly as per binding mode', async function () {
     await executeTest(async ({ host, ctx }) => {
       const newInputs = new Array(4).fill(0).map((_, i) => `new input ${i + 1}`);
-      const { viewModel } = CustomElement.behaviorFor(host) as unknown as { viewModel: App };
-      viewModel.inputOneTime = newInputs[0];
-      viewModel.inputTwoWay = newInputs[1];
-      viewModel.inputToView = newInputs[2];
-      viewModel.inputFromView = newInputs[3];
+      const vm = getViewModel<App>(host);
+      vm.inputOneTime = newInputs[0];
+      vm.inputTwoWay = newInputs[1];
+      vm.inputToView = newInputs[2];
+      vm.inputFromView = newInputs[3];
 
       ctx.lifecycle.processRAFQueue(undefined);
 
@@ -109,6 +120,34 @@ describe.only('app', function () {
       assert.equal(twoWay.value, newInputs[1]);
       assert.equal(toView.value, newInputs[2]);
       assert.equal(fromView.value, '');
+    });
+  });
+
+  it('changes in the text-input are reflected correctly according to update-trigger event', async function () {
+    await executeTest(async ({ host, ctx }) => {
+      const twoWay: HTMLInputElement = host.querySelector('#blurred-input-two-way input');
+      const fromView: HTMLInputElement = host.querySelector('#blurred-input-from-view input');
+
+      const vm = getViewModel<App>(host);
+      assert.equal(twoWay.value, vm.inputBlrTw);
+      assert.equal(fromView.value, '');
+
+      const newInputFv = 'new blurred input fv', newInputTw = 'new blurred input tw';
+      twoWay.value = newInputTw;
+      twoWay.dispatchEvent(new Event('change'));
+      fromView.value = newInputFv;
+      fromView.dispatchEvent(new Event('change'));
+      ctx.lifecycle.processRAFQueue(undefined);
+
+      assert.notEqual(vm.inputBlrTw, newInputTw);
+      assert.notEqual(vm.inputBlrFv, newInputFv);
+
+      twoWay.dispatchEvent(new Event('blur'));
+      fromView.dispatchEvent(new Event('blur'));
+      ctx.lifecycle.processRAFQueue(undefined);
+
+      assert.equal(vm.inputBlrTw, newInputTw);
+      assert.equal(vm.inputBlrFv, newInputFv);
     });
   });
 

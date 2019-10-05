@@ -1,1 +1,2 @@
-<input value.bind="value">
+<input if.bind="trigger" value.bind="value & updateTrigger:trigger">
+<input else value.bind="value">

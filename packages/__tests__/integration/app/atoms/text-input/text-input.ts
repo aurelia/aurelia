@@ -4,12 +4,19 @@ import template from './text-input.html';
 /**
  * Potential test coverage targets:
  * - `@aurelia/runtime`
- *   - `property-binding`, different binding modes, such as `two-way`, `one-time`, `to-view`, and `from-view`.
+ *   - bindings
+ *     - `property-binding`, different binding modes, such as `two-way`, `one-time`, `to-view`, and `from-view`.
+ *   - custom-attributes
+ *     - `if` (template controller)
  * - `@aurelia/runtime-html`
- *   - `value-attribute-observer`
+ *   - bindings
+ *     - `value-attribute-observer`
+ *   - binding behavior
+ *     - `update-trigger`
  * @export
  */
 @customElement({ name: 'text-input', template })
 export class TextInput {
   @bindable public value: string;
+  @bindable public trigger: string = undefined;
 }

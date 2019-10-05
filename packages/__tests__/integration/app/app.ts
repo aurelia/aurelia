@@ -11,7 +11,9 @@ export class App {
   public inputOneTime = 'input1';
   public inputTwoWay = 'input2';
   public inputToView = 'input3';
-  public inputFromView: string = 'input4';
+  public inputFromView = 'input4';
+  public inputBlrTw = 'input5';
+  public inputBlrFv = 'input6';
 
   public changeTexts() {
     this.text1 = 'newText1';

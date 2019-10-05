@@ -23,7 +23,7 @@
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "test-chrome:watch": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js",
     "test-chrome:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --single-run --coverage --reporter=mocha",
-    "test-chrome:watch:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js --reporter=mocha",
+    "test-chrome:watch:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html --reporter=mocha",
     "test-chrome:debugger": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js",
     "test-chrome:debugger:verbose": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js --reporter=mocha",
     "copy-html": "node tasks/copy-html --verbose",

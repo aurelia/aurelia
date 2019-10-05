@@ -73,7 +73,9 @@ function handleChange(eventName, src) {
 
 const watched = htmlSourceDirs.map((dir) => path.join(cwd, dir, '**/*.html'));
 
-const watcher = chokidar.watch(watched);
+const watcher = chokidar.watch(watched, {
+  awaitWriteFinish: true
+});
 watcher.on('all', handleChange);
 if (!toWatch) {
   watcher.on('ready', () => {

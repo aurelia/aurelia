@@ -28,14 +28,14 @@
   Captures the reference to DOM elements, CE, and CE VMs.
 
 #### Observers
-- `array-observer`: Observer for mutation in array?
+- `array-observer`: Observer for mutation in array
 - `collection-length-observer`: Observer for array length
 - `collection-size-observer`: Observer for set or map size
 - `computed-observer`: Observer for computed properties
-- `map-observer`: Observer for mutation in Map?
+- `map-observer`: Observer for mutation in Map
 - `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
 - `self-observer`: utilized for `@bindable`s with change handler
-- `set-observer`: Observer for mutation in Set?
+- `set-observer`: Observer for mutation in Set
 - `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
 
 #### Binding behaviors
@@ -259,3 +259,30 @@ The update of the display is triggered every 2 seconds via a signal.
 A `div` with a random number (as easier to generate :)) + plus a button that does something (for example console.logs the text).
 When the `div` is clicked, a new number is generated.
 Targets `self` binding behavior, as the button click does not trigger the change of number.
+
+**NOTE:**
+custom attributes with multiple bindables in different variants (one named value, none named value, with/without the default specified, with/without mode, with/without multi expressions, etc)
+
+From rluba:
+But that’s not the only problem! I’ve removed the toggle and changed the dropdown to:
+```typescript
+@customAttribute('au-dropdown')
+export class AuDropdown {
+    @bindable appendToBody: boolean;
+    @bindable({mode: BindingMode.twoWay}) open = false;
+    openChanged() {
+        console.log('Open changed', this.open);
+    }
+    appendToBodyChanged() {
+        console.log('Append', this.appendToBody);
+    }
+}
+```
+
+The usage code looks like this:
+```html
+<li au-dropdown="append-to-body.bind: true; open.bind: ddopen" class="nav-item">
+```
+
+The result?
+`appendToBodyChanged` gets called and `appendToBody` is set to the string `append-to-body.bind: true; open.bind: ddopen` (so the whole attribute value of au-dropdown). How on earth can that happen?

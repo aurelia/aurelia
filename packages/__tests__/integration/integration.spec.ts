@@ -151,4 +151,16 @@ describe.only('app', function () {
     });
   });
 
+  it.skip('uses specs-viewer to "compose" display for heterogenous collection of things', async function () {
+    await executeTest(({ host }) => {
+      const specsViewer = host.querySelector('specs-viewer');
+      assert.notEqual(specsViewer, null);
+      console.log(specsViewer.outerHTML);
+
+      const vm = getViewModel<App>(host);
+      const [camera, laptop] = vm.things;
+      assert.equal(getText(specsViewer.querySelector("h2")), `${camera.modelNumber} by ${camera.make}`);
+    });
+  });
+
 });

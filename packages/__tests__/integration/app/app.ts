@@ -1,5 +1,7 @@
 import { customElement } from '@aurelia/runtime';
 import template from './app.html';
+import { Camera, Zoom } from './molecules/specs-viewer/camera-specs-viewer';
+import { Laptop, Storage } from './molecules/specs-viewer/laptop-specs-viewer';
 
 @customElement({ name: 'app', template })
 export class App {
@@ -14,6 +16,11 @@ export class App {
   public inputFromView = 'input4';
   public inputBlrTw = 'input5';
   public inputBlrFv = 'input6';
+
+  public things = [
+    new Camera(new Zoom(40, 4), [125, 1600, 3200, 6400], [4, 16], [3, 6.5], "Coolpix B500", "Nikon"),
+    new Laptop("Core i5 3.40 GHz", "8GB DDR4", new Storage("SSD", 1, "TB"), "14 inch", "T460", "Lenovo"),
+  ];
 
   public changeTexts() {
     this.text1 = 'newText1';

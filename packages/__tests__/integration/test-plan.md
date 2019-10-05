@@ -123,15 +123,10 @@ ${value}
 
 Targets `updateTrigger` binding behavior.
 
-##### Text input with blur effect
+~~##### Text input with blur effect~~
 
-Targets `blur` custom attribute.
-
-##### Readonly text factory
-
-Takes a collection of configuration objects, and renders readonly `<b>`, `<i>`, and `<span>`.
-Targets `<compose>` CE.
-
+~~Targets `blur` custom attribute.~~
+Ignored as it already has pretty good coverage
 
 #### Molecules
 
@@ -254,6 +249,10 @@ The update of the display is triggered every 2 seconds via a signal.
     - bind model
     - bind matcher
     - bind boolean
+
+##### Specs viewer
+List of dynamic appels and oranges.
+Targets: `<compose>`, and repeater.
 
 ##### Random number generator
 A `div` with a random number (as easier to generate :)) + plus a button that does something (for example console.logs the text).

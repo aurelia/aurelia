@@ -3,6 +3,7 @@ import { Aurelia, FrequentMutations } from '@aurelia/runtime';
 import { HTMLTestContext, TestContext } from '@aurelia/testing';
 import { App as component } from './app';
 import { atoms } from './atoms';
+import { molecules } from './molecules';
 
 export class TestExecutionContext {
   constructor(
@@ -22,7 +23,9 @@ export async function startup() {
   const au = new Aurelia(ctx.container);
   au
     .register(FrequentMutations as unknown as IRegistration)
-    .register(atoms);
+    .register(atoms)
+    .register(molecules)
+    ;
   au.app({ host, component });
 
   await au.start().wait();

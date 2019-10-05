@@ -62,9 +62,9 @@ describe('custom-elements', function () {
 
   });
 
-  // //<let [to-view-model] />
+  // //<let [to-binding-context] />
   it('04.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup<Person>('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { });
+    const { tearDown, lifecycle, appHost, component } = setup<Person>('<template><let to-binding-context full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', class implements Person { });
     component.firstName = 'bi';
     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
     component.lastName = 'go';

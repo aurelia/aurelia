@@ -27,8 +27,8 @@ function trimDots(ary: string[]): void {
 /**
  * Calculates a path relative to a file.
  *
- * @param name The relative path.
- * @param file The file path.
+ * @param name - The relative path.
+ * @param file - The file path.
  * @return The calculated path.
  */
 export function relativeToFile(name: string, file: string): string {
@@ -53,8 +53,8 @@ export function relativeToFile(name: string, file: string): string {
 /**
  * Joins two paths.
  *
- * @param path1 The first path.
- * @param path2 The second path.
+ * @param path1 - The first path.
+ * @param path2 - The second path.
  * @return The joined path.
  */
 export function join(path1: string, path2: string): string {
@@ -118,9 +118,9 @@ type SimpleQueryParams = string | IQueryParams | (string | IQueryParams)[];
 /**
  * Recursively builds part of query string for parameter.
  *
- * @param key Parameter name for query string.
- * @param value Parameter value to deserialize.
- * @param traditional Boolean Use the old URI template standard (RFC6570)
+ * @param key - Parameter name for query string.
+ * @param value - Parameter value to deserialize.
+ * @param traditional - Boolean Use the old URI template standard (RFC6570)
  * @return Array with serialized parameter(s)
  */
 function buildParam(key: string, value: ComplexQueryParams, traditional?: boolean): string[] {
@@ -150,8 +150,8 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
 /**
  * Generate a query string from an object.
  *
- * @param params Object containing the keys and values to be used.
- * @param traditional Boolean Use the old URI template standard (RFC6570)
+ * @param params - Object containing the keys and values to be used.
+ * @param traditional - Boolean Use the old URI template standard (RFC6570)
  * @returns The generated query string, excluding leading '?'.
  */
 export function buildQueryString(params?: IQueryParams, traditional?: boolean): string {
@@ -176,8 +176,8 @@ export function buildQueryString(params?: IQueryParams, traditional?: boolean): 
 /**
  * Process parameter that was recognized as scalar param (primitive value or shallow array).
  *
- * @param existedParam Object with previously parsed values for specified key.
- * @param value Parameter value to append.
+ * @param existedParam - Object with previously parsed values for specified key.
+ * @param value - Parameter value to append.
  * @returns Initial primitive value or transformed existedParam if parameter was recognized as an array.
  */
 function processScalarParam(existedParam: SimpleQueryParams, value: string | IQueryParams): SimpleQueryParams {
@@ -199,9 +199,9 @@ function processScalarParam(existedParam: SimpleQueryParams, value: string | IQu
  * For each keys part, if the current level is undefined create an
  *   object or array based on the type of the next keys part.
  *
- * @param queryParams root-level result object.
- * @param keys Collection of keys related to this parameter.
- * @param value Parameter value to append.
+ * @param queryParams - root-level result object.
+ * @param keys - Collection of keys related to this parameter.
+ * @param value - Parameter value to append.
  */
 function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[], value: string): void {
   let currentParams = queryParams as IQueryParams & (string | IQueryParams)[];
@@ -236,7 +236,7 @@ function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[],
 /**
  * Parse a query string into a queryParams object.
  *
- * @param queryString The query string to parse.
+ * @param queryString - The query string to parse.
  * @returns Object with keys and values mapped from the query string.
  */
 export function parseQueryString(queryString: string): IQueryParams {

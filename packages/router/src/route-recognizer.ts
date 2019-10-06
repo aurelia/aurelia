@@ -222,7 +222,7 @@ export class RouteRecognizer {
   /**
    * Parse a route pattern and add it to the collection of recognized routes.
    *
-   * @param route The route to add.
+   * @param route - The route to add.
    */
   public add(route: ConfigurableRoute | ConfigurableRoute[]): State | undefined {
     if (Array.isArray(route)) {
@@ -346,7 +346,7 @@ export class RouteRecognizer {
   /**
    * Retrieve a RouteGenerator for a route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns The RouteGenerator for that route.
    */
   public getRoute(nameOrRoute: string | RouteHandler): RouteGenerator {
@@ -356,7 +356,7 @@ export class RouteRecognizer {
   /**
    * Retrieve the handlers registered for the route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns The handlers.
    */
   public handlersFor(nameOrRoute: string | RouteHandler): HandlerEntry[] {
@@ -371,7 +371,7 @@ export class RouteRecognizer {
   /**
    * Check if this RouteRecognizer recognizes a route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns True if the named route is recognized.
    */
   public hasRoute(nameOrRoute: string | RouteHandler): boolean {
@@ -381,8 +381,8 @@ export class RouteRecognizer {
   /**
    * Generate a path and query string from a route name or RouteConfig (RouteHandler) and params object.
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
-   * @param params The route params to use when populating the pattern.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
+   * @param params - The route params to use when populating the pattern.
    *  Properties not required by the pattern will be appended to the query string.
    * @returns The generated absolute path and query string.
    */
@@ -438,7 +438,7 @@ export class RouteRecognizer {
   /**
    * Match a path string against registered route patterns.
    *
-   * @param path The path to attempt to match.
+   * @param path - The path to attempt to match.
    * @returns Array of objects containing `handler`, `params`, and
    *  `isDynamic` values for the matched route(s), or undefined if no match
    *  was found.

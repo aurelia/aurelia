@@ -588,7 +588,7 @@ export class Router implements IRouter {
   /**
    * Finds the closest ancestor viewport.
    *
-   * @param element The element to search upward from. The element is not searched.
+   * @param element - The element to search upward from. The element is not searched.
    * @returns The Viewport that is the closest ancestor.
    */
   public closestViewport(element: Element): Viewport | null {

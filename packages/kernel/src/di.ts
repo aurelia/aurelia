@@ -240,7 +240,7 @@ export class DI {
    * Registers the `target` class as a transient dependency; each time the dependency is resolved
    * a new instance will be created.
    *
-   * @param target The class / constructor function to register as transient.
+   * @param target - The class / constructor function to register as transient.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
    *
    * Example usage:
@@ -267,7 +267,7 @@ Foo.register(container);
    * Registers the `target` class as a singleton dependency; the class will only be created once. Each
    * consecutive time the dependency is resolved, the same instance will be returned.
    *
-   * @param target The class / constructor function to register as a singleton.
+   * @param target - The class / constructor function to register as a singleton.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
    * Example usage:
 ```ts
@@ -327,7 +327,7 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  * Registers the `target` class as a transient dependency; each time the dependency is resolved
  * a new instance will be created.
  *
- * @param target The class / constructor function to register as transient.
+ * @param target - The class / constructor function to register as transient.
  *
  * Example usage:
 ```ts
@@ -358,7 +358,7 @@ export function singleton<T extends Constructable>(): typeof singletonDecorator;
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
- * @param target The class / constructor function to register as a singleton.
+ * @param target - The class / constructor function to register as a singleton.
  *
  * Example usage:
 ```ts

@@ -344,7 +344,7 @@ export interface Scripts {
 /**
  * Reads and parses the content of a package.json file
  *
- * @param pathSegments The path segments of the folder where the package.json is located, relative to the root of the project
+ * @param pathSegments - The path segments of the folder where the package.json is located, relative to the root of the project
  */
 export async function loadPackageJson(...pathSegments: string[]): Promise<Package> {
   const path = join(project.path, ...pathSegments, 'package.json');
@@ -363,8 +363,8 @@ export async function loadPackageJson(...pathSegments: string[]): Promise<Packag
 /**
  * Stringifies and writes out the content of a package.json file
  *
- * @param pkg The package.json as an object
- * @param pathSegments The path segments of the folder where the package.json is located, relative to the root of the project
+ * @param pkg - The package.json as an object
+ * @param pathSegments - The path segments of the folder where the package.json is located, relative to the root of the project
  */
 export async function savePackageJson(pkg: Package, ...pathSegments: string[]): Promise<any> {
   const path = join(project.path, ...pathSegments, 'package.json');

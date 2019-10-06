@@ -13,18 +13,18 @@ import {
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
- * @param config The overrides
+ * @param config - The overrides
  */
 export function bindable(config?: BindableSource): BindableDecorator;
 /**
  * Decorator: Specifies a bindable property on a class.
- * @param prop The property name
+ * @param prop - The property name
  */
 export function bindable(prop: string): ClassDecorator;
 /**
  * Decorator: Specifies a bindable property on a class.
- * @param target The class
- * @param prop The property name
+ * @param target - The class
+ * @param prop - The property name
  */
 export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
 export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T, prop?: string): void | BindableDecorator | ClassDecorator {

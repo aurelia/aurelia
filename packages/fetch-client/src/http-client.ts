@@ -64,7 +64,7 @@ export class HttpClient {
   /**
    * Configure this client with default settings to be used by all requests.
    *
-   * @param config A configuration object, or a function that takes a config
+   * @param config - A configuration object, or a function that takes a config
    * object and configures it.
    * @returns The chainable instance of this HttpClient.
    * @chainable
@@ -128,9 +128,9 @@ export class HttpClient {
    *
    * See also https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param init An options object containing settings to be applied to
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -209,9 +209,9 @@ export class HttpClient {
   /**
    * Calls fetch as a GET request.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param init An options object containing settings to be applied to
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -222,10 +222,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to POST.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -236,10 +236,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to PUT.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -250,10 +250,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to PATCH.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -264,10 +264,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to DELETE.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */

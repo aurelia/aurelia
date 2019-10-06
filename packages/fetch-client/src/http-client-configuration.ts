@@ -26,7 +26,7 @@ export class HttpClientConfiguration {
   /**
    * Sets the baseUrl.
    *
-   * @param baseUrl The base URL.
+   * @param baseUrl - The base URL.
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
@@ -38,7 +38,7 @@ export class HttpClientConfiguration {
   /**
    * Sets the defaults.
    *
-   * @param defaults The defaults.
+   * @param defaults - The defaults.
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
@@ -50,7 +50,7 @@ export class HttpClientConfiguration {
   /**
    * Adds an interceptor to be run on all requests or responses.
    *
-   * @param interceptor An object with request, requestError,
+   * @param interceptor - An object with request, requestError,
    * response, or responseError methods. request and requestError act as
    * resolve and reject handlers for the Request before it is sent.
    * response and responseError act as resolve and reject handlers for

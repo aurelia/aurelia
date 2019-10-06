@@ -41,7 +41,7 @@ export class Focus {
 
   /**
    * Invoked everytime the bound value changes.
-   * @param newValue The new value.
+   * @param newValue - The new value.
    */
   public valueChanged(): void {
     // In theory, we could/should react immediately

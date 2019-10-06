@@ -244,7 +244,7 @@ const emptyArray = PLATFORM.emptyArray;
  *
  * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
  *
- * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+ * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
  */
 export function mergeDistinct<T>(
   arr1: readonly T[] | T[] | null | undefined,

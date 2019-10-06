@@ -123,6 +123,7 @@ describe.skip('controller', function () {
     return Object.freeze<Required<ITemplateDefinition>>({
       name,
       template,
+      captureAttrs: false,
       cache: 0,
       build: buildNotRequired,
       bindables: Object.freeze(

@@ -20,6 +20,7 @@ import {
   TargetedInstructionType
 } from './definitions';
 import { BindingMode } from './flags';
+import { PLATFORM } from '@aurelia/kernel';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation;
@@ -167,12 +168,16 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public parts?: Record<string, ITemplateDefinition>;
   public res: string;
 
+  public capturedAttrs: { name: string; value: string }[];
+
   public constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>) {
     this.type = TargetedInstructionType.hydrateElement;
 
     this.instructions = instructions;
     this.parts = parts;
     this.res = res;
+
+    this.capturedAttrs = PLATFORM.emptyArray;
   }
 }
 

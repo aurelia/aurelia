@@ -169,6 +169,7 @@ module.exports = {
     'eol-last': ['warn', 'always'],
     'function-call-argument-newline': ['warn', 'consistent'],
     'max-lines-per-function': ['warn', 200],
+    'no-await-in-loop': 'warn',
     'no-case-declarations': 'warn',
     'no-cond-assign': 'warn',
     'no-console': 'warn',

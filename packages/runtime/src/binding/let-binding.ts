@@ -41,14 +41,14 @@ export class LetBinding implements IPartialConnectableBinding {
   public target: (IObservable & IIndexable) | null;
   public targetProperty: string;
 
-  private readonly toViewModel: boolean;
+  private readonly toBindingContext: boolean;
 
   constructor(
     sourceExpression: IExpression,
     targetProperty: string,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,
-    toViewModel: boolean = false,
+    toBindingContext: boolean = false,
   ) {
     connectable.assignIdTo(this);
     this.$state = State.none;
@@ -61,7 +61,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.target = null;
     this.targetProperty = targetProperty;
 
-    this.toViewModel = toViewModel;
+    this.toBindingContext = toBindingContext;
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -94,7 +94,7 @@ export class LetBinding implements IPartialConnectableBinding {
 
     this.$scope = scope;
     this.part = part;
-    this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {

@@ -34,7 +34,6 @@ export {
 } from './debugging';
 export {
   TemplateBinder,
-  hasMultipleBindings
 } from './template-binder';
 export {
   ITemplateElementFactory

@@ -22,6 +22,8 @@ checks:
 # Duplicate code which is syntactically identical (but may be formatted differently)
   identical-code:
     enabled: true
+    exclude_patterns:
+    - "packages/testing/src/each-cartesian-join.ts"
 # Method complexity (= cognitive complexity)
 # Functions or methods that may be hard to understand
   method-complexity:
@@ -63,6 +65,8 @@ exclude_patterns:
 - ".circleci/"
 - ".vscode/"
 - "docs/"
+- "**/__e2e__"
+- "**/__tests__"
 - "**/node_modules/"
 - "**/dist/"
 - "**/coverage/"

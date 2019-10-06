@@ -4,7 +4,9 @@ module.exports = {
   extends:  [
     'eslint:recommended',
     'plugin:jsdoc/recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:security/recommended',
     'plugin:sonarjs/recommended',
     'plugin:import/typescript'
@@ -59,6 +61,7 @@ module.exports = {
     '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
     '@typescript-eslint/no-for-in-array': 'error',
     '@typescript-eslint/no-misused-new': 'error',
+    '@typescript-eslint/no-parameter-properties': 'off',
     '@typescript-eslint/no-require-imports': 'error',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/prefer-function-type': 'error',
@@ -74,7 +77,7 @@ module.exports = {
     'no-new-wrappers': 'error',
     'no-octal-escape': 'error',
     'no-restricted-properties': ['error',
-      { property: 'substr', message: "'substr' is considered a legacy function and should be avoided when possible. Use 'substring' instead." }
+      { property: 'substr', message: '"substr" is considered a legacy function and should be avoided when possible. Use "substring" instead.' }
     ],
     'no-restricted-syntax': ['error',
       { selector: 'MemberExpression[object.name=\'document\'][property.name=\'cookies\']', message: 'Usage of document.cookies is forbidden.' },
@@ -105,19 +108,24 @@ module.exports = {
     '@typescript-eslint/no-empty-function': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-floating-promises': 'warn',
+    '@typescript-eslint/no-misused-promises': 'warn',
     '@typescript-eslint/no-namespace': 'warn',
     '@typescript-eslint/no-non-null-assertion': 'warn',
-    '@typescript-eslint/no-parameter-properties': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'warn',
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
     '@typescript-eslint/no-use-before-define': 'warn',
+    '@typescript-eslint/prefer-includes': 'warn',
     '@typescript-eslint/prefer-readonly': 'warn',
+    '@typescript-eslint/prefer-regexp-exec': 'warn',
+    '@typescript-eslint/prefer-string-starts-ends-with': 'warn',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
+    '@typescript-eslint/require-await': 'warn',
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/type-annotation-spacing': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
+    '@typescript-eslint/unbound-method': 'warn',
     'compat/compat': 'warn',
     'import/newline-after-import': 'warn',
     'import/no-absolute-path': 'warn',
@@ -128,23 +136,23 @@ module.exports = {
     'import/no-unassigned-import': 'warn',
     'import/no-useless-path-segments': ['warn', { noUselessIndex: true }],
     'import/order': ['warn', { 'newlines-between': 'never' }],
-    'jsdoc/check-alignment': 'warn',
-    'jsdoc/check-examples': 'warn',
-    'jsdoc/check-indentation': 'warn',
-    'jsdoc/check-param-names': 'warn',
-    'jsdoc/check-syntax': 'warn',
-    'jsdoc/check-tag-names': 'warn',
-    'jsdoc/match-description': 'warn',
-    'jsdoc/newline-after-description': 'warn',
-    'jsdoc/no-types': 'warn',
-    'jsdoc/require-description': 'warn',
-    'jsdoc/require-example': 'warn',
-    'jsdoc/require-hyphen-before-param-description': 'warn',
-    // 'jsdoc/require-jsdoc': 'warn',
-    'jsdoc/require-param': 'warn',
-    'jsdoc/require-param-type': 'warn',
-    'jsdoc/require-returns': 'warn',
-    'jsdoc/require-returns-type': 'warn',
+    'jsdoc/check-alignment': 'off',
+    'jsdoc/check-examples': 'off',
+    'jsdoc/check-indentation': 'off',
+    'jsdoc/check-param-names': 'off',
+    'jsdoc/check-syntax': 'off',
+    'jsdoc/check-tag-names': 'off',
+    'jsdoc/match-description': 'off',
+    'jsdoc/newline-after-description': 'off',
+    'jsdoc/no-types': 'off',
+    'jsdoc/require-description': 'off',
+    'jsdoc/require-example': 'off',
+    'jsdoc/require-hyphen-before-param-description': 'off',
+    'jsdoc/require-jsdoc': 'off',
+    'jsdoc/require-param': 'off',
+    'jsdoc/require-param-type': 'off',
+    'jsdoc/require-returns': 'off',
+    'jsdoc/require-returns-type': 'off',
     'security/detect-non-literal-fs-filename': 'warn',
     'security/detect-non-literal-regexp': 'warn',
     'security/detect-possible-timing-attacks': 'warn',
@@ -161,6 +169,7 @@ module.exports = {
     'eol-last': ['warn', 'always'],
     'function-call-argument-newline': ['warn', 'consistent'],
     'max-lines-per-function': ['warn', 200],
+    'no-await-in-loop': 'warn',
     'no-case-declarations': 'warn',
     'no-cond-assign': 'warn',
     'no-console': 'warn',
@@ -189,14 +198,20 @@ module.exports = {
     }],
 
     // Off for now as they create way to much noise
-    '@typescript-eslint/quotes': ['off'],
-    'jsdoc/require-jsdoc': 'off'
+    '@typescript-eslint/quotes': ['off']
   },
-  overrides: [{ // Specific overrides for JS files as some TS rules son't make sense there.
-      "files": ['**/*.js'],
-      "rules": {
-        "@typescript-eslint/no-var-requires": 'off'
-      }
+  overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
+    files: ['**/*.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off'
+    }
+  }, { // Specific overrides for TS files within tests as some rules don't make sense there.
+    files: ['test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off'
+    }
   }],
   settings: {
     polyfills: [

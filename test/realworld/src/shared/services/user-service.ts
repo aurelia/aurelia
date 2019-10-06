@@ -8,8 +8,8 @@ import { JwtService } from './jwt-service';
 export class UserService {
 
   constructor(private readonly apiService: ApiService,
-              private readonly jwtService: JwtService,
-              private readonly sharedState: SharedState) {
+    private readonly jwtService: JwtService,
+    private readonly sharedState: SharedState) {
   }
 
   // Verify JWT in localstorage with server & load user's info.

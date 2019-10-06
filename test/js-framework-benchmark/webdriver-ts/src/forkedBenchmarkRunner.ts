@@ -324,7 +324,6 @@ interface Result<T> {
   benchmark: Benchmark;
 }
 
-
 function writeResult<T>(res: Result<T>) {
   if (!config.WRITE_RESULTS) return;
   let benchmark = res.benchmark;
@@ -374,7 +373,6 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
 {
   let errors: BenchmarkError[] = [];
   let warnings: string[] = [];
-
 
   console.log("benchmarking ", framework, benchmark.id);
   let driver = buildDriver(benchmarkOptions);

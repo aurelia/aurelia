@@ -8,7 +8,6 @@ import template from './app.html';
 startFPSMonitor();
 startMemMonitor();
 
-
 function createItem() {
   return {
     name: faker.name.findName(),
@@ -31,7 +30,6 @@ export class App {
     this.rows = [];
     this.cols = ['name', 'phone', 'country'];
   }
-
 
   public created(): void {
     this.$controller.host.textContent = '';

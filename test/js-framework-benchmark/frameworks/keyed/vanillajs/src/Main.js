@@ -304,7 +304,6 @@ class Main {
       this.rows[1] = tmp;
     }
 
-
     // let oldSelection = this.store.selected;
     // this.store.swapRows();
     // this.updateRows();

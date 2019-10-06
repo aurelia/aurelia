@@ -7,7 +7,6 @@ const log = require('fancy-log');
 const browserSync = require('browser-sync').create();
 const stringify = require('stringify');
 
-
 const b = browserify({
   baseDir: '.',
   debug: true,

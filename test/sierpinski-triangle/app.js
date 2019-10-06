@@ -104,5 +104,3 @@ new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
     )
   }
 ).start();
-
-

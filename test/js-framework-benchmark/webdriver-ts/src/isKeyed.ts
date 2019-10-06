@@ -132,7 +132,6 @@ export async function checkTRcorrect(driver: WebDriver, timeout = config.TIMEOUT
     return false;
   }
 
-
   // second td
   let td2 = await findByXPath(elem, '//tbody/tr[1000]/td[2]');
   if (!await assertClassesContained(td2, ["col-md-4"], "second td")) {
@@ -156,13 +155,11 @@ export async function checkTRcorrect(driver: WebDriver, timeout = config.TIMEOUT
     return false;
   }
 
-
   // fourth td
   let td4 = await findByXPath(elem, '//tbody/tr[1000]/td[4]');
   if (!await assertClassesContained(td4, ["col-md-6"], "fourth td")) {
     return false;
   }
-
 
   return true;
 }

@@ -79,7 +79,6 @@ export interface FrameworkId {
   directory: string;
 }
 
-
 abstract class FrameworkVersionInformationValid implements FrameworkId {
   public url: string;
   public constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean) {

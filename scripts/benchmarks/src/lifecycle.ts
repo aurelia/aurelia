@@ -71,10 +71,8 @@ const suites = {
       }
     });
 
-
     suite.run();
   }
 };
-
 
 suites[name]();

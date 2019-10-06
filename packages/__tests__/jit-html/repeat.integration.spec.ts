@@ -46,7 +46,6 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '01');
   });
 
-
   it("012 _", function () {
     const { au, host } = setup();
     const App = CustomElement.define(
@@ -155,7 +154,6 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
   });
-
 
   it("0123 _", function () {
     const { au, host } = setup();

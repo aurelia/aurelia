@@ -432,7 +432,6 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-
   it('strips alias node and attr combo', function () {
     const html = `<alias name="firstName,alias"><template alias="firstName2,            alias2">
 </template>

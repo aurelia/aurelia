@@ -114,7 +114,7 @@ module.exports = {
     'no-extra-bind': 'error',
     'no-extra-semi': 'error',
     'no-import-assign': 'error',
-    'no-multiple-empty-lines': 'error',
+    'no-multiple-empty-lines': ['error', { max: 1 }],
     'no-new-func': 'error',
     'no-new-wrappers': 'error',
     'no-octal-escape': 'error',

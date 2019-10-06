@@ -62,7 +62,6 @@ async function ncuRunUpdate(packageVersionInfo: PackageVersionInformationResult)
   });
 }
 
-
 async function main() {
 
   let frameworkVersionInformations = loadFrameworkVersionInformation();
@@ -84,7 +83,6 @@ async function main() {
   let automatically = frameworkVersionInformations
     .filter(frameworkVersionInformation => frameworkVersionInformation instanceof FrameworkVersionInformationDynamic)
     .map(frameworkVersionInformation => frameworkVersionInformation as FrameworkVersionInformationDynamic);
-
 
   let packageLockInformations: PackageVersionInformationResult[] = await Promise.all(automatically.map(frameworkVersionInformation => determineInstalledVersions(frameworkVersionInformation)));
 
@@ -145,5 +143,4 @@ main()
   .catch(err => {
     console.log('error', err);
   });
-
 

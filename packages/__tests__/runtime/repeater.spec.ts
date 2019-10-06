@@ -671,7 +671,6 @@ describe(`Repeat`, function () {
           runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
         }
 
-
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
 
         runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -722,7 +721,6 @@ describe(`Repeat`, function () {
         if (detachTwice) {
           runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
         }
-
 
         assert.strictEqual(host.textContent, '', 'host.textContent #12');
 

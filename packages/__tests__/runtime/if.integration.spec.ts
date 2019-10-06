@@ -289,7 +289,6 @@ describe(`If/Else`, function () {
         }
         // host should be empty but nodes below should still be intact and up-to-date
 
-
         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 
         runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -332,7 +331,6 @@ describe(`If/Else`, function () {
         if (detachTwice) {
           runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
         }
-
 
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
 

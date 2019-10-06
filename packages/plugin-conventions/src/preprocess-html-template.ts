@@ -90,7 +90,6 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
   }
 
-
   m.append(`let _e;
 export function register(container) {
   if (!_e) {

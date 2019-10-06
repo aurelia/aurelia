@@ -81,7 +81,6 @@ describe('value-converters', function () {
       await options.tearDown();
     });
 
-
     it('Simple Alias doesn\'t break def alias works on value converter', async function () {
       const options = setup('<template> <div foo43.bind="value | woot23"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');

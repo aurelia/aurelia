@@ -100,7 +100,6 @@ exports.config = {
     colors: true
   },
 
-
   /**
    * Gets executed once before all workers get launched.
    * @param {Object} config wdio configuration object

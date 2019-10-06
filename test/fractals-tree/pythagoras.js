@@ -24,7 +24,6 @@ const TEMPLATE =
   </svg>
 </template>`;
 
-
 export class Pythagoras {
 
   constructor(state) {

@@ -12,7 +12,6 @@ interface ISprite {
   width?: number;
 }
 
-
 @customElement({ name: 'app', template })
 export class App {
   public sprites: ISprite[];

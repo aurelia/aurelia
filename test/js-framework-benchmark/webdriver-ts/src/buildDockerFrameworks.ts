@@ -157,7 +157,6 @@ async function ncuRunUpdate(packageVersionInfo: PackageVersionInformationResult)
     });
 }
 
-
 async function main() {
 
     let frameworkVersionInformations = loadFrameworkVersionInformation();
@@ -239,6 +238,5 @@ main()
     .catch(err => {
         console.log('error', err);
     });
-
 
 */

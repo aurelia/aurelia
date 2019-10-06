@@ -83,7 +83,6 @@ describe('custom-attributes', function () {
       await options.tearDown();
     });
 
-
     it('Simple spread Alias (1st position) works on custom attribute', async function () {
       const options = setup('<template> <div foo51.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
@@ -101,7 +100,6 @@ describe('custom-attributes', function () {
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
-
 
     it('Simple Alias doesn\'t break def alias works on custom attribute', async function () {
       const options = setup('<template> <div foo43.bind="value"></div> </template>', app, resources);

@@ -41,7 +41,6 @@ const template = `
 </template>
 `;
 
-
 @customElement({ name: 'app', template })
 export class App {
   public log: boolean = false;

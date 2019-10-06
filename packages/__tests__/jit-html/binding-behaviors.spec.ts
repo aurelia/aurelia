@@ -58,7 +58,6 @@ describe('value-converters', function () {
       }
     }
 
-
     @customAttribute({ name: 'foo4', aliases: ['foo43'] })
     @alias('foo41', 'foo42')
     class FooAttr4 {
@@ -71,7 +70,6 @@ describe('value-converters', function () {
         this.element.setAttribute('test', this.value);
       }
     }
-
 
     const resources: any[] = [WootBehavior, WootBehavior2, FooAttr4, FooAttr5];
     it('Simple spread Alias doesn\'t break def alias works on binding behavior', async function () {
@@ -97,7 +95,6 @@ describe('value-converters', function () {
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
       await options.tearDown();
     });
-
 
     it('Simple Alias doesn\'t break def alias works on binding behavior', async function () {
       const options = setup('<template> <div foo43.bind="value & woot23:method:method"></div> </template>', app, resources);

@@ -49,7 +49,6 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
     let framework = data[i][0];
     let benchmark = data[i][1];
 
-
     let benchmarkOptions: BenchmarkOptions = {
       port: config.PORT.toFixed(),
       remoteDebuggingPort: config.REMOTE_DEBUGGING_PORT,
@@ -114,7 +113,6 @@ let args = yargs(process.argv)
 let runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
 async function main() {
-
 
   let runBenchmarks = (args.benchmark && args.benchmark.length > 0 ? args.benchmark : [""]).map(v => v.toString());
   let runFrameworks: FrameworkData[];

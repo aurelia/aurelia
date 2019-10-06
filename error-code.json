@@ -1,0 +1,10 @@
+{
+  "ranges": {
+    "1 - 100": "kernel error codes",
+    "101 - 500": "runtime error codes",
+    "501 - 600": "compiler error codes"
+  },
+  "1": {
+    "full_message": "something wrong"
+  }
+}

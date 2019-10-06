@@ -554,7 +554,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
     });
 
-    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+    it('works correctly for html with the change of both [prepend], and [append] - textContent', async function () {
 
       @customElement({
         name: 'app', template: `<span t.bind='keyExpr'>tac</span>`

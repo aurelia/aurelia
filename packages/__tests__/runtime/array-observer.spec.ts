@@ -76,7 +76,7 @@ describe(`ArrayObserver`, function () {
       );
     });
 
-    it('push', function () {
+    it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
@@ -119,7 +119,7 @@ describe(`ArrayObserver`, function () {
       );
     });
 
-    it('push', function () {
+    it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
       const lifecycle = DI.createContainer().get(ILifecycle);

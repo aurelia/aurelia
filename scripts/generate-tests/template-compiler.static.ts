@@ -507,7 +507,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               ),
             elseMarkupExpected,
             properties,
-            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$01'}],
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$02'}],
             resources)
           );
           ifElseDoubleTests.push($$test(
@@ -521,7 +521,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               ),
             elseMarkupExpected,
             properties,
-            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$02'}],
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$03'}],
             resources)
           );
           ifElseDoubleTests.push($$test(
@@ -535,7 +535,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
               ),
             elseMarkupExpected.repeat(2),
             properties,
-            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$03'}],
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$04'}],
             resources)
           );
           // }
@@ -624,7 +624,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             ),
           expected,
           properties,
-          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$01'}],
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$02'}],
           resources)
         );
         ifElseDoubleTests.push($$test(
@@ -640,7 +640,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             ),
           expected,
           properties,
-          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$02'}],
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$03'}],
           resources)
         );
         ifElseDoubleTests.push($$test(
@@ -658,7 +658,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             ),
           expected.repeat(2),
           properties,
-          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$03'}],
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$04'}],
           resources)
         );
 

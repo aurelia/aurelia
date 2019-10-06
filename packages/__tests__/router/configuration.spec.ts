@@ -47,15 +47,6 @@ describe('Configuration', function () {
 
     const { router, tearDown } = await setup();
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-
-    await tearDown();
-  });
-
-  it('can be activated with defaults', async function () {
-    this.timeout(5000);
-
-    const { router, tearDown } = await setup();
-    assert.strictEqual(router['isActive'], true, `router.isActive`);
     assert.strictEqual(router.instructionResolver.separators.viewport, '@', `router.instructionResolver.separators.viewport`);
 
     await tearDown();

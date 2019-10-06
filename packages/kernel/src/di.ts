@@ -243,17 +243,16 @@ export class DI {
    * @param target - The class / constructor function to register as transient.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
    *
-   * Example usage:
-```ts
-// On an existing class
-class Foo { }
-DI.transient(Foo);
-
-// Inline declaration
-const Foo = DI.transient(class { });
-// Foo is now strongly typed with register
-Foo.register(container);
-```
+   * @example ```ts
+   * // On an existing class
+   * class Foo { }
+   * DI.transient(Foo);
+   *
+   * // Inline declaration
+   * const Foo = DI.transient(class { });
+   * // Foo is now strongly typed with register
+   * Foo.register(container);
+   * ```
    */
   public static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
@@ -269,17 +268,16 @@ Foo.register(container);
    *
    * @param target - The class / constructor function to register as a singleton.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
-   * Example usage:
-```ts
-// On an existing class
-class Foo { }
-DI.singleton(Foo);
-
-// Inline declaration
-const Foo = DI.singleton(class { });
-// Foo is now strongly typed with register
-Foo.register(container);
-```
+   * @example ```ts
+   * // On an existing class
+   * class Foo { }
+   * DI.singleton(Foo);
+   *
+   * // Inline declaration
+   * const Foo = DI.singleton(class { });
+   * // Foo is now strongly typed with register
+   * Foo.register(container);
+   * ```
    */
   public static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
@@ -317,9 +315,9 @@ function transientDecorator<T extends Constructable>(target: T & Partial<Registe
  * a new instance will be created.
  *
  * @example ```ts
-@transient()
-class Foo { }
-```
+ * @transient()
+ * class Foo { }
+ * ```
  */
 export function transient<T extends Constructable>(): typeof transientDecorator;
 /**
@@ -329,9 +327,9 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  * @param target - The class / constructor function to register as transient.
  *
  * @example ```ts
-@transient()
-class Foo { }
-```
+ * @transient()
+ * class Foo { }
+ * ```
  */
 export function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof transientDecorator {
@@ -346,9 +344,9 @@ function singletonDecorator<T extends Constructable>(target: T & Partial<Registe
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
  * @example ```ts
-@singleton()
-class Foo { }
-```
+ * @singleton()
+ * class Foo { }
+ * ```
  */
 export function singleton<T extends Constructable>(): typeof singletonDecorator;
 /**
@@ -358,9 +356,9 @@ export function singleton<T extends Constructable>(): typeof singletonDecorator;
  * @param target - The class / constructor function to register as a singleton.
  *
  * @example ```ts
-@singleton()
-class Foo { }
-```
+ * @singleton()
+ * class Foo { }
+ * ```
  */
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof singletonDecorator {

@@ -104,6 +104,7 @@ module.exports = {
     'import/no-useless-path-segments': ['error'],
     'import/order': ['error', { 'groups': [], 'newlines-between': 'never' }],
     'import/no-deprecated': 'error',
+    'jsdoc/check-alignment': 'error',
     'jsdoc/check-indentation': 'error',
     'jsdoc/check-tag-names': ['error', {
       definedTags: [
@@ -182,7 +183,6 @@ module.exports = {
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
     '@typescript-eslint/unbound-method': 'warn',
-    'jsdoc/check-alignment': 'off',
     'jsdoc/check-examples': 'off',
     'jsdoc/check-param-names': 'off',
     'jsdoc/match-description': 'off',

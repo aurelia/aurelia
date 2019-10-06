@@ -248,9 +248,9 @@ exports.config = {
     exports.bs_local.stop(function () { return; });
   },
   /**
-  * Gets executed when an error happens, good place to take a screenshot
-  * @ {String} error message
-  */
+   * Gets executed when an error happens, good place to take a screenshot
+   * @ {String} error message
+   */
   onError: function(message) {
     console.log(`Error - marking session ${browser.sessionId} as failed - ${message}`);
     CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message });

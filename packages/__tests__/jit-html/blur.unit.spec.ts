@@ -18,14 +18,14 @@ describe('[UNIT] blur.unit.spec.ts', function() {
         const accessed: Record<string, number> = {};
         sut.value = value as unknown as boolean;
         sut.contains = (originalFn => {
-          return function() {
+          return function(...args: unknown[]) {
             const proxy = new Proxy(this, {
               get(obj: Blur, propertyName: string): unknown {
                 accessed[propertyName] = (accessed[propertyName] || 0) + 1;
                 return obj[propertyName];
               }
             });
-            return originalFn.apply(proxy, arguments);
+            return originalFn.apply(proxy, args);
           };
         })(sut.contains);
 
@@ -59,14 +59,14 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       let accessed: Record<string, number> = {};
       sut.value = true;
       sut.contains = (originalFn => {
-        return function() {
+        return function(...args: unknown[]) {
           const proxy = new Proxy(this, {
             get(obj: Blur, propertyName: string): unknown {
               accessed[propertyName] = (accessed[propertyName] || 0) + 1;
               return obj[propertyName];
             }
           });
-          return originalFn.apply(proxy, arguments);
+          return originalFn.apply(proxy, args);
         };
       })(sut.contains);
 

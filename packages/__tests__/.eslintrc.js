@@ -21,6 +21,7 @@ module.exports = {
     'mocha/no-identical-title': 'error',
     'mocha/no-mocha-arrows': 'error',
     'mocha/no-return-from-async': 'error',
+    'mocha/no-top-level-hooks': 'error',
     'max-lines-per-function': 'off',
     'no-console': 'off',
 
@@ -29,7 +30,6 @@ module.exports = {
     'mocha/no-exclusive-tests': 'off',
     'mocha/no-hooks': 'off',
     'mocha/no-setup-in-describe': 'off',
-    'mocha/no-synchronous-tests': 'off',
-    'mocha/no-top-level-hooks': 'off'
+    'mocha/no-synchronous-tests': 'off'
   }
 };

@@ -26,7 +26,7 @@ describe('translation-integration', function () {
       status_dispatched: 'dispatched on {{date}}',
       status_delivered: 'delivered on {{date}}',
       custom_interpolation_brace: 'delivered on {date}',
-      custom_interpolation_es6_syntax: 'delivered on ${date}',
+      custom_interpolation_es6_syntax: `delivered on \${date}`,
 
       interpolation_greeting: 'hello {{name}}',
 
@@ -53,7 +53,7 @@ describe('translation-integration', function () {
       status_dispatched: 'Versand am {{date}}',
       status_delivered: 'geliefert am {{date}}',
       custom_interpolation_brace: 'geliefert am {date}',
-      custom_interpolation_es6_syntax: 'geliefert am ${date}',
+      custom_interpolation_es6_syntax: `geliefert am \${date}`,
 
       interpolation_greeting: 'Hallo {{name}}',
 
@@ -217,7 +217,7 @@ describe('translation-integration', function () {
       const { host, translation, app } = await suiteSetup();
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-custom', translation.custom_interpolation_brace.replace('{date}', app.deliveredOn.toString()));
-      assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace('${date}', app.deliveredOn.toString()));
+      assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace(`\${date}`, app.deliveredOn.toString()));
     });
 
     it('works for interpolation when the interpolation changes', async function () {

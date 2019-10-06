@@ -835,7 +835,7 @@ describe('ExpressionParser', function () {
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of arguments
   const ComplexTemplateLiteralList: [string, any][] = [
     [`\`a\``,                       new TemplateExpression(['a'], [])],
-    [`\`\\\${a}\``,                 new TemplateExpression(['${a}'], [])],
+    [`\`\\\${a}\``,                 new TemplateExpression([`\${a}`], [])],
     [`\`$a\``,                      new TemplateExpression(['$a'], [])],
     [`\`\${a}\${b}\``,              new TemplateExpression(['', '', ''],                       [$a, $b])],
     [`\`a\${a}\${b}\``,             new TemplateExpression(['a', '', ''],                      [$a, $b])],
@@ -978,7 +978,7 @@ describe('ExpressionParser', function () {
 
   const ComplexTaggedTemplateList: [string, any][] = [
     [`a\`a\``,                       createTaggedTemplate(['a'],           $a, [])],
-    [`a\`\\\${a}\``,                 createTaggedTemplate(['${a}'],        $a, [])],
+    [`a\`\\\${a}\``,                 createTaggedTemplate([`\${a}`],       $a, [])],
     [`a\`$a\``,                      createTaggedTemplate(['$a'],          $a, [])],
     [`a\`\${b}\${c}\``,              createTaggedTemplate(['', '', ''],    $a, [$b, $c])],
     [`a\`a\${b}\${c}\``,             createTaggedTemplate(['a', '', ''],   $a, [$b, $c])],
@@ -1484,7 +1484,7 @@ describe('ExpressionParser', function () {
       });
     }
 
-    for (const input of ['`', '` ', '`${a}']) {
+    for (const input of ['`', '` ', `\`\${a}`]) {
       it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, function () {
         verifyResultOrError(input, null, 'Code 109');
       });

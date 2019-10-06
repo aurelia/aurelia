@@ -65,7 +65,7 @@ export class App {
             $1: new HydrateTemplateController({
               name: '',
               template: '<th><au-m class="au"></au-m> </th>',
-              instructions: [[new TextBindingInstruction('${col | pascal}')]],
+              instructions: [[new TextBindingInstruction(`\${col | pascal}`)]],
               strategy
             },
             'repeat',
@@ -80,7 +80,7 @@ export class App {
             instructions: [[new HydrateTemplateController({
               name: '',
               template: '<td><au-m class="au"></au-m> </td>',
-              instructions: [[new TextBindingInstruction('${row[col]}')]],
+              instructions: [[new TextBindingInstruction(`\${row[col]}`)]],
               strategy
             },
             'repeat',

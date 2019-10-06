@@ -20,7 +20,7 @@ describe('Router', function () {
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
-    const Bar = CustomElement.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
+    const Bar = CustomElement.define({ name: 'bar', template: `<template>Viewport: bar Parameter id: [\${id}] Parameter name: [\${name}] <au-viewport name="bar"></au-viewport></template>` }, class {
       public static parameters = ['id', 'name'];
       public id = 'no id';
       public name = 'no name';
@@ -29,7 +29,7 @@ describe('Router', function () {
         if (params.name) { this.name = params.name; }
       }
     });
-    const Baz = CustomElement.define({ name: 'baz', template: '<template>Viewport: baz Parameter id: [${id}] <au-viewport name="baz"></au-viewport></template>' }, class {
+    const Baz = CustomElement.define({ name: 'baz', template: `<template>Viewport: baz Parameter id: [\${id}] <au-viewport name="baz"></au-viewport></template>` }, class {
       public static parameters = ['id'];
       public id = 'no id';
       public enter(params) { if (params.id) { this.id = params.id; } }
@@ -78,7 +78,7 @@ describe('Router', function () {
       class { });
     const Plugh = CustomElement.define(
       {
-        name: 'plugh', template: '<template>Parameter: ${param} Entry: ${entry}</template>'
+        name: 'plugh', template: `<template>Parameter: \${param} Entry: \${entry}</template>`
       },
       class {
         public param: number;

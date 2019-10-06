@@ -191,7 +191,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     },
     {
       title: '(7) works with interpolation',
-      template: '<div square="color: ${`red`}; diameter: ${5}"></div>',
+      template: `<div square="color: \${\`red\`}; diameter: \${5}"></div>`,
       attrResources: () => {
         @customAttribute({
           name: 'square'
@@ -281,7 +281,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     // unhappy usage
     {
       title: 'throws when combining binding commnd with interpolation',
-      template: '<div square="color.bind: ${`red`}; diameter: ${5}"></div>',
+      template: `<div square="color.bind: \${\`red\`}; diameter: \${5}"></div>`,
       testWillThrow: true,
       attrResources: () => {
         @customAttribute({

@@ -92,7 +92,7 @@ describe('Configuration', function () {
     const { container } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="foo"></au-viewport>' });
-    const Foo = CustomElement.define({ name: 'foo', template: '<div>foo: ${message}</div>' }, class {
+    const Foo = CustomElement.define({ name: 'foo', template: `<div>foo: \${message}</div>` }, class {
       public message: string = '';
       public async enter() {
         await new Promise(resolve => setTimeout(resolve, 250));

@@ -396,7 +396,7 @@ describe.skip('controller', function () {
         [],
         [
           [
-            new TextBindingInstruction(parseExpression('${id&oneTime}', BindingType.Interpolation)),
+            new TextBindingInstruction(parseExpression(`\${id&oneTime}`, BindingType.Interpolation)),
           ],
           [
             new HydrateTemplateController(
@@ -791,7 +791,7 @@ describe.skip('controller', function () {
         ],
         [
           [
-            new TextBindingInstruction(parseExpression('${msg}', BindingType.Interpolation)),
+            new TextBindingInstruction(parseExpression(`\${msg}`, BindingType.Interpolation)),
           ],
           [
             new HydrateTemplateController(

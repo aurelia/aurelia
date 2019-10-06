@@ -24,7 +24,7 @@ export var TargetedInstructionType;
     TargetedInstructionType["refBinding"] = "rj";
     TargetedInstructionType["iteratorBinding"] = "rk";
 })(TargetedInstructionType || (TargetedInstructionType = {}));
-export const ITargetedInstruction = DI.createInterface('createInterface').noDefault();
+export const ITargetedInstruction = DI.createInterface('ITargetedInstruction').noDefault();
 export function isTargetedInstruction(value) {
     const type = value.type;
     return typeof type === 'string' && type.length === 2;

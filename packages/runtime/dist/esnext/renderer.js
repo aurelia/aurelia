@@ -265,14 +265,14 @@ class LetElementRenderer {
     render(flags, dom, context, renderable, target, instruction) {
         dom.remove(target);
         const childInstructions = instruction.instructions;
-        const toViewModel = instruction.toViewModel;
+        const toBindingContext = instruction.toBindingContext;
         let childInstruction;
         let expr;
         let binding;
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-            binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
+            binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext);
             addBinding(renderable, binding);
         }
     }

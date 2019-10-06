@@ -15,7 +15,7 @@
     const connectable_1 = require("./connectable");
     const slice = Array.prototype.slice;
     let LetBinding = class LetBinding {
-        constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
+        constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
             connectable_1.connectable.assignIdTo(this);
             this.$state = 0 /* none */;
             this.$lifecycle = locator.get(lifecycle_1.ILifecycle);
@@ -25,7 +25,7 @@
             this.sourceExpression = sourceExpression;
             this.target = null;
             this.targetProperty = targetProperty;
-            this.toViewModel = toViewModel;
+            this.toBindingContext = toBindingContext;
         }
         handleChange(_newValue, _previousValue, flags) {
             if (!(this.$state & 4 /* isBound */)) {
@@ -53,7 +53,7 @@
             this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             this.part = part;
-            this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext);
+            this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.bind) {
                 sourceExpression.bind(flags, scope, this);

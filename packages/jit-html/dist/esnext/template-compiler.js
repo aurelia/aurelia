@@ -94,7 +94,7 @@ let TemplateCompiler = class TemplateCompiler {
                         binding = bindings[j];
                         instructions[j] = new LetBindingInstruction(binding.expression, binding.target);
                     }
-                    this.instructionRows.push([new LetElementInstruction(instructions, childNode.toViewModel)]);
+                    this.instructionRows.push([new LetElementInstruction(instructions, childNode.toBindingContext)]);
                 }
                 else {
                     this.compileParentNode(childNode);

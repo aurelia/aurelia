@@ -143,6 +143,6 @@ export declare const AuDOMTest: {
     createReplaceableInstruction(def: ITemplateDefinition): HydrateTemplateController;
     createWithInstruction(expression: string, def: ITemplateDefinition): HydrateTemplateController;
     createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, ITemplateDefinition> | undefined): HydrateElementInstruction;
-    createLetInstruction(bindings: [string, string][], toViewModel?: boolean): LetElementInstruction;
+    createLetInstruction(bindings: [string, string][], toBindingContext?: boolean): LetElementInstruction;
 };
 //# sourceMappingURL=au-dom.d.ts.map

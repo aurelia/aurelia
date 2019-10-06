@@ -160,7 +160,7 @@ export declare class CustomElementSymbol implements IElementSymbol, ISymbolWithB
 export declare class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymbolWithMarker {
     flags: SymbolFlags;
     physicalNode: INode;
-    toViewModel: boolean;
+    toBindingContext: boolean;
     marker: INode;
     private _bindings;
     readonly bindings: BindingSymbol[];

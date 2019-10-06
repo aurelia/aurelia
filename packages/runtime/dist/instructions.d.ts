@@ -88,8 +88,8 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
     type: TargetedInstructionType.hydrateLetElement;
     instructions: ILetBindingInstruction[];
-    toViewModel: boolean;
-    constructor(instructions: ILetBindingInstruction[], toViewModel: boolean);
+    toBindingContext: boolean;
+    constructor(instructions: ILetBindingInstruction[], toBindingContext: boolean);
 }
 export declare class LetBindingInstruction implements ILetBindingInstruction {
     type: TargetedInstructionType.letBinding;

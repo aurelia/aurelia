@@ -105,7 +105,7 @@
                             binding = bindings[j];
                             instructions[j] = new runtime_1.LetBindingInstruction(binding.expression, binding.target);
                         }
-                        this.instructionRows.push([new runtime_1.LetElementInstruction(instructions, childNode.toViewModel)]);
+                        this.instructionRows.push([new runtime_1.LetElementInstruction(instructions, childNode.toBindingContext)]);
                     }
                     else {
                         this.compileParentNode(childNode);

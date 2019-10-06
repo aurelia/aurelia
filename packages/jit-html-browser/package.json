@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/jit-html-browser",
-  "version": "0.4.0-dev.201910060130",
+  "version": "0.4.0-dev.201910060254",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,12 +36,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201910060130",
-    "@aurelia/runtime": "0.4.0-dev.201910060130",
-    "@aurelia/runtime-html": "0.4.0-dev.201910060130",
-    "@aurelia/runtime-html-browser": "0.4.0-dev.201910060130",
-    "@aurelia/jit": "0.4.0-dev.201910060130",
-    "@aurelia/jit-html": "0.4.0-dev.201910060130"
+    "@aurelia/kernel": "0.4.0-dev.201910060254",
+    "@aurelia/runtime": "0.4.0-dev.201910060254",
+    "@aurelia/runtime-html": "0.4.0-dev.201910060254",
+    "@aurelia/runtime-html-browser": "0.4.0-dev.201910060254",
+    "@aurelia/jit": "0.4.0-dev.201910060254",
+    "@aurelia/jit-html": "0.4.0-dev.201910060254"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

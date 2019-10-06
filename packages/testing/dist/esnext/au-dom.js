@@ -585,10 +585,10 @@ export const AuDOMTest = {
         // @ts-ignore
         bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)), parts);
     },
-    createLetInstruction(bindings, toViewModel = false) {
+    createLetInstruction(bindings, toBindingContext = false) {
         return new LetElementInstruction(
         // @ts-ignore
-        bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)), toViewModel);
+        bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)), toBindingContext);
     }
 };
 //# sourceMappingURL=au-dom.js.map

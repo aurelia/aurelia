@@ -119,10 +119,10 @@
     }
     exports.HydrateTemplateController = HydrateTemplateController;
     class LetElementInstruction {
-        constructor(instructions, toViewModel) {
+        constructor(instructions, toBindingContext) {
             this.type = "rd" /* hydrateLetElement */;
             this.instructions = instructions;
-            this.toViewModel = toViewModel;
+            this.toBindingContext = toBindingContext;
         }
     }
     exports.LetElementInstruction = LetElementInstruction;

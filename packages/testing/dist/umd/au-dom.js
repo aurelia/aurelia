@@ -606,10 +606,10 @@
             // @ts-ignore
             bindings.map(([from, to]) => new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(from), to)), parts);
         },
-        createLetInstruction(bindings, toViewModel = false) {
+        createLetInstruction(bindings, toBindingContext = false) {
             return new runtime_1.LetElementInstruction(
             // @ts-ignore
-            bindings.map(([from, to]) => new runtime_1.LetBindingInstruction(jit_1.parseExpression(from), to)), toViewModel);
+            bindings.map(([from, to]) => new runtime_1.LetBindingInstruction(jit_1.parseExpression(from), to)), toBindingContext);
         }
     };
 });

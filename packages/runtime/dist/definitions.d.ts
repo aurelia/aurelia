@@ -144,7 +144,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateLetElement;
     instructions: ILetBindingInstruction[];
-    toViewModel: boolean;
+    toBindingContext: boolean;
 }
 export interface ILetBindingInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.letBinding;

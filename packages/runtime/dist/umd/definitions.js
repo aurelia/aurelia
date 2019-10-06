@@ -35,7 +35,7 @@
         TargetedInstructionType["refBinding"] = "rj";
         TargetedInstructionType["iteratorBinding"] = "rk";
     })(TargetedInstructionType = exports.TargetedInstructionType || (exports.TargetedInstructionType = {}));
-    exports.ITargetedInstruction = kernel_1.DI.createInterface('createInterface').noDefault();
+    exports.ITargetedInstruction = kernel_1.DI.createInterface('ITargetedInstruction').noDefault();
     function isTargetedInstruction(value) {
         const type = value.type;
         return typeof type === 'string' && type.length === 2;

@@ -201,7 +201,7 @@
         constructor(dom, node) {
             this.flags = 32 /* isLetElement */ | 512 /* hasMarker */;
             this.physicalNode = node;
-            this.toViewModel = false;
+            this.toBindingContext = false;
             this.marker = createMarker(dom);
             this._bindings = null;
         }

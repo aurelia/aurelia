@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/debug",
-  "version": "0.4.0-dev.201910060254",
+  "version": "0.4.0-dev.201910060559",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,8 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201910060254",
-    "@aurelia/runtime": "0.4.0-dev.201910060254"
+    "@aurelia/kernel": "0.4.0-dev.201910060559",
+    "@aurelia/runtime": "0.4.0-dev.201910060559"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

@@ -157,9 +157,6 @@ function createAttributeInfo(def) {
     if (info.bindable === null) {
         info.bindable = new BindableInfo('value', defaultBindingMode);
     }
-    if (def.hasDynamicOptions) {
-        info.hasDynamicOptions = true;
-    }
     return info;
 }
 /**
@@ -193,7 +190,6 @@ export class AttrInfo {
         this.bindables = {};
         this.bindable = null;
         this.isTemplateController = isTemplateController;
-        this.hasDynamicOptions = false;
     }
 }
 //# sourceMappingURL=resource-model.js.map

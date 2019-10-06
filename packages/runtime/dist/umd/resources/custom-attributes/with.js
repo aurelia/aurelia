@@ -73,7 +73,6 @@
         name: 'with',
         aliases: kernel_1.PLATFORM.emptyArray,
         defaultBindingMode: flags_1.BindingMode.toView,
-        hasDynamicOptions: false,
         isTemplateController: true,
         bindables: Object.freeze(bindable_1.Bindable.for({ bindables: ['value'] }).get()),
         strategy: 1 /* getterSetter */,

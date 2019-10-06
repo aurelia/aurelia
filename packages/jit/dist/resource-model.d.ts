@@ -96,7 +96,6 @@ export declare class AttrInfo {
      */
     bindable: BindableInfo;
     isTemplateController: boolean;
-    hasDynamicOptions: boolean;
     constructor(name: string, isTemplateController: boolean);
 }
 //# sourceMappingURL=resource-model.d.ts.map

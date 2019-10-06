@@ -29,7 +29,7 @@ export { DebounceableBinding, DebounceBindingBehavior } from './resources/bindin
 export { PriorityBindingBehavior, } from './resources/binding-behaviors/priority';
 export { SignalableBinding, SignalBindingBehavior } from './resources/binding-behaviors/signals';
 export { ThrottleableBinding, ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
-export { customAttribute, CustomAttributeConstructor, CustomAttributeDecorator, CustomAttribute, dynamicOptions, ICustomAttributeResource, ICustomAttributeType, templateController } from './resources/custom-attribute';
+export { customAttribute, CustomAttributeConstructor, CustomAttributeDecorator, CustomAttribute, ICustomAttributeResource, ICustomAttributeType, templateController } from './resources/custom-attribute';
 export { FrequentMutations, InfrequentMutations, ObserveShallow, } from './resources/custom-attributes/flags';
 export { If, Else } from './resources/custom-attributes/if';
 export { Repeat } from './resources/custom-attributes/repeat';

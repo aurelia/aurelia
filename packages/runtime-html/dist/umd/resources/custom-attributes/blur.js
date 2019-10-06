@@ -214,10 +214,7 @@
         runtime_1.bindable()
     ], Blur.prototype, "linkingContext", void 0);
     Blur = tslib_1.__decorate([
-        runtime_1.customAttribute({
-            name: 'blur',
-            hasDynamicOptions: true
-        }),
+        runtime_1.customAttribute('blur'),
         tslib_1.__param(0, runtime_1.INode),
         tslib_1.__param(1, runtime_1.IDOM),
         tslib_1.__param(2, runtime_1.ILifecycle)

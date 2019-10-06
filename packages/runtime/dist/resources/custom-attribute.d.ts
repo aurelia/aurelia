@@ -21,16 +21,6 @@ export declare function customAttribute(nameOrDefinition: string | IAttributeDef
 export declare function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
 export declare function templateController(name: string): CustomAttributeDecorator;
 export declare function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
-declare type HasDynamicOptions = Pick<IAttributeDefinition, 'hasDynamicOptions'>;
-declare function dynamicOptionsDecorator<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
-/**
- * Decorator: Indicates that the custom attributes has dynamic options.
- */
-export declare function dynamicOptions(): typeof dynamicOptionsDecorator;
-/**
- * Decorator: Indicates that the custom attributes has dynamic options.
- */
-export declare function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
 export declare const CustomAttribute: Readonly<ICustomAttributeResource>;
 export declare type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType<T>;
 export {};

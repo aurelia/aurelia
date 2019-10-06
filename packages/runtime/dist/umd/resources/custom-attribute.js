@@ -23,14 +23,6 @@
             : { isTemplateController: true, ...nameOrDefinition }, target); // TODO: fix this at some point
     }
     exports.templateController = templateController;
-    function dynamicOptionsDecorator(target) {
-        target.hasDynamicOptions = true;
-        return target;
-    }
-    function dynamicOptions(target) {
-        return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
-    }
-    exports.dynamicOptions = dynamicOptions;
     exports.CustomAttribute = Object.freeze({
         name: 'custom-attribute',
         keyFrom(name) {
@@ -64,7 +56,6 @@
             name: def.name,
             aliases: aliases == null ? kernel_1.PLATFORM.emptyArray : aliases,
             defaultBindingMode: defaultBindingMode == null ? flags_1.BindingMode.toView : defaultBindingMode,
-            hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
             isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
             bindables: { ...bindable_1.Bindable.for(Type).get(), ...bindable_1.Bindable.for(def).get() },
             strategy: flags_1.ensureValidStrategy(def.strategy),

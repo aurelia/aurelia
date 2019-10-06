@@ -202,10 +202,7 @@ __decorate([
     bindable()
 ], Blur.prototype, "linkingContext", void 0);
 Blur = __decorate([
-    customAttribute({
-        name: 'blur',
-        hasDynamicOptions: true
-    }),
+    customAttribute('blur'),
     __param(0, INode),
     __param(1, IDOM),
     __param(2, ILifecycle)

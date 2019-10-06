@@ -28,7 +28,7 @@ export { DebounceBindingBehavior } from './resources/binding-behaviors/debounce'
 export { PriorityBindingBehavior, } from './resources/binding-behaviors/priority';
 export { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 export { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
-export { customAttribute, CustomAttribute, dynamicOptions, templateController } from './resources/custom-attribute';
+export { customAttribute, CustomAttribute, templateController } from './resources/custom-attribute';
 export { FrequentMutations, InfrequentMutations, ObserveShallow, } from './resources/custom-attributes/flags';
 export { If, Else } from './resources/custom-attributes/if';
 export { Repeat } from './resources/custom-attributes/repeat';

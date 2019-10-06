@@ -137,7 +137,6 @@
     var custom_attribute_1 = require("./resources/custom-attribute");
     exports.customAttribute = custom_attribute_1.customAttribute;
     exports.CustomAttribute = custom_attribute_1.CustomAttribute;
-    exports.dynamicOptions = custom_attribute_1.dynamicOptions;
     exports.templateController = custom_attribute_1.templateController;
     var flags_1 = require("./resources/custom-attributes/flags");
     exports.FrequentMutations = flags_1.FrequentMutations;

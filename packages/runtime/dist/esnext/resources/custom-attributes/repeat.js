@@ -401,7 +401,6 @@ Repeat.description = Object.freeze({
     name: 'repeat',
     aliases: PLATFORM.emptyArray,
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
     strategy: 1 /* getterSetter */,

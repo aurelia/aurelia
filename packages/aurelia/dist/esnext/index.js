@@ -291,7 +291,7 @@ ISignaler, subscriberCollection, collectionSubscriberCollection, proxySubscriber
 customAttribute, 
 // CustomAttributeConstructor,
 // CustomAttributeDecorator,
-CustomAttribute, dynamicOptions, 
+CustomAttribute, 
 // ICustomAttributeResource,
 // ICustomAttributeType,
 templateController, 

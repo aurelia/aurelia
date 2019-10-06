@@ -10,13 +10,6 @@ export function templateController(nameOrDefinition) {
         ? { isTemplateController: true, name: nameOrDefinition }
         : { isTemplateController: true, ...nameOrDefinition }, target); // TODO: fix this at some point
 }
-function dynamicOptionsDecorator(target) {
-    target.hasDynamicOptions = true;
-    return target;
-}
-export function dynamicOptions(target) {
-    return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
-}
 export const CustomAttribute = Object.freeze({
     name: 'custom-attribute',
     keyFrom(name) {
@@ -50,7 +43,6 @@ export function createCustomAttributeDescription(def, Type) {
         name: def.name,
         aliases: aliases == null ? PLATFORM.emptyArray : aliases,
         defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
-        hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
         isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
         bindables: { ...Bindable.for(Type).get(), ...Bindable.for(def).get() },
         strategy: ensureValidStrategy(def.strategy),

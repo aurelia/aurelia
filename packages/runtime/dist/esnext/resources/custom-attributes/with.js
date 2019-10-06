@@ -61,7 +61,6 @@ With.description = Object.freeze({
     name: 'with',
     aliases: PLATFORM.emptyArray,
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
     strategy: 1 /* getterSetter */,

@@ -295,55 +295,102 @@
         }
         declareTemplateController(attrSyntax, attrInfo) {
             let symbol;
-            // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
+            const attrRawValue = attrSyntax.rawValue;
             const command = this.resources.getBindingCommand(attrSyntax, false);
-            if (command == null && attrInfo.hasDynamicOptions) {
+            // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
+            const isMultiBindings = command == null && hasInlineBindings(attrRawValue);
+            if (isMultiBindings) {
                 symbol = new jit_1.TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-                this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+                this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
             }
             else {
                 symbol = new jit_1.TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
                 const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
-                const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-                symbol.bindings.push(new jit_1.BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+                const expr = this.exprParser.parse(attrRawValue, bindingType);
+                symbol.bindings.push(new jit_1.BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
             }
             return symbol;
         }
         bindCustomAttribute(attrSyntax, attrInfo, command) {
             let symbol;
-            if (command == null && attrInfo.hasDynamicOptions) {
-                // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
-                // the binding commands must be declared in the dynamicOptions expression itself
+            const attrRawValue = attrSyntax.rawValue;
+            // Custom attributes are always in multiple binding mode,
+            // except when they can't be
+            // When they cannot be:
+            //        * has binding command, ie: <div my-attr.bind="...">.
+            //          In this scenario, the value of the custom attributes is required to be a valid expression
+            //        * has no colon: ie: <div my-attr="abcd">
+            //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
+            const isMultiBindings = command == null && hasInlineBindings(attrRawValue);
+            if (isMultiBindings) {
+                // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;
+                // the binding commands must be declared in each of the property bindings
                 symbol = new jit_1.CustomAttributeSymbol(attrSyntax, attrInfo);
-                this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
+                this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
             }
             else {
-                // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
-                // or a null command but without dynamicOptions (which may be an interpolation or a normal string)
                 symbol = new jit_1.CustomAttributeSymbol(attrSyntax, attrInfo);
                 const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
-                const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-                symbol.bindings.push(new jit_1.BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+                const expr = this.exprParser.parse(attrRawValue, bindingType);
+                symbol.bindings.push(new jit_1.BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
             }
             const manifest = this.manifest;
             manifest.customAttributes.push(symbol);
             manifest.isTarget = true;
         }
         bindMultiAttribute(symbol, attrInfo, value) {
-            const attributes = parseMultiAttributeBinding(value);
-            let attr;
-            for (let i = 0, ii = attributes.length; i < ii; ++i) {
-                attr = attributes[i];
-                const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-                const command = this.resources.getBindingCommand(attrSyntax, false);
-                const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
-                const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-                let bindable = attrInfo.bindables[attrSyntax.target];
-                if (bindable === undefined) {
-                    // everything in a dynamicOptions expression must be used, so if it's not a bindable then we create one on the spot
-                    bindable = attrInfo.bindables[attrSyntax.target] = new jit_1.BindableInfo(attrSyntax.target, runtime_1.BindingMode.toView);
+            const bindables = attrInfo.bindables;
+            const valueLength = value.length;
+            let attrName = void 0;
+            let attrValue = void 0;
+            let start = 0;
+            let ch = 0;
+            for (let i = 0; i < valueLength; ++i) {
+                ch = value.charCodeAt(i);
+                if (ch === 92 /* Backslash */) {
+                    ++i;
+                    // Ignore whatever comes next because it's escaped
                 }
-                symbol.bindings.push(new jit_1.BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
+                else if (ch === 58 /* Colon */) {
+                    attrName = value.slice(start, i);
+                    // Skip whitespace after colon
+                    while (value.charCodeAt(++i) <= 32 /* Space */)
+                        ;
+                    start = i;
+                    for (; i < valueLength; ++i) {
+                        ch = value.charCodeAt(i);
+                        if (ch === 92 /* Backslash */) {
+                            ++i;
+                            // Ignore whatever comes next because it's escaped
+                        }
+                        else if (ch === 59 /* Semicolon */) {
+                            attrValue = value.slice(start, i);
+                            break;
+                        }
+                    }
+                    if (attrValue === void 0) {
+                        // No semicolon found, so just grab the rest of the value
+                        attrValue = value.slice(start);
+                    }
+                    const attrSyntax = this.attrParser.parse(attrName, attrValue);
+                    const attrTarget = attrSyntax.target;
+                    const command = this.resources.getBindingCommand(attrSyntax, false);
+                    const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
+                    const expr = this.exprParser.parse(attrValue, bindingType);
+                    let bindable = bindables[attrTarget];
+                    if (bindable === undefined) {
+                        // everything in a multi-bindings expression must be used,
+                        // so if it's not a bindable then we create one on the spot
+                        bindable = bindables[attrTarget] = new jit_1.BindableInfo(attrTarget, runtime_1.BindingMode.toView);
+                    }
+                    symbol.bindings.push(new jit_1.BindingSymbol(command, bindable, expr, attrValue, attrTarget));
+                    // Skip whitespace after semicolon
+                    while (i < valueLength && value.charCodeAt(++i) <= 32 /* Space */)
+                        ;
+                    start = i;
+                    attrName = void 0;
+                    attrValue = void 0;
+                }
             }
         }
         bindPlainAttribute(attrSyntax, attr) {
@@ -411,6 +458,24 @@
         }
     }
     exports.TemplateBinder = TemplateBinder;
+    function hasInlineBindings(rawValue) {
+        const len = rawValue.length;
+        let ch = 0;
+        for (let i = 0; i < len; ++i) {
+            ch = rawValue.charCodeAt(i);
+            if (ch === 92 /* Backslash */) {
+                ++i;
+                // Ignore whatever comes next because it's escaped
+            }
+            else if (ch === 58 /* Colon */) {
+                return true;
+            }
+            else if (ch === 36 /* Dollar */ && rawValue.charCodeAt(i + 1) === 123 /* OpenBrace */) {
+                return false;
+            }
+        }
+        return false;
+    }
     function processInterpolationText(symbol) {
         const node = symbol.physicalNode;
         const parentNode = node.parentNode;
@@ -472,93 +537,17 @@
             currentTemplate.content.appendChild(proxyNode);
         }
     }
-    /**
-     * ParserState. Todo: describe goal of this class
-     */
-    class ParserState {
-        constructor(input) {
-            this.input = input;
-            this.index = 0;
-            this.length = input.length;
-        }
-    }
-    const fromCharCode = String.fromCharCode;
-    // TODO: move to expression parser
-    function parseMultiAttributeBinding(input) {
-        const attributes = [];
-        const state = new ParserState(input);
-        const length = state.length;
-        let name;
-        let value;
-        while (state.index < length) {
-            name = scanAttributeName(state);
-            if (name.length === 0) {
-                return attributes;
-            }
-            value = scanAttributeValue(state);
-            attributes.push({ name, value });
-        }
-        return attributes;
-    }
-    function scanAttributeName(state) {
-        const start = state.index;
-        const { length, input } = state;
-        while (state.index < length && input.charCodeAt(++state.index) !== 58 /* Colon */)
-            ;
-        return input.slice(start, state.index).trim();
-    }
     var Char;
     (function (Char) {
+        Char[Char["Space"] = 32] = "Space";
         Char[Char["DoubleQuote"] = 34] = "DoubleQuote";
+        Char[Char["Dollar"] = 36] = "Dollar";
         Char[Char["SingleQuote"] = 39] = "SingleQuote";
         Char[Char["Slash"] = 47] = "Slash";
         Char[Char["Semicolon"] = 59] = "Semicolon";
         Char[Char["Colon"] = 58] = "Colon";
+        Char[Char["Backslash"] = 92] = "Backslash";
+        Char[Char["OpenBrace"] = 123] = "OpenBrace";
     })(Char || (Char = {}));
-    function scanAttributeValue(state) {
-        ++state.index;
-        const { length, input } = state;
-        let token = '';
-        let inString = false;
-        let quote = null;
-        let ch = 0;
-        while (state.index < length) {
-            ch = input.charCodeAt(state.index);
-            switch (ch) {
-                case 59 /* Semicolon */:
-                    ++state.index;
-                    return token.trim();
-                case 47 /* Slash */:
-                    ch = input.charCodeAt(++state.index);
-                    if (ch === 34 /* DoubleQuote */) {
-                        if (inString === false) {
-                            inString = true;
-                            quote = 34 /* DoubleQuote */;
-                        }
-                        else if (quote === 34 /* DoubleQuote */) {
-                            inString = false;
-                            quote = null;
-                        }
-                    }
-                    token += `\\${fromCharCode(ch)}`;
-                    break;
-                case 39 /* SingleQuote */:
-                    if (inString === false) {
-                        inString = true;
-                        quote = 39 /* SingleQuote */;
-                    }
-                    else if (quote === 39 /* SingleQuote */) {
-                        inString = false;
-                        quote = null;
-                    }
-                    token += '\'';
-                    break;
-                default:
-                    token += fromCharCode(ch);
-            }
-            ++state.index;
-        }
-        return token.trim();
-    }
 });
 //# sourceMappingURL=template-binder.js.map

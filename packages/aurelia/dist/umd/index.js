@@ -334,7 +334,6 @@
     // CustomAttributeConstructor,
     // CustomAttributeDecorator,
     exports.CustomAttribute = runtime_1.CustomAttribute;
-    exports.dynamicOptions = runtime_1.dynamicOptions;
     // ICustomAttributeResource,
     // ICustomAttributeType,
     exports.templateController = runtime_1.templateController;

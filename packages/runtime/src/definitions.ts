@@ -104,7 +104,6 @@ export type BindableDefinitions = Record<string, IBindableDescription>;
 export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
   isTemplateController?: boolean;
-  hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription> | string[];
   strategy?: BindingStrategy;
   hooks?: Readonly<HooksDefinition>;

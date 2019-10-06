@@ -198,7 +198,7 @@ export class PlainAttributeSymbol implements IPlainAttributeSymbol {
 /**
  * Either an attribute on an custom element that maps to a declared bindable property of that element,
  * a single-value bound custom attribute, or one of several bindables that were extracted from the attribute
- * value of a dynamicOptions custom attribute.
+ * value of a custom attribute with multiple bindings usage.
  *
  * This will always target a bindable property of a custom attribute or element;
  */

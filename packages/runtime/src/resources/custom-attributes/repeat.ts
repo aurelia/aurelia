@@ -81,7 +81,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     name: 'repeat',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
     strategy: BindingStrategy.getterSetter,

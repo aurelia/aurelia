@@ -399,7 +399,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     });
   }
 
-  describe.skip('mimic vCurrent route-href', function() {
+  describe('mimic vCurrent route-href', function() {
     class $RouteHref$ {
 
       public static readonly inject = [INode, IDOM];

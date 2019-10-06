@@ -23,8 +23,8 @@ export default class ElementGenerator {
     let className = this.project.makeClassName(name);
 
     this.project.root.add(
-      ProjectItem.text(path.join(subFolders, fileName + '.ts'), this.generateJSSource(className)),
-      ProjectItem.text(path.join(subFolders, fileName + '.html'), this.generateHTMLSource(className))
+      ProjectItem.text(path.join(subFolders, `${fileName  }.ts`), this.generateJSSource(className)),
+      ProjectItem.text(path.join(subFolders, `${fileName  }.html`), this.generateHTMLSource(className))
     );
 
     await this.project.commitChanges();

@@ -9,7 +9,7 @@ var startMeasure = function(name) {
 var stopMeasure = function() {
   window.setTimeout(function() {
     var stop = performance.now();
-    console.log(lastMeasure+" took "+(stop-startTime));
+    console.log(`${lastMeasure} took ${stop-startTime}`);
   }, 0);
 };
 

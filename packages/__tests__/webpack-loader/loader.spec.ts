@@ -6,8 +6,11 @@ function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
   if (unit.path.endsWith('.css')) return;
   const { defaultShadowOptions, stringModuleWrap } = options;
   return {
-    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
-          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
+    code: `processed ${defaultShadowOptions
+      ? (`${JSON.stringify(defaultShadowOptions)} `)
+      : ''}${defaultShadowOptions && stringModuleWrap
+      ? stringModuleWrap(unit.path)
+      : unit.path  } ${unit.contents}`,
     map: { version: 3 }
   };
 }

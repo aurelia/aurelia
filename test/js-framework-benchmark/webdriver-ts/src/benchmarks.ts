@@ -70,7 +70,7 @@ const benchReplaceAll = new class extends Benchmark {
     super({
       id: "02_replace1k",
       label: "replace all rows",
-      description: "updating all 1,000 rows (" + config.WARMUP_COUNT + " warmup runs).",
+      description: `updating all 1,000 rows (${config.WARMUP_COUNT} warmup runs).`,
       type: BenchmarkType.CPU
     });
   }
@@ -141,7 +141,7 @@ const benchSelect = new class extends Benchmark {
     super({
       id: "04_select1k",
       label: "select row",
-      description: "highlighting a selected row. (" + config.WARMUP_COUNT + " warmup runs). 16x CPU slowdown.",
+      description: `highlighting a selected row. (${config.WARMUP_COUNT} warmup runs). 16x CPU slowdown.`,
       type: BenchmarkType.CPU,
       throttleCPU: 16
     });
@@ -165,7 +165,7 @@ const benchSwapRows = new class extends Benchmark {
     super({
       id: "05_swap1k",
       label: "swap rows",
-      description: "swap 2 rows for table with 1,000 rows. (" + config.WARMUP_COUNT + " warmup runs). 4x CPU slowdown.",
+      description: `swap 2 rows for table with 1,000 rows. (${config.WARMUP_COUNT} warmup runs). 4x CPU slowdown.`,
       type: BenchmarkType.CPU,
       throttleCPU: 4
     });
@@ -192,7 +192,7 @@ const benchRemove = new class extends Benchmark {
     super({
       id: "06_remove-one-1k",
       label: "remove row",
-      description: "removing one row. (" + config.WARMUP_COUNT + " warmup runs).",
+      description: `removing one row. (${config.WARMUP_COUNT} warmup runs).`,
       type: BenchmarkType.CPU
     });
   }

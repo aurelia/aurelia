@@ -20,9 +20,9 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
   if (unit.filePair) {
     const basename = path.basename(unit.filePair, path.extname(unit.filePair));
-    if (!deps.some(dep => options.cssExtensions.some(e => dep === './' + basename + e))) {
+    if (!deps.some(dep => options.cssExtensions.some(e => dep === `./${basename}${e}`))) {
       // implicit dep ./foo.css for foo.html
-      deps.unshift('./' + unit.filePair);
+      deps.unshift(`./${unit.filePair}`);
     }
   }
 

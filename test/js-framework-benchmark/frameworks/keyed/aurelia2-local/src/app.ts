@@ -11,7 +11,7 @@ const startMeasure = function (name: string) {
 const stopMeasure = function () {
   window.setTimeout(function () {
     var stop = performance.now();
-    console.log(lastMeasure + " took " + (stop - startTime));
+    console.log(`${lastMeasure} took ${stop - startTime}`);
   }, 0);
 };
 

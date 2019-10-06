@@ -86,7 +86,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
     console.log("================================");
 
     errors.forEach(e => {
-      console.log("[" + e.imageFile + "]");
+      console.log(`[${e.imageFile}]`);
       console.log(e.exception);
       console.log();
     });

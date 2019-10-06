@@ -71,7 +71,7 @@ interface Options {
 type KeyedType = 'keyed' | 'non-keyed';
 
 function computeHash(keyedType: KeyedType, directory: string) {
-  return keyedType+'/'+directory;
+  return `${keyedType}/${directory}`;
 }
 
 export interface FrameworkId {
@@ -85,7 +85,7 @@ abstract class FrameworkVersionInformationValid implements FrameworkId {
   public constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean) {
     this.keyedType = keyedType;
     this.directory = directory;
-    this.url = 'frameworks/'+keyedType+'/'+directory + (customURL ? customURL : '');
+    this.url = `frameworks/${keyedType}/${directory}${customURL ? customURL : ''}`;
   }
 }
 
@@ -102,7 +102,7 @@ export class FrameworkVersionInformationStatic extends FrameworkVersionInformati
   }
   public getFrameworkData(): FrameworkData {
     return {name: this.directory,
-      fullNameWithKeyedAndVersion: this.directory+(this.frameworkVersion ? '-v'+this.frameworkVersion : '')+'-'+this.keyedType,
+      fullNameWithKeyedAndVersion: `${this.directory+(this.frameworkVersion ? `-v${this.frameworkVersion}` : '')}-${this.keyedType}`,
       uri: this.url,
       keyed: this.keyedType === 'keyed',
       useShadowRoot: this.useShadowRoot
@@ -144,7 +144,7 @@ function loadFrameworkInfo(pathInFrameworksDir: string): FrameworkVersionInforma
     keyedType = "non-keyed";
     directory = pathInFrameworksDir.substring(10);
   } else {
-    throw new Error("pathInFrameworksDir must start with keyed or non-keyed, but is "+pathInFrameworksDir);
+    throw new Error(`pathInFrameworksDir must start with keyed or non-keyed, but is ${pathInFrameworksDir}`);
   }
   let frameworksPath = path.resolve('..','frameworks');
   let packageJSONPath = path.resolve(frameworksPath, pathInFrameworksDir, 'package.json');
@@ -209,7 +209,7 @@ export class PackageVersionInformationResult {
   }
   public getFrameworkData(): FrameworkData {
     return {name: this.framework.directory,
-      fullNameWithKeyedAndVersion: this.framework.directory+'-v'+this.getVersionName()+'-'+this.framework.keyedType,
+      fullNameWithKeyedAndVersion: `${this.framework.directory}-v${this.getVersionName()}-${this.framework.keyedType}`,
       uri: this.framework.url,
       keyed: this.framework.keyedType === 'keyed',
       useShadowRoot: this.framework.useShadowRoot

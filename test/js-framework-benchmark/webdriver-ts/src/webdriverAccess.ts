@@ -24,7 +24,7 @@ function convertPath(path: string): PathPart[] {
       index = Number(components[1]);
       if (!index) {
         console.log("Index can't be parsed", components[1]);
-        throw new Error("Index can't be parsed "+components[1]);
+        throw new Error(`Index can't be parsed ${components[1]}`);
       }
     } else {
       index = 1;
@@ -41,7 +41,7 @@ export async function findByXPath(node: WebElement, path: string): Promise<WebEl
   try {
     for (let p of paths) {
       // n = n.then(nd => nd.findElements(By.tagName(p.tagName))).then(elems => { // costly since it fetches all elements
-      let elems = await n.findElements(By.css(p.tagName+":nth-child("+(p.index)+")"));
+      let elems = await n.findElements(By.css(`${p.tagName}:nth-child(${p.index})`));
       if (elems==null || elems.length==0) { return null; }
       n = elems[0];
     }
@@ -76,7 +76,7 @@ export async function testTextContains(driver: WebDriver, xpath: string, text: s
         let v = await elem.getText();
         return v && v.includes(text);
       } catch(err) {
-        console.log("ignoring error in testTextContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testTextContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -91,7 +91,7 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
         let v = await elem.getText();
         return v && !v.includes(text);
       } catch(err) {
-        console.log("ignoring error in testTextNotContained for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testTextNotContained for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -106,7 +106,7 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
         let v = await elem.getAttribute("class");
         return v && v.includes(text);
       } catch(err) {
-        console.log("ignoring error in testClassContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testClassContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -119,7 +119,7 @@ export function testElementLocatedByXpath(driver: WebDriver, xpath: string, time
         elem = await findByXPath(elem, xpath);
         return elem ? true : false;
       } catch(err) {
-        console.log("ignoring error in testElementLocatedByXpath for xpath = "+xpath,err.toString());
+        console.log(`ignoring error in testElementLocatedByXpath for xpath = ${xpath}`,err.toString());
       }
     }, timeout);
 }
@@ -132,7 +132,7 @@ export function testElementNotLocatedByXPath(driver: WebDriver, xpath: string, t
         elem = await findByXPath(elem, xpath);
         return elem ? false : true;
       } catch(err) {
-        console.log("ignoring error in testElementNotLocatedByXPath for xpath = "+xpath,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testElementNotLocatedByXPath for xpath = ${xpath}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -212,7 +212,7 @@ export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver
     "--disable-sync",
     "--disable-extensions",
     "--disable-default-apps",
-    "--remote-debugging-port=" + (benchmarkOptions.remoteDebuggingPort).toFixed(),
+    `--remote-debugging-port=${(benchmarkOptions.remoteDebuggingPort).toFixed()}`,
     "--window-size=1200,800"
   ];
 

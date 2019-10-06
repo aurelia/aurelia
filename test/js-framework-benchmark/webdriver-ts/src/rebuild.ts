@@ -13,8 +13,8 @@ function main() {
   } else {
     for (let framework of frameworks) {
       let dir = path.resolve(path.join('..','frameworks',framework));
-      console.log("rebuilding "+framework+" in directory ", dir);
-      if (!fs.existsSync(dir)) throw new Error("ERROR: directory "+dir+" not found");
+      console.log(`rebuilding ${framework} in directory `, dir);
+      if (!fs.existsSync(dir)) throw new Error(`ERROR: directory ${dir} not found`);
       else {
         console.log("running rm -rf package-lock.json yarn.lock dist elm-stuff bower_components node_modules");
         try {
@@ -35,12 +35,12 @@ function main() {
     });
 
     let frameworkNames = frameworks.join(" ");
-    console.log('npm run bench -- --headless --noResults --count 1  '+frameworkNames);
-    exec('npm run bench -- --headless --noResults --count 1 '+frameworkNames, {
+    console.log(`npm run bench -- --headless --noResults --count 1  ${frameworkNames}`);
+    exec(`npm run bench -- --headless --noResults --count 1 ${frameworkNames}`, {
       stdio: 'inherit'
     });
-    console.log('npm run isKeyed -- --headless '+frameworkNames);
-    exec('npm run isKeyed -- --headless '+frameworkNames, {
+    console.log(`npm run isKeyed -- --headless ${frameworkNames}`);
+    exec(`npm run isKeyed -- --headless ${frameworkNames}`, {
       stdio: 'inherit'
     });
 

@@ -102,7 +102,7 @@ async function assertChildNodes(elem: WebElement, expectedNodes: string[], messa
   let elements = await elem.findElements(By.css("*"));
   let allNodes = await Promise.all(elements.map(e => e.getTagName()));
   if (!R.equals(allNodes,expectedNodes)) {
-    console.log("ERROR in html structure for "+message);
+    console.log(`ERROR in html structure for ${message}`);
     console.log("  expected:", expectedNodes);
     console.log("  actual  :", allNodes);
     return false;
@@ -113,7 +113,7 @@ async function assertChildNodes(elem: WebElement, expectedNodes: string[], messa
 async function assertClassesContained(elem: WebElement, expectedClassNames: string[], message: string) {
   let actualClassNames = (await elem.getAttribute("class")).split(" ");
   if (!expectedClassNames.every(expected => actualClassNames.includes(expected))) {
-    console.log("css class not correct. Expected for "+ message+ " to be "+expectedClassNames+" but was "+actualClassNames);
+    console.log(`css class not correct. Expected for ${message} to be ${expectedClassNames} but was ${actualClassNames}`);
     return false;
   }
   return true;
@@ -201,7 +201,7 @@ async function runBench(frameworkNames: string[]) {
       // check html for tr
       let htmlCorrect = await checkTRcorrect(driver);
       if (!htmlCorrect) {
-        console.log("ERROR: Framework "+framework.fullNameWithKeyedAndVersion+" html is not correct");
+        console.log(`ERROR: Framework ${framework.fullNameWithKeyedAndVersion} html is not correct`);
         allCorrect = false;
       }
 
@@ -230,16 +230,17 @@ async function runBench(frameworkNames: string[]) {
       res = await driver.executeScript('return nonKeyedDetector_result()');
       let keyedRemove = isKeyedRemove(res);
       let keyed = keyedRemove && keyedRun && keyedSwap;
-      console.log(framework.fullNameWithKeyedAndVersion +" is "+(keyed ? "keyed" : "non-keyed")+" for 'run benchmark' and "
-            + (keyedRemove ? "keyed" : "non-keyed") + " for 'remove row benchmark' "
-            + (keyedSwap ? "keyed" : "non-keyed") + " for 'swap rows benchmark' "
-            +". It'll appear as "+(keyed ? "keyed" : "non-keyed")+" in the results");
+      console.log(`${framework.fullNameWithKeyedAndVersion} is ${
+        keyed ? "keyed" : "non-keyed"} for 'run benchmark' and ${
+        keyedRemove ? "keyed" : "non-keyed"} for 'remove row benchmark' ${
+        keyedSwap ? "keyed" : "non-keyed"} for 'swap rows benchmark'. It'll appear as ${
+        keyed ? "keyed" : "non-keyed"} in the results`);
       if (framework.keyed !== keyed) {
-        console.log("ERROR: Framework "+framework.fullNameWithKeyedAndVersion+" is not correctly categorized");
+        console.log(`ERROR: Framework ${framework.fullNameWithKeyedAndVersion} is not correctly categorized`);
         allCorrect = false;
       }
     } catch(e) {
-      console.log("ERROR running "+runFrameworks[i].fullNameWithKeyedAndVersion, e);
+      console.log(`ERROR running ${runFrameworks[i].fullNameWithKeyedAndVersion}`, e);
       allCorrect = false;
     } finally {
       await driver.quit();

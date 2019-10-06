@@ -5,11 +5,11 @@ var path = require('path');
 
 if (fs.existsSync("dist")) fs.removeSync("dist");
 fs.mkdirSync("dist");
-fs.mkdirSync("dist"+path.sep+"webdriver-ts");
-fs.copySync("webdriver-ts"+path.sep+"table.html", "dist"+path.sep+"webdriver-ts"+path.sep+"table.html");
+fs.mkdirSync(`dist${path.sep}webdriver-ts`);
+fs.copySync(`webdriver-ts${path.sep}table.html`, `dist${path.sep}webdriver-ts${path.sep}table.html`);
 
-fs.copySync("index.html", "dist"+path.sep+"index.html");
-fs.copySync("css", "dist"+path.sep+"css");
+fs.copySync("index.html", `dist${path.sep}index.html`);
+fs.copySync("css", `dist${path.sep}css`);
 
 var excludes = ["node_modules","elm-stuff","project",".DS_Store"];
 var excludedDirectories = ['css', 'dist','node_modules','webdriver-ts'];
@@ -53,7 +53,7 @@ function copyFolderRecursiveSync(source, target) {
       var curSource = path.join(source, file);
       if (include(curSource)) {
         if (fs.lstatSync(curSource).isDirectory()) {
-          console.log("copy dir "+curSource);
+          console.log(`copy dir ${curSource}`);
           copyFolderRecursiveSync(curSource, targetFolder);
         } else if (fs.lstatSync(curSource).isSymbolicLink()) {
           console.log("**** LINK");
@@ -68,8 +68,8 @@ function copyFolderRecursiveSync(source, target) {
 
 _.each(fs.readdirSync('.'), function(name) {
   if(fs.statSync(name).isDirectory() && name[0] !== '.' && !excludedDirectories.includes(name)) {
-    console.log("dist"+path.sep+name);
-    fs.mkdirSync("dist"+path.sep+name);
+    console.log(`dist${path.sep}${name}`);
+    fs.mkdirSync(`dist${path.sep}${name}`);
     copyFolderRecursiveSync(name, "dist");
 
     /* fs.mkdirSync("dist"+path.sep+name);

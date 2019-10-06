@@ -981,9 +981,7 @@ function noPrototypeIterator(
 type InspectFn = (obj: any, opts: IInspectContext) => any;
 
 function getMessage(self: AssertionError): string {
-  return truncate(inspect(self.actual), 128) + ' ' +
-         self.operator + ' ' +
-         truncate(inspect(self.expected), 128);
+  return `${truncate(inspect(self.actual), 128)} ${self.operator} ${truncate(inspect(self.expected), 128)}`;
 }
 
 export function formatNumber(
@@ -1690,7 +1688,7 @@ export function formatRaw(
       if (typedArray === void 0) {
         formatter = formatArrayBuffer;
       } else if (keys.length === 0) {
-        return prefix + `{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
+        return `${prefix}{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
       }
       braces[0] = `${prefix}{`;
       keys.unshift('byteLength');

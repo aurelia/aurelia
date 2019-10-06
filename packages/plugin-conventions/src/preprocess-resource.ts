@@ -110,7 +110,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
-    const dec = kebabCase(unit.filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement';
+    const dec = kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
 
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
@@ -224,7 +224,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       if (isImplicitResource && filePair) {
         return {
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: kebabCase(filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement'
+          runtimeImportName: kebabCase(filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement'
         };
       }
     } else {

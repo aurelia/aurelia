@@ -40,7 +40,7 @@ export class UserService {
 
   public async attemptAuth(type: string, credentials: Partial<User>) {
     const route = (type === 'login') ? '/login' : '';
-    const data = await this.apiService.post('/users' + route, { user: credentials });
+    const data = await this.apiService.post(`/users${route}`, { user: credentials });
     this.setAuth(data.user);
     return data;
   }

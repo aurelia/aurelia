@@ -68,7 +68,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
           ? []
           : Array.isArray(value)
             ? value
-            : ('' + value).split(' ');
+            : (`${value}`).split(' ');
         el.classList.add(...value as string[]);
       }
       // for attributes with matching properties, simply assign
@@ -125,10 +125,10 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
     }
     if (Array.isArray(child)) {
       for (const child_child of child) {
-        appender.appendChild(DOM.isNodeInstance(child_child) ? child_child : DOM.createTextNode('' + child_child));
+        appender.appendChild(DOM.isNodeInstance(child_child) ? child_child : DOM.createTextNode(`${child_child}`));
       }
     } else {
-      appender.appendChild(DOM.isNodeInstance(child) ? child : DOM.createTextNode('' + child));
+      appender.appendChild(DOM.isNodeInstance(child) ? child : DOM.createTextNode(`${child}`));
     }
   }
   return el;

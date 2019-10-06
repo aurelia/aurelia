@@ -89,7 +89,7 @@ function typeNeq(requiredType: string) {
 }
 
 function asString(res: Timingresult[]): string {
-  return res.reduce((old, cur) => old + "\n" + JSON.stringify(cur), "");
+  return res.reduce((old, cur) => `${old}\n${JSON.stringify(cur)}`, "");
 }
 
 function extractRawValue(results: any, id: string) {
@@ -103,7 +103,7 @@ function extractRawValue(results: any, id: string) {
 
 function rmDir(dirPath: string) {
   try { var files = fs.readdirSync(dirPath); }
-  catch(e) { console.log("error in rmDir "+dirPath, e); return; }
+  catch(e) { console.log(`error in rmDir ${dirPath}`, e); return; }
   if (files.length > 0)
     for (var i = 0; i < files.length; i++) {
       var filePath = path.join(dirPath, files[i]);
@@ -360,7 +360,7 @@ function writeResult<T>(res: Result<T>) {
 }
 
 async function registerError(driver: WebDriver, framework: FrameworkData, benchmark: Benchmark, error: string): Promise<BenchmarkError> {
-  let fileName = 'error-' + framework.name + '-' + benchmark.id + '.png';
+  let fileName = `error-${framework.name}-${benchmark.id}.png`;
   console.error("Benchmark failed",error);
   let image = await driver.takeScreenshot();
   console.error(`Writing screenshot ${fileName}`);

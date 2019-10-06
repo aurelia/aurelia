@@ -8,7 +8,7 @@ const yargs = require("yargs-parser");
 
 const start = +new Date();
 
-const RESULTS_PATH = path.resolve(__dirname + '/../../webdriver-ts/results');
+const RESULTS_PATH = path.resolve(`${__dirname}/../../webdriver-ts/results`);
 
 const frameworks = yargs(process.argv, {array: ["framework"]}).framework || [];
 
@@ -40,7 +40,7 @@ let libs = {
 
 // grab result files, group by framework, bench types and encode benches into arrays
 fs.readdirSync(RESULTS_PATH).filter(file => file.endsWith('.json') && filterFramework(file)).forEach(file => {
-  var r = JSON.parse(fs.readFileSync(RESULTS_PATH + "/" + file, 'utf8'));
+  var r = JSON.parse(fs.readFileSync(`${RESULTS_PATH}/${file}`, 'utf8'));
   var implGroup = r.keyed ? libs.keyed : libs.unkeyed;
   var libName = r.framework;
 
@@ -63,11 +63,11 @@ Object.keys(libs).forEach(implType => {
   libs[implType] = Object.values(libs[implType]).sort((a, b) => a.name.localeCompare(b.name));
 });
 
-fs.writeFileSync(path.resolve(__dirname + '/data.js'), 'export default ' + JSON.stringify(libs), 'utf8');
+fs.writeFileSync(path.resolve(`${__dirname}/data.js`), `export default ${JSON.stringify(libs)}`, 'utf8');
 
 async function build() {
   const bundle = await rollup.rollup({
-    input: __dirname + "/ui.js",
+    input: `${__dirname}/ui.js`,
     plugins: [
       buble(),
     ],
@@ -141,8 +141,8 @@ async function build() {
 
   const minJs = terser.minify(output[0].code, uglifyOpts).code;
 
-  var css = fs.readFileSync(__dirname + '/bootstrap-reboot.css', 'utf8').replace(/\/\*[\s\S]+?\*\/\s*/gm, '');
-  css += fs.readFileSync(__dirname + '/style.css', 'utf8');
+  var css = fs.readFileSync(`${__dirname}/bootstrap-reboot.css`, 'utf8').replace(/\/\*[\s\S]+?\*\/\s*/gm, '');
+  css += fs.readFileSync(`${__dirname}/style.css`, 'utf8');
 
   const minCss = new CleanCSS({level: 2}).minify(css).styles;
 
@@ -166,9 +166,9 @@ async function build() {
     '</html>',
   ].join("");
 
-  fs.writeFileSync(__dirname + "/../table.html", html, 'utf8');
+  fs.writeFileSync(`${__dirname}/../table.html`, html, 'utf8');
 
-  console.log("Built in " + (+new Date() - start) + "ms, (" + (html.length / 1024).toFixed(1) + "KB)");
+  console.log(`Built in ${+new Date() - start}ms, (${(html.length / 1024).toFixed(1)}KB)`);
 }
 
 build();

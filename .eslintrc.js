@@ -136,6 +136,7 @@ module.exports = {
     'prefer-object-spread': 'error',
     'prefer-regex-literals': 'error',
     'prefer-spread': 'error',
+    'prefer-template': 'error',
     'quote-props': ['error', 'consistent'],
     'quotes': ['off'],
     'radix': 'error',
@@ -201,7 +202,6 @@ module.exports = {
     'no-var': 'warn',
     'prefer-const': 'warn',
     'prefer-rest-params': 'warn',
-    'prefer-template': 'warn',
     'require-atomic-updates': 'warn',
 
     // Off for now as they create way to much noise

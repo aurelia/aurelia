@@ -25,7 +25,7 @@ export class Store {
     for (var i = 0; i < count; i++)
       data.push({
         id: this.id++,
-        label: adjectives[_random(adjectives.length)] + " " + colours[_random(colours.length)] + " " + nouns[_random(nouns.length)],
+        label: `${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`,
         selected: false,
       });
     return data;

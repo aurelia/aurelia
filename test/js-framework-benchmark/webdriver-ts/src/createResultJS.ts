@@ -25,7 +25,7 @@ async function main() {
   frameworks.forEach((framework, fIdx) => {
     allBenchmarks.forEach((benchmarkInfo) => {
       let name = `${fileName(framework, benchmarkInfo)}`;
-      let file = './results/' + name;
+      let file = `./results/${name}`;
       if (fs.existsSync(file)) {
         let data: JSONResult = JSON.parse(fs.readFileSync(file, {
           encoding:'utf-8'
@@ -33,7 +33,7 @@ async function main() {
         if (data.values.some(v => v==null)) console.log(`Found null value for ${framework.fullNameWithKeyedAndVersion} and benchmark ${benchmarkInfo.id}`);
         let result = {f:data.framework, b:data.benchmark, v:data.values.filter(v => v!=null)};
         let resultNice = {framework:data.framework, benchmark:data.benchmark, values:data.values.filter(v => v!=null)};
-        resultJS += '\n' + JSON.stringify(result) + ',';
+        resultJS += `\n${JSON.stringify(result)},`;
         jsonResult.push(resultNice);
       } else {
         console.log("MISSING FILE",file);
@@ -42,8 +42,8 @@ async function main() {
   });
 
   resultJS += '];\n';
-  resultJS += 'export let frameworks = '+JSON.stringify(frameworks.map(f => ({name: f.fullNameWithKeyedAndVersion, keyed: f.keyed})))+";\n";
-  resultJS += 'export let benchmarks = '+JSON.stringify(allBenchmarks)+";\n";
+  resultJS += `export let frameworks = ${JSON.stringify(frameworks.map(f => ({name: f.fullNameWithKeyedAndVersion, keyed: f.keyed})))};\n`;
+  resultJS += `export let benchmarks = ${JSON.stringify(allBenchmarks)};\n`;
 
   fs.writeFileSync('../webdriver-ts-results/src/results.ts', resultJS, {encoding: 'utf-8'});
   fs.writeFileSync('./results.json', JSON.stringify(jsonResult), {encoding: 'utf-8'});

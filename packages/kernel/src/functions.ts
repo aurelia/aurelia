@@ -171,7 +171,7 @@ export const kebabCase = (function () {
   const cache = Object.create(null) as Record<string, string | undefined>;
 
   function callback(char: string, sep: boolean): string {
-    return sep ? '-' + char.toLowerCase() : char.toLowerCase();
+    return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
   }
 
   return function (input: string): string {

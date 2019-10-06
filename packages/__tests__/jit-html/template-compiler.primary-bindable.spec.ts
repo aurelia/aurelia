@@ -452,7 +452,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       }
     );
 
-    it('works correctly when binding only route name', async function() {
+    it.skip('works correctly when binding only route name', async function() {
       const ctx = TestContext.createHTMLTestContext();
 
       const App = CustomElement.define({
@@ -474,7 +474,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       host.remove();
     });
 
-    it('works correctly when using with value converter and a colon', async function() {
+    it.skip('works correctly when using with value converter and a colon', async function() {
       const ctx = TestContext.createHTMLTestContext();
 
       const App = CustomElement.define({
@@ -496,7 +496,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       host.remove();
     });
 
-    it('works correctly when using multi binding syntax', async function() {
+    it.skip('works correctly when using multi binding syntax', async function() {
       const ctx = TestContext.createHTMLTestContext();
 
       const App = CustomElement.define(

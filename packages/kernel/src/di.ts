@@ -40,7 +40,11 @@ export interface IFactory<T extends Constructable = any> {
 
 export interface IServiceLocator {
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+  get<K extends Key>(key: K): Resolved<K>;
+  get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
+  getAll<K extends Key>(key: K): readonly Resolved<K>[];
+  getAll<K extends Key>(key: Key): readonly Resolved<K>[];
   getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
 }
 
@@ -77,7 +81,7 @@ export type Resolved<K> = (
     ? T
     : K extends Constructable
       ? InstanceType<K>
-      : K extends IResolverLike<infer T1, any>
+      : K extends IResolverLike<any, infer T1>
         ? T1 extends Constructable
           ? InstanceType<T1>
           : T1

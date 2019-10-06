@@ -227,7 +227,7 @@ function sortBy(metric, sortDir) {
   STORE.results.keyed.sort(cmp);
   STORE.results.unkeyed.sort(cmp);
 
-  VIEW && VIEW.redraw();
+  if (VIEW) { VIEW.redraw(); }
 
   return false;
 }

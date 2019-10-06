@@ -74,7 +74,7 @@ describe(`The PLATFORM object`, function () {
     assert.greaterThanOrEqualTo($5, $4, `$5`);
   });
 
-  it(`requestAnimationFrame() resolves after microtasks`, done => {
+  it(`requestAnimationFrame() resolves after microtasks`, function(done) {
     let rafResolved = false;
     let promiseResolved = false;
     PLATFORM.requestAnimationFrame(() => {

@@ -219,8 +219,8 @@ describe('dependency injection', function () {
 
 // commented out code left here intentionally, serves as a staring point for template controller tests
 
-// describe('test', () => {
-//   it.skip('if', () => {
+// describe('test', function() {
+//   it.skip('$1', function() {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     const container = JitHtmlBrowserConfiguration.createContainer();
@@ -260,7 +260,7 @@ describe('dependency injection', function () {
 //     expect(host.textContent).to.equal('bar')
 //   });
 
-//   it.skip('if2', () => {
+//   it.skip('$1', function() {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     // common stuff

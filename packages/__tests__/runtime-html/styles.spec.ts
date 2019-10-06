@@ -12,7 +12,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
-describe('Styles', () => {
+describe('Styles', function() {
   async function startApp(configure: (au: Aurelia) => void) {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
@@ -25,8 +25,8 @@ describe('Styles', () => {
     return { au, ctx, host, container: au.container };
   }
 
-  describe('CSS Modules Processor', () => {
-    it('config adds correct registry for css', async () => {
+  describe('CSS Modules Processor', function() {
+    it('config adds correct registry for css', async function() {
       const { container } = await startApp(au => {
         au.register(StyleConfiguration.cssModulesProcessor());
       });
@@ -35,7 +35,7 @@ describe('Styles', () => {
       assert.instanceOf(registry, CSSModulesProcessorRegistry);
     });
 
-    it('registry overrides class attribute', () => {
+    it('registry overrides class attribute', function() {
       const element = { className: '' };
       const container = DI.createContainer();
       container.register(Registration.instance(INode, element));
@@ -49,7 +49,7 @@ describe('Styles', () => {
       assert.equal(CustomAttribute.isType(attr.constructor), true);
     });
 
-    it('class attribute maps class names', () => {
+    it('class attribute maps class names', function() {
       const element = { className: '' };
       const container = DI.createContainer();
       container.register(Registration.instance(INode, element));
@@ -68,7 +68,7 @@ describe('Styles', () => {
       assert.equal(element.className, 'bar qux');
     });
 
-    it('style function uses correct registry', () => {
+    it('style function uses correct registry', function() {
       const container = DI.createContainer();
       const childContainer = container.createChild();
 
@@ -90,7 +90,7 @@ describe('Styles', () => {
       assert.equal(element.className, 'bar qux');
     });
 
-    it('components do not inherit parent component styles', () => {
+    it('components do not inherit parent component styles', function() {
       const rootContainer = DI.createContainer();
       const parentContainer = rootContainer.createChild();
 
@@ -110,8 +110,8 @@ describe('Styles', () => {
     });
   });
 
-  describe('Shadow DOM', () => {
-    it('config adds correct registry for css', async () => {
+  describe('Shadow DOM', function() {
+    it('config adds correct registry for css', async function() {
       const { container } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM());
       });
@@ -120,7 +120,7 @@ describe('Styles', () => {
       assert.instanceOf(registry, ShadowDOMRegistry);
     });
 
-    it('registry provides root shadow dom styles', async () => {
+    it('registry provides root shadow dom styles', async function() {
       const { container } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM());
       });
@@ -132,7 +132,7 @@ describe('Styles', () => {
       assert.equal(typeof s.applyTo, 'function');
     });
 
-    it('config passes root styles to container', async () => {
+    it('config passes root styles to container', async function() {
       const rootStyles = '.my-class { color: red }';
       const { container, ctx } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM({
@@ -152,7 +152,7 @@ describe('Styles', () => {
       }
     });
 
-    it('element styles apply parent styles', () => {
+    it('element styles apply parent styles', function() {
       const ctx = TestContext.createHTMLTestContext();
       const root = { prepend() { return; } };
       const fake = {
@@ -166,7 +166,7 @@ describe('Styles', () => {
       assert.equal(fake.wasCalled, true);
     });
 
-    it('element styles apply by prepending style elements to shadow root', () => {
+    it('element styles apply by prepending style elements to shadow root', function() {
       const ctx = TestContext.createHTMLTestContext();
       const css = '.my-class { color: red }';
       const root = {
@@ -183,7 +183,7 @@ describe('Styles', () => {
       assert.equal(root.element.innerHTML, css);
     });
 
-    it('adopted styles apply parent styles', () => {
+    it('adopted styles apply parent styles', function() {
       const ctx = TestContext.createHTMLTestContext();
       const root = { adoptedStyleSheets: [] };
       const fake = {
@@ -197,7 +197,7 @@ describe('Styles', () => {
       assert.equal(fake.wasCalled, true);
     });
 
-    it('projector applies styles during projection', () => {
+    it('projector applies styles during projection', function() {
       const ctx = TestContext.createHTMLTestContext();
       const host = ctx.createElement('foo-bar');
       const FooBar = CustomElement.define(
@@ -232,7 +232,7 @@ describe('Styles', () => {
       return;
     }
 
-    it('adopted styles apply by setting adopted style sheets on shadow root', () => {
+    it('adopted styles apply by setting adopted style sheets on shadow root', function() {
       const css = '.my-class { color: red }';
       const root = { adoptedStyleSheets: [] };
       const ctx = TestContext.createHTMLTestContext();
@@ -244,7 +244,7 @@ describe('Styles', () => {
       assert.instanceOf(root.adoptedStyleSheets[0], ctx.dom.CSSStyleSheet);
     });
 
-    it('adopted styles use cached style sheets', () => {
+    it('adopted styles use cached style sheets', function() {
       const ctx = TestContext.createHTMLTestContext();
       const css = '.my-class { color: red }';
       const root = { adoptedStyleSheets: [] };
@@ -259,7 +259,7 @@ describe('Styles', () => {
       assert.strictEqual(root.adoptedStyleSheets[0], sheet);
     });
 
-    it('adopted styles merge sheets from parent', () => {
+    it('adopted styles merge sheets from parent', function() {
       const ctx = TestContext.createHTMLTestContext();
       const sharedCSS = '.my-class { color: red }';
       const localCSS = '.something-else { color: blue }';

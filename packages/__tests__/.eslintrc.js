@@ -19,6 +19,7 @@ module.exports = {
     'mocha/no-async-describe': 'error',
     'mocha/no-hooks-for-single-case': 'off', // Disabled to avoid duplicates, because 'no-hooks' is enabled
     'mocha/no-identical-title': 'error',
+    'mocha/no-mocha-arrows': 'error',
     'mocha/no-return-from-async': 'error',
     'max-lines-per-function': 'off',
     'no-console': 'off',
@@ -27,7 +28,6 @@ module.exports = {
     'mocha/max-top-level-suites': 'off',
     'mocha/no-exclusive-tests': 'off',
     'mocha/no-hooks': 'off',
-    'mocha/no-mocha-arrows': 'off',
     'mocha/no-setup-in-describe': 'off',
     'mocha/no-synchronous-tests': 'off',
     'mocha/no-top-level-hooks': 'off'

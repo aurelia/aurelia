@@ -288,7 +288,7 @@ describe('dom', function () {
   });
 
   describe('addEventListener', function () {
-    it('should add the specified eventListener to the node if the node is specified', done => {
+    it('should add the specified eventListener to the node if the node is specified', function(done) {
       const node = ctx.dom.createElement('div');
       const eventListener = createSpy();
       ctx.dom.addEventListener('click', eventListener, node);
@@ -303,7 +303,7 @@ describe('dom', function () {
       );
     });
 
-    it('should add the specified eventListener to the document if the node is NOT specified', done => {
+    it('should add the specified eventListener to the document if the node is NOT specified', function(done) {
       const eventListener = createSpy();
       ctx.dom.addEventListener('click', eventListener);
       ctx.doc.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
@@ -319,7 +319,7 @@ describe('dom', function () {
   });
 
   describe('removeEventListener', function () {
-    it('should remove the specified eventListener from the node if the node is specified', done => {
+    it('should remove the specified eventListener from the node if the node is specified', function(done) {
       const node = ctx.dom.createElement('div');
       const eventListener = createSpy();
       node.addEventListener('click', eventListener);
@@ -335,7 +335,7 @@ describe('dom', function () {
       );
     });
 
-    it('should remove the specified eventListener from the document if the node is NOT specified', done => {
+    it('should remove the specified eventListener from the document if the node is NOT specified', function(done) {
       const eventListener = createSpy();
       ctx.doc.addEventListener('click', eventListener);
       ctx.dom.removeEventListener('click', eventListener);

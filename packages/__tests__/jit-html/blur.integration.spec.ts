@@ -3,7 +3,7 @@ import { Aurelia, CustomElement, customElement, CustomElementConstructor, Custom
 import { Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
-describe('blur.integration.spec.ts', () => {
+describe('blur.integration.spec.ts', function() {
 
   if (!PLATFORM.isBrowserLike) {
     return;

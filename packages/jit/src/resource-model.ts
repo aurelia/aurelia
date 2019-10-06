@@ -52,10 +52,11 @@ export class ElementInfo {
   public constructor(
     public name: string,
     public containerless: boolean,
+    public readonly captureAttrs: boolean | string[]
   ) {}
 
   public static from(def: TemplateDefinition): ElementInfo {
-    const info = new ElementInfo(def.name, def.containerless);
+    const info = new ElementInfo(def.name, def.containerless, def.captureAttrs);
     const bindables = def.bindables as Record<string, IBindableDescription>;
     const defaultBindingMode = BindingMode.toView;
 

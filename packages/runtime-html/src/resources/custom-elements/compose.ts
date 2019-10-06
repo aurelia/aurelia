@@ -48,6 +48,7 @@ export class Compose<T extends INode = Node> {
   public static readonly description: Required<ITemplateDefinition> = Object.freeze({
     name: 'au-compose',
     template: null,
+    captureAttrs: true,
     cache: 0,
     build: Object.freeze({ compiler: 'default', required: false }),
     bindables: Object.freeze({

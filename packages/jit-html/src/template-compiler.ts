@@ -185,6 +185,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       this.compileParts(symbol)
     );
 
+    if (symbol.captureAttrs !== false) {
+      // todo: capture here, shift body of this method around
+    }
+
     this.instructionRows.push(instructionRow);
 
     this.compileChildNodes(symbol);

@@ -279,8 +279,8 @@ export class MockBrowserHistoryLocation {
     this.notifyChange();
   }
 
-  public activate(): void { }
-  public deactivate(): void { }
+  public activate(): void { return; }
+  public deactivate(): void { return; }
 
   // TODO: Fix a better split
   private get parts(): string[] {

@@ -49,7 +49,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   }
 
   public flushBatch(flags: LifecycleFlags): void {
-
+    return;
   }
 }
 

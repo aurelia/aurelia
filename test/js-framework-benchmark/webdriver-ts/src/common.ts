@@ -125,7 +125,7 @@ export class PackageVersionInformationErrorUnknownPackage  {
 }
 
 export class PackageVersionInformationErrorNoPackageJSONLock  {
-  public constructor() {}
+  public constructor() { return; }
 }
 
 export type PackageVersionInformation = PackageVersionInformationValid | PackageVersionInformationErrorUnknownPackage | PackageVersionInformationErrorNoPackageJSONLock;

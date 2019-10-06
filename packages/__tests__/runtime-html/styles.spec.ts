@@ -154,7 +154,7 @@ describe('Styles', () => {
 
     it('element styles apply parent styles', () => {
       const ctx = TestContext.createHTMLTestContext();
-      const root = { prepend() {} };
+      const root = { prepend() { return; } };
       const fake = {
         wasCalled: false,
         applyTo() { this.wasCalled = true; }
@@ -219,7 +219,7 @@ describe('Styles', () => {
       const controller = Controller.forCustomElement(component, ctx.container, host);
       controller.context = context;
 
-      const seq = { appendTo() {} };
+      const seq = { appendTo() { return; } };
       const projector = controller.projector;
 
       projector.project(seq as any);

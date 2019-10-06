@@ -21,7 +21,7 @@ const suites = {
         this.lifecycle = lifecycle;
         this.$nextBound = null;
       }
-      public bound() { }
+      public bound() { return; }
     }
     class DevFoo {
       public static inject = [dev.runtime.ILifecycle];
@@ -34,7 +34,7 @@ const suites = {
         this.lifecycle = lifecycle;
         this.$nextBound = null;
       }
-      public bound() { }
+      public bound() { return; }
     }
     const localContainer = local.kernel.DI.createContainer();
     localContainer.register(LocalFoo);

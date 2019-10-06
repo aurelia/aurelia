@@ -161,7 +161,7 @@ describe(`ArrayObserver`, function () {
       const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(LF.none, lifecycle, arr);
       lifecycle.batch.inline(
-        function () {},
+        function () { return; },
       );
       assert.strictEqual(s.collectionChanges.length, 0);
     });

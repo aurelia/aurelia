@@ -30,6 +30,7 @@ describe('value-converters', function () {
         func(binding.target[binding.targetProperty]);
       }
       public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, func: () => void): void {
+        return;
       }
     }
 
@@ -40,6 +41,7 @@ describe('value-converters', function () {
         func2(binding.target[binding.targetProperty]);
       }
       public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void {
+        return;
       }
     }
 

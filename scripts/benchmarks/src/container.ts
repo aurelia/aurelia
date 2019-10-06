@@ -60,7 +60,7 @@ const suites = {
 
     const suite = new Benchmark.Suite('resolve', {
       setup: function() {
-
+        return;
       },
       onCycle: function(event) {
         log(`[${c.cyan(name)}] ${event.target}`);

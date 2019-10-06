@@ -76,15 +76,15 @@ describe('PropertyBinding', function () {
   });
 
   describe('updateTarget()', function () {
-
+    return;
   });
 
   describe('updateSource()', function () {
-
+    return;
   });
 
   describe('handleChange()', function () {
-
+    return;
   });
 
   it(`$bind() [to-view] works with 200 observers`, function () {
@@ -976,11 +976,11 @@ describe('PropertyBinding', function () {
   });
 
   describe('observeProperty()', function () {
-
+    return;
   });
 
   describe('unobserve()', function () {
-
+    return;
   });
 
   // TODO: create proper unparser

@@ -110,12 +110,12 @@ describe('SelectValueObserver', function () {
   });
 
   describe('synchronizeOptions', function () {
-
+    return;
   });
 
   describe('synchronizeValue()', function () {
     describe('<select />', function () {
-
+      return;
     });
     // There is subtle difference in behavior of synchronization for SelectObserver
     // When synchronzing value without synchronizing Options prior

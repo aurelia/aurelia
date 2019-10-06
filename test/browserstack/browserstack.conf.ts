@@ -127,6 +127,7 @@ exports.config = {
    * @param {Array.<String>} specs List of spec file paths that are to be run
    */
   beforeSession: function (config, capabilities, specs) {
+    return;
   },
   /**
    * Gets executed before test execution begins. At this point you can access to all global
@@ -135,30 +136,35 @@ exports.config = {
    * @param {Array.<String>} specs List of spec file paths that are to be run
    */
   before: function (capabilities, specs) {
+    return;
   },
   /**
    * Hook that gets executed before the suite starts
    * @param {Object} suite suite details
    */
   beforeSuite: function (suite) {
+    return;
   },
   /**
    * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
    * beforeEach in Mocha)
    */
   beforeHook: function () {
+    return;
   },
   /**
    * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
    * afterEach in Mocha)
    */
   afterHook: function () {
+    return;
   },
   /**
    * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
    * @param {Object} test test details
    */
   beforeTest: function (test) {
+    return;
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -166,6 +172,7 @@ exports.config = {
    * @param {Array} args arguments that command would receive
    */
   beforeCommand: function (commandName, args) {
+    return;
   },
   /**
    * Runs after a WebdriverIO command gets executed
@@ -188,12 +195,14 @@ exports.config = {
    * @param {Object} test test details
    */
   afterTest: function (test) {
+    return;
   },
   /**
    * Hook that gets executed after the suite has ended
    * @param {Object} suite suite details
    */
   afterSuite: function (suite) {
+    return;
   },
   /**
    * Gets executed after all tests are done. You still have access to all global variables from
@@ -215,6 +224,7 @@ exports.config = {
    * @param {Array.<String>} specs List of spec file paths that ran
    */
   afterSession: function (config, capabilities, specs) {
+    return;
   },
   /**
    * Gets executed after all workers got shut down and the process is about to exit.
@@ -224,7 +234,7 @@ exports.config = {
    */
   onComplete: function (exitCode, config, capabilities) {
     console.log(`onComplete, exitCode: ${exitCode}`);
-    exports.bs_local.stop(function () {});
+    exports.bs_local.stop(function () { return; });
   },
   /**
   * Gets executed when an error happens, good place to take a screenshot

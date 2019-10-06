@@ -115,7 +115,7 @@ type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Pa
 const hasOwnProperty = PLATFORM.hasOwnProperty;
 
 export class DI {
-  private constructor() {}
+  private constructor() { return; }
 
   public static createContainer(...params: any[]): IContainer {
     if (params.length === 0) {

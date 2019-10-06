@@ -1081,11 +1081,11 @@ describe(`The Container class`, function () {
     }
 
     it(`registers the transformer if it does not exist yet`, function () {
-
+      return;
     });
 
     it(`reuses the existing transformer if it exists`, function () {
-
+      return;
     });
   });
 
@@ -1467,7 +1467,7 @@ describe(`The Container class`, function () {
   });
 
   describe(`jitRegister()`, function () {
-
+    return;
   });
 });
 

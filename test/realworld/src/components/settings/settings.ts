@@ -7,7 +7,7 @@ import { SharedState } from 'shared/state/shared-state';
 @inject(UserService, SharedState, IRouter)
 export class Settings {
 
-  constructor(
+  public constructor(
     private readonly userService: UserService,
     private readonly sharedState: SharedState,
     private readonly router: IRouter) {

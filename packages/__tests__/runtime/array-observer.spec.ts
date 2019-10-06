@@ -22,7 +22,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   public readonly oldArr: unknown[];
   public readonly newArr: unknown[];
 
-  constructor(
+  public constructor(
     oldArr: unknown[],
     newArr: unknown[],
   ) {

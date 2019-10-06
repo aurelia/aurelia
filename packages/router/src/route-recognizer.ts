@@ -13,7 +13,7 @@ export interface ConfigurableRoute {
 }
 
 export class HandlerEntry {
-  constructor(
+  public constructor(
     public handler: RouteHandler,
     public names: string[]
   ) { }
@@ -23,7 +23,7 @@ export class HandlerEntry {
 * An object that is indexed and used for route generation, particularly for dynamic routes.
 */
 export class RouteGenerator {
-  constructor(
+  public constructor(
     public segments: Segment[],
     public handlers: HandlerEntry[]
   ) { }
@@ -36,7 +36,7 @@ export class TypesRecord {
 }
 
 export class RecognizeResult {
-  constructor(
+  public constructor(
     public handler: RouteHandler,
     public params: Record<string, string>,
     public isDynamic: boolean
@@ -48,7 +48,7 @@ export interface RecognizeResults extends Array<RecognizeResult> {
 }
 
 export class CharSpec {
-  constructor(
+  public constructor(
     public invalidChars: string | null,
     public validChars: string | null,
     public repeat: boolean
@@ -65,7 +65,7 @@ export class State {
   public types!: TypesRecord;
   public nextStates: State[] = [];
 
-  constructor(
+  public constructor(
     public charSpec?: CharSpec
   ) { }
 
@@ -113,7 +113,7 @@ export class StaticSegment {
   public string: string;
   public optional: boolean = false;
 
-  constructor(
+  public constructor(
     str: string,
     public caseSensitive: boolean
   ) {
@@ -149,7 +149,7 @@ export class StaticSegment {
 }
 
 export class DynamicSegment {
-  constructor(
+  public constructor(
     public name: string,
     public optional: boolean
   ) { }
@@ -171,7 +171,7 @@ export class DynamicSegment {
 export class StarSegment {
   public optional: boolean = false;
 
-  constructor(
+  public constructor(
     public name: string
   ) { }
 
@@ -215,7 +215,7 @@ export class RouteRecognizer {
   public names: Record<string, RouteGenerator> = {};
   public routes: Map<RouteHandler, RouteGenerator> = new Map();
 
-  constructor() {
+  public constructor() {
     this.rootState = new State();
   }
 

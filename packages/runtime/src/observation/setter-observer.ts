@@ -19,7 +19,7 @@ export class SetterObserver {
   public inBatch: boolean;
   public observing: boolean;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     obj: object,

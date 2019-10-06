@@ -45,7 +45,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public hasChanges: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     observerLocator: IObserverLocator,

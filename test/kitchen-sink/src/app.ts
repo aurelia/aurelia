@@ -27,7 +27,7 @@ export class App {
 
   public $controller: IController<Node>;
 
-  constructor() {
+  public constructor() {
     this.rows = [];
     this.cols = ['name', 'phone', 'country'];
   }

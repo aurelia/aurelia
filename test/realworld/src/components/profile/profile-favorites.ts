@@ -16,7 +16,7 @@ export class ProfileFavorites {
   private readonly limit = 10;
   private username: any;
 
-  constructor(private readonly articleService: ArticleService) {
+  public constructor(private readonly articleService: ArticleService) {
   }
 
   public canEnter() { console.log(`profile-favorites canEnter`); return true; }

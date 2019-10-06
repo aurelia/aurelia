@@ -13,7 +13,7 @@ export class Profile {
   private username?: string;
   private profile?: ProfileModel;
 
-  constructor(
+  public constructor(
     private readonly sharedState: SharedState,
     private readonly profileService: ProfileService,
     private readonly router: IRouter) {
@@ -58,7 +58,7 @@ export class Profile {
     this.profile = profile;
   }
 
-  get isUser() {
+  public get isUser() {
     if (!this.profile) { return false; }
     return this.profile.username === this.sharedState.currentUser.username;
   }

@@ -29,7 +29,7 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Creates an instance of RetryInterceptor.
    */
-  constructor(retryConfig?: RetryConfiguration) {
+  public constructor(retryConfig?: RetryConfiguration) {
     this.retryConfig = {...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {})};
 
     if (this.retryConfig.strategy === retryStrategy.exponential &&

@@ -31,7 +31,7 @@ export class RefBinding implements IBinding {
   public sourceExpression: IsBindingBehavior;
   public target: IObservable;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior,
     target: object,
     locator: IServiceLocator,

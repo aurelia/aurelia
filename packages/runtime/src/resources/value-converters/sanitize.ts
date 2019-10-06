@@ -22,7 +22,7 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefau
  */
 @valueConverter('sanitize')
 export class SanitizeValueConverter {
-  constructor(
+  public constructor(
     @ISanitizer private readonly sanitizer: ISanitizer,
   ) {}
 

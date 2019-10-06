@@ -33,7 +33,7 @@ export class App {
 
   private sortCol?: string;
 
-  constructor() {
+  public constructor() {
     this.rows = [];
     this.cols = [
       {

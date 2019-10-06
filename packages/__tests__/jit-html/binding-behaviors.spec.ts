@@ -17,8 +17,8 @@ describe('value-converters', function () {
   describe('01. Aliases', function () {
 
     const app = class App {
-      value = 'wOOt';
-      method = () => {
+      public value = 'wOOt';
+      public method = () => {
         this.value = 'wOOt1';
       };
     };
@@ -26,20 +26,20 @@ describe('value-converters', function () {
     @bindingBehavior({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootBehavior implements IBindingBehavior<() => void> {
-      bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void): void {
+      public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void): void {
         func(binding.target[binding.targetProperty]);
       }
-      unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, func: () => void): void {
+      public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, func: () => void): void {
       }
     }
 
     @bindingBehavior({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootBehavior2 implements IBindingBehavior<() => void> {
-      bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void, func2: (param: string) => void): void {
+      public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void, func2: (param: string) => void): void {
         func2(binding.target[binding.targetProperty]);
       }
-      unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void {
+      public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void {
       }
     }
 
@@ -48,10 +48,10 @@ describe('value-converters', function () {
     class FooAttr5 {
       @bindable({ primary: true })
       public value: any;
-      constructor(@INode private readonly element: Element) {
+      public constructor(@INode private readonly element: Element) {
       }
 
-      bound() {
+      public bound() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -62,10 +62,10 @@ describe('value-converters', function () {
     class FooAttr4 {
       @bindable({ primary: true })
       public value: any;
-      constructor(@INode private readonly element: Element) {
+      public constructor(@INode private readonly element: Element) {
       }
 
-      bound() {
+      public bound() {
         this.element.setAttribute('test', this.value);
       }
     }

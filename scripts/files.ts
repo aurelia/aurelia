@@ -62,7 +62,7 @@ export class File {
   public content: Buffer;
   private buffer: Buffer;
 
-  constructor(path: string) {
+  public constructor(path: string) {
     this.path = path;
     this.content = emptyBuffer;
     this.buffer = emptyBuffer;

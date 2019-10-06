@@ -420,11 +420,11 @@ describe('event aggregator', function () {
 class DinnerEvent {
   private readonly _message: unknown;
 
-  constructor(message: unknown) {
+  public constructor(message: unknown) {
     this._message = message;
   }
 
-  get message(): unknown {
+  public get message(): unknown {
     return this._message;
   }
 }
@@ -432,11 +432,11 @@ class DinnerEvent {
 class AnotherDinnerEvent {
   private readonly _message: unknown;
 
-  constructor(message: unknown) {
+  public constructor(message: unknown) {
     this._message = message;
   }
 
-  get message(): unknown {
+  public get message(): unknown {
     return this._message;
   }
 }

@@ -39,7 +39,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   private forwardedState: ForwardedState = {};
 
-  constructor(
+  public constructor(
     public readonly lifecycle: ILifecycle,
     dom: HTMLDOM
   ) {

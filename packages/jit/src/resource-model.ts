@@ -24,7 +24,7 @@ export class ResourceModel {
   private readonly attributeLookup: Record<string, AttrInfo>;
   private readonly commandLookup: Record<string, IBindingCommand>;
 
-  constructor(resources: IResourceDescriptions) {
+  public constructor(resources: IResourceDescriptions) {
     this.resources = resources;
     this.elementLookup = {};
     this.attributeLookup = {};
@@ -204,7 +204,7 @@ export class BindableInfo {
    */
   public mode: BindingMode;
 
-  constructor(propName: string, mode: BindingMode) {
+  public constructor(propName: string, mode: BindingMode) {
     this.propName = propName;
     this.mode = mode;
   }
@@ -224,7 +224,7 @@ export class ElementInfo {
    */
   public bindables: Record<string, BindableInfo>;
 
-  constructor(name: string, containerless: boolean) {
+  public constructor(name: string, containerless: boolean) {
     this.name = name;
     this.containerless = containerless;
     this.bindables = {};
@@ -256,7 +256,7 @@ export class AttrInfo {
 
   public isTemplateController: boolean;
 
-  constructor(name: string, isTemplateController: boolean) {
+  public constructor(name: string, isTemplateController: boolean) {
     this.name = name;
     this.bindables = {};
     this.bindable = null!;

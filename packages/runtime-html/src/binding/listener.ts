@@ -36,7 +36,7 @@ export class Listener implements IBinding {
   private readonly eventManager: IEventManager;
   private handler!: IDisposable;
 
-  constructor(
+  public constructor(
     dom: IDOM,
     targetEvent: string,
     delegationStrategy: DelegationStrategy,

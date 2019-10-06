@@ -78,7 +78,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   private readonly descriptor: PropertyDescriptor;
   private observing: boolean;
 
-  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
+  public constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.currentValue = this.oldValue = undefined;
@@ -136,7 +136,7 @@ export class GetterObserver implements GetterObserver {
   private subscriberCount: number;
   private isCollecting: boolean;
 
-  constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+  public constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;

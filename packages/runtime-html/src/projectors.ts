@@ -56,7 +56,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller: IController<Node>;
 
-  constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  public constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
     this.dom = dom;
     this.host = host;
     this.$controller = $controller;
@@ -110,7 +110,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   private readonly childNodes: readonly CustomElementHost<Node>[];
 
-  constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
+  public constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
     if (host.childNodes.length) {
       this.childNodes = toArray(host.childNodes);
     } else {
@@ -148,7 +148,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 export class HostProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  constructor($controller: IController<Node>, host: CustomElementHost<Node>) {
+  public constructor($controller: IController<Node>, host: CustomElementHost<Node>) {
     this.host = host;
     this.host.$controller = $controller;
   }

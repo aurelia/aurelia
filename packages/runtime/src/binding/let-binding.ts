@@ -43,7 +43,7 @@ export class LetBinding implements IPartialConnectableBinding {
 
   private readonly toBindingContext: boolean;
 
-  constructor(
+  public constructor(
     sourceExpression: IExpression,
     targetProperty: string,
     observerLocator: IObserverLocator,

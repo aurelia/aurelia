@@ -55,7 +55,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public nodeObserver?: MutationObserver;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     observerLocator: IObserverLocator,

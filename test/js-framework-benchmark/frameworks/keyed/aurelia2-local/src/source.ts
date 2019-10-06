@@ -11,18 +11,18 @@ const colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "b
 const nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"];
 
 export class Store {
-  data: any[];
-  id: number;
-  backup: any;
-  selectedIdx: number;
-  constructor(
+  public data: any[];
+  public id: number;
+  public backup: any;
+  public selectedIdx: number;
+  public constructor(
     private readonly lifecycle: ILifecycle,
   ) {
     this.data = [];
     this.id = 1;
     this.selectedIdx = -1;
   }
-  buildData(count = 1000) {
+  public buildData(count = 1000) {
     var data = [];
     for (var i = 0; i < count; i++)
       data.push({
@@ -32,27 +32,27 @@ export class Store {
       });
     return data;
   }
-  updateData(mod = 10) {
+  public updateData(mod = 10) {
     const data = this.data;
     const len = data.length;
     for (let i = 0; i < len; i += 10) {
       data[i].label += ' !!!';
     }
   }
-  delete(id: any) {
+  public delete(id: any) {
     const idx = this.data.findIndex(d => d.id == id);
     this.data.splice(idx, 1);
   }
-  run() {
+  public run() {
     this.data = this.buildData();
   }
-  add() {
+  public add() {
     this.data.push(...this.buildData(1000));
   }
-  update() {
+  public update() {
     this.updateData();
   }
-  select(id: any) {
+  public select(id: any) {
     const data = this.data;
     const len = data.length;
     if (this.selectedIdx > -1 && data[this.selectedIdx]) {
@@ -66,22 +66,22 @@ export class Store {
       }
     }
   }
-  hideAll() {
+  public hideAll() {
     this.backup = this.data;
     this.data = [];
   }
-  showAll() {
+  public showAll() {
     this.data = this.backup;
     this.backup = null;
   }
-  runLots() {
+  public runLots() {
     this.data = this.buildData(10000);
   }
-  clear() {
+  public clear() {
     this.data = [];
     this.selectedIdx = -1;
   }
-  swapRows() {
+  public swapRows() {
     if (this.data.length > 998) {
       var temp = this.data[1];
       var temp2 = this.data[998];

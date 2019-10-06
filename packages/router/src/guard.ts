@@ -9,7 +9,7 @@ export class Guard {
   public includeTargets: Target[] = [];
   public excludeTargets: Target[] = [];
 
-  constructor(
+  public constructor(
     public guard: GuardFunction,
     options: IGuardOptions,
     public id: GuardIdentity
@@ -47,7 +47,7 @@ class Target {
   public viewport: Viewport | null = null;
   public viewportName: string | null = null;
 
-  constructor(target: GuardTarget) {
+  public constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
     } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {

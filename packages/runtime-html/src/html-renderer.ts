@@ -39,7 +39,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
 
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
+  public constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
     this.observerLocator = observerLocator;
   }
@@ -69,7 +69,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   private readonly parser: IExpressionParser;
   private readonly eventManager: IEventManager;
 
-  constructor(parser: IExpressionParser, eventManager: IEventManager) {
+  public constructor(parser: IExpressionParser, eventManager: IEventManager) {
     this.parser = parser;
     this.eventManager = eventManager;
   }
@@ -100,7 +100,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
 
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
+  public constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
     this.observerLocator = observerLocator;
   }
@@ -121,7 +121,7 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
   private readonly parser: IExpressionParser;
   private readonly observerLocator: IObserverLocator;
 
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
+  public constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
     this.parser = parser;
     this.observerLocator = observerLocator;
   }

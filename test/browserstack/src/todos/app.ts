@@ -4,7 +4,7 @@ let id = 0;
 class Todo {
   public done: boolean = false;
   public id: number = id++;
-  constructor(public description: string, public app: App) {}
+  public constructor(public description: string, public app: App) {}
 }
 
 type ObservedTodos = Todo[] & { $observer: ArrayObserver };

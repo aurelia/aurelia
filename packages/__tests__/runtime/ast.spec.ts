@@ -1747,7 +1747,7 @@ describe('CallScopeExpression', function () {
 
 class Test {
   public value: string;
-  constructor() {
+  public constructor() {
     this.value = 'foo';
   }
 

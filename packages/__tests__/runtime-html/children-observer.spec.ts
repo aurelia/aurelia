@@ -174,8 +174,8 @@ describe('ChildrenObserver', () => {
 
   function defineAndRegisterHost(template: string, container: IContainer) {
     class HostElement {
-      oneCount = 1;
-      twoCount = 1;
+      public oneCount = 1;
+      public twoCount = 1;
     }
 
     const element = CustomElement.define({

@@ -139,7 +139,7 @@ export class Blur {
    */
   private readonly manager: BlurManager;
 
-  constructor(
+  public constructor(
     @INode private readonly element: HTMLElement,
     @IDOM private readonly dom: HTMLDOM,
     @ILifecycle lifecycle: ILifecycle

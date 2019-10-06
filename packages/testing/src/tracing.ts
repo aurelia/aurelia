@@ -87,7 +87,7 @@ export class Call {
   public readonly method: PropertyKey;
   public readonly index: number;
 
-  constructor(
+  public constructor(
     instance: any,
     args: any[],
     method: PropertyKey,
@@ -103,7 +103,7 @@ export class Call {
 export class CallCollection {
   public readonly calls: Call[];
 
-  constructor() {
+  public constructor() {
     this.calls = [];
   }
 

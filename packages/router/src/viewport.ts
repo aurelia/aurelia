@@ -42,7 +42,7 @@ export class Viewport {
   private cache: ViewportContent[] = [];
   private historyCache: ViewportContent[] = [];
 
-  constructor(
+  public constructor(
     public readonly router: IRouter,
     public name: string,
     public element: Element | null,

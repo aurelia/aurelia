@@ -93,7 +93,7 @@ function innerOk(fn: Function, argLen: number, value: any, message: string | Err
 class Comparison {
   [key: string]: unknown;
 
-  constructor(
+  public constructor(
     obj: IIndexable,
     keys: string[],
     actual?: IIndexable,

@@ -104,7 +104,7 @@ describe.skip('ComputedObserver', function () {
         public prop: unknown;
         public dep: unknown;
 
-        constructor() {
+        public constructor() {
           this._prop = propInitialValue;
           this._dep = depInitialValue;
         }
@@ -279,7 +279,7 @@ describe.skip('ComputedObserver', function () {
         public children: Foo[];
         public branch: 1 | 2;
         public sortFn: (a: unknown, b: unknown) => number;
-        constructor(...children: Foo[]) {
+        public constructor(...children: Foo[]) {
           this.array1 = [];
           this.array2 = [];
           this.set1 = new Set();

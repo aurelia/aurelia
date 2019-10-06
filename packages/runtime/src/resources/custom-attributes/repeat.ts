@@ -110,7 +110,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private _items: Items<C>;
 
-  constructor(
+  public constructor(
     location: IRenderLocation<T>,
     renderable: IController<T>,
     factory: IViewFactory<T>

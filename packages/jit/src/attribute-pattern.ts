@@ -25,7 +25,7 @@ export class CharSpec implements ICharSpec {
 
   public has: (char: string) => boolean;
 
-  constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
+  public constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
     this.chars = chars;
     this.repeat = repeat;
     this.isSymbol = isSymbol;
@@ -110,7 +110,7 @@ export class Interpretation {
   private readonly currentRecord: Record<string, string>;
   private readonly partsRecord: Record<string, string[]>;
 
-  constructor() {
+  public constructor() {
     this._pattern = '';
     this.parts = PLATFORM.emptyArray;
     this.currentRecord = {};
@@ -151,7 +151,7 @@ export class State {
     return this.isEndpoint ? this.patterns[0] : null;
   }
 
-  constructor(charSpec: ICharSpec, ...patterns: string[]) {
+  public constructor(charSpec: ICharSpec, ...patterns: string[]) {
     this.charSpec = charSpec;
     this.nextStates = [];
     this.types = null;
@@ -230,7 +230,7 @@ export class StaticSegment implements ISegment {
   private readonly len: number;
   private readonly specs: CharSpec[];
 
-  constructor(text: string) {
+  public constructor(text: string) {
     this.text = text;
     const len = this.len = text.length;
     const specs = this.specs = [] as CharSpec[];
@@ -252,7 +252,7 @@ export class DynamicSegment implements ISegment {
   public text: string;
   private readonly spec: CharSpec;
 
-  constructor(symbols: string) {
+  public constructor(symbols: string) {
     this.text = 'PART';
     this.spec = new CharSpec(symbols, true, false, true);
   }
@@ -267,7 +267,7 @@ export class SymbolSegment implements ISegment {
   public text: string;
   private readonly spec: CharSpec;
 
-  constructor(text: string) {
+  public constructor(text: string) {
     this.text = text;
     this.spec = new CharSpec(text, false, true, false);
   }
@@ -283,7 +283,7 @@ export class SegmentTypes {
   public dynamics: number;
   public symbols: number;
 
-  constructor() {
+  public constructor() {
     this.statics = 0;
     this.dynamics = 0;
     this.symbols = 0;
@@ -304,7 +304,7 @@ export class SyntaxInterpreter {
   public rootState: State;
   private readonly initialStates: State[];
 
-  constructor() {
+  public constructor() {
     this.rootState = new State(null!);
     this.initialStates = [this.rootState];
   }

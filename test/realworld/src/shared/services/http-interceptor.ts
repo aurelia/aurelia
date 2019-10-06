@@ -7,7 +7,7 @@ const AUTHORIZATION_HEADER = 'Authorization';
 @inject(JwtService)
 export class HttpInterceptor implements Interceptor {
 
-  constructor(private readonly jwtService: JwtService) {
+  public constructor(private readonly jwtService: JwtService) {
   }
 
   public request(request: Request) {

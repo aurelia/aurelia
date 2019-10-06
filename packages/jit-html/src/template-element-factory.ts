@@ -50,7 +50,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   private readonly dom: IDOM;
   private template: HTMLTemplateElement;
 
-  constructor(dom: IDOM) {
+  public constructor(dom: IDOM) {
     this.dom = dom;
     this.template = dom.createTemplate() as HTMLTemplateElement;
   }

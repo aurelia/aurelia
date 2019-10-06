@@ -30,7 +30,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   private readonly lifecycle: ILifecycle;
   private readonly template: ITemplate<T>;
 
-  constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
+  public constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
 
     this.cacheSize = -1;
@@ -204,7 +204,7 @@ export class ViewLocator implements IViewLocator {
       );
 
       BoundComponent = class extends UnboundComponent {
-        constructor() {
+        public constructor() {
           super(object);
         }
       };
@@ -236,7 +236,7 @@ export class ViewLocator implements IViewLocator {
         class {
           protected $controller!: IController;
 
-          constructor(public viewModel: T) {}
+          public constructor(public viewModel: T) {}
 
           public created(flags: LifecycleFlags) {
             this.$controller.scope = Scope.fromParent(

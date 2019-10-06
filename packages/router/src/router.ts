@@ -105,7 +105,7 @@ export class Router implements IRouter {
   private processingNavigation: INavigatorInstruction | null = null;
   private lastNavigation: INavigatorInstruction | null = null;
 
-  constructor(
+  public constructor(
     public readonly container: IContainer,
     public navigator: Navigator,
     public navigation: BrowserNavigator,

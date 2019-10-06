@@ -79,7 +79,7 @@ export class TemplateBinder {
 
   private partName: string | null;
 
-  constructor(
+  public constructor(
     dom: IDOM,
     resources: ResourceModel,
     attrParser: IAttributeParser,

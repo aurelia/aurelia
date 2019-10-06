@@ -186,7 +186,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         public unbindingCalls = 0;
         public unboundCalls = 0;
 
-        constructor(public readonly el: HTMLElement) {}
+        public constructor(public readonly el: HTMLElement) {}
 
         public binding(): void {
           this.bindingCalls++;

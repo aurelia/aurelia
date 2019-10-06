@@ -18,7 +18,7 @@ export class ViewportInstruction {
   public scope: Viewport | null = null;
   public needsViewportDescribed: boolean = false;
 
-  constructor(
+  public constructor(
     component: ComponentAppellation,
     viewport?: ViewportHandle,
     parameters?: ComponentParameters,

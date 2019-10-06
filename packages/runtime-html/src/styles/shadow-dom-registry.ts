@@ -5,7 +5,7 @@ export type ShadowDOMStylesFactory =
   (localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null) => IShadowDOMStyles;
 
 export class ShadowDOMRegistry implements IRegistry {
-  constructor(
+  public constructor(
     private readonly sharedStyles: IShadowDOMStyles,
     private readonly createStyles: ShadowDOMStylesFactory
   ) { }

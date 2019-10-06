@@ -13,7 +13,7 @@ describe('BrowserNavigator', function () {
     public history: History;
     public location: Location;
 
-    constructor(window: Window, history: History, location: Location) {
+    public constructor(window: Window, history: History, location: Location) {
       this.window = window;
       this.history = history;
       this.location = location;

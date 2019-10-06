@@ -5,9 +5,9 @@ var path = require('path');
 
 @inject(Project, CLIOptions, UI)
 export default class ElementGenerator {
-  constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
+  public constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
 
-  async execute() {
+  public async execute() {
     const name = await this.ui.ensureAnswer(
       this.options.args[0],
       'What would you like to call the component?'
@@ -31,7 +31,7 @@ export default class ElementGenerator {
     await this.ui.log(`Created ${name} in the '${path.join(this.project.root.name, subFolders)}' folder`);
   }
 
-  generateJSSource(className) {
+  public generateJSSource(className) {
     return `export class ${className} {
   message: string;
 
@@ -42,7 +42,7 @@ export default class ElementGenerator {
 `;
   }
 
-  generateHTMLSource(className) {
+  public generateHTMLSource(className) {
     return `<template>
   <h1>\${message}</h1>
 </template>

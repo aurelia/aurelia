@@ -82,7 +82,7 @@ export interface FrameworkId {
 
 abstract class FrameworkVersionInformationValid implements FrameworkId {
   public url: string;
-  constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean) {
+  public constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean) {
     this.keyedType = keyedType;
     this.directory = directory;
     this.url = 'frameworks/'+keyedType+'/'+directory + (customURL ? customURL : '');
@@ -90,17 +90,17 @@ abstract class FrameworkVersionInformationValid implements FrameworkId {
 }
 
 export class FrameworkVersionInformationDynamic extends FrameworkVersionInformationValid  {
-  constructor(keyedType: KeyedType, directory: string, public packageNames: string[],
+  public constructor(keyedType: KeyedType, directory: string, public packageNames: string[],
     customURL: string|undefined, useShadowRoot: boolean = false) {
     super(keyedType, directory, customURL, useShadowRoot);
   }
 }
 
 export class FrameworkVersionInformationStatic extends FrameworkVersionInformationValid  {
-  constructor(keyedType: KeyedType, directory: string, public frameworkVersion: string, customURL: string|undefined, useShadowRoot: boolean = false) {
+  public constructor(keyedType: KeyedType, directory: string, public frameworkVersion: string, customURL: string|undefined, useShadowRoot: boolean = false) {
     super(keyedType, directory, customURL, useShadowRoot);
   }
-  getFrameworkData(): FrameworkData {
+  public getFrameworkData(): FrameworkData {
     return {name: this.directory,
       fullNameWithKeyedAndVersion: this.directory+(this.frameworkVersion ? '-v'+this.frameworkVersion : '')+'-'+this.keyedType,
       uri: this.url,
@@ -111,21 +111,21 @@ export class FrameworkVersionInformationStatic extends FrameworkVersionInformati
 }
 
 export class FrameworkVersionInformationError implements FrameworkId  {
-  constructor(public keyedType: KeyedType, public directory: string, public error: string) {}
+  public constructor(public keyedType: KeyedType, public directory: string, public error: string) {}
 }
 
 export type FrameworkVersionInformation = FrameworkVersionInformationDynamic | FrameworkVersionInformationStatic | FrameworkVersionInformationError;
 
 export class PackageVersionInformationValid {
-  constructor(public packageName: string, public version: string) {}
+  public constructor(public packageName: string, public version: string) {}
 }
 
 export class PackageVersionInformationErrorUnknownPackage  {
-  constructor(public packageName: string) {}
+  public constructor(public packageName: string) {}
 }
 
 export class PackageVersionInformationErrorNoPackageJSONLock  {
-  constructor() {}
+  public constructor() {}
 }
 
 export type PackageVersionInformation = PackageVersionInformationValid | PackageVersionInformationErrorUnknownPackage | PackageVersionInformationErrorNoPackageJSONLock;
@@ -197,7 +197,7 @@ export function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate 
 
 export class PackageVersionInformationResult {
   public versions: PackageVersionInformation[] = [];
-  constructor(public framework: FrameworkVersionInformationDynamic) {}
+  public constructor(public framework: FrameworkVersionInformationDynamic) {}
   public add(packageVersionInformation: PackageVersionInformation) {
     this.versions.push(packageVersionInformation);
   }
@@ -207,7 +207,7 @@ export class PackageVersionInformationResult {
     }
     return this.versions.map(version => (version instanceof PackageVersionInformationValid) ? version.version : 'invalid').join(' + ');
   }
-  getFrameworkData(): FrameworkData {
+  public getFrameworkData(): FrameworkData {
     return {name: this.framework.directory,
       fullNameWithKeyedAndVersion: this.framework.directory+'-v'+this.getVersionName()+'-'+this.framework.keyedType,
       uri: this.framework.url,

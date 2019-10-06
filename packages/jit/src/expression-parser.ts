@@ -69,7 +69,7 @@ export class ParserState {
     return this.input.slice(this.startIndex, this.index);
   }
 
-  constructor(input: string) {
+  public constructor(input: string) {
     this.index = 0;
     this.startIndex = 0;
     this.lastIndex = 0;

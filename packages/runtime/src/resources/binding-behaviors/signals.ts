@@ -11,7 +11,7 @@ export type SignalableBinding = PropertyBinding & {
 
 @bindingBehavior('signal')
 export class SignalBindingBehavior {
-  constructor(
+  public constructor(
     @ISignaler private readonly signaler: ISignaler,
   ) {}
 

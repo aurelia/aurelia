@@ -9,7 +9,7 @@ import { TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
 interface Person { firstName?: string; lastName?: string; fullName?: string }
-const app = class App { value = 'wOOt'; };
+const app = class App { public value = 'wOOt'; };
 
 describe('custom-elements', function () {
 
@@ -47,7 +47,7 @@ describe('custom-elements', function () {
 
   // //<let/>
   it('03.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class { firstName = undefined; lastName = undefined; });
+    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class { public firstName = undefined; public lastName = undefined; });
     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
     component.firstName = 'bi';
@@ -172,7 +172,7 @@ describe('custom-elements', function () {
     }
 
     const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
-    const { lifecycle, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { value = 'w00t'; }, [...resources, TestConfiguration]);
+    const { lifecycle, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value = 'w00t'; }, [...resources, TestConfiguration]);
 
     assert.strictEqual(boundCalls, 5, `boundCalls`);
 

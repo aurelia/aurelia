@@ -394,7 +394,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`transient child registration returns a new instance each time`, function () {
       @inject(ITransient)
-      class TransientParent implements ITransientParent { constructor(public dep: ITransient) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: ITransient) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -423,7 +423,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`singleton child registration returns the same instance each time`, function () {
       @inject(ISingleton)
-      class TransientParent implements ITransientParent { constructor(public dep: ISingleton) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: ISingleton) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -452,7 +452,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`instance child registration returns the same instance each time`, function () {
       @inject(IInstance)
-      class TransientParent implements ITransientParent { constructor(public dep: IInstance) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: IInstance) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -481,7 +481,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`callback child registration is invoked each time`, function () {
       @inject(ICallback)
-      class TransientParent implements ITransientParent { constructor(public dep: ICallback) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: ICallback) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -527,7 +527,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`transient child registration is reused by the singleton parent`, function () {
       @inject(ITransient)
-      class SingletonParent implements ISingletonParent { constructor(public dep: ITransient) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: ITransient) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -555,7 +555,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`singleton registration is reused by the singleton parent`, function () {
       @inject(ISingleton)
-      class SingletonParent implements ISingletonParent { constructor(public dep: ISingleton) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: ISingleton) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -583,7 +583,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`instance registration is reused by the singleton parent`, function () {
       @inject(IInstance)
-      class SingletonParent implements ISingletonParent { constructor(public dep: IInstance) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: IInstance) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -611,7 +611,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`callback registration is reused by the singleton parent`, function () {
       @inject(ICallback)
-      class SingletonParent implements ISingletonParent { constructor(public dep: ICallback) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: ICallback) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -658,7 +658,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`transient registration is reused by the instance parent`, function () {
       @inject(ITransient)
-      class InstanceParent implements IInstanceParent { constructor(public dep: ITransient) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: ITransient) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -685,7 +685,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`singleton registration is reused by the instance parent`, function () {
       @inject(ISingleton)
-      class InstanceParent implements IInstanceParent { constructor(public dep: ISingleton) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: ISingleton) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -712,7 +712,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`instance registration is reused by the instance parent`, function () {
       @inject(IInstance)
-      class InstanceParent implements IInstanceParent { constructor(public dep: IInstance) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: IInstance) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -739,7 +739,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`callback registration is reused by the instance parent`, function () {
       @inject(ICallback)
-      class InstanceParent implements IInstanceParent { constructor(public dep: ICallback) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: ICallback) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -775,7 +775,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
 describe('defer registration', () => {
   class FakeCSSService {
-    constructor(public data: any) {}
+    public constructor(public data: any) {}
   }
 
   class FakeCSSHandler {

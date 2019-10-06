@@ -55,7 +55,7 @@ export class RenderPlan<T extends INode = Node> {
 
   private lazyDefinition?: TemplateDefinition;
 
-  constructor(
+  public constructor(
     dom: IDOM<T>,
     node: T,
     instructions: HTMLTargetedInstruction[][],

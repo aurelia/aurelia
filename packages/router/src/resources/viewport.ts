@@ -39,7 +39,7 @@ export class ViewportCustomElement {
 
   public $controller!: IController; // This is set by the controller after this instance is constructed
 
-  constructor(
+  public constructor(
     private readonly router: IRouter,
     private readonly element: Element, private readonly renderingEngine: IRenderingEngine
   ) { }

@@ -92,7 +92,7 @@ export class Renderer implements IRenderer {
 
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
-  constructor(instructionRenderers: IInstructionRenderer[]) {
+  public constructor(instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
       // Binding the functions to the renderer instances and calling the functions directly,
@@ -286,7 +286,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -336,7 +336,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -361,7 +361,7 @@ export class LetElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -376,7 +376,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
@@ -390,7 +390,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -410,7 +410,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -425,7 +425,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}

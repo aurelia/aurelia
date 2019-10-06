@@ -60,7 +60,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior | IForOfStatement,
     target: object,
     targetProperty: string,

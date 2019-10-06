@@ -9,7 +9,7 @@ export class FollowButton {
   @bindable public article: any;
   @bindable public toggle: any;
 
-  constructor(private readonly router: IRouter,
+  public constructor(private readonly router: IRouter,
     private readonly sharedState: SharedState,
     private readonly profileService: ProfileService) {
   }

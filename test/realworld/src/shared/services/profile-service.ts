@@ -5,7 +5,7 @@ import { ApiService } from './api-service';
 @inject(ApiService)
 export class ProfileService {
 
-  constructor(private readonly apiService: ApiService) {
+  public constructor(private readonly apiService: ApiService) {
   }
 
   public get(username: string): Promise<Profile> {

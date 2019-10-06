@@ -245,7 +245,7 @@ export class HooksDefinition {
   public readonly hasDetached: boolean;
   public readonly hasCaching: boolean;
 
-  constructor(target: object) {
+  public constructor(target: object) {
     this.hasRender = 'render' in target;
     this.hasCreated = 'created' in target;
     this.hasBinding = 'binding' in target;
@@ -281,7 +281,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public hooks: Readonly<HooksDefinition>;
   public scopeParts: readonly string[];
 
-  constructor() {
+  public constructor() {
     this.name = 'unnamed';
     this.template = null;
     this.cache = 0;

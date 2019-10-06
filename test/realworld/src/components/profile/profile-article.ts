@@ -16,7 +16,7 @@ export class ProfileArticle {
   private readonly limit = 10;
   private username?: string;
 
-  constructor(private readonly articleService: ArticleService) {
+  public constructor(private readonly articleService: ArticleService) {
   }
 
   public canEnter() { console.log(`profile-article canEnter`); return true; }

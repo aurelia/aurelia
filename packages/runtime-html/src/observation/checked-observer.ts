@@ -50,7 +50,7 @@ export class CheckedObserver implements IAccessor<unknown> {
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public valueObserver?: ValueAttributeObserver | SetterObserver;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     observerLocator: IObserverLocator,

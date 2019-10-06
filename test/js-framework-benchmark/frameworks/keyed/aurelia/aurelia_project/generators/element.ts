@@ -3,9 +3,9 @@ import {Project, ProjectItem, CLIOptions, UI} from 'aurelia-cli';
 
 @inject(Project, CLIOptions, UI)
 export default class ElementGenerator {
-  constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
+  public constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
 
-  async execute() {
+  public async execute() {
     const name = await this.ui.ensureAnswer(
       this.options.args[0],
       'What would you like to call the custom element?'
@@ -23,7 +23,7 @@ export default class ElementGenerator {
     await this.ui.log(`Created ${fileName}.`);
   }
 
-  generateJSSource(className) {
+  public generateJSSource(className) {
     return `import {bindable} from 'aurelia-framework';
 
 export class ${className} {
@@ -36,7 +36,7 @@ export class ${className} {
 `;
   }
 
-  generateHTMLSource(className) {
+  public generateHTMLSource(className) {
     return `<template>
   <h1>\${value}</h1>
 </template>

@@ -11,7 +11,7 @@ class Handler {
   /** @internal */
   public readonly callback: EventAggregatorCallback;
 
-  constructor(messageType: Constructable, callback: EventAggregatorCallback) {
+  public constructor(messageType: Constructable, callback: EventAggregatorCallback) {
     this.messageType = messageType;
     this.callback = callback;
   }
@@ -68,7 +68,7 @@ export class EventAggregator implements IEventAggregator {
   /**
    * Creates an instance of the EventAggregator class.
    */
-  constructor() {
+  public constructor() {
     this.eventLookup = {};
     this.messageHandlers = [];
   }

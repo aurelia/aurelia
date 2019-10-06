@@ -380,7 +380,7 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
 
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;

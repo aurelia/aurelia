@@ -792,7 +792,7 @@ describe('translation-integration', function () {
     it('key bound from vm property', async function () {
 
       @customElement({ name: 'app', template: `<span>\${key | t}</span>` })
-      class App { key = 'simple.text'; }
+      class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
       const { en: translation } = await setup(host, new App());
@@ -850,7 +850,7 @@ describe('translation-integration', function () {
     it('key bound from vm property', async function () {
 
       @customElement({ name: 'app', template: `<span>\${key & t}</span>` })
-      class App { key = 'simple.text'; }
+      class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
       const { en: translation } = await setup(host, new App());
@@ -1183,7 +1183,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1198,7 +1198,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : undefined : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1213,7 +1213,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1228,7 +1228,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1246,7 +1246,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         public dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1302,7 +1302,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1317,7 +1317,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt : undefined : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1332,7 +1332,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1347,7 +1347,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1365,7 +1365,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         public dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }

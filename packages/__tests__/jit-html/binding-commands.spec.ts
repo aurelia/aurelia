@@ -9,7 +9,7 @@ import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, O
 describe('binding-commands', function () {
 
   const app = class App {
-    value = 'wOOt';
+    public value = 'wOOt';
   };
 
   describe('01. Aliases', function () {

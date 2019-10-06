@@ -18,7 +18,7 @@ export class Home {
   private currentPage = 1;
   private readonly limit = 10;
 
-  constructor(
+  public constructor(
     private readonly sharedState: SharedState,
     private readonly router: IRouter,
     private readonly articleService: ArticleService,

@@ -11,7 +11,7 @@ import { ContactList } from './../contact-list';
 </template>` })
 @inject(ContactList)
 export class Contacts {
-  constructor(private readonly contactList: ContactList) { }
+  public constructor(private readonly contactList: ContactList) { }
 
   get contacts() { return this.contactList.allContacts(); }
 }

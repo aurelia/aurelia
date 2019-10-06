@@ -328,7 +328,7 @@ describe(`The DI object`, function () {
     it(`uses getDesignParamTypes() if the static inject property does not exist`, function () {
       class Bar {}
       @decorator()
-      class Foo { constructor(bar: Bar) { return; } }
+      class Foo { public constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
@@ -343,7 +343,7 @@ describe(`The DI object`, function () {
     it(`uses getDesignParamTypes() if the static inject property is undefined`, function () {
       class Bar {}
       @decorator()
-      class Foo { public static inject; constructor(bar: Bar) { return; } }
+      class Foo { public static inject; public constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
@@ -584,7 +584,7 @@ describe(`The inject decorator`, function () {
   // });
 
   it(`can decorate constructor parameters explicitly`, function () {
-    class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
+    class Foo { public constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
 
     assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
   });

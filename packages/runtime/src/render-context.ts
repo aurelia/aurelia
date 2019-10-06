@@ -35,7 +35,7 @@ export class RenderContext implements IRenderContext {
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation>;
   private readonly renderer: IRenderer;
 
-  constructor(
+  public constructor(
     private readonly dom: IDOM,
     private readonly parentContainer: IContainer,
     private readonly dependencies: readonly Key[],

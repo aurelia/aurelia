@@ -3,9 +3,9 @@ import {Project, ProjectItem, CLIOptions, UI} from 'aurelia-cli';
 
 @inject(Project, CLIOptions, UI)
 export default class BindingBehaviorGenerator {
-  constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
+  public constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
 
-  async execute() {
+  public async execute() {
     const name = await this.ui.ensureAnswer(
       this.options.args[0],
       'What would you like to call the binding behavior?'
@@ -22,7 +22,7 @@ export default class BindingBehaviorGenerator {
     await this.ui.log(`Created ${fileName}.`);
   }
 
-  generateSource(className) {
+  public generateSource(className) {
     return `export class ${className}BindingBehavior {
   bind(binding, source) {
     //

@@ -22,7 +22,7 @@ export class ViewportContent {
 
   private taggedNodes: Element[] = [];
 
-  constructor(
+  public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public content: ViewportInstruction = new ViewportInstruction(''),
     public instruction: INavigatorInstruction = {

@@ -143,7 +143,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
             class Ce {
               public static inject = [INode];
               public lvl: number;
-              constructor(
+              public constructor(
                 private readonly el: HTMLElement
               ) {}
 
@@ -207,7 +207,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           public static inject = [INode];
 
           public value: any;
-          constructor(private readonly element: HTMLElement) {}
+          public constructor(private readonly element: HTMLElement) {}
           public binding(): void {
             this.valueChanged();
           }
@@ -281,7 +281,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           class Click {
             public static inject = [INode];
             public value: any;
-            constructor(private readonly element: HTMLElement) {}
+            public constructor(private readonly element: HTMLElement) {}
             public binding(): void {
               this.valueChanged();
             }

@@ -20,7 +20,7 @@ export class I18nKeyEvaluationResult {
   public value: string = (void 0)!;
   public attributes: string[];
 
-  constructor(keyExpr: string) {
+  public constructor(keyExpr: string) {
     const re = /\[([a-z\-, ]*)\]/ig;
     this.attributes = [];
 
@@ -50,7 +50,7 @@ export class I18nService {
   private options!: I18nInitOptions;
   private readonly intl: typeof Intl;
 
-  constructor(
+  public constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
     @I18nInitOptions options: I18nInitOptions,
     @IEventAggregator private readonly ea: IEventAggregator,

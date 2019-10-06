@@ -302,7 +302,7 @@ export class AssertionError extends Error {
   public operator: keyof IOperatorText;
   public generatedMessage: boolean;
 
-  constructor(options: IAssertionErrorOpts) {
+  public constructor(options: IAssertionErrorOpts) {
     const {
       actual,
       expected,
@@ -938,7 +938,7 @@ function clazzWithNullPrototype(clazz: Constructable, name: string): Constructab
     }
   }
   class NullPrototype extends clazz {
-    get [Symbol.toStringTag](): string {
+    public get [Symbol.toStringTag](): string {
       return '';
     }
   }

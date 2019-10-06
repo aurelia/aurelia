@@ -181,7 +181,7 @@ describe.skip('controller', function () {
       public readonly id: number;
       public readonly $$calls: CallCollection;
 
-      constructor(
+      public constructor(
         calls: CallCollection,
       ) {
         this.id = nextId('au$component');

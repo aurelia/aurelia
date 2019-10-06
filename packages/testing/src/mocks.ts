@@ -87,7 +87,7 @@ export interface MockServiceLocator extends IContainer {}
 export class MockServiceLocator {
   public calls: [keyof MockServiceLocator, ...any[]][] = [];
 
-  constructor(public registrations: Map<any, any>) {}
+  public constructor(public registrations: Map<any, any>) {}
 
   public get(key: any): any {
     this.trace('get', key);
@@ -136,7 +136,7 @@ export class MockTracingExpression {
   public $kind: ExpressionKind = ExpressionKind.HasBind | ExpressionKind.HasUnbind;
   public calls: [keyof MockTracingExpression, ...any[]][] = [];
 
-  constructor(public inner: any) {}
+  public constructor(public inner: any) {}
 
   public evaluate(...args: any[]): any {
     this.trace('evaluate', ...args);
@@ -181,7 +181,7 @@ export class MockValueConverter {
   public fromView!: MockValueConverter['$fromView'];
   public toView!: MockValueConverter['$toView'];
 
-  constructor(methods: string[]) {
+  public constructor(methods: string[]) {
     for (const method of methods) {
       this[method as 'fromView' | 'toView'] = this[`$${method}` as '$toView' | '$fromView'];
     }
@@ -214,17 +214,17 @@ export class MockBrowserHistoryLocation {
   private readonly paths: string[] = [''];
   private index: number = 0;
 
-  get length(): number {
+  public get length(): number {
     return this.states.length;
   }
-  get state(): Record<string, unknown> {
+  public get state(): Record<string, unknown> {
     return this.states[this.index];
   }
-  get path(): string {
+  public get path(): string {
     return this.paths[this.index];
   }
 
-  get pathname(): string {
+  public get pathname(): string {
     const parts = this.parts;
     // parts.shift();
     let path = parts.shift()!;
@@ -233,7 +233,7 @@ export class MockBrowserHistoryLocation {
     }
     return path;
   }
-  get search(): string {
+  public get search(): string {
     const parts = this.parts;
     // if (parts.shift()) {
     //   parts.shift();
@@ -242,7 +242,7 @@ export class MockBrowserHistoryLocation {
     const part: string = parts.shift()!;
     return part !== undefined ? `?${part}` : '';
   }
-  get hash(): string {
+  public get hash(): string {
     const parts = this.parts;
     // if (!parts.shift()) {
     //   parts.shift();
@@ -252,7 +252,7 @@ export class MockBrowserHistoryLocation {
     const part: string = parts.shift()!;
     return part !== undefined ? `#${part}` : '';
   }
-  set hash(value: string) {
+  public set hash(value: string) {
     if (value.startsWith('#')) {
       value = value.substring(1);
     }
@@ -348,7 +348,7 @@ export class ChangeSet implements IDisposable {
   private _newValue: any;
   private _oldValue: any;
 
-  constructor(
+  public constructor(
     index: number,
     flags: LifecycleFlags,
     newValue: any,
@@ -382,7 +382,7 @@ export class ProxyChangeSet implements IDisposable {
   private _newValue: any;
   private _oldValue: any;
 
-  constructor(
+  public constructor(
     index: number,
     flags: LifecycleFlags,
     key: PropertyKey,
@@ -413,7 +413,7 @@ export class CollectionChangeSet implements IDisposable {
 
   private _indexMap: IndexMap;
 
-  constructor(
+  public constructor(
     index: number,
     flags: LifecycleFlags,
     indexMap: IndexMap,
@@ -469,7 +469,7 @@ export class SpySubscriber implements IDisposable {
 
   private _callCount: number;
 
-  constructor() {
+  public constructor() {
     this._changes = void 0;
     this._proxyChanges = void 0;
     this._collectionChanges = void 0;

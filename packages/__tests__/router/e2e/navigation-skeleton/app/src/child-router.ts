@@ -11,7 +11,7 @@ export class ChildRouter {
   public heading = 'Child Router';
   public router: IRouter;
 
-  constructor(router: IRouter) {
+  public constructor(router: IRouter) {
     this.router = router;
   }
 

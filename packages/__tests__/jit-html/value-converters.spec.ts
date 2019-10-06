@@ -15,7 +15,7 @@ describe('value-converters', function () {
     @valueConverter({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootConverter {
-      toView() {
+      public toView() {
         return 'wOOt1';
       }
     }
@@ -23,7 +23,7 @@ describe('value-converters', function () {
     @valueConverter({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootConverter2 {
-      toView() {
+      public toView() {
         return 'wOOt1';
       }
     }
@@ -33,10 +33,10 @@ describe('value-converters', function () {
     class FooAttribute {
       @bindable({ primary: true })
       public value: any;
-      constructor(@INode private readonly element: Element) {
+      public constructor(@INode private readonly element: Element) {
       }
 
-      bound() {
+      public bound() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -46,16 +46,16 @@ describe('value-converters', function () {
     class FooAttribute2 {
       @bindable({ primary: true })
       public value: any;
-      constructor(@INode private readonly element: Element) {
+      public constructor(@INode private readonly element: Element) {
       }
 
-      bound() {
+      public bound() {
         this.element.setAttribute('test', this.value);
       }
     }
 
     const resources: any[] = [WootConverter, WootConverter2, FooAttribute2, FooAttribute];
-    const app = class App { value = 'wOOt'; };
+    const app = class App { public value = 'wOOt'; };
 
     it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
       const options = setup('<template> <div foo53.bind="value | woot13"></div> </template>', app, resources);

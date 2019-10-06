@@ -34,22 +34,22 @@ const suites = {
   ['resolve']() {
     const count = parseInt(rest[0], 10);
     class LocalSingleton {
-      static register(container) {
+      public static register(container) {
         return local.kernel.Registration.singleton(LocalSingleton, this).register(container);
       }
     }
     class LocalTransient {
-      static register(container) {
+      public static register(container) {
         return local.kernel.Registration.transient(LocalTransient, this).register(container);
       }
     }
     class DevSingleton {
-      static register(container) {
+      public static register(container) {
         return dev.kernel.Registration.singleton(DevSingleton, this).register(container);
       }
     }
     class DevTransient {
-      static register(container) {
+      public static register(container) {
         return dev.kernel.Registration.transient(DevTransient, this).register(container);
       }
     }

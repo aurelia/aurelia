@@ -21,7 +21,7 @@ class TraceInfo implements ITraceInfo {
   public next: ITraceInfo | null;
   public prev: ITraceInfo | null;
 
-  constructor(objName: string, methodName: string, params: unknown[] | null) {
+  public constructor(objName: string, methodName: string, params: unknown[] | null) {
     this.objName = objName;
     this.methodName = methodName;
     this.depth = TraceInfo.stack.length;

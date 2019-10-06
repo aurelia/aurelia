@@ -149,7 +149,7 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 export class MapObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 
     if (!enableMapObservationCalled) {
       enableMapObservationCalled = true;

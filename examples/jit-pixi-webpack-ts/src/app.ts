@@ -17,7 +17,7 @@ interface ISprite {
 export class App {
   public sprites: ISprite[];
   public timestamp: number;
-  constructor() {
+  public constructor() {
     this.timestamp = 0;
     this.sprites = [];
   }

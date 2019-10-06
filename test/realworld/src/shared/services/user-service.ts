@@ -7,7 +7,7 @@ import { JwtService } from './jwt-service';
 @inject(ApiService, JwtService, SharedState)
 export class UserService {
 
-  constructor(private readonly apiService: ApiService,
+  public constructor(private readonly apiService: ApiService,
     private readonly jwtService: JwtService,
     private readonly sharedState: SharedState) {
   }

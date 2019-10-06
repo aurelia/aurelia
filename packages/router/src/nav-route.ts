@@ -18,7 +18,7 @@ export class NavRoute {
   public visible: boolean = true;
   public active: string = '';
 
-  constructor(
+  public constructor(
     public nav: Nav,
     route: INavRoute
   ) {

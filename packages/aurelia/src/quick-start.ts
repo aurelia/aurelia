@@ -23,7 +23,7 @@ function createAurelia(): Aurelia {
 }
 
 export class Aurelia extends $Aurelia<HTMLElement> {
-  constructor(container: IContainer = DI.createContainer()) {
+  public constructor(container: IContainer = DI.createContainer()) {
     super(container);
   }
 

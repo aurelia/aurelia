@@ -10,7 +10,7 @@ export interface ArticleResponse {
 @inject(ApiService)
 export class ArticleService {
 
-  constructor(private readonly apiService: ApiService) {
+  public constructor(private readonly apiService: ApiService) {
   }
 
   public getList(type: string, params: any): Promise<ArticleResponse> {

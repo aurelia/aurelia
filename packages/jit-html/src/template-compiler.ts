@@ -84,7 +84,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return 'default';
   }
 
-  constructor(
+  public constructor(
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,

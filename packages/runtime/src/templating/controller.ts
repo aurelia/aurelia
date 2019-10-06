@@ -155,7 +155,7 @@ export class Controller<
   public location?: IRenderLocation<T>;
 
   // todo: refactor
-  constructor(
+  public constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,

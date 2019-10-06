@@ -407,7 +407,7 @@ export class Resolver implements IResolver, IRegistration {
   public key: Key;
   public strategy: ResolverStrategy;
   public state: any;
-  constructor(key: Key, strategy: ResolverStrategy, state: any) {
+  public constructor(key: Key, strategy: ResolverStrategy, state: any) {
     this.key = key;
     this.strategy = strategy;
     this.state = state;
@@ -477,7 +477,7 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   private readonly dependencies: Key[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(Type: T, invoker: IInvoker, dependencies: Key[]) {
+  public constructor(Type: T, invoker: IInvoker, dependencies: Key[]) {
     this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
@@ -561,7 +561,7 @@ export class Container implements IContainer {
 
   private readonly resourceResolvers: Record<string, IResolver | undefined>;
 
-  constructor(private readonly parent: Container | null) {
+  public constructor(private readonly parent: Container | null) {
 
     if (parent === null) {
       this.root = this;
@@ -791,7 +791,7 @@ export class Container implements IContainer {
  * passing of parameters to the final registry.
  */
 export class ParameterizedRegistry implements IRegistry {
-  constructor(
+  public constructor(
     private readonly key: Key,
     private readonly params: unknown[]
   ) {}
@@ -830,7 +830,7 @@ export const Registration = Object.freeze({
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
   private instance: Resolved<K> | null;
 
-  constructor() {
+  public constructor() {
     this.instance = null;
   }
 

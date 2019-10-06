@@ -2,7 +2,7 @@ import { Queue, QueueItem } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 
 class Animal {
-  constructor(public type: string, public name: string) { }
+  public constructor(public type: string, public name: string) { }
 }
 
 describe('Queue', function () {

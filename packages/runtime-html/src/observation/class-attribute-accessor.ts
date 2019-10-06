@@ -23,7 +23,7 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
   public isActive: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     obj: HTMLElement,

@@ -54,7 +54,7 @@ export class HTMLDOM implements IDOM {
   public readonly window: Window;
   public readonly document: Document;
 
-  constructor(
+  public constructor(
     window: Window,
     document: Document,
     TNode: typeof Node,
@@ -250,7 +250,7 @@ export class TextNodeSequence implements INodeSequence {
 
   private readonly targets: [Node];
 
-  constructor(dom: HTMLDOM, text: Text) {
+  public constructor(dom: HTMLDOM, text: Text) {
     this.isMounted = false;
     this.isLinked = false;
 
@@ -349,7 +349,7 @@ export class FragmentNodeSequence implements INodeSequence {
   private readonly fragment: DocumentFragment;
   private readonly targets: ArrayLike<Node>;
 
-  constructor(dom: IDOM, fragment: DocumentFragment) {
+  public constructor(dom: IDOM, fragment: DocumentFragment) {
     this.isMounted = false;
     this.isLinked = false;
 
@@ -528,7 +528,7 @@ export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly node!: Node;
   private readonly Type!: Constructable<INodeSequence>;
 
-  constructor(dom: IDOM, markupOrNode: string | Node) {
+  public constructor(dom: IDOM, markupOrNode: string | Node) {
     this.dom = dom;
     const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
     const childNodes = fragment.childNodes;
@@ -577,7 +577,7 @@ export class AuMarker implements INode {
 
   public textContent: string;
 
-  constructor(next: Node) {
+  public constructor(next: Node) {
     this.nextSibling = next;
     this.textContent = '';
   }
@@ -598,7 +598,7 @@ export class HTMLTemplateFactory implements ITemplateFactory {
 
   private readonly dom: IDOM;
 
-  constructor(dom: IDOM) {
+  public constructor(dom: IDOM) {
     this.dom = dom;
   }
 

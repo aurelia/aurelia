@@ -11,30 +11,30 @@ const suites = {
   ['bind']() {
     const count = parseInt(rest[0], 10);
     class LocalFoo {
-      static inject = [local.runtime.ILifecycle];
-      static register(container) {
+      public static inject = [local.runtime.ILifecycle];
+      public static register(container) {
         return local.kernel.Registration.transient(LocalFoo, this).register(container);
       }
-      $nextBound;
-      lifecycle;
-      constructor(lifecycle) {
+      public $nextBound;
+      public lifecycle;
+      public constructor(lifecycle) {
         this.lifecycle = lifecycle;
         this.$nextBound = null;
       }
-      bound() { }
+      public bound() { }
     }
     class DevFoo {
-      static inject = [dev.runtime.ILifecycle];
-      static register(container) {
+      public static inject = [dev.runtime.ILifecycle];
+      public static register(container) {
         return dev.kernel.Registration.transient(DevFoo, this).register(container);
       }
-      $nextBound;
-      lifecycle;
-      constructor(lifecycle) {
+      public $nextBound;
+      public lifecycle;
+      public constructor(lifecycle) {
         this.lifecycle = lifecycle;
         this.$nextBound = null;
       }
-      bound() { }
+      public bound() { }
     }
     const localContainer = local.kernel.DI.createContainer();
     localContainer.register(LocalFoo);

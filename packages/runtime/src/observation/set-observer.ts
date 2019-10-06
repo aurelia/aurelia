@@ -134,7 +134,7 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 export class SetObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
     if (!enableSetObservationCalled) {
       enableSetObservationCalled = true;

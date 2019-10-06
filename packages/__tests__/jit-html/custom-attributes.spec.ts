@@ -15,10 +15,10 @@ describe('custom-attributes', function () {
     class Fooatt5 {
       @bindable({ primary: true })
       public value: any;
-      constructor(@INode private readonly element: Element) {
+      public constructor(@INode private readonly element: Element) {
       }
 
-      bound() {
+      public bound() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -26,32 +26,32 @@ describe('custom-attributes', function () {
     @customAttribute({ name: 'foo4', aliases: ['foo43'] })
     @alias('foo41', 'foo42')
     class Fooatt4 {
-        @bindable({ primary: true })
+      @bindable({ primary: true })
       public value: any;
-        constructor(@INode private readonly element: Element) {
-        }
+      public constructor(@INode private readonly element: Element) {
+      }
 
-        bound() {
-          this.element.setAttribute('test', this.value);
-        }
+      public bound() {
+        this.element.setAttribute('test', this.value);
+      }
     }
 
     @customAttribute({ name: 'foo44', aliases: ['foo431'] })
     @alias('foo411', 'foo421')
     @alias('foo422', 'foo422')
     class FooMultipleAlias {
-        @bindable({ primary: true })
+      @bindable({ primary: true })
       public value: any;
-        constructor(@INode private readonly element: Element) {
-        }
+      public constructor(@INode private readonly element: Element) {
+      }
 
-        bound() {
-          this.element.setAttribute('test', this.value);
-        }
+      public bound() {
+        this.element.setAttribute('test', this.value);
+      }
     }
 
     const resources: any[] = [Fooatt4, Fooatt5, FooMultipleAlias];
-    const app = class App { value = 'wOOt'; };
+    const app = class App { public value = 'wOOt'; };
 
     it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
       const options = setup('<template> <div foo53.bind="value"></div> </template>', app, resources);

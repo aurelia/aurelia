@@ -32,7 +32,7 @@ import template from './app.html';
 export class App implements IViewModel {
   private readonly message: string;
 
-  constructor(
+  public constructor(
     private readonly router: IRouter,
     private readonly userService: UserService,
     private readonly state: SharedState,

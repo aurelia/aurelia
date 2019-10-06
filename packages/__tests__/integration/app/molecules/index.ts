@@ -3,6 +3,7 @@ import { CameraSpecsViewer } from './specs-viewer/camera-specs-viewer';
 import { LaptopSpecsViewer } from './specs-viewer/laptop-specs-viewer';
 import { SpecsViewer, ViewerValueConverter } from './specs-viewer/specs-viewer';
 import { ThingViewer } from './specs-viewer/thing-viewer';
+import { UserPreference } from './user-preference/user-preference';
 
 export const molecules = {
   register(container: IContainer) {
@@ -12,7 +13,9 @@ export const molecules = {
         ThingViewer,
         CameraSpecsViewer,
         LaptopSpecsViewer,
-        ViewerValueConverter
+        ViewerValueConverter,
+
+        UserPreference
       );
   }
 }

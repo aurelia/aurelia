@@ -130,30 +130,10 @@ Ignored as it already has pretty good coverage
 
 #### Molecules
 
-##### Greeting
-
-**Usage:**
-
-```html
-<greeting name.bind="expr" is-birthday.bind="expr"></greeting>
-```
-
-**Definition:**
-
-```html
-<my-text value.bind="getGreeting()"></my-text>
-```
-
-**Potential coverage targets**
-
-- call-binding
-- property-binding
-
 ##### User preference control
 
 Displays the currently logged in user information.
 User object can be bound to the CE using `one-time` binding mode.
-Uses `greeting` CE to display greeting to the user using `to-view` binding mode.
 
 Displays a list of supported locales, and enable selection.
 
@@ -251,6 +231,7 @@ The update of the display is triggered every 2 seconds via a signal.
     - bind boolean
 
 ##### Specs viewer
+**Postponed**
 List of dynamic appels and oranges.
 Targets: `<compose>`, and repeater.
 

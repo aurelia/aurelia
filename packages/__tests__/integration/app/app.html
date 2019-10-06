@@ -2,10 +2,10 @@
 
   <div frequent-mutations>
     <button id="staticTextChanger" click.delegate="changeTexts()">Change texts</button>
-    <read-only-text value="text0"></read-only-text>
-    <read-only-text value.one-time="text1"></read-only-text>
-    <read-only-text value.bind="text2"></read-only-text>
-    <read-only-text value.to-view="text3"></read-only-text>
+    <read-only-text id="text0" value="text0"></read-only-text>
+    <read-only-text id="text1" value.one-time="text1"></read-only-text>
+    <read-only-text id="text2" value.bind="text2"></read-only-text>
+    <read-only-text id="text3" value.to-view="text3"></read-only-text>
 
     <text-input id="input-static" value="input0"></text-input>
     <text-input id="input-one-time" value.one-time="inputOneTime"></text-input>
@@ -17,6 +17,8 @@
     <text-input id="blurred-input-from-view" value.from-view="inputBlrFv" trigger="blur"></text-input>
 
     <!-- <specs-viewer things.bind="things"></specs-viewer> -->
+
+    <user-preference user.bind="user"></user-preference>
 
   </div>
 

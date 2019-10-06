@@ -767,11 +767,11 @@ export const AuDOMTest = {
       parts
     );
   },
-  createLetInstruction(bindings: [string, string][], toViewModel: boolean = false): LetElementInstruction {
+  createLetInstruction(bindings: [string, string][], toBindingContext: boolean = false): LetElementInstruction {
     return new LetElementInstruction(
       // @ts-ignore
       bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)),
-      toViewModel
+      toBindingContext
     );
   }
 };

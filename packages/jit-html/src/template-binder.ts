@@ -221,9 +221,9 @@ export class TemplateBinder {
     let i = 0;
     while (i < attributes.length) {
       const attr = attributes[i];
-      if (attr.name === 'to-view-model') {
-        node.removeAttribute('to-view-model');
-        symbol.toViewModel = true;
+      if (attr.name === 'to-binding-context') {
+        node.removeAttribute('to-binding-context');
+        symbol.toBindingContext = true;
         continue;
       }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);

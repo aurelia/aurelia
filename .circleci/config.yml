@@ -265,7 +265,9 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install_bootstrap
-      - run: npm run lint
+      # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
+      - run: npm run lint:packages -- -- -- --quiet
+      - run: npm run lint:other -- --quiet
 
   merge_and_dist:
     executor: docker-aurelia

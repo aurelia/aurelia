@@ -10,12 +10,12 @@ export class ArticleMeta {
   @bindable public article?: Article;
 
   constructor(private readonly articleService: ArticleService,
-              private readonly sharedState: SharedState,
-              private readonly router: IRouter) {
+    private readonly sharedState: SharedState,
+    private readonly router: IRouter) {
   }
 
   get canModify() {
-    if (!this.article || !this.article.author) { return; }
+    if (!this.article || !this.article.author) { return false; }
     return this.article.author.username === this.sharedState.currentUser.username;
   }
 

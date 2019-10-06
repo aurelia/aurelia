@@ -11,8 +11,8 @@ export class FavoriteButton {
   @bindable public toggle?: (toggled: boolean) => void;
 
   constructor(private readonly router: IRouter,
-              private readonly sharedState: SharedState,
-              private readonly articleService: ArticleService) {
+    private readonly sharedState: SharedState,
+    private readonly articleService: ArticleService) {
   }
 
   public onToggleFavorited() {

@@ -7,13 +7,13 @@ let lastMeasure: string;
 const startMeasure = function (name: string) {
   startTime = performance.now();
   lastMeasure = name;
-}
+};
 const stopMeasure = function () {
   window.setTimeout(function () {
     var stop = performance.now();
     console.log(lastMeasure + " took " + (stop - startTime));
   }, 0);
-}
+};
 
 @customElement({ name: 'app', template })
 export class App {

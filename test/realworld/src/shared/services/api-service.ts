@@ -10,8 +10,8 @@ import { parseError, status } from './service-helper';
 export class ApiService {
 
   constructor(private readonly http: HttpClient,
-              private readonly jwtService: JwtService,
-              private interceptor: HttpInterceptor) {
+    private readonly jwtService: JwtService,
+    private interceptor: HttpInterceptor) {
     http.configure((httpConfiguration) => {
       httpConfiguration
         .withInterceptor(interceptor);

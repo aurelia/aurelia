@@ -32,6 +32,6 @@ export default class BindingBehaviorGenerator {
     //
   }
 }
-`
+`;
   }
 }

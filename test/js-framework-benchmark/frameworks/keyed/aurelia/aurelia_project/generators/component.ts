@@ -38,13 +38,13 @@ export default class ElementGenerator {
     this.message = 'Hello world';
   }
 }
-`
+`;
   }
 
   generateHTMLSource(className) {
     return `<template>
   <h1>\${message}</h1>
 </template>
-`
+`;
   }
 }

@@ -64,11 +64,11 @@ export class Home {
         consideredActive: () => this.shownList === 'all' && !this.filterTag,
       },
     ], {
-        ul: 'nav nav-pills outline-active',
-        li: 'nav-item',
-        a: 'nav-link',
-        aActive: 'active',
-      });
+      ul: 'nav nav-pills outline-active',
+      li: 'nav-item',
+      a: 'nav-link',
+      aActive: 'active',
+    });
   }
 
   public setListTo(type: string, tag: string) {

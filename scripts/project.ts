@@ -97,7 +97,7 @@ export default {
       npm: kebabName === 'aurelia' ? 'aurelia' : `@aurelia/${kebabName}`,
       namespace: 'au',
       iife: `au.${camelName}`,
-    }
+    };
     return { path, node_modules, coverage, tsconfig, changelog, src, test, dist, name };
   }),
   'scripts': {

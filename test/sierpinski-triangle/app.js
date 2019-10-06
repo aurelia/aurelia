@@ -71,7 +71,7 @@ new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
         attached() {
           this.tick0();
           this.intervalID = setInterval(this.tick0, 1000);
-          this.lifecycle.enqueueRAF(this.tick, this, Priority.preempt)
+          this.lifecycle.enqueueRAF(this.tick, this, Priority.preempt);
           this.fps = this.lifecycle.minFPS = 45;
         }
 

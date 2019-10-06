@@ -243,7 +243,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
       function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null): Statement[] {
         if (tag.hasReplaceable) {
-          markup = `<${tag.name} replaceable part="part1"></${tag.name}><${tag.name} replaceable part="part2"></${tag.name}>`
+          markup = `<${tag.name} replaceable part="part1"></${tag.name}><${tag.name} replaceable part="part2"></${tag.name}>`;
         }
         return [
           $$const(tag.elName, $call('CustomElement.define', [
@@ -266,6 +266,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           $$call('au.register', [tag.elName])
         ];
       }
+      // eslint-disable-next-line sonarjs/no-collapsible-if
       if (tag.isCustom) {
         if (ifText.static || elseText.static) {
           continue;

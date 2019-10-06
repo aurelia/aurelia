@@ -13,8 +13,8 @@ export class Article {
   private slug: any;
 
   constructor(private readonly articleService: ArticleService,
-              private readonly commentService: CommentService,
-              private readonly sharedState: SharedState) {
+    private readonly commentService: CommentService,
+    private readonly sharedState: SharedState) {
   }
 
   public async enter(params: { slug: any; }) {

@@ -94,7 +94,7 @@ export default {
     const name = {
       kebab: kebabName,
       camel: camelName,
-      npm: `@aurelia/${kebabName}`,
+      npm: kebabName === 'aurelia' ? 'aurelia' : `@aurelia/${kebabName}`,
       namespace: 'au',
       iife: `au.${camelName}`,
     }

@@ -106,7 +106,6 @@ export class Renderer implements IRenderer {
     return Registration.singleton(IRenderer, this).register(container);
   }
 
-  // tslint:disable-next-line:parameters-max-number
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
@@ -189,8 +188,8 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
       // todo: returns node sequences for fun?
       throw new Error('Not supported API');
     case 'view-model':
-        // this means it supports returning undefined
-        return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
+      // this means it supports returning undefined
+      return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
     default:
       const refTargetController = $auRefs[refTargetName];
       if (refTargetController === void 0) {

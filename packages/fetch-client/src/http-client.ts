@@ -50,7 +50,6 @@ export class HttpClient {
    */
   constructor(dom: HTMLDOM) {
     if (dom.window.fetch === undefined) {
-      // tslint:disable-next-line:max-line-length
       throw new Error('HttpClient requires a Fetch API implementation, but the current environment doesn\'t support it. You may need to load a polyfill such as https://github.com/github/fetch');
     }
     this.dom = dom;

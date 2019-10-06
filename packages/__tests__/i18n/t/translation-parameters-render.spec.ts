@@ -1,9 +1,8 @@
-// tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeBasicConfiguration, ICallBindingInstruction } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration, ICallBindingInstruction } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -72,7 +71,7 @@ describe('TranslationParametersBindingRenderer', function () {
 
   function setup() {
     const { container } = TestContext.createHTMLTestContext();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container as unknown as IRenderContext;
   }
 

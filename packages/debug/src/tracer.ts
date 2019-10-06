@@ -1,4 +1,4 @@
-import { ILiveLoggingOptions, ITraceInfo, ITraceWriter, PLATFORM, Reporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
+import { ILiveLoggingOptions, ITraceInfo, ITraceWriter, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '@aurelia/runtime';
 
 const marker: ITraceInfo = {
@@ -57,8 +57,8 @@ class TraceInfo implements ITraceInfo {
   }
 }
 
-export const Tracer: typeof RuntimeTracer = {
-  ...RuntimeTracer,
+export const DebugTracer: typeof Tracer = {
+  ...Tracer,
   /**
    * A convenience property for the user to conditionally call the tracer.
    * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
@@ -144,13 +144,13 @@ const defaultOptions: ILiveLoggingOptions = Object.freeze({
  * Writes out each trace info item as they are traced.
  * @param writer An object to write the output to.
  */
-function enableLiveLogging(this: typeof Tracer, writer: ITraceWriter): void;
+function enableLiveLogging(this: typeof DebugTracer, writer: ITraceWriter): void;
 /**
  * Writes out each trace info item as they are traced.
  * @param options Optional. Specify which logging categories to output. If omitted, all will be logged.
  */
-function enableLiveLogging(this: typeof Tracer, options?: ILiveLoggingOptions): void;
-function enableLiveLogging(this: typeof Tracer, optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void {
+function enableLiveLogging(this: typeof DebugTracer, options?: ILiveLoggingOptions): void;
+function enableLiveLogging(this: typeof DebugTracer, optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void {
   this.liveLoggingEnabled = true;
   if (optionsOrWriter && 'write' in optionsOrWriter) {
     this.liveWriter = optionsOrWriter;
@@ -333,7 +333,7 @@ const ObservationArgsProcessor = {
   callSource(info: ITraceInfo): string {
     switch (info.objName) {
       case 'Listener':
-        return ((info.params as ReadonlyArray<{ type: string }>)[0]).type;
+        return ((info.params as readonly { type: string }[])[0]).type;
       case 'CallBinding':
         const names: string[] = [];
         if (info.params != null) {
@@ -348,7 +348,7 @@ const ObservationArgsProcessor = {
   },
   setValue(info: ITraceInfo): string {
     let valueText: string;
-    const value = (info.params as ReadonlyArray<unknown>)[0];
+    const value = (info.params as readonly unknown[])[0];
     switch (typeof value) {
       case 'undefined':
         valueText = 'undefined';
@@ -393,7 +393,7 @@ const AttachingArgsProcessor = {
     return flagsText(info);
   },
   hold(info: ITraceInfo): string {
-    return `Node{'${((info.params as ReadonlyArray<{ textContent: string }>)[0]).textContent}'}`;
+    return `Node{'${((info.params as readonly { textContent: string }[])[0]).textContent}'}`;
   },
   release(info: ITraceInfo): string {
     return flagsText(info);
@@ -546,11 +546,11 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.fromCache) { flagNames.push('fromCache'); }
   if (flags & LifecycleFlags.fromDOMEvent) { flagNames.push('fromDOMEvent'); }
   if (flags & LifecycleFlags.fromLifecycleTask) { flagNames.push('fromLifecycleTask'); }
-  if (flags & LifecycleFlags.parentUnmountQueued) { flagNames.push('parentUnmountQueued'); }
   if (flags & LifecycleFlags.isTraversingParentScope) { flagNames.push('isTraversingParentScope'); }
   if (flags & LifecycleFlags.allowParentScopeTraversal) { flagNames.push('allowParentScopeTraversal'); }
   if (flags & LifecycleFlags.getterSetterStrategy) { flagNames.push('getterSetterStrategy'); }
   if (flags & LifecycleFlags.proxyStrategy) { flagNames.push('proxyStrategy'); }
+  if (flags & LifecycleFlags.secondaryExpression) { flagNames.push('secondaryExpression'); }
 
   if (flagNames.length === 0) {
     return 'none';

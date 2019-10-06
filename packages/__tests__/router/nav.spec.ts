@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration } from '@aurelia/router';
+import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -68,7 +68,7 @@ describe('Nav', function () {
   it('generates nav with an active link', async function () {
     this.timeout(5000);
     const { host, router, tearDown } = await setup('bar');
-    router.activeComponents = ['baz@main-viewport'];
+    router.activeComponents = [new ViewportInstruction('baz', 'main-viewport')];
     await waitForNavigation(router);
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     //assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
@@ -78,7 +78,7 @@ describe('Nav', function () {
   it('generates nav with child links', async function () {
     this.timeout(5000);
     const { host, router, tearDown } = await setup('qux');
-    router.activeComponents = ['baz@main-viewport'];
+    router.activeComponents =[new ViewportInstruction('baz', 'main-viewport')];
     await waitForNavigation(router);
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);

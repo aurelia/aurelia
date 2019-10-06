@@ -12,7 +12,7 @@
     "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
-    "@aurelia/jit-html-browser": "dev"
+    "aurelia": "dev"
   },
   "devDependencies": {
     "http-server": "latest"

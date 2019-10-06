@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { IExpressionParser, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { IExpressionParser, RuntimeConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -85,17 +85,17 @@ export const DefaultBindingLanguage = [
 
 /**
  * A DI configuration object containing runtime/environment-agnostic registrations:
- * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultBindingSyntax`
  * - `DefaultBindingLanguage`
  */
-export const BasicConfiguration = {
+export const JitConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeBasicConfiguration
+    return RuntimeConfiguration
       .register(container)
       .register(
         ...DefaultComponents,

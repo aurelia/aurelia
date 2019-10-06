@@ -10,7 +10,6 @@ import {
   Writable,
   PLATFORM
 } from '@aurelia/kernel';
-
 import {
   buildTemplateDefinition,
   ITemplateDefinition,
@@ -98,7 +97,7 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     const description = buildTemplateDefinition(Type, nameOrDefinition);
 
     WritableType.kind = CustomElement;
-    Type.description = description;WritableType
+    Type.description = description;
     WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
@@ -115,7 +114,7 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
 
 export interface ICustomElementDecorator {
   // Using a type breaks syntax highlighting: https://github.com/Microsoft/TypeScript-TmLanguage/issues/481
-  // tslint:disable-next-line:callable-types
+  // eslint-disable-next-line @typescript-eslint/prefer-function-type
   <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }
 

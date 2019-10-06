@@ -6,7 +6,6 @@ import {
   PLATFORM,
   Registration,
 } from '@aurelia/kernel';
-
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import {
@@ -105,8 +104,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public key?: string;
   public readonly noProxy: true;
 
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController<T>;
+  public $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask;
 

@@ -8,7 +8,6 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-
 import {
   CompiledTemplate,
   DOM,
@@ -144,8 +143,8 @@ export class HTMLDOM implements IDOM {
     return this.window.fetch(input, init);
   }
 
-  // tslint:disable-next-line:no-any // this is how the DOM is typed
-  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> { // this is how the DOM is typed
     return new this.CustomEvent(eventType, options);
   }
 
@@ -323,7 +322,7 @@ export class TextNodeSequence implements INodeSequence {
     }
   }
 }
-// tslint:enable:no-any
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // This is the most common form of INodeSequence.
 // Every custom element or template controller whose node sequence is based on an HTML template
@@ -356,7 +355,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
     this.dom = dom;
     this.fragment = fragment;
-    // tslint:disable-next-line:no-any
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;

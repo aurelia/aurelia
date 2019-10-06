@@ -6,18 +6,18 @@ describe.skip('ValueAttributeObserver', function () {
   const eventDefaults = { bubbles: true };
 
   for (const { inputType, nullValues, validValues } of [
-      { inputType: 'button',   nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'email',    nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'hidden',   nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'image',    nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'password', nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'reset',    nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'search',   nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'submit',   nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'tel',      nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'text',     nullValues: [null, undefined], validValues: ['', 'foo'] },
-      { inputType: 'url',      nullValues: [null, undefined], validValues: ['', 'foo'] }
-    ]) {
+    { inputType: 'button',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'email',    nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'hidden',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'image',    nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'password', nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'reset',    nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'search',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'submit',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'tel',      nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'text',     nullValues: [null, undefined], validValues: ['', 'foo'] },
+    { inputType: 'url',      nullValues: [null, undefined], validValues: ['', 'foo'] }
+  ]) {
     describe(`setValue() - type="${inputType}"`, function () {
       function setup(hasSubscriber: boolean) {
         const ctx = TestContext.createHTMLTestContext();
@@ -67,7 +67,7 @@ describe.skip('ValueAttributeObserver', function () {
                   [
                     [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
                   ],
-                 'subscriber.handleChange.calls',
+                  'subscriber.handleChange.calls',
                 );
               }
 
@@ -84,7 +84,7 @@ describe.skip('ValueAttributeObserver', function () {
                     [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
                     [expectedValueAfter, expectedValueBefore, LF.fromSyncFlush | LF.updateTargetInstance],
                   ],
-                 'subscriber.handleChange.calls',
+                  'subscriber.handleChange.calls',
                 );
               }
               if (hasSubscriber) {
@@ -141,7 +141,7 @@ describe.skip('ValueAttributeObserver', function () {
                   [
                     [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
                   ],
-                 'subscriber.handleChange.calls',
+                  'subscriber.handleChange.calls',
                 );
               }
 
@@ -157,7 +157,7 @@ describe.skip('ValueAttributeObserver', function () {
                     [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
                     [expectedValueAfter, expectedValueBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip],
                   ],
-                 'subscriber.handleChange.calls',
+                  'subscriber.handleChange.calls',
                 );
               }
               assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);

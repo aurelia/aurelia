@@ -1,8 +1,9 @@
+import { Readable, Writable } from 'stream';
 import { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { plugin } from '@aurelia/plugin-gulp';
 import { assert } from '@aurelia/testing';
-import { Readable, Writable } from 'stream';
 import * as v from 'vinyl';
+
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 

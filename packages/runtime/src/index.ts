@@ -339,7 +339,7 @@ export {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  RuntimeBasicConfiguration
+  RuntimeConfiguration
 } from './configuration';
 export {
   AttributeDefinition,
@@ -485,7 +485,6 @@ export {
 } from './renderer';
 export {
   CompiledTemplate,
-  createRenderContext,
   ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
@@ -496,3 +495,6 @@ export {
   ITemplateFactory,
   ViewCompileFlags,
 } from './rendering-engine';
+export {
+  RenderContext,
+} from './render-context';

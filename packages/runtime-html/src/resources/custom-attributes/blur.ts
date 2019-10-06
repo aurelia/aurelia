@@ -26,8 +26,8 @@ const blurDocMap = new WeakMap<Document, BlurManager>();
 
 export class BlurManager {
 
-  private blurs: Blur[];
-  private handler: EventListenerObject;
+  private readonly blurs: Blur[];
+  private readonly handler: EventListenerObject;
 
   private constructor(
     public readonly dom: HTMLDOM,
@@ -137,7 +137,7 @@ export class Blur {
    * Manager of this custom attribute to centralize listeners
    * @internal No need to expose BlurManager
    */
-  private manager: BlurManager;
+  private readonly manager: BlurManager;
 
   constructor(
     @INode private readonly element: HTMLElement,
@@ -175,7 +175,6 @@ export class Blur {
     }
   }
 
-  // tslint:disable-next-line:cognitive-complexity
   public contains(target: Element): boolean {
     if (!this.value) {
       return false;

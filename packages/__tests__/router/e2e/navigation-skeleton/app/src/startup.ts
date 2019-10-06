@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 import { ChildRouter } from './child-router';
@@ -11,7 +11,7 @@ import { State } from './state';
 import { Users } from './users';
 import { UpperValueConverter, Welcome } from './welcome';
 
-const container = BasicConfiguration.createContainer();
+const container = JitHtmlBrowserConfiguration.createContainer();
 
 container.register(
   App as any,

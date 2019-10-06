@@ -223,7 +223,7 @@ describe('dependency injection', function () {
 //   it.skip('if', () => {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
-//     const container = BasicConfiguration.createContainer();
+//     const container = JitHtmlBrowserConfiguration.createContainer();
 //     const dom = new HTMLDOM(document);
 //     Registration.instance(IDOM, dom).register(container, IDOM);
 //     const host = document.createElement('div');

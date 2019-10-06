@@ -1,5 +1,4 @@
 import { nextId } from '@aurelia/kernel';
-
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { IController, IViewFactory } from '../../lifecycle';
@@ -12,8 +11,8 @@ export class Replaceable<T extends INode = INode> {
 
   public readonly view: IController<T>;
 
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
   constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,

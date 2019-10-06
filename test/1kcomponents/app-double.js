@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -257,14 +257,14 @@ function defineApp(fps, count) {
   );
 }
 
-new Aurelia().register(BasicConfiguration, { register }).app(
+new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app-left'),
     component: defineApp(5, 2000)
   }
 ).start();
 
-new Aurelia().register(BasicConfiguration, { register }).app(
+new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app-right'),
     component: defineApp(25, 1000)

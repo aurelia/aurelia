@@ -5,6 +5,7 @@ import {
   Priority,
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
+
 export class StyleAttributeAccessor implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
 
@@ -63,7 +64,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
       if (name.length === 0) {
         continue;
       }
-      styleTuples.push([name, pair[2]])
+      styleTuples.push([name, pair[2]]);
     }
     return styleTuples;
   }
@@ -87,7 +88,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     return styles;
   }
 
-  private getStyleTuplesFromArray(currentValue: Array<unknown>): [string, string][] {
+  private getStyleTuplesFromArray(currentValue: unknown[]): [string, string][] {
     const len = currentValue.length;
     if (len > 0) {
       const styles: [string, string][] = [];

@@ -26,7 +26,7 @@ Fortunately, there is a battle-tested solution to this problem. We can use a Dep
 An application typically has a single root-level DI container. To create a root container, call the `DI.createContainer()` method:
 
 ```typescript
-import { DI } from '@aurelia/kernel';
+import { DI } from 'aurelia';
 
 const container = DI.createContainer();
 ```
@@ -57,7 +57,7 @@ In this case we have a class that is designed to import files. In order to do it
 Decorators are an upcoming feature of EcmaScript and an experimental feature in TypeScript. If you want to use decorators in your project, you must first opt into them by adding `"experimentalDecorators": true` in the `compilerOptions` section of your `tsconfig.json` file. Once enabled, you can import the `@inject` decorator from this library and use it to declare injected dependencies. Here's the same example from above, written with a decorator:
 
 ```typescript
-import { inject } from '@aurelia/kernel';
+import { inject } from 'aurelia';
 
 @inject(FileReader, Logger)
 export class FileImporter {
@@ -72,7 +72,7 @@ This decorator simply creates a static `inject` property on the decorated class,
 If you have already opted into using TypeScript and decorators, you have an additional option available to you: decorator metadata. It's possible for the TypeScript compiler to emit metadata about the types of the constructor parameters automatically, as part of the build process, if a decorator is present. If this metadata is present, the DI container can use it instead of an explicit injection list. To enable this feature for the compiler, add `"emitDecoratorMetadata": true` in the `compilerOptions` section of your `tsconfig.json` file. With that in place, you can write the above code like this:
 
 ```typescript
-import { inject } from '@aurelia/kernel';
+import { inject } from 'aurelia';
 
 @inject()
 export class FileImporter {
@@ -96,7 +96,7 @@ If you have either of the above scenarios, you'll want to be sure to use an expl
 Internally, the DI Container figures out how to locate each dependency using a Resolver. Which resolver is used depends on if or how the dependency was registered. \(See below for information on registration.\) However, you can specify a special resolver when you declare your dependencies. For example, perhaps your application has an Inspector that is composed of Panel instances. You may want to inject the panels into the inspector. However, there isn't just one Panel, there are multiple different types of panels that implement the Panel interface. In this case, you'd want to use the `all` resolver. Here's what that would look like with a plain class:
 
 ```typescript
-import { all } from '@aurelia/kernel';
+import { all } from 'aurelia';
 
 export class Inspector {
   static inject = [all(Panel)];
@@ -107,7 +107,7 @@ export class Inspector {
 And with a decorator...
 
 ```typescript
-import { all } from '@aurelia/kernel';
+import { all } from 'aurelia';
 
 @inject(all(Panel))
 export class Inspector {
@@ -118,7 +118,7 @@ export class Inspector {
 In another scenario, you might have a dependency on a service that is expensive to create and that isn't always required, depending on what the user is doing with the app. In this case, you may want to lazily resolve the dependency when it's needed. For this, use the `lazy` resolver:
 
 ```typescript
-import { lazy } from '@aurelia/kernel';
+import { lazy } from 'aurelia';
 
 export class MyClass {
   static inject = [lazy(ExpensiveToCreateService)];
@@ -129,7 +129,7 @@ export class MyClass {
 And with a decorator...
 
 ```typescript
-import { lazy } from '@aurelia/kernel';
+import { lazy } from 'aurelia';
 
 @inject(lazy(ExpensiveToCreateService))
 export class MyClass {
@@ -197,7 +197,7 @@ Auto-registration works if everything is a singleton and you're using classes fo
 The primary API for registration is called `register` and it can be used in combination with the `Registration` DSL. Here's an example:
 
 ```typescript
-import { DI, Registration } from '@aurelia/kernel';
+import { DI, Registration } from 'aurelia';
 
 const container = DI.createContainer();
 container.register(
@@ -257,7 +257,7 @@ export interface IProfileService { ... }
 When this technique is used, TypeScript, based on usage, can determine in which scenarios you want to use the interface and in which you want to use the Symbol. So, it can completely understand this code:
 
 ```typescript
-import { Registration } from '@aurelia/kernel';
+import { Registration } from 'aurelia';
 
 const IProfileService = Symbol('IProfileService');
 interface IProfileService { ... }
@@ -283,7 +283,7 @@ container.register(
 Because this is such a handy capability of the compiler, the DI API provides a helper method with some benefits. We can optionally rework the above code to use this API like so:
 
 ```typescript
-import { DI } from '@aurelia/kernel';
+import { DI } from 'aurelia';
 
 export const IProfileService = DI.createInterface<IProfileService>();
 export interface IProfileService {
@@ -298,7 +298,7 @@ This is slightly more verbose, but it has the advantage that the symbol created 
 In many front-end scenarios, it's common to have a single default implementation of your interface, which you provide "out of the box". To facilitate this scenario, the `DI.createInterface()` method returns an `IDefaultableInterfaceSymbol`, exposing a method named `withDefault` that you can call to associate a default implementation with your interface. The consumer who sets up the container can still specify their own implementation of the interface at runtime, but if one is not provided, it will fallback to the default implementation specified through this method. This allows the container to use auto-registration with the symbols created by the `DI.createInterface()` helper.
 
 ```typescript
-import { DI } from '@aurelia/kernel';
+import { DI } from 'aurelia';
 
 export interface ITaskQueue {
     // ...api...

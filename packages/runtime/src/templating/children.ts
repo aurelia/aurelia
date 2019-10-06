@@ -2,8 +2,7 @@ import { Constructable } from '@aurelia/kernel';
 import { ChildrenObserverSource, IChildrenObserverDescription, ITemplateDefinition } from '../definitions';
 
 export type HasChildrenObservers = Pick<ITemplateDefinition, 'childrenObservers'>;
-export type ChildrenDecorator = <T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>
-  (target: T, prop: string) => void;
+export type ChildrenDecorator = <T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>(target: T, prop: string) => void;
 
 /**
  * Decorator: Specifies custom behavior for an array children property that synchronizes its items with child content nodes of the element.

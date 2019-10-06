@@ -8,7 +8,6 @@ describe('BrowserNavigator', function () {
   const callback = ((info) => {
     callbackCount++;
   });
-  interface MockWindow extends Window { }
   class MockWindow {
     public window: Window;
     public history: History;
@@ -225,7 +224,7 @@ describe('BrowserNavigator', function () {
         function (state) {
           instruction = state;
         },
-        useUrlFragmentHash: false,
+      useUrlFragmentHash: false,
     });
 
     await sut.pushNavigatorState(toNavigatorState('one'));

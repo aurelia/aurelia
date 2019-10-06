@@ -25,9 +25,7 @@ checks:
 # Method complexity (= cognitive complexity)
 # Functions or methods that may be hard to understand
   method-complexity:
-    enabled: true
-    config:
-      treshold: 15 # default 5
+    enabled: false
 # Method count
 # Classes defined with a high number of functions or methods
   method-count:
@@ -39,7 +37,7 @@ checks:
   method-lines:
     enabled: true
     config:
-      treshold: 25 # default 25
+      treshold: 200 # default 25
 # Nested control flow
 # Deeply nested control structures like if or case
   nested-control-flow:

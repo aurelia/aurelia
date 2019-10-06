@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { register } from '@aurelia/plugin-svg';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -6,14 +6,14 @@ import { Cursor } from './cursor';
 
 startFPSMonitor();
 startMemMonitor();
-        
+
 const COUNT = 200;
 const LOOPS = 6;
 
 try {
   new Aurelia()
     .register(
-      BasicConfiguration,
+      JitHtmlBrowserConfiguration,
       { register }
     )
     .app({

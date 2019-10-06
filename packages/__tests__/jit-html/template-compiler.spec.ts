@@ -1114,7 +1114,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-            // @ts-ignore
+          // @ts-ignore
           const actual = sut.compile(dom, input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();

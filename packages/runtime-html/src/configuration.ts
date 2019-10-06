@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { RuntimeConfiguration } from '@aurelia/runtime';
 import { HTMLTemplateFactory } from './dom';
 import {
   AttributeBindingRenderer,
@@ -80,17 +80,17 @@ export const DefaultRenderers = [
 
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-export const BasicConfiguration = {
+export const RuntimeHtmlConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeBasicConfiguration
+    return RuntimeConfiguration
       .register(container)
       .register(
         ...DefaultComponents,

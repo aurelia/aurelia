@@ -21,6 +21,10 @@ export {
 } from './guardian';
 
 export {
+  InstructionResolver,
+} from './instruction-resolver';
+
+export {
   GuardFunction,
   GuardTarget,
   INavigatorInstruction,
@@ -30,6 +34,11 @@ export {
   NavigationInstruction,
   ReentryBehavior,
 } from './interfaces';
+
+export {
+  lifecycleLogger,
+  LifecycleClass,
+} from './lifecycle-logger';
 
 export {
   INavRoute,
@@ -82,12 +91,6 @@ export {
   IRouter,
   Router,
 } from './router';
-
-export {
-  IFindViewportsResult,
-  ChildContainer,
-  Scope,
-} from './scope';
 
 export {
   IViewportOptions,

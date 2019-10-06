@@ -3,6 +3,7 @@
   "version": "0.3.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -26,9 +27,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "tslint --project tsconfig.json -t stylish",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-svg",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-svg",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
@@ -42,9 +43,6 @@
   "devDependencies": {
     "@types/node": "^10.14.13",
     "tslib": "^1.10.0",
-    "tslint": "^5.19.0",
-    "tslint-microsoft-contrib": "^6.2.0",
-    "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.3"
   }
 }

@@ -27,6 +27,8 @@ describe('translation-integration', function () {
       custom_interpolation_brace: 'delivered on {date}',
       custom_interpolation_es6_syntax: 'delivered on ${date}',
 
+      interpolation_greeting: 'hello {{name}}',
+
       itemWithCount: '{{count}} item',
       itemWithCount_plural: '{{count}} items',
 
@@ -51,6 +53,8 @@ describe('translation-integration', function () {
       status_delivered: 'geliefert am {{date}}',
       custom_interpolation_brace: 'geliefert am {date}',
       custom_interpolation_es6_syntax: 'geliefert am ${date}',
+
+      interpolation_greeting: 'Hallo {{name}}',
 
       itemWithCount: '{{count}} Artikel',
       itemWithCount_plural: '{{count}} Artikel',
@@ -168,15 +172,20 @@ describe('translation-integration', function () {
       <span id="i18n-interpolation" t="status_delivered" t-params.bind="{date: deliveredOn}"></span>
       <span id="i18n-interpolation-custom" t="custom_interpolation_brace" t-params.bind="{date: deliveredOn, interpolation: { prefix: '{', suffix: '}' }}"></span>
       <span id="i18n-interpolation-es6" t="custom_interpolation_es6_syntax" t-params.bind="{date: deliveredOn, interpolation: { prefix: '\${', suffix: '}' }}"></span>
+      <span id="i18n-interpolation-string-direct" t="interpolation_greeting" t-params.bind="nameParams"></span>
+      <span id="i18n-interpolation-string-obj" t="interpolation_greeting" t-params.bind="{name: name}"></span>
 
       <span id="i18n-items-plural-0"  t="itemWithCount" t-params.bind="{count: 0}"></span>
       <span id="i18n-items-plural-1"  t="itemWithCount" t-params.bind="{count: 1}"></span>
       <span id="i18n-items-plural-10" t="itemWithCount" t-params.bind="{count: 10}"></span>`
+
       })
       class App {
         public dispatchedOn = new Date(2020, 1, 10, 5, 15);
         public deliveredOn = new Date(2021, 1, 10, 5, 15);
         public tParams = { context: 'dispatched', date: this.dispatchedOn };
+        public name = 'john';
+        public nameParams = {name: this.name};
       }
       const host = DOM.createElement('app');
       const app = new App();
@@ -187,6 +196,13 @@ describe('translation-integration', function () {
     it('works when a vm property is bound as t-params', async function () {
       const { host, translation, app } = await suiteSetup();
       assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
+    });
+
+    it('works when a vm property is bound as t-params and changes', async function () {
+      const { host, translation, app } = await suiteSetup();
+      assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
+      app.tParams = {context: 'dispatched', date: new Date(2020, 2, 10, 5, 15)};
+      assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.tParams.date.toString()));
     });
 
     it('works for context-sensitive translations', async function () {
@@ -200,6 +216,23 @@ describe('translation-integration', function () {
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-custom', translation.custom_interpolation_brace.replace('{date}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace('${date}', app.deliveredOn.toString()));
+    });
+
+    it('works for interpolation when the interpolation changes', async function () {
+      const { host, translation, app } = await suiteSetup();
+      assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
+      app.deliveredOn = new Date(2022, 1, 10, 5, 15);
+      assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
+    });
+
+    it('works for interpolation when a string changes', async function () {
+      const { host, translation, app } = await suiteSetup();
+      assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', app.name));
+      assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', app.name));
+      app.name = 'Jane';
+      app.nameParams = {name: 'Jane'};
+      assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', app.name));
+      assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', app.name));
     });
 
     it('works for pluralization', async function () {
@@ -271,7 +304,7 @@ describe('translation-integration', function () {
     ` })
     class App {
       private readonly obj = { key1: 'simple.text', key2: 'simple.attr' };
-      private readonly status = 'dispatched'
+      private readonly status = 'dispatched';
     }
 
     const host = DOM.createElement('app');
@@ -1053,7 +1086,7 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`nf` binding-behavior', function () {
@@ -1128,7 +1161,7 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`rt` value-converter', function () {

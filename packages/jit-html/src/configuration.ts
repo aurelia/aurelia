@@ -4,7 +4,7 @@ import {
   DefaultComponents as JitDefaultComponents
 } from '@aurelia/jit';
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { BasicConfiguration as RuntimeHtmlBasicConfiguration } from '@aurelia/runtime-html';
+import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import {
   AttrAttributePattern,
   ClassAttributePattern,
@@ -71,19 +71,19 @@ export const DefaultBindingLanguage = [
 
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents` from `@aurelia/jit`
  * - `DefaultBindingSyntax` from `@aurelia/jit`
  * - `DefaultBindingLanguage` from `@aurelia/jit`
  * - `DefaultComponents`
  * - `DefaultBindingLanguage`
  */
-export const BasicConfiguration = {
+export const JitHtmlConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeHtmlBasicConfiguration
+    return RuntimeHtmlConfiguration
       .register(container)
       .register(
         ...JitDefaultComponents,

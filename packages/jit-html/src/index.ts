@@ -25,7 +25,7 @@ export {
 
   DefaultBindingLanguage,
 
-  BasicConfiguration
+  JitHtmlConfiguration
 } from './configuration';
 export {
   stringifyDOM,

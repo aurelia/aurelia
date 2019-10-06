@@ -1,69 +1,69 @@
-// tslint:disable:quotemark member-access no-all-duplicated-branches
+/* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
 import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, assert, h } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
-    function setup() {
-        const ctx = TestContext.createHTMLTestContext();
-        const au = new Aurelia(ctx.container);
-        const host = ctx.createElement("div");
-        return { au, host };
-    }
-    it("10 _", function () {
-        const { au, host } = setup();
-        const App = CustomElement.define(
-          {
-            name: "app",
-            template: `<div repeat.for="i of items">\${i}</div>`
-          },
-          class {
-            items = [1, 0]
-          }
-        );
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        assert.strictEqual(host.textContent, '10');
-        component.items.sort();
-        assert.strictEqual(host.textContent, '01');
-    });
-    it("01 _", function () {
-        const { au, host } = setup();
-        const App = CustomElement.define(
-          {
-            name: "app",
-            template: `<div repeat.for="i of items">\${i}</div>`
-          },
-          class {
-            items = [0, 1]
-          }
-        );
-        const component = new App();
-        au.app({ host, component });
-        au.start();
-        assert.strictEqual(host.textContent, '01');
-        component.items.sort();
-        assert.strictEqual(host.textContent, '01');
-    });
+  function setup() {
+    const ctx = TestContext.createHTMLTestContext();
+    const au = new Aurelia(ctx.container);
+    const host = ctx.createElement("div");
+    return { au, host };
+  }
+  it("10 _", function () {
+    const { au, host } = setup();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `<div repeat.for="i of items">\${i}</div>`
+      },
+      class {
+        items = [1, 0];
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    au.start();
+    assert.strictEqual(host.textContent, '10');
+    component.items.sort();
+    assert.strictEqual(host.textContent, '01');
+  });
+  it("01 _", function () {
+    const { au, host } = setup();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `<div repeat.for="i of items">\${i}</div>`
+      },
+      class {
+        items = [0, 1];
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    au.start();
+    assert.strictEqual(host.textContent, '01');
+    component.items.sort();
+    assert.strictEqual(host.textContent, '01');
+  });
 
 
-    it("012 _", function () {
-      const { au, host } = setup();
-      const App = CustomElement.define(
-        {
-          name: "app",
-          template: `<div repeat.for="i of items">\${i}</div>`
-        },
-        class {
-          items = [0, 1, 2]
-        }
-      );
-      const component = new App();
-      au.app({ host, component });
-      au.start();
-      assert.strictEqual(host.textContent, '012');
-      component.items.sort();
-      assert.strictEqual(host.textContent, '012');
+  it("012 _", function () {
+    const { au, host } = setup();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `<div repeat.for="i of items">\${i}</div>`
+      },
+      class {
+        items = [0, 1, 2];
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    au.start();
+    assert.strictEqual(host.textContent, '012');
+    component.items.sort();
+    assert.strictEqual(host.textContent, '012');
   });
   it("021 _", function () {
     const { au, host } = setup();
@@ -73,7 +73,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 2, 1]
+        items = [0, 2, 1];
       }
     );
     const component = new App();
@@ -91,7 +91,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 0, 2]
+        items = [1, 0, 2];
       }
     );
     const component = new App();
@@ -109,7 +109,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 2, 0]
+        items = [1, 2, 0];
       }
     );
     const component = new App();
@@ -127,7 +127,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 0, 1]
+        items = [2, 0, 1];
       }
     );
     const component = new App();
@@ -145,7 +145,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 1, 0]
+        items = [2, 1, 0];
       }
     );
     const component = new App();
@@ -165,7 +165,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 1, 2, 3]
+        items = [0, 1, 2, 3];
       }
     );
     const component = new App();
@@ -183,7 +183,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 1, 3, 2]
+        items = [0, 1, 3, 2];
       }
     );
     const component = new App();
@@ -201,7 +201,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 2, 1, 3]
+        items = [0, 2, 1, 3];
       }
     );
     const component = new App();
@@ -219,7 +219,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 2, 3, 1]
+        items = [0, 2, 3, 1];
       }
     );
     const component = new App();
@@ -237,7 +237,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 3, 1, 2]
+        items = [0, 3, 1, 2];
       }
     );
     const component = new App();
@@ -255,7 +255,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [0, 3, 2, 1]
+        items = [0, 3, 2, 1];
       }
     );
     const component = new App();
@@ -273,7 +273,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 0, 2, 3]
+        items = [1, 0, 2, 3];
       }
     );
     const component = new App();
@@ -291,7 +291,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 0, 3, 2]
+        items = [1, 0, 3, 2];
       }
     );
     const component = new App();
@@ -309,7 +309,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 2, 0, 3]
+        items = [1, 2, 0, 3];
       }
     );
     const component = new App();
@@ -327,7 +327,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 2, 3, 0]
+        items = [1, 2, 3, 0];
       }
     );
     const component = new App();
@@ -345,7 +345,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 3, 0, 2]
+        items = [1, 3, 0, 2];
       }
     );
     const component = new App();
@@ -363,7 +363,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [1, 3, 2, 0]
+        items = [1, 3, 2, 0];
       }
     );
     const component = new App();
@@ -381,7 +381,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 0, 1, 3]
+        items = [2, 0, 1, 3];
       }
     );
     const component = new App();
@@ -399,7 +399,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 0, 3, 1]
+        items = [2, 0, 3, 1];
       }
     );
     const component = new App();
@@ -417,7 +417,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 1, 0, 3]
+        items = [2, 1, 0, 3];
       }
     );
     const component = new App();
@@ -435,7 +435,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 1, 3, 0]
+        items = [2, 1, 3, 0];
       }
     );
     const component = new App();
@@ -453,7 +453,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 3, 0, 1]
+        items = [2, 3, 0, 1];
       }
     );
     const component = new App();
@@ -471,7 +471,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [2, 3, 1, 0]
+        items = [2, 3, 1, 0];
       }
     );
     const component = new App();
@@ -489,7 +489,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [3, 0, 1, 2]
+        items = [3, 0, 1, 2];
       }
     );
     const component = new App();
@@ -507,7 +507,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [3, 0, 2, 1]
+        items = [3, 0, 2, 1];
       }
     );
     const component = new App();
@@ -525,7 +525,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [3, 1, 0, 2]
+        items = [3, 1, 0, 2];
       }
     );
     const component = new App();
@@ -543,7 +543,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [3, 1, 2, 0]
+        items = [3, 1, 2, 0];
       }
     );
     const component = new App();
@@ -561,7 +561,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [3, 2, 0, 1]
+        items = [3, 2, 0, 1];
       }
     );
     const component = new App();
@@ -579,7 +579,7 @@ describe("generated.template-compiler.repeat", function () {
         template: `<div repeat.for="i of items">\${i}</div>`
       },
       class {
-        items = [3, 2, 1, 0]
+        items = [3, 2, 1, 0];
       }
     );
     const component = new App();

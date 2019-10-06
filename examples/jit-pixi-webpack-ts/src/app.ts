@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
 import template from './app.html';
 import { loader } from 'pixi.js';
 

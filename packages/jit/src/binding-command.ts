@@ -15,7 +15,6 @@ import {
   ITargetedInstruction,
   registerAliases
 } from '@aurelia/runtime';
-
 import {
   BindingSymbol,
   PlainAttributeSymbol,
@@ -29,7 +28,7 @@ export interface IBindingCommand {
 
 type BindingCommandStaticProperties = Required<Pick<IBindingCommandDefinition, 'aliases'>>;
 export interface IBindingCommandDefinition extends IResourceDefinition {
-  type?: string | null
+  type?: string | null;
 }
 
 export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>>, BindingCommandStaticProperties { }

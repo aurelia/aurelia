@@ -1,5 +1,4 @@
 import { IServiceLocator } from '@aurelia/kernel';
-
 import {
   IExpression,
   IInterpolationExpression,
@@ -116,7 +115,6 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   public targetObserver: IBindingTargetAccessor;
 
-  // tslint:disable-next-line:parameters-max-number
   constructor(
     sourceExpression: IExpression,
     interpolation: IInterpolationExpression,

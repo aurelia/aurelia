@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { ILifecycle, Priority } from '@aurelia/runtime';
 
 export interface QueueItem<T> {
@@ -68,7 +69,6 @@ export class Queue<T> {
     for (const item of items) {
       const qItem: QueueItem<T> = { ...item };
       qItem.cost = costs.shift();
-      // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise((resolve, reject) => {
         qItem.resolve = () => {
           resolve();

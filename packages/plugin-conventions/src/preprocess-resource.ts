@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
@@ -152,11 +152,11 @@ function captureImport(s: ts.Statement, lib: string, code: string): ICapturedImp
       s.importClause &&
       s.importClause.namedBindings &&
       ts.isNamedImports(s.importClause.namedBindings)) {
-        return {
-          names: s.importClause.namedBindings.elements.map(e => e.name.text),
-          start: ensureTokenStart(s.pos, code),
-          end: s.end
-        };
+    return {
+      names: s.importClause.namedBindings.elements.map(e => e.name.text),
+      start: ensureTokenStart(s.pos, code),
+      end: s.end
+    };
   }
 }
 

@@ -3,7 +3,6 @@ import {
   kebabCase,
   Reporter,
 } from '@aurelia/kernel';
-
 import {
   BindableSource,
   IBindableDescription,
@@ -114,5 +113,4 @@ export const Bindable = {
 };
 
 export type WithBindables = { bindables: Record<string, IBindableDescription> | string[] };
-export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>
-  (target: T, prop: string) => void;
+export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string) => void;

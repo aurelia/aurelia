@@ -7,7 +7,6 @@ import {
   toArray,
   Tracer
 } from '@aurelia/kernel';
-
 import {
   CustomElementHost,
   IController,
@@ -54,6 +53,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
   public shadowRoot: CustomElementHost<ShadowRoot>;
   public dom: IDOM<Node>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller: IController<Node>;
 
   constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
@@ -108,7 +108,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 export class ContainerlessProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  private readonly childNodes: ReadonlyArray<CustomElementHost<Node>>;
+  private readonly childNodes: readonly CustomElementHost<Node>[];
 
   constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
     if (host.childNodes.length) {

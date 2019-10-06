@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { ModifyCodeResult } from 'modify-code';
 import * as path from 'path';
+import { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
 import { preprocessHtmlTemplate } from './preprocess-html-template';
 import { preprocessResource } from './preprocess-resource';
@@ -60,7 +60,6 @@ export function preprocess(
 
 function fileExists(p: string): boolean {
   try {
-    // tslint:disable-next-line:non-literal-fs-path
     const stats = fs.statSync(p);
     return stats.isFile();
   } catch (e) {

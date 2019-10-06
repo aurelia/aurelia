@@ -1,7 +1,9 @@
 {
   "files": [],
   "references": [
+    { "path": "__e2e__" },
     { "path": "__tests__" },
+    { "path": "aurelia" },
     { "path": "kernel" },
     { "path": "runtime" },
     { "path": "runtime-html" },

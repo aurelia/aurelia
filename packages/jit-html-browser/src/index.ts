@@ -8,25 +8,25 @@ import {
   DefaultComponents as JitHtmlDefaultComponents
 } from '@aurelia/jit-html';
 import { DI, IContainer, Profiler } from '@aurelia/kernel';
-import { BasicConfiguration as RuntimeHtmlBrowserBasicConfiguration } from '@aurelia/runtime-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 
-const { enter, leave } = Profiler.createTimer('BasicConfiguration');
+const { enter, leave } = Profiler.createTimer('JitHtmlBrowserConfiguration');
 
 /**
  * A DI configuration object containing html-specific, browser-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html-browser`
+ * - `RuntimeHtmlBrowserConfiguration` from `@aurelia/runtime-html-browser`
  * - `DefaultComponents` from `@aurelia/jit`
  * - `DefaultBindingSyntax` from `@aurelia/jit`
  * - `DefaultBindingLanguage` from `@aurelia/jit`
  * - `DefaultComponents` from `@aurelia/jit-html`
  * - `DefaultBindingLanguage` from `@aurelia/jit-html`
  */
-export const BasicConfiguration = {
+export const JitHtmlBrowserConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    RuntimeHtmlBrowserBasicConfiguration
+    RuntimeHtmlBrowserConfiguration
       .register(container)
       .register(
         ...JitDefaultBindingLanguage,

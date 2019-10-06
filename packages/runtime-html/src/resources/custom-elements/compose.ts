@@ -31,7 +31,6 @@ import {
   TargetedInstruction,
   TemplateDefinition,
 } from '@aurelia/runtime';
-
 import {
   createElement,
   RenderPlan,
@@ -63,7 +62,7 @@ export class Compose<T extends INode = Node> {
     surrogates: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[],
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     containerless: true,
-    // tslint:disable-next-line: no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     shadowOptions: null!,
     hasSlots: false,
     strategy: BindingStrategy.getterSetter,
@@ -86,8 +85,8 @@ export class Compose<T extends INode = Node> {
 
   private task: ILifecycleTask;
   private lastSubject?: MaybeSubjectPromise<T>;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
   constructor(
     dom: IDOM<T>,
@@ -106,15 +105,15 @@ export class Compose<T extends INode = Node> {
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
       .reduce<Record<string, TargetedInstruction>>(
-        (acc, item: ITargetedInstruction & { to?: string }) => {
-          if (item.to) {
-            acc[item.to!] = item! as TargetedInstruction;
-          }
+      (acc, item: ITargetedInstruction & { to?: string }) => {
+        if (item.to) {
+          acc[item.to!] = item! as TargetedInstruction;
+        }
 
-          return acc;
-        },
-        {}
-      );
+        return acc;
+      },
+      {}
+    );
 
     this.task = LifecycleTask.done;
     this.lastSubject = void 0;

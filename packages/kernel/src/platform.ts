@@ -1,17 +1,14 @@
 import { IPerformance, IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 
-// tslint:disable-next-line:no-redundant-jump
 function $noop(): void { return; }
 
-declare var process: { versions: { node: unknown } };
-declare var global: IWindowOrWorkerGlobalScope;
-declare var self: IWindowOrWorkerGlobalScope;
-declare var window: IWindowOrWorkerGlobalScope;
+declare let process: { versions: { node: unknown } };
+declare let global: IWindowOrWorkerGlobalScope;
+declare let self: IWindowOrWorkerGlobalScope;
+declare let window: IWindowOrWorkerGlobalScope;
 declare function setTimeout(handler: (...args: unknown[]) => void, timeout: number): unknown;
 
 const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalScope {
-  // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
-  // tslint:disable:no-typeof-undefined
   if (typeof global !== 'undefined') {
     return global as unknown as IWindowOrWorkerGlobalScope;
   }
@@ -21,14 +18,12 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
   if (typeof window !== 'undefined') {
     return window;
   }
-  // tslint:enable:no-typeof-undefined
   try {
     // Not all environments allow eval and Function. Use only as a last resort:
-    // tslint:disable-next-line:function-constructor
+    // eslint-disable-next-line no-new-func
     return new Function('return this')();
   } catch {
     // If all fails, give up and create an object.
-    // tslint:disable-next-line:no-object-literal-type-assertion
     return {} as IWindowOrWorkerGlobalScope;
   }
 })();
@@ -104,7 +99,7 @@ const {
   $getEntriesByType: IWindowOrWorkerGlobalScope['performance']['getEntriesByType'];
   $clearMarks: IWindowOrWorkerGlobalScope['performance']['clearMarks'];
   $clearMeasures: IWindowOrWorkerGlobalScope['performance']['clearMeasures'];
- } {
+} {
   if (
     $global.performance != null &&
     $global.performance.mark != null &&
@@ -357,12 +352,12 @@ const $PLATFORM = Object.freeze({
     $global.clearTimeout(handle);
   },
 
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
     return $global.setInterval(handler, timeout, ...args);
   },
 
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
     return $global.setTimeout(handler, timeout, ...args);
   },

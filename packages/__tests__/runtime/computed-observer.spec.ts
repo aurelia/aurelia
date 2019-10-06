@@ -7,7 +7,7 @@ import {
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags as LF,
-  RuntimeBasicConfiguration,
+  RuntimeConfiguration,
   ComputedOverrides,
   createComputedObserver
 } from '@aurelia/runtime';
@@ -18,13 +18,11 @@ import {
   assert,
 } from '@aurelia/testing';
 
-// tslint:disable:no-statements-same-line
-
-declare var document;
+declare let document;
 
 describe.skip('ComputedObserver', function () {
   function setup() {
-    const container = RuntimeBasicConfiguration.createContainer();
+    const container = RuntimeConfiguration.createContainer();
     const innerLocator = {
       handles() { return false; }
     };

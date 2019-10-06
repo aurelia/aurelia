@@ -40,7 +40,7 @@ function invokeHandler(handler: Handler, data: InstanceType<Constructable>): voi
 }
 
 // TODO: move this to a v1-compat package
-export interface Subscription extends IDisposable {}
+export interface Subscription extends IDisposable { }
 
 /**
  * Enables loosely coupled publish/subscribe messaging.
@@ -51,14 +51,15 @@ export type EventAggregatorCallback<T = any> = (data?: T, event?: string) => any
 
 export const IEventAggregator = DI.createInterface<IEventAggregator>('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
 export interface IEventAggregator {
-  publish(channel: string, data?: unknown): void;
-  subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
+  publish<T extends Constructable | string>(channelOrInstance: T extends Constructable ? InstanceType<T> : T, data?: unknown): void;
+  subscribe<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T extends Constructable ? InstanceType<T> : T>): IDisposable;
+  subscribeOnce<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T extends Constructable ? InstanceType<T> : T>): IDisposable;
 }
 
 /**
  * Enables loosely coupled publish/subscribe messaging.
  */
-export class EventAggregator {
+export class EventAggregator implements IEventAggregator {
   /** @internal */
   public readonly eventLookup: Record<string, EventAggregatorCallback[]>;
   /** @internal */
@@ -82,8 +83,8 @@ export class EventAggregator {
    * Publishes a message.
    * @param instance The instance to publish to.
    */
-  public publish(instance: InstanceType<Constructable>): void;
-  public publish(channelOrInstance: string | InstanceType<Constructable>, data?: unknown): void {
+  public publish<T extends Constructable>(instance: InstanceType<T>): void;
+  public publish<T extends Constructable | string>(channelOrInstance: T extends Constructable ? InstanceType<T> : T, data?: unknown): void {
     let subscribers: (EventAggregatorCallback | Handler)[];
     let i: number;
 

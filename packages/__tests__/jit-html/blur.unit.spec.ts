@@ -183,7 +183,6 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     it('does not call onBlur if value is not a function', function() {
-      // tslint:disable-next-line:prefer-const
       let { sut, dispose } = setup();
       const testValues = [true, 'a', 5, Symbol(), new Date(), null, undefined, {}, [], new Proxy({}, {})];
       let onBlurValue: any;
@@ -457,7 +456,6 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       linkedWith: string | Element | (string | Element)[];
       linkingContext: string | Element | null;
       blurHost: string | HTMLElement;
-      // tslint:disable:prefer-method-signature
       title: () => string;
       template: () => string;
       assertFn: (ctx: HTMLTestContext, host: HTMLElement, sut: Blur) => void | Promise<void>;

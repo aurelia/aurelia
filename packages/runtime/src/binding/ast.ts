@@ -6,7 +6,6 @@ import {
   Reporter,
   StrictPrimitive,
 } from '@aurelia/kernel';
-
 import {
   BinaryOperator,
   BindingIdentifierOrPattern,
@@ -112,7 +111,7 @@ export function hasUnbind(expr: IsExpressionOrStatement): expr is HasUnbind {
 export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
   return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
 }
-export function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement> | undefined): expressions is IsLiteral[] {
+export function arePureLiterals(expressions: readonly IsExpressionOrStatement[] | undefined): expressions is IsLiteral[] {
   if (expressions === void 0 || expressions.length === 0) {
     return true;
   }
@@ -162,10 +161,10 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public readonly $kind: ExpressionKind.BindingBehavior;
   public expression: IsBindingBehavior;
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
   public readonly behaviorKey: string;
 
-  constructor(expression: IsBindingBehavior, name: string, args: ReadonlyArray<IsAssign>) {
+  constructor(expression: IsBindingBehavior, name: string, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.BindingBehavior;
     this.expression = expression;
     this.name = name;
@@ -236,10 +235,10 @@ export class ValueConverterExpression implements IValueConverterExpression {
   public readonly $kind: ExpressionKind.ValueConverter;
   public readonly expression: IsValueConverter;
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
   public readonly converterKey: string;
 
-  constructor(expression: IsValueConverter, name: string, args: ReadonlyArray<IsAssign>) {
+  constructor(expression: IsValueConverter, name: string, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ValueConverter;
     this.expression = expression;
     this.name = name;
@@ -581,10 +580,10 @@ export class CallScopeExpression implements ICallScopeExpression {
   public readonly $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
   public readonly ancestor: number;
 
-  constructor(name: string, args: ReadonlyArray<IsAssign>, ancestor: number = 0) {
+  constructor(name: string, args: readonly IsAssign[], ancestor: number = 0) {
     this.$kind = ExpressionKind.CallScope;
     this.assign = PLATFORM.noop as () => unknown;
     this.name = name;
@@ -619,9 +618,9 @@ export class CallMemberExpression implements ICallMemberExpression {
   public assign: IExpression['assign'];
   public readonly object: IsLeftHandSide;
   public readonly name: string;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
 
-  constructor(object: IsLeftHandSide, name: string, args: ReadonlyArray<IsAssign>) {
+  constructor(object: IsLeftHandSide, name: string, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.CallMember;
     this.assign = PLATFORM.noop as () => unknown;
     this.object = object;
@@ -661,9 +660,9 @@ export class CallFunctionExpression implements ICallFunctionExpression {
   public readonly $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   public readonly func: IsLeftHandSide;
-  public readonly args: ReadonlyArray<IsAssign>;
+  public readonly args: readonly IsAssign[];
 
-  constructor(func: IsLeftHandSide, args: ReadonlyArray<IsAssign>) {
+  constructor(func: IsLeftHandSide, args: readonly IsAssign[]) {
     this.$kind = ExpressionKind.CallFunction;
     this.assign = PLATFORM.noop as () => unknown;
     this.func = func;
@@ -737,14 +736,14 @@ export class BinaryExpression implements IBinaryExpression {
     return this.left.evaluate(f, s, l, p) || this.right.evaluate(f, s, l, p);
   }
   private ['=='](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): boolean {
-    // tslint:disable-next-line:triple-equals
+    // eslint-disable-next-line eqeqeq
     return this.left.evaluate(f, s, l, p) == this.right.evaluate(f, s, l, p);
   }
   private ['==='](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): boolean {
     return this.left.evaluate(f, s, l, p) === this.right.evaluate(f, s, l, p);
   }
   private ['!='](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): boolean {
-    // tslint:disable-next-line:triple-equals
+    // eslint-disable-next-line eqeqeq
     return this.left.evaluate(f, s, l, p) != this.right.evaluate(f, s, l, p);
   }
   private ['!=='](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): boolean {
@@ -796,7 +795,6 @@ export class BinaryExpression implements IBinaryExpression {
     return (this.left.evaluate(f, s, l, p) as number) >= (this.right.evaluate(f, s, l, p) as number);
   }
 
-  // tslint:disable-next-line:member-ordering
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
   }
@@ -876,9 +874,9 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
 export class HtmlLiteralExpression implements IHtmlLiteralExpression {
   public readonly $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
-  public readonly parts: ReadonlyArray<HtmlLiteralExpression>;
+  public readonly parts: readonly HtmlLiteralExpression[];
 
-  constructor(parts: ReadonlyArray<HtmlLiteralExpression>) {
+  constructor(parts: readonly HtmlLiteralExpression[]) {
     this.$kind = ExpressionKind.HtmlLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
@@ -913,15 +911,15 @@ export class ArrayLiteralExpression implements IArrayLiteralExpression {
   public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
   public readonly $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
-  public readonly elements: ReadonlyArray<IsAssign>;
+  public readonly elements: readonly IsAssign[];
 
-  constructor(elements: ReadonlyArray<IsAssign>) {
+  constructor(elements: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ArrayLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.elements = elements;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): ReadonlyArray<unknown> {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): readonly unknown[] {
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -947,10 +945,10 @@ export class ObjectLiteralExpression implements IObjectLiteralExpression {
   public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
   public readonly $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
-  public readonly keys: ReadonlyArray<number | string>;
-  public readonly values: ReadonlyArray<IsAssign>;
+  public readonly keys: readonly (number | string)[];
+  public readonly values: readonly IsAssign[];
 
-  constructor(keys: ReadonlyArray<number | string>, values: ReadonlyArray<IsAssign>) {
+  constructor(keys: readonly (number | string)[], values: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ObjectLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.keys = keys;
@@ -984,10 +982,10 @@ export class TemplateExpression implements ITemplateExpression {
   public static readonly $empty: TemplateExpression = new TemplateExpression(['']);
   public readonly $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
-  public readonly cooked: ReadonlyArray<string>;
-  public readonly expressions: ReadonlyArray<IsAssign>;
+  public readonly cooked: readonly string[];
+  public readonly expressions: readonly IsAssign[];
 
-  constructor(cooked: ReadonlyArray<string>, expressions?: ReadonlyArray<IsAssign>) {
+  constructor(cooked: readonly string[], expressions?: readonly IsAssign[]) {
     this.$kind = ExpressionKind.Template;
     this.assign = PLATFORM.noop as () => unknown;
     this.cooked = cooked;
@@ -1021,11 +1019,11 @@ export class TemplateExpression implements ITemplateExpression {
 export class TaggedTemplateExpression implements ITaggedTemplateExpression {
   public readonly $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
-  public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> };
+  public readonly cooked: readonly string[] & { raw?: readonly string[] };
   public readonly func: IsLeftHandSide;
-  public readonly expressions: ReadonlyArray<IsAssign>;
+  public readonly expressions: readonly IsAssign[];
 
-  constructor(cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> }, raw: ReadonlyArray<string>, func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>) {
+  constructor(cooked: readonly string[] & { raw?: readonly string[] }, raw: readonly string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]) {
     this.$kind = ExpressionKind.TaggedTemplate;
     this.assign = PLATFORM.noop as () => unknown;
     this.cooked = cooked;
@@ -1063,10 +1061,10 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
 
 export class ArrayBindingPattern implements IArrayBindingPattern {
   public readonly $kind: ExpressionKind.ArrayBindingPattern;
-  public readonly elements: ReadonlyArray<IsAssign>;
+  public readonly elements: readonly IsAssign[];
 
   // We'll either have elements, or keys+values, but never all 3
-  constructor(elements: ReadonlyArray<IsAssign>) {
+  constructor(elements: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ArrayBindingPattern;
     this.elements = elements;
   }
@@ -1092,11 +1090,11 @@ export class ArrayBindingPattern implements IArrayBindingPattern {
 
 export class ObjectBindingPattern implements IObjectBindingPattern {
   public readonly $kind: ExpressionKind.ObjectBindingPattern;
-  public readonly keys: ReadonlyArray<string | number>;
-  public readonly values: ReadonlyArray<IsAssign>;
+  public readonly keys: readonly (string | number)[];
+  public readonly values: readonly IsAssign[];
 
   // We'll either have elements, or keys+values, but never all 3
-  constructor(keys: ReadonlyArray<string | number>, values: ReadonlyArray<IsAssign>) {
+  constructor(keys: readonly (string | number)[], values: readonly IsAssign[]) {
     this.$kind = ExpressionKind.ObjectBindingPattern;
     this.keys = keys;
     this.values = values;
@@ -1143,7 +1141,7 @@ export class BindingIdentifier implements IBindingIdentifier {
 }
 
 const toStringTag = Object.prototype.toString as {
-  call(obj: unknown): keyof typeof CountForOfStatement;
+  call(obj: unknown): keyof '[object Array]'|'[object Map]'|'[object Set]'|'[object Number]'|'[object Null]'|'[object Undefined]';
 };
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements
@@ -1166,11 +1164,27 @@ export class ForOfStatement implements IForOfStatement {
   }
 
   public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
-    return CountForOfStatement[toStringTag.call(result)](result as any);
+    switch (toStringTag.call(result)) {
+      case '[object Array]': return (result as unknown[]).length;
+      case '[object Map]': return (result as Map<unknown, unknown>).size;
+      case '[object Set]': return (result as Set<unknown>).size;
+      case '[object Number]': return result as number;
+      case '[object Null]': return 0;
+      case '[object Undefined]': return 0;
+      default: throw Reporter.error(0); // TODO: Set error code
+    }
   }
 
   public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result as any, func);
+    switch (toStringTag.call(result)) {
+      case '[object Array]': return $array(flags | LifecycleFlags.isOriginalArray, result as unknown[], func);
+      case '[object Map]': return $map(flags | LifecycleFlags.isOriginalArray, result as Map<unknown, unknown>, func);
+      case '[object Set]': return $set(flags | LifecycleFlags.isOriginalArray, result as Set<unknown>, func);
+      case '[object Number]': return $number(flags | LifecycleFlags.isOriginalArray, result as number, func);
+      case '[object Null]': return;
+      case '[object Undefined]': return;
+      default: throw Reporter.error(0); // TODO: Set error code
+    }
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -1203,11 +1217,11 @@ export class ForOfStatement implements IForOfStatement {
 export class Interpolation implements IInterpolationExpression {
   public readonly $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
-  public readonly parts: ReadonlyArray<string>;
-  public readonly expressions: ReadonlyArray<IsBindingBehavior>;
+  public readonly parts: readonly string[];
+  public readonly expressions: readonly IsBindingBehavior[];
   public readonly isMulti: boolean;
   public readonly firstExpression: IsBindingBehavior;
-  constructor(parts: ReadonlyArray<string>, expressions?: ReadonlyArray<IsBindingBehavior>) {
+  constructor(parts: readonly string[], expressions?: readonly IsBindingBehavior[]) {
     this.$kind = ExpressionKind.Interpolation;
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
@@ -1241,7 +1255,7 @@ export class Interpolation implements IInterpolationExpression {
 }
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: ReadonlyArray<IExpression>, part?: string): ReadonlyArray<IExpression> {
+function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: readonly IExpression[], part?: string): readonly IExpression[] {
   const len = list.length;
   const result = Array(len);
   for (let i = 0; i < len; ++i) {
@@ -1263,67 +1277,51 @@ function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...arg
 
 const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;
 
-/** @internal */
-export const IterateForOfStatement = {
-  ['[object Array]'](flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-    if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
-      // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-      // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-      // observers are explicitly created
-      const rawArray = ProxyObserver.getRawIfProxy(result);
-      const len = rawArray.length;
-      let item: unknown;
-      let i = 0;
-      for (; i < len; ++i) {
-        item = rawArray[i];
-        if (item instanceof Object) {
-          item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
-        }
-        func(rawArray, i, item);
+function $array(flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
+  if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
+    // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
+    // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
+    // observers are explicitly created
+    const rawArray = ProxyObserver.getRawIfProxy(result);
+    const len = rawArray.length;
+    let item: unknown;
+    let i = 0;
+    for (; i < len; ++i) {
+      item = rawArray[i];
+      if (item instanceof Object) {
+        item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
       }
-    } else {
-      for (let i = 0, ii = result.length; i < ii; ++i) {
-        func(result, i, result[i]);
-      }
+      func(rawArray, i, item);
     }
-  },
-  ['[object Map]'](flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
-    const arr = Array(result.size);
-    let i = -1;
-    for (const entry of result.entries()) {
-      arr[++i] = entry;
+  } else {
+    for (let i = 0, ii = result.length; i < ii; ++i) {
+      func(result, i, result[i]);
     }
-    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
-  },
-  ['[object Set]'](flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
-    const arr = Array(result.size);
-    let i = -1;
-    for (const key of result.keys()) {
-      arr[++i] = key;
-    }
-    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
-  },
-  ['[object Number]'](flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
-    const arr = Array(result);
-    for (let i = 0; i < result; ++i) {
-      arr[i] = i;
-    }
-    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
-  },
-  ['[object Null]'](flags: LifecycleFlags, result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
-    return;
-  },
-  ['[object Undefined]'](flags: LifecycleFlags, result: undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    return;
   }
 };
 
-/** @internal */
-export const CountForOfStatement = {
-  ['[object Array]'](result: unknown[]): number { return result.length; },
-  ['[object Map]'](result: Map<unknown, unknown>): number { return result.size; },
-  ['[object Set]'](result: Set<unknown>): number { return result.size; },
-  ['[object Number]'](result: number): number { return result; },
-  ['[object Null]'](result: null): number { return 0; },
-  ['[object Undefined]'](result: undefined): number { return 0; }
+function $map(flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  const arr = Array(result.size);
+  let i = -1;
+  for (const entry of result.entries()) {
+    arr[++i] = entry;
+  }
+  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+};
+
+function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  const arr = Array(result.size);
+  let i = -1;
+  for (const key of result.keys()) {
+    arr[++i] = key;
+  }
+  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+};
+
+function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
+  const arr = Array(result);
+  for (let i = 0; i < result; ++i) {
+    arr[i] = i;
+  }
+  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
 };

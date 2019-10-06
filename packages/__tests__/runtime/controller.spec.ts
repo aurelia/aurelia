@@ -2,7 +2,7 @@ import {
   Controller,
   LifecycleFlags as LF,
   ITemplateFactory,
-  createRenderContext,
+  RenderContext,
   Interpolation,
   AccessScopeExpression,
   CustomElement,
@@ -81,34 +81,34 @@ describe.skip('controller', function () {
 
     proto.created = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'created', ...args);
-    }
+    };
     proto.binding = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'binding', ...args);
-    }
+    };
     proto.bound = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'bound', ...args);
-    }
+    };
     proto.attaching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'attaching', ...args);
-    }
+    };
     proto.attached = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'attached', ...args);
-    }
+    };
     proto.detaching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'detaching', ...args);
-    }
+    };
     proto.caching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'caching', ...args);
-    }
+    };
     proto.detached = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'detached', ...args);
-    }
+    };
     proto.unbinding = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'unbinding', ...args);
-    }
+    };
     proto.unbound = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'unbound', ...args);
-    }
+    };
 
     return ctor as any;
   }
@@ -133,12 +133,12 @@ describe.skip('controller', function () {
               attribute: kebabCase(cur),
               callback: `${cur}Changed`,
               mode: BindingMode.oneTime,
-            })
+            });
             return acc;
           },
           {},
         )
-      ) as ReadonlyArray<string> & string[],
+      ) as readonly string[] & string[],
       instructions,
       dependencies: noDependencies,
       surrogates: noSurrogates,
@@ -201,7 +201,7 @@ describe.skip('controller', function () {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, dom } = ctx;
     const templateFactory = container.get(ITemplateFactory);
-    const renderContext = createRenderContext(dom, container, null);
+    const renderContext = new RenderContext(dom, container, null);
     const $loc = h('div');
     const host = h('div', null, $loc);
     const loc = dom.convertToRenderLocation($loc);

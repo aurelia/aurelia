@@ -197,7 +197,7 @@ function processScalarParam(existedParam: SimpleQueryParams, value: string | IQu
 /**
  * Sequentially process parameter that was recognized as complex value (object or array).
  * For each keys part, if the current level is undefined create an
- *   object or array based on the type of the next keys part.
+ * object or array based on the type of the next keys part.
  *
  * @param queryParams - root-level result object.
  * @param keys - Collection of keys related to this parameter.

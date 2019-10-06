@@ -125,16 +125,15 @@ describe('template-compiler.binding-commands.style', function() {
    * Test the following:
    * ----
    * 1. on init, select all elements specified by `testCase.selector`
-   *  - verify it has inline style matching `ruleValue` (2nd var in destructed 1st tuple param)
-   *  - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
+   * - verify it has inline style matching `ruleValue` (2nd var in destructed 1st tuple param)
+   * - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
    *
    * 2. set `value` of bound view model to empty string. For each of all elements queried by `testCase.selector`
-   *  - verify each element has inline style value equal empty string,
-   *    or default value (3rd var in destructed 1st tuple param)
+   * - verify each element has inline style value equal empty string, or default value (3rd var in destructed 1st tuple param)
    *
    * 3. set `value` of bound view model to `ruleValue` (2nd var in destructed 1st tuple param)
-   *  - verify each element has inline style value equal `ruleValue`
-   *  - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
+   * - verify each element has inline style value equal `ruleValue`
+   * - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
    *
    * 4. repeat step 2
    * 5. Call custom `assert` of each test case with necessary parameters

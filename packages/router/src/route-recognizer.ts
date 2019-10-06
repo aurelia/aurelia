@@ -383,7 +383,7 @@ export class RouteRecognizer {
    *
    * @param nameOrRoute - The name of the route or RouteConfig object.
    * @param params - The route params to use when populating the pattern.
-   *  Properties not required by the pattern will be appended to the query string.
+   * Properties not required by the pattern will be appended to the query string.
    * @returns The generated absolute path and query string.
    */
   public generate(nameOrRoute: string | RouteHandler, params?: object): string {
@@ -440,8 +440,8 @@ export class RouteRecognizer {
    *
    * @param path - The path to attempt to match.
    * @returns Array of objects containing `handler`, `params`, and
-   *  `isDynamic` values for the matched route(s), or undefined if no match
-   *  was found.
+   * `isDynamic` values for the matched route(s), or undefined if no match
+   * was found.
    */
   public recognize(path: string): RecognizeResults {
     let states = [this.rootState];

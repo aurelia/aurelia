@@ -168,16 +168,16 @@ TPrec extends Precedence.Unary ? IsUnary :
      * https://tc39.github.io/ecma262/#sec-unary-operators
      *
      * UnaryExpression :
-     *   1. LeftHandSideExpression
-     *   2. void UnaryExpression
-     *   3. typeof UnaryExpression
-     *   4. + UnaryExpression
-     *   5. - UnaryExpression
-     *   6. ! UnaryExpression
+     * 1. LeftHandSideExpression
+     * 2. void UnaryExpression
+     * 3. typeof UnaryExpression
+     * 4. + UnaryExpression
+     * 5. - UnaryExpression
+     * 6. ! UnaryExpression
      *
      * IsValidAssignmentTarget
-     *   2,3,4,5,6 = false
-     *   1 = see parseLeftHandSideExpression
+     * 2,3,4,5,6 = false
+     * 1 = see parseLeftHandSideExpression
      *
      * Note: technically we should throw on ++ / -- / +++ / ---, but there's nothing to gain from that
      */
@@ -190,26 +190,26 @@ TPrec extends Precedence.Unary ? IsUnary :
      * https://tc39.github.io/ecma262/#sec-primary-expression
      *
      * PrimaryExpression :
-     *   1. this
-     *   2. IdentifierName
-     *   3. Literal
-     *   4. ArrayLiteralExpression
-     *   5. ObjectLiteralExpression
-     *   6. TemplateLiteral
-     *   7. ParenthesizedExpression
+     * 1. this
+     * 2. IdentifierName
+     * 3. Literal
+     * 4. ArrayLiteralExpression
+     * 5. ObjectLiteralExpression
+     * 6. TemplateLiteral
+     * 7. ParenthesizedExpression
      *
      * Literal :
-     *    NullLiteral
-     *    BooleanLiteral
-     *    NumericLiteral
-     *    StringLiteral
+     * NullLiteral
+     * BooleanLiteral
+     * NumericLiteral
+     * StringLiteral
      *
      * ParenthesizedExpression :
-     *   ( AssignmentExpression )
+     * ( AssignmentExpression )
      *
      * IsValidAssignmentTarget
-     *   1,3,4,5,6,7 = false
-     *   2 = true
+     * 1,3,4,5,6,7 = false
+     * 2 = true
      */
     primary: switch (state.currentToken) {
       case Token.ParentScope: // $parent
@@ -308,27 +308,27 @@ TPrec extends Precedence.Unary ? IsUnary :
 
     /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
      * MemberExpression :
-     *   1. PrimaryExpression
-     *   2. MemberExpression [ AssignmentExpression ]
-     *   3. MemberExpression . IdentifierName
-     *   4. MemberExpression TemplateLiteral
+     * 1. PrimaryExpression
+     * 2. MemberExpression [ AssignmentExpression ]
+     * 3. MemberExpression . IdentifierName
+     * 4. MemberExpression TemplateLiteral
      *
      * IsValidAssignmentTarget
-     *   1,4 = false
-     *   2,3 = true
+     * 1,4 = false
+     * 2,3 = true
      *
      *
      * parseCallExpression (Token.OpenParen)
      * CallExpression :
-     *   1. MemberExpression Arguments
-     *   2. CallExpression Arguments
-     *   3. CallExpression [ AssignmentExpression ]
-     *   4. CallExpression . IdentifierName
-     *   5. CallExpression TemplateLiteral
+     * 1. MemberExpression Arguments
+     * 2. CallExpression Arguments
+     * 3. CallExpression [ AssignmentExpression ]
+     * 4. CallExpression . IdentifierName
+     * 5. CallExpression TemplateLiteral
      *
      * IsValidAssignmentTarget
-     *   1,2,5 = false
-     *   3,4 = true
+     * 1,2,5 = false
+     * 3,4 = true
      */
     let name = state.tokenValue as string;
     while ((state.currentToken & Token.LeftHandSide) > 0) {
@@ -405,28 +405,28 @@ TPrec extends Precedence.Unary ? IsUnary :
    * https://tc39.github.io/ecma262/#sec-multiplicative-operators
    *
    * MultiplicativeExpression : (local precedence 6)
-   *   UnaryExpression
-   *   MultiplicativeExpression * / % UnaryExpression
+   * UnaryExpression
+   * MultiplicativeExpression * / % UnaryExpression
    *
    * AdditiveExpression : (local precedence 5)
-   *   MultiplicativeExpression
-   *   AdditiveExpression + - MultiplicativeExpression
+   * MultiplicativeExpression
+   * AdditiveExpression + - MultiplicativeExpression
    *
    * RelationalExpression : (local precedence 4)
-   *   AdditiveExpression
-   *   RelationalExpression < > <= >= instanceof in AdditiveExpression
+   * AdditiveExpression
+   * RelationalExpression < > <= >= instanceof in AdditiveExpression
    *
    * EqualityExpression : (local precedence 3)
-   *   RelationalExpression
-   *   EqualityExpression == != === !== RelationalExpression
+   * RelationalExpression
+   * EqualityExpression == != === !== RelationalExpression
    *
    * LogicalANDExpression : (local precedence 2)
-   *   EqualityExpression
-   *   LogicalANDExpression && EqualityExpression
+   * EqualityExpression
+   * LogicalANDExpression && EqualityExpression
    *
    * LogicalORExpression : (local precedence 1)
-   *   LogicalANDExpression
-   *   LogicalORExpression || LogicalANDExpression
+   * LogicalANDExpression
+   * LogicalORExpression || LogicalANDExpression
    */
   while ((state.currentToken & Token.BinaryOp) > 0) {
     const opToken = state.currentToken;
@@ -447,11 +447,11 @@ TPrec extends Precedence.Unary ? IsUnary :
    * https://tc39.github.io/ecma262/#prod-ConditionalExpression
    *
    * ConditionalExpression :
-   *   1. BinaryExpression
-   *   2. BinaryExpression ? AssignmentExpression : AssignmentExpression
+   * 1. BinaryExpression
+   * 2. BinaryExpression ? AssignmentExpression : AssignmentExpression
    *
    * IsValidAssignmentTarget
-   *   1,2 = false
+   * 1,2 = false
    */
 
   if (consumeOpt(state, Token.Question)) {
@@ -470,11 +470,11 @@ TPrec extends Precedence.Unary ? IsUnary :
    * Note: AssignmentExpression here is equivalent to ES Expression because we don't parse the comma operator
    *
    * AssignmentExpression :
-   *   1. ConditionalExpression
-   *   2. LeftHandSideExpression = AssignmentExpression
+   * 1. ConditionalExpression
+   * 2. LeftHandSideExpression = AssignmentExpression
    *
    * IsValidAssignmentTarget
-   *   1,2 = false
+   * 1,2 = false
    */
   if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
@@ -535,17 +535,17 @@ TPrec extends Precedence.Unary ? IsUnary :
  * https://tc39.github.io/ecma262/#prod-ArrayLiteralExpression
  *
  * ArrayLiteralExpression :
- *   [ Elision(opt) ]
- *   [ ElementList ]
- *   [ ElementList, Elision(opt) ]
+ * [ Elision(opt) ]
+ * [ ElementList ]
+ * [ ElementList, Elision(opt) ]
  *
  * ElementList :
- *   Elision(opt) AssignmentExpression
- *   ElementList, Elision(opt) AssignmentExpression
+ * Elision(opt) AssignmentExpression
+ * ElementList, Elision(opt) AssignmentExpression
  *
  * Elision :
- *  ,
- *  Elision ,
+ * ,
+ * Elision ,
  */
 function parseArrayLiteralExpression(state: ParserState, access: Access, bindingType: BindingType): ArrayBindingPattern | ArrayLiteralExpression {
   nextToken(state);
@@ -594,21 +594,21 @@ function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPatt
  * https://tc39.github.io/ecma262/#prod-Literal
  *
  * ObjectLiteralExpression :
- *   { }
- *   { PropertyDefinitionList }
+ * { }
+ * { PropertyDefinitionList }
  *
  * PropertyDefinitionList :
- *   PropertyDefinition
- *   PropertyDefinitionList, PropertyDefinition
+ * PropertyDefinition
+ * PropertyDefinitionList, PropertyDefinition
  *
  * PropertyDefinition :
- *   IdentifierName
- *   PropertyName : AssignmentExpression
+ * IdentifierName
+ * PropertyName : AssignmentExpression
  *
  * PropertyName :
- *   IdentifierName
- *   StringLiteral
- *   NumericLiteral
+ * IdentifierName
+ * StringLiteral
+ * NumericLiteral
  */
 function parseObjectLiteralExpression(state: ParserState, bindingType: BindingType): ObjectBindingPattern | ObjectLiteralExpression {
   const keys = new Array<string | number>();
@@ -692,32 +692,32 @@ function parseInterpolation(state: ParserState): Interpolation {
  * https://tc39.github.io/ecma262/#prod-Literal
  *
  * TemplateExpression :
- *   NoSubstitutionTemplate
- *   TemplateHead
+ * NoSubstitutionTemplate
+ * TemplateHead
  *
  * NoSubstitutionTemplate :
- *   ` TemplateCharacters(opt) `
+ * ` TemplateCharacters(opt) `
  *
  * TemplateHead :
- *   ` TemplateCharacters(opt) ${
+ * ` TemplateCharacters(opt) ${
  *
  * TemplateSubstitutionTail :
- *   TemplateMiddle
- *   TemplateTail
+ * TemplateMiddle
+ * TemplateTail
  *
  * TemplateMiddle :
- *   } TemplateCharacters(opt) ${
+ * } TemplateCharacters(opt) ${
  *
  * TemplateTail :
- *   } TemplateCharacters(opt) `
+ * } TemplateCharacters(opt) `
  *
  * TemplateCharacters :
- *   TemplateCharacter TemplateCharacters(opt)
+ * TemplateCharacter TemplateCharacters(opt)
  *
  * TemplateCharacter :
- *   $ [lookahead ≠ {]
- *   \ EscapeSequence
- *   SourceCharacter (but not one of ` or \ or $)
+ * $ [lookahead ≠ {]
+ * \ EscapeSequence
+ * SourceCharacter (but not one of ` or \ or $)
  */
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplateExpression | TemplateExpression {
   const cooked = [state.tokenValue as string];

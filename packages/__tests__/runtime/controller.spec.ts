@@ -1172,6 +1172,7 @@ describe.skip('controller', function () {
 });
 
 /**
+ * ```
  * (incomplete notes)
  * - repeater
  *   - array
@@ -1213,5 +1214,5 @@ describe.skip('controller', function () {
  * - ce -> replace-part -> ce -> replaceable
  * - ce -> if -> ce
  * - custom-element -> repeat -> view
- *
+ *```
 */

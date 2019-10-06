@@ -105,6 +105,17 @@ module.exports = {
     'import/order': ['error', { 'groups': [], 'newlines-between': 'never' }],
     'import/no-deprecated': 'error',
     'jsdoc/check-indentation': 'error',
+    'jsdoc/check-tag-names': ['error', {
+      definedTags: [
+        'chainable',
+        'internal',
+        // JSDoc gets confused about decorators, so add them as exclusions here
+        // for now. Adding parenthesis to differentiate them from JSDoc tags.
+        // https://github.com/gajus/eslint-plugin-jsdoc/issues/395
+        'transient()',
+        'singleton()'
+      ]
+    }],
     'jsdoc/newline-after-description': 'error',
     'jsdoc/require-hyphen-before-param-description': ['error', 'always'],
     'sonarjs/no-useless-catch': 'error',
@@ -174,7 +185,6 @@ module.exports = {
     'jsdoc/check-examples': 'off',
     'jsdoc/check-param-names': 'off',
     'jsdoc/check-syntax': 'off',
-    'jsdoc/check-tag-names': 'off',
     'jsdoc/match-description': 'off',
     'jsdoc/no-types': 'off',
     'jsdoc/require-description': 'off',

@@ -29,7 +29,7 @@ function trimDots(ary: string[]): void {
  *
  * @param name - The relative path.
  * @param file - The file path.
- * @return The calculated path.
+ * @returns The calculated path.
  */
 export function relativeToFile(name: string, file: string): string {
   const fileParts = !file ? file : file.split('/');
@@ -55,7 +55,7 @@ export function relativeToFile(name: string, file: string): string {
  *
  * @param path1 - The first path.
  * @param path2 - The second path.
- * @return The joined path.
+ * @returns The joined path.
  */
 export function join(path1: string, path2: string): string {
   if (!path1) {
@@ -121,7 +121,7 @@ type SimpleQueryParams = string | IQueryParams | (string | IQueryParams)[];
  * @param key - Parameter name for query string.
  * @param value - Parameter value to deserialize.
  * @param traditional - Boolean Use the old URI template standard (RFC6570)
- * @return Array with serialized parameter(s)
+ * @returns Array with serialized parameter(s)
  */
 function buildParam(key: string, value: ComplexQueryParams, traditional?: boolean): string[] {
   let result: string[] = [];

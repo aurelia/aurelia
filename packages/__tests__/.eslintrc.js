@@ -20,16 +20,16 @@ module.exports = {
     'max-lines-per-function': 'off',
     'no-console': 'off',
 
-    // Things we maybe need to fix some day, so are marked as warnings for now:
-    'mocha/max-top-level-suites': 'warn',
-    'mocha/no-async-describe': 'warn',
-    'mocha/no-exclusive-tests': 'warn',
-    'mocha/no-hooks': 'warn',
-    'mocha/no-identical-title': 'warn',
-    'mocha/no-mocha-arrows': 'warn',
-    'mocha/no-return-from-async': 'warn',
-    'mocha/no-setup-in-describe': 'warn',
-    'mocha/no-synchronous-tests': 'warn',
-    'mocha/no-top-level-hooks': 'warn'
+    // Things we maybe need to fix some day, so are marked as off for now as they're quite noisy:
+    'mocha/max-top-level-suites': 'off',
+    'mocha/no-async-describe': 'off',
+    'mocha/no-exclusive-tests': 'off',
+    'mocha/no-hooks': 'off',
+    'mocha/no-identical-title': 'off',
+    'mocha/no-mocha-arrows': 'off',
+    'mocha/no-return-from-async': 'off',
+    'mocha/no-setup-in-describe': 'off',
+    'mocha/no-synchronous-tests': 'off',
+    'mocha/no-top-level-hooks': 'off'
   }
 };

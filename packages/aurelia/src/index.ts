@@ -543,7 +543,6 @@ export {
   // CustomAttributeConstructor,
   // CustomAttributeDecorator,
   CustomAttribute,
-  dynamicOptions,
   // ICustomAttributeResource,
   // ICustomAttributeType,
   templateController,

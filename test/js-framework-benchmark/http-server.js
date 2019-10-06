@@ -20,7 +20,6 @@ const url = require('url');
         relativePath = relativePath.slice(1);
       }
 
-
       if (!relativePath || relativePath === '/') {
         relativePath += 'index.html';
       }
@@ -28,8 +27,6 @@ const url = require('url');
       if (!relativePath.includes('.')) {
         relativePath += '/index.html';
       }
-
-
 
       let mimeType;
       switch (relativePath.split('.').pop()) {

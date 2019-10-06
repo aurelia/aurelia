@@ -36,7 +36,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       title: 'basic surrogate working example with 1 pair of custom attr + event same name',
       template: '<template focus.bind="hasFocus" focus.trigger="focus = (focus || 0) + 1" tabindex=-1></template>',
       browserOnly: true,
-      assertFn: async (ctx, host, comp: { hasFocus: boolean; focus: number }) => {
+      assertFn: (ctx, host, comp: { hasFocus: boolean; focus: number }) => {
         assert.equal(comp.hasFocus, undefined, 'comp.hasFocus === undefined');
         assert.equal(comp.focus, undefined);
         assert.equal(host.hasAttribute('tabindex'), true);
@@ -104,7 +104,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         )
       ],
       browserOnly: true,
-      assertFn: async (ctx, host) => {
+      assertFn: (ctx, host) => {
         const ceEl: CustomElementHost<HTMLElement> = host.querySelector('c-e');
         const $ceViewModel = ceEl.$controller.viewModel as { hasFocus: boolean; focus: number; blur: number };
         assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
@@ -153,7 +153,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
             }
           )
         ],
-        assertFn: async (ctx, host) => {
+        assertFn: (ctx, host) => {
           // it should work
           // todo: self-recursive does not work
           // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
@@ -218,7 +218,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         })
       ],
       browserOnly: true,
-      assertFn: async (ctx, host, comp: { hello: number }) => {
+      assertFn: (ctx, host, comp: { hello: number }) => {
         const div = host.querySelector('div');
         assert.equal(comp.hello, undefined);
         assert.equal(div.getAttribute('hello'), 'undefined');
@@ -246,7 +246,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         <input focus.bind="hasFocus2" focus.trigger="log2 = (log2 || 0) + 1"/>
       `,
       browserOnly: true,
-      assertFn: async (ctx, host, comp: { hasFocus: boolean; hasFocus2: boolean; log: number; log2: number }) => {
+      assertFn: (ctx, host, comp: { hasFocus: boolean; hasFocus2: boolean; log: number; log2: number }) => {
         const [input1, input2] = Array.from(host.querySelectorAll('input'));
 
         assert.notEqual(ctx.doc.activeElement, input1);
@@ -291,7 +291,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           }
         )
       ],
-      assertFn: async (ctx, host, comp: { hasFocus: number; hasFocus2: number; log: number; log2: number }) => {
+      assertFn: (ctx, host, comp: { hasFocus: number; hasFocus2: number; log: number; log2: number }) => {
         const [div1, div2] = Array.from(host.querySelectorAll('div'));
         assert.equal(div1.getAttribute('__click__'), 'undefined');
         assert.equal(div2.getAttribute('__click__'), 'undefined');

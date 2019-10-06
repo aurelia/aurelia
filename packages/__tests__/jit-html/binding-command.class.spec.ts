@@ -71,7 +71,7 @@ describe('template-compiler.binding-commands.class', function() {
 
         await eachCartesianJoinAsync(
           [falsyValues, truthyValues],
-          async (falsyValue, truthyValue) => {
+          (falsyValue, truthyValue) => {
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
               assert.contains(
@@ -164,7 +164,7 @@ describe('template-compiler.binding-commands.class', function() {
 
           await eachCartesianJoinAsync(
             [falsyValues, truthyValues],
-            async (falsyValue, truthyValue) => {
+            (falsyValue, truthyValue) => {
               component.value = falsyValue;
 
               lifecycle.processRAFQueue(LifecycleFlags.none);

@@ -31,7 +31,7 @@ describe('Queue', function () {
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
   });
 
-  it('adds to queue with right costs', async function () {
+  it('adds to queue with right costs', function () {
     this.timeout(5000);
     const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
       const animal = qAnimal as Animal;

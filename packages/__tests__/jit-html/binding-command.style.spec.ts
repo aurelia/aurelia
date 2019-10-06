@@ -55,7 +55,7 @@ describe('template-compiler.binding-commands.style', () => {
         <child value.bind="value"></child>
         <child repeat.for="i of 5" value.bind="value"></child>`;
       },
-      assert: async (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
+      assert: (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
         const childEls = host.querySelectorAll('child') as ArrayLike<HTMLElement>;
         const hasImportant = ruleValue.includes('!important');
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;

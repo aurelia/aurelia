@@ -569,7 +569,7 @@ describe(`Repeat`, function () {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-      it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async function () {
+      it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
         const { strategy } = strategySpec;
         const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
         const { items: $items, flush, mutations } = bindSpec;

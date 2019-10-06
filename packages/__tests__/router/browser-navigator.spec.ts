@@ -65,7 +65,7 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('can be activated', async function () {
+  it('can be activated', function () {
     const { sut, tearDown, callback } = setup();
 
     sut.activate({ callback });
@@ -78,7 +78,7 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('can be deactivated', async function () {
+  it('can be deactivated', function () {
     const { sut, tearDown, callback } = setup();
 
     sut.activate({ callback });
@@ -93,7 +93,7 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('throws when activated while active', async function () {
+  it('throws when activated while active', function () {
     const { sut, tearDown, callback } = setup();
 
     sut.activate({ callback });

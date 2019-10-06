@@ -134,7 +134,7 @@ type IMatchPredicate = (frameworkDirectory: string) => boolean;
 
 const matchAll: IMatchPredicate= (frameworkDirectory: string) => true;
 
-async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<FrameworkVersionInformation> {
+function loadFrameworkInfo(pathInFrameworksDir: string): FrameworkVersionInformation {
   let keyedType: KeyedType;
   let directory: string;
   if (pathInFrameworksDir.startsWith("keyed")) {
@@ -178,7 +178,7 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
   }
 }
 
-export async function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkVersionInformation[]> {
+export function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): FrameworkVersionInformation[] {
   let results: FrameworkVersionInformation[] = [];
   let frameworksPath = path.resolve('..','frameworks');
   ['keyed'/* ,'non-keyed' */].forEach((keyedType: KeyedType) => {
@@ -192,7 +192,7 @@ export async function loadFrameworkVersionInformation(matchPredicate: IMatchPred
       }
     }
   });
-  return Promise.all(results);
+  return results;
 }
 
 export class PackageVersionInformationResult {
@@ -246,7 +246,7 @@ export async function determineInstalledVersions(framework: FrameworkVersionInfo
 }
 
 export async function initializeFrameworks(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkData[]> {
-  let frameworkVersionInformations = await loadFrameworkVersionInformation(matchPredicate);
+  let frameworkVersionInformations = loadFrameworkVersionInformation(matchPredicate);
 
   let frameworks: FrameworkData[] = [];
   for (let frameworkVersionInformation of frameworkVersionInformations) {

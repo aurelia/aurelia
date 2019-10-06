@@ -5,7 +5,7 @@ import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError
 const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
-async function main() {
+function main() {
   let frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 
   if (frameworks.length === 0) {

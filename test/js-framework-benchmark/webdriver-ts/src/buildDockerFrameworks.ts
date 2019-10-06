@@ -5,7 +5,7 @@ import * as yargs from 'yargs';
 const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
-async function prepareDockerVolume() {
+function prepareDockerVolume() {
   // Check if docker volume js-framework-benchmark exists and create it if not
   try {
     let r: string[] = [];
@@ -26,7 +26,7 @@ async function prepareDockerVolume() {
   }
 }
 
-async function clearDockerVolume() {
+function clearDockerVolume() {
   try {
     let r: string[] = [];
     exec('docker volume inspect js-framework-benchmark', {
@@ -43,7 +43,7 @@ async function clearDockerVolume() {
   });
 }
 
-async function stopContainerIfRunnning() {
+function stopContainerIfRunnning() {
   console.log("checking if js-framework-benchmark container runs.");
   let r: string[] = [];
   let res = exec('docker ps', {
@@ -57,7 +57,7 @@ async function stopContainerIfRunnning() {
   }
 }
 
-async function startDocker() {
+function startDocker() {
   console.log("starting docker");
   exec('docker run --rm -d -i --name js-framework-benchmark -p 8080:8080 --volume js-framework-benchmark:/build js-framework-benchmark-centos', {
     stdio: 'inherit'
@@ -75,7 +75,7 @@ function dockerRootExec(cmd: string) {
   });
 }
 
-async function copyFilesToDocker() {
+function copyFilesToDocker() {
   try {
     console.log('copying build files to docker volume');
     copyFileToBuild("../build.js");
@@ -91,7 +91,7 @@ async function copyFilesToDocker() {
   }
 }
 
-async function runBuildInDocker() {
+function runBuildInDocker() {
   console.log("executing npm install and node build.js in docker container");
   exec('docker exec -it -w /build js-framework-benchmark npm install', {
     stdio: 'inherit'
@@ -102,7 +102,7 @@ async function runBuildInDocker() {
   });
 }
 
-async function main() {
+function main() {
   stopContainerIfRunnning();
   // clearDockerVolume();
   // prepareDockerVolume();
@@ -111,12 +111,7 @@ async function main() {
   runBuildInDocker();
 }
 
-main()
-  .then(text => {
-  })
-  .catch(err => {
-    console.log('error', err);
-  });
+main();
 
 /* let args = yargs(process.argv)
     .usage("$0 --updade true|false --dir")

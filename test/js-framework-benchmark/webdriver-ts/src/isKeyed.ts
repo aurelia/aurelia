@@ -189,7 +189,7 @@ async function runBench(frameworkNames: string[]) {
   let allCorrect = true;
 
   for (let i=0;i<runFrameworks.length;i++) {
-    let driver = await buildDriver(benchmarkOptions);
+    let driver = buildDriver(benchmarkOptions);
     try {
       let framework = runFrameworks[i];
       setUseShadowRoot(framework.useShadowRoot);
@@ -262,7 +262,7 @@ let benchmarkOptions: BenchmarkOptions = {
   numIterationsForMemBenchmarks: config.REPEAT_RUN_MEM,
   numIterationsForStartupBenchmark: config.REPEAT_RUN_STARTUP
 };
-async function main() {
+function main() {
   if (args.help) {
     yargs.showHelp();
   } else {

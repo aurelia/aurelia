@@ -217,7 +217,7 @@ describe('focus.spec.ts', function() {
         app: class App {
           public hasFocus = true;
         },
-        assertionFn: async (ctx, testHost, component, focusable) => {
+        assertionFn: (ctx, testHost, component, focusable) => {
           const doc = ctx.doc;
           const win = ctx.wnd;
           const button = testHost.querySelector('button');
@@ -286,7 +286,7 @@ describe('focus.spec.ts', function() {
           public hasFocus = true;
           public isFocused2 = false;
         },
-        async assertionFn(ctx, testHost, component, focusable) {
+        assertionFn(ctx, testHost, component, focusable) {
           const input2: HTMLInputElement = testHost.querySelector('#input2');
           assert.notEqual(focusable, input2, '@setup: focusable === #input2');
           input2.focus();

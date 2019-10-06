@@ -149,7 +149,7 @@ describe(`If/Else`, function () {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
-      it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async function () {
+      it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
         const { strategy } = strategySpec;
         const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
         const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;

@@ -59,7 +59,8 @@ function elemNull(v: any) {
 
 function waitForCondition(driver: WebDriver) {
   return async function(text: string, fn: (driver: WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
-    return driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
+    // eslint-disable-next-line no-return-await
+    return await driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
   };
 }
 
@@ -189,8 +190,8 @@ export async function getTextByXPath(driver: WebDriver, xpath: string): Promise<
   });
 }
 
-export async function shadowRoot(driver: WebDriver): Promise<WebElement> {
-  return useShadowRoot ? driver.executeScript('return document.querySelector("main-element").shadowRoot') as Promise<WebElement>
+export function shadowRoot(driver: WebDriver): Promise<WebElement> {
+  return useShadowRoot ? driver.executeScript('return document.querySelector("main-element").shadowRoot')
     : driver.findElement(By.tagName("body"));
 }
 

@@ -126,7 +126,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     for (let i = 1; 10 > i; ++i) {
-      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, async function() {
+      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, function() {
         const { ctx, target, sut, dispose } = setup();
         const { rootShadowRoot, lastShadowRoot } = createNestingShadowRoot(ctx, i, target);
         assert.notEqual(rootShadowRoot, lastShadowRoot, 'root #ShadowRoot !== leaf #ShadowRoot');

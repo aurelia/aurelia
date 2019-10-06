@@ -33,7 +33,7 @@ describe(spec, function () {
     assert.strictEqual(host.textContent, '', `host.textContent`);
   });
 
-  it.skip('signaler', async function () {
+  it.skip('signaler', function () {
 
     const items = [0, 1, 2];
     const App = CustomElement.define(
@@ -72,7 +72,7 @@ describe(spec, function () {
 
   });
 
-  it.skip('signaler + oneTime', async function () {
+  it.skip('signaler + oneTime', function () {
 
     const items = [0, 1, 2];
     const App = CustomElement.define({
@@ -108,7 +108,7 @@ describe(spec, function () {
 
   });
 
-  it.skip('render hook', async function () {
+  it.skip('render hook', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const App = CustomElement.define({

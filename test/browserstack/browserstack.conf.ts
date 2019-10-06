@@ -13,15 +13,15 @@ function combine(browsers, oses) {
       for (const { versions: os_versions, name: os } of oses) {
         for (const os_version of os_versions) {
           capabilities.push({
-            "browser": browserName,
+            'browser': browserName,
             browserName,
             browser_version,
-            "browserVersion": browser_version,
-            "version": browser_version,
+            'browserVersion': browser_version,
+            'version': browser_version,
             os,
-            "platform": os,
-            "platformName": os,
-            "platformVersion": os_version,
+            'platform': os,
+            'platformName': os,
+            'platformVersion': os_version,
             os_version,
             'project': 'Aurelia vNext',
             'name': `${CIEnv.CIRCLE_PROJECT_REPONAME}_${CIEnv.CIRCLE_BRANCH}`,
@@ -105,7 +105,7 @@ exports.config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    */
   onPrepare: function (config, capabilities) {
-    console.log("Connecting local");
+    console.log('Connecting local');
     return new Promise(function(resolve, reject){
       exports.bs_local = new browserstack.Local();
       exports.bs_local.start({'key': exports.config.key }, function(error) {

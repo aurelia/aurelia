@@ -672,7 +672,7 @@ export class CallFunctionExpression implements ICallFunctionExpression {
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const func = this.func.evaluate(flags, scope, locator, part);
     if (typeof func === 'function') {
-      return func.apply(null, evalList(flags, scope, locator, this.args, part));
+      return func(...evalList(flags, scope, locator, this.args, part));
     }
     if (!(flags & LifecycleFlags.mustEvaluate) && (func == null)) {
       return void 0;
@@ -1043,7 +1043,7 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
     if (typeof func !== 'function') {
       throw Reporter.error(RuntimeError.NotAFunction, this);
     }
-    return func.apply(null, [this.cooked].concat(results));
+    return func(...[this.cooked].concat(results));
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {

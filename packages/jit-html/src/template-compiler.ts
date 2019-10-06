@@ -173,7 +173,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             binding = bindings[j];
             instructions[j] = new LetBindingInstruction(binding.expression as IsBindingBehavior, binding.target);
           }
-          this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toViewModel)]);
+          this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toBindingContext)]);
         } else {
           this.compileParentNode(childNode as IParentNodeSymbol);
         }

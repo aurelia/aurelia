@@ -362,20 +362,20 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           ]);
         });
 
-        describe('[to-view-model]', function () {
-          it('understands [to-view-model]', function () {
-            const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
-            assert.strictEqual((instructions[0][0]).toViewModel, true, `(instructions[0][0]).toViewModel`);
+        describe('[to-binding-context]', function () {
+          it('understands [to-binding-context]', function () {
+            const { instructions } = compileWith(`<template><let to-binding-context></let></template>`);
+            assert.strictEqual((instructions[0][0]).toBindingContext, true, `(instructions[0][0]).toBindingContext`);
           });
 
-          it('ignores [to-view-model] order', function () {
-            let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0];
+          it('ignores [to-binding-context] order', function () {
+            let instructions = compileWith(`<template><let a.bind="a" to-binding-context></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
             ]);
-            instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0];
+            instructions = compileWith(`<template><let to-binding-context a.bind="a"></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
             ]);
           });
         });
@@ -812,7 +812,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom  } = setup(
           ctx,
-          CustomAttribute.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar {})
+          CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {})
         );
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);

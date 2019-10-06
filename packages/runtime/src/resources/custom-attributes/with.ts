@@ -39,7 +39,6 @@ export class With<T extends INode = INode> {
     name: 'with',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
     strategy: BindingStrategy.getterSetter,

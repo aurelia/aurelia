@@ -198,7 +198,7 @@ export class PlainAttributeSymbol implements IPlainAttributeSymbol {
 /**
  * Either an attribute on an custom element that maps to a declared bindable property of that element,
  * a single-value bound custom attribute, or one of several bindables that were extracted from the attribute
- * value of a dynamicOptions custom attribute.
+ * value of a custom attribute with multiple bindings usage.
  *
  * This will always target a bindable property of a custom attribute or element;
  */
@@ -311,7 +311,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymbolWithMarker {
   public flags: SymbolFlags;
   public physicalNode: INode;
-  public toViewModel: boolean;
+  public toBindingContext: boolean;
   public marker: INode;
 
   private _bindings: BindingSymbol[] | null;
@@ -326,7 +326,7 @@ export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymb
   constructor(dom: IDOM, node: INode) {
     this.flags = SymbolFlags.isLetElement | SymbolFlags.hasMarker;
     this.physicalNode = node;
-    this.toViewModel = false;
+    this.toBindingContext = false;
     this.marker = createMarker(dom);
     this._bindings = null;
   }

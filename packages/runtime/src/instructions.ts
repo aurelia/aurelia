@@ -220,13 +220,13 @@ export class LetElementInstruction implements IHydrateLetElementInstruction {
   public type: TargetedInstructionType.hydrateLetElement;
 
   public instructions: ILetBindingInstruction[];
-  public toViewModel: boolean;
+  public toBindingContext: boolean;
 
-  constructor(instructions: ILetBindingInstruction[], toViewModel: boolean) {
+  constructor(instructions: ILetBindingInstruction[], toBindingContext: boolean) {
     this.type = TargetedInstructionType.hydrateLetElement;
 
     this.instructions = instructions;
-    this.toViewModel = toViewModel;
+    this.toBindingContext = toBindingContext;
   }
 }
 

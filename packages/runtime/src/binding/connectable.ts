@@ -126,9 +126,9 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, 
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  if (!proto.hasOwnProperty('observeProperty')) proto.observeProperty = observeProperty;
-  if (!proto.hasOwnProperty('unobserve')) proto.unobserve = unobserve;
-  if (!proto.hasOwnProperty('addObserver')) proto.addObserver = addObserver;
+  if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty')) proto.observeProperty = observeProperty;
+  if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve')) proto.unobserve = unobserve;
+  if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver')) proto.addObserver = addObserver;
   return target as DecoratedConnectable<TProto, TClass>;
 }
 

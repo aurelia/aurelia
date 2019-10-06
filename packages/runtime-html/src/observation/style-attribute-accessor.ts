@@ -146,7 +146,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
       version -= 1;
       for (style in styles) {
-        if (!styles.hasOwnProperty(style) || styles[style] !== version) {
+        if (!Object.prototype.hasOwnProperty.call(styles, style) || styles[style] !== version) {
           continue;
         }
         this.obj.style.removeProperty(style);

@@ -83,7 +83,7 @@ export class HttpClient {
       normalizedConfig.interceptors = this.interceptors;
 
       const c = config(normalizedConfig);
-      if (HttpClientConfiguration.prototype.isPrototypeOf(c)) {
+      if (Object.prototype.isPrototypeOf.call(HttpClientConfiguration, c)) {
         normalizedConfig = c;
       }
     } else {
@@ -91,7 +91,7 @@ export class HttpClient {
     }
 
     const defaults = normalizedConfig.defaults;
-    if (defaults !== undefined && Headers.prototype.isPrototypeOf(defaults.headers as HeadersInit)) {
+    if (defaults !== undefined && Object.prototype.isPrototypeOf.call(Headers, defaults.headers as HeadersInit)) {
       // Headers instances are not iterable in all browsers. Require a plain
       // object here to allow default headers to be merged into request headers.
       throw new Error('Default headers must be a plain object.');
@@ -101,11 +101,11 @@ export class HttpClient {
 
     if (interceptors !== undefined && interceptors.length) {
       // find if there is a RetryInterceptor
-      if (interceptors.filter(x => RetryInterceptor.prototype.isPrototypeOf(x)).length > 1) {
+      if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(RetryInterceptor, x)).length > 1) {
         throw new Error('Only one RetryInterceptor is allowed.');
       }
 
-      const retryInterceptorIndex = interceptors.findIndex(x => RetryInterceptor.prototype.isPrototypeOf(x));
+      const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(RetryInterceptor, x));
 
       if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
         throw new Error('The retry interceptor must be the last interceptor defined.');
@@ -141,9 +141,9 @@ export class HttpClient {
     return this.processRequest(request, this.interceptors).then(result => {
       let response: Promise<Response>;
 
-      if (Response.prototype.isPrototypeOf(result)) {
+      if (Object.prototype.isPrototypeOf.call(Response, result)) {
         response = Promise.resolve(result as Response);
-      } else if (Request.prototype.isPrototypeOf(result)) {
+      } else if (Object.prototype.isPrototypeOf.call(Request, result)) {
         request = result as Request;
         response = fetch(request);
       } else {
@@ -153,7 +153,7 @@ export class HttpClient {
       return this.processResponse(response, this.interceptors, request);
     })
       .then(result => {
-        if (Request.prototype.isPrototypeOf(result)) {
+        if (Object.prototype.isPrototypeOf.call(Request, result)) {
           return this.fetch(result as Request);
         }
         return result as Response;
@@ -177,7 +177,7 @@ export class HttpClient {
     let requestContentType: string | null;
 
     const parsedDefaultHeaders = parseHeaderValues(defaults.headers as IIndexable);
-    if (Request.prototype.isPrototypeOf(input)) {
+    if (Object.prototype.isPrototypeOf.call(Request, input)) {
       request = input as Request;
       requestContentType = new Headers(request.headers).get('Content-Type');
     } else {
@@ -198,7 +198,7 @@ export class HttpClient {
       }
     }
     setDefaultHeaders(request.headers, parsedDefaultHeaders);
-    if (body !== undefined && Blob.prototype.isPrototypeOf(body as Blob) && (body as Blob).type) {
+    if (body !== undefined && Object.prototype.isPrototypeOf.call(Blob, body as Blob) && (body as Blob).type) {
       // work around bug in IE & Edge where the Blob type is ignored in the request
       // https://connect.microsoft.com/IE/feedback/details/2136163
       request.headers.set('Content-Type', (body as Blob).type);
@@ -331,7 +331,7 @@ function parseHeaderValues(headers: Record<string, unknown> | undefined): Record
   const parsedHeaders: Record<string, string> = {};
   const $headers = headers !== undefined ? headers : {};
   for (const name in $headers) {
-    if ($headers.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call($headers, name)) {
       parsedHeaders[name] = (typeof $headers[name] === 'function')
         ? ($headers[name] as () => string)()
         : $headers[name] as string;
@@ -351,7 +351,7 @@ function getRequestUrl(baseUrl: string, url: string): string {
 function setDefaultHeaders(headers: Headers, defaultHeaders?: Record<string, string>): void {
   const $defaultHeaders = defaultHeaders !== undefined ? defaultHeaders : {};
   for (const name in $defaultHeaders) {
-    if ($defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
+    if (Object.prototype.hasOwnProperty.call($defaultHeaders, name) && !headers.has(name)) {
       headers.set(name, $defaultHeaders[name]);
     }
   }

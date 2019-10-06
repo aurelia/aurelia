@@ -57,7 +57,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (keyOrObj.hasOwnProperty(prop)) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }

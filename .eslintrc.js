@@ -116,6 +116,7 @@ module.exports = {
     'no-new-func': 'error',
     'no-new-wrappers': 'error',
     'no-octal-escape': 'error',
+    'no-prototype-builtins': 'error',
     'no-restricted-properties': ['error',
       { property: 'substr', message: '"substr" is considered a legacy function and should be avoided when possible. Use "substring" instead.' }
     ],
@@ -195,7 +196,6 @@ module.exports = {
     'no-extra-boolean-cast': 'warn',
     'no-fallthrough': 'warn',
     'no-inner-declarations': 'warn',
-    'no-prototype-builtins': 'warn',
     'no-useless-catch': 'warn',
     'no-shadow': 'warn',
     'no-undef': 'warn',

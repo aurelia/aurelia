@@ -81,7 +81,7 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
       // Remove classes from previous version.
       version -= 1;
       for (const name in nameIndex) {
-        if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+        if (!Object.prototype.hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
           continue;
         }
 

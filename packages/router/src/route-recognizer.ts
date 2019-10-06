@@ -254,7 +254,7 @@ export class RouteRecognizer {
       part = splitRoute[i];
 
       // Try to parse a parameter :param?
-      let match = part.match(/^:([^?]+)(\?)?$/);
+      let match = /^:([^?]+)(\?)?$/.exec(part);
       if (match) {
         const [, name, optional] = match;
         if (name.includes('=')) {
@@ -265,7 +265,7 @@ export class RouteRecognizer {
         types.dynamics++;
       } else {
         // Try to parse a star segment *whatever
-        match = part.match(/^\*(.+)$/);
+        match = /^\*(.+)$/.exec(part);
         if (match) {
           segments.push(segment = new StarSegment(match[1]));
           names.push(match[1]);
@@ -536,6 +536,8 @@ export class RouteRecognizer {
       if (isSlashDropped && solution.regex.source.endsWith('(.+)$')) {
         normalizedPath = `${normalizedPath}/`;
       }
+
+      // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
       const captures = normalizedPath.match(solution.regex);
       let currentCapture = 1;
       const result = [] as RecognizeResults;

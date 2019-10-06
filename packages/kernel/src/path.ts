@@ -64,7 +64,7 @@ export function join(path1: string, path2: string): string {
   if (!path2) {
     return path1;
   }
-  const schemeMatch = path1.match(/^([^/]*?:)\//);
+  const schemeMatch = /^([^/]*?:)\//.exec(path1);
   const scheme = (schemeMatch && schemeMatch.length > 0) ? schemeMatch[1] : '';
   path1 = path1.slice(scheme.length);
 

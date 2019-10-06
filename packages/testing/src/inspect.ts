@@ -1011,6 +1011,8 @@ export function formatPrimitive(
         if (readableRegExps[divisor] === void 0) {
           readableRegExps[divisor] = new RegExp(`(.|\\n){1,${divisor}}(\\s|$)|(\\n|.)+?(\\s|$)`, 'gm');
         }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const matches = value.match(readableRegExps[divisor])!;
         if (matches.length > 1) {
           const indent = ' '.repeat(ctx.indentationLvl);

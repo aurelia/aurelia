@@ -170,7 +170,7 @@ function ensureTypeIsExported(runtimeExports: string[], type: string) {
 // TypeScript parsed statement could contain leading white spaces.
 // This find the exact starting position for latter code injection.
 function ensureTokenStart(start: number, code: string) {
-  while (start < code.length - 1 && code[start].match(/^\s$/)) start++;
+  while (start < code.length - 1 && /^\s$/.exec(code[start])) start++;
   return start;
 }
 

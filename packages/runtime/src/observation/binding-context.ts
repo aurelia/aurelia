@@ -67,11 +67,13 @@ export class BindingContext implements IBindingContext {
 
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
+   *
    * @param obj - Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
    */
   public static create(flags: LifecycleFlags, obj?: IIndexable): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
+   *
    * @param key - The name of the only property to initialize this `BindingContext` with.
    * @param value - The value of the only property to initialize this `BindingContext` with.
    */
@@ -184,6 +186,7 @@ export class Scope implements IScope {
    *
    * Use this overload when the scope is for the root component, in a unit test,
    * or when you simply want to prevent binding expressions from traversing up the scope.
+   *
    * @param bc - The `BindingContext` to back the `Scope` with.
    */
   public static create(flags: LifecycleFlags, bc: object): Scope;

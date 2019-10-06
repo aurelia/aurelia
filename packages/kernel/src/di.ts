@@ -316,7 +316,7 @@ function transientDecorator<T extends Constructable>(target: T & Partial<Registe
  * Registers the decorated class as a transient dependency; each time the dependency is resolved
  * a new instance will be created.
  *
- * Example usage:
+ * @example:
 ```ts
 @transient
 class Foo { }
@@ -329,7 +329,7 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  *
  * @param target - The class / constructor function to register as transient.
  *
- * Example usage:
+ * @example:
 ```ts
 @transient()
 class Foo { }
@@ -347,7 +347,7 @@ function singletonDecorator<T extends Constructable>(target: T & Partial<Registe
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
- * Example usage:
+ * @example:
 ```ts
 @singleton
 class Foo { }

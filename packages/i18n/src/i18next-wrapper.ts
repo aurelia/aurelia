@@ -5,6 +5,7 @@ export const I18nWrapper = DI.createInterface<I18nextWrapper>('I18nextWrapper').
 
 /**
  * A wrapper class over i18next to facilitate the easy testing and DI.
+ *
  * @export
  */
 export class I18nextWrapper {

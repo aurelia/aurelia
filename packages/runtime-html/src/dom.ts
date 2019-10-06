@@ -331,6 +331,7 @@ export class TextNodeSequence implements INodeSequence {
 // CompiledTemplates create instances of FragmentNodeSequence.
 /**
  * This is the most common form of INodeSequence.
+ *
  * @internal
  */
 export class FragmentNodeSequence implements INodeSequence {

@@ -66,6 +66,7 @@ export class HttpClientConfiguration {
   /**
    * Applies a configuration that addresses common application needs, including
    * configuring same-origin credentials, and using rejectErrorResponses.
+   *
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
@@ -82,6 +83,7 @@ export class HttpClientConfiguration {
    * Promise continuation to determine if the server responded with a success code.
    * This method adds a response interceptor that causes Responses with error codes
    * to be rejected, which is common behavior in HTTP client libraries.
+   *
    * @returns The chainable instance of this configuration object.
    * @chainable
    */

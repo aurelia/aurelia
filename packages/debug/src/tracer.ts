@@ -72,6 +72,7 @@ export const DebugTracer: typeof Tracer = {
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
+   *
    * @param objName - Any human-friendly name to identify the traced object with.
    * @param methodName - Any human-friendly name to identify the traced method with.
    * @param args - Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
@@ -94,6 +95,7 @@ export const DebugTracer: typeof Tracer = {
   },
   /**
    * Writes only the trace info leading up to the current method call.
+   *
    * @param writer - An object to write the output to.
    */
   writeStack(writer: ITraceWriter): void {
@@ -107,6 +109,7 @@ export const DebugTracer: typeof Tracer = {
   },
   /**
    * Writes all trace info captured since the previous flushAll operation.
+   *
    * @param writer - An object to write the output to. Can be null to simply reset the tracer state.
    */
   flushAll(writer: ITraceWriter | null): void {
@@ -142,11 +145,13 @@ const defaultOptions: ILiveLoggingOptions = Object.freeze({
 
 /**
  * Writes out each trace info item as they are traced.
+ *
  * @param writer - An object to write the output to.
  */
 function enableLiveLogging(this: typeof DebugTracer, writer: ITraceWriter): void;
 /**
  * Writes out each trace info item as they are traced.
+ *
  * @param options - Optional. Specify which logging categories to output. If omitted, all will be logged.
  */
 function enableLiveLogging(this: typeof DebugTracer, options?: ILiveLoggingOptions): void;

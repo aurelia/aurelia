@@ -44,6 +44,7 @@ export interface Subscription extends IDisposable { }
 
 /**
  * Enables loosely coupled publish/subscribe messaging.
+ *
  * @param data - The optional data published on the channel.
  * @param event - The event that triggered the callback. Only available on channel based messaging.
  */
@@ -75,12 +76,14 @@ export class EventAggregator implements IEventAggregator {
 
   /**
    * Publishes a message.
+   *
    * @param channel - The channel to publish to.
    * @param data - The data to publish on the channel.
    */
   public publish(channel: string, data?: unknown): void;
   /**
    * Publishes a message.
+   *
    * @param instance - The instance to publish to.
    */
   public publish<T extends Constructable>(instance: InstanceType<T>): void;
@@ -116,12 +119,14 @@ export class EventAggregator implements IEventAggregator {
 
   /**
    * Subscribes to a message channel.
+   *
    * @param channel - The event channel.
    * @param callback - The callback to be invoked when the specified message is published.
    */
   public subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
   /**
    * Subscribes to a message type.
+   *
    * @param type - The event data type.
    * @param callback - The callback to be invoked when the specified message is published.
    */
@@ -161,12 +166,14 @@ export class EventAggregator implements IEventAggregator {
 
   /**
    * Subscribes to a message channel, then disposes the subscription automatically after the first message is received.
+   *
    * @param channel - The event channel.
    * @param callback - The callback to be invoked when the specified message is published.
    */
   public subscribeOnce<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
   /**
    * Subscribes to a message type, then disposes the subscription automatically after the first message is received.
+   *
    * @param type - The event data type.
    * @param callback - The callback to be invoked when the specified message is published.
    */

@@ -41,6 +41,7 @@ export class Focus {
 
   /**
    * Invoked everytime the bound value changes.
+   *
    * @param newValue - The new value.
    */
   public valueChanged(): void {

@@ -135,6 +135,7 @@ export class Blur {
 
   /**
    * Manager of this custom attribute to centralize listeners
+   *
    * @internal No need to expose BlurManager
    */
   private readonly manager: BlurManager;

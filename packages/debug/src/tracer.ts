@@ -331,11 +331,11 @@ const BindingArgsProcessor = {
 
 const ObservationArgsProcessor = {
   callSource(info: ITraceInfo): string {
+    const names: string[] = [];
     switch (info.objName) {
       case 'Listener':
         return ((info.params as readonly { type: string }[])[0]).type;
       case 'CallBinding':
-        const names: string[] = [];
         if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {
             names.push(ctorName(info, i));
@@ -420,12 +420,12 @@ const DIArgsProcessor = {
     return ctorName(info);
   },
   Container(info: ITraceInfo): string {
+    const names: string[] = [];
     switch (info.methodName) {
       case 'get':
       case 'getAll':
         return keyText(info);
       case 'register':
-        const names: string[] = [];
         if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {
             names.push(keyText(info, i));

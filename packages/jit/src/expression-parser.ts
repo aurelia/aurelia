@@ -332,6 +332,8 @@ TPrec extends Precedence.Unary ? IsUnary :
      */
     let name = state.tokenValue as string;
     while ((state.currentToken & Token.LeftHandSide) > 0) {
+      const args: IsAssign[] = [];
+      let strings: string[];
       switch ((state.currentToken as Token)) {
         case Token.Dot:
           state.assignable = true;
@@ -365,7 +367,6 @@ TPrec extends Precedence.Unary ? IsUnary :
         case Token.OpenParen:
           state.assignable = false;
           nextToken(state);
-          const args = new Array<IsAssign>();
           while ((state.currentToken as Token) !== Token.CloseParen) {
             args.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
             if (!consumeOpt(state, Token.Comma)) {
@@ -384,7 +385,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           break;
         case Token.TemplateTail:
           state.assignable = false;
-          const strings = [state.tokenValue as string];
+          strings = [state.tokenValue as string];
           result = new TaggedTemplateExpression(strings, strings, result as IsLeftHandSide);
           nextToken(state);
           break;

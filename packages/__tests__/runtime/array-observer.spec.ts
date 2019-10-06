@@ -572,6 +572,7 @@ function getNumberFactory(arraySize: number) {
 }
 
 function getValueFactory(getNumber: (i: number) => unknown, type: string, types: string[]): (i: number) => unknown {
+  let factories: ((i: number) => unknown)[];
   switch (type) {
     case 'undefined':
       return () => undefined;
@@ -587,7 +588,7 @@ function getValueFactory(getNumber: (i: number) => unknown, type: string, types:
       // eslint-disable-next-line no-unused-expressions
       return (i) => {[getNumber(i)]; };
     case 'mixed':
-      const factories = [
+      factories = [
         getValueFactory(getNumber, types[0], types),
         getValueFactory(getNumber, types[1], types),
         getValueFactory(getNumber, types[2], types),

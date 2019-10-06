@@ -443,12 +443,13 @@ export class Resolver implements IResolver, IRegistration {
   }
 
   public getFactory(container: IContainer): IFactory | null {
+    let resolver: IResolver<any> | null;
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
         return container.getFactory(this.state as Constructable);
       case ResolverStrategy.alias:
-        const resolver = container.getResolver(this.state);
+        resolver = container.getResolver(this.state);
         if (resolver == null || resolver.getFactory === void 0) {
           return null;
         }

@@ -224,6 +224,7 @@ repeat$13_2.opposite = repeat$13_1;
 const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
 /* eslint-enable @typescript-eslint/camelcase */
 
+// eslint-disable-next-line max-lines-per-function
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
   const tests: Record<string, Statement[]> = {};
   const staticTests: Statement[] = tests['static'] = [];

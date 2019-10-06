@@ -22,7 +22,11 @@ export interface IFactory<T extends Constructable = any> {
 }
 export interface IServiceLocator {
     has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+    get<K extends Key>(key: K): Resolved<K>;
+    get<K extends Key>(key: Key): Resolved<K>;
     get<K extends Key>(key: K | Key): Resolved<K>;
+    getAll<K extends Key>(key: K): readonly Resolved<K>[];
+    getAll<K extends Key>(key: Key): readonly Resolved<K>[];
     getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
 }
 export interface IRegistry {
@@ -48,7 +52,7 @@ export declare type RegisterSelf<T extends Constructable> = {
     register(container: IContainer): IResolver<InstanceType<T>>;
 };
 export declare type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
-export declare type Resolved<K> = (K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<infer T1, any> ? T1 extends Constructable ? InstanceType<T1> : T1 : K);
+export declare type Resolved<K> = (K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<any, infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 : K);
 export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: Key[];
 };
@@ -170,8 +174,8 @@ export declare const Registration: Readonly<{
     instance<T>(key: Key, value: T): IRegistration<T>;
     singleton<T_1 extends Constructable<{}>>(key: Key, value: T_1): IRegistration<InstanceType<T_1>>;
     transient<T_2 extends Constructable<{}>>(key: Key, value: T_2): IRegistration<InstanceType<T_2>>;
-    callback<T_3>(key: Key, callback: ResolveCallback<T_3>): IRegistration<T_3 extends InterfaceSymbol<infer T_4> ? T_4 : T_3 extends Constructable<{}> ? InstanceType<T_3> : T_3 extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T_3>;
-    alias<T_5>(originalKey: T_5, aliasKey: Key): IRegistration<T_5 extends InterfaceSymbol<infer T_4> ? T_4 : T_5 extends Constructable<{}> ? InstanceType<T_5> : T_5 extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T_5>;
+    callback<T_3>(key: Key, callback: ResolveCallback<T_3>): IRegistration<T_3 extends InterfaceSymbol<infer T_4> ? T_4 : T_3 extends Constructable<{}> ? InstanceType<T_3> : T_3 extends IResolverLike<any, infer T1> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T_3>;
+    alias<T_5>(originalKey: T_5, aliasKey: Key): IRegistration<T_5 extends InterfaceSymbol<infer T_4> ? T_4 : T_5 extends Constructable<{}> ? InstanceType<T_5> : T_5 extends IResolverLike<any, infer T1> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T_5>;
     defer(key: Key, ...params: unknown[]): IRegistry;
 }>;
 export declare class InstanceProvider<K extends Key> implements IResolver<K | null> {

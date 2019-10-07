@@ -8,7 +8,6 @@ import { getCurrentVersion, getNewVersion } from './get-version-info';
 const log = createLogger('bump-version');
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
-  const aureliaRegExp = /^@aurelia/;
   for (const { name } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson('packages', name.kebab);

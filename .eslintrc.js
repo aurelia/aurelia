@@ -223,6 +223,7 @@ module.exports = {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/typedef': 'off',
       'compat/compat': 'off'
     }
   }, { // Specific overrides for TS files within tests as some rules don't make sense there.

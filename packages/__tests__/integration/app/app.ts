@@ -23,7 +23,7 @@ export class App {
     new Laptop("Core i5 3.40 GHz", "8GB DDR4", new Storage("SSD", 1, "TB"), "14 inch", "T460", "Lenovo"),
   ];
 
-  public user = new User('John', 'Doe', 0.1);
+  public user = new User('John', 'Doe', 0.1, "Role1", "Org1", "City1", "Country1");
 
   public changeTexts() {
     this.text1 = 'newText1';

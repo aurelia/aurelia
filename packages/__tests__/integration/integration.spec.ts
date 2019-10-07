@@ -1,8 +1,7 @@
-import { toArray } from '@aurelia/kernel';
-import { assert, fail } from '@aurelia/testing';
-import { startup, TestExecutionContext } from './app/startup';
 import { CustomElement } from '@aurelia/runtime';
+import { assert, fail } from '@aurelia/testing';
 import { App } from './app/app';
+import { startup, TestExecutionContext } from './app/startup';
 
 describe.only('app', function () {
 
@@ -162,127 +161,86 @@ describe.only('app', function () {
     });
   });
 
-  it.only('App uses a user preference control that displays the full name (computed) of the current user correctly - 1', async function () {
+  it('uses a user preference control that "computes" the full name of the user correctly - static', async function () {
     await executeTest(async ({ host, ctx }) => {
 
       const { user } = getViewModel<App>(host);
-      const changeFirstName = (name: string) => { console.log(`changed fname`); user.firstName = name; }
-      const changeLastName = (name: string) => { console.log(`changed lname`); user.lastName = name; }
-      const changeAge = (age: number) => { console.log(`changed age`); user.age = age; }
 
       const userPref = host.querySelector('user-preference');
 
-      const defalt = userPref.querySelector("#default");
       const statc = userPref.querySelector("#static");
-      const volatile = userPref.querySelector("#volatile");
+      const nonStatic = userPref.querySelector("#nonStatic");
       const wrongStatic = userPref.querySelector("#wrongStatic");
 
-      assert.equal(getText(defalt), 'John Doe', 'incorrect text defalt');
       assert.equal(getText(statc), 'John Doe', 'incorrect text statc');
-      assert.equal(getText(volatile), 'infant', 'incorrect text volatile');
+      assert.equal(getText(nonStatic), 'infant', 'incorrect text nonStatic');
       assert.equal(getText(wrongStatic), 'infant', 'incorrect text wrongStatic');
 
       const { changes: uc } = user;
-      console.log('before setting fname', Array.from(uc));
       uc.clear();
-      changeFirstName('Jane');
+      user.firstName = 'Jane';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(defalt), 'Jane Doe', 'incorrect text defalt - fname');
       assert.equal(getText(statc), 'Jane Doe', 'incorrect text statc - fname');
-      assert.equal(getText(volatile), 'infant', 'incorrect text volatile - fname');
+      assert.equal(getText(nonStatic), 'infant', 'incorrect text nonStatic - fname');
       assert.equal(getText(wrongStatic), 'infant', 'incorrect text wrongStatic - fname');
-      assert.equal(uc.has('default'), true, 'default change should have triggered');
-      assert.equal(uc.has('static'), true, 'static change should have triggered');
-      assert.equal(uc.has('volatile'), false, 'static change should not have triggered');
-      assert.equal(uc.has('wrongStatic'), false, 'static change should not have triggered');
+      assert.equal(uc.has('static'), true, 'static change should have triggered - fname');
+      assert.equal(uc.has('nonStatic'), false, 'nonStatic change should not have triggered - fname');
+      assert.equal(uc.has('wrongStatic'), false, 'wrongStatic change should not have triggered - fname');
 
-      console.log('before setting age', Array.from(uc));
       uc.clear();
-      changeAge(10);
+      user.age = 10;
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(defalt), 'Jane Doe', 'incorrect text defalt - age');
       assert.equal(getText(statc), 'Jane Doe', 'incorrect text statc - age');
-      assert.equal(getText(volatile), 'Jane Doe', 'incorrect text volatile - age');
+      assert.equal(getText(nonStatic), 'Jane Doe', 'incorrect text nonStatic - age');
       assert.equal(getText(wrongStatic), 'Jane Doe', 'incorrect text wrongStatic - age');
-      assert.equal(uc.has('default'), false, 'default change should not have triggered');
-      assert.equal(uc.has('static'), false, 'static change should not have triggered');
-      assert.equal(uc.has('volatile'), true, 'static change should have triggered');
-      assert.equal(uc.has('wrongStatic'), true, 'static change should have triggered');
+      assert.equal(uc.has('static'), false, 'static change should not have triggered - age');
+      assert.equal(uc.has('nonStatic'), true, 'nonStatic change should have triggered - age');
+      assert.equal(uc.has('wrongStatic'), true, 'wrongStatic change should have triggered - age');
 
-      console.log('before setting last name', Array.from(uc));
       uc.clear();
-      changeLastName('Smith');
+      user.lastName = 'Smith';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(defalt), 'Jane Smith', 'incorrect text defalt - lname');
       assert.equal(getText(statc), 'Jane Smith', 'incorrect text statc - lname');
-      assert.equal(getText(volatile), 'Jane Smith', 'incorrect text volatile - lname');
-      assert.equal(getText(wrongStatic), 'Jane Smith', 'incorrect text wrongStatic - lname');
-      assert.equal(uc.has('default'), true, 'default change should have triggered');
-      assert.equal(uc.has('static'), true, 'static change should have triggered');
-      assert.equal(uc.has('volatile'), true, 'static change should have triggered');
-      assert.equal(uc.has('wrongStatic'), true, 'static change should have triggered');
+      assert.equal(getText(nonStatic), 'Jane Smith', 'incorrect text nonStatic - lname');
+      assert.equal(getText(wrongStatic), 'Jane Doe', 'incorrect text wrongStatic - lname');
+      assert.equal(uc.has('static'), true, 'static change should have triggered - lname');
+      assert.equal(uc.has('nonStatic'), true, 'nonStatic change should have triggered - lname');
+      assert.equal(uc.has('wrongStatic'), false, 'wrongStatic change should have triggered - lname');
     });
   });
 
-  it.only('App uses a user preference control that displays the full name (computed) of the current user correctly - 2', async function () {
+  it.only('uses a user preference control that "computes" the organization of the user correctly - volatile', async function () {
     await executeTest(async ({ host, ctx }) => {
 
       const { user } = getViewModel<App>(host);
-      const changeFirstName = (name: string) => { console.log(`changed fname`); user.firstName = name; }
-      const changeLastName = (name: string) => { console.log(`changed lname`); user.lastName = name; }
-      const changeAge = (age: number) => { console.log(`changed age`); user.age = age; }
 
       const userPref = host.querySelector('user-preference');
 
-      const defalt = userPref.querySelector("#default");
-      const statc = userPref.querySelector("#static");
+      const nonVolatile = userPref.querySelector("#nonVolatile");
       const volatile = userPref.querySelector("#volatile");
-      const wrongStatic = userPref.querySelector("#wrongStatic");
 
-      assert.equal(getText(defalt), 'John Doe', 'incorrect text defalt');
-      assert.equal(getText(statc), 'John Doe', 'incorrect text statc');
-      assert.equal(getText(volatile), 'infant', 'incorrect text volatile');
-      assert.equal(getText(wrongStatic), 'infant', 'incorrect text wrongStatic');
+      assert.equal(getText(nonVolatile), 'Role1, Org1', 'incorrect text nonVolatile');
+      assert.equal(getText(volatile), 'City1, Country1', 'incorrect text volatile');
 
       const { changes: uc } = user;
-      console.log('before setting age', Array.from(uc));
       uc.clear();
-      changeAge(10);
+      user.roleNonVolatile = 'Role2';
+      // user.locationVolatile = 'Country2';
+      user.country = 'Country2'
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(defalt), 'John Doe', 'incorrect text defalt - age');
-      assert.equal(getText(statc), 'John Doe', 'incorrect text statc - age');
-      assert.equal(getText(volatile), 'John Doe', 'incorrect text volatile - age');
-      assert.equal(getText(wrongStatic), 'John Doe', 'incorrect text wrongStatic - age');
-      assert.equal(uc.has('default'), false, 'default change should not have triggered');
-      assert.equal(uc.has('static'), false, 'static change should not have triggered');
-      assert.equal(uc.has('volatile'), true, 'static change should have triggered');
-      assert.equal(uc.has('wrongStatic'), true, 'static change should have triggered');
+      // assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.equal(getText(volatile), 'City1, Country2', 'incorrect text volatile - country');
+      // assert.equal(uc.has('nonVolatile'), true, 'nonVolatile change should have triggered - role');
+      assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
 
-      console.log('before setting fname', Array.from(uc));
       uc.clear();
-      changeFirstName('Jane');
+      user.organization = 'Org2'
+      user.city = 'City2';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(defalt), 'Jane Doe', 'incorrect text defalt - fname');
-      assert.equal(getText(statc), 'Jane Doe', 'incorrect text statc - fname');
-      assert.equal(getText(volatile), 'Jane Doe', 'incorrect text volatile - fname');
-      assert.equal(getText(wrongStatic), 'Jane Doe', 'incorrect text wrongStatic - fname');
-      assert.equal(uc.has('default'), true, 'default change should have triggered');
-      assert.equal(uc.has('static'), true, 'static change should have triggered');
-      assert.equal(uc.has('volatile'), true, 'static change should have triggered');
-      assert.equal(uc.has('wrongStatic'), true, 'static change should have triggered');
-
-      console.log('before setting last name', Array.from(uc));
-      uc.clear();
-      changeLastName('Smith');
-      ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(defalt), 'Jane Smith', 'incorrect text defalt - lname');
-      assert.equal(getText(statc), 'Jane Smith', 'incorrect text statc - lname');
-      assert.equal(getText(volatile), 'Jane Smith', 'incorrect text volatile - lname');
-      assert.equal(getText(wrongStatic), 'Jane Smith', 'incorrect text wrongStatic - lname');
-      assert.equal(uc.has('default'), true, 'default change should have triggered');
-      assert.equal(uc.has('static'), true, 'static change should have triggered');
-      assert.equal(uc.has('volatile'), true, 'static change should have triggered');
-      assert.equal(uc.has('wrongStatic'), true, 'static change should have triggered');
+      // assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.equal(getText(volatile), 'City2, Country2', 'incorrect text volatile - country');
+      // assert.equal(uc.has('nonVolatile'), false, 'nonVolatile change should not have triggered - role');
+      assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
     });
   });
 });

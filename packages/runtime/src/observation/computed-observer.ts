@@ -48,11 +48,8 @@ export function createComputedObserver(
   }
 
   if (descriptor.get) {
-    const overrides = (
-      (instance as IObservable & { constructor: ComputedLookup }).constructor.computed
-      && (instance as IObservable & { constructor: ComputedLookup }).constructor.computed![propertyName]
-      || computedOverrideDefaults
-    );
+    const { constructor: { prototype: { computed } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
+    const overrides = computed![propertyName] || computedOverrideDefaults;
 
     if (descriptor.set) {
       if (overrides.volatile) {

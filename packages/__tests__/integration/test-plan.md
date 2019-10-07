@@ -266,3 +266,24 @@ The usage code looks like this:
 
 The result?
 `appendToBodyChanged` gets called and `appendToBody` is set to the string `append-to-body.bind: true; open.bind: ddopen` (so the whole attribute value of au-dropdown). How on earth can that happen?
+
+#### Hypothetical examples
+
+The following does not work:
+
+```typescript
+  public get organizationNonVolatile() {
+    return `${this.organization}, ${this.location}`;
+  }
+  public set organizationNonVolatile(value: string) {
+    this.organization = value;
+  }
+
+  @computed({ volatile: true })
+  public get organizationVolatile() {
+    return `${this.organization}, ${this.location}`;
+  }
+  public set organizationVolatile(value: string) {
+    this.organization = value;
+  }
+```

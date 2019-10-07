@@ -2,7 +2,7 @@ import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { StartTask } from '@aurelia/runtime';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
-import { IRouter, IRouterOptions, Router } from './router';
+import { IRouter, IRouterOptions } from './router';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 

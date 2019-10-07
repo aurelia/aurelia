@@ -1,7 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
-import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Configuration', function () {

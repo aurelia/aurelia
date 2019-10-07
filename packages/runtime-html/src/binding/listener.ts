@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
   hasBind,

@@ -1,4 +1,4 @@
-import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { AccessorOrObserver, BindingMode, connectable, ExpressionKind, hasBind, hasUnbind, IBindingTargetObserver, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
 import { AttributeObserver } from '../observation/element-attribute-observer';
 

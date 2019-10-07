@@ -3,7 +3,7 @@ import {BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData} from './
 import {setUseShadowRoot, buildDriver} from './webdriverAccess';
 import * as fs from 'fs';
 import * as path from 'path';
-import {TConfig, config as defaultConfig, JSONResult, FrameworkData, BenchmarkError, ErrorsAndWarning, BenchmarkOptions, BenchmarkDriverOptions} from './common';
+import {TConfig, config as defaultConfig, JSONResult, FrameworkData, BenchmarkError, ErrorsAndWarning, BenchmarkOptions} from './common';
 import * as R from 'ramda';
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');

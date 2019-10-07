@@ -222,13 +222,15 @@ module.exports = {
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-var-requires': 'off'
+      '@typescript-eslint/no-var-requires': 'off',
+      'compat/compat': 'off'
     }
   }, { // Specific overrides for TS files within tests as some rules don't make sense there.
     files: ['examples/**', 'scripts/**', 'test/**'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
+      'compat/compat': 'off',
       'import/no-nodejs-modules': 'off'
     }
   }],

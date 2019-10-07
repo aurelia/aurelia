@@ -10,7 +10,7 @@ export class AuHrefCustomAttribute {
     @INode private readonly element: HTMLElement,
   ) { }
 
-  public bound() {
+  public binding(): void {
     this.updateValue();
   }
 
@@ -18,11 +18,10 @@ export class AuHrefCustomAttribute {
     this.updateValue();
   }
 
-  private updateValue() {
+  private updateValue(): void {
     if (this.hasHref === null) {
       this.hasHref = this.element.hasAttribute('href');
     }
-    Reflect.set(this.element, '$auHref', this.value);
     if (!this.hasHref) {
       const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
       this.element.setAttribute('href', value);

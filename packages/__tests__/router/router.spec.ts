@@ -108,9 +108,9 @@ describe('Router', function () {
     await au.start().wait();
 
     async function tearDown() {
+      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-      router.deactivate();
     }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
@@ -381,7 +381,7 @@ describe('Router', function () {
     it('handles anchor click', async function () {
       this.timeout(5000);
 
-      const { lifecycle, host, router, tearDown } = await setup();
+      const { lifecycle, host, router, tearDown } = await setup({ useHref: true });
 
       await $goto('foo@left', router, lifecycle);
       assert.includes(host.textContent, 'foo', `host.textContent`);

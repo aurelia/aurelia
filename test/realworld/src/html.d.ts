@@ -1,6 +1,7 @@
 declare module '*.html' {
   import { IContainer } from '@aurelia/kernel';
   import { IBindableDescription } from '@aurelia/runtime';
+
   export const name: string;
   export const template: string;
   export default template;

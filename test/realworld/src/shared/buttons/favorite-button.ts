@@ -10,7 +10,7 @@ export class FavoriteButton {
   @bindable public article?: Article;
   @bindable public toggle?: (toggled: boolean) => void;
 
-  constructor(private readonly router: IRouter,
+  public constructor(private readonly router: IRouter,
     private readonly sharedState: SharedState,
     private readonly articleService: ArticleService) {
   }

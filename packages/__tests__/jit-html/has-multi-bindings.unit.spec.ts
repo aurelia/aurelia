@@ -26,11 +26,11 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       ],
     },
     {
-      attrValue: '${c}',
+      attrValue: `\${c}`,
       expectedBindings: [
         {
           target: 'attr',
-          rawValue: '${c}',
+          rawValue: `\${c}`,
         },
       ],
     },
@@ -80,29 +80,29 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       ],
     },
     {
-      attrValue: '${a | b:{c:b}}',
+      attrValue: `\${a | b:{c:b}}`,
       expectedBindings: [
         {
           target: 'attr',
-          rawValue: '${a | b:{c:b}}',
+          rawValue: `\${a | b:{c:b}}`,
         },
       ],
     },
     {
-      attrValue: '${a & b:{c:b}}',
+      attrValue: `\${a & b:{c:b}}`,
       expectedBindings: [
         {
           target: 'attr',
-          rawValue: '${a & b:{c:b}}',
+          rawValue: `\${a & b:{c:b}}`,
         },
       ],
     },
     {
-      attrValue: '${a & b:{c:b}} ${a & b:{c:b}}',
+      attrValue: `\${a & b:{c:b}} \${a & b:{c:b}}`,
       expectedBindings: [
         {
           target: 'attr',
-          rawValue: '${a & b:{c:b}} ${a & b:{c:b}}',
+          rawValue: `\${a & b:{c:b}} \${a & b:{c:b}}`,
         },
       ],
     },
@@ -194,11 +194,11 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       ],
     },
     {
-      attrValue: 'a: ${a | c:d} abcd; b.bind: 2',
+      attrValue: `a: \${a | c:d} abcd; b.bind: 2`,
       expectedBindings: [
         {
           target: 'a',
-          rawValue: '${a | c:d} abcd',
+          rawValue: `\${a | c:d} abcd`,
         },
         {
           target: 'b',

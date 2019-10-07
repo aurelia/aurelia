@@ -1,10 +1,11 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 const baseUrl = '';
 
 module.exports = function (env, { mode }) {
   const production = mode === 'production';
-  !production && console.warn('Warning this is built in a non production mode');
+  if (!production) { console.warn('Warning this is built in a non production mode'); }
   return {
     mode: 'development',
     devtool: false,

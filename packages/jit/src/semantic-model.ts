@@ -110,7 +110,7 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
     return this._parts;
   }
 
-  constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
+  public constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
     this.res = info.name;
     this.partName = info.name === 'replaceable' ? partName : null;
@@ -137,7 +137,7 @@ export class ReplacePartSymbol implements ISymbolWithTemplate {
   public parent: IParentNodeSymbol | null;
   public template: IParentNodeSymbol;
 
-  constructor(name: string) {
+  public constructor(name: string) {
     this.flags = SymbolFlags.isReplacePart;
     this.name = name;
     this.physicalNode = null!;
@@ -163,7 +163,7 @@ export class CustomAttributeSymbol implements ICustomAttributeSymbol {
     return this._bindings;
   }
 
-  constructor(syntax: AttrSyntax, info: AttrInfo) {
+  public constructor(syntax: AttrSyntax, info: AttrInfo) {
     this.flags = SymbolFlags.isCustomAttribute;
     this.res = info.name;
     this.syntax = syntax;
@@ -183,7 +183,7 @@ export class PlainAttributeSymbol implements IPlainAttributeSymbol {
   public command: IBindingCommand | null;
   public expression: AnyBindingExpression | null;
 
-  constructor(
+  public constructor(
     syntax: AttrSyntax,
     command: IBindingCommand | null,
     expression: AnyBindingExpression | null
@@ -210,7 +210,7 @@ export class BindingSymbol implements ISymbol {
   public rawValue: string;
   public target: string;
 
-  constructor(
+  public constructor(
     command: IBindingCommand | null,
     bindable: BindableInfo,
     expression: AnyBindingExpression | null,
@@ -285,7 +285,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
     return this._parts;
   }
 
-  constructor(dom: IDOM, node: INode, info: ElementInfo) {
+  public constructor(dom: IDOM, node: INode, info: ElementInfo) {
     this.flags = SymbolFlags.isCustomElement;
     this.res = info.name;
     this.physicalNode = node;
@@ -323,7 +323,7 @@ export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymb
     return this._bindings;
   }
 
-  constructor(dom: IDOM, node: INode) {
+  public constructor(dom: IDOM, node: INode) {
     this.flags = SymbolFlags.isLetElement | SymbolFlags.hasMarker;
     this.physicalNode = node;
     this.toBindingContext = false;
@@ -371,7 +371,7 @@ export class PlainElementSymbol implements IElementSymbol {
     return this._childNodes;
   }
 
-  constructor(node: INode) {
+  public constructor(node: INode) {
     this.flags = SymbolFlags.isPlainElement;
     this.physicalNode = node;
     this.isTarget = false;
@@ -391,7 +391,7 @@ export class TextSymbol implements INodeSymbol, ISymbolWithMarker {
   public interpolation: IInterpolationExpression;
   public marker: INode;
 
-  constructor(dom: IDOM, node: INode, interpolation: IInterpolationExpression) {
+  public constructor(dom: IDOM, node: INode, interpolation: IInterpolationExpression) {
     this.flags = SymbolFlags.isText | SymbolFlags.hasMarker;
     this.physicalNode = node;
     this.interpolation = interpolation;

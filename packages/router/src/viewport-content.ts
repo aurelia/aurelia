@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, IController, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
@@ -23,7 +22,7 @@ export class ViewportContent {
 
   private taggedNodes: Element[] = [];
 
-  constructor(
+  public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public content: ViewportInstruction = new ViewportInstruction(''),
     public instruction: INavigatorInstruction = {
@@ -154,7 +153,7 @@ export class ViewportContent {
       Controller.forCustomElement(this.content.componentInstance, container, host);
     }
     // Temporarily tag content so that it can find parent scope before viewport is attached
-    const childNodes = this.content.componentInstance!.$controller!.nodes!.childNodes;
+    const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
     for (let i = 0; i < childNodes.length; i++) {
       const child = childNodes[i] as Element;
       if (child.nodeType === 1) {

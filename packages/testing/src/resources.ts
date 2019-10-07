@@ -32,7 +32,7 @@ export class JsonValueConverter {
 
 @customElement({
   name: 'name-tag',
-  template: '<template>${name}</template>',
+  template: `<template>\${name}</template>`,
   build: { required: true, compiler: 'default' },
   dependencies: [],
   instructions: [],

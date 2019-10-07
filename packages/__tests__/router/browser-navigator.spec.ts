@@ -13,7 +13,7 @@ describe('BrowserNavigator', function () {
     public history: History;
     public location: Location;
 
-    constructor(window: Window, history: History, location: Location) {
+    public constructor(window: Window, history: History, location: Location) {
       this.window = window;
       this.history = history;
       this.location = location;
@@ -65,10 +65,10 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('can be activated', async function () {
+  it('can be activated', function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate({ callback });
+    sut.activate({ callback });
 
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
@@ -78,10 +78,10 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('can be deactivated', async function () {
+  it('can be deactivated', function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate({ callback });
+    sut.activate({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
@@ -93,15 +93,15 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('throws when activated while active', async function () {
+  it('throws when activated while active', function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate({ callback });
+    sut.activate({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
 
     let err;
     try {
-      await sut.activate({ callback });
+      sut.activate({ callback });
     } catch (e) {
       err = e;
     }
@@ -116,7 +116,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = setup();
 
     let counter = 0;
-    await sut.activate({
+    sut.activate({
       callback:
         // Called once for each url/location change (no longer in as part of activation)
         function () {
@@ -142,7 +142,7 @@ describe('BrowserNavigator', function () {
   it('queues consecutive calls', async function () {
     const { sut, tearDown, callback } = setup();
 
-    await sut.activate({ callback });
+    sut.activate({ callback });
     await wait();
 
     const length = sut['pendingCalls'].length;
@@ -164,7 +164,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = setup();
 
     let counter = 0;
-    await sut.activate({
+    sut.activate({
       callback:
         // Called once for each url/location change (no longer in as part of activation)
         function () {
@@ -191,7 +191,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = setup();
 
     let instruction;
-    await sut.activate({
+    sut.activate({
       callback:
         function (state) {
           instruction = state;
@@ -219,7 +219,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = setup();
 
     let instruction;
-    await sut.activate({
+    sut.activate({
       callback:
         function (state) {
           instruction = state;

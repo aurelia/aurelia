@@ -1,10 +1,21 @@
 import * as fs from 'fs';
 import * as path from 'path';
-const ncu = require('npm-check-updates');
 import * as semver from 'semver';
 import * as yargs from 'yargs';
-import {loadFrameworkVersionInformation, determineInstalledVersions, FrameworkVersionInformation, FrameworkVersionInformationStatic, FrameworkVersionInformationDynamic, FrameworkVersionInformationError,
-  PackageVersionInformation, PackageVersionInformationValid, PackageVersionInformationErrorUnknownPackage, PackageVersionInformationErrorNoPackageJSONLock, PackageVersionInformationResult} from './common';
+import {
+  loadFrameworkVersionInformation,
+  determineInstalledVersions,
+  FrameworkVersionInformation,
+  FrameworkVersionInformationStatic,
+  FrameworkVersionInformationDynamic,
+  FrameworkVersionInformationError,
+  PackageVersionInformation,
+  PackageVersionInformationValid,
+  PackageVersionInformationErrorUnknownPackage,
+  PackageVersionInformationErrorNoPackageJSONLock,
+  PackageVersionInformationResult
+} from './common';
+const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
 let args = yargs(process.argv)
@@ -16,7 +27,7 @@ let args = yargs(process.argv)
 let updatePackages = args.update;
 console.log("ARGS", args._.slice(2, args._.length));
 let directories = args._.slice(2, args._.length);
-let checkDirectory = (keyedType:string, folderName: string) => directories.length===0 || args._.some(a => path.join(keyedType, folderName).startsWith(a));
+let checkDirectory = (keyedType: string, folderName: string) => directories.length===0 || args._.some(a => path.join(keyedType, folderName).startsWith(a));
 
 async function ncuReportsUpdatedVersion(packageVersionInfo: PackageVersionInformationResult) {
   let ncuInfo = await ncu.run({
@@ -33,7 +44,7 @@ async function ncuReportsUpdatedVersion(packageVersionInfo: PackageVersionInform
         if (newVersion.startsWith('^')) newVersion = newVersion.substring(1);
         if (newVersion.startsWith('~')) newVersion = newVersion.substring(1);
         if (newVersion) {
-          return !semver.satisfies(newVersion, '~'+pi.version);
+          return !semver.satisfies(newVersion, `~${pi.version}`);
         } else {
           return false;
         }
@@ -44,44 +55,42 @@ async function ncuReportsUpdatedVersion(packageVersionInfo: PackageVersionInform
 }
 
 async function ncuRunUpdate(packageVersionInfo: PackageVersionInformationResult) {
-  console.log("Update "+packageVersionInfo.framework.keyedType +'/' + packageVersionInfo.framework.directory);
+  console.log(`Update ${packageVersionInfo.framework.keyedType}/${packageVersionInfo.framework.directory}`);
   await ncu.run({
     packageFile: path.resolve('..', 'frameworks', packageVersionInfo.framework.keyedType, packageVersionInfo.framework.directory, 'package.json'),
     upgrade: true
   });
 }
 
-
 async function main() {
 
-  let frameworkVersionInformations = await loadFrameworkVersionInformation();
+  let frameworkVersionInformations = loadFrameworkVersionInformation();
 
   let errors = frameworkVersionInformations.filter(frameworkVersionInformation => frameworkVersionInformation instanceof FrameworkVersionInformationError);
 
   if (errors.length > 0) {
     console.log("ERROR: The following frameworks do not include valid version info and must be fixed");
-    console.log(errors.map(val => val.keyedType +'/' + val.directory).join('\n') + '\n');
+    console.log(`${errors.map(val => `${val.keyedType}/${val.directory}`).join('\n')}\n`);
   }
 
   let manually = frameworkVersionInformations.filter(frameworkVersionInformation => frameworkVersionInformation instanceof FrameworkVersionInformationStatic);
 
   if (manually.length > 0) {
     console.log("WARNING: The following frameworks must be updated manually: ");
-    console.log(manually.map(val => val.keyedType + '/' + val.directory).join('\n') + '\n');
+    console.log(`${manually.map(val => `${val.keyedType}/${val.directory}`).join('\n')}\n`);
   }
 
   let automatically = frameworkVersionInformations
     .filter(frameworkVersionInformation => frameworkVersionInformation instanceof FrameworkVersionInformationDynamic)
     .map(frameworkVersionInformation => frameworkVersionInformation as FrameworkVersionInformationDynamic);
 
-
-  let packageLockInformations : PackageVersionInformationResult[] = await Promise.all(automatically.map(frameworkVersionInformation => determineInstalledVersions(frameworkVersionInformation)));
+  let packageLockInformations: PackageVersionInformationResult[] = await Promise.all(automatically.map(frameworkVersionInformation => determineInstalledVersions(frameworkVersionInformation)));
 
   let noPackageLock = packageLockInformations.filter(pli => pli.versions.some((packageVersionInfo: PackageVersionInformation) => packageVersionInfo instanceof PackageVersionInformationErrorNoPackageJSONLock));
 
   if (noPackageLock.length > 0) {
     console.log("WARNING: The following frameworks do not yet have a package-lock.json file (maybe you must 'npm install' it): ");
-    console.log(noPackageLock.map(val => val.framework.keyedType +'/' + val.framework.directory).join('\n') + '\n');
+    console.log(`${noPackageLock.map(val => `${val.framework.keyedType}/${val.framework.directory}`).join('\n')  }\n`);
   }
 
   let unknownPackages = packageLockInformations.filter(pli => pli.versions.some((packageVersionInfo: PackageVersionInformation) => packageVersionInfo instanceof PackageVersionInformationErrorUnknownPackage));
@@ -107,20 +116,20 @@ async function main() {
   console.log("The following frameworks can be updated");
 
   if (toBeUpdated.length > 0) {
-    console.log(toBeUpdated.map(val => val.framework.keyedType +'/' + val.framework.directory).join('\n') + '\n');
+    console.log(`${toBeUpdated.map(val => `${val.framework.keyedType}/${val.framework.directory}`).join('\n')}\n`);
 
     if (updatePackages) {
       let rebuild = "";
       for (let val of toBeUpdated) {
-        console.log("ACTION: Updating package.json for " +  val.framework.keyedType +'/' + val.framework.directory);
+        console.log(`ACTION: Updating package.json for ${val.framework.keyedType}/${val.framework.directory}`);
         await ncuRunUpdate(val);
         let prefix = `${val.framework.keyedType}/${val.framework.directory}`;
-        rebuild = rebuild + "'"+prefix+"' ";
+        rebuild = `${rebuild}'${prefix}' `;
       }
       console.log("\nTODO: Rebuilding is required:");
 
       console.log(`npm run rebuild -- ${rebuild}`);
-      exec('npm run rebuild -- '+rebuild, {
+      exec(`npm run rebuild -- ${rebuild}`, {
         stdio: 'inherit'
       });
 
@@ -134,5 +143,4 @@ main()
   .catch(err => {
     console.log('error', err);
   });
-
 

@@ -9,7 +9,7 @@ export class PropertyAccessor implements PropertyAccessor {
   public obj: Record<string, unknown>;
   public propertyKey: string;
 
-  constructor(obj: Record<string, unknown>, propertyKey: string) {
+  public constructor(obj: Record<string, unknown>, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     if (

@@ -45,7 +45,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public hasChanges: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     observerLocator: IObserverLocator,
@@ -186,8 +186,7 @@ const startObservation = (element: IHtmlElement, subscription: ElementMutationSu
   if (element.$mObserver === undefined) {
     element.$mObserver = DOM.createNodeObserver!(
       element,
-      // @ts-ignore
-      handleMutation,
+      handleMutation as (...args: unknown[]) => void,
       { attributes: true }
     ) as MutationObserver;
   }

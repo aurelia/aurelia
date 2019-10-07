@@ -98,7 +98,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 
   public readonly definition: TemplateDefinition;
 
-  constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
+  public constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
     this.dom = dom;
     this.definition = definition;
     this.factory = factory;
@@ -179,7 +179,7 @@ export interface IRenderingEngine {
     definition: TemplateDefinition,
     parentContext?: IContainer | IRenderContext<T>,
     componentType?: ICustomElementType,
-  ): ITemplate<T>;
+  ): ITemplate<T>|undefined;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
@@ -204,7 +204,7 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly lifecycle: ILifecycle;
   private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
-  constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
+  public constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.container = container;
     this.templateFactory = templateFactory;
     this.viewFactoryLookup = new Map();
@@ -221,7 +221,6 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  // @ts-ignore
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
@@ -328,7 +327,7 @@ export class ChildrenObserver {
   private readonly callback: () => void;
   private children: any[];
 
-  constructor(
+  public constructor(
     controller: IController,
     viewModel: any,
     flags: LifecycleFlags,

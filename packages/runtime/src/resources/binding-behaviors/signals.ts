@@ -11,7 +11,7 @@ export type SignalableBinding = PropertyBinding & {
 
 @bindingBehavior('signal')
 export class SignalBindingBehavior {
-  constructor(
+  public constructor(
     @ISignaler private readonly signaler: ISignaler,
   ) {}
 
@@ -25,7 +25,7 @@ export class SignalBindingBehavior {
       this.signaler.addSignalListener(name, binding);
       binding.signal = name;
     } else if (arguments.length > 4) {
-      const names = Array.prototype.slice.call(arguments, 3);
+      const names = Array.prototype.slice.call(args.length + 3, 3);
       let i = names.length;
 
       while (i--) {

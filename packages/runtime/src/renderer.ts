@@ -92,7 +92,7 @@ export class Renderer implements IRenderer {
 
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
-  constructor(instructionRenderers: IInstructionRenderer[]) {
+  public constructor(instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
       // Binding the functions to the renderer instances and calling the functions directly,
@@ -180,6 +180,7 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
     // todo: code error code, this message is from v1
     throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
   }
+  let refTargetController: IController;
   switch (refTargetName) {
     case 'controller':
       // this means it supports returning undefined
@@ -191,7 +192,7 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
       // this means it supports returning undefined
       return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
     default:
-      const refTargetController = $auRefs[refTargetName];
+      refTargetController = $auRefs[refTargetName];
       if (refTargetController === void 0) {
         throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
       }
@@ -227,7 +228,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateElementInstruction): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null!, null!, target, true);
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null!, target, true);
     const component = context.get<object>(CustomElement.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -286,7 +287,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -336,7 +337,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -361,7 +362,7 @@ export class LetElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -376,7 +377,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
@@ -390,7 +391,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -410,7 +411,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
@@ -425,7 +426,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}

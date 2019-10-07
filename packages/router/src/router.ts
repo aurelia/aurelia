@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
@@ -106,7 +105,7 @@ export class Router implements IRouter {
   private processingNavigation: INavigatorInstruction | null = null;
   private lastNavigation: INavigatorInstruction | null = null;
 
-  constructor(
+  public constructor(
     public readonly container: IContainer,
     public navigator: Navigator,
     public navigation: BrowserNavigator,
@@ -499,7 +498,7 @@ export class Router implements IRouter {
               }
               // Find out how many scopes upwards we should move
               while (instructions.startsWith('../')) {
-                scope = scope!.parent || scope;
+                scope = scope.parent || scope;
                 instructions = instructions.slice(3);
               }
             }
@@ -589,7 +588,7 @@ export class Router implements IRouter {
   /**
    * Finds the closest ancestor viewport.
    *
-   * @param element The element to search upward from. The element is not searched.
+   * @param element - The element to search upward from. The element is not searched.
    * @returns The Viewport that is the closest ancestor.
    */
   public closestViewport(element: Element): Viewport | null {

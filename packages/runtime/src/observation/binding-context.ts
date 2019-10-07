@@ -57,7 +57,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (keyOrObj.hasOwnProperty(prop)) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
@@ -67,13 +67,15 @@ export class BindingContext implements IBindingContext {
 
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
-   * @param obj Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
+   *
+   * @param obj - Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
    */
   public static create(flags: LifecycleFlags, obj?: IIndexable): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
-   * @param key The name of the only property to initialize this `BindingContext` with.
-   * @param value The value of the only property to initialize this `BindingContext` with.
+   *
+   * @param key - The name of the only property to initialize this `BindingContext` with.
+   * @param value - The value of the only property to initialize this `BindingContext` with.
    */
   public static create(flags: LifecycleFlags, key: string, value: unknown): BindingContext;
   /**
@@ -184,14 +186,15 @@ export class Scope implements IScope {
    *
    * Use this overload when the scope is for the root component, in a unit test,
    * or when you simply want to prevent binding expressions from traversing up the scope.
-   * @param bc The `BindingContext` to back the `Scope` with.
+   *
+   * @param bc - The `BindingContext` to back the `Scope` with.
    */
   public static create(flags: LifecycleFlags, bc: object): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
-   * @param bc The `BindingContext` to back the `Scope` with.
-   * @param oc The `OverrideContext` to back the `Scope` with.
+   * @param bc - The `BindingContext` to back the `Scope` with.
+   * @param oc - The `OverrideContext` to back the `Scope` with.
    * If a binding expression attempts to access a property that does not exist on the `BindingContext`
    * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
    * it finds the property.
@@ -203,12 +206,12 @@ export class Scope implements IScope {
    * Use this overload when the scope is for the root component, in a unit test,
    * or when you simply want to prevent binding expressions from traversing up the scope.
    *
-   * @param bc The `BindingContext` to back the `Scope` with.
-   * @param oc null. This overload is functionally equivalent to not passing this argument at all.
+   * @param bc - The `BindingContext` to back the `Scope` with.
+   * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
   public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
   public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {

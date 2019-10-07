@@ -24,7 +24,7 @@ export class ResourceModel {
   private readonly attributeLookup: Record<string, AttrInfo>;
   private readonly commandLookup: Record<string, IBindingCommand>;
 
-  constructor(resources: IResourceDescriptions) {
+  public constructor(resources: IResourceDescriptions) {
     this.resources = resources;
     this.elementLookup = {};
     this.attributeLookup = {};
@@ -34,7 +34,7 @@ export class ResourceModel {
   /**
    * Retrieve information about a custom element resource.
    *
-   * @param element The original DOM element.
+   * @param element - The original DOM element.
    *
    * @returns The resource information if the element exists, or `null` if it does not exist.
    */
@@ -55,7 +55,7 @@ export class ResourceModel {
   /**
    * Retrieve information about a custom attribute resource.
    *
-   * @param syntax The parsed `AttrSyntax`
+   * @param syntax - The parsed `AttrSyntax`
    *
    * @returns The resource information if the attribute exists, or `null` if it does not exist.
    */
@@ -76,7 +76,7 @@ export class ResourceModel {
   /**
    * Retrieve a binding command resource.
    *
-   * @param name The parsed `AttrSyntax`
+   * @param name - The parsed `AttrSyntax`
    *
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
@@ -204,7 +204,7 @@ export class BindableInfo {
    */
   public mode: BindingMode;
 
-  constructor(propName: string, mode: BindingMode) {
+  public constructor(propName: string, mode: BindingMode) {
     this.propName = propName;
     this.mode = mode;
   }
@@ -224,7 +224,7 @@ export class ElementInfo {
    */
   public bindables: Record<string, BindableInfo>;
 
-  constructor(name: string, containerless: boolean) {
+  public constructor(name: string, containerless: boolean) {
     this.name = name;
     this.containerless = containerless;
     this.bindables = {};
@@ -256,7 +256,7 @@ export class AttrInfo {
 
   public isTemplateController: boolean;
 
-  constructor(name: string, isTemplateController: boolean) {
+  public constructor(name: string, isTemplateController: boolean) {
     this.name = name;
     this.bindables = {};
     this.bindable = null!;

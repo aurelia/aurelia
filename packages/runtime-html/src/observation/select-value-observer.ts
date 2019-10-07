@@ -55,7 +55,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public nodeObserver?: MutationObserver;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     observerLocator: IObserverLocator,
@@ -172,7 +172,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
 
     while (i-- > 0) {
       const option = options[i];
-      const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
+      const optionValue = Object.prototype.hasOwnProperty.call(option, 'model') ? option.model : option.value;
       if (isArray) {
         option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
@@ -218,7 +218,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
       while (i < len) {
         option = options[i];
         if (option.selected) {
-          values.push(option.hasOwnProperty('model')
+          values.push(Object.prototype.hasOwnProperty.call(option, 'model')
             ? option.model
             : option.value
           );
@@ -255,7 +255,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     while (i < len) {
       const option = options[i];
       if (option.selected) {
-        value = option.hasOwnProperty('model')
+        value = Object.prototype.hasOwnProperty.call(option, 'model')
           ? option.model
           : option.value;
         break;

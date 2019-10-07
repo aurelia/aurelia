@@ -38,7 +38,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior | IForOfStatement,
     target: Element,
     // some attributes may have inner structure

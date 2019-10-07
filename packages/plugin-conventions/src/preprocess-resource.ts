@@ -110,7 +110,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
-    const dec = kebabCase(unit.filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement';
+    const dec = kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
 
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
@@ -170,7 +170,7 @@ function ensureTypeIsExported(runtimeExports: string[], type: string) {
 // TypeScript parsed statement could contain leading white spaces.
 // This find the exact starting position for latter code injection.
 function ensureTokenStart(start: number, code: string) {
-  while (start < code.length - 1 && code[start].match(/^\s$/)) start++;
+  while (start < code.length - 1 && /^\s$/.exec(code[start])) start++;
   return start;
 }
 
@@ -224,7 +224,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       if (isImplicitResource && filePair) {
         return {
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: kebabCase(filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement'
+          runtimeImportName: kebabCase(filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement'
         };
       }
     } else {

@@ -13,15 +13,15 @@ function rmIfExists(base, name) {
   }
 }
 
-for (let keyedType of ['keyed'/*, 'non-keyed'*/]) {
+for (let keyedType of ['keyed'/* , 'non-keyed' */]) {
   let dir = path.resolve('frameworks', keyedType);
   let directories = fs.readdirSync(dir);
 
   for (let name of directories) {
     let fd = path.resolve(dir, name);
     console.log('cleaning ', fd);
-    if(fs.existsSync(fd+"/node_modules")) {
-      rimraf.sync(fd+"/node_modules");
+    if(fs.existsSync(`${fd}/node_modules`)) {
+      rimraf.sync(`${fd}/node_modules`);
     }
     rmIfExists(fd, "package-lock.json");
     rmIfExists(fd, "yarn.lock");

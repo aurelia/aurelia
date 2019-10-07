@@ -180,7 +180,7 @@ describe.skip('controller', function () {
       public readonly id: number;
       public readonly $$calls: CallCollection;
 
-      constructor(
+      public constructor(
         calls: CallCollection,
       ) {
         this.id = nextId('au$component');
@@ -395,7 +395,7 @@ describe.skip('controller', function () {
         [],
         [
           [
-            new TextBindingInstruction(parseExpression('${id&oneTime}', BindingType.Interpolation)),
+            new TextBindingInstruction(parseExpression(`\${id&oneTime}`, BindingType.Interpolation)),
           ],
           [
             new HydrateTemplateController(
@@ -432,7 +432,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView!.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0];
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -790,7 +790,7 @@ describe.skip('controller', function () {
         ],
         [
           [
-            new TextBindingInstruction(parseExpression('${msg}', BindingType.Interpolation)),
+            new TextBindingInstruction(parseExpression(`\${msg}`, BindingType.Interpolation)),
           ],
           [
             new HydrateTemplateController(
@@ -833,7 +833,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView!.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0];
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -1171,6 +1171,7 @@ describe.skip('controller', function () {
 });
 
 /**
+ * ```
  * (incomplete notes)
  * - repeater
  *   - array
@@ -1212,5 +1213,5 @@ describe.skip('controller', function () {
  * - ce -> replace-part -> ce -> replaceable
  * - ce -> if -> ce
  * - custom-element -> repeat -> view
- *
-*/
+ *```
+ */

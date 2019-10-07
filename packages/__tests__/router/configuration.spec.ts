@@ -47,15 +47,6 @@ describe('Configuration', function () {
 
     const { router, tearDown } = await setup();
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-
-    await tearDown();
-  });
-
-  it('can be activated with defaults', async function () {
-    this.timeout(5000);
-
-    const { router, tearDown } = await setup();
-    assert.strictEqual(router['isActive'], true, `router.isActive`);
     assert.strictEqual(router.instructionResolver.separators.viewport, '@', `router.instructionResolver.separators.viewport`);
 
     await tearDown();
@@ -92,7 +83,7 @@ describe('Configuration', function () {
     const { container } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="foo"></au-viewport>' });
-    const Foo = CustomElement.define({ name: 'foo', template: '<div>foo: ${message}</div>' }, class {
+    const Foo = CustomElement.define({ name: 'foo', template: `<div>foo: \${message}</div>` }, class {
       public message: string = '';
       public async enter() {
         await new Promise(resolve => setTimeout(resolve, 250));

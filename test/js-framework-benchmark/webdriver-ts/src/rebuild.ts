@@ -1,12 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-const ncu = require('npm-check-updates');
 import * as _ from 'lodash';
 import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError, ErrorsAndWarning, BenchmarkOptions } from './common';
-
+const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
-async function main() {
+function main() {
   let frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 
   if (frameworks.length === 0) {
@@ -14,8 +13,8 @@ async function main() {
   } else {
     for (let framework of frameworks) {
       let dir = path.resolve(path.join('..','frameworks',framework));
-      console.log("rebuilding "+framework+" in directory ", dir);
-      if (!fs.existsSync(dir)) throw new Error("ERROR: directory "+dir+" not found");
+      console.log(`rebuilding ${framework} in directory `, dir);
+      if (!fs.existsSync(dir)) throw new Error(`ERROR: directory ${dir} not found`);
       else {
         console.log("running rm -rf package-lock.json yarn.lock dist elm-stuff bower_components node_modules");
         try {
@@ -36,12 +35,12 @@ async function main() {
     });
 
     let frameworkNames = frameworks.join(" ");
-    console.log('npm run bench -- --headless --noResults --count 1  '+frameworkNames);
-    exec('npm run bench -- --headless --noResults --count 1 '+frameworkNames, {
+    console.log(`npm run bench -- --headless --noResults --count 1  ${frameworkNames}`);
+    exec(`npm run bench -- --headless --noResults --count 1 ${frameworkNames}`, {
       stdio: 'inherit'
     });
-    console.log('npm run isKeyed -- --headless '+frameworkNames);
-    exec('npm run isKeyed -- --headless '+frameworkNames, {
+    console.log(`npm run isKeyed -- --headless ${frameworkNames}`);
+    exec(`npm run isKeyed -- --headless ${frameworkNames}`, {
       stdio: 'inherit'
     });
 

@@ -34,13 +34,12 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private isActive: boolean = false;
   private options: IBrowserNavigatorOptions = {
     useUrlFragmentHash: true,
-    // tslint:disable-next-line:no-empty
     callback: () => { },
   };
 
   private forwardedState: ForwardedState = {};
 
-  constructor(
+  public constructor(
     public readonly lifecycle: ILifecycle,
     dom: HTMLDOM
   ) {
@@ -69,7 +68,6 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     }
     this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.deactivate();
-    // tslint:disable-next-line:no-empty
     this.options = { useUrlFragmentHash: true, callback: () => { } };
     this.isActive = false;
   }
@@ -198,7 +196,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         this.forwardedState.suppressPopstate = false;
       }
     }
-    // tslint:disable-next-line:ban-types
+    // eslint-disable-next-line @typescript-eslint/ban-types
     const method = (call.target as { [key: string]: Function | undefined })[call.methodName];
     Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
     if (method) {

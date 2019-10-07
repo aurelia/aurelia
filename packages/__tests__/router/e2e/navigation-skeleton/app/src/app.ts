@@ -14,7 +14,7 @@ import './nav-bar.html';
 export class App {
   public count: number = 3;
   public maxWindows: number = 5;
-  constructor(public router: IRouter) { }
+  public constructor(public router: IRouter) { }
   public bound() {
     // Yeah, this is cheating somewhat, should've reacted to actual count
     for (let i = 1; i <= this.maxWindows; i++) {

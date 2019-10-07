@@ -5,11 +5,11 @@ var path = require('path');
 
 if (fs.existsSync("dist")) fs.removeSync("dist");
 fs.mkdirSync("dist");
-fs.mkdirSync("dist"+path.sep+"webdriver-ts");
-fs.copySync("webdriver-ts"+path.sep+"table.html", "dist"+path.sep+"webdriver-ts"+path.sep+"table.html");
+fs.mkdirSync(`dist${path.sep}webdriver-ts`);
+fs.copySync(`webdriver-ts${path.sep}table.html`, `dist${path.sep}webdriver-ts${path.sep}table.html`);
 
-fs.copySync("index.html", "dist"+path.sep+"index.html");
-fs.copySync("css", "dist"+path.sep+"css");
+fs.copySync("index.html", `dist${path.sep}index.html`);
+fs.copySync("css", `dist${path.sep}css`);
 
 var excludes = ["node_modules","elm-stuff","project",".DS_Store"];
 var excludedDirectories = ['css', 'dist','node_modules','webdriver-ts'];
@@ -19,7 +19,7 @@ function copyFileSync(source, target) {
 
   var targetFile = target;
 
-  //if target is a directory a new file with the same name will be created
+  // if target is a directory a new file with the same name will be created
   if (fs.existsSync(target) && fs.lstatSync(target).isDirectory()) {
     targetFile = path.join(target, path.basename(source));
   }
@@ -40,20 +40,20 @@ function include(name) {
 function copyFolderRecursiveSync(source, target) {
   var files = [];
 
-  //check if folder needs to be created or integrated
+  // check if folder needs to be created or integrated
   var targetFolder = path.join(target, path.basename(source));
   if (!fs.existsSync(targetFolder)) {
     fs.mkdirSync(targetFolder);
   }
 
-  //copy
+  // copy
   if (fs.lstatSync(source).isDirectory()) {
     files = fs.readdirSync(source);
     files.forEach(function (file) {
       var curSource = path.join(source, file);
       if (include(curSource)) {
         if (fs.lstatSync(curSource).isDirectory()) {
-          console.log("copy dir "+curSource);
+          console.log(`copy dir ${curSource}`);
           copyFolderRecursiveSync(curSource, targetFolder);
         } else if (fs.lstatSync(curSource).isSymbolicLink()) {
           console.log("**** LINK");
@@ -67,9 +67,9 @@ function copyFolderRecursiveSync(source, target) {
 }
 
 _.each(fs.readdirSync('.'), function(name) {
-  if(fs.statSync(name).isDirectory() && name[0] !== '.' && excludedDirectories.indexOf(name)==-1) {
-    console.log("dist"+path.sep+name);
-    fs.mkdirSync("dist"+path.sep+name);
+  if(fs.statSync(name).isDirectory() && name[0] !== '.' && !excludedDirectories.includes(name)) {
+    console.log(`dist${path.sep}${name}`);
+    fs.mkdirSync(`dist${path.sep}${name}`);
     copyFolderRecursiveSync(name, "dist");
 
     /* fs.mkdirSync("dist"+path.sep+name);

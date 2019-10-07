@@ -21,7 +21,7 @@ import { arrayRemove } from '../../../../../../router/src/utils';
 <au-viewport no-scope name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
 ` })
 export class App {
-  constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
+  public constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 

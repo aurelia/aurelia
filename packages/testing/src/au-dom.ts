@@ -103,7 +103,7 @@ export class AuNode implements INode {
   private _isConnected: boolean;
   private _textContent: string;
 
-  constructor(
+  public constructor(
     name: string,
     isWrapper: boolean,
     isTarget: boolean,
@@ -392,7 +392,7 @@ export class AuProjectorLocator implements IProjectorLocator {
 export class AuProjector implements IElementProjector {
   public host: CustomElementHost<AuNode>;
 
-  constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>) {
+  public constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
     this.host.$controller = $controller;
   }
@@ -437,7 +437,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
   private readonly wrapper: AuNode;
   private readonly targets: AuNode[];
 
-  constructor(dom: AuDOM, wrapper: AuNode) {
+  public constructor(dom: AuDOM, wrapper: AuNode) {
     this.isMounted = false;
     this.isLinked = false;
 
@@ -581,7 +581,7 @@ export class AuNodeSequenceFactory implements INodeSequenceFactory<AuNode> {
   private readonly dom: AuDOM;
   private readonly wrapper: AuNode;
 
-  constructor(dom: AuDOM, node: AuNode) {
+  public constructor(dom: AuDOM, node: AuNode) {
     this.dom = dom;
     this.wrapper = dom.createDocumentFragment(node);
   }
@@ -596,7 +596,7 @@ export class AuDOMInitializer implements IDOMInitializer {
 
   private readonly container: IContainer;
 
-  constructor(container: IContainer) {
+  public constructor(container: IContainer) {
     this.container = container;
   }
 
@@ -615,7 +615,7 @@ export class AuTemplateFactory implements ITemplateFactory<AuNode> {
 
   private readonly dom: AuDOM;
 
-  constructor(dom: AuDOM) {
+  public constructor(dom: AuDOM) {
     this.dom = dom;
   }
 
@@ -643,7 +643,7 @@ export class AuTextInstruction implements ITargetedInstruction {
   public readonly type: 'au';
   public readonly from: IsBindingBehavior;
 
-  constructor(from: IsBindingBehavior) {
+  public constructor(from: IsBindingBehavior) {
     this.type = 'au';
     this.from = from;
   }
@@ -655,7 +655,7 @@ export class AuTextInstruction implements ITargetedInstruction {
 export class AuTextRenderer implements IInstructionRenderer {
   private readonly observerLocator: IObserverLocator;
 
-  constructor(observerLocator: IObserverLocator) {
+  public constructor(observerLocator: IObserverLocator) {
     this.observerLocator = observerLocator;
   }
 
@@ -705,7 +705,6 @@ export const AuDOMTest = {
       build: { required: false },
       name,
       template: AuNode.createText().makeTarget(),
-      // @ts-ignore
       instructions: [[new AuTextInstruction(parseExpression(expression))]]
     };
   },
@@ -733,7 +732,6 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'if',
-      // @ts-ignore
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
@@ -744,7 +742,6 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'repeat',
-      // @ts-ignore
       [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')]
     );
   },
@@ -755,21 +752,18 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'with',
-      // @ts-ignore
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
   createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, ITemplateDefinition>): HydrateElementInstruction {
     return new HydrateElementInstruction(
       name,
-      // @ts-ignore
       bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)),
       parts
     );
   },
   createLetInstruction(bindings: [string, string][], toBindingContext: boolean = false): LetElementInstruction {
     return new LetElementInstruction(
-      // @ts-ignore
       bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)),
       toBindingContext
     );

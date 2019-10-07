@@ -143,7 +143,7 @@ export class PixiSprite {
 
   private _sprite: Sprite & { [key: string]: unknown } | null;
 
-  constructor() {
+  public constructor() {
     this._sprite = null;
   }
 

@@ -3,19 +3,19 @@ import * as path from 'path';
 import axios from 'axios';
 
 export interface JSONResult {
-  framework: string, keyed: boolean, benchmark: string, type: string, min: number,
-  max: number, mean: number, geometricMean: number,
-  standardDeviation: number, median: number, values: Array<number>
+  framework: string; keyed: boolean; benchmark: string; type: string; min: number;
+  max: number; mean: number; geometricMean: number;
+  standardDeviation: number; median: number; values: number[];
 }
 
 export interface BenchmarkError {
-  imageFile : string;
-  exception : string
+  imageFile: string;
+  exception: string;
 }
 
 export interface ErrorsAndWarning {
   errors: BenchmarkError[];
-  warnings: String[];
+  warnings: string[];
 }
 
 export interface BenchmarkDriverOptions {
@@ -32,7 +32,7 @@ export interface BenchmarkOptions extends BenchmarkDriverOptions {
   numIterationsForStartupBenchmark: number;
 }
 
-export let config = {
+export const config = {
   PORT: 8080,
   REMOTE_DEBUGGING_PORT: 9999,
   CHROME_PORT: 9998,
@@ -71,7 +71,7 @@ interface Options {
 type KeyedType = 'keyed' | 'non-keyed';
 
 function computeHash(keyedType: KeyedType, directory: string) {
-  return keyedType+'/'+directory;
+  return `${keyedType}/${directory}`;
 }
 
 export interface FrameworkId {
@@ -79,30 +79,29 @@ export interface FrameworkId {
   directory: string;
 }
 
-
 abstract class FrameworkVersionInformationValid implements FrameworkId {
   public url: string;
-  constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean) {
+  public constructor(public keyedType: KeyedType, public directory: string, customURL: string|undefined, public useShadowRoot: boolean) {
     this.keyedType = keyedType;
     this.directory = directory;
-    this.url = 'frameworks/'+keyedType+'/'+directory + (customURL ? customURL : '');
+    this.url = `frameworks/${keyedType}/${directory}${customURL ? customURL : ''}`;
   }
 }
 
 export class FrameworkVersionInformationDynamic extends FrameworkVersionInformationValid  {
-  constructor(keyedType: KeyedType, directory: string, public packageNames: string[],
+  public constructor(keyedType: KeyedType, directory: string, public packageNames: string[],
     customURL: string|undefined, useShadowRoot: boolean = false) {
     super(keyedType, directory, customURL, useShadowRoot);
   }
 }
 
 export class FrameworkVersionInformationStatic extends FrameworkVersionInformationValid  {
-  constructor(keyedType: KeyedType, directory: string, public frameworkVersion: string, customURL: string|undefined, useShadowRoot: boolean = false) {
+  public constructor(keyedType: KeyedType, directory: string, public frameworkVersion: string, customURL: string|undefined, useShadowRoot: boolean = false) {
     super(keyedType, directory, customURL, useShadowRoot);
   }
-  getFrameworkData(): FrameworkData {
+  public getFrameworkData(): FrameworkData {
     return {name: this.directory,
-      fullNameWithKeyedAndVersion: this.directory+(this.frameworkVersion ? '-v'+this.frameworkVersion : '')+'-'+this.keyedType,
+      fullNameWithKeyedAndVersion: `${this.directory+(this.frameworkVersion ? `-v${this.frameworkVersion}` : '')}-${this.keyedType}`,
       uri: this.url,
       keyed: this.keyedType === 'keyed',
       useShadowRoot: this.useShadowRoot
@@ -111,30 +110,30 @@ export class FrameworkVersionInformationStatic extends FrameworkVersionInformati
 }
 
 export class FrameworkVersionInformationError implements FrameworkId  {
-  constructor(public keyedType: KeyedType, public directory: string, public error: string) {}
+  public constructor(public keyedType: KeyedType, public directory: string, public error: string) {}
 }
 
 export type FrameworkVersionInformation = FrameworkVersionInformationDynamic | FrameworkVersionInformationStatic | FrameworkVersionInformationError;
 
 export class PackageVersionInformationValid {
-  constructor(public packageName: string, public version: string) {}
+  public constructor(public packageName: string, public version: string) {}
 }
 
 export class PackageVersionInformationErrorUnknownPackage  {
-  constructor(public packageName: string) {}
+  public constructor(public packageName: string) {}
 }
 
 export class PackageVersionInformationErrorNoPackageJSONLock  {
-  constructor() {}
+  public constructor() { return; }
 }
 
 export type PackageVersionInformation = PackageVersionInformationValid | PackageVersionInformationErrorUnknownPackage | PackageVersionInformationErrorNoPackageJSONLock;
 
 type IMatchPredicate = (frameworkDirectory: string) => boolean;
 
-const matchAll : IMatchPredicate= (frameworkDirectory: string) => true;
+const matchAll: IMatchPredicate= (frameworkDirectory: string) => true;
 
-async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<FrameworkVersionInformation> {
+function loadFrameworkInfo(pathInFrameworksDir: string): FrameworkVersionInformation {
   let keyedType: KeyedType;
   let directory: string;
   if (pathInFrameworksDir.startsWith("keyed")) {
@@ -144,7 +143,7 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
     keyedType = "non-keyed";
     directory = pathInFrameworksDir.substring(10);
   } else {
-    throw new Error("pathInFrameworksDir must start with keyed or non-keyed, but is "+pathInFrameworksDir);
+    throw new Error(`pathInFrameworksDir must start with keyed or non-keyed, but is ${pathInFrameworksDir}`);
   }
   let frameworksPath = path.resolve('..','frameworks');
   let packageJSONPath = path.resolve(frameworksPath, pathInFrameworksDir, 'package.json');
@@ -152,13 +151,17 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
     let packageJSON = JSON.parse(fs.readFileSync(packageJSONPath, 'utf8'));
     if (packageJSON['js-framework-benchmark']) {
       if (packageJSON['js-framework-benchmark']['frameworkVersionFromPackage']) {
-        return new FrameworkVersionInformationDynamic(keyedType, directory,
+        return new FrameworkVersionInformationDynamic(
+          keyedType,
+          directory,
           packageJSON['js-framework-benchmark']['frameworkVersionFromPackage'].split(':'),
           packageJSON['js-framework-benchmark']['customURL'],
           packageJSON['js-framework-benchmark']['useShadowRoot']
         );
       } else if (typeof packageJSON['js-framework-benchmark']['frameworkVersion'] === 'string') {
-        return new FrameworkVersionInformationStatic(keyedType, directory,
+        return new FrameworkVersionInformationStatic(
+          keyedType,
+          directory,
           packageJSON['js-framework-benchmark']['frameworkVersion'],
           packageJSON['js-framework-benchmark']['customURL'],
           packageJSON['js-framework-benchmark']['useShadowRoot']
@@ -174,10 +177,10 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
   }
 }
 
-export async function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkVersionInformation[]> {
-  let results = new Array<Promise<FrameworkVersionInformation>>();
+export function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): FrameworkVersionInformation[] {
+  let results: FrameworkVersionInformation[] = [];
   let frameworksPath = path.resolve('..','frameworks');
-  ['keyed'/*,'non-keyed'*/].forEach((keyedType: KeyedType) => {
+  ['keyed'/* ,'non-keyed' */].forEach((keyedType: KeyedType) => {
     let directories = fs.readdirSync(path.resolve(frameworksPath, keyedType));
 
     for (let directory of directories) {
@@ -188,12 +191,12 @@ export async function loadFrameworkVersionInformation(matchPredicate: IMatchPred
       }
     }
   });
-  return Promise.all(results);
+  return results;
 }
 
 export class PackageVersionInformationResult {
-  public versions: Array<PackageVersionInformation> = [];
-  constructor(public framework: FrameworkVersionInformationDynamic) {}
+  public versions: PackageVersionInformation[] = [];
+  public constructor(public framework: FrameworkVersionInformationDynamic) {}
   public add(packageVersionInformation: PackageVersionInformation) {
     this.versions.push(packageVersionInformation);
   }
@@ -203,9 +206,9 @@ export class PackageVersionInformationResult {
     }
     return this.versions.map(version => (version instanceof PackageVersionInformationValid) ? version.version : 'invalid').join(' + ');
   }
-  getFrameworkData(): FrameworkData {
+  public getFrameworkData(): FrameworkData {
     return {name: this.framework.directory,
-      fullNameWithKeyedAndVersion: this.framework.directory+'-v'+this.getVersionName()+'-'+this.framework.keyedType,
+      fullNameWithKeyedAndVersion: `${this.framework.directory}-v${this.getVersionName()}-${this.framework.keyedType}`,
       uri: this.framework.url,
       keyed: this.framework.keyedType === 'keyed',
       useShadowRoot: this.framework.useShadowRoot
@@ -242,7 +245,7 @@ export async function determineInstalledVersions(framework: FrameworkVersionInfo
 }
 
 export async function initializeFrameworks(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkData[]> {
-  let frameworkVersionInformations = await loadFrameworkVersionInformation(matchPredicate);
+  let frameworkVersionInformations = loadFrameworkVersionInformation(matchPredicate);
 
   let frameworks: FrameworkData[] = [];
   for (let frameworkVersionInformation of frameworkVersionInformations) {

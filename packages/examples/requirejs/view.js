@@ -82,7 +82,7 @@ define("view", [], function() {
     },
 
     write: function write(pluginName, moduleName, _write, config) {
-      if (buildMap.hasOwnProperty(moduleName)) {
+      if (Object.prototype.hasOwnProperty.call(buildMap, moduleName)) {
         var text = buildMap[moduleName];
         var description = createTemplateDescription(text);
         var depsToLoad = processImports(description.imports, moduleName);

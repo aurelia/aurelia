@@ -125,7 +125,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
 
   private readonly dirtyChecker: IDirtyChecker;
 
-  constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
+  public constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
     this.obj = obj as IObservable & IIndexable;
     this.propertyKey = propertyKey;
 

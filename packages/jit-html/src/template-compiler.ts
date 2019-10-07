@@ -84,7 +84,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return 'default';
   }
 
-  constructor(
+  public constructor(
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
@@ -351,7 +351,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         replacePart = replaceParts[i];
         instructionRowsSave = this.instructionRows;
         partScopesSave = this.scopeParts;
-        if (partScopesSave.indexOf(replacePart.name) === -1) {
+        if (!partScopesSave.includes(replacePart.name)) {
           partScopesSave.push(replacePart.name);
         }
         scopeParts = this.scopeParts = [];

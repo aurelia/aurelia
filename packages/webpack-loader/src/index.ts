@@ -43,5 +43,5 @@ export function loader(
 }
 
 function stringModuleWrap(id: string) {
-  return '!!raw-loader!' + id;
+  return `!!raw-loader!${id}`;
 }

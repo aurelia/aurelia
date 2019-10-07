@@ -1,3 +1,3 @@
 export const config = {
-  api_url: 'https://conduit.productionready.io/api',
+  apiUrl: 'https://conduit.productionready.io/api',
 };

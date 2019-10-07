@@ -3,7 +3,7 @@ import {
   defineElement as el,
   defineView as vw,
   createView as cv,
-} from '../node_modules/domvm/dist/pico/domvm.pico.es.js';
+} from '../node_modules/domvm/dist/pico/domvm.pico.es.js'; // eslint-disable-line import/extensions
 
 // https://github.com/darkskyapp/string-hash/blob/master/index.js
 function hash(str) {
@@ -114,7 +114,7 @@ function colorClass(factor) {
       break;
   }
 
-  return "c" + (i < 10 ? "0" : "") + i;
+  return `c${i < 10 ? "0" : ""}${i}`;
 }
 
 function frameworkEnabled(type, name) {
@@ -227,7 +227,7 @@ function sortBy(metric, sortDir) {
   STORE.results.keyed.sort(cmp);
   STORE.results.unkeyed.sort(cmp);
 
-  VIEW && VIEW.redraw();
+  if (VIEW) { VIEW.redraw(); }
 
   return false;
 }
@@ -259,7 +259,7 @@ function render(implType, benchType, aggr) {
     enabledBenches.map(num =>
       el("tr", [
         el("th", {class: "benchname"}, [
-          el("a", {href: "#", onclick: [sortBy, benchType + "." + num, nextSortDir(benchType + "." + num)]}, benchDescr[num]),
+          el("a", {href: "#", onclick: [sortBy, `${benchType}.${num}`, nextSortDir(`${benchType}.${num}`)]}, benchDescr[num]),
         ]),
         enabledFrameworks.map(lib => {
           var bench = lib.bench[benchType][num];
@@ -293,7 +293,7 @@ function toggle(what, type, num) {
 
   setFactors();
 
-  if (what == "benchmarks" && !isEnabled && STORE.sortBy == type + "." + num)
+  if (what == "benchmarks" && !isEnabled && STORE.sortBy == `${type}.${num}`)
     sortBy("cpu", 1);
   else
     sortBy(STORE.sortBy, STORE.sortDir);

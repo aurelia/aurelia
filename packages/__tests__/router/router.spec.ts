@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { PLATFORM } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
-import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ILifecycle, LifecycleFlags, customElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
@@ -14,11 +14,13 @@ describe('Router', function () {
     return router;
   }
 
-  async function setup(config?) {
+  async function setup(config?, App?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle } = ctx;
 
-    const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    if (App === void 0) {
+      App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    }
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
     const Bar = CustomElement.define({ name: 'bar', template: `<template>Viewport: bar Parameter id: [\${id}] Parameter name: [\${name}] <au-viewport name="bar"></au-viewport></template>` }, class {
       public static parameters = ['id', 'name'];
@@ -394,6 +396,59 @@ describe('Router', function () {
       await tearDown();
     });
   }
+
+  it('handles anchor click with au-href', async function () {
+    this.timeout(5000);
+
+    const tests = [
+      { bind: false, value: 'id-name(1)', result: 1 },
+      { bind: true, value: "'id-name(2)'", result: 2 },
+      { bind: true, value: "{ component: 'id-name', parameters: '3' }", result: 3 },
+      { bind: true, value: "{ component: IdName, parameters: '4' }", result: 4 },
+    ];
+
+    const IdName = CustomElement.define({ name: 'id-name', template: '|id-name| Parameter id: [${id}] Parameter name: [${name}]' }, class {
+      public static parameters = ['id', 'name'];
+      public id = 'no id';
+      public name = 'no name';
+      public enter(params) {
+        if (params.id) { this.id = params.id; }
+        if (params.name) { this.name = params.name; }
+      }
+    });
+    @customElement({
+      name: 'app',
+      dependencies: [IdName],
+      template: `
+      ${tests.map(test => `<a au-href${test.bind ? '.bind' : ''}="${test.value}">${test.value}</a>`).join('<br>')}
+      <br>
+      <au-viewport></au-viewport>
+      `}) class App {
+      // Wish the following two lines weren't necessary
+      public static inject = [IdName];
+      constructor(idName) { this['IdName'] = idName; }
+    }
+
+    const { host, router, container, tearDown } = await setup({ useHref: false }, App);
+
+    container.register(IdName);
+
+    for (let i = 0; i < tests.length; i++) {
+      const test = tests[i];
+      console.log('link', test);
+
+      (host.getElementsByTagName('A')[i] as HTMLElement).click();
+      await wait(100);
+      await waitForNavigation(router);
+      assert.includes(host.textContent, '|id-name|', `host.textContent`);
+      assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
+
+      await router.back();
+      assert.notIncludes(host.textContent, '|id-name|', `host.textContent`);
+    }
+
+    await tearDown();
+  });
 
   it('understands used-by', async function () {
     this.timeout(5000);

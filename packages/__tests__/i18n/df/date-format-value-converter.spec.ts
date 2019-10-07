@@ -51,11 +51,11 @@ describe('df', function () {
 
   it('should interpret input `0` as `new Date(0)`', async function () {
     const { sut } = await setup();
-    assert.equal(sut.toView(0), '1/1/1970');
+    assert.equal(sut.toView(0), new Date(0).toLocaleDateString());
   });
 
   it('should interpret input `"0"` as `new Date(0)`', async function () {
     const { sut } = await setup();
-    assert.equal(sut.toView('0'), '1/1/1970');
+    assert.equal(sut.toView('0'), new Date(0).toLocaleDateString());
   });
 });

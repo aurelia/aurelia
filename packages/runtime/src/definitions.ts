@@ -90,6 +90,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   bindables?: Record<string, IBindableDescription> | string[];
   childrenObservers?: Record<string, IChildrenObserverDescription>;
   containerless?: boolean;
+  isStrictBinding?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
   strategy?: BindingStrategy;
@@ -279,6 +280,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public containerless: boolean;
   public shadowOptions: { mode: 'open' | 'closed' };
   public hasSlots: boolean;
+  public isStrictBinding: boolean;
   public strategy: BindingStrategy;
   public hooks: Readonly<HooksDefinition>;
   public scopeParts: readonly string[];
@@ -286,6 +288,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   constructor() {
     this.name = 'unnamed';
     this.template = null;
+    this.isStrictBinding = false;
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
@@ -310,6 +313,7 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
+  'isStrictBinding',
   'hasSlots'
 ];
 
@@ -324,6 +328,7 @@ export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  isStrictBinding?: TemplateDefinition['isStrictBinding'];
   aliases?: string[];
   childrenObservers?: TemplateDefinition['childrenObservers'];
 };
@@ -355,7 +360,8 @@ export function buildTemplateDefinition(
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
   aliases?: ReadonlyArray<string> | null,
-): TemplateDefinition;
+  isStrictBinding?: boolean | null,
+  ): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -373,6 +379,7 @@ export function buildTemplateDefinition(
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
   aliases?: ReadonlyArray<string> | null,
+  isStrictBinding?: boolean | null,
 ): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
@@ -381,6 +388,7 @@ export function buildTemplateDefinition(
   /* deepscan-disable */
   const argLen = arguments.length;
   switch (argLen) {
+    case 16: if (isStrictBinding != null) def.isStrictBinding = isStrictBinding;
     case 15: if (aliases != null) def.aliases = toArray(aliases);
     case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);

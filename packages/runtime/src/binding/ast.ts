@@ -1043,7 +1043,7 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
     if (typeof func !== 'function') {
       throw Reporter.error(RuntimeError.NotAFunction, this);
     }
-    return func(...[this.cooked].concat(results));
+    return func(this.cooked, ...results);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {

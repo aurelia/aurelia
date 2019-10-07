@@ -130,7 +130,7 @@ describe('LinkHandler', function () {
     tearDown();
   });
 
-  it('returns the right href', async function () {
+  it('returns the right instruction', async function () {
     const tests = [
       { useHref: true, href: true, auHref: true, result: 'au-href' },
       { useHref: true, href: false, auHref: true, result: 'au-href' },
@@ -170,7 +170,7 @@ describe('LinkHandler', function () {
       anchor.dispatchEvent(evt);
 
       assert.strictEqual(info.shouldHandleEvent, test.result !== null, `LinkHandler.AnchorEventInfo.shouldHandleEvent`);
-      assert.strictEqual(info.instruction, test.result, `LinkHandler.AnchorEventInfo.href`);
+      assert.strictEqual(info.instruction, test.result, `LinkHandler.AnchorEventInfo.instruction`);
 
       sut.deactivate();
       (sut as Writable<typeof sut>)['handler'] = origHandler;

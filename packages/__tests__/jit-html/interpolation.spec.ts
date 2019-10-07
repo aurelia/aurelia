@@ -1,32 +1,41 @@
 import { assert, setup } from '@aurelia/testing';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags, CustomElement } from '@aurelia/runtime';
 describe('interpolation', function () {
     const cases = [
         {
-            expected: 'wOOt', app: class { value?: string | number = 'wOOt'; value1?: string | number; }, interpolation: '$\{value}', it: 'Renders expected text'
+            expected: 'wOOt', expectedStrictMode: 'wOOt', app: class { value?: string | number = 'wOOt'; value1?: string | number; }, interpolation: '$\{value}', it: 'Renders expected text'
         } as {
-            expected: number | string, expectedValueAfterChange?: number | string, changeFnc?: (val) => any, app: any, interpolation: string, it: string;
+            expected: number | string, expectedStrictMode?: number | string, expectedValueAfterChange?: number | string, changeFnc?: (val) => any, app: any, interpolation: string, it: string;
         },
         {
-            expected: '', app: class { value = undefined }, interpolation: '$\{value}', it: 'Undefined value renders nothing'
+            expected: '', expectedStrictMode: 'undefined', app: class { isStrictMode = true; value = undefined }, interpolation: '$\{value}', it: 'Undefined value renders nothing'
         },
         {
-            expected: 5, app: class { value1 = undefined; value = 5; }, interpolation: '$\{value1 + value}', it: 'Two values one undefined sum correctly'
+            expected: 5, expectedStrictMode: 'NaN', app: class { value1 = undefined; value = 5; }, interpolation: '$\{value1 + value}', it: 'Two values one undefined sum correctly'
         },
         {
-            expected: -5, app: class { value = undefined; value1 = 5; }, interpolation: '$\{value - value1}', it: 'Two values one undefined minus correctly'
+            expected: -5, expectedStrictMode: 'NaN', app: class { value = undefined; value1 = 5; }, interpolation: '$\{value - value1}', it: 'Two values one undefined minus correctly'
         },
         {
-            expected: 'Infinity', expectedValueAfterChange: 5, app: class { value = undefined; value1 = 5 }, interpolation: '$\{value1/value}', it: 'Number divided by undefined is Infinity'
+            expected: '', expectedStrictMode: 'null', app: class { isStrictMode = true; value = null }, interpolation: '$\{value}', it: 'Null value renders nothing'
         },
         {
-            expected: 1, expectedValueAfterChange: 0.8333333333333334, app: class { value = 5; value1 = 5 }, interpolation: '$\{value1/value}', it: 'Number divided by number works as planned'
+            expected: 5, expectedStrictMode: '5', app: class { value1 = null; value = 5; }, interpolation: '$\{value1 + value}', it: 'Two values one Null sum correctly'
         },
         {
-            expected: 1, app: class { Math = Math; value = 1.2; value1 = 5 }, interpolation: '$\{Math.round(value)}', it: 'Global Aliasing works'
+            expected: -5, expectedStrictMode: '-5', app: class { value = null; value1 = 5; }, interpolation: '$\{value - value1}', it: 'Two values one Null minus correctly'
         },
         {
-            expected: 2, app: class { Math = Math; value = 1.5; value1 = 5 }, interpolation: '$\{Math.round(value)}', it: 'Global Aliasing works #2'
+            expected: 'Infinity', expectedStrictMode: 'NaN', expectedValueAfterChange: 5, app: class { value = undefined; value1 = 5 }, interpolation: '$\{value1/value}', it: 'Number divided by undefined is Infinity'
+        },
+        {
+            expected: 1, expectedStrictMode: 1, expectedValueAfterChange: 0.8333333333333334, app: class { value = 5; value1 = 5 }, interpolation: '$\{value1/value}', it: 'Number divided by number works as planned'
+        },
+        {
+            expected: 1, expectedStrictMode: 1, app: class { Math = Math; value = 1.2; value1 = 5 }, interpolation: '$\{Math.round(value)}', it: 'Global Aliasing works'
+        },
+        {
+            expected: 2, expectedStrictMode: 2, app: class { Math = Math; value = 1.5; value1 = 5 }, interpolation: '$\{Math.round(value)}', it: 'Global Aliasing works #2'
         },
         {
             expected: 'true', expectedValueAfterChange: 'false', changeFnc: (val) => !val, app: class { value = true }, interpolation: '$\{value}', it: 'Boolean prints true'
@@ -54,12 +63,23 @@ describe('interpolation', function () {
         },
         {
             expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
+            expectedStrictMode: 'undefinedSat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
             expectedValueAfterChange: 'Sun Feb 03 2002 00:00:00 GMT-0600 (Central Standard Time)',
             changeFnc: (val: Date) => {
                 val.setDate(3);
                 return val; // Date observation no worky
             }, app: class { value = new Date('Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)') },
             interpolation: '$\{undefined + value}', it: 'Date works with undefined expression and setDate triggers change properly'
+        },
+        {
+            expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
+            expectedStrictMode: 'nullSat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
+            expectedValueAfterChange: 'Sun Feb 03 2002 00:00:00 GMT-0600 (Central Standard Time)',
+            changeFnc: (val: Date) => {
+                val.setDate(3);
+                return val; // Date observation no worky
+            }, app: class { value = new Date('Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)') },
+            interpolation: '$\{null + value}', it: 'Date works with null expression and setDate triggers change properly'
         },
         {
             expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
@@ -156,7 +176,7 @@ describe('interpolation', function () {
             const { tearDown, appHost, lifecycle, component } = setup(`<template>${x.interpolation}</template>`, x.app);
             assert.strictEqual(appHost.textContent, x.expected.toString(), `host.textContent`);
             await tearDown();
-        });
+        });        
         it(x.it + ' change tests work', async function () {
             const { tearDown, appHost, lifecycle, component } = setup(`<template>${x.interpolation}</template>`, x.app);
             if (x.changeFnc) {
@@ -174,7 +194,15 @@ describe('interpolation', function () {
             lifecycle.processRAFQueue(LifecycleFlags.none);
             assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange && x.expectedValueAfterChange.toString()) || (x.expected as any + 1).toString(), `host.textContent`);
             await tearDown();
-        })
+        });
+        if (x.expectedStrictMode) {
+            it(x.it + ' STRICT MODE ', async function () {
+                const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, isStrictBinding: true }, x.app);
+                const { tearDown, appHost, lifecycle, component } = setup(`<template><strict></strict></template>`, class { }, [strict]);
+                assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
+                await tearDown();
+            });
+        }
     });
 
 

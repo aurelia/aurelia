@@ -95,30 +95,30 @@ const $str1 = new PrimitiveLiteralExpression('1');
 describe('AST', function () {
 
   const AccessThisList: [string, AccessThisExpression][] = [
-    [`$this`,             $this],
-    [`$parent`,           $parent],
-    [`$parent.$parent`,   new AccessThisExpression(2)]
+    [`$this`, $this],
+    [`$parent`, $parent],
+    [`$parent.$parent`, new AccessThisExpression(2)]
   ];
   const AccessScopeList: [string, AccessScopeExpression][] = [
     ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
-    [`$this.$parent`,     new AccessScopeExpression('$parent')],
-    [`$parent.$this`,     new AccessScopeExpression('$this', 1)],
-    [`a`,                 new AccessScopeExpression('a')]
+    [`$this.$parent`, new AccessScopeExpression('$parent')],
+    [`$parent.$this`, new AccessScopeExpression('$this', 1)],
+    [`a`, new AccessScopeExpression('a')]
   ];
   const StringLiteralList: [string, PrimitiveLiteralExpression][] = [
-    [`''`,                PrimitiveLiteralExpression.$empty]
+    [`''`, PrimitiveLiteralExpression.$empty]
   ];
   const NumberLiteralList: [string, PrimitiveLiteralExpression][] = [
-    [`1`,                 new PrimitiveLiteralExpression(1)],
-    [`1.1`,               new PrimitiveLiteralExpression(1.1)],
-    [`.1`,                new PrimitiveLiteralExpression(0.1)],
-    [`0.1`,               new PrimitiveLiteralExpression(0.1)]
+    [`1`, new PrimitiveLiteralExpression(1)],
+    [`1.1`, new PrimitiveLiteralExpression(1.1)],
+    [`.1`, new PrimitiveLiteralExpression(0.1)],
+    [`0.1`, new PrimitiveLiteralExpression(0.1)]
   ];
   const KeywordLiteralList: [string, PrimitiveLiteralExpression][] = [
-    [`undefined`,         $undefined],
-    [`null`,              $null],
-    [`true`,              $true],
-    [`false`,             $false]
+    [`undefined`, $undefined],
+    [`null`, $null],
+    [`true`, $true],
+    [`false`, $false]
   ];
   const PrimitiveLiteralList: [string, PrimitiveLiteralExpression][] = [
     ...StringLiteralList,
@@ -127,13 +127,13 @@ describe('AST', function () {
   ];
 
   const ArrayLiteralList: [string, ArrayLiteralExpression][] = [
-    [`[]`,                $arr]
+    [`[]`, $arr]
   ];
   const ObjectLiteralList: [string, ObjectLiteralExpression][] = [
-    [`{}`,                $obj]
+    [`{}`, $obj]
   ];
   const TemplateLiteralList: [string, TemplateExpression][] = [
-    [`\`\``,              $tpl]
+    [`\`\``, $tpl]
   ];
   const LiteralList: [string, IsPrimary][] = [
     ...PrimitiveLiteralList,
@@ -142,7 +142,7 @@ describe('AST', function () {
     ...ObjectLiteralList
   ];
   const TemplateInterpolationList: [string, TemplateExpression][] = [
-    [`\`\${a}\``,         new TemplateExpression(['', ''], [new AccessScopeExpression('a')])]
+    [`\`\${a}\``, new TemplateExpression(['', ''], [new AccessScopeExpression('a')])]
   ];
   const PrimaryList: [string, IsPrimary][] = [
     ...AccessThisList,
@@ -482,12 +482,12 @@ describe('AST', function () {
         ...SimpleCallScopeList,
         ...SimpleCallMemberList
       ]) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -533,12 +533,12 @@ describe('AST', function () {
 
     describe('assign() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleUnaryList) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -582,12 +582,12 @@ describe('AST', function () {
         ...SimpleLogicalANDList,
         ...SimpleLogicalORList
       ]) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -624,12 +624,12 @@ describe('AST', function () {
 
     describe('assign() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleConditionalList) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -692,9 +692,11 @@ describe('AST', function () {
       }
     });
     describe('evaluate() throws when returned converter is nil', function () {
-      const locator = { get() {
-        return null;
-      } };
+      const locator = {
+        get() {
+          return null;
+        }
+      };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
           throwsOn(expr, 'evaluate', 'Code 205', null, null, locator);
@@ -713,9 +715,11 @@ describe('AST', function () {
       }
     });
     describe('assign() throws when returned converter is null', function () {
-      const locator = { get() {
-        return null;
-      } };
+      const locator = {
+        get() {
+          return null;
+        }
+      };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, null`, function () {
           throwsOn(expr, 'assign', 'Code 205', null, null, locator);
@@ -751,9 +755,11 @@ describe('AST', function () {
     });
 
     describe('connect() throws when returned converter is null', function () {
-      const locator = { get() {
-        return null;
-      } };
+      const locator = {
+        get() {
+          return null;
+        }
+      };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
           throwsOn(expr, 'connect', 'Code 205', null, {}, { locator, observeProperty: () => { return; } });
@@ -824,9 +830,11 @@ describe('AST', function () {
     });
 
     describe('bind() throws when returned behavior is null', function () {
-      const locator = { get() {
-        return null;
-      } };
+      const locator = {
+        get() {
+          return null;
+        }
+      };
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, function () {
           throwsOn(expr, 'bind', 'Code 203', null, {}, { locator, observeProperty: () => { return; } });
@@ -834,8 +842,8 @@ describe('AST', function () {
       }
     });
 
-      // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
-      // tests (which need to be fixed of course)
+    // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
+    // tests (which need to be fixed of course)
     // describe('bind() throws when returned behavior is already present', function () {
     //   const behavior = {};
     //   const locator = { get() {
@@ -916,7 +924,7 @@ describe('AccessKeyedExpression', function () {
       [`     null`, null],
       [`undefined`, undefined],
       [`       ''`, ''],
-      [        `1`, 1],
+      [`1`, 1],
       [`     true`, true],
       [`    false`, false],
       [` Symbol()`, Symbol()]
@@ -928,15 +936,15 @@ describe('AccessKeyedExpression', function () {
     const inputs: [typeof objects, typeof keys] = [objects, keys];
 
     eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
-          const binding = new MockBinding();
-          sut.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.length, 1);
-          assert.strictEqual(binding.calls[0][0], 'observeProperty');
-        });
-      })
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
+        const binding = new MockBinding();
+        sut.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.length, 1);
+        assert.strictEqual(binding.calls[0][0], 'observeProperty');
+      });
+    })
     )
   });
 });
@@ -944,16 +952,16 @@ describe('AccessKeyedExpression', function () {
 describe('AccessMemberExpression', function () {
 
   const objects: (() => [string, any, boolean, boolean])[] = [
-    () => [`     null`, null,      true,     false],
-    () => [`undefined`, undefined, true,     false],
-    () => [`       ''`, '',        true,     false],
-    () => [`      'a'`, 'a',       false,    false],
-    () => [`    false`, false,     true,     false],
-    () => [`        1`, 1,         false,    false],
-    () => [`     true`, true,      false,    false],
-    () => [` Symbol()`, Symbol(),  false,    false],
-    () => [`       {}`, {},        false,    true],
-    () => [`       []`, [],        false,    true]
+    () => [`     null`, null, true, false],
+    () => [`undefined`, undefined, true, false],
+    () => [`       ''`, '', true, false],
+    () => [`      'a'`, 'a', false, false],
+    () => [`    false`, false, true, false],
+    () => [`        1`, 1, false, false],
+    () => [`     true`, true, false, false],
+    () => [` Symbol()`, Symbol(), false, false],
+    () => [`       {}`, {}, false, true],
+    () => [`       []`, [], false, true]
   ];
 
   const props: ((input: [string, any, boolean, boolean]) => [string, any, any])[] = [
@@ -1035,35 +1043,35 @@ describe('AccessMemberExpression', function () {
   const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
 
   eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
-      it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
-        const scope = createScopeForTest({ foo: obj });
-        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-        const actual = sut.evaluate(LF.none, scope, null);
-        if (canHaveProperty) {
-          assert.strictEqual(actual, value, `actual`);
+    it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+      const scope = createScopeForTest({ foo: obj });
+      const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+      const actual = sut.evaluate(LF.none, scope, null);
+      if (canHaveProperty) {
+        assert.strictEqual(actual, value, `actual`);
+      } else {
+        if (obj === null) {
+          assert.strictEqual(actual, null, `actual`);
         } else {
-          if (obj === null) {
-            assert.strictEqual(actual, null, `actual`);
-          } else {
-            assert.strictEqual(actual, undefined, `actual`);
-          }
+          assert.strictEqual(actual, undefined, `actual`);
         }
-        const binding = new MockBinding();
-        sut.connect(LF.none, scope, binding);
-        if (canHaveProperty) {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        } else {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        }
+      }
+      const binding = new MockBinding();
+      sut.connect(LF.none, scope, binding);
+      if (canHaveProperty) {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      } else {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      }
 
-        if (!(obj instanceof Object)) {
-          assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          sut.assign(LF.none, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
-        }
-      });
-    })
+      if (!(obj instanceof Object)) {
+        assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        sut.assign(LF.none, scope, null, 42);
+        assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+      }
+    });
+  })
   );
 
   it('evaluates member on bindingContext', function () {
@@ -1097,11 +1105,11 @@ describe('AccessMemberExpression', function () {
 
   describe('does not attempt to observe property when object is falsey', function () {
     const objects2: [string, any][] = [
-        [`     null`, null],
-        [`undefined`, undefined],
-        [`       ''`, ''],
-        [`    false`, false]
-      ];
+      [`     null`, null],
+      [`undefined`, undefined],
+      [`       ''`, ''],
+      [`    false`, false]
+    ];
     const props2: [string, any][] = [
       [`.0`, 0],
       [`.a`, 'a']
@@ -1109,14 +1117,14 @@ describe('AccessMemberExpression', function () {
     const inputs2: [typeof objects2, typeof props2] = [objects2, props2];
 
     eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          sut.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        });
-      })
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const binding = new MockBinding();
+        sut.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      });
+    })
     );
   });
 
@@ -1135,14 +1143,14 @@ describe('AccessMemberExpression', function () {
     const inputs3: [typeof objects3, typeof props3] = [objects3, props3];
 
     eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          expression2.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        });
-      })
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const binding = new MockBinding();
+        expression2.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      });
+    })
     );
   });
 });
@@ -1447,48 +1455,49 @@ describe('ConditionalExpression', function () {
 });
 
 describe('BinaryExpression', function () {
-  it('concats strings', function () {
+    const flags = LF.none | LF.isStrictBindingStrategy;
+    it('concats strings', function () {
     let expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), new PrimitiveLiteralExpression('b'));
     let scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'ab', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'ab', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'anull', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'anull', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'nullb', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'nullb', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'aundefined', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'aundefined', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'undefinedb', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'undefinedb', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   it('adds numbers', function () {
     let expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
     let scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 3, `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 3, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $null);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 1, `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 1, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression(2));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 2, `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(flags, scope, null), 2, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
     scope = createScopeForTest({});
-    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), true, `isNaN(expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(isNaN(expression.evaluate(flags, scope, null) as number), true, `isNaN(expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
 
     expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
     scope = createScopeForTest({});
-    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), true, `isNaN(expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(isNaN(expression.evaluate(flags, scope, null) as number), true, `isNaN(expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   describe('performs \'in\'', function () {
@@ -1518,8 +1527,8 @@ describe('BinaryExpression', function () {
   });
 
   describe('performs \'instanceof\'', function () {
-    class Foo {}
-    class Bar extends Foo {}
+    class Foo { }
+    class Bar extends Foo { }
     const tests: { expr: BinaryExpression; expected: boolean }[] = [
       {
         expr: new BinaryExpression(
@@ -1777,11 +1786,13 @@ describe('LiteralTemplate', function () {
       expected: 'a1c2e',
       ctx: { b: 1, d: 2 }
     },
-    { expr: new TaggedTemplateExpression(
-      [''], [],
-      new AccessScopeExpression('foo', 0)),
+    {
+      expr: new TaggedTemplateExpression(
+        [''], [],
+        new AccessScopeExpression('foo', 0)),
       expected: 'foo',
-      ctx: { foo: () => 'foo' } },
+      ctx: { foo: () => 'foo' }
+    },
     {
       expr: new TaggedTemplateExpression(
         ['foo'], ['bar'],
@@ -1905,78 +1916,78 @@ describe('BindingBehaviorExpression', function () {
   type $3 = [/*title*/string, /*scope*/IScope, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
-  [
-    () => [`fromBind  `, LF.fromBind],
-    () => [`fromUnbind`, LF.fromUnbind]
-  ];
+    [
+      () => [`fromBind  `, LF.fromBind],
+      () => [`fromUnbind`, LF.fromUnbind]
+    ];
 
   const kindVariations: (($1: $1) => $2)[] = // [/*title*/string, /*$kind*/ExpressionKind],
-  [
-    () => [`0                `, 0],
-    () => [`hasBind          `, ExpressionKind.HasBind],
-    () => [`hasUnbind        `, ExpressionKind.HasUnbind],
-    () => [`hasBind|hasUnbind`, ExpressionKind.HasBind | ExpressionKind.HasUnbind]
-  ];
+    [
+      () => [`0                `, 0],
+      () => [`hasBind          `, ExpressionKind.HasBind],
+      () => [`hasUnbind        `, ExpressionKind.HasUnbind],
+      () => [`hasBind|hasUnbind`, ExpressionKind.HasBind | ExpressionKind.HasUnbind]
+    ];
 
   const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/IScope, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
-  [
-    // test without arguments
-    (_$1, [_t2, $kind]) => {
-      const value = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
-      expr.$kind = $kind;
-      const args = [];
-      const sut = new BindingBehaviorExpression(expr as any, 'mock', args);
+    [
+      // test without arguments
+      (_$1, [_t2, $kind]) => {
+        const value = {};
+        const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+        expr.$kind = $kind;
+        const args = [];
+        const sut = new BindingBehaviorExpression(expr as any, 'mock', args);
 
-      const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-      const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+        const mock = new MockBindingBehavior();
+        const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
+        const observerLocator = createObserverLocator();
+        const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value }, null);
-      return [`foo&mock`, scope, sut, mock, locator, binding, value, []];
-    },
-    // test with 1 argument
-    (_$1, [_t2, $kind]) => {
-      const value = {};
-      const arg1 = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
-      expr.$kind = $kind;
-      const args = [new MockTracingExpression(new AccessScopeExpression('a', 0))];
-      const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
+        const scope = Scope.create(LF.none, { foo: value }, null);
+        return [`foo&mock`, scope, sut, mock, locator, binding, value, []];
+      },
+      // test with 1 argument
+      (_$1, [_t2, $kind]) => {
+        const value = {};
+        const arg1 = {};
+        const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+        expr.$kind = $kind;
+        const args = [new MockTracingExpression(new AccessScopeExpression('a', 0))];
+        const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
-      const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-      const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+        const mock = new MockBindingBehavior();
+        const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
+        const observerLocator = createObserverLocator();
+        const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      return [`foo&mock:a`, scope, sut, mock, locator, binding, value, [arg1]];
-    },
-    // test with 3 arguments
-    (_$1, [_t2, $kind]) => {
-      const value = {};
-      const arg1 = {};
-      const arg2 = {};
-      const arg3 = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
-      expr.$kind = $kind;
-      const args = [
-        new MockTracingExpression(new AccessScopeExpression('a', 0)),
-        new MockTracingExpression(new AccessScopeExpression('b', 0)),
-        new MockTracingExpression(new AccessScopeExpression('c', 0))
-      ];
-      const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
+        const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
+        return [`foo&mock:a`, scope, sut, mock, locator, binding, value, [arg1]];
+      },
+      // test with 3 arguments
+      (_$1, [_t2, $kind]) => {
+        const value = {};
+        const arg1 = {};
+        const arg2 = {};
+        const arg3 = {};
+        const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+        expr.$kind = $kind;
+        const args = [
+          new MockTracingExpression(new AccessScopeExpression('a', 0)),
+          new MockTracingExpression(new AccessScopeExpression('b', 0)),
+          new MockTracingExpression(new AccessScopeExpression('c', 0))
+        ];
+        const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
-      const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
-      const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+        const mock = new MockBindingBehavior();
+        const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
+        const observerLocator = createObserverLocator();
+        const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      return [`foo&mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3]];
-    }
-  ];
+        const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
+        return [`foo&mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3]];
+      }
+    ];
 
   const bindVariations: (($1: $1, $2: $2, $3: $3) => /*bind*/() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
@@ -2153,15 +2164,15 @@ describe('BindingBehaviorExpression', function () {
     = [flagVariations, kindVariations, inputVariations, bindVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], bind, evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
-        bind();
-        evaluate1();
-        connect();
-        const newValue = assign();
-        evaluate2(newValue);
-        unbind();
-      });
-    }
+    it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+      bind();
+      evaluate1();
+      connect();
+      const newValue = assign();
+      evaluate2(newValue);
+      unbind();
+    });
+  }
   );
 });
 
@@ -2171,18 +2182,18 @@ describe('ValueConverterExpression', function () {
   type $3 = [/*title*/string, /*scope*/IScope, /*sut*/ValueConverterExpression, /*mock*/MockValueConverter, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[], /*methods*/string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
-  [
-    () => [`fromBind  `, LF.fromBind],
-    () => [`fromUnbind`, LF.fromUnbind]
-  ];
+    [
+      () => [`fromBind  `, LF.fromBind],
+      () => [`fromUnbind`, LF.fromUnbind]
+    ];
 
   const kindVariations: (($1: $1) => $2)[] = // [/*title*/string, /*signals*/string[], /*signaler*/ISignaler],
-  [
-    () => [`undefined    `, undefined      , new MockSignaler()],
-    () => [`[]           `, []             , new MockSignaler()],
-    () => [`['a']        `, ['a']          , new MockSignaler()],
-    () => [`['a','b','c']`, ['a', 'b', 'c'], new MockSignaler()]
-  ];
+    [
+      () => [`undefined    `, undefined, new MockSignaler()],
+      () => [`[]           `, [], new MockSignaler()],
+      () => [`['a']        `, ['a'], new MockSignaler()],
+      () => [`['a','b','c']`, ['a', 'b', 'c'], new MockSignaler()]
+    ];
 
   const inputVariations: (($1: $1, $2: $2) => $3)[] = [
     // test without arguments, no toView, no fromView
@@ -2515,14 +2526,14 @@ describe('ValueConverterExpression', function () {
     = [flagVariations, kindVariations, inputVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
-        evaluate1();
-        connect();
-        const newValue = assign();
-        evaluate2(newValue);
-        unbind();
-      });
-    }
+    it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+      evaluate1();
+      connect();
+      const newValue = assign();
+      evaluate2(newValue);
+      unbind();
+    });
+  }
   );
 });
 
@@ -2530,327 +2541,327 @@ const e = new PrimitiveLiteralExpression('') as any;
 // tslint:disable:space-within-parens
 describe('helper functions', function () {
   it('connects', function () {
-    assert.strictEqual(connects(new AccessThisExpression()                ), false, `connects(new AccessThisExpression()                )`);
-    assert.strictEqual(connects(new AccessScopeExpression('')             ), true, `connects(new AccessScopeExpression('')             )`);
-    assert.strictEqual(connects(new ArrayLiteralExpression([])            ), true, `connects(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(connects(new ObjectLiteralExpression([], [])       ), true, `connects(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(connects(new PrimitiveLiteralExpression('')        ), false, `connects(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(connects(new TemplateExpression([])                ), true, `connects(new TemplateExpression([])                )`);
-    assert.strictEqual(connects(new UnaryExpression('!', e)               ), true, `connects(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(connects(new CallScopeExpression('!', [])          ), true, `connects(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(connects(new CallMemberExpression(e, '', [])       ), false, `connects(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(connects(new CallFunctionExpression(e, [])         ), false, `connects(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(connects(new AccessMemberExpression(e, '')         ), true, `connects(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(connects(new AccessKeyedExpression(e, e)           ), true, `connects(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(connects(new TaggedTemplateExpression([], [], e)   ), true, `connects(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(connects(new BinaryExpression('+', e, e)           ), true, `connects(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(connects(new ConditionalExpression(e, e, e)        ), true, `connects(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(connects(new AssignExpression(e, e)                ), false, `connects(new AssignExpression(e, e)                )`);
-    assert.strictEqual(connects(new ValueConverterExpression(e, '', [])   ), true, `connects(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(connects(new BindingBehaviorExpression(e, '', [])  ), true, `connects(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(connects(new HtmlLiteralExpression([])             ), true, `connects(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(connects(new ArrayBindingPattern([])     ), false, `connects(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(connects(new AccessThisExpression()), false, `connects(new AccessThisExpression()                )`);
+    assert.strictEqual(connects(new AccessScopeExpression('')), true, `connects(new AccessScopeExpression('')             )`);
+    assert.strictEqual(connects(new ArrayLiteralExpression([])), true, `connects(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(connects(new ObjectLiteralExpression([], [])), true, `connects(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(connects(new PrimitiveLiteralExpression('')), false, `connects(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(connects(new TemplateExpression([])), true, `connects(new TemplateExpression([])                )`);
+    assert.strictEqual(connects(new UnaryExpression('!', e)), true, `connects(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(connects(new CallScopeExpression('!', [])), true, `connects(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(connects(new CallMemberExpression(e, '', [])), false, `connects(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(connects(new CallFunctionExpression(e, [])), false, `connects(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(connects(new AccessMemberExpression(e, '')), true, `connects(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(connects(new AccessKeyedExpression(e, e)), true, `connects(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(connects(new TaggedTemplateExpression([], [], e)), true, `connects(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(connects(new BinaryExpression('+', e, e)), true, `connects(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(connects(new ConditionalExpression(e, e, e)), true, `connects(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(connects(new AssignExpression(e, e)), false, `connects(new AssignExpression(e, e)                )`);
+    assert.strictEqual(connects(new ValueConverterExpression(e, '', [])), true, `connects(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(connects(new BindingBehaviorExpression(e, '', [])), true, `connects(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(connects(new HtmlLiteralExpression([])), true, `connects(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(connects(new ArrayBindingPattern([])), false, `connects(new ArrayBindingPattern([])     )`);
     assert.strictEqual(connects(new ObjectBindingPattern([], [])), false, `connects(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(connects(new BindingIdentifier('')       ), false, `connects(new BindingIdentifier('')       )`);
-    assert.strictEqual(connects(new ForOfStatement(e, e)        ), true, `connects(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(connects(new Interpolation([])           ), false, `connects(new Interpolation([])           )`);
+    assert.strictEqual(connects(new BindingIdentifier('')), false, `connects(new BindingIdentifier('')       )`);
+    assert.strictEqual(connects(new ForOfStatement(e, e)), true, `connects(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(connects(new Interpolation([])), false, `connects(new Interpolation([])           )`);
   });
 
   it('observes', function () {
-    assert.strictEqual(observes(new AccessThisExpression()                ), false, `observes(new AccessThisExpression()                )`);
-    assert.strictEqual(observes(new AccessScopeExpression('')             ), true, `observes(new AccessScopeExpression('')             )`);
-    assert.strictEqual(observes(new ArrayLiteralExpression([])            ), false, `observes(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(observes(new ObjectLiteralExpression([], [])       ), false, `observes(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(observes(new PrimitiveLiteralExpression('')        ), false, `observes(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(observes(new TemplateExpression([])                ), false, `observes(new TemplateExpression([])                )`);
-    assert.strictEqual(observes(new UnaryExpression('!', e)               ), false, `observes(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(observes(new CallScopeExpression('!', [])          ), false, `observes(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(observes(new CallMemberExpression(e, '', [])       ), false, `observes(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(observes(new CallFunctionExpression(e, [])         ), false, `observes(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(observes(new AccessMemberExpression(e, '')         ), true, `observes(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(observes(new AccessKeyedExpression(e, e)           ), true, `observes(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(observes(new TaggedTemplateExpression([], [], e)   ), false, `observes(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(observes(new BinaryExpression('+', e, e)           ), false, `observes(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(observes(new ConditionalExpression(e, e, e)        ), false, `observes(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(observes(new AssignExpression(e, e)                ), false, `observes(new AssignExpression(e, e)                )`);
-    assert.strictEqual(observes(new ValueConverterExpression(e, '', [])   ), false, `observes(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(observes(new BindingBehaviorExpression(e, '', [])  ), false, `observes(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(observes(new HtmlLiteralExpression([])             ), false, `observes(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(observes(new ArrayBindingPattern([])     ), false, `observes(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(observes(new AccessThisExpression()), false, `observes(new AccessThisExpression()                )`);
+    assert.strictEqual(observes(new AccessScopeExpression('')), true, `observes(new AccessScopeExpression('')             )`);
+    assert.strictEqual(observes(new ArrayLiteralExpression([])), false, `observes(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(observes(new ObjectLiteralExpression([], [])), false, `observes(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(observes(new PrimitiveLiteralExpression('')), false, `observes(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(observes(new TemplateExpression([])), false, `observes(new TemplateExpression([])                )`);
+    assert.strictEqual(observes(new UnaryExpression('!', e)), false, `observes(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(observes(new CallScopeExpression('!', [])), false, `observes(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(observes(new CallMemberExpression(e, '', [])), false, `observes(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(observes(new CallFunctionExpression(e, [])), false, `observes(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(observes(new AccessMemberExpression(e, '')), true, `observes(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(observes(new AccessKeyedExpression(e, e)), true, `observes(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(observes(new TaggedTemplateExpression([], [], e)), false, `observes(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(observes(new BinaryExpression('+', e, e)), false, `observes(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(observes(new ConditionalExpression(e, e, e)), false, `observes(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(observes(new AssignExpression(e, e)), false, `observes(new AssignExpression(e, e)                )`);
+    assert.strictEqual(observes(new ValueConverterExpression(e, '', [])), false, `observes(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(observes(new BindingBehaviorExpression(e, '', [])), false, `observes(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(observes(new HtmlLiteralExpression([])), false, `observes(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(observes(new ArrayBindingPattern([])), false, `observes(new ArrayBindingPattern([])     )`);
     assert.strictEqual(observes(new ObjectBindingPattern([], [])), false, `observes(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(observes(new BindingIdentifier('')       ), false, `observes(new BindingIdentifier('')       )`);
-    assert.strictEqual(observes(new ForOfStatement(e, e)        ), false, `observes(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(observes(new Interpolation([])           ), false, `observes(new Interpolation([])           )`);
+    assert.strictEqual(observes(new BindingIdentifier('')), false, `observes(new BindingIdentifier('')       )`);
+    assert.strictEqual(observes(new ForOfStatement(e, e)), false, `observes(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(observes(new Interpolation([])), false, `observes(new Interpolation([])           )`);
   });
 
   it('callsFunction', function () {
-    assert.strictEqual(callsFunction(new AccessThisExpression()                ), false, `callsFunction(new AccessThisExpression()                )`);
-    assert.strictEqual(callsFunction(new AccessScopeExpression('')             ), false, `callsFunction(new AccessScopeExpression('')             )`);
-    assert.strictEqual(callsFunction(new ArrayLiteralExpression([])            ), false, `callsFunction(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(callsFunction(new ObjectLiteralExpression([], [])       ), false, `callsFunction(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(callsFunction(new PrimitiveLiteralExpression('')        ), false, `callsFunction(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(callsFunction(new TemplateExpression([])                ), false, `callsFunction(new TemplateExpression([])                )`);
-    assert.strictEqual(callsFunction(new UnaryExpression('!', e)               ), false, `callsFunction(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(callsFunction(new CallScopeExpression('!', [])          ), true, `callsFunction(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(callsFunction(new CallMemberExpression(e, '', [])       ), true, `callsFunction(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(callsFunction(new CallFunctionExpression(e, [])         ), true, `callsFunction(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(callsFunction(new AccessMemberExpression(e, '')         ), false, `callsFunction(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(callsFunction(new AccessKeyedExpression(e, e)           ), false, `callsFunction(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(callsFunction(new TaggedTemplateExpression([], [], e)   ), true, `callsFunction(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(callsFunction(new BinaryExpression('+', e, e)           ), false, `callsFunction(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(callsFunction(new ConditionalExpression(e, e, e)        ), false, `callsFunction(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(callsFunction(new AssignExpression(e, e)                ), false, `callsFunction(new AssignExpression(e, e)                )`);
-    assert.strictEqual(callsFunction(new ValueConverterExpression(e, '', [])   ), false, `callsFunction(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(callsFunction(new BindingBehaviorExpression(e, '', [])  ), false, `callsFunction(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(callsFunction(new HtmlLiteralExpression([])             ), false, `callsFunction(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(callsFunction(new ArrayBindingPattern([])     ), false, `callsFunction(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(callsFunction(new AccessThisExpression()), false, `callsFunction(new AccessThisExpression()                )`);
+    assert.strictEqual(callsFunction(new AccessScopeExpression('')), false, `callsFunction(new AccessScopeExpression('')             )`);
+    assert.strictEqual(callsFunction(new ArrayLiteralExpression([])), false, `callsFunction(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(callsFunction(new ObjectLiteralExpression([], [])), false, `callsFunction(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(callsFunction(new PrimitiveLiteralExpression('')), false, `callsFunction(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(callsFunction(new TemplateExpression([])), false, `callsFunction(new TemplateExpression([])                )`);
+    assert.strictEqual(callsFunction(new UnaryExpression('!', e)), false, `callsFunction(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(callsFunction(new CallScopeExpression('!', [])), true, `callsFunction(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(callsFunction(new CallMemberExpression(e, '', [])), true, `callsFunction(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(callsFunction(new CallFunctionExpression(e, [])), true, `callsFunction(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(callsFunction(new AccessMemberExpression(e, '')), false, `callsFunction(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(callsFunction(new AccessKeyedExpression(e, e)), false, `callsFunction(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(callsFunction(new TaggedTemplateExpression([], [], e)), true, `callsFunction(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(callsFunction(new BinaryExpression('+', e, e)), false, `callsFunction(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(callsFunction(new ConditionalExpression(e, e, e)), false, `callsFunction(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(callsFunction(new AssignExpression(e, e)), false, `callsFunction(new AssignExpression(e, e)                )`);
+    assert.strictEqual(callsFunction(new ValueConverterExpression(e, '', [])), false, `callsFunction(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(callsFunction(new BindingBehaviorExpression(e, '', [])), false, `callsFunction(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(callsFunction(new HtmlLiteralExpression([])), false, `callsFunction(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(callsFunction(new ArrayBindingPattern([])), false, `callsFunction(new ArrayBindingPattern([])     )`);
     assert.strictEqual(callsFunction(new ObjectBindingPattern([], [])), false, `callsFunction(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(callsFunction(new BindingIdentifier('')       ), false, `callsFunction(new BindingIdentifier('')       )`);
-    assert.strictEqual(callsFunction(new ForOfStatement(e, e)        ), false, `callsFunction(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(callsFunction(new Interpolation([])           ), false, `callsFunction(new Interpolation([])           )`);
+    assert.strictEqual(callsFunction(new BindingIdentifier('')), false, `callsFunction(new BindingIdentifier('')       )`);
+    assert.strictEqual(callsFunction(new ForOfStatement(e, e)), false, `callsFunction(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(callsFunction(new Interpolation([])), false, `callsFunction(new Interpolation([])           )`);
   });
 
   it('hasAncestor', function () {
-    assert.strictEqual(hasAncestor(new AccessThisExpression()                ), true, `hasAncestor(new AccessThisExpression()                )`);
-    assert.strictEqual(hasAncestor(new AccessScopeExpression('')             ), true, `hasAncestor(new AccessScopeExpression('')             )`);
-    assert.strictEqual(hasAncestor(new ArrayLiteralExpression([])            ), false, `hasAncestor(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(hasAncestor(new ObjectLiteralExpression([], [])       ), false, `hasAncestor(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(hasAncestor(new PrimitiveLiteralExpression('')        ), false, `hasAncestor(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(hasAncestor(new TemplateExpression([])                ), false, `hasAncestor(new TemplateExpression([])                )`);
-    assert.strictEqual(hasAncestor(new UnaryExpression('!', e)               ), false, `hasAncestor(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(hasAncestor(new CallScopeExpression('!', [])          ), true, `hasAncestor(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(hasAncestor(new CallMemberExpression(e, '', [])       ), false, `hasAncestor(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(hasAncestor(new CallFunctionExpression(e, [])         ), false, `hasAncestor(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(hasAncestor(new AccessMemberExpression(e, '')         ), false, `hasAncestor(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(hasAncestor(new AccessKeyedExpression(e, e)           ), false, `hasAncestor(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(hasAncestor(new TaggedTemplateExpression([], [], e)   ), false, `hasAncestor(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(hasAncestor(new BinaryExpression('+', e, e)           ), false, `hasAncestor(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(hasAncestor(new ConditionalExpression(e, e, e)        ), false, `hasAncestor(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(hasAncestor(new AssignExpression(e, e)                ), false, `hasAncestor(new AssignExpression(e, e)                )`);
-    assert.strictEqual(hasAncestor(new ValueConverterExpression(e, '', [])   ), false, `hasAncestor(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(hasAncestor(new BindingBehaviorExpression(e, '', [])  ), false, `hasAncestor(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(hasAncestor(new HtmlLiteralExpression([])             ), false, `hasAncestor(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(hasAncestor(new ArrayBindingPattern([])     ), false, `hasAncestor(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(hasAncestor(new AccessThisExpression()), true, `hasAncestor(new AccessThisExpression()                )`);
+    assert.strictEqual(hasAncestor(new AccessScopeExpression('')), true, `hasAncestor(new AccessScopeExpression('')             )`);
+    assert.strictEqual(hasAncestor(new ArrayLiteralExpression([])), false, `hasAncestor(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(hasAncestor(new ObjectLiteralExpression([], [])), false, `hasAncestor(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(hasAncestor(new PrimitiveLiteralExpression('')), false, `hasAncestor(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(hasAncestor(new TemplateExpression([])), false, `hasAncestor(new TemplateExpression([])                )`);
+    assert.strictEqual(hasAncestor(new UnaryExpression('!', e)), false, `hasAncestor(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(hasAncestor(new CallScopeExpression('!', [])), true, `hasAncestor(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(hasAncestor(new CallMemberExpression(e, '', [])), false, `hasAncestor(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(hasAncestor(new CallFunctionExpression(e, [])), false, `hasAncestor(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(hasAncestor(new AccessMemberExpression(e, '')), false, `hasAncestor(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(hasAncestor(new AccessKeyedExpression(e, e)), false, `hasAncestor(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(hasAncestor(new TaggedTemplateExpression([], [], e)), false, `hasAncestor(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(hasAncestor(new BinaryExpression('+', e, e)), false, `hasAncestor(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(hasAncestor(new ConditionalExpression(e, e, e)), false, `hasAncestor(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(hasAncestor(new AssignExpression(e, e)), false, `hasAncestor(new AssignExpression(e, e)                )`);
+    assert.strictEqual(hasAncestor(new ValueConverterExpression(e, '', [])), false, `hasAncestor(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(hasAncestor(new BindingBehaviorExpression(e, '', [])), false, `hasAncestor(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(hasAncestor(new HtmlLiteralExpression([])), false, `hasAncestor(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(hasAncestor(new ArrayBindingPattern([])), false, `hasAncestor(new ArrayBindingPattern([])     )`);
     assert.strictEqual(hasAncestor(new ObjectBindingPattern([], [])), false, `hasAncestor(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(hasAncestor(new BindingIdentifier('')       ), false, `hasAncestor(new BindingIdentifier('')       )`);
-    assert.strictEqual(hasAncestor(new ForOfStatement(e, e)        ), false, `hasAncestor(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(hasAncestor(new Interpolation([])           ), false, `hasAncestor(new Interpolation([])           )`);
+    assert.strictEqual(hasAncestor(new BindingIdentifier('')), false, `hasAncestor(new BindingIdentifier('')       )`);
+    assert.strictEqual(hasAncestor(new ForOfStatement(e, e)), false, `hasAncestor(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(hasAncestor(new Interpolation([])), false, `hasAncestor(new Interpolation([])           )`);
   });
 
   it('isAssignable', function () {
-    assert.strictEqual(isAssignable(new AccessThisExpression()                ), false, `isAssignable(new AccessThisExpression()                )`);
-    assert.strictEqual(isAssignable(new AccessScopeExpression('')             ), true, `isAssignable(new AccessScopeExpression('')             )`);
-    assert.strictEqual(isAssignable(new ArrayLiteralExpression([])            ), false, `isAssignable(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(isAssignable(new ObjectLiteralExpression([], [])       ), false, `isAssignable(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(isAssignable(new PrimitiveLiteralExpression('')        ), false, `isAssignable(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(isAssignable(new TemplateExpression([])                ), false, `isAssignable(new TemplateExpression([])                )`);
-    assert.strictEqual(isAssignable(new UnaryExpression('!', e)               ), false, `isAssignable(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(isAssignable(new CallScopeExpression('!', [])          ), false, `isAssignable(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(isAssignable(new CallMemberExpression(e, '', [])       ), false, `isAssignable(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(isAssignable(new CallFunctionExpression(e, [])         ), false, `isAssignable(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(isAssignable(new AccessMemberExpression(e, '')         ), true, `isAssignable(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(isAssignable(new AccessKeyedExpression(e, e)           ), true, `isAssignable(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(isAssignable(new TaggedTemplateExpression([], [], e)   ), false, `isAssignable(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(isAssignable(new BinaryExpression('+', e, e)           ), false, `isAssignable(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(isAssignable(new ConditionalExpression(e, e, e)        ), false, `isAssignable(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(isAssignable(new AssignExpression(e, e)                ), true, `isAssignable(new AssignExpression(e, e)                )`);
-    assert.strictEqual(isAssignable(new ValueConverterExpression(e, '', [])   ), false, `isAssignable(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(isAssignable(new BindingBehaviorExpression(e, '', [])  ), false, `isAssignable(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(isAssignable(new HtmlLiteralExpression([])             ), false, `isAssignable(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(isAssignable(new ArrayBindingPattern([])     ), false, `isAssignable(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(isAssignable(new AccessThisExpression()), false, `isAssignable(new AccessThisExpression()                )`);
+    assert.strictEqual(isAssignable(new AccessScopeExpression('')), true, `isAssignable(new AccessScopeExpression('')             )`);
+    assert.strictEqual(isAssignable(new ArrayLiteralExpression([])), false, `isAssignable(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(isAssignable(new ObjectLiteralExpression([], [])), false, `isAssignable(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(isAssignable(new PrimitiveLiteralExpression('')), false, `isAssignable(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(isAssignable(new TemplateExpression([])), false, `isAssignable(new TemplateExpression([])                )`);
+    assert.strictEqual(isAssignable(new UnaryExpression('!', e)), false, `isAssignable(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(isAssignable(new CallScopeExpression('!', [])), false, `isAssignable(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(isAssignable(new CallMemberExpression(e, '', [])), false, `isAssignable(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(isAssignable(new CallFunctionExpression(e, [])), false, `isAssignable(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(isAssignable(new AccessMemberExpression(e, '')), true, `isAssignable(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(isAssignable(new AccessKeyedExpression(e, e)), true, `isAssignable(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(isAssignable(new TaggedTemplateExpression([], [], e)), false, `isAssignable(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(isAssignable(new BinaryExpression('+', e, e)), false, `isAssignable(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(isAssignable(new ConditionalExpression(e, e, e)), false, `isAssignable(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(isAssignable(new AssignExpression(e, e)), true, `isAssignable(new AssignExpression(e, e)                )`);
+    assert.strictEqual(isAssignable(new ValueConverterExpression(e, '', [])), false, `isAssignable(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(isAssignable(new BindingBehaviorExpression(e, '', [])), false, `isAssignable(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(isAssignable(new HtmlLiteralExpression([])), false, `isAssignable(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(isAssignable(new ArrayBindingPattern([])), false, `isAssignable(new ArrayBindingPattern([])     )`);
     assert.strictEqual(isAssignable(new ObjectBindingPattern([], [])), false, `isAssignable(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(isAssignable(new BindingIdentifier('')       ), false, `isAssignable(new BindingIdentifier('')       )`);
-    assert.strictEqual(isAssignable(new ForOfStatement(e, e)        ), false, `isAssignable(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(isAssignable(new Interpolation([])           ), false, `isAssignable(new Interpolation([])           )`);
+    assert.strictEqual(isAssignable(new BindingIdentifier('')), false, `isAssignable(new BindingIdentifier('')       )`);
+    assert.strictEqual(isAssignable(new ForOfStatement(e, e)), false, `isAssignable(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(isAssignable(new Interpolation([])), false, `isAssignable(new Interpolation([])           )`);
   });
 
   it('isLeftHandSide', function () {
-    assert.strictEqual(isLeftHandSide(new AccessThisExpression()                ), true, `isLeftHandSide(new AccessThisExpression()                )`);
-    assert.strictEqual(isLeftHandSide(new AccessScopeExpression('')             ), true, `isLeftHandSide(new AccessScopeExpression('')             )`);
-    assert.strictEqual(isLeftHandSide(new ArrayLiteralExpression([])            ), true, `isLeftHandSide(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(isLeftHandSide(new ObjectLiteralExpression([], [])       ), true, `isLeftHandSide(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(isLeftHandSide(new PrimitiveLiteralExpression('')        ), true, `isLeftHandSide(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(isLeftHandSide(new TemplateExpression([])                ), true, `isLeftHandSide(new TemplateExpression([])                )`);
-    assert.strictEqual(isLeftHandSide(new UnaryExpression('!', e)               ), false, `isLeftHandSide(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(isLeftHandSide(new CallScopeExpression('!', [])          ), true, `isLeftHandSide(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(isLeftHandSide(new CallMemberExpression(e, '', [])       ), true, `isLeftHandSide(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(isLeftHandSide(new CallFunctionExpression(e, [])         ), true, `isLeftHandSide(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(isLeftHandSide(new AccessMemberExpression(e, '')         ), true, `isLeftHandSide(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(isLeftHandSide(new AccessKeyedExpression(e, e)           ), true, `isLeftHandSide(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(isLeftHandSide(new TaggedTemplateExpression([], [], e)   ), true, `isLeftHandSide(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(isLeftHandSide(new BinaryExpression('+', e, e)           ), false, `isLeftHandSide(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(isLeftHandSide(new ConditionalExpression(e, e, e)        ), false, `isLeftHandSide(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(isLeftHandSide(new AssignExpression(e, e)                ), false, `isLeftHandSide(new AssignExpression(e, e)                )`);
-    assert.strictEqual(isLeftHandSide(new ValueConverterExpression(e, '', [])   ), false, `isLeftHandSide(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(isLeftHandSide(new BindingBehaviorExpression(e, '', [])  ), false, `isLeftHandSide(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(isLeftHandSide(new HtmlLiteralExpression([])             ), false, `isLeftHandSide(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(isLeftHandSide(new ArrayBindingPattern([])     ), false, `isLeftHandSide(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(isLeftHandSide(new AccessThisExpression()), true, `isLeftHandSide(new AccessThisExpression()                )`);
+    assert.strictEqual(isLeftHandSide(new AccessScopeExpression('')), true, `isLeftHandSide(new AccessScopeExpression('')             )`);
+    assert.strictEqual(isLeftHandSide(new ArrayLiteralExpression([])), true, `isLeftHandSide(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(isLeftHandSide(new ObjectLiteralExpression([], [])), true, `isLeftHandSide(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(isLeftHandSide(new PrimitiveLiteralExpression('')), true, `isLeftHandSide(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(isLeftHandSide(new TemplateExpression([])), true, `isLeftHandSide(new TemplateExpression([])                )`);
+    assert.strictEqual(isLeftHandSide(new UnaryExpression('!', e)), false, `isLeftHandSide(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(isLeftHandSide(new CallScopeExpression('!', [])), true, `isLeftHandSide(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(isLeftHandSide(new CallMemberExpression(e, '', [])), true, `isLeftHandSide(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(isLeftHandSide(new CallFunctionExpression(e, [])), true, `isLeftHandSide(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(isLeftHandSide(new AccessMemberExpression(e, '')), true, `isLeftHandSide(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(isLeftHandSide(new AccessKeyedExpression(e, e)), true, `isLeftHandSide(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(isLeftHandSide(new TaggedTemplateExpression([], [], e)), true, `isLeftHandSide(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(isLeftHandSide(new BinaryExpression('+', e, e)), false, `isLeftHandSide(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(isLeftHandSide(new ConditionalExpression(e, e, e)), false, `isLeftHandSide(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(isLeftHandSide(new AssignExpression(e, e)), false, `isLeftHandSide(new AssignExpression(e, e)                )`);
+    assert.strictEqual(isLeftHandSide(new ValueConverterExpression(e, '', [])), false, `isLeftHandSide(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(isLeftHandSide(new BindingBehaviorExpression(e, '', [])), false, `isLeftHandSide(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(isLeftHandSide(new HtmlLiteralExpression([])), false, `isLeftHandSide(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(isLeftHandSide(new ArrayBindingPattern([])), false, `isLeftHandSide(new ArrayBindingPattern([])     )`);
     assert.strictEqual(isLeftHandSide(new ObjectBindingPattern([], [])), false, `isLeftHandSide(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(isLeftHandSide(new BindingIdentifier('')       ), false, `isLeftHandSide(new BindingIdentifier('')       )`);
-    assert.strictEqual(isLeftHandSide(new ForOfStatement(e, e)        ), false, `isLeftHandSide(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(isLeftHandSide(new Interpolation([])           ), false, `isLeftHandSide(new Interpolation([])           )`);
+    assert.strictEqual(isLeftHandSide(new BindingIdentifier('')), false, `isLeftHandSide(new BindingIdentifier('')       )`);
+    assert.strictEqual(isLeftHandSide(new ForOfStatement(e, e)), false, `isLeftHandSide(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(isLeftHandSide(new Interpolation([])), false, `isLeftHandSide(new Interpolation([])           )`);
   });
 
   it('isPrimary', function () {
-    assert.strictEqual(isPrimary(new AccessThisExpression()                ), true, `isPrimary(new AccessThisExpression()                )`);
-    assert.strictEqual(isPrimary(new AccessScopeExpression('')             ), true, `isPrimary(new AccessScopeExpression('')             )`);
-    assert.strictEqual(isPrimary(new ArrayLiteralExpression([])            ), true, `isPrimary(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(isPrimary(new ObjectLiteralExpression([], [])       ), true, `isPrimary(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(isPrimary(new PrimitiveLiteralExpression('')        ), true, `isPrimary(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(isPrimary(new TemplateExpression([])                ), true, `isPrimary(new TemplateExpression([])                )`);
-    assert.strictEqual(isPrimary(new UnaryExpression('!', e)               ), false, `isPrimary(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(isPrimary(new CallScopeExpression('!', [])          ), false, `isPrimary(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(isPrimary(new CallMemberExpression(e, '', [])       ), false, `isPrimary(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(isPrimary(new CallFunctionExpression(e, [])         ), false, `isPrimary(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(isPrimary(new AccessMemberExpression(e, '')         ), false, `isPrimary(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(isPrimary(new AccessKeyedExpression(e, e)           ), false, `isPrimary(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(isPrimary(new TaggedTemplateExpression([], [], e)   ), false, `isPrimary(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(isPrimary(new BinaryExpression('+', e, e)           ), false, `isPrimary(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(isPrimary(new ConditionalExpression(e, e, e)        ), false, `isPrimary(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(isPrimary(new AssignExpression(e, e)                ), false, `isPrimary(new AssignExpression(e, e)                )`);
-    assert.strictEqual(isPrimary(new ValueConverterExpression(e, '', [])   ), false, `isPrimary(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(isPrimary(new BindingBehaviorExpression(e, '', [])  ), false, `isPrimary(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(isPrimary(new HtmlLiteralExpression([])             ), false, `isPrimary(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(isPrimary(new ArrayBindingPattern([])     ), false, `isPrimary(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(isPrimary(new AccessThisExpression()), true, `isPrimary(new AccessThisExpression()                )`);
+    assert.strictEqual(isPrimary(new AccessScopeExpression('')), true, `isPrimary(new AccessScopeExpression('')             )`);
+    assert.strictEqual(isPrimary(new ArrayLiteralExpression([])), true, `isPrimary(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(isPrimary(new ObjectLiteralExpression([], [])), true, `isPrimary(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(isPrimary(new PrimitiveLiteralExpression('')), true, `isPrimary(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(isPrimary(new TemplateExpression([])), true, `isPrimary(new TemplateExpression([])                )`);
+    assert.strictEqual(isPrimary(new UnaryExpression('!', e)), false, `isPrimary(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(isPrimary(new CallScopeExpression('!', [])), false, `isPrimary(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(isPrimary(new CallMemberExpression(e, '', [])), false, `isPrimary(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(isPrimary(new CallFunctionExpression(e, [])), false, `isPrimary(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(isPrimary(new AccessMemberExpression(e, '')), false, `isPrimary(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(isPrimary(new AccessKeyedExpression(e, e)), false, `isPrimary(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(isPrimary(new TaggedTemplateExpression([], [], e)), false, `isPrimary(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(isPrimary(new BinaryExpression('+', e, e)), false, `isPrimary(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(isPrimary(new ConditionalExpression(e, e, e)), false, `isPrimary(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(isPrimary(new AssignExpression(e, e)), false, `isPrimary(new AssignExpression(e, e)                )`);
+    assert.strictEqual(isPrimary(new ValueConverterExpression(e, '', [])), false, `isPrimary(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(isPrimary(new BindingBehaviorExpression(e, '', [])), false, `isPrimary(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(isPrimary(new HtmlLiteralExpression([])), false, `isPrimary(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(isPrimary(new ArrayBindingPattern([])), false, `isPrimary(new ArrayBindingPattern([])     )`);
     assert.strictEqual(isPrimary(new ObjectBindingPattern([], [])), false, `isPrimary(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(isPrimary(new BindingIdentifier('')       ), false, `isPrimary(new BindingIdentifier('')       )`);
-    assert.strictEqual(isPrimary(new ForOfStatement(e, e)        ), false, `isPrimary(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(isPrimary(new Interpolation([])           ), false, `isPrimary(new Interpolation([])           )`);
+    assert.strictEqual(isPrimary(new BindingIdentifier('')), false, `isPrimary(new BindingIdentifier('')       )`);
+    assert.strictEqual(isPrimary(new ForOfStatement(e, e)), false, `isPrimary(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(isPrimary(new Interpolation([])), false, `isPrimary(new Interpolation([])           )`);
   });
 
   it('isResource', function () {
-    assert.strictEqual(isResource(new AccessThisExpression()                ), false, `isResource(new AccessThisExpression()                )`);
-    assert.strictEqual(isResource(new AccessScopeExpression('')             ), false, `isResource(new AccessScopeExpression('')             )`);
-    assert.strictEqual(isResource(new ArrayLiteralExpression([])            ), false, `isResource(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(isResource(new ObjectLiteralExpression([], [])       ), false, `isResource(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(isResource(new PrimitiveLiteralExpression('')        ), false, `isResource(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(isResource(new TemplateExpression([])                ), false, `isResource(new TemplateExpression([])                )`);
-    assert.strictEqual(isResource(new UnaryExpression('!', e)               ), false, `isResource(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(isResource(new CallScopeExpression('!', [])          ), false, `isResource(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(isResource(new CallMemberExpression(e, '', [])       ), false, `isResource(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(isResource(new CallFunctionExpression(e, [])         ), false, `isResource(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(isResource(new AccessMemberExpression(e, '')         ), false, `isResource(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(isResource(new AccessKeyedExpression(e, e)           ), false, `isResource(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(isResource(new TaggedTemplateExpression([], [], e)   ), false, `isResource(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(isResource(new BinaryExpression('+', e, e)           ), false, `isResource(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(isResource(new ConditionalExpression(e, e, e)        ), false, `isResource(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(isResource(new AssignExpression(e, e)                ), false, `isResource(new AssignExpression(e, e)                )`);
-    assert.strictEqual(isResource(new ValueConverterExpression(e, '', [])   ), true, `isResource(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(isResource(new BindingBehaviorExpression(e, '', [])  ), true, `isResource(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(isResource(new HtmlLiteralExpression([])             ), false, `isResource(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(isResource(new ArrayBindingPattern([])     ), false, `isResource(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(isResource(new AccessThisExpression()), false, `isResource(new AccessThisExpression()                )`);
+    assert.strictEqual(isResource(new AccessScopeExpression('')), false, `isResource(new AccessScopeExpression('')             )`);
+    assert.strictEqual(isResource(new ArrayLiteralExpression([])), false, `isResource(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(isResource(new ObjectLiteralExpression([], [])), false, `isResource(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(isResource(new PrimitiveLiteralExpression('')), false, `isResource(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(isResource(new TemplateExpression([])), false, `isResource(new TemplateExpression([])                )`);
+    assert.strictEqual(isResource(new UnaryExpression('!', e)), false, `isResource(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(isResource(new CallScopeExpression('!', [])), false, `isResource(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(isResource(new CallMemberExpression(e, '', [])), false, `isResource(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(isResource(new CallFunctionExpression(e, [])), false, `isResource(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(isResource(new AccessMemberExpression(e, '')), false, `isResource(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(isResource(new AccessKeyedExpression(e, e)), false, `isResource(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(isResource(new TaggedTemplateExpression([], [], e)), false, `isResource(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(isResource(new BinaryExpression('+', e, e)), false, `isResource(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(isResource(new ConditionalExpression(e, e, e)), false, `isResource(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(isResource(new AssignExpression(e, e)), false, `isResource(new AssignExpression(e, e)                )`);
+    assert.strictEqual(isResource(new ValueConverterExpression(e, '', [])), true, `isResource(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(isResource(new BindingBehaviorExpression(e, '', [])), true, `isResource(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(isResource(new HtmlLiteralExpression([])), false, `isResource(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(isResource(new ArrayBindingPattern([])), false, `isResource(new ArrayBindingPattern([])     )`);
     assert.strictEqual(isResource(new ObjectBindingPattern([], [])), false, `isResource(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(isResource(new BindingIdentifier('')       ), false, `isResource(new BindingIdentifier('')       )`);
-    assert.strictEqual(isResource(new ForOfStatement(e, e)        ), false, `isResource(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(isResource(new Interpolation([])           ), false, `isResource(new Interpolation([])           )`);
+    assert.strictEqual(isResource(new BindingIdentifier('')), false, `isResource(new BindingIdentifier('')       )`);
+    assert.strictEqual(isResource(new ForOfStatement(e, e)), false, `isResource(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(isResource(new Interpolation([])), false, `isResource(new Interpolation([])           )`);
   });
 
   it('hasBind', function () {
-    assert.strictEqual(hasBind(new AccessThisExpression()                ), false, `hasBind(new AccessThisExpression()                )`);
-    assert.strictEqual(hasBind(new AccessScopeExpression('')             ), false, `hasBind(new AccessScopeExpression('')             )`);
-    assert.strictEqual(hasBind(new ArrayLiteralExpression([])            ), false, `hasBind(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(hasBind(new ObjectLiteralExpression([], [])       ), false, `hasBind(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(hasBind(new PrimitiveLiteralExpression('')        ), false, `hasBind(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(hasBind(new TemplateExpression([])                ), false, `hasBind(new TemplateExpression([])                )`);
-    assert.strictEqual(hasBind(new UnaryExpression('!', e)               ), false, `hasBind(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(hasBind(new CallScopeExpression('!', [])          ), false, `hasBind(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(hasBind(new CallMemberExpression(e, '', [])       ), false, `hasBind(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(hasBind(new CallFunctionExpression(e, [])         ), false, `hasBind(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(hasBind(new AccessMemberExpression(e, '')         ), false, `hasBind(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(hasBind(new AccessKeyedExpression(e, e)           ), false, `hasBind(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(hasBind(new TaggedTemplateExpression([], [], e)   ), false, `hasBind(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(hasBind(new BinaryExpression('+', e, e)           ), false, `hasBind(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(hasBind(new ConditionalExpression(e, e, e)        ), false, `hasBind(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(hasBind(new AssignExpression(e, e)                ), false, `hasBind(new AssignExpression(e, e)                )`);
-    assert.strictEqual(hasBind(new ValueConverterExpression(e, '', [])   ), false, `hasBind(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(hasBind(new BindingBehaviorExpression(e, '', [])  ), true, `hasBind(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(hasBind(new HtmlLiteralExpression([])             ), false, `hasBind(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(hasBind(new ArrayBindingPattern([])     ), false, `hasBind(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(hasBind(new AccessThisExpression()), false, `hasBind(new AccessThisExpression()                )`);
+    assert.strictEqual(hasBind(new AccessScopeExpression('')), false, `hasBind(new AccessScopeExpression('')             )`);
+    assert.strictEqual(hasBind(new ArrayLiteralExpression([])), false, `hasBind(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(hasBind(new ObjectLiteralExpression([], [])), false, `hasBind(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(hasBind(new PrimitiveLiteralExpression('')), false, `hasBind(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(hasBind(new TemplateExpression([])), false, `hasBind(new TemplateExpression([])                )`);
+    assert.strictEqual(hasBind(new UnaryExpression('!', e)), false, `hasBind(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(hasBind(new CallScopeExpression('!', [])), false, `hasBind(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(hasBind(new CallMemberExpression(e, '', [])), false, `hasBind(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(hasBind(new CallFunctionExpression(e, [])), false, `hasBind(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(hasBind(new AccessMemberExpression(e, '')), false, `hasBind(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(hasBind(new AccessKeyedExpression(e, e)), false, `hasBind(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(hasBind(new TaggedTemplateExpression([], [], e)), false, `hasBind(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(hasBind(new BinaryExpression('+', e, e)), false, `hasBind(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(hasBind(new ConditionalExpression(e, e, e)), false, `hasBind(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(hasBind(new AssignExpression(e, e)), false, `hasBind(new AssignExpression(e, e)                )`);
+    assert.strictEqual(hasBind(new ValueConverterExpression(e, '', [])), false, `hasBind(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(hasBind(new BindingBehaviorExpression(e, '', [])), true, `hasBind(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(hasBind(new HtmlLiteralExpression([])), false, `hasBind(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(hasBind(new ArrayBindingPattern([])), false, `hasBind(new ArrayBindingPattern([])     )`);
     assert.strictEqual(hasBind(new ObjectBindingPattern([], [])), false, `hasBind(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(hasBind(new BindingIdentifier('')       ), false, `hasBind(new BindingIdentifier('')       )`);
-    assert.strictEqual(hasBind(new ForOfStatement(e, e)        ), true, `hasBind(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(hasBind(new Interpolation([])           ), false, `hasBind(new Interpolation([])           )`);
+    assert.strictEqual(hasBind(new BindingIdentifier('')), false, `hasBind(new BindingIdentifier('')       )`);
+    assert.strictEqual(hasBind(new ForOfStatement(e, e)), true, `hasBind(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(hasBind(new Interpolation([])), false, `hasBind(new Interpolation([])           )`);
   });
 
   it('hasUnbind', function () {
-    assert.strictEqual(hasUnbind(new AccessThisExpression()                ), false, `hasUnbind(new AccessThisExpression()                )`);
-    assert.strictEqual(hasUnbind(new AccessScopeExpression('')             ), false, `hasUnbind(new AccessScopeExpression('')             )`);
-    assert.strictEqual(hasUnbind(new ArrayLiteralExpression([])            ), false, `hasUnbind(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(hasUnbind(new ObjectLiteralExpression([], [])       ), false, `hasUnbind(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(hasUnbind(new PrimitiveLiteralExpression('')        ), false, `hasUnbind(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(hasUnbind(new TemplateExpression([])                ), false, `hasUnbind(new TemplateExpression([])                )`);
-    assert.strictEqual(hasUnbind(new UnaryExpression('!', e)               ), false, `hasUnbind(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(hasUnbind(new CallScopeExpression('!', [])          ), false, `hasUnbind(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(hasUnbind(new CallMemberExpression(e, '', [])       ), false, `hasUnbind(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(hasUnbind(new CallFunctionExpression(e, [])         ), false, `hasUnbind(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(hasUnbind(new AccessMemberExpression(e, '')         ), false, `hasUnbind(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(hasUnbind(new AccessKeyedExpression(e, e)           ), false, `hasUnbind(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(hasUnbind(new TaggedTemplateExpression([], [], e)   ), false, `hasUnbind(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(hasUnbind(new BinaryExpression('+', e, e)           ), false, `hasUnbind(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(hasUnbind(new ConditionalExpression(e, e, e)        ), false, `hasUnbind(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(hasUnbind(new AssignExpression(e, e)                ), false, `hasUnbind(new AssignExpression(e, e)                )`);
-    assert.strictEqual(hasUnbind(new ValueConverterExpression(e, '', [])   ), true, `hasUnbind(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(hasUnbind(new BindingBehaviorExpression(e, '', [])  ), true, `hasUnbind(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(hasUnbind(new HtmlLiteralExpression([])             ), false, `hasUnbind(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(hasUnbind(new ArrayBindingPattern([])     ), false, `hasUnbind(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(hasUnbind(new AccessThisExpression()), false, `hasUnbind(new AccessThisExpression()                )`);
+    assert.strictEqual(hasUnbind(new AccessScopeExpression('')), false, `hasUnbind(new AccessScopeExpression('')             )`);
+    assert.strictEqual(hasUnbind(new ArrayLiteralExpression([])), false, `hasUnbind(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(hasUnbind(new ObjectLiteralExpression([], [])), false, `hasUnbind(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(hasUnbind(new PrimitiveLiteralExpression('')), false, `hasUnbind(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(hasUnbind(new TemplateExpression([])), false, `hasUnbind(new TemplateExpression([])                )`);
+    assert.strictEqual(hasUnbind(new UnaryExpression('!', e)), false, `hasUnbind(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(hasUnbind(new CallScopeExpression('!', [])), false, `hasUnbind(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(hasUnbind(new CallMemberExpression(e, '', [])), false, `hasUnbind(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(hasUnbind(new CallFunctionExpression(e, [])), false, `hasUnbind(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(hasUnbind(new AccessMemberExpression(e, '')), false, `hasUnbind(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(hasUnbind(new AccessKeyedExpression(e, e)), false, `hasUnbind(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(hasUnbind(new TaggedTemplateExpression([], [], e)), false, `hasUnbind(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(hasUnbind(new BinaryExpression('+', e, e)), false, `hasUnbind(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(hasUnbind(new ConditionalExpression(e, e, e)), false, `hasUnbind(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(hasUnbind(new AssignExpression(e, e)), false, `hasUnbind(new AssignExpression(e, e)                )`);
+    assert.strictEqual(hasUnbind(new ValueConverterExpression(e, '', [])), true, `hasUnbind(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(hasUnbind(new BindingBehaviorExpression(e, '', [])), true, `hasUnbind(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(hasUnbind(new HtmlLiteralExpression([])), false, `hasUnbind(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(hasUnbind(new ArrayBindingPattern([])), false, `hasUnbind(new ArrayBindingPattern([])     )`);
     assert.strictEqual(hasUnbind(new ObjectBindingPattern([], [])), false, `hasUnbind(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(hasUnbind(new BindingIdentifier('')       ), false, `hasUnbind(new BindingIdentifier('')       )`);
-    assert.strictEqual(hasUnbind(new ForOfStatement(e, e)        ), true, `hasUnbind(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(hasUnbind(new Interpolation([])           ), false, `hasUnbind(new Interpolation([])           )`);
+    assert.strictEqual(hasUnbind(new BindingIdentifier('')), false, `hasUnbind(new BindingIdentifier('')       )`);
+    assert.strictEqual(hasUnbind(new ForOfStatement(e, e)), true, `hasUnbind(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(hasUnbind(new Interpolation([])), false, `hasUnbind(new Interpolation([])           )`);
   });
 
   it('isLiteral', function () {
-    assert.strictEqual(isLiteral(new AccessThisExpression()                ), false, `isLiteral(new AccessThisExpression()                )`);
-    assert.strictEqual(isLiteral(new AccessScopeExpression('')             ), false, `isLiteral(new AccessScopeExpression('')             )`);
-    assert.strictEqual(isLiteral(new ArrayLiteralExpression([])            ), true, `isLiteral(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(isLiteral(new ObjectLiteralExpression([], [])       ), true, `isLiteral(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(isLiteral(new PrimitiveLiteralExpression('')        ), true, `isLiteral(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(isLiteral(new TemplateExpression([])                ), true, `isLiteral(new TemplateExpression([])                )`);
-    assert.strictEqual(isLiteral(new UnaryExpression('!', e)               ), false, `isLiteral(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(isLiteral(new CallScopeExpression('!', [])          ), false, `isLiteral(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(isLiteral(new CallMemberExpression(e, '', [])       ), false, `isLiteral(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(isLiteral(new CallFunctionExpression(e, [])         ), false, `isLiteral(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(isLiteral(new AccessMemberExpression(e, '')         ), false, `isLiteral(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(isLiteral(new AccessKeyedExpression(e, e)           ), false, `isLiteral(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(isLiteral(new TaggedTemplateExpression([], [], e)   ), false, `isLiteral(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(isLiteral(new BinaryExpression('+', e, e)           ), false, `isLiteral(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(isLiteral(new ConditionalExpression(e, e, e)        ), false, `isLiteral(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(isLiteral(new AssignExpression(e, e)                ), false, `isLiteral(new AssignExpression(e, e)                )`);
-    assert.strictEqual(isLiteral(new ValueConverterExpression(e, '', [])   ), false, `isLiteral(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(isLiteral(new BindingBehaviorExpression(e, '', [])  ), false, `isLiteral(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(isLiteral(new HtmlLiteralExpression([])             ), false, `isLiteral(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(isLiteral(new ArrayBindingPattern([])     ), false, `isLiteral(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(isLiteral(new AccessThisExpression()), false, `isLiteral(new AccessThisExpression()                )`);
+    assert.strictEqual(isLiteral(new AccessScopeExpression('')), false, `isLiteral(new AccessScopeExpression('')             )`);
+    assert.strictEqual(isLiteral(new ArrayLiteralExpression([])), true, `isLiteral(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(isLiteral(new ObjectLiteralExpression([], [])), true, `isLiteral(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(isLiteral(new PrimitiveLiteralExpression('')), true, `isLiteral(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(isLiteral(new TemplateExpression([])), true, `isLiteral(new TemplateExpression([])                )`);
+    assert.strictEqual(isLiteral(new UnaryExpression('!', e)), false, `isLiteral(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(isLiteral(new CallScopeExpression('!', [])), false, `isLiteral(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(isLiteral(new CallMemberExpression(e, '', [])), false, `isLiteral(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(isLiteral(new CallFunctionExpression(e, [])), false, `isLiteral(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(isLiteral(new AccessMemberExpression(e, '')), false, `isLiteral(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(isLiteral(new AccessKeyedExpression(e, e)), false, `isLiteral(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(isLiteral(new TaggedTemplateExpression([], [], e)), false, `isLiteral(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(isLiteral(new BinaryExpression('+', e, e)), false, `isLiteral(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(isLiteral(new ConditionalExpression(e, e, e)), false, `isLiteral(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(isLiteral(new AssignExpression(e, e)), false, `isLiteral(new AssignExpression(e, e)                )`);
+    assert.strictEqual(isLiteral(new ValueConverterExpression(e, '', [])), false, `isLiteral(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(isLiteral(new BindingBehaviorExpression(e, '', [])), false, `isLiteral(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(isLiteral(new HtmlLiteralExpression([])), false, `isLiteral(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(isLiteral(new ArrayBindingPattern([])), false, `isLiteral(new ArrayBindingPattern([])     )`);
     assert.strictEqual(isLiteral(new ObjectBindingPattern([], [])), false, `isLiteral(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(isLiteral(new BindingIdentifier('')       ), false, `isLiteral(new BindingIdentifier('')       )`);
-    assert.strictEqual(isLiteral(new ForOfStatement(e, e)        ), false, `isLiteral(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(isLiteral(new Interpolation([])           ), false, `isLiteral(new Interpolation([])           )`);
+    assert.strictEqual(isLiteral(new BindingIdentifier('')), false, `isLiteral(new BindingIdentifier('')       )`);
+    assert.strictEqual(isLiteral(new ForOfStatement(e, e)), false, `isLiteral(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(isLiteral(new Interpolation([])), false, `isLiteral(new Interpolation([])           )`);
   });
 
   it('isPureLiteral', function () {
-    assert.strictEqual(isPureLiteral(new AccessThisExpression()                ), false, `isPureLiteral(new AccessThisExpression()                )`);
-    assert.strictEqual(isPureLiteral(new AccessScopeExpression('')             ), false, `isPureLiteral(new AccessScopeExpression('')             )`);
-    assert.strictEqual(isPureLiteral(new ArrayLiteralExpression([])            ), true, `isPureLiteral(new ArrayLiteralExpression([])            )`);
-    assert.strictEqual(isPureLiteral(new ObjectLiteralExpression([], [])       ), true, `isPureLiteral(new ObjectLiteralExpression([], [])       )`);
-    assert.strictEqual(isPureLiteral(new PrimitiveLiteralExpression('')        ), true, `isPureLiteral(new PrimitiveLiteralExpression('')        )`);
-    assert.strictEqual(isPureLiteral(new TemplateExpression([])                ), true, `isPureLiteral(new TemplateExpression([])                )`);
-    assert.strictEqual(isPureLiteral(new UnaryExpression('!', e)               ), false, `isPureLiteral(new UnaryExpression('!', e)               )`);
-    assert.strictEqual(isPureLiteral(new CallScopeExpression('!', [])          ), false, `isPureLiteral(new CallScopeExpression('!', [])          )`);
-    assert.strictEqual(isPureLiteral(new CallMemberExpression(e, '', [])       ), false, `isPureLiteral(new CallMemberExpression(e, '', [])       )`);
-    assert.strictEqual(isPureLiteral(new CallFunctionExpression(e, [])         ), false, `isPureLiteral(new CallFunctionExpression(e, [])         )`);
-    assert.strictEqual(isPureLiteral(new AccessMemberExpression(e, '')         ), false, `isPureLiteral(new AccessMemberExpression(e, '')         )`);
-    assert.strictEqual(isPureLiteral(new AccessKeyedExpression(e, e)           ), false, `isPureLiteral(new AccessKeyedExpression(e, e)           )`);
-    assert.strictEqual(isPureLiteral(new TaggedTemplateExpression([], [], e)   ), false, `isPureLiteral(new TaggedTemplateExpression([], [], e)   )`);
-    assert.strictEqual(isPureLiteral(new BinaryExpression('+', e, e)           ), false, `isPureLiteral(new BinaryExpression('+', e, e)           )`);
-    assert.strictEqual(isPureLiteral(new ConditionalExpression(e, e, e)        ), false, `isPureLiteral(new ConditionalExpression(e, e, e)        )`);
-    assert.strictEqual(isPureLiteral(new AssignExpression(e, e)                ), false, `isPureLiteral(new AssignExpression(e, e)                )`);
-    assert.strictEqual(isPureLiteral(new ValueConverterExpression(e, '', [])   ), false, `isPureLiteral(new ValueConverterExpression(e, '', [])   )`);
-    assert.strictEqual(isPureLiteral(new BindingBehaviorExpression(e, '', [])  ), false, `isPureLiteral(new BindingBehaviorExpression(e, '', [])  )`);
-    assert.strictEqual(isPureLiteral(new HtmlLiteralExpression([])             ), false, `isPureLiteral(new HtmlLiteralExpression([])             )`);
-    assert.strictEqual(isPureLiteral(new ArrayBindingPattern([])     ), false, `isPureLiteral(new ArrayBindingPattern([])     )`);
+    assert.strictEqual(isPureLiteral(new AccessThisExpression()), false, `isPureLiteral(new AccessThisExpression()                )`);
+    assert.strictEqual(isPureLiteral(new AccessScopeExpression('')), false, `isPureLiteral(new AccessScopeExpression('')             )`);
+    assert.strictEqual(isPureLiteral(new ArrayLiteralExpression([])), true, `isPureLiteral(new ArrayLiteralExpression([])            )`);
+    assert.strictEqual(isPureLiteral(new ObjectLiteralExpression([], [])), true, `isPureLiteral(new ObjectLiteralExpression([], [])       )`);
+    assert.strictEqual(isPureLiteral(new PrimitiveLiteralExpression('')), true, `isPureLiteral(new PrimitiveLiteralExpression('')        )`);
+    assert.strictEqual(isPureLiteral(new TemplateExpression([])), true, `isPureLiteral(new TemplateExpression([])                )`);
+    assert.strictEqual(isPureLiteral(new UnaryExpression('!', e)), false, `isPureLiteral(new UnaryExpression('!', e)               )`);
+    assert.strictEqual(isPureLiteral(new CallScopeExpression('!', [])), false, `isPureLiteral(new CallScopeExpression('!', [])          )`);
+    assert.strictEqual(isPureLiteral(new CallMemberExpression(e, '', [])), false, `isPureLiteral(new CallMemberExpression(e, '', [])       )`);
+    assert.strictEqual(isPureLiteral(new CallFunctionExpression(e, [])), false, `isPureLiteral(new CallFunctionExpression(e, [])         )`);
+    assert.strictEqual(isPureLiteral(new AccessMemberExpression(e, '')), false, `isPureLiteral(new AccessMemberExpression(e, '')         )`);
+    assert.strictEqual(isPureLiteral(new AccessKeyedExpression(e, e)), false, `isPureLiteral(new AccessKeyedExpression(e, e)           )`);
+    assert.strictEqual(isPureLiteral(new TaggedTemplateExpression([], [], e)), false, `isPureLiteral(new TaggedTemplateExpression([], [], e)   )`);
+    assert.strictEqual(isPureLiteral(new BinaryExpression('+', e, e)), false, `isPureLiteral(new BinaryExpression('+', e, e)           )`);
+    assert.strictEqual(isPureLiteral(new ConditionalExpression(e, e, e)), false, `isPureLiteral(new ConditionalExpression(e, e, e)        )`);
+    assert.strictEqual(isPureLiteral(new AssignExpression(e, e)), false, `isPureLiteral(new AssignExpression(e, e)                )`);
+    assert.strictEqual(isPureLiteral(new ValueConverterExpression(e, '', [])), false, `isPureLiteral(new ValueConverterExpression(e, '', [])   )`);
+    assert.strictEqual(isPureLiteral(new BindingBehaviorExpression(e, '', [])), false, `isPureLiteral(new BindingBehaviorExpression(e, '', [])  )`);
+    assert.strictEqual(isPureLiteral(new HtmlLiteralExpression([])), false, `isPureLiteral(new HtmlLiteralExpression([])             )`);
+    assert.strictEqual(isPureLiteral(new ArrayBindingPattern([])), false, `isPureLiteral(new ArrayBindingPattern([])     )`);
     assert.strictEqual(isPureLiteral(new ObjectBindingPattern([], [])), false, `isPureLiteral(new ObjectBindingPattern([], []))`);
-    assert.strictEqual(isPureLiteral(new BindingIdentifier('')       ), false, `isPureLiteral(new BindingIdentifier('')       )`);
-    assert.strictEqual(isPureLiteral(new ForOfStatement(e, e)        ), false, `isPureLiteral(new ForOfStatement(e, e)        )`);
-    assert.strictEqual(isPureLiteral(new Interpolation([])           ), false, `isPureLiteral(new Interpolation([])           )`);
+    assert.strictEqual(isPureLiteral(new BindingIdentifier('')), false, `isPureLiteral(new BindingIdentifier('')       )`);
+    assert.strictEqual(isPureLiteral(new ForOfStatement(e, e)), false, `isPureLiteral(new ForOfStatement(e, e)        )`);
+    assert.strictEqual(isPureLiteral(new Interpolation([])), false, `isPureLiteral(new Interpolation([])           )`);
 
     assert.strictEqual(isPureLiteral(new ArrayLiteralExpression([])), true, `isPureLiteral(new ArrayLiteralExpression([]))`);
     assert.strictEqual(isPureLiteral(new ArrayLiteralExpression([new PrimitiveLiteralExpression('')])), true, `isPureLiteral(new ArrayLiteralExpression([new PrimitiveLiteralExpression('')]))`);

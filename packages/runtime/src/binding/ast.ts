@@ -852,7 +852,7 @@ export class UnaryExpression implements IUnaryExpression {
     return void this.expression.evaluate(f, s, l, p);
   }
   public ['typeof'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): string {
-    return typeof this.expression.evaluate(f, s, l, p);
+    return typeof this.expression.evaluate(f | LifecycleFlags.isStrictBindingStrategy, s, l, p);
   }
   public ['!'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): boolean {
     return !this.expression.evaluate(f, s, l, p);

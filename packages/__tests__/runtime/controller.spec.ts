@@ -124,6 +124,7 @@ describe.skip('controller', function () {
       name,
       template,
       cache: 0,
+      isStrictBinding: false,
       build: buildNotRequired,
       bindables: Object.freeze(
         bindables.reduce(

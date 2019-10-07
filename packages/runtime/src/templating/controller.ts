@@ -148,6 +148,7 @@ export class Controller<
   public readonly vmKind: ViewModelKind;
 
   public scopeParts?: string[];
+  public isStrictBinding?: boolean;
 
   public scope?: IScope;
   public part?: string;
@@ -213,7 +214,7 @@ export class Controller<
       this.vmKind = ViewModelKind.synthetic;
 
       this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-
+      this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
       this.scope = void 0; // will be populated during bindSynthetic()
       this.projector = void 0; // stays undefined
 
@@ -641,7 +642,11 @@ export class Controller<
     const { bindings } = this;
     if (bindings !== void 0) {
       const { length } = bindings;
-      for (let i = 0; i < length; ++i) {
+      if (this.isStrictBinding) {
+        flags |= LifecycleFlags.isStrictBindingStrategy;
+      }
+      
+      for (let i = 0; i < length; ++i) {        
         bindings[i].$bind(flags, scope, this.part);
       }
     }

@@ -97,6 +97,7 @@ export interface IController<
   readonly vmKind: ViewModelKind;
 
   readonly scopeParts?: readonly string[];
+  readonly isStrictBinding?: boolean;
 
   scope?: IScope;
   part?: string;

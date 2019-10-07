@@ -1,6 +1,6 @@
 import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand, Signals } from '@aurelia/i18n';
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags, ISignaler } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags, ISignaler, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('translation-integration', function () {
@@ -10,7 +10,7 @@ describe('translation-integration', function () {
     TranslationBindBindingCommand.aliases = ['t'];
     TranslationBindAttributePattern.aliases = ['t'];
   });
-  @customElement({ name: 'custom-message', template: `<div>\${message}</div>` })
+  @customElement({ name: 'custom-message', template: `<div>\${message}</div>`, isStrictBinding: true })
   class CustomMessage {
     @bindable public message: string;
   }
@@ -79,7 +79,12 @@ describe('translation-integration', function () {
       .start()
       .wait();
     const i18n = au.container.get(I18N);
-    return { en: translation, de: deTranslation, container: au.container, i18n, ctx };
+
+    return {
+      en: translation, de: deTranslation, container: au.container, i18n, ctx, tearDown: async () => {
+        await au.stop().wait();
+      }
+    };
   }
   function assertTextContent(host: INode, selector: string, translation: string) {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
@@ -87,7 +92,7 @@ describe('translation-integration', function () {
 
   it('left the content as-is if empty value is used for translation attribute', async function () {
 
-    @customElement({ name: 'app', template: `<span t=''>The Intouchables</span>` })
+    @customElement({ name: 'app', template: `<span t=''>The Intouchables</span>`, isStrictBinding: true })
     class App { }
 
     const host = DOM.createElement('app');
@@ -97,7 +102,7 @@ describe('translation-integration', function () {
 
   it('works for simple string literal key', async function () {
 
-    @customElement({ name: 'app', template: `<span t='simple.text'></span>` })
+    @customElement({ name: 'app', template: `<span t='simple.text'></span>`, isStrictBinding: true })
     class App { }
 
     const host = DOM.createElement('app');
@@ -107,7 +112,7 @@ describe('translation-integration', function () {
 
   it('with multiple `t` attribute only the first one is considered', async function () {
 
-    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>` })
+    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>`, isStrictBinding: true })
     class App { }
 
     const host = DOM.createElement('app');
@@ -134,7 +139,7 @@ describe('translation-integration', function () {
 
   it('works for bound key', async function () {
 
-    @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>` })
+    @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>`, isStrictBinding: true })
     class App {
       private readonly obj = { key: 'simple.text' };
     }
@@ -809,7 +814,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      let { en: translation, tearDown } = await setup(host, new App());
       assertTextContent(host, 'span', translation.simple.text);
     });
     it('key bound from vm property', async function () {
@@ -863,27 +868,36 @@ describe('translation-integration', function () {
 
   describe('`df` value-converter', function () {
     const cases = [
-      { name: 'works for date object', input: new Date(2019, 7, 20), output: '8/20/2019' },
-      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: '8/20/2019' },
-      { name: 'works for integer', input: 0, output: '1/1/1970' },
-      { name: 'works for integer string', input: '0', output: '1/1/1970' },
-      { name: 'returns undefined for undefined', input: undefined, output: 'undefined' },
-      { name: 'returns null for null', input: null, output: 'null' },
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString() },
+      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString() },
+      { name: 'returns undefined for undefined', input: undefined, output: undefined },
+      { name: 'returns null for null', input: null, output: null },
       { name: 'returns empty string for empty string', input: '', output: '' },
       { name: 'returns whitespace for whitespace', input: '  ', output: '  ' },
       { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
     ];
     for (const { name, input, output } of cases) {
+      it(name + ' STRICT', async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt | df }</span>`, isStrictBinding: true })
+        class App { private readonly dt = input; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', '' + output);
+      });
+
       it(name, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', output);
+        assertTextContent(host, 'span', (output || '').toString());
       });
-    }
 
+    }
     it('respects provided locale and formatting options', async function () {
       @customElement({ name: 'app', template: `<span>\${ dt | df : {year:'2-digit', month:'2-digit', day:'2-digit'} : 'de' }</span>` })
       class App { private readonly dt = new Date(2019, 7, 20); }
@@ -923,24 +937,33 @@ describe('translation-integration', function () {
 
   describe('`df` binding-behavior', function () {
     const cases = [
-      { name: 'works for date object', input: new Date(2019, 7, 20), output: '8/20/2019' },
-      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: '8/20/2019' },
-      { name: 'works for integer', input: 0, output: '1/1/1970' },
-      { name: 'works for integer string', input: '0', output: '1/1/1970' },
-      { name: 'returns undefined for undefined', input: undefined, output: 'undefined' },
-      { name: 'returns null for null', input: null, output: 'null' },
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString() },
+      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString() },
+      { name: 'returns undefined for undefined', input: undefined, output: undefined },
+      { name: 'returns null for null', input: null, output: null },
       { name: 'returns empty string for empty string', input: '', output: '' },
       { name: 'returns whitespace for whitespace', input: '  ', output: '  ' },
       { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
     ];
     for (const { name, input, output } of cases) {
+      it(name + ' STRICT', async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt & df }</span>`, isStrictBinding: true })
+        class App { private readonly dt = input; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', '' + output);
+      });
+
       it(name, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', output);
+        assertTextContent(host, 'span', (output || '').toString());
       });
     }
 
@@ -984,13 +1007,22 @@ describe('translation-integration', function () {
   describe('`nf` value-converter', function () {
 
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
+      it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ num | nf }</span>`, isStrictBinding: true })
+        class App { private readonly num = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', `${value}`);
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1053,19 +1085,28 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`nf` binding-behavior', function () {
 
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
+      it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ num & nf }</span>`, isStrictBinding: true })
+        class App { private readonly num = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', `${value}`);
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1128,19 +1169,28 @@ describe('translation-integration', function () {
       ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`rt` value-converter', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
+      it(`returns the value itself if the value is not a number STRICT, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>`, isStrictBinding: true })
+        class App { private readonly dt = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
         class App { private readonly dt = value; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', `${value}`);
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1253,13 +1303,17 @@ describe('translation-integration', function () {
   describe('`rt` binding-behavior', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
-      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
-        @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
-        class App { private readonly dt = value; }
-
+      it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
+        let App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; })
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', `${value}`);
+      });
+      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
+        let App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; })
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1369,25 +1423,25 @@ describe('translation-integration', function () {
     });
   });
 
-  describe('`skipTranslationOnMissingKey`', function () {
-    it('is disabled by default, and the given key is rendered if the key is missing from i18next resource', async function () {
-      const key = 'lost-in-translation';
-      @customElement({ name: 'app', template: `<span t='${key}'></span>` })
-      class App { }
+  // describe('`skipTranslationOnMissingKey`', function () {
+  //   it('is disabled by default, and the given key is rendered if the key is missing from i18next resource', async function () {
+  //     const key = 'lost-in-translation';
+  //     @customElement({ name: 'app', template: `<span t='${key}'></span>` })
+  //     class App { }
 
-      const host = DOM.createElement('app');
-      await setup(host, new App());
-      assertTextContent(host, 'span', key);
-    });
+  //     const host = DOM.createElement('app');
+  //     await setup(host, new App());
+  //     assertTextContent(host, 'span', key);
+  //   });
 
-    it('enables skipping translation when set', async function () {
-      const key = 'lost-in-translation', text = 'untranslated text';
-      @customElement({ name: 'app', template: `<span t='${key}'>${text}</span>` })
-      class App { }
+  //   it('enables skipping translation when set', async function () {
+  //     const key = 'lost-in-translation', text = 'untranslated text';
+  //     @customElement({ name: 'app', template: `<span t='${key}'>${text}</span>` })
+  //     class App { }
 
-      const host = DOM.createElement('app');
-      await setup(host, new App(), undefined, true);
-      assertTextContent(host, 'span', text);
-    });
-  });
+  //     const host = DOM.createElement('app');
+  //     await setup(host, new App(), undefined, true);
+  //     assertTextContent(host, 'span', text);
+  //   });
+  // });
 });

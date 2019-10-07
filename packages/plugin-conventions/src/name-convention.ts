@@ -2,9 +2,9 @@ import { camelCase, kebabCase } from '@aurelia/kernel';
 import { INameConvention, ResourceType } from './options';
 
 export function nameConvention(className: string): INameConvention {
-  const m = className.match(/^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/);
+  const m = /^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/.exec(className);
   if (!m) {
-    throw new Error('No convention found for class name ' + className);
+    throw new Error(`No convention found for class name ${className}`);
   }
 
   const bareName = m[1];

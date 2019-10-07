@@ -16,7 +16,7 @@ import { wait } from '../../utils';
 </template>` })
 @inject(AuthorsRepository, State)
 export class Authors {
-  constructor(private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
+  public constructor(private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   get authors() { return this.authorsRepository.authors(); }
 

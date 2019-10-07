@@ -1,5 +1,4 @@
 import * as faker from 'faker';
-
 import { Aurelia } from '@aurelia/runtime';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { App } from './app';

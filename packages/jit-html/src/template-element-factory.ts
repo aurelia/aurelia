@@ -11,20 +11,20 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
   /**
    * Create a `HTMLTemplateElement` from a provided html string.
    *
-   * @param markup A raw html string that may or may not be wrapped in `<template></template>`
+   * @param markup - A raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(markup: string): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node. If the node is already a template, it
    * will be returned as-is (and removed from the DOM).
    *
-   * @param node A DOM node that may or may not be wrapped in `<template></template>`
+   * @param node - A DOM node that may or may not be wrapped in `<template></template>`
    */
   createTemplate(node: TNode): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
-   * @param input A DOM node or raw html string that may or may not be wrapped in `<template></template>`
+   * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(input: unknown): TNode;
   createTemplate(input: unknown): TNode;
@@ -50,7 +50,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   private readonly dom: IDOM;
   private template: HTMLTemplateElement;
 
-  constructor(dom: IDOM) {
+  public constructor(dom: IDOM) {
     this.dom = dom;
     this.template = dom.createTemplate() as HTMLTemplateElement;
   }

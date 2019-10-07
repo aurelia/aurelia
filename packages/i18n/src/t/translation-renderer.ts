@@ -59,7 +59,7 @@ export class TranslationBindingInstruction {
   public readonly type: string = TranslationInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  constructor(public from: IsBindingBehavior, public to: string) {
+  public constructor(public from: IsBindingBehavior, public to: string) {
   }
 }
 
@@ -87,7 +87,7 @@ export class TranslationBindingCommand implements IBindingCommand {
 
 @instructionRenderer(TranslationInstructionType)
 export class TranslationBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
@@ -134,7 +134,7 @@ export class TranslationBindBindingInstruction {
   public readonly type: string = TranslationBindInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  constructor(public from: IsBindingBehavior, public to: string) {
+  public constructor(public from: IsBindingBehavior, public to: string) {
   }
 }
 
@@ -162,7 +162,7 @@ export class TranslationBindBindingCommand implements IBindingCommand {
 
 @instructionRenderer(TranslationBindInstructionType)
 export class TranslationBindBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }

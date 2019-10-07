@@ -23,7 +23,7 @@ export interface IShadowDOMStyles {
 export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];
 
-  constructor(
+  public constructor(
     dom: HTMLDOM,
     localStyles: (string | CSSStyleSheet)[],
     styleSheetCache: Map<string, CSSStyleSheet>,
@@ -67,7 +67,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 }
 
 export class StyleElementStyles implements IShadowDOMStyles {
-  constructor(
+  public constructor(
     private readonly dom: HTMLDOM,
     private readonly localStyles: string[],
     private readonly sharedStyles: IShadowDOMStyles | null = null

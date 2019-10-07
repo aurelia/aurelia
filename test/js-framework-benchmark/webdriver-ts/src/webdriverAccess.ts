@@ -1,6 +1,5 @@
 import * as chrome from 'selenium-webdriver/chrome';
 import {By, until, Builder, Capabilities, WebDriver, Locator, promise, logging, WebElement, Condition} from 'selenium-webdriver';
-
 import {config, BenchmarkDriverOptions} from './common';
 
 interface PathPart {
@@ -14,18 +13,18 @@ export function setUseShadowRoot(val: boolean) {
   useShadowRoot = val;
 }
 
-function convertPath(path: string): Array<PathPart> {
+function convertPath(path: string): PathPart[] {
   let parts = path.split(/\//).filter(v => !!v);
-  let res: Array<PathPart> = [];
+  let res: PathPart[] = [];
   for (let part of parts) {
     let components = part.split(/\[|]/).filter(v => !!v);
     let tagName = components[0];
-    let index:number = 0;
+    let index: number = 0;
     if (components.length==2) {
       index = Number(components[1]);
       if (!index) {
         console.log("Index can't be parsed", components[1]);
-        throw new Error("Index can't be parsed "+components[1]);
+        throw new Error(`Index can't be parsed ${components[1]}`);
       }
     } else {
       index = 1;
@@ -42,12 +41,12 @@ export async function findByXPath(node: WebElement, path: string): Promise<WebEl
   try {
     for (let p of paths) {
       // n = n.then(nd => nd.findElements(By.tagName(p.tagName))).then(elems => { // costly since it fetches all elements
-      let elems = await n.findElements(By.css(p.tagName+":nth-child("+(p.index)+")"));
+      let elems = await n.findElements(By.css(`${p.tagName}:nth-child(${p.index})`));
       if (elems==null || elems.length==0) { return null; }
       n = elems[0];
     }
   } catch (e) {
-    //can happen for StaleElementReferenceError
+    // can happen for StaleElementReferenceError
     return null;
   }
   return n;
@@ -59,8 +58,9 @@ function elemNull(v: any) {
 }
 
 function waitForCondition(driver: WebDriver) {
-  return async function(text: string, fn: (driver:WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
-    return driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
+  return async function(text: string, fn: (driver: WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
+    // eslint-disable-next-line no-return-await
+    return await driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
   };
 }
 
@@ -74,9 +74,9 @@ export async function testTextContains(driver: WebDriver, xpath: string, text: s
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
         let v = await elem.getText();
-        return v && v.indexOf(text)>-1;
+        return v && v.includes(text);
       } catch(err) {
-        console.log("ignoring error in testTextContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testTextContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -89,9 +89,9 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
         let v = await elem.getText();
-        return v && v.indexOf(text)==-1;
+        return v && !v.includes(text);
       } catch(err) {
-        console.log("ignoring error in testTextNotContained for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testTextNotContained for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -104,9 +104,9 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
         let v = await elem.getAttribute("class");
-        return v && v.indexOf(text)>-1;
+        return v && v.includes(text);
       } catch(err) {
-        console.log("ignoring error in testClassContains for xpath = "+xpath+" text = "+text,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testClassContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -119,7 +119,7 @@ export function testElementLocatedByXpath(driver: WebDriver, xpath: string, time
         elem = await findByXPath(elem, xpath);
         return elem ? true : false;
       } catch(err) {
-        console.log("ignoring error in testElementLocatedByXpath for xpath = "+xpath,err.toString());
+        console.log(`ignoring error in testElementLocatedByXpath for xpath = ${xpath}`,err.toString());
       }
     }, timeout);
 }
@@ -132,7 +132,7 @@ export function testElementNotLocatedByXPath(driver: WebDriver, xpath: string, t
         elem = await findByXPath(elem, xpath);
         return elem ? false : true;
       } catch(err) {
-        console.log("ignoring error in testElementNotLocatedByXPath for xpath = "+xpath,err.toString().split("\n")[0]);
+        console.log(`ignoring error in testElementNotLocatedByXPath for xpath = ${xpath}`,err.toString().split("\n")[0]);
       }
     }, timeout);
 }
@@ -150,7 +150,7 @@ export function testElementLocatedById(driver: WebDriver, id: string, timeout = 
     }, timeout);
 }
 
-async function retry<T>(retryCount: number, driver: WebDriver, fun : (driver:  WebDriver, retryCount: number) => Promise<T>):  Promise<T> {
+async function retry<T>(retryCount: number, driver: WebDriver, fun: (driver:  WebDriver, retryCount: number) => Promise<T>):  Promise<T> {
   for (let i=0; i<retryCount; i++) {
     try {
       return fun(driver, i);
@@ -190,8 +190,8 @@ export async function getTextByXPath(driver: WebDriver, xpath: string): Promise<
   });
 }
 
-export async function shadowRoot(driver: WebDriver) : Promise<WebElement> {
-  return useShadowRoot ? driver.executeScript('return document.querySelector("main-element").shadowRoot') as Promise<WebElement>
+export function shadowRoot(driver: WebDriver): Promise<WebElement> {
+  return useShadowRoot ? driver.executeScript('return document.querySelector("main-element").shadowRoot')
     : driver.findElement(By.tagName("body"));
 }
 
@@ -212,7 +212,7 @@ export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver
     "--disable-sync",
     "--disable-extensions",
     "--disable-default-apps",
-    "--remote-debugging-port=" + (benchmarkOptions.remoteDebuggingPort).toFixed(),
+    `--remote-debugging-port=${(benchmarkOptions.remoteDebuggingPort).toFixed()}`,
     "--window-size=1200,800"
   ];
 

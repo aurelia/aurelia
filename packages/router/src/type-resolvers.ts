@@ -52,9 +52,9 @@ export const ViewportHandleResolver = {
   },
   getName: function (viewport: ViewportHandle): string | null {
     if (ViewportHandleResolver.isName(viewport)) {
-      return viewport as string;
+      return viewport;
     } else {
-      return viewport ? (viewport as Viewport).name : null;
+      return viewport ? (viewport).name : null;
     }
   },
   getInstance: function (viewport: ViewportHandle): Viewport | null {

@@ -302,7 +302,7 @@ export class AssertionError extends Error {
   public operator: keyof IOperatorText;
   public generatedMessage: boolean;
 
-  constructor(options: IAssertionErrorOpts) {
+  public constructor(options: IAssertionErrorOpts) {
     const {
       actual,
       expected,
@@ -537,12 +537,12 @@ function createErrDiff(actual: any, expected: any, operator: keyof IOperatorText
       let actualLine = actualLines[i];
       let divergingLines = (
         actualLine !== expectedLine && (!actualLine.endsWith(',')
-        || actualLine.slice(0, -1) !== expectedLine)
+        || actualLine.slice(0, -1) !== expectedLine) // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
       );
       if (
         divergingLines
         && expectedLine.endsWith(',')
-        && expectedLine.slice(0, -1) === actualLine
+        && expectedLine.slice(0, -1) === actualLine // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
       ) {
         divergingLines = false;
         actualLine += ',';
@@ -938,7 +938,7 @@ function clazzWithNullPrototype(clazz: Constructable, name: string): Constructab
     }
   }
   class NullPrototype extends clazz {
-    get [Symbol.toStringTag](): string {
+    public get [Symbol.toStringTag](): string {
       return '';
     }
   }
@@ -981,9 +981,7 @@ function noPrototypeIterator(
 type InspectFn = (obj: any, opts: IInspectContext) => any;
 
 function getMessage(self: AssertionError): string {
-  return truncate(inspect(self.actual), 128) + ' ' +
-         self.operator + ' ' +
-         truncate(inspect(self.expected), 128);
+  return `${truncate(inspect(self.actual), 128)} ${self.operator} ${truncate(inspect(self.expected), 128)}`;
 }
 
 export function formatNumber(
@@ -1013,6 +1011,8 @@ export function formatPrimitive(
         if (readableRegExps[divisor] === void 0) {
           readableRegExps[divisor] = new RegExp(`(.|\\n){1,${divisor}}(\\s|$)|(\\n|.)+?(\\s|$)`, 'gm');
         }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const matches = value.match(readableRegExps[divisor])!;
         if (matches.length > 1) {
           const indent = ' '.repeat(ctx.indentationLvl);
@@ -1690,7 +1690,7 @@ export function formatRaw(
       if (typedArray === void 0) {
         formatter = formatArrayBuffer;
       } else if (keys.length === 0) {
-        return prefix + `{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
+        return `${prefix}{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
       }
       braces[0] = `${prefix}{`;
       keys.unshift('byteLength');

@@ -155,7 +155,7 @@ export class Controller<
   public location?: IRenderLocation<T>;
 
   // todo: refactor
-  constructor(
+  public constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,
@@ -239,6 +239,10 @@ export class Controller<
 
       this.host = host;
 
+      let instruction: IHydrateElementInstruction | IHydrateTemplateController;
+      let parts: Record<string, TemplateDefinition>;
+      let renderingEngine: IRenderingEngine;
+      let template: ITemplate<INode>|undefined = void 0;
       switch (Type.kind.name) {
         case 'custom-element':
           if (host == void 0) {
@@ -248,9 +252,8 @@ export class Controller<
 
           this.vmKind = ViewModelKind.customElement;
 
-          const renderingEngine = parentContext.get(IRenderingEngine);
+          renderingEngine = parentContext.get(IRenderingEngine);
 
-          let template: ITemplate<INode> | undefined = void 0;
           if (this.hooks.hasRender) {
             const result = this.bindingContext.render(
               flags,
@@ -265,12 +268,10 @@ export class Controller<
               template = result.getElementTemplate(renderingEngine, Type, parentContext);
             }
           } else {
-            const dom = parentContext.get(IDOM);
-            template = renderingEngine.getElementTemplate(dom, description as Required<ITemplateDefinition>, parentContext, Type as ICustomElementType);
+            template = renderingEngine.getElementTemplate(parentContext.get(IDOM), description as Required<ITemplateDefinition>, parentContext, Type as ICustomElementType);
           }
 
           if (template !== void 0) {
-            let parts: Record<string, TemplateDefinition>;
             if (
               template.definition == null ||
               template.definition.instructions.length === 0 ||
@@ -285,7 +286,7 @@ export class Controller<
                 parts = options.parts;
               }
             } else {
-              const instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
+              instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
               if (options.parts == void 0) {
                 parts = instruction.parts as typeof parts;
               } else {

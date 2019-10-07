@@ -53,15 +53,14 @@ describe('TranslationParametersBindingCommand', function () {
   it('compiles the binding to a TranslationParametersBindingInstruction', function () {
     const sut = setup();
     const syntax: AttrSyntax = { command: 't-params.bind', rawName: 't-params.bind', rawValue: '{foo: "bar"}', target: '' };
+    const plainAttributesymbol: PlainAttributeSymbol = {
+      command: new AttrBindingCommand(),
+      flags: (void 0)!,
+      expression: { syntax } as unknown as AnyBindingExpression,
+      syntax
+    };
 
-    const actual = sut.compile(
-      {
-        command: new AttrBindingCommand(),
-        flags: (void 0)!,
-        expression: { syntax } as unknown as AnyBindingExpression,
-        syntax
-      } as PlainAttributeSymbol
-    );
+    const actual = sut.compile(plainAttributesymbol);
 
     assert.instanceOf(actual, TranslationParametersBindingInstruction);
   });
@@ -86,6 +85,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const renderable = ({} as unknown as IController);
+    const callBindingInstruction: ICallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as ICallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
@@ -93,7 +93,7 @@ describe('TranslationParametersBindingRenderer', function () {
       container,
       renderable,
       DOM.createElement('span'),
-      { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as ICallBindingInstruction
+      callBindingInstruction
     );
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
@@ -107,6 +107,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
     const renderable = ({ bindings: [binding] } as unknown as IController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from: paramExpr } as unknown as ICallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
@@ -114,7 +115,7 @@ describe('TranslationParametersBindingRenderer', function () {
       container,
       renderable,
       targetElement,
-      { from: paramExpr } as ICallBindingInstruction
+      callBindingInstruction
     );
 
     assert.equal(binding.parametersExpr, paramExpr);

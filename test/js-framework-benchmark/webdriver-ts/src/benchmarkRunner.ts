@@ -25,9 +25,9 @@ function forkedRun(frameworks: FrameworkData[], frameworkName: string, keyed: bo
 
 async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]) {
   let errors: BenchmarkError[] = [];
-  let warnings: String[] = [];
+  let warnings: string[] = [];
 
-  let runBenchmarks = benchmarks.filter(b => benchmarkNames.some(name => b.id.toLowerCase().indexOf(name) > -1));
+  let runBenchmarks = benchmarks.filter(b => benchmarkNames.some(name => b.id.toLowerCase().includes(name)));
 
   let restart: string; // 'rx-domh-rxjs-v0.0.2-keyed';
   let index = runFrameworks.findIndex(f => f.fullNameWithKeyedAndVersion===restart);
@@ -38,7 +38,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
   console.log("Frameworks that will be benchmarked", runFrameworks.map(f => f.fullNameWithKeyedAndVersion));
   console.log("Benchmarks that will be run", runBenchmarks.map(b => b.id));
 
-  let data: [[FrameworkData, Benchmark]] = <any>[];
+  let data: [[FrameworkData, Benchmark]] = [] as any;
   for (let i = 0; i < runFrameworks.length; i++) {
     for (let j = 0; j < runBenchmarks.length; j++) {
       data.push([runFrameworks[i], runBenchmarks[j]]);
@@ -48,7 +48,6 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
   for (let i = 0; i < data.length; i++) {
     let framework = data[i][0];
     let benchmark = data[i][1];
-
 
     let benchmarkOptions: BenchmarkOptions = {
       port: config.PORT.toFixed(),
@@ -86,7 +85,7 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
     console.log("================================");
 
     errors.forEach(e => {
-      console.log("[" + e.imageFile + "]");
+      console.log(`[${e.imageFile}]`);
       console.log(e.exception);
       console.log();
     });
@@ -115,7 +114,6 @@ let runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
 async function main() {
 
-
   let runBenchmarks = (args.benchmark && args.benchmark.length > 0 ? args.benchmark : [""]).map(v => v.toString());
   let runFrameworks: FrameworkData[];
   if (runBenchmarksFromDirectoryNamesArgs) {
@@ -126,7 +124,7 @@ async function main() {
     console.log("MODE: Classic command line options.");
     let frameworkNames = (args.framework && args.framework.length > 0 ? args.framework : [""]).map(v => v.toString());
     let frameworks = await initializeFrameworks();
-    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.indexOf(name) > -1));
+    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.includes(name)));
   }
   let count = Number(args.count);
   config.PORT = Number(args.port);

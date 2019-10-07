@@ -11,11 +11,14 @@ async function main() {
     path: './'
   });
 
-  fs.writeFileSync('../index.html', dots.index({
-    frameworks
-  }), {
-    encoding: 'utf8'
-  });
+  fs.writeFileSync(
+    '../index.html',
+    dots.index({
+      frameworks
+    }), {
+      encoding: 'utf8'
+    }
+  );
 }
 
 main();

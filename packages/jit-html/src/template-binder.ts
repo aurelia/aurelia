@@ -79,7 +79,7 @@ export class TemplateBinder {
 
   private partName: string | null;
 
-  constructor(
+  public constructor(
     dom: IDOM,
     resources: ResourceModel,
     attrParser: IAttributeParser,
@@ -183,12 +183,10 @@ export class TemplateBinder {
     const elementInfo = this.resources.getElementInfo(name);
     if (elementInfo == null) {
       // there is no registered custom element with this name
-      // @ts-ignore
       this.manifest = new PlainElementSymbol(node);
     } else {
       // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
       this.parentManifestRoot = this.manifestRoot;
-      // @ts-ignore
       manifestRoot = this.manifestRoot = this.manifest = new CustomElementSymbol(this.dom, node, elementInfo);
     }
 
@@ -201,7 +199,7 @@ export class TemplateBinder {
 
     if (manifestRoot != null && manifestRoot.isContainerless) {
       node.parentNode!.replaceChild(manifestRoot.marker as Node, node);
-    } else if (this.manifest!.isTarget) {
+    } else if (this.manifest.isTarget) {
       node.classList.add('au');
     }
 
@@ -281,12 +279,10 @@ export class TemplateBinder {
           // is assigned to the proxy), so this evaluates to true at most once per node
           if (manifestProxy === manifest) {
             currentController.template = manifest;
-            // @ts-ignore
             manifestProxy = currentController;
           } else {
             currentController.templateController = previousController;
             currentController.template = previousController.template;
-            // @ts-ignore
             previousController.template = currentController;
           }
           previousController = currentController;
@@ -598,7 +594,7 @@ function processTemplateControllers(dom: IDOM, manifestProxy: IParentNodeSymbol,
   while ((current as IParentNodeSymbol) !== manifest) {
     if (current.template === manifest) {
       // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
-      manifestNode!.parentNode!.replaceChild(current.marker as Node, manifestNode);
+      manifestNode.parentNode!.replaceChild(current.marker as Node, manifestNode);
 
       // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
       // and simply use the template directly, saving a bit of work

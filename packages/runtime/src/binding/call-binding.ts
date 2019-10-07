@@ -30,7 +30,7 @@ export class CallBinding {
   public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior,
     target: object,
     targetProperty: string,

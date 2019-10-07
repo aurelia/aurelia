@@ -16,7 +16,7 @@ import { customElement } from '../../../../../runtime';
 </template>
 ` })
 export class App {
-  constructor(private readonly router: Router) {
+  public constructor(private readonly router: Router) {
     this.router.activate().catch((error: Error) => { throw error; });
   }
 }

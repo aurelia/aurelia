@@ -37,7 +37,7 @@ In other words, I scroll you
 </template>` })
 @inject(State, IRouter)
 export class About {
-  constructor(private readonly state: State, private readonly router: IRouter) { }
+  public constructor(private readonly state: State, private readonly router: IRouter) { }
 
   public enter() {
     return wait(this.state.noDelay ? 0 : 4000);

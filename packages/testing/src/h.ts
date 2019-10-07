@@ -26,7 +26,7 @@ export function h<T extends string, TChildren extends H[]>(
           ? value
           : (`${value}`).split(' ');
       el.classList.add(...value.filter(Boolean));
-    } else if (attr in el || attr === 'data' || attr[0] === '_') {
+    } else if (attr in el || attr === 'data' || attr.startsWith('_')) {
       (el as any)[attr.replace(/^_/, '')] = attrs[attr];
     } else {
       el.setAttribute(attr, attrs[attr] as string);
@@ -68,14 +68,14 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
           ? []
           : Array.isArray(value)
             ? value
-            : ('' + value).split(' ');
+            : (`${value}`).split(' ');
         el.classList.add(...value as string[]);
       }
       // for attributes with matching properties, simply assign
       // other if special attribute like data, or ones start with _
       // assign as well
-      else if (attr in el || attr === 'data' || attr[0] === '_') {
-        // @ts-ignore // https://github.com/microsoft/TypeScript/issues/31904
+      else if (attr in el || attr === 'data' || attr.startsWith('_')) {
+        // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
         (el as Writable<typeof el>)[attr as keyof typeof el] = value;
       }
       // if it's an asElement attribute, camel case it
@@ -85,7 +85,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
       // ortherwise do fallback check
       else {
         // is it an event handler?
-        if (attr[0] === 'o' && attr[1] === 'n' && !attr.endsWith('$')) {
+        if (attr.startsWith('o') && attr[1] === 'n' && !attr.endsWith('$')) {
           const decoded = kebabCase(attr.slice(2));
           const parts = decoded.split('-');
           if (parts.length > 1) {
@@ -125,10 +125,10 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
     }
     if (Array.isArray(child)) {
       for (const child_child of child) {
-        appender.appendChild(DOM.isNodeInstance(child_child) ? child_child : DOM.createTextNode('' + child_child));
+        appender.appendChild(DOM.isNodeInstance(child_child) ? child_child : DOM.createTextNode(`${child_child}`));
       }
     } else {
-      appender.appendChild(DOM.isNodeInstance(child) ? child : DOM.createTextNode('' + child));
+      appender.appendChild(DOM.isNodeInstance(child) ? child : DOM.createTextNode(`${child}`));
     }
   }
   return el;

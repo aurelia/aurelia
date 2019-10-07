@@ -1,14 +1,12 @@
 import {startFPSMonitor, startMemMonitor} from 'perf-monitor';
 import * as faker from 'faker';
-import './app.scss';
-
 import { customElement, IDOM, IteratorBindingInstruction, HydrateTemplateController, bindable, BindingStrategy, IController } from '@aurelia/runtime';
 import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html';
+import './app.scss'; // eslint-disable-line import/no-unassigned-import
+import template from './app.html';
 
 startFPSMonitor();
 startMemMonitor();
-
-import template from './app.html';
 
 function createItem() {
   return {
@@ -28,11 +26,10 @@ export class App {
 
   public $controller: IController<Node>;
 
-  constructor() {
+  public constructor() {
     this.rows = [];
     this.cols = ['name', 'phone', 'country'];
   }
-
 
   public created(): void {
     this.$controller.host.textContent = '';
@@ -55,41 +52,45 @@ export class App {
       strategy |= BindingStrategy.proxies;
     }
     const dom = this.$controller.context.get<IDOM<Node>>(IDOM);
-    this.subject = createElement<Node>(dom, 'table', {
-      class: 'table is-fullwidth',
-    }, [
-      createElement<Node>(dom, 'thead', {}, [
-        createElement<Node>(dom, 'tr', {
+    this.subject = createElement<Node>(
+      dom,
+      'table',
+      {
+        class: 'table is-fullwidth',
+      },[
+        createElement<Node>(dom, 'thead', {}, [
+          createElement<Node>(dom, 'tr', {
+            $1: new HydrateTemplateController({
+              name: '',
+              template: '<th><au-m class="au"></au-m> </th>',
+              instructions: [[new TextBindingInstruction(`\${col | pascal}`)]],
+              strategy
+            },
+            'repeat',
+            [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
+            )
+          })
+        ]),
+        createElement<Node>(dom, 'tbody', {
           $1: new HydrateTemplateController({
             name: '',
-            template: '<th><au-m class="au"></au-m> </th>',
-            instructions: [[new TextBindingInstruction('${col | pascal}')]],
-            strategy
+            template: '<tr><au-m class="au"></au-m></tr>',
+            instructions: [[new HydrateTemplateController({
+              name: '',
+              template: '<td><au-m class="au"></au-m> </td>',
+              instructions: [[new TextBindingInstruction(`\${row[col]}`)]],
+              strategy
+            },
+            'repeat',
+            [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
+            )]]
           },
           'repeat',
-          [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
+          [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows' : 'row of rows', 'items')]
           )
         })
-      ]),
-      createElement<Node>(dom, 'tbody', {
-        $1: new HydrateTemplateController({
-          name: '',
-          template: '<tr><au-m class="au"></au-m></tr>',
-          instructions: [[new HydrateTemplateController({
-            name: '',
-            template: '<td><au-m class="au"></au-m> </td>',
-            instructions: [[new TextBindingInstruction('${row[col]}')]],
-            strategy
-          },
-          'repeat',
-          [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
-          )]]
-        },
-        'repeat',
-        [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows' : 'row of rows', 'items')]
-        )
-      })
-    ]);
+      ]
+    );
   }
 
   protected keyedModeChanged(): void {

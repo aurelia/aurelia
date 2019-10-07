@@ -82,7 +82,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   private readonly dom: IDOM;
   private readonly svgAnalyzer: ISVGAnalyzer;
 
-  constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
+  public constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
     this.dom = dom;
     this.svgAnalyzer = svgAnalyzer;
   }
@@ -144,7 +144,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
   private readonly dom: IDOM;
   private readonly svgAnalyzer: ISVGAnalyzer;
 
-  constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
+  public constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
     this.dom = dom;
     this.svgAnalyzer = svgAnalyzer;
   }

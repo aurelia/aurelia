@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-default-export
 export {
   Aurelia,
   Aurelia as default
@@ -916,7 +915,6 @@ export {
   // IShadowDOMGlobalStyles
 } from '@aurelia/runtime-html';
 
-// tslint:disable-next-line:no-commented-code
 // export {
 //   IDOMInitializerRegistration,
 //   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,

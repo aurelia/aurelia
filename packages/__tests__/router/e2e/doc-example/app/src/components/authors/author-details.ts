@@ -16,7 +16,7 @@ export class AuthorDetails {
   public static parameters = ['id'];
 
   public author = {};
-  constructor(private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
+  public constructor(private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   public canEnter() {
     return this.state.allowEnterAuthorDetails;

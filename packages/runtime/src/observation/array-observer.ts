@@ -157,24 +157,24 @@ const methods: ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'] 
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  push: function(this: IObservedArray): ReturnType<typeof Array.prototype.push> {
+  push: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === void 0) {
-      return $push.apply($this, arguments as IArguments & unknown[]);
+      return $push.apply($this, args);
     }
     const len = $this.length;
-    const argCount = arguments.length;
+    const argCount = args.length;
     if (argCount === 0) {
       return len;
     }
     $this.length = o.indexMap.length = len + argCount;
     let i = len;
     while (i < $this.length) {
-      $this[i] = arguments[i - len];
+      $this[i] = args[i - len];
       o.indexMap[i] = - 2;
       i++;
     }
@@ -182,23 +182,23 @@ const observe = {
     return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  unshift: function(this: IObservedArray): ReturnType<typeof Array.prototype.unshift>  {
+  unshift: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === void 0) {
-      return $unshift.apply($this, arguments as IArguments & unknown[]);
+      return $unshift.apply($this, args);
     }
-    const argCount = arguments.length;
+    const argCount = args.length;
     const inserts = new Array(argCount);
     let i = 0;
     while (i < argCount) {
       inserts[i++] = - 2;
     }
     $unshift.apply(o.indexMap, inserts);
-    const len = $unshift.apply($this, arguments as IArguments & unknown[]);
+    const len = $unshift.apply($this, args);
     o.notify();
     return len;
   },
@@ -217,7 +217,7 @@ const observe = {
     // only mark indices as deleted if they actually existed in the original array
     const index = indexMap.length - 1;
     if (indexMap[index] > -1) {
-      indexMap.deletedItems!.push(indexMap[index]);
+      indexMap.deletedItems.push(indexMap[index]);
     }
     $pop.call(indexMap);
     o.notify();
@@ -237,34 +237,36 @@ const observe = {
     const element = $shift.call($this);
     // only mark indices as deleted if they actually existed in the original array
     if (indexMap[0] > -1) {
-      indexMap.deletedItems!.push(indexMap[0]);
+      indexMap.deletedItems.push(indexMap[0]);
     }
     $shift.call(indexMap);
     o.notify();
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  splice: function(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof Array.prototype.splice> {
+  splice: function(this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
+    const start: number = args[0];
+    const deleteCount: number|undefined = args[1];
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === void 0) {
-      return $splice.apply($this, arguments as IArguments & [number, number, ...any[]]);
+      return $splice.apply($this, args);
     }
     const len = this.length;
     const relativeStart = start | 0;
     const actualStart = relativeStart < 0 ? Math.max((len + relativeStart), 0) : Math.min(relativeStart, len);
     const indexMap = o.indexMap;
-    const argCount = arguments.length;
-    const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount!;
+    const argCount = args.length;
+    const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
     if (actualDeleteCount > 0) {
       let i = actualStart;
       const to = i + actualDeleteCount;
       while (i < to) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
@@ -276,11 +278,11 @@ const observe = {
       while (i < itemCount) {
         inserts[i++] = - 2;
       }
-      $splice.call(indexMap, start, deleteCount!, ...inserts);
+      $splice.call(indexMap, start, deleteCount, ...inserts);
     } else {
-      $splice.apply(indexMap, arguments as IArguments & [number, number, ...any[]]);
+      $splice.apply(indexMap, args);
     }
-    const deleted = $splice.apply($this, arguments as IArguments & [number, number, ...any[]]);
+    const deleted = $splice.apply($this, args);
     o.notify();
     return deleted;
   },
@@ -333,7 +335,7 @@ const observe = {
       }
       i++;
     }
-    if (compareFn === void 0 || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
+    if (compareFn === void 0 || typeof compareFn !== 'function'/* spec says throw a TypeError, should we do that too? */) {
       compareFn = sortCompare;
     }
     quickSort($this, o.indexMap, 0, i, compareFn);
@@ -380,7 +382,7 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
 
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;

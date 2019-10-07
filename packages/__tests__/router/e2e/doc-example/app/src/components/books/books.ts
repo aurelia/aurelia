@@ -14,7 +14,7 @@ import { BooksRepository } from '../../repositories/books';
 </template>` })
 @inject(BooksRepository)
 export class Books {
-  constructor(private readonly booksRepository: BooksRepository) { }
+  public constructor(private readonly booksRepository: BooksRepository) { }
 
   get books() { return this.booksRepository.books(); }
 }

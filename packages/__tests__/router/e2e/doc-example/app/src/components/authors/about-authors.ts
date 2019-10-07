@@ -22,7 +22,7 @@ export class AboutAuthors {
   public reentryBehavior: string = 'default';
   public entries = 0;
 
-  constructor(private readonly state: State) { }
+  public constructor(private readonly state: State) { }
 
   public canEnter() {
     console.log('### about-authors: canEnter');

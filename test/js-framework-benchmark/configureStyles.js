@@ -29,7 +29,6 @@ if (args.bootstrap ^ args.minimal == false) {
   }
 }
 
-
 /*
 if (fs.existsSync("dist")) fs.removeSync("dist");
 fs.mkdirSync("dist");

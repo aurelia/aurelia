@@ -3,7 +3,8 @@ import {buildDriver, setUseShadowRoot, testTextContains, testTextNotContained, t
 import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './common';
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import * as R from 'ramda';
-
+// necessary to launch without specifiying a path
+var chromedriver: any = require('chromedriver');
 
 let args = yargs(process.argv)
   .usage("$0 [--framework Framework1 Framework2 ...] [--benchmark Benchmark1 Benchmark2 ...]")
@@ -16,9 +17,6 @@ let args = yargs(process.argv)
 
 let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 let runBenchmarksFromDirectoryNamesArgs = !args.framework;
-
-// necessary to launch without specifiying a path
-var chromedriver:any = require('chromedriver');
 
 let init = `
 window.nonKeyedDetector_reset = function() {
@@ -104,7 +102,7 @@ async function assertChildNodes(elem: WebElement, expectedNodes: string[], messa
   let elements = await elem.findElements(By.css("*"));
   let allNodes = await Promise.all(elements.map(e => e.getTagName()));
   if (!R.equals(allNodes,expectedNodes)) {
-    console.log("ERROR in html structure for "+message);
+    console.log(`ERROR in html structure for ${message}`);
     console.log("  expected:", expectedNodes);
     console.log("  actual  :", allNodes);
     return false;
@@ -115,7 +113,7 @@ async function assertChildNodes(elem: WebElement, expectedNodes: string[], messa
 async function assertClassesContained(elem: WebElement, expectedClassNames: string[], message: string) {
   let actualClassNames = (await elem.getAttribute("class")).split(" ");
   if (!expectedClassNames.every(expected => actualClassNames.includes(expected))) {
-    console.log("css class not correct. Expected for "+ message+ " to be "+expectedClassNames+" but was "+actualClassNames);
+    console.log(`css class not correct. Expected for ${message} to be ${expectedClassNames} but was ${actualClassNames}`);
     return false;
   }
   return true;
@@ -133,7 +131,6 @@ export async function checkTRcorrect(driver: WebDriver, timeout = config.TIMEOUT
   if (!await assertClassesContained(td1, ["col-md-1"], "first td")) {
     return false;
   }
-
 
   // second td
   let td2 = await findByXPath(elem, '//tbody/tr[1000]/td[2]');
@@ -158,13 +155,11 @@ export async function checkTRcorrect(driver: WebDriver, timeout = config.TIMEOUT
     return false;
   }
 
-
   // fourth td
   let td4 = await findByXPath(elem, '//tbody/tr[1000]/td[4]');
   if (!await assertClassesContained(td4, ["col-md-6"], "fourth td")) {
     return false;
   }
-
 
   return true;
 }
@@ -179,19 +174,19 @@ async function runBench(frameworkNames: string[]) {
   let runFrameworks;
   if (!runBenchmarksFromDirectoryNamesArgs) {
     let frameworks = await initializeFrameworks();
-    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.indexOf(name)>-1));
+    runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.includes(name)));
   } else {
     let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName);
     runFrameworks = await initializeFrameworks(matchesDirectoryArg);
   }
   console.log("Frameworks that will be checked", runFrameworks.map(f => f.fullNameWithKeyedAndVersion).join(' '));
 
-  let frameworkMap = new Map<String, FrameworkData>();
+  let frameworkMap = new Map<string, FrameworkData>();
 
   let allCorrect = true;
 
   for (let i=0;i<runFrameworks.length;i++) {
-    let driver = await buildDriver(benchmarkOptions);
+    let driver = buildDriver(benchmarkOptions);
     try {
       let framework = runFrameworks[i];
       setUseShadowRoot(framework.useShadowRoot);
@@ -203,7 +198,7 @@ async function runBench(frameworkNames: string[]) {
       // check html for tr
       let htmlCorrect = await checkTRcorrect(driver);
       if (!htmlCorrect) {
-        console.log("ERROR: Framework "+framework.fullNameWithKeyedAndVersion+" html is not correct");
+        console.log(`ERROR: Framework ${framework.fullNameWithKeyedAndVersion} html is not correct`);
         allCorrect = false;
       }
 
@@ -232,16 +227,17 @@ async function runBench(frameworkNames: string[]) {
       res = await driver.executeScript('return nonKeyedDetector_result()');
       let keyedRemove = isKeyedRemove(res);
       let keyed = keyedRemove && keyedRun && keyedSwap;
-      console.log(framework.fullNameWithKeyedAndVersion +" is "+(keyed ? "keyed" : "non-keyed")+" for 'run benchmark' and "
-            + (keyedRemove ? "keyed" : "non-keyed") + " for 'remove row benchmark' "
-            + (keyedSwap ? "keyed" : "non-keyed") + " for 'swap rows benchmark' "
-            +". It'll appear as "+(keyed ? "keyed" : "non-keyed")+" in the results");
+      console.log(`${framework.fullNameWithKeyedAndVersion} is ${
+        keyed ? "keyed" : "non-keyed"} for 'run benchmark' and ${
+        keyedRemove ? "keyed" : "non-keyed"} for 'remove row benchmark' ${
+        keyedSwap ? "keyed" : "non-keyed"} for 'swap rows benchmark'. It'll appear as ${
+        keyed ? "keyed" : "non-keyed"} in the results`);
       if (framework.keyed !== keyed) {
-        console.log("ERROR: Framework "+framework.fullNameWithKeyedAndVersion+" is not correctly categorized");
+        console.log(`ERROR: Framework ${framework.fullNameWithKeyedAndVersion} is not correctly categorized`);
         allCorrect = false;
       }
     } catch(e) {
-      console.log("ERROR running "+runFrameworks[i].fullNameWithKeyedAndVersion, e);
+      console.log(`ERROR running ${runFrameworks[i].fullNameWithKeyedAndVersion}`, e);
       allCorrect = false;
     } finally {
       await driver.quit();
@@ -264,7 +260,7 @@ let benchmarkOptions: BenchmarkOptions = {
   numIterationsForMemBenchmarks: config.REPEAT_RUN_MEM,
   numIterationsForStartupBenchmark: config.REPEAT_RUN_STARTUP
 };
-async function main() {
+function main() {
   if (args.help) {
     yargs.showHelp();
   } else {

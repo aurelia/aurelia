@@ -82,7 +82,7 @@ export class If<T extends INode = INode> {
 
   private _value: boolean;
 
-  constructor(
+  public constructor(
     ifFactory: IViewFactory<T>,
     location: IRenderLocation<T>,
   ) {
@@ -285,7 +285,7 @@ export class Else<T extends INode = INode> {
 
   private readonly factory: IViewFactory<T>;
 
-  constructor(factory: IViewFactory<T>) {
+  public constructor(factory: IViewFactory<T>) {
     this.factory = factory;
   }
 

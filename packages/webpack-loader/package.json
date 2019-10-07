@@ -36,8 +36,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/plugin-conventions": "0.4.0-dev.201910061406",
-    "loader-utils": "^1.2.3"
+    "@aurelia/plugin-conventions": "0.3.0",
+    "loader-utils": "^1.2.3",
+    "webpack": "^4.41.0"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

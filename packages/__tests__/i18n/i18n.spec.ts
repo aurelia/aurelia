@@ -346,7 +346,7 @@ describe('I18N', function () {
         const { sut } = await setup();
         assert.equal(
           sut.uf(input, locale),
-          input[0] === '-' ? -123456789.12 : 123456789.12);
+          input.startsWith('-') ? -123456789.12 : 123456789.12);
       });
     }
   });

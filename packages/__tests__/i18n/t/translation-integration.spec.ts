@@ -16,6 +16,7 @@ describe('translation-integration', function () {
   }
 
   async function setup(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
+    /* eslint-disable @typescript-eslint/camelcase */
     const translation = {
       simple: {
         text: 'simple text',
@@ -25,7 +26,7 @@ describe('translation-integration', function () {
       status_dispatched: 'dispatched on {{date}}',
       status_delivered: 'delivered on {{date}}',
       custom_interpolation_brace: 'delivered on {date}',
-      custom_interpolation_es6_syntax: 'delivered on ${date}',
+      custom_interpolation_es6_syntax: `delivered on \${date}`,
 
       interpolation_greeting: 'hello {{name}}',
 
@@ -52,7 +53,7 @@ describe('translation-integration', function () {
       status_dispatched: 'Versand am {{date}}',
       status_delivered: 'geliefert am {{date}}',
       custom_interpolation_brace: 'geliefert am {date}',
-      custom_interpolation_es6_syntax: 'geliefert am ${date}',
+      custom_interpolation_es6_syntax: `geliefert am \${date}`,
 
       interpolation_greeting: 'Hallo {{name}}',
 
@@ -68,6 +69,7 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
+    /* eslint-enable @typescript-eslint/camelcase */
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     await au.register(
@@ -215,7 +217,7 @@ describe('translation-integration', function () {
       const { host, translation, app } = await suiteSetup();
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-custom', translation.custom_interpolation_brace.replace('{date}', app.deliveredOn.toString()));
-      assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace('${date}', app.deliveredOn.toString()));
+      assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace(`\${date}`, app.deliveredOn.toString()));
     });
 
     it('works for interpolation when the interpolation changes', async function () {
@@ -293,7 +295,7 @@ describe('translation-integration', function () {
     assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
   });
 
-  it('works for interpolated keys are used - t="\${obj.key1}"', async function () {
+  it(`works for interpolated keys are used - t="\${obj.key1}"`, async function () {
 
     @customElement({
       name: 'app', template: `
@@ -552,7 +554,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
     });
 
-    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+    it('works correctly for html with the change of both [prepend], and [append] - textContent', async function () {
 
       @customElement({
         name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
@@ -790,7 +792,7 @@ describe('translation-integration', function () {
     it('key bound from vm property', async function () {
 
       @customElement({ name: 'app', template: `<span>\${key | t}</span>` })
-      class App { key = 'simple.text'; }
+      class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
       const { en: translation } = await setup(host, new App());
@@ -848,7 +850,7 @@ describe('translation-integration', function () {
     it('key bound from vm property', async function () {
 
       @customElement({ name: 'app', template: `<span>\${key & t}</span>` })
-      class App { key = 'simple.text'; }
+      class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
       const { en: translation } = await setup(host, new App());
@@ -1181,7 +1183,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1196,7 +1198,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : undefined : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1211,7 +1213,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1226,7 +1228,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1244,7 +1246,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         public dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1300,7 +1302,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1315,7 +1317,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt : undefined : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1330,7 +1332,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1345,7 +1347,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1363,7 +1365,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         public dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }

@@ -569,7 +569,7 @@ describe(`Repeat`, function () {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-      it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async function () {
+      it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
         const { strategy } = strategySpec;
         const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
         const { items: $items, flush, mutations } = bindSpec;
@@ -671,7 +671,6 @@ describe(`Repeat`, function () {
           runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
         }
 
-
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
 
         runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -722,7 +721,6 @@ describe(`Repeat`, function () {
         if (detachTwice) {
           runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
         }
-
 
         assert.strictEqual(host.textContent, '', 'host.textContent #12');
 

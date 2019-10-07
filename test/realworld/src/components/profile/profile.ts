@@ -13,7 +13,7 @@ export class Profile {
   private username?: string;
   private profile?: ProfileModel;
 
-  constructor(
+  public constructor(
     private readonly sharedState: SharedState,
     private readonly profileService: ProfileService,
     private readonly router: IRouter) {
@@ -36,26 +36,29 @@ export class Profile {
     console.log(`profile enter`);
     this.username = parameters.name;
     const profile = await this.profileService.get(this.username);
-    this.router.setNav('profile-posts', [
-      {
-        route: `profile-article(${this.username})`,
-        title: 'My Posts',
+    this.router.setNav(
+      'profile-posts',
+      [
+        {
+          route: `profile-article(${this.username})`,
+          title: 'My Posts',
+        },
+        {
+          route: `profile-favorites(${this.username})`,
+          title: 'Favorited Posts',
+        },
+      ], {
+        ul: 'nav nav-pills outline-active',
+        li: 'nav-item',
+        a: 'nav-link',
+        aActive: 'active',
       },
-      {
-        route: `profile-favorites(${this.username})`,
-        title: 'Favorited Posts',
-      },
-    ], {
-      ul: 'nav nav-pills outline-active',
-      li: 'nav-item',
-      a: 'nav-link',
-      aActive: 'active',
-    });
+    );
     // this.router.goto(`/profile(${this.username})/profile-article(${this.username})`);
     this.profile = profile;
   }
 
-  get isUser() {
+  public get isUser() {
     if (!this.profile) { return false; }
     return this.profile.username === this.sharedState.currentUser.username;
   }
@@ -68,9 +71,9 @@ export class Profile {
     if (!this.profile) { return; }
     this.profile.following = !this.profile.following;
     if (this.profile.following) {
-      this.profileService.follow(this.profile!.username!);
+      this.profileService.follow(this.profile.username!);
     } else {
-      this.profileService.unfollow(this.profile!.username!);
+      this.profileService.unfollow(this.profile.username!);
     }
   }
 }

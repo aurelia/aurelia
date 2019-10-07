@@ -27,20 +27,20 @@ function trimDots(ary: string[]): void {
 /**
  * Calculates a path relative to a file.
  *
- * @param name The relative path.
- * @param file The file path.
- * @return The calculated path.
+ * @param name - The relative path.
+ * @param file - The file path.
+ * @returns The calculated path.
  */
 export function relativeToFile(name: string, file: string): string {
   const fileParts = !file ? file : file.split('/');
   const nameParts = name.trim().split('/');
 
-  if (nameParts[0].charAt(0) === '.' && fileParts) {
-    //Convert file to array, and lop off the last part,
-    //so that . matches that 'directory' and not name of the file's
-    //module. For instance, file of 'one/two/three', maps to
-    //'one/two/three.js', but we want the directory, 'one/two' for
-    //this normalization.
+  if (nameParts[0].startsWith('.') && fileParts) {
+    // Convert file to array, and lop off the last part,
+    // so that . matches that 'directory' and not name of the file's
+    // module. For instance, file of 'one/two/three', maps to
+    // 'one/two/three.js', but we want the directory, 'one/two' for
+    // this normalization.
     const normalizedBaseParts = fileParts.slice(0, fileParts.length - 1);
     nameParts.unshift(...normalizedBaseParts);
   }
@@ -53,9 +53,9 @@ export function relativeToFile(name: string, file: string): string {
 /**
  * Joins two paths.
  *
- * @param path1 The first path.
- * @param path2 The second path.
- * @return The joined path.
+ * @param path1 - The first path.
+ * @param path2 - The second path.
+ * @returns The joined path.
  */
 export function join(path1: string, path2: string): string {
   if (!path1) {
@@ -64,22 +64,22 @@ export function join(path1: string, path2: string): string {
   if (!path2) {
     return path1;
   }
-  const schemeMatch = path1.match(/^([^/]*?:)\//);
+  const schemeMatch = /^([^/]*?:)\//.exec(path1);
   const scheme = (schemeMatch && schemeMatch.length > 0) ? schemeMatch[1] : '';
   path1 = path1.slice(scheme.length);
 
   let urlPrefix: string;
-  if (path1.indexOf('///') === 0 && scheme === 'file:') {
+  if (path1.startsWith('///') && scheme === 'file:') {
     urlPrefix = '///';
-  } else if (path1.indexOf('//') === 0) {
+  } else if (path1.startsWith('//')) {
     urlPrefix = '//';
-  } else if (path1.indexOf('/') === 0) {
+  } else if (path1.startsWith('/')) {
     urlPrefix = '/';
   } else {
     urlPrefix = '';
   }
 
-  const trailingSlash = path2.slice(-1) === '/' ? '/' : '';
+  const trailingSlash = path2.endsWith('/') ? '/' : '';
 
   const url1 = path1.split('/');
   const url2 = path2.split('/');
@@ -118,10 +118,10 @@ type SimpleQueryParams = string | IQueryParams | (string | IQueryParams)[];
 /**
  * Recursively builds part of query string for parameter.
  *
- * @param key Parameter name for query string.
- * @param value Parameter value to deserialize.
- * @param traditional Boolean Use the old URI template standard (RFC6570)
- * @return Array with serialized parameter(s)
+ * @param key - Parameter name for query string.
+ * @param value - Parameter value to deserialize.
+ * @param traditional - Boolean Use the old URI template standard (RFC6570)
+ * @returns Array with serialized parameter(s)
  */
 function buildParam(key: string, value: ComplexQueryParams, traditional?: boolean): string[] {
   let result: string[] = [];
@@ -150,8 +150,8 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
 /**
  * Generate a query string from an object.
  *
- * @param params Object containing the keys and values to be used.
- * @param traditional Boolean Use the old URI template standard (RFC6570)
+ * @param params - Object containing the keys and values to be used.
+ * @param traditional - Boolean Use the old URI template standard (RFC6570)
  * @returns The generated query string, excluding leading '?'.
  */
 export function buildQueryString(params?: IQueryParams, traditional?: boolean): string {
@@ -176,8 +176,8 @@ export function buildQueryString(params?: IQueryParams, traditional?: boolean): 
 /**
  * Process parameter that was recognized as scalar param (primitive value or shallow array).
  *
- * @param existedParam Object with previously parsed values for specified key.
- * @param value Parameter value to append.
+ * @param existedParam - Object with previously parsed values for specified key.
+ * @param value - Parameter value to append.
  * @returns Initial primitive value or transformed existedParam if parameter was recognized as an array.
  */
 function processScalarParam(existedParam: SimpleQueryParams, value: string | IQueryParams): SimpleQueryParams {
@@ -197,11 +197,11 @@ function processScalarParam(existedParam: SimpleQueryParams, value: string | IQu
 /**
  * Sequentially process parameter that was recognized as complex value (object or array).
  * For each keys part, if the current level is undefined create an
- *   object or array based on the type of the next keys part.
+ * object or array based on the type of the next keys part.
  *
- * @param queryParams root-level result object.
- * @param keys Collection of keys related to this parameter.
- * @param value Parameter value to append.
+ * @param queryParams - root-level result object.
+ * @param keys - Collection of keys related to this parameter.
+ * @param value - Parameter value to append.
  */
 function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[], value: string): void {
   let currentParams = queryParams as IQueryParams & (string | IQueryParams)[];
@@ -222,6 +222,7 @@ function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[],
         currentParams = currentParams[key] = prevValue as typeof currentParams;
       } else if (isNaN(keys[j + 1] as number)) {
         // Kinda have no choice here
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         currentParams = currentParams[key] = {} as typeof currentParams;
       } else {
         currentParams = currentParams[key] = [] as [] & typeof currentParams;
@@ -235,7 +236,7 @@ function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[],
 /**
  * Parse a query string into a queryParams object.
  *
- * @param queryString The query string to parse.
+ * @param queryString - The query string to parse.
  * @returns Object with keys and values mapped from the query string.
  */
 export function parseQueryString(queryString: string): IQueryParams {
@@ -245,7 +246,7 @@ export function parseQueryString(queryString: string): IQueryParams {
   }
 
   let query = queryString;
-  if (query.charAt(0) === '?') {
+  if (query.startsWith('?')) {
     query = query.slice(1);
   }
 
@@ -256,14 +257,14 @@ export function parseQueryString(queryString: string): IQueryParams {
     if (!key) {
       continue;
     }
-    //split object key into its parts
+    // split object key into its parts
     let keys = key.split('][');
     let keysLastIndex = keys.length - 1;
 
     // If the first keys part contains [ and the last ends with ], then []
     // are correctly balanced, split key to parts
-    //Else it's basic key
-    if (/\[/.test(keys[0]) && /\]$/.test(keys[keysLastIndex])) {
+    // Else it's basic key
+    if (keys[0].includes("[") && keys[keysLastIndex].endsWith("]")) {
       keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       keys = keys.shift()!.split('[').concat(keys); // outer condition already ensures not-null

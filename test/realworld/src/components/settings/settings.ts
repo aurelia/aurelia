@@ -7,21 +7,21 @@ import { SharedState } from 'shared/state/shared-state';
 @inject(UserService, SharedState, IRouter)
 export class Settings {
 
-  constructor(
+  public constructor(
     private readonly userService: UserService,
     private readonly sharedState: SharedState,
     private readonly router: IRouter) {
   }
 
-  public created() { }
-  public binding() { }
-  public bound() { }
-  public attaching() { }
-  public attached() { }
-  public detaching() { }
-  public detached() { }
-  public unbinding() { }
-  public unbound() { }
+  public created() { return; }
+  public binding() { return; }
+  public bound() { return; }
+  public attaching() { return; }
+  public attached() { return; }
+  public detaching() { return; }
+  public detached() { return; }
+  public unbinding() { return; }
+  public unbound() { return; }
 
   public update() {
     this.userService.update(this.sharedState.currentUser);

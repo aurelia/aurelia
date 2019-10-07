@@ -13,12 +13,12 @@ export class Home {
   private shownList = 'all';
   private tags: string[] = [];
   private filterTag?: string;
-  private pageNumber?: number;
+  private readonly pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
-  private limit = 10;
+  private readonly limit = 10;
 
-  constructor(
+  public constructor(
     private readonly sharedState: SharedState,
     private readonly router: IRouter,
     private readonly articleService: ArticleService,
@@ -37,7 +37,7 @@ export class Home {
     };
 
     if (this.filterTag) {
-      params.tag = this.filterTag!;
+      params.tag = this.filterTag;
     }
 
     const response = await this.articleService.getList(this.shownList, params);
@@ -51,24 +51,27 @@ export class Home {
   }
 
   public setupNav(): void {
-    this.router.setNav('home', [
-      {
-        execute: (route: NavRoute): void => { this.setListTo('feed', ''); this.router.updateNav('home'); },
-        title: 'Your Feed',
-        condition: () => this.sharedState.isAuthenticated,
-        consideredActive: (): boolean => this.shownList === 'feed' && !this.filterTag,
+    this.router.setNav(
+      'home',
+      [
+        {
+          execute: (route: NavRoute): void => { this.setListTo('feed', ''); this.router.updateNav('home'); },
+          title: 'Your Feed',
+          condition: () => this.sharedState.isAuthenticated,
+          consideredActive: (): boolean => this.shownList === 'feed' && !this.filterTag,
+        },
+        {
+          execute: (route: NavRoute): void => { this.setListTo('all', ''); this.router.updateNav('home'); },
+          title: 'Global Feed',
+          consideredActive: () => this.shownList === 'all' && !this.filterTag,
+        },
+      ], {
+        ul: 'nav nav-pills outline-active',
+        li: 'nav-item',
+        a: 'nav-link',
+        aActive: 'active',
       },
-      {
-        execute: (route: NavRoute): void => { this.setListTo('all', ''); this.router.updateNav('home'); },
-        title: 'Global Feed',
-        consideredActive: () => this.shownList === 'all' && !this.filterTag,
-      },
-    ], {
-      ul: 'nav nav-pills outline-active',
-      li: 'nav-item',
-      a: 'nav-link',
-      aActive: 'active',
-    });
+    );
   }
 
   public setListTo(type: string, tag: string) {

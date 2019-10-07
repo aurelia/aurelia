@@ -34,7 +34,7 @@ describe('templating-compiler.ref.spec.ts', function() {
     browserOnly?: boolean;
     testWillThrow?: boolean;
     assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
-    assertFn_AfterDestroy?(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
+    assertFnAfterDestroy?(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
   const testCases: IRefIntegrationTestCase[] = [
@@ -46,7 +46,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         assert.notStrictEqual(comp.hello, undefined);
         assert.strictEqual(host.querySelector('div'), comp.hello);
       },
-      assertFn_AfterDestroy: (ctx, host, comp) => {
+      assertFnAfterDestroy: (ctx, host, comp) => {
         assert.strictEqual(comp.hello, null);
       }
     },
@@ -58,7 +58,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         assert.notEqual(comp.hello, undefined);
         assert.strictEqual(host.querySelector('div'), comp.hello);
       },
-      assertFn_AfterDestroy: (ctx, host, comp) => {
+      assertFnAfterDestroy: (ctx, host, comp) => {
         assert.strictEqual(comp.hello, null);
       }
     },
@@ -107,11 +107,11 @@ describe('templating-compiler.ref.spec.ts', function() {
           class Ca {}
         ));
         const attrString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}="a"`).join(' ');
-        const attr_RefString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}.ref="ca${idx1}"`).join(' ');
+        const attrRefString = Array.from({ length: arr.length }, (__, idx1) => `c-a-${idx1}.ref="ca${idx1}"`).join(' ');
         return [
           {
             title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
-            template: `<div ${attrString} ${attr_RefString}>`,
+            template: `<div ${attrString} ${attrRefString}>`,
             resources: Attrs,
             assertFn: (ctx, host, comp) => {
               const div = host.querySelector('div') as INode;
@@ -122,7 +122,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           },
           {
             title: 'ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref], ref before attr declaration',
-            template: `<div ${attr_RefString} ${attrString}>`,
+            template: `<div ${attrRefString} ${attrString}>`,
             resources: Attrs,
             assertFn: (ctx, host, comp) => {
               const div = host.querySelector('div') as INode;
@@ -133,7 +133,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           },
           {
             title: '[Surrogate - ROOT] ref usage with multiple custom attributes on a normal element, syntax: [xxx.ref]',
-            template: `<template ${attrString} ${attr_RefString}>`,
+            template: `<template ${attrString} ${attrRefString}>`,
             resources: Attrs,
             assertFn: (ctx, host: INode, comp) => {
               for (let i = 0, ii = arr.length; ii > i; ++i) {
@@ -147,7 +147,7 @@ describe('templating-compiler.ref.spec.ts', function() {
             resources: [
               ...Attrs,
               CustomElement.define(
-                { name: 'c-e', template: `<template ${attrString} ${attr_RefString}>` }
+                { name: 'c-e', template: `<template ${attrString} ${attrRefString}>` }
               )
             ],
             assertFn: (ctx, host) => {
@@ -167,7 +167,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       assertFn: (ctx, host, comp) => {
         comp.div = Symbol.for('???');
       },
-      assertFn_AfterDestroy: (ctx, host, comp) => {
+      assertFnAfterDestroy: (ctx, host, comp) => {
         assert.strictEqual(comp.div, Symbol.for('???'));
       }
     },
@@ -186,7 +186,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         public unbindingCalls = 0;
         public unboundCalls = 0;
 
-        constructor(public readonly el: HTMLElement) {}
+        public constructor(public readonly el: HTMLElement) {}
 
         public binding(): void {
           this.bindingCalls++;
@@ -258,7 +258,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         assert.equal(comp.unbindingCalls, 0, '[unbinding]');
         assert.equal(comp.unboundCalls, 0, '[unbound]');
       },
-      assertFn_AfterDestroy: (
+      assertFnAfterDestroy: (
         ctx,
         host,
         comp: {
@@ -285,22 +285,22 @@ describe('templating-compiler.ref.spec.ts', function() {
     ...Array
       .from({ length: 10 })
       .map((_, idx, arr) => {
-        const dot_notation_expressions = Array(arr.length).fill(`div${idx}`); // div1.div1.div1.div1
+        const dotNotationExpressions = Array(arr.length).fill(`div${idx}`); // div1.div1.div1.div1
         const CustomElementTestClass = CustomElement.define('c-e');
         return [
           {
             title: 'it works with complex expression',
-            template: `<div ref="${dot_notation_expressions.join('.')}">`,
+            template: `<div ref="${dotNotationExpressions.join('.')}">`,
             assertFn: (ctx, host, comp) => {
-              const accessPath = dot_notation_expressions.slice(0);
+              const accessPath = dotNotationExpressions.slice(0);
               let value;
               while (accessPath.length > 0) {
                 value = (value || comp)[accessPath.shift()];
               }
               assert.equal(value, host.querySelector('div'));
             },
-            assertFn_AfterDestroy: (ctx, host, comp) => {
-              const accessPath = dot_notation_expressions.slice(0);
+            assertFnAfterDestroy: (ctx, host, comp) => {
+              const accessPath = dotNotationExpressions.slice(0);
               let value;
               while (accessPath.length > 0) {
                 value = (value || comp)[accessPath.shift()];
@@ -310,20 +310,20 @@ describe('templating-compiler.ref.spec.ts', function() {
           },
           {
             title: 'it works with complex expression for view-model.ref',
-            template: `<c-e view-model.ref="${dot_notation_expressions.join('.')}">`,
+            template: `<c-e view-model.ref="${dotNotationExpressions.join('.')}">`,
             resources: [
               CustomElementTestClass
             ],
             assertFn: (ctx, host, comp) => {
-              const accessPath = dot_notation_expressions.slice(0);
+              const accessPath = dotNotationExpressions.slice(0);
               let value;
               while (accessPath.length > 0) {
                 value = (value || comp)[accessPath.shift()];
               }
               assert.instanceOf(value, CustomElementTestClass);
             },
-            assertFn_AfterDestroy: (ctx, host, comp) => {
-              const accessPath = dot_notation_expressions.slice(0);
+            assertFnAfterDestroy: (ctx, host, comp) => {
+              const accessPath = dotNotationExpressions.slice(0);
               let value;
               while (accessPath.length > 0) {
                 value = (value || comp)[accessPath.shift()];
@@ -333,7 +333,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           }
         ] as IRefIntegrationTestCase[];
       })
-      .reduce((arr, cases) => arr.concat(cases), []) as IRefIntegrationTestCase[],
+      .reduce((arr, cases) => arr.concat(cases), []),
     // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[
@@ -372,7 +372,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       only,
       browserOnly,
       assertFn,
-      assertFn_AfterDestroy = PLATFORM.noop,
+      assertFnAfterDestroy = PLATFORM.noop,
       testWillThrow
     } = testCase;
     if (!PLATFORM.isBrowserLike && browserOnly) {
@@ -421,7 +421,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         await assertFn(ctx, host, component);
 
         await au.stop().wait();
-        await assertFn_AfterDestroy(ctx, host, component);
+        await assertFnAfterDestroy(ctx, host, component);
       } finally {
         if (host) {
           host.remove();

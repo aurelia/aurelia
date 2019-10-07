@@ -1,7 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-
 import template from './with-nav.html';
 
 @inject(IRouter)
@@ -10,5 +9,5 @@ import template from './with-nav.html';
   template
 })
 export class RouterWithNav {
-  constructor(private router: IRouter) { }
+  public constructor(private readonly router: IRouter) { }
 }

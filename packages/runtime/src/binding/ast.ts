@@ -56,8 +56,7 @@ import {
 } from '../ast';
 import {
   ExpressionKind,
-  LifecycleFlags,
-  BehaviorStrategy,
+  LifecycleFlags
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
@@ -455,11 +454,11 @@ export class AccessScopeExpression implements IAccessScopeExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
-    let evaluatedValue = obj[this.name] as IBindingContext | IBinding | IOverrideContext;
-    if (flags & BehaviorStrategy.strict) {
+    let evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+    if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
     }
-    return evaluatedValue == null ? '' as unknown as IBinding : evaluatedValue;
+    return evaluatedValue == null ? '' as unknown as ReturnType<AccessScopeExpression['evaluate']> : evaluatedValue;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {
@@ -774,8 +773,25 @@ export class BinaryExpression implements IBinaryExpression {
   // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
   // this makes bugs in user code easier to track down for end users
   // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-  private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number {
-    return (this.left.evaluate(f, s, l, p) as number) + (this.right.evaluate(f, s, l, p) as number);
+  private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number | string {
+    const left = this.left.evaluate(f, s, l, p) as unknown;
+    const right = this.right.evaluate(f, s, l, p) as unknown;
+    if (f & LifecycleFlags.isStrictBindingStrategy) {
+      return (left as number) + (right as number);
+    }
+
+    if (!left || !right) {
+      const leftType = typeof left;
+      const rightType = typeof right;
+      if (leftType === 'bigint' || leftType === 'number' ||
+        rightType === 'bigint' || rightType === 'number') {
+        return (left as number) || 0 + (right as number) || 0;
+      }
+      if (leftType === 'string' || rightType === 'string') {
+        return (left as number) || '' + (right as number) || '';
+      }
+    }
+    return (left as number) + (right as number);
   }
   private ['-'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number {
     return (this.left.evaluate(f, s, l, p) as number) - (this.right.evaluate(f, s, l, p) as number);
@@ -871,7 +887,10 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): TValue {
-    return this.value;
+    if (flags & LifecycleFlags.isStrictBindingStrategy) {
+      return this.value;
+    }
+    return this.value == null ? '' as TValue : this.value;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1172,11 +1191,13 @@ export class ForOfStatement implements IForOfStatement {
   }
 
   public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
-    return CountForOfStatement[toStringTag.call(result)](result as any);
+    const statement = CountForOfStatement[toStringTag.call(result)] as (result: any) => number;
+    return statement(result);
   }
 
   public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result as any, func);
+    const statement = IterateForOfStatement[toStringTag.call(result)] as (flags: LifecycleFlags, result: any, funct: Parameters<ForOfStatement['iterate']>[2]) => void;
+    statement(flags | LifecycleFlags.isOriginalArray, result, func);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {

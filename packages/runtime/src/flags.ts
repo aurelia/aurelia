@@ -34,12 +34,6 @@ export const enum BindingStrategy {
   proxies      = 0b10,
 }
 
-export const enum BehaviorStrategy {
-  safe        = 0b011,
-  strict      = 0b100,
-}
-
-
 const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies;
 
 export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {
@@ -136,6 +130,7 @@ export const enum LifecycleFlags {
   isOriginalArray               = 0b0000_00100000_0000000000000_00_0000,
   isCollectionMutation          = 0b0000_01000000_0000000000000_00_0000,
   reorderNodes                  = 0b0000_10000000_0000000000000_00_0000,
+  isStrictBindingStrategy       = 0b0001_10000000_0000000000000_00_0000,
 }
 
 export const enum ExpressionKind {

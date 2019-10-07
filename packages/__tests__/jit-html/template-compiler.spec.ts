@@ -826,6 +826,8 @@ describe(`TemplateCompiler - combinations`, function () {
           try {
             sut.compile(dom, input, resources);
           } catch (err) {
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             e = err;
           }
           assert.instanceOf(e, Error);
@@ -835,7 +837,13 @@ describe(`TemplateCompiler - combinations`, function () {
           const actual = sut.compile(dom, input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
-          verifyBindingInstructionsEqual(actual, output);
+          try {
+            verifyBindingInstructionsEqual(actual, output);
+          } catch (err) {
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            throw err;
+          }
         }
       });
     });
@@ -892,7 +900,13 @@ describe(`TemplateCompiler - combinations`, function () {
         );
 
         const actual = sut.compile(dom, input, resources);
-        verifyBindingInstructionsEqual(actual, output);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch (err) {
+          // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          throw err;
+        }
       });
     });
   });
@@ -948,7 +962,13 @@ describe(`TemplateCompiler - combinations`, function () {
         );
 
         const actual = sut.compile(dom, input, resources);
-        verifyBindingInstructionsEqual(actual, output);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch (err) {
+          // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          throw err;
+        }
       });
     });
   });
@@ -1011,7 +1031,13 @@ describe(`TemplateCompiler - combinations`, function () {
         const actual = sut.compile(dom, input, resources);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
-        verifyBindingInstructionsEqual(actual, output);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch (err) {
+          // console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          // console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
+          throw err;
+        }
       });
     });
   });
@@ -1077,6 +1103,8 @@ describe(`TemplateCompiler - combinations`, function () {
           try {
             sut.compile(dom, input, resources);
           } catch (err) {
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             e = err;
           }
           assert.instanceOf(e, Error);
@@ -1086,7 +1114,13 @@ describe(`TemplateCompiler - combinations`, function () {
           const actual = sut.compile(dom, input, resources);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
-          verifyBindingInstructionsEqual(actual, output);
+          try {
+            verifyBindingInstructionsEqual(actual, output);
+          } catch (err) {
+            // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+            // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+            throw err;
+          }
         }
       });
     });
@@ -1128,7 +1162,13 @@ describe(`TemplateCompiler - combinations`, function () {
         const actual = sut.compile(dom, input, resources);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
-        verifyBindingInstructionsEqual(actual, output);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch (err) {
+          console.log('EXPECTED: ', JSON.stringify(output.instructions, null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions, null, 2));
+          throw err;
+        }
       });
     });
   });

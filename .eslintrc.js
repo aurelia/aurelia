@@ -38,6 +38,7 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-inferrable-types': 'off', // Turn no-inferrable-types off in order to make the code consistent in its use of type decorations.
+    '@typescript-eslint/no-non-null-assertion': 'off',
     'security/detect-object-injection': 'off',
     'sonarjs/cognitive-complexity': 'off',
     'sonarjs/no-identical-functions': 'off',
@@ -173,7 +174,6 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-floating-promises': 'warn',
     '@typescript-eslint/no-misused-promises': 'warn',
-    '@typescript-eslint/no-non-null-assertion': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'warn',
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',

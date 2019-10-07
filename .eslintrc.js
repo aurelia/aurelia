@@ -218,7 +218,7 @@ module.exports = {
     '@typescript-eslint/quotes': ['off']
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
-    files: ['**/*.js'],
+    files: ['**/*.js', 'examples/jit-parcel-ts/**'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',
@@ -226,7 +226,7 @@ module.exports = {
       '@typescript-eslint/typedef': 'off',
       'compat/compat': 'off'
     }
-  }, { // Specific overrides for TS files within tests as some rules don't make sense there.
+  }, { // Specific overrides for TS files within examples, scripts and tests as some rules don't make sense there.
     files: ['examples/**', 'scripts/**', 'test/**'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',

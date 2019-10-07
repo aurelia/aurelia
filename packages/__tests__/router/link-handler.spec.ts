@@ -1,9 +1,9 @@
-import { AnchorEventInfo, LinkHandler } from '@aurelia/router';
+import { AnchorEventInfo, LinkHandler, AuHrefCustomAttribute } from '@aurelia/router';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
-import { Writable } from '@aurelia/kernel';
+import { Writable, IRegistry } from '@aurelia/kernel';
+import { CustomElement, Aurelia } from '@aurelia/runtime';
 
 describe('LinkHandler', function () {
-  const callback = ((info) => { return; });
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
     const { container, doc } = ctx;
@@ -13,6 +13,29 @@ describe('LinkHandler', function () {
     function tearDown() { }
 
     return { addEventListener, removeEventListener, sut, tearDown, ctx };
+  }
+
+  async function setupApp(App) {
+    const ctx = TestContext.createHTMLTestContext();
+    const { container, doc } = ctx;
+
+    const host = doc.createElement('div');
+    doc.body.appendChild(host as any);
+
+    const au = new Aurelia(container)
+      .register(AuHrefCustomAttribute as unknown as IRegistry)
+      .app({ host, component: App });
+
+    await au.start().wait();
+
+    const sut = container.get(LinkHandler);
+
+    async function tearDown() {
+      await au.stop().wait();
+      doc.body.removeChild(host);
+    }
+
+    return { sut, au, container, host, ctx, tearDown };
   }
 
   it('can be created', function () {
@@ -28,7 +51,7 @@ describe('LinkHandler', function () {
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
-    sut.activate({ callback: callback });
+    sut.activate({ callback: info => console.log('can be activated', info) });
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -42,29 +65,21 @@ describe('LinkHandler', function () {
 
     addEventListener.restore();
 
+    sut.deactivate();
+
     tearDown();
   });
 
   it('can be deactivated', function () {
-    const { sut, tearDown, ctx } = setup();
+    const { sut, tearDown } = setup();
 
-    const removeEventListener = createSpy(ctx.doc, 'removeEventListener');
+    sut.activate({ callback: info => console.log('can be deactivated', info) });
 
-    sut.activate({ callback: callback });
+    assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
     sut.deactivate();
 
     assert.strictEqual(sut['isActive'], false, `linkHandler.isActive`);
-
-    assert.deepStrictEqual(
-      removeEventListener.calls,
-      [
-        ['click', sut['handler'], true],
-      ],
-      `removeEventListener.calls`,
-    );
-
-    removeEventListener.restore();
 
     tearDown();
   });
@@ -74,7 +89,7 @@ describe('LinkHandler', function () {
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
-    sut.activate({ callback: callback });
+    sut.activate({ callback: info => console.log('throws when activated while active', info) });
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -88,13 +103,15 @@ describe('LinkHandler', function () {
 
     let err;
     try {
-      sut.activate({ callback: callback });
+      sut.activate({ callback: info => console.log('throws when activated AGAIN while active', info) });
     } catch (e) {
       err = e;
     }
     assert.includes(err.message, 'Link handler has already been activated', `err.message`);
 
     addEventListener.restore();
+
+    sut.deactivate();
 
     tearDown();
   });
@@ -113,10 +130,7 @@ describe('LinkHandler', function () {
     tearDown();
   });
 
-  it('returns the right href', function () {
-    const { sut, tearDown, ctx } = setup();
-    const { doc } = ctx;
-
+  it('returns the right href', async function () {
     const tests = [
       { useHref: true, href: true, auHref: true, result: 'au-href' },
       { useHref: true, href: false, auHref: true, result: 'au-href' },
@@ -130,17 +144,18 @@ describe('LinkHandler', function () {
     ];
 
     for (const test of tests) {
-      const anchor = ctx.doc.createElement('a');
-      if (test.href) {
-        anchor.setAttribute('href', 'href');
-      }
-      if (test.auHref) {
-        anchor.setAttribute('au-href', 'au-href');
-      }
-      doc.body.append(anchor);
+      const App = CustomElement.define({
+        name: 'app',
+        template: `<a ${test.href ? 'href="href"' : ''} ${test.auHref ? 'au-href="au-href"' : ''}>Link</a>`
+      });
+
+      const { sut, tearDown, ctx } = await setupApp(App);
+      const { doc } = ctx;
+
+      const anchor = doc.getElementsByTagName('A')[0];
 
       const evt = new MouseEvent('click', { cancelable: true });
-      let info: AnchorEventInfo | null = { shouldHandleEvent: false, href: null, anchor: null };
+      let info: AnchorEventInfo | null = { shouldHandleEvent: false, instruction: null, anchor: null };
 
       const origHandler = sut['handler'];
       (sut as Writable<typeof sut>)['handler'] = ev => {
@@ -155,14 +170,12 @@ describe('LinkHandler', function () {
       anchor.dispatchEvent(evt);
 
       assert.strictEqual(info.shouldHandleEvent, test.result !== null, `LinkHandler.AnchorEventInfo.shouldHandleEvent`);
-      assert.strictEqual(info.href, test.result, `LinkHandler.AnchorEventInfo.href`);
+      assert.strictEqual(info.instruction, test.result, `LinkHandler.AnchorEventInfo.href`);
 
       sut.deactivate();
       (sut as Writable<typeof sut>)['handler'] = origHandler;
 
-      anchor.remove();
+      tearDown();
     }
-
-    tearDown();
   });
 });

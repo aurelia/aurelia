@@ -26,9 +26,9 @@ export interface AnchorEventInfo {
    */
   shouldHandleEvent: boolean;
   /**
-   * The href of the link or null if not-applicable.
+   * The instruction (href) of the link or null if not-applicable.
    */
-  href: string | null;
+  instruction: string | null;
   /**
    * The anchor element or null if not-applicable.
    */
@@ -46,7 +46,7 @@ export class LinkHandler {
 
   // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = {
-    useHref: false,
+    useHref: true,
     callback: () => { }
   };
   private isActive: boolean = false;
@@ -67,7 +67,7 @@ export class LinkHandler {
   private static getEventInfo(event: Event, win: Window, options: ILinkHandlerOptions): AnchorEventInfo {
     const info: AnchorEventInfo = {
       shouldHandleEvent: false,
-      href: null,
+      instruction: null,
       anchor: null
     };
 
@@ -84,14 +84,14 @@ export class LinkHandler {
       return info;
     }
 
-    const auHref: string | null = '$auHref' in target ? Reflect.get(target, '$auHref') : null;
+    const auHref: string | null = (target as any).$au !== void 0 && (target as any).$au['au-href'] !== void 0 ? (target as any).$au['au-href'].viewModel.value : null;
     const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
     if ((auHref === null || auHref.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.href = auHref || href;
+    info.instruction = auHref || href;
 
     const leftButtonClicked: boolean = (event as MouseEvent).which === 1;
 

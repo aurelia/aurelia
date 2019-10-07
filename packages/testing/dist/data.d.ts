@@ -978,8 +978,8 @@ export declare const CSS_PROPERTIES: {
     };
 };
 /**
-* A list of the pseudo elements.
-*/
+ * A list of the pseudo elements.
+ */
 export declare const PSEUDO_ELEMENTS: string[];
 export declare const globalAttributeNames: string[];
 //# sourceMappingURL=data.d.ts.map

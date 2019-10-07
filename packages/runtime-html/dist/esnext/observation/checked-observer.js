@@ -87,7 +87,7 @@ let CheckedObserver = class CheckedObserver {
     }
     synchronizeElement() {
         const { currentValue, obj } = this;
-        const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+        const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isRadio = obj.type === 'radio';
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
         if (isRadio) {
@@ -107,7 +107,7 @@ let CheckedObserver = class CheckedObserver {
         this.oldValue = this.currentValue;
         let { currentValue } = this;
         const { obj } = this;
-        const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+        const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         let index;
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
         if (obj.type === 'checkbox') {

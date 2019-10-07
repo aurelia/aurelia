@@ -65,7 +65,7 @@
                 return viewport;
             }
             else {
-                return viewport ? viewport.name : null;
+                return viewport ? (viewport).name : null;
             }
         },
         getInstance: function (viewport) {

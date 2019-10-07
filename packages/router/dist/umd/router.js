@@ -9,7 +9,6 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    // tslint:disable:no-non-null-assertion
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const browser_navigator_1 = require("./browser-navigator");
@@ -471,7 +470,7 @@
         /**
          * Finds the closest ancestor viewport.
          *
-         * @param element The element to search upward from. The element is not searched.
+         * @param element - The element to search upward from. The element is not searched.
          * @returns The Viewport that is the closest ancestor.
          */
         closestViewport(element) {

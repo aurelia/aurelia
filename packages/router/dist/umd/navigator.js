@@ -9,7 +9,6 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    // tslint:disable:no-non-null-assertion
     const kernel_1 = require("@aurelia/kernel");
     const queue_1 = require("./queue");
     class Navigator {

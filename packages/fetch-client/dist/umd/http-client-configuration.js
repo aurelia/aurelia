@@ -34,7 +34,7 @@
         /**
          * Sets the baseUrl.
          *
-         * @param baseUrl The base URL.
+         * @param baseUrl - The base URL.
          * @returns The chainable instance of this configuration object.
          * @chainable
          */
@@ -45,7 +45,7 @@
         /**
          * Sets the defaults.
          *
-         * @param defaults The defaults.
+         * @param defaults - The defaults.
          * @returns The chainable instance of this configuration object.
          * @chainable
          */
@@ -56,7 +56,7 @@
         /**
          * Adds an interceptor to be run on all requests or responses.
          *
-         * @param interceptor An object with request, requestError,
+         * @param interceptor - An object with request, requestError,
          * response, or responseError methods. request and requestError act as
          * resolve and reject handlers for the Request before it is sent.
          * response and responseError act as resolve and reject handlers for
@@ -71,6 +71,7 @@
         /**
          * Applies a configuration that addresses common application needs, including
          * configuring same-origin credentials, and using rejectErrorResponses.
+         *
          * @returns The chainable instance of this configuration object.
          * @chainable
          */
@@ -86,6 +87,7 @@
          * Promise continuation to determine if the server responded with a success code.
          * This method adds a response interceptor that causes Responses with error codes
          * to be rejected, which is common behavior in HTTP client libraries.
+         *
          * @returns The chainable instance of this configuration object.
          * @chainable
          */

@@ -75,7 +75,7 @@
         if (implicitElement && unit.filePair) {
             // @view() for foo.js and foo-view.html
             // @customElement() for foo.js and foo.html
-            const dec = kernel_1.kebabCase(unit.filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement';
+            const dec = kernel_1.kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
             const viewDef = '__au2ViewDef';
             m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
             if (localDeps.length) {
@@ -129,7 +129,7 @@
     // TypeScript parsed statement could contain leading white spaces.
     // This find the exact starting position for latter code injection.
     function ensureTokenStart(start, code) {
-        while (start < code.length - 1 && code[start].match(/^\s$/))
+        while (start < code.length - 1 && /^\s$/.exec(code[start]))
             start++;
         return start;
     }
@@ -185,7 +185,7 @@
                 if (isImplicitResource && filePair) {
                     return {
                         implicitStatement: { pos: pos, end: node.end },
-                        runtimeImportName: kernel_1.kebabCase(filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement'
+                        runtimeImportName: kernel_1.kebabCase(filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement'
                     };
                 }
             }

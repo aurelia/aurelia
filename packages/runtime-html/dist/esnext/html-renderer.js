@@ -92,11 +92,10 @@ class AttributeBindingRenderer {
     }
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
-        const binding = new AttributeBinding(expr, target, instruction.attr /*targetAttribute*/, instruction.to /*targetKey*/, BindingMode.toView, this.observerLocator, context);
+        const binding = new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.observerLocator, context);
         addBinding(renderable, binding);
     }
 };
-// @ts-ignore
 AttributeBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 AttributeBindingRenderer = __decorate([
     instructionRenderer("hc" /* attributeBinding */)

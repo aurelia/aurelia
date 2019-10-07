@@ -4,7 +4,6 @@ import { DOM } from '@aurelia/runtime-html';
  */
 export class LinkHandler {
     constructor() {
-        // tslint:disable-next-line:no-empty
         this.options = { callback: () => { } };
         this.isActive = false;
         this.handler = (e) => {
@@ -19,7 +18,7 @@ export class LinkHandler {
     /**
      * Gets the href and a "should handle" recommendation, given an Event.
      *
-     * @param event The Event to inspect for target anchor and href.
+     * @param event - The Event to inspect for target anchor and href.
      */
     static getEventInfo(event) {
         const info = {
@@ -53,7 +52,7 @@ export class LinkHandler {
     /**
      * Finds the closest ancestor that's an anchor element.
      *
-     * @param el The element to search upward from.
+     * @param el - The element to search upward from.
      * @returns The link element that is the closest ancestor.
      */
     static closestAnchor(el) {
@@ -68,7 +67,7 @@ export class LinkHandler {
     /**
      * Gets a value indicating whether or not an anchor targets the current window.
      *
-     * @param target The anchor element whose target should be inspected.
+     * @param target - The anchor element whose target should be inspected.
      * @returns True if the target of the link element is this window; false otherwise.
      */
     static targetIsThisWindow(target) {

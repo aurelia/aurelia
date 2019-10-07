@@ -38,7 +38,7 @@ __decorate([
 NameTag = __decorate([
     customElement({
         name: 'name-tag',
-        template: '<template>${name}</template>',
+        template: `<template>\${name}</template>`,
         build: { required: true, compiler: 'default' },
         dependencies: [],
         instructions: [],

@@ -119,7 +119,7 @@
             let i = options.length;
             while (i-- > 0) {
                 const option = options[i];
-                const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
+                const optionValue = Object.prototype.hasOwnProperty.call(option, 'model') ? option.model : option.value;
                 if (isArray) {
                     option.selected = currentValue.findIndex(item => !!matcher(optionValue, item)) !== -1;
                     continue;
@@ -163,7 +163,7 @@
                 while (i < len) {
                     option = options[i];
                     if (option.selected) {
-                        values.push(option.hasOwnProperty('model')
+                        values.push(Object.prototype.hasOwnProperty.call(option, 'model')
                             ? option.model
                             : option.value);
                     }
@@ -200,7 +200,7 @@
             while (i < len) {
                 const option = options[i];
                 if (option.selected) {
-                    value = option.hasOwnProperty('model')
+                    value = Object.prototype.hasOwnProperty.call(option, 'model')
                         ? option.model
                         : option.value;
                     break;

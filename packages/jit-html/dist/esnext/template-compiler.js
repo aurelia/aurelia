@@ -259,7 +259,7 @@ let TemplateCompiler = class TemplateCompiler {
                 replacePart = replaceParts[i];
                 instructionRowsSave = this.instructionRows;
                 partScopesSave = this.scopeParts;
-                if (partScopesSave.indexOf(replacePart.name) === -1) {
+                if (!partScopesSave.includes(replacePart.name)) {
                     partScopesSave.push(replacePart.name);
                 }
                 scopeParts = this.scopeParts = [];

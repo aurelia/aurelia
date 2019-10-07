@@ -117,13 +117,11 @@
             const elementInfo = this.resources.getElementInfo(name);
             if (elementInfo == null) {
                 // there is no registered custom element with this name
-                // @ts-ignore
                 this.manifest = new jit_1.PlainElementSymbol(node);
             }
             else {
                 // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
                 this.parentManifestRoot = this.manifestRoot;
-                // @ts-ignore
                 manifestRoot = this.manifestRoot = this.manifest = new jit_1.CustomElementSymbol(this.dom, node, elementInfo);
             }
             // lifting operations done by template controllers and replace-parts effectively unlink the nodes, so start at the bottom
@@ -201,13 +199,11 @@
                         // is assigned to the proxy), so this evaluates to true at most once per node
                         if (manifestProxy === manifest) {
                             currentController.template = manifest;
-                            // @ts-ignore
                             manifestProxy = currentController;
                         }
                         else {
                             currentController.templateController = previousController;
                             currentController.template = previousController.template;
-                            // @ts-ignore
                             previousController.template = currentController;
                         }
                         previousController = currentController;

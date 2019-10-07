@@ -1,7 +1,8 @@
 export interface ISanitizer {
     /**
      * Sanitizes the provided input.
-     * @param input The input to be sanitized.
+     *
+     * @param input - The input to be sanitized.
      */
     sanitize(input: string): string;
 }
@@ -14,7 +15,8 @@ export declare class SanitizeValueConverter {
     constructor(sanitizer: ISanitizer);
     /**
      * Process the provided markup that flows to the view.
-     * @param untrustedMarkup The untrusted markup to be sanitized.
+     *
+     * @param untrustedMarkup - The untrusted markup to be sanitized.
      */
     toView(untrustedMarkup: string): string | null;
 }

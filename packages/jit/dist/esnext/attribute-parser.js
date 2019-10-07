@@ -31,6 +31,5 @@ export class AttributeParser {
         }
     }
 }
-// @ts-ignore
 AttributeParser.inject = [ISyntaxInterpreter, all(IAttributePattern)];
 //# sourceMappingURL=attribute-parser.js.map

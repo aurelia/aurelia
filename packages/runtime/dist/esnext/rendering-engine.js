@@ -74,7 +74,6 @@ export class RenderingEngine {
             return acc;
         }, Object.create(null));
     }
-    // @ts-ignore
     getElementTemplate(dom, definition, parentContext, componentType) {
         if (definition == void 0) {
             return void 0;

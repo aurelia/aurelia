@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { DI, IContainer, Reporter } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
@@ -460,7 +459,7 @@ export class Router {
     /**
      * Finds the closest ancestor viewport.
      *
-     * @param element The element to search upward from. The element is not searched.
+     * @param element - The element to search upward from. The element is not searched.
      * @returns The Viewport that is the closest ancestor.
      */
     closestViewport(element) {

@@ -67,39 +67,37 @@ export declare class DI {
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
      *
-     * @param target The class / constructor function to register as transient.
+     * @param target - The class / constructor function to register as transient.
      * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
      *
-     * Example usage:
-  ```ts
-  // On an existing class
-  class Foo { }
-  DI.transient(Foo);
-  
-  // Inline declaration
-  const Foo = DI.transient(class { });
-  // Foo is now strongly typed with register
-  Foo.register(container);
-  ```
+     * @example ```ts
+     * // On an existing class
+     * class Foo { }
+     * DI.transient(Foo);
+     *
+     * // Inline declaration
+     * const Foo = DI.transient(class { });
+     * // Foo is now strongly typed with register
+     * Foo.register(container);
+     * ```
      */
     static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
     /**
      * Registers the `target` class as a singleton dependency; the class will only be created once. Each
      * consecutive time the dependency is resolved, the same instance will be returned.
      *
-     * @param target The class / constructor function to register as a singleton.
+     * @param target - The class / constructor function to register as a singleton.
      * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
-     * Example usage:
-  ```ts
-  // On an existing class
-  class Foo { }
-  DI.singleton(Foo);
-  
-  // Inline declaration
-  const Foo = DI.singleton(class { });
-  // Foo is now strongly typed with register
-  Foo.register(container);
-  ```
+     * @example ```ts
+     * // On an existing class
+     * class Foo { }
+     * DI.singleton(Foo);
+     *
+     * // Inline declaration
+     * const Foo = DI.singleton(class { });
+     * // Foo is now strongly typed with register
+     * Foo.register(container);
+     * ```
      */
     static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 }
@@ -111,24 +109,22 @@ declare function transientDecorator<T extends Constructable>(target: T & Partial
  * Registers the decorated class as a transient dependency; each time the dependency is resolved
  * a new instance will be created.
  *
- * Example usage:
-```ts
-@transient
-class Foo { }
-```
+ * @example ```ts
+ * @transient()
+ * class Foo { }
+ * ```
  */
 export declare function transient<T extends Constructable>(): typeof transientDecorator;
 /**
  * Registers the `target` class as a transient dependency; each time the dependency is resolved
  * a new instance will be created.
  *
- * @param target The class / constructor function to register as transient.
+ * @param target - The class / constructor function to register as transient.
  *
- * Example usage:
-```ts
-@transient()
-class Foo { }
-```
+ * @example ```ts
+ * @transient()
+ * class Foo { }
+ * ```
  */
 export declare function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 declare function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
@@ -136,24 +132,22 @@ declare function singletonDecorator<T extends Constructable>(target: T & Partial
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
- * Example usage:
-```ts
-@singleton
-class Foo { }
-```
+ * @example ```ts
+ * @singleton()
+ * class Foo { }
+ * ```
  */
 export declare function singleton<T extends Constructable>(): typeof singletonDecorator;
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
- * @param target The class / constructor function to register as a singleton.
+ * @param target - The class / constructor function to register as a singleton.
  *
- * Example usage:
-```ts
-@singleton()
-class Foo { }
-```
+ * @example ```ts
+ * @singleton()
+ * class Foo { }
+ * ```
  */
 export declare function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export declare const all: (key: any) => any;

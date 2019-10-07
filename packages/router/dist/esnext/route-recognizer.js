@@ -163,7 +163,7 @@ export class RouteRecognizer {
     /**
      * Parse a route pattern and add it to the collection of recognized routes.
      *
-     * @param route The route to add.
+     * @param route - The route to add.
      */
     add(route) {
         if (Array.isArray(route)) {
@@ -180,7 +180,7 @@ export class RouteRecognizer {
         const routeName = route.handler.name;
         let isEmpty = true;
         let normalizedRoute = route.path;
-        if (normalizedRoute.charAt(0) === '/') {
+        if (normalizedRoute.startsWith('/')) {
             normalizedRoute = normalizedRoute.slice(1);
         }
         const segments = [];
@@ -190,10 +190,10 @@ export class RouteRecognizer {
         for (let i = 0, ii = splitRoute.length; i < ii; ++i) {
             part = splitRoute[i];
             // Try to parse a parameter :param?
-            let match = part.match(/^:([^?]+)(\?)?$/);
+            let match = /^:([^?]+)(\?)?$/.exec(part);
             if (match) {
                 const [, name, optional] = match;
-                if (name.indexOf('=') !== -1) {
+                if (name.includes('=')) {
                     throw new Error(`Parameter ${name} in route ${route} has a default value, which is not supported.`);
                 }
                 segments.push(segment = new DynamicSegment(name, !!optional));
@@ -202,7 +202,7 @@ export class RouteRecognizer {
             }
             else {
                 // Try to parse a star segment *whatever
-                match = part.match(/^\*(.+)$/);
+                match = /^\*(.+)$/.exec(part);
                 if (match) {
                     segments.push(segment = new StarSegment(match[1]));
                     names.push(match[1]);
@@ -275,7 +275,7 @@ export class RouteRecognizer {
     /**
      * Retrieve a RouteGenerator for a route by name or RouteConfig (RouteHandler).
      *
-     * @param nameOrRoute The name of the route or RouteConfig object.
+     * @param nameOrRoute - The name of the route or RouteConfig object.
      * @returns The RouteGenerator for that route.
      */
     getRoute(nameOrRoute) {
@@ -284,7 +284,7 @@ export class RouteRecognizer {
     /**
      * Retrieve the handlers registered for the route by name or RouteConfig (RouteHandler).
      *
-     * @param nameOrRoute The name of the route or RouteConfig object.
+     * @param nameOrRoute - The name of the route or RouteConfig object.
      * @returns The handlers.
      */
     handlersFor(nameOrRoute) {
@@ -297,7 +297,7 @@ export class RouteRecognizer {
     /**
      * Check if this RouteRecognizer recognizes a route by name or RouteConfig (RouteHandler).
      *
-     * @param nameOrRoute The name of the route or RouteConfig object.
+     * @param nameOrRoute - The name of the route or RouteConfig object.
      * @returns True if the named route is recognized.
      */
     hasRoute(nameOrRoute) {
@@ -306,9 +306,9 @@ export class RouteRecognizer {
     /**
      * Generate a path and query string from a route name or RouteConfig (RouteHandler) and params object.
      *
-     * @param nameOrRoute The name of the route or RouteConfig object.
-     * @param params The route params to use when populating the pattern.
-     *  Properties not required by the pattern will be appended to the query string.
+     * @param nameOrRoute - The name of the route or RouteConfig object.
+     * @param params - The route params to use when populating the pattern.
+     * Properties not required by the pattern will be appended to the query string.
      * @returns The generated absolute path and query string.
      */
     generate(nameOrRoute, params) {
@@ -340,7 +340,7 @@ export class RouteRecognizer {
                 output += segmentValue;
             }
         }
-        if (output.charAt(0) !== '/') {
+        if (!output.startsWith('/')) {
             output = `/${output}`;
         }
         // remove params used in the path and add the rest to the querystring
@@ -354,10 +354,10 @@ export class RouteRecognizer {
     /**
      * Match a path string against registered route patterns.
      *
-     * @param path The path to attempt to match.
+     * @param path - The path to attempt to match.
      * @returns Array of objects containing `handler`, `params`, and
-     *  `isDynamic` values for the matched route(s), or undefined if no match
-     *  was found.
+     * `isDynamic` values for the matched route(s), or undefined if no match
+     * was found.
      */
     recognize(path) {
         let states = [this.rootState];
@@ -371,7 +371,7 @@ export class RouteRecognizer {
             queryParams = parseQueryString(queryString);
         }
         normalizedPath = decodeURI(normalizedPath);
-        if (normalizedPath.charAt(0) !== '/') {
+        if (!normalizedPath.startsWith('/')) {
             normalizedPath = `/${normalizedPath}`;
         }
         let pathLen = normalizedPath.length;
@@ -386,12 +386,12 @@ export class RouteRecognizer {
             states.forEach(state => {
                 state.nextStates.forEach(nextState => {
                     if (nextState.charSpec.validChars !== null) {
-                        if (nextState.charSpec.validChars.indexOf(ch) !== -1) {
+                        if (nextState.charSpec.validChars.includes(ch)) {
                             nextStates.push(nextState);
                         }
                     }
                     else if (nextState.charSpec.invalidChars !== null
-                        && nextState.charSpec.invalidChars.indexOf(ch) === -1) {
+                        && !nextState.charSpec.invalidChars.includes(ch)) {
                         nextStates.push(nextState);
                     }
                 });
@@ -441,9 +441,10 @@ export class RouteRecognizer {
         if (solution && solution.handlers) {
             // if a trailing slash was dropped and a star segment is the last segment
             // specified, put the trailing slash back
-            if (isSlashDropped && solution.regex.source.slice(-5) === '(.+)$') {
+            if (isSlashDropped && solution.regex.source.endsWith('(.+)$')) {
                 normalizedPath = `${normalizedPath}/`;
             }
+            // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
             const captures = normalizedPath.match(solution.regex);
             let currentCapture = 1;
             const result = [];

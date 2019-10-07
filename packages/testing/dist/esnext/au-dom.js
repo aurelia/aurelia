@@ -535,7 +535,6 @@ export const AuDOMTest = {
             build: { required: false },
             name,
             template: AuNode.createText().makeTarget(),
-            // @ts-ignore
             instructions: [[new AuTextInstruction(parseExpression(expression))]]
         };
     },
@@ -560,35 +559,25 @@ export const AuDOMTest = {
         };
     },
     createIfInstruction(expression, def) {
-        return new HydrateTemplateController(def, 'if', 
-        // @ts-ignore
-        [new ToViewBindingInstruction(parseExpression(expression), 'value')]);
+        return new HydrateTemplateController(def, 'if', [new ToViewBindingInstruction(parseExpression(expression), 'value')]);
     },
     createElseInstruction(def) {
         return new HydrateTemplateController(def, 'else', [], true);
     },
     createRepeatInstruction(expression, def) {
-        return new HydrateTemplateController(def, 'repeat', 
-        // @ts-ignore
-        [new IteratorBindingInstruction(parseExpression(expression, 539 /* ForCommand */), 'items')]);
+        return new HydrateTemplateController(def, 'repeat', [new IteratorBindingInstruction(parseExpression(expression, 539 /* ForCommand */), 'items')]);
     },
     createReplaceableInstruction(def) {
         return new HydrateTemplateController(def, 'replaceable', []);
     },
     createWithInstruction(expression, def) {
-        return new HydrateTemplateController(def, 'with', 
-        // @ts-ignore
-        [new ToViewBindingInstruction(parseExpression(expression), 'value')]);
+        return new HydrateTemplateController(def, 'with', [new ToViewBindingInstruction(parseExpression(expression), 'value')]);
     },
     createElementInstruction(name, bindings, parts) {
-        return new HydrateElementInstruction(name, 
-        // @ts-ignore
-        bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)), parts);
+        return new HydrateElementInstruction(name, bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)), parts);
     },
     createLetInstruction(bindings, toBindingContext = false) {
-        return new LetElementInstruction(
-        // @ts-ignore
-        bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)), toBindingContext);
+        return new LetElementInstruction(bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)), toBindingContext);
     }
 };
 //# sourceMappingURL=au-dom.js.map

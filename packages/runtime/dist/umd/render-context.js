@@ -35,7 +35,7 @@
             if (dependencies != void 0) {
                 container.register(...dependencies);
             }
-            //If the element has a view, support Recursive Components by adding self to own view template container.
+            // If the element has a view, support Recursive Components by adding self to own view template container.
             if (componentType) {
                 componentType.register(container);
             }

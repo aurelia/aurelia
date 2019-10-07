@@ -27,6 +27,7 @@ let ProxySubscriberCollection = class ProxySubscriberCollection {
         return this.raw[this.key];
     }
     flushBatch(flags) {
+        return;
     }
 };
 ProxySubscriberCollection = __decorate([

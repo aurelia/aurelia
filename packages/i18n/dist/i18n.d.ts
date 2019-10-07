@@ -12,7 +12,6 @@ export declare class I18nKeyEvaluationResult {
 export declare const I18N: import("@aurelia/kernel").InterfaceSymbol<I18nService>;
 /**
  * Translation service class.
- * @export
  */
 export declare class I18nService {
     private readonly ea;
@@ -50,6 +49,7 @@ export declare class I18nService {
     /**
      * Formats the given `input` number according to the given `[options]`, and `[locales]`.
      * If the `locales` is skipped, then the number is formatted using the currently active locale.
+     *
      * @returns Formatted number.
      */
     nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string;
@@ -61,6 +61,7 @@ export declare class I18nService {
     /**
      * Formats the given `input` date according to the given `[options]` and `[locales]`.
      * If the `locales` is skipped, then the date is formatted using the currently active locale.
+     *
      * @returns Formatted date.
      */
     df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string;

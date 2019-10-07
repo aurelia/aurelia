@@ -101,11 +101,11 @@
     exports.unobserve = unobserve;
     function connectableDecorator(target) {
         const proto = target.prototype;
-        if (!proto.hasOwnProperty('observeProperty'))
+        if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty'))
             proto.observeProperty = observeProperty;
-        if (!proto.hasOwnProperty('unobserve'))
+        if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve'))
             proto.unobserve = unobserve;
-        if (!proto.hasOwnProperty('addObserver'))
+        if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver'))
             proto.addObserver = addObserver;
         return target;
     }

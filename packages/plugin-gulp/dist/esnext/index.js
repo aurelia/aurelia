@@ -40,6 +40,6 @@ export function plugin(options, _preprocess = preprocess // for testing
     });
 }
 function stringModuleWrap(id) {
-    return 'text!' + id;
+    return `text!${id}`;
 }
 //# sourceMappingURL=index.js.map

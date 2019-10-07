@@ -2,7 +2,6 @@ import { IContainer } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent } from './interfaces';
 import { IRouter } from './router';
-import { IViewportOptions } from './viewport';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 export interface IFindViewportsResult {

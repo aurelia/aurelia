@@ -84,12 +84,12 @@ let GetterObserver = class GetterObserver {
         Reflect.defineProperty(obj, propertyKey, { get });
     }
     addPropertyDep(subscribable) {
-        if (this.propertyDeps.indexOf(subscribable) === -1) {
+        if (!this.propertyDeps.includes(subscribable)) {
             this.propertyDeps.push(subscribable);
         }
     }
     addCollectionDep(subscribable) {
-        if (this.collectionDeps.indexOf(subscribable) === -1) {
+        if (!this.collectionDeps.includes(subscribable)) {
             this.collectionDeps.push(subscribable);
         }
     }

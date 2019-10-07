@@ -9,7 +9,7 @@ export interface Interceptor {
      * return the request, or return a new one to be sent. If desired, the interceptor
      * may return a Response in order to short-circuit the HTTP request itself.
      *
-     * @param request The request to be sent.
+     * @param request - The request to be sent.
      * @returns The existing request, a new request or a response; or a Promise for any of these.
      */
     request?(request: Request): Request | Response | Promise<Request | Response>;
@@ -18,7 +18,7 @@ export interface Interceptor {
      * as a Promise rejection handler. It may rethrow the error to propagate the
      * failure, or return a new Request or Response to recover.
      *
-     * @param error The rejection value from the previous interceptor.
+     * @param error - The rejection value from the previous interceptor.
      * @returns The existing request, a new request or a response; or a Promise for any of these.
      */
     requestError?(error: unknown): Request | Response | Promise<Request | Response>;
@@ -26,7 +26,7 @@ export interface Interceptor {
      * Called with the response after it is received. Response interceptors can modify
      * and return the Response, or create a new one to be returned to the caller.
      *
-     * @param response The response.
+     * @param response - The response.
      * @returns The response; or a Promise for one.
      */
     response?(response: Response, request?: Request): Response | Promise<Response>;
@@ -35,7 +35,7 @@ export interface Interceptor {
      * function acts as a Promise rejection handler. It may rethrow the error
      * to propagate the failure, or return a new Response to recover.
      *
-     * @param error The rejection value from the fetch request or from a
+     * @param error - The rejection value from the fetch request or from a
      * previous interceptor.
      * @returns The response; or a Promise for one.
      */

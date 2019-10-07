@@ -15,7 +15,7 @@ export class ResourceModel {
     /**
      * Retrieve information about a custom element resource.
      *
-     * @param element The original DOM element.
+     * @param element - The original DOM element.
      *
      * @returns The resource information if the element exists, or `null` if it does not exist.
      */
@@ -36,7 +36,7 @@ export class ResourceModel {
     /**
      * Retrieve information about a custom attribute resource.
      *
-     * @param syntax The parsed `AttrSyntax`
+     * @param syntax - The parsed `AttrSyntax`
      *
      * @returns The resource information if the attribute exists, or `null` if it does not exist.
      */
@@ -57,7 +57,7 @@ export class ResourceModel {
     /**
      * Retrieve a binding command resource.
      *
-     * @param name The parsed `AttrSyntax`
+     * @param name - The parsed `AttrSyntax`
      *
      * @returns An instance of the command if it exists, or `null` if it does not exist.
      */

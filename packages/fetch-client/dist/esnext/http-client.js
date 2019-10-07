@@ -25,7 +25,7 @@ export class HttpClient {
     /**
      * Configure this client with default settings to be used by all requests.
      *
-     * @param config A configuration object, or a function that takes a config
+     * @param config - A configuration object, or a function that takes a config
      * object and configures it.
      * @returns The chainable instance of this HttpClient.
      * @chainable
@@ -42,7 +42,7 @@ export class HttpClient {
             normalizedConfig.defaults = { ...this.defaults };
             normalizedConfig.interceptors = this.interceptors;
             const c = config(normalizedConfig);
-            if (HttpClientConfiguration.prototype.isPrototypeOf(c)) {
+            if (Object.prototype.isPrototypeOf.call(HttpClientConfiguration, c)) {
                 normalizedConfig = c;
             }
         }
@@ -50,7 +50,7 @@ export class HttpClient {
             throw new Error('invalid config');
         }
         const defaults = normalizedConfig.defaults;
-        if (defaults !== undefined && Headers.prototype.isPrototypeOf(defaults.headers)) {
+        if (defaults !== undefined && Object.prototype.isPrototypeOf.call(Headers, defaults.headers)) {
             // Headers instances are not iterable in all browsers. Require a plain
             // object here to allow default headers to be merged into request headers.
             throw new Error('Default headers must be a plain object.');
@@ -58,10 +58,10 @@ export class HttpClient {
         const interceptors = normalizedConfig.interceptors;
         if (interceptors !== undefined && interceptors.length) {
             // find if there is a RetryInterceptor
-            if (interceptors.filter(x => RetryInterceptor.prototype.isPrototypeOf(x)).length > 1) {
+            if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(RetryInterceptor, x)).length > 1) {
                 throw new Error('Only one RetryInterceptor is allowed.');
             }
-            const retryInterceptorIndex = interceptors.findIndex(x => RetryInterceptor.prototype.isPrototypeOf(x));
+            const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(RetryInterceptor, x));
             if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
                 throw new Error('The retry interceptor must be the last interceptor defined.');
             }
@@ -80,9 +80,9 @@ export class HttpClient {
      *
      * See also https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
      *
-     * @param input The resource that you wish to fetch. Either a
+     * @param input - The resource that you wish to fetch. Either a
      * Request object, or a string containing the URL of the resource.
-     * @param init An options object containing settings to be applied to
+     * @param init - An options object containing settings to be applied to
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
@@ -91,10 +91,10 @@ export class HttpClient {
         let request = this.buildRequest(input, init);
         return this.processRequest(request, this.interceptors).then(result => {
             let response;
-            if (Response.prototype.isPrototypeOf(result)) {
+            if (Object.prototype.isPrototypeOf.call(Response, result)) {
                 response = Promise.resolve(result);
             }
-            else if (Request.prototype.isPrototypeOf(result)) {
+            else if (Object.prototype.isPrototypeOf.call(Request, result)) {
                 request = result;
                 response = fetch(request);
             }
@@ -104,7 +104,7 @@ export class HttpClient {
             return this.processResponse(response, this.interceptors, request);
         })
             .then(result => {
-            if (Request.prototype.isPrototypeOf(result)) {
+            if (Object.prototype.isPrototypeOf.call(Request, result)) {
                 return this.fetch(result);
             }
             return result;
@@ -123,7 +123,7 @@ export class HttpClient {
         let body;
         let requestContentType;
         const parsedDefaultHeaders = parseHeaderValues(defaults.headers);
-        if (Request.prototype.isPrototypeOf(input)) {
+        if (Object.prototype.isPrototypeOf.call(Request, input)) {
             request = input;
             requestContentType = new Headers(request.headers).get('Content-Type');
         }
@@ -146,7 +146,7 @@ export class HttpClient {
             }
         }
         setDefaultHeaders(request.headers, parsedDefaultHeaders);
-        if (body !== undefined && Blob.prototype.isPrototypeOf(body) && body.type) {
+        if (body !== undefined && Object.prototype.isPrototypeOf.call(Blob, body) && body.type) {
             // work around bug in IE & Edge where the Blob type is ignored in the request
             // https://connect.microsoft.com/IE/feedback/details/2136163
             request.headers.set('Content-Type', body.type);
@@ -156,9 +156,9 @@ export class HttpClient {
     /**
      * Calls fetch as a GET request.
      *
-     * @param input The resource that you wish to fetch. Either a
+     * @param input - The resource that you wish to fetch. Either a
      * Request object, or a string containing the URL of the resource.
-     * @param init An options object containing settings to be applied to
+     * @param init - An options object containing settings to be applied to
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
@@ -168,10 +168,10 @@ export class HttpClient {
     /**
      * Calls fetch with request method set to POST.
      *
-     * @param input The resource that you wish to fetch. Either a
+     * @param input - The resource that you wish to fetch. Either a
      * Request object, or a string containing the URL of the resource.
-     * @param body The body of the request.
-     * @param init An options object containing settings to be applied to
+     * @param body - The body of the request.
+     * @param init - An options object containing settings to be applied to
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
@@ -181,10 +181,10 @@ export class HttpClient {
     /**
      * Calls fetch with request method set to PUT.
      *
-     * @param input The resource that you wish to fetch. Either a
+     * @param input - The resource that you wish to fetch. Either a
      * Request object, or a string containing the URL of the resource.
-     * @param body The body of the request.
-     * @param init An options object containing settings to be applied to
+     * @param body - The body of the request.
+     * @param init - An options object containing settings to be applied to
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
@@ -194,10 +194,10 @@ export class HttpClient {
     /**
      * Calls fetch with request method set to PATCH.
      *
-     * @param input The resource that you wish to fetch. Either a
+     * @param input - The resource that you wish to fetch. Either a
      * Request object, or a string containing the URL of the resource.
-     * @param body The body of the request.
-     * @param init An options object containing settings to be applied to
+     * @param body - The body of the request.
+     * @param init - An options object containing settings to be applied to
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
@@ -207,10 +207,10 @@ export class HttpClient {
     /**
      * Calls fetch with request method set to DELETE.
      *
-     * @param input The resource that you wish to fetch. Either a
+     * @param input - The resource that you wish to fetch. Either a
      * Request object, or a string containing the URL of the resource.
-     * @param body The body of the request.
-     * @param init An options object containing settings to be applied to
+     * @param body - The body of the request.
+     * @param init - An options object containing settings to be applied to
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
@@ -262,7 +262,7 @@ function parseHeaderValues(headers) {
     const parsedHeaders = {};
     const $headers = headers !== undefined ? headers : {};
     for (const name in $headers) {
-        if ($headers.hasOwnProperty(name)) {
+        if (Object.prototype.hasOwnProperty.call($headers, name)) {
             parsedHeaders[name] = (typeof $headers[name] === 'function')
                 ? $headers[name]()
                 : $headers[name];
@@ -279,7 +279,7 @@ function getRequestUrl(baseUrl, url) {
 function setDefaultHeaders(headers, defaultHeaders) {
     const $defaultHeaders = defaultHeaders !== undefined ? defaultHeaders : {};
     for (const name in $defaultHeaders) {
-        if ($defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
+        if (Object.prototype.hasOwnProperty.call($defaultHeaders, name) && !headers.has(name)) {
             headers.set(name, $defaultHeaders[name]);
         }
     }

@@ -33,15 +33,12 @@ export const SymbolTraceWriter = {
                         if (p.flags !== undefined) {
                             const symbol = p;
                             if ('target' in symbol) {
-                                //@ts-ignore
                                 output += `attr: ${symbol.target}=${symbol.rawValue}`;
                             }
                             else if ('interpolation' in symbol) {
-                                //@ts-ignore
                                 output += `text: "${symbol.physicalNode.textContent}"`;
                             }
                             else {
-                                //@ts-ignore
                                 output += `element: ${symbol.physicalNode.outerHTML}`;
                             }
                         }

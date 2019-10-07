@@ -131,9 +131,7 @@ const startObservation = (element, subscription) => {
         element.$eMObservers = new Set();
     }
     if (element.$mObserver === undefined) {
-        element.$mObserver = DOM.createNodeObserver(element, 
-        // @ts-ignore
-        handleMutation, { attributes: true });
+        element.$mObserver = DOM.createNodeObserver(element, handleMutation, { attributes: true });
     }
     element.$eMObservers.add(subscription);
 };

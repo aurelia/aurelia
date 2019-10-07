@@ -11,9 +11,9 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     function nameConvention(className) {
-        const m = className.match(/^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/);
+        const m = /^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/.exec(className);
         if (!m) {
-            throw new Error('No convention found for class name ' + className);
+            throw new Error(`No convention found for class name ${className}`);
         }
         const bareName = m[1];
         const type = (m[2] ? kernel_1.camelCase(m[2]) : 'customElement');

@@ -531,7 +531,7 @@
         evaluate(flags, scope, locator, part) {
             const func = this.func.evaluate(flags, scope, locator, part);
             if (typeof func === 'function') {
-                return func.apply(null, evalList(flags, scope, locator, this.args, part));
+                return func(...evalList(flags, scope, locator, this.args, part));
             }
             if (!(flags & 2097152 /* mustEvaluate */) && (func == null)) {
                 return void 0;
@@ -836,7 +836,7 @@
             if (typeof func !== 'function') {
                 throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
             }
-            return func.apply(null, [this.cooked].concat(results));
+            return func(this.cooked, ...results);
         }
         connect(flags, scope, binding, part) {
             const expressions = this.expressions;
@@ -1046,7 +1046,6 @@
             }
         }
     }
-    ;
     function $map(flags, result, func) {
         const arr = Array(result.size);
         let i = -1;
@@ -1055,7 +1054,6 @@
         }
         $array(flags & ~8388608 /* isOriginalArray */, arr, func);
     }
-    ;
     function $set(flags, result, func) {
         const arr = Array(result.size);
         let i = -1;
@@ -1064,7 +1062,6 @@
         }
         $array(flags & ~8388608 /* isOriginalArray */, arr, func);
     }
-    ;
     function $number(flags, result, func) {
         const arr = Array(result);
         for (let i = 0; i < result; ++i) {
@@ -1072,6 +1069,5 @@
         }
         $array(flags & ~8388608 /* isOriginalArray */, arr, func);
     }
-    ;
 });
 //# sourceMappingURL=ast.js.map

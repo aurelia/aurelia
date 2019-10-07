@@ -30,7 +30,7 @@
     }
     const hasOwnProperty = platform_1.PLATFORM.hasOwnProperty;
     class DI {
-        constructor() { }
+        constructor() { return; }
         static createContainer(...params) {
             if (params.length === 0) {
                 return new Container(null);
@@ -145,20 +145,19 @@
          * Registers the `target` class as a transient dependency; each time the dependency is resolved
          * a new instance will be created.
          *
-         * @param target The class / constructor function to register as transient.
+         * @param target - The class / constructor function to register as transient.
          * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
          *
-         * Example usage:
-      ```ts
-      // On an existing class
-      class Foo { }
-      DI.transient(Foo);
-      
-      // Inline declaration
-      const Foo = DI.transient(class { });
-      // Foo is now strongly typed with register
-      Foo.register(container);
-      ```
+         * @example ```ts
+         * // On an existing class
+         * class Foo { }
+         * DI.transient(Foo);
+         *
+         * // Inline declaration
+         * const Foo = DI.transient(class { });
+         * // Foo is now strongly typed with register
+         * Foo.register(container);
+         * ```
          */
         static transient(target) {
             target.register = function register(container) {
@@ -171,19 +170,18 @@
          * Registers the `target` class as a singleton dependency; the class will only be created once. Each
          * consecutive time the dependency is resolved, the same instance will be returned.
          *
-         * @param target The class / constructor function to register as a singleton.
+         * @param target - The class / constructor function to register as a singleton.
          * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
-         * Example usage:
-      ```ts
-      // On an existing class
-      class Foo { }
-      DI.singleton(Foo);
-      
-      // Inline declaration
-      const Foo = DI.singleton(class { });
-      // Foo is now strongly typed with register
-      Foo.register(container);
-      ```
+         * @example ```ts
+         * // On an existing class
+         * class Foo { }
+         * DI.singleton(Foo);
+         *
+         * // Inline declaration
+         * const Foo = DI.singleton(class { });
+         * // Foo is now strongly typed with register
+         * Foo.register(container);
+         * ```
          */
         static singleton(target) {
             target.register = function register(container) {
@@ -285,12 +283,13 @@
             }
         }
         getFactory(container) {
+            let resolver;
             switch (this.strategy) {
                 case 1 /* singleton */:
                 case 2 /* transient */:
                     return container.getFactory(this.state);
                 case 5 /* alias */:
-                    const resolver = container.getResolver(this.state);
+                    resolver = container.getResolver(this.state);
                     if (resolver == null || resolver.getFactory === void 0) {
                         return null;
                     }

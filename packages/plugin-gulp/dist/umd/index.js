@@ -53,7 +53,7 @@
     }
     exports.plugin = plugin;
     function stringModuleWrap(id) {
-        return 'text!' + id;
+        return `text!${id}`;
     }
 });
 //# sourceMappingURL=index.js.map

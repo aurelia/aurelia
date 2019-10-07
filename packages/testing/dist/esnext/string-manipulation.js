@@ -66,7 +66,7 @@ export function jsonStringify(o) {
                 if (value.nodeType > 0) {
                     return htmlStringify(value);
                 }
-                if (cache.indexOf(value) !== -1) {
+                if (cache.includes(value)) {
                     try {
                         return JSON.parse(JSON.stringify(value));
                     }
@@ -92,10 +92,10 @@ export function htmlStringify(node) {
     if (node === undefined) {
         return 'undefined';
     }
-    if ((node.textContent != null && node.textContent.length) || node.nodeType === 3 /*Text*/ || node.nodeType === 8 /*Comment*/) {
+    if ((node.textContent != null && node.textContent.length) || node.nodeType === 3 /* Text */ || node.nodeType === 8 /* Comment */) {
         return node.textContent.replace(newline, '');
     }
-    if (node.nodeType === 1 /*Element*/) {
+    if (node.nodeType === 1 /* Element */) {
         if (node.innerHTML.length) {
             return node.innerHTML.replace(newline, '');
         }

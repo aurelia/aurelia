@@ -27,6 +27,6 @@ export function loader(contents, _preprocess = preprocess // for testing
     }
 }
 function stringModuleWrap(id) {
-    return '!!raw-loader!' + id;
+    return `!!raw-loader!${id}`;
 }
 //# sourceMappingURL=index.js.map

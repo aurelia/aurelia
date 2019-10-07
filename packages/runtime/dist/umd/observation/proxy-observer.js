@@ -38,6 +38,7 @@
             return this.raw[this.key];
         }
         flushBatch(flags) {
+            return;
         }
     };
     ProxySubscriberCollection = tslib_1.__decorate([

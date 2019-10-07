@@ -346,10 +346,12 @@
                 const expectedLine = expectedLines[i];
                 let actualLine = actualLines[i];
                 let divergingLines = (actualLine !== expectedLine && (!actualLine.endsWith(',')
-                    || actualLine.slice(0, -1) !== expectedLine));
+                    || actualLine.slice(0, -1) !== expectedLine) // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
+                );
                 if (divergingLines
                     && expectedLine.endsWith(',')
-                    && expectedLine.slice(0, -1) === actualLine) {
+                    && expectedLine.slice(0, -1) === actualLine // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
+                ) {
                     divergingLines = false;
                     actualLine += ',';
                 }
@@ -694,9 +696,7 @@
         return (void 0);
     }
     function getMessage(self) {
-        return util_1.truncate(inspect(self.actual), 128) + ' ' +
-            self.operator + ' ' +
-            util_1.truncate(inspect(self.expected), 128);
+        return `${util_1.truncate(inspect(self.actual), 128)} ${self.operator} ${util_1.truncate(inspect(self.expected), 128)}`;
     }
     function formatNumber(fn, value) {
         return fn(util_1.Object_is(value, -0) ? '-0' : `${value}`, 'number');
@@ -716,6 +716,7 @@
                     if (readableRegExps[divisor] === void 0) {
                         readableRegExps[divisor] = new RegExp(`(.|\\n){1,${divisor}}(\\s|$)|(\\n|.)+?(\\s|$)`, 'gm');
                     }
+                    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
                     const matches = value.match(readableRegExps[divisor]);
                     if (matches.length > 1) {
                         const indent = ' '.repeat(ctx.indentationLvl);
@@ -1306,7 +1307,7 @@
                     formatter = formatArrayBuffer;
                 }
                 else if (keys.length === 0) {
-                    return prefix + `{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
+                    return `${prefix}{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
                 }
                 braces[0] = `${prefix}{`;
                 keys.unshift('byteLength');

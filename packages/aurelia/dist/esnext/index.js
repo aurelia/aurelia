@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-default-export
 export { Aurelia, Aurelia as default } from './quick-start';
 export { DebugConfiguration, TraceConfiguration, } from '@aurelia/debug';
 export { 
@@ -541,7 +540,6 @@ HTMLDOM, DOM, // on top of DOM in @aurelia/runtime
 // HTMLProjectorLocator,
 // ShadowDOMProjector,
 StyleConfiguration, styles, } from '@aurelia/runtime-html';
-// tslint:disable-next-line:no-commented-code
 // export {
 //   IDOMInitializerRegistration,
 //   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,

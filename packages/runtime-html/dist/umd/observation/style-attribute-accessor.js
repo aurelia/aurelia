@@ -37,7 +37,7 @@
         }
         getStyleTuplesFromString(currentValue) {
             const styleTuples = [];
-            const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+            const rx = /\s*([\w-]+)\s*:\s*((?:(?:[\w-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^)]*)\),?|[^)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
             let pair;
             let name;
             while ((pair = rx.exec(currentValue)) !== null) {
@@ -114,7 +114,7 @@
                 }
                 version -= 1;
                 for (style in styles) {
-                    if (!styles.hasOwnProperty(style) || styles[style] !== version) {
+                    if (!Object.prototype.hasOwnProperty.call(styles, style) || styles[style] !== version) {
                         continue;
                     }
                     this.obj.style.removeProperty(style);
@@ -123,7 +123,7 @@
         }
         setProperty(style, value) {
             let priority = '';
-            if (value != null && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+            if (value != null && typeof value.indexOf === 'function' && value.includes('!important')) {
                 priority = 'important';
                 value = value.replace('!important', '');
             }

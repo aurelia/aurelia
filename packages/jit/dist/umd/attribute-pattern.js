@@ -49,7 +49,7 @@
                 && this.isInverted === other.isInverted;
         }
         hasOfMultiple(char) {
-            return this.chars.indexOf(char) !== -1;
+            return this.chars.includes(char);
         }
         hasOfSingle(char) {
             return this.chars === char;
@@ -58,7 +58,7 @@
             return false;
         }
         hasOfMultipleInverse(char) {
-            return this.chars.indexOf(char) === -1;
+            return !this.chars.includes(char);
         }
         hasOfSingleInverse(char) {
             return this.chars !== char;
@@ -144,7 +144,7 @@
         }
         append(charSpec, pattern) {
             const { patterns } = this;
-            if (patterns.indexOf(pattern) === -1) {
+            if (!patterns.includes(pattern)) {
                 patterns.push(pattern);
             }
             let state = this.findChild(charSpec);
@@ -332,7 +332,7 @@
             let c = '';
             while (i < len) {
                 c = pattern.charAt(i);
-                if (def.symbols.indexOf(c) === -1) {
+                if (!def.symbols.includes(c)) {
                     if (i === start) {
                         if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
                             start = i = (i + 4);

@@ -37,7 +37,7 @@
                 let ch = 0;
                 for (let i = 0; i < length; ++i) {
                     ch = value.charCodeAt(i);
-                    if (ch < 0x30 /*0*/ || ch > 0x39 /*9*/) {
+                    if (ch < 0x30 /* 0 */ || ch > 0x39 /* 9 */) {
                         return isNumericLookup[value] = false;
                     }
                 }
@@ -59,6 +59,7 @@
             CharKind[CharKind["upper"] = 2] = "upper";
             CharKind[CharKind["lower"] = 3] = "lower";
         })(CharKind || (CharKind = {}));
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         const isDigit = Object.freeze(Object.assign(Object.create(null), {
             '0': true,
             '1': true,
@@ -158,7 +159,7 @@
     exports.kebabCase = (function () {
         const cache = Object.create(null);
         function callback(char, sep) {
-            return sep ? '-' + char.toLowerCase() : char.toLowerCase();
+            return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
         }
         return function (input) {
             let output = cache[input];
@@ -226,7 +227,7 @@
      *
      * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
      *
-     * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+     * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
      */
     function mergeDistinct(arr1, arr2, slice) {
         if (arr1 === void 0 || arr1 === null || arr1 === emptyArray) {

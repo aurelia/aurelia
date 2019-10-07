@@ -43,7 +43,6 @@
         }
         app(config) {
             const comp = config;
-            // tslint:disable-next-line:no-collapsible-if
             if (comp && comp.kind && comp.kind.name === 'custom-element') {
                 // Default to custom element element name
                 const elementName = comp.description && comp.description.name;

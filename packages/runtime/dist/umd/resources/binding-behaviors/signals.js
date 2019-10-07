@@ -27,7 +27,7 @@
                 binding.signal = name;
             }
             else if (arguments.length > 4) {
-                const names = Array.prototype.slice.call(arguments, 3);
+                const names = Array.prototype.slice.call(args.length + 3, 3);
                 let i = names.length;
                 while (i--) {
                     const name = names[i];

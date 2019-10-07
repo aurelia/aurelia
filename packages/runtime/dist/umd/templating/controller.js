@@ -84,6 +84,10 @@
                 this.viewModel = viewModel;
                 this.bindingContext = getBindingContext(flags, viewModel);
                 this.host = host;
+                let instruction;
+                let parts;
+                let renderingEngine;
+                let template = void 0;
                 switch (Type.kind.name) {
                     case 'custom-element':
                         if (host == void 0) {
@@ -91,8 +95,7 @@
                             throw new Error(`No host element was provided when rendering a custom element.`);
                         }
                         this.vmKind = 0 /* customElement */;
-                        const renderingEngine = parentContext.get(rendering_engine_1.IRenderingEngine);
-                        let template = void 0;
+                        renderingEngine = parentContext.get(rendering_engine_1.IRenderingEngine);
                         if (this.hooks.hasRender) {
                             const result = this.bindingContext.render(flags, host, options.parts == void 0
                                 ? kernel_1.PLATFORM.emptyObject
@@ -102,11 +105,9 @@
                             }
                         }
                         else {
-                            const dom = parentContext.get(dom_1.IDOM);
-                            template = renderingEngine.getElementTemplate(dom, description, parentContext, Type);
+                            template = renderingEngine.getElementTemplate(parentContext.get(dom_1.IDOM), description, parentContext, Type);
                         }
                         if (template !== void 0) {
-                            let parts;
                             if (template.definition == null ||
                                 template.definition.instructions.length === 0 ||
                                 template.definition.instructions[0].length === 0 ||
@@ -119,7 +120,7 @@
                                 }
                             }
                             else {
-                                const instruction = template.definition.instructions[0][0];
+                                instruction = template.definition.instructions[0][0];
                                 if (options.parts == void 0) {
                                     parts = instruction.parts;
                                 }

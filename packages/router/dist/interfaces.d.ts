@@ -1,6 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
 import { ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
-import { ComponentAppellation } from './interfaces';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';

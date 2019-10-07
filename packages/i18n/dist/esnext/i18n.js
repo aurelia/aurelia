@@ -30,7 +30,6 @@ export class I18nKeyEvaluationResult {
 export const I18N = DI.createInterface('I18nService').noDefault();
 /**
  * Translation service class.
- * @export
  */
 let I18nService = class I18nService {
     constructor(i18nextWrapper, options, ea, signaler) {
@@ -92,6 +91,7 @@ let I18nService = class I18nService {
     /**
      * Formats the given `input` number according to the given `[options]`, and `[locales]`.
      * If the `locales` is skipped, then the number is formatted using the currently active locale.
+     *
      * @returns Formatted number.
      */
     nf(input, options, locales) {
@@ -107,6 +107,7 @@ let I18nService = class I18nService {
     /**
      * Formats the given `input` date according to the given `[options]` and `[locales]`.
      * If the `locales` is skipped, then the date is formatted using the currently active locale.
+     *
      * @returns Formatted date.
      */
     df(input, options, locales) {

@@ -556,7 +556,6 @@
                 build: { required: false },
                 name,
                 template: AuNode.createText().makeTarget(),
-                // @ts-ignore
                 instructions: [[new AuTextInstruction(jit_1.parseExpression(expression))]]
             };
         },
@@ -581,35 +580,25 @@
             };
         },
         createIfInstruction(expression, def) {
-            return new runtime_1.HydrateTemplateController(def, 'if', 
-            // @ts-ignore
-            [new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(expression), 'value')]);
+            return new runtime_1.HydrateTemplateController(def, 'if', [new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(expression), 'value')]);
         },
         createElseInstruction(def) {
             return new runtime_1.HydrateTemplateController(def, 'else', [], true);
         },
         createRepeatInstruction(expression, def) {
-            return new runtime_1.HydrateTemplateController(def, 'repeat', 
-            // @ts-ignore
-            [new runtime_1.IteratorBindingInstruction(jit_1.parseExpression(expression, 539 /* ForCommand */), 'items')]);
+            return new runtime_1.HydrateTemplateController(def, 'repeat', [new runtime_1.IteratorBindingInstruction(jit_1.parseExpression(expression, 539 /* ForCommand */), 'items')]);
         },
         createReplaceableInstruction(def) {
             return new runtime_1.HydrateTemplateController(def, 'replaceable', []);
         },
         createWithInstruction(expression, def) {
-            return new runtime_1.HydrateTemplateController(def, 'with', 
-            // @ts-ignore
-            [new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(expression), 'value')]);
+            return new runtime_1.HydrateTemplateController(def, 'with', [new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(expression), 'value')]);
         },
         createElementInstruction(name, bindings, parts) {
-            return new runtime_1.HydrateElementInstruction(name, 
-            // @ts-ignore
-            bindings.map(([from, to]) => new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(from), to)), parts);
+            return new runtime_1.HydrateElementInstruction(name, bindings.map(([from, to]) => new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(from), to)), parts);
         },
         createLetInstruction(bindings, toBindingContext = false) {
-            return new runtime_1.LetElementInstruction(
-            // @ts-ignore
-            bindings.map(([from, to]) => new runtime_1.LetBindingInstruction(jit_1.parseExpression(from), to)), toBindingContext);
+            return new runtime_1.LetElementInstruction(bindings.map(([from, to]) => new runtime_1.LetBindingInstruction(jit_1.parseExpression(from), to)), toBindingContext);
         }
     };
 });

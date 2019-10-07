@@ -20,6 +20,7 @@ var TaskType;
     TaskType[TaskType["with"] = 0] = "with";
     TaskType[TaskType["from"] = 1] = "from";
 })(TaskType || (TaskType = {}));
+// eslint-disable-next-line @typescript-eslint/class-name-casing
 export const StartTask = class $StartTask {
     constructor(type) {
         this.type = type;
@@ -156,7 +157,6 @@ export class PromiseTask {
             }
             this.hasStarted = true;
             if (next !== null) {
-                // @ts-ignore
                 const nextResult = next.call(context, value, ...args);
                 if (nextResult === void 0) {
                     this.done = true;

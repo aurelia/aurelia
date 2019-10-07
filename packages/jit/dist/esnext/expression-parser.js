@@ -85,16 +85,16 @@ export function parse(state, access, minPrecedence, bindingType) {
          * https://tc39.github.io/ecma262/#sec-unary-operators
          *
          * UnaryExpression :
-         *   1. LeftHandSideExpression
-         *   2. void UnaryExpression
-         *   3. typeof UnaryExpression
-         *   4. + UnaryExpression
-         *   5. - UnaryExpression
-         *   6. ! UnaryExpression
+         * 1. LeftHandSideExpression
+         * 2. void UnaryExpression
+         * 3. typeof UnaryExpression
+         * 4. + UnaryExpression
+         * 5. - UnaryExpression
+         * 6. ! UnaryExpression
          *
          * IsValidAssignmentTarget
-         *   2,3,4,5,6 = false
-         *   1 = see parseLeftHandSideExpression
+         * 2,3,4,5,6 = false
+         * 1 = see parseLeftHandSideExpression
          *
          * Note: technically we should throw on ++ / -- / +++ / ---, but there's nothing to gain from that
          */
@@ -108,26 +108,26 @@ export function parse(state, access, minPrecedence, bindingType) {
          * https://tc39.github.io/ecma262/#sec-primary-expression
          *
          * PrimaryExpression :
-         *   1. this
-         *   2. IdentifierName
-         *   3. Literal
-         *   4. ArrayLiteralExpression
-         *   5. ObjectLiteralExpression
-         *   6. TemplateLiteral
-         *   7. ParenthesizedExpression
+         * 1. this
+         * 2. IdentifierName
+         * 3. Literal
+         * 4. ArrayLiteralExpression
+         * 5. ObjectLiteralExpression
+         * 6. TemplateLiteral
+         * 7. ParenthesizedExpression
          *
          * Literal :
-         *    NullLiteral
-         *    BooleanLiteral
-         *    NumericLiteral
-         *    StringLiteral
+         * NullLiteral
+         * BooleanLiteral
+         * NumericLiteral
+         * StringLiteral
          *
          * ParenthesizedExpression :
-         *   ( AssignmentExpression )
+         * ( AssignmentExpression )
          *
          * IsValidAssignmentTarget
-         *   1,3,4,5,6,7 = false
-         *   2 = true
+         * 1,3,4,5,6,7 = false
+         * 2 = true
          */
         primary: switch (state.currentToken) {
             case 3077 /* ParentScope */: // $parent
@@ -229,30 +229,32 @@ export function parse(state, access, minPrecedence, bindingType) {
         }
         /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
          * MemberExpression :
-         *   1. PrimaryExpression
-         *   2. MemberExpression [ AssignmentExpression ]
-         *   3. MemberExpression . IdentifierName
-         *   4. MemberExpression TemplateLiteral
+         * 1. PrimaryExpression
+         * 2. MemberExpression [ AssignmentExpression ]
+         * 3. MemberExpression . IdentifierName
+         * 4. MemberExpression TemplateLiteral
          *
          * IsValidAssignmentTarget
-         *   1,4 = false
-         *   2,3 = true
+         * 1,4 = false
+         * 2,3 = true
          *
          *
          * parseCallExpression (Token.OpenParen)
          * CallExpression :
-         *   1. MemberExpression Arguments
-         *   2. CallExpression Arguments
-         *   3. CallExpression [ AssignmentExpression ]
-         *   4. CallExpression . IdentifierName
-         *   5. CallExpression TemplateLiteral
+         * 1. MemberExpression Arguments
+         * 2. CallExpression Arguments
+         * 3. CallExpression [ AssignmentExpression ]
+         * 4. CallExpression . IdentifierName
+         * 5. CallExpression TemplateLiteral
          *
          * IsValidAssignmentTarget
-         *   1,2,5 = false
-         *   3,4 = true
+         * 1,2,5 = false
+         * 3,4 = true
          */
         let name = state.tokenValue;
         while ((state.currentToken & 16384 /* LeftHandSide */) > 0) {
+            const args = [];
+            let strings;
             switch (state.currentToken) {
                 case 16392 /* Dot */:
                     state.assignable = true;
@@ -287,7 +289,6 @@ export function parse(state, access, minPrecedence, bindingType) {
                 case 671750 /* OpenParen */:
                     state.assignable = false;
                     nextToken(state);
-                    const args = new Array();
                     while (state.currentToken !== 1835018 /* CloseParen */) {
                         args.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
                         if (!consumeOpt(state, 1572875 /* Comma */)) {
@@ -308,7 +309,7 @@ export function parse(state, access, minPrecedence, bindingType) {
                     break;
                 case 540713 /* TemplateTail */:
                     state.assignable = false;
-                    const strings = [state.tokenValue];
+                    strings = [state.tokenValue];
                     result = new TaggedTemplateExpression(strings, strings, result);
                     nextToken(state);
                     break;
@@ -326,28 +327,28 @@ export function parse(state, access, minPrecedence, bindingType) {
      * https://tc39.github.io/ecma262/#sec-multiplicative-operators
      *
      * MultiplicativeExpression : (local precedence 6)
-     *   UnaryExpression
-     *   MultiplicativeExpression * / % UnaryExpression
+     * UnaryExpression
+     * MultiplicativeExpression * / % UnaryExpression
      *
      * AdditiveExpression : (local precedence 5)
-     *   MultiplicativeExpression
-     *   AdditiveExpression + - MultiplicativeExpression
+     * MultiplicativeExpression
+     * AdditiveExpression + - MultiplicativeExpression
      *
      * RelationalExpression : (local precedence 4)
-     *   AdditiveExpression
-     *   RelationalExpression < > <= >= instanceof in AdditiveExpression
+     * AdditiveExpression
+     * RelationalExpression < > <= >= instanceof in AdditiveExpression
      *
      * EqualityExpression : (local precedence 3)
-     *   RelationalExpression
-     *   EqualityExpression == != === !== RelationalExpression
+     * RelationalExpression
+     * EqualityExpression == != === !== RelationalExpression
      *
      * LogicalANDExpression : (local precedence 2)
-     *   EqualityExpression
-     *   LogicalANDExpression && EqualityExpression
+     * EqualityExpression
+     * LogicalANDExpression && EqualityExpression
      *
      * LogicalORExpression : (local precedence 1)
-     *   LogicalANDExpression
-     *   LogicalORExpression || LogicalANDExpression
+     * LogicalANDExpression
+     * LogicalORExpression || LogicalANDExpression
      */
     while ((state.currentToken & 65536 /* BinaryOp */) > 0) {
         const opToken = state.currentToken;
@@ -367,11 +368,11 @@ export function parse(state, access, minPrecedence, bindingType) {
      * https://tc39.github.io/ecma262/#prod-ConditionalExpression
      *
      * ConditionalExpression :
-     *   1. BinaryExpression
-     *   2. BinaryExpression ? AssignmentExpression : AssignmentExpression
+     * 1. BinaryExpression
+     * 2. BinaryExpression ? AssignmentExpression : AssignmentExpression
      *
      * IsValidAssignmentTarget
-     *   1,2 = false
+     * 1,2 = false
      */
     if (consumeOpt(state, 1572879 /* Question */)) {
         const yes = parse(state, access, 62 /* Assign */, bindingType);
@@ -388,11 +389,11 @@ export function parse(state, access, minPrecedence, bindingType) {
      * Note: AssignmentExpression here is equivalent to ES Expression because we don't parse the comma operator
      *
      * AssignmentExpression :
-     *   1. ConditionalExpression
-     *   2. LeftHandSideExpression = AssignmentExpression
+     * 1. ConditionalExpression
+     * 2. LeftHandSideExpression = AssignmentExpression
      *
      * IsValidAssignmentTarget
-     *   1,2 = false
+     * 1,2 = false
      */
     if (consumeOpt(state, 1048615 /* Equals */)) {
         if (!state.assignable) {
@@ -450,17 +451,17 @@ export function parse(state, access, minPrecedence, bindingType) {
  * https://tc39.github.io/ecma262/#prod-ArrayLiteralExpression
  *
  * ArrayLiteralExpression :
- *   [ Elision(opt) ]
- *   [ ElementList ]
- *   [ ElementList, Elision(opt) ]
+ * [ Elision(opt) ]
+ * [ ElementList ]
+ * [ ElementList, Elision(opt) ]
  *
  * ElementList :
- *   Elision(opt) AssignmentExpression
- *   ElementList, Elision(opt) AssignmentExpression
+ * Elision(opt) AssignmentExpression
+ * ElementList, Elision(opt) AssignmentExpression
  *
  * Elision :
- *  ,
- *  Elision ,
+ * ,
+ * Elision ,
  */
 function parseArrayLiteralExpression(state, access, bindingType) {
     nextToken(state);
@@ -510,21 +511,21 @@ function parseForOfStatement(state, result) {
  * https://tc39.github.io/ecma262/#prod-Literal
  *
  * ObjectLiteralExpression :
- *   { }
- *   { PropertyDefinitionList }
+ * { }
+ * { PropertyDefinitionList }
  *
  * PropertyDefinitionList :
- *   PropertyDefinition
- *   PropertyDefinitionList, PropertyDefinition
+ * PropertyDefinition
+ * PropertyDefinitionList, PropertyDefinition
  *
  * PropertyDefinition :
- *   IdentifierName
- *   PropertyName : AssignmentExpression
+ * IdentifierName
+ * PropertyName : AssignmentExpression
  *
  * PropertyName :
- *   IdentifierName
- *   StringLiteral
- *   NumericLiteral
+ * IdentifierName
+ * StringLiteral
+ * NumericLiteral
  */
 function parseObjectLiteralExpression(state, bindingType) {
     const keys = new Array();
@@ -610,32 +611,32 @@ function parseInterpolation(state) {
  * https://tc39.github.io/ecma262/#prod-Literal
  *
  * TemplateExpression :
- *   NoSubstitutionTemplate
- *   TemplateHead
+ * NoSubstitutionTemplate
+ * TemplateHead
  *
  * NoSubstitutionTemplate :
- *   ` TemplateCharacters(opt) `
+ * ` TemplateCharacters(opt) `
  *
  * TemplateHead :
- *   ` TemplateCharacters(opt) ${
+ * ` TemplateCharacters(opt) ${
  *
  * TemplateSubstitutionTail :
- *   TemplateMiddle
- *   TemplateTail
+ * TemplateMiddle
+ * TemplateTail
  *
  * TemplateMiddle :
- *   } TemplateCharacters(opt) ${
+ * } TemplateCharacters(opt) ${
  *
  * TemplateTail :
- *   } TemplateCharacters(opt) `
+ * } TemplateCharacters(opt) `
  *
  * TemplateCharacters :
- *   TemplateCharacter TemplateCharacters(opt)
+ * TemplateCharacter TemplateCharacters(opt)
  *
  * TemplateCharacter :
- *   $ [lookahead ≠ {]
- *   \ EscapeSequence
- *   SourceCharacter (but not one of ` or \ or $)
+ * $ [lookahead ≠ {]
+ * \ EscapeSequence
+ * SourceCharacter (but not one of ` or \ or $)
  */
 function parseTemplate(state, access, bindingType, result, tagged) {
     const cooked = [state.tokenValue];
@@ -828,9 +829,9 @@ KeywordLookup.of = 1051179 /* OfKeyword */;
 const codes = {
     /* [$0-9A-Za_a-z] */
     AsciiIdPart: [0x24, 0, 0x30, 0x3A, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B],
-    IdStart: /*IdentifierStart*/ [0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0xAA, 0, 0xBA, 0, 0xC0, 0xD7, 0xD8, 0xF7, 0xF8, 0x2B9, 0x2E0, 0x2E5, 0x1D00, 0x1D26, 0x1D2C, 0x1D5D, 0x1D62, 0x1D66, 0x1D6B, 0x1D78, 0x1D79, 0x1DBF, 0x1E00, 0x1F00, 0x2071, 0, 0x207F, 0, 0x2090, 0x209D, 0x212A, 0x212C, 0x2132, 0, 0x214E, 0, 0x2160, 0x2189, 0x2C60, 0x2C80, 0xA722, 0xA788, 0xA78B, 0xA7AF, 0xA7B0, 0xA7B8, 0xA7F7, 0xA800, 0xAB30, 0xAB5B, 0xAB5C, 0xAB65, 0xFB00, 0xFB07, 0xFF21, 0xFF3B, 0xFF41, 0xFF5B],
-    Digit: /*DecimalNumber*/ [0x30, 0x3A],
-    Skip: /*Skippable*/ [0, 0x21, 0x7F, 0xA1]
+    IdStart: /* IdentifierStart */ [0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0xAA, 0, 0xBA, 0, 0xC0, 0xD7, 0xD8, 0xF7, 0xF8, 0x2B9, 0x2E0, 0x2E5, 0x1D00, 0x1D26, 0x1D2C, 0x1D5D, 0x1D62, 0x1D66, 0x1D6B, 0x1D78, 0x1D79, 0x1DBF, 0x1E00, 0x1F00, 0x2071, 0, 0x207F, 0, 0x2090, 0x209D, 0x212A, 0x212C, 0x2132, 0, 0x214E, 0, 0x2160, 0x2189, 0x2C60, 0x2C80, 0xA722, 0xA788, 0xA78B, 0xA7AF, 0xA7B0, 0xA7B8, 0xA7F7, 0xA800, 0xAB30, 0xAB5B, 0xAB5C, 0xAB65, 0xFB00, 0xFB07, 0xFF21, 0xFF3B, 0xFF41, 0xFF5B],
+    Digit: /* DecimalNumber */ [0x30, 0x3A],
+    Skip: /* Skippable */ [0, 0x21, 0x7F, 0xA1]
 };
 /**
  * Decompress the ranges into an array of numbers so that the char code

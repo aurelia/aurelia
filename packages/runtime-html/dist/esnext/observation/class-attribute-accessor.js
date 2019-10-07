@@ -45,7 +45,7 @@ export class ClassAttributeAccessor {
             // Remove classes from previous version.
             version -= 1;
             for (const name in nameIndex) {
-                if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+                if (!Object.prototype.hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
                     continue;
                 }
                 // TODO: this has the side-effect that classes already present which are added again,
@@ -97,7 +97,7 @@ export class ClassAttributeAccessor {
                 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
                 if (!!object[property]) {
                     // We must do this in case object property has a space in the name which results in two classes
-                    if (property.indexOf(' ') >= 0) {
+                    if (property.includes(' ')) {
                         classes.push(...this.splitClassString(property));
                     }
                     else {

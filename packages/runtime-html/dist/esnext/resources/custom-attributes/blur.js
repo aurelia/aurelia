@@ -28,7 +28,7 @@ export class BlurManager {
     }
     register(blur) {
         const blurs = this.blurs;
-        if (blurs.indexOf(blur) === -1 && blurs.push(blur) === 1) {
+        if (!blurs.includes(blur) && blurs.push(blur) === 1) {
             this.addListeners();
         }
     }

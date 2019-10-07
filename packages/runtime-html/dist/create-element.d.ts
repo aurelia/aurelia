@@ -13,7 +13,7 @@ export declare class RenderPlan<T extends INode = Node> {
     private lazyDefinition?;
     constructor(dom: IDOM<T>, node: T, instructions: HTMLTargetedInstruction[][], dependencies: readonly IRegistry[]);
     readonly definition: TemplateDefinition;
-    getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T>;
+    getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T> | undefined;
     createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IController;
     getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IViewFactory;
 }

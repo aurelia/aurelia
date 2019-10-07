@@ -4119,8 +4119,8 @@
         }
     };
     /**
-    * A list of the pseudo elements.
-    */
+     * A list of the pseudo elements.
+     */
     exports.PSEUDO_ELEMENTS = [
         ':after',
         ':before',

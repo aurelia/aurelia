@@ -117,6 +117,7 @@ export function getRefTarget(refHost, refTargetName) {
         // todo: code error code, this message is from v1
         throw new Error(`No Aurelia APIs are defined for the element: "${refHost.tagName}".`);
     }
+    let refTargetController;
     switch (refTargetName) {
         case 'controller':
             // this means it supports returning undefined
@@ -128,7 +129,7 @@ export function getRefTarget(refHost, refTargetName) {
             // this means it supports returning undefined
             return refHost.$controller.viewModel;
         default:
-            const refTargetController = $auRefs[refTargetName];
+            refTargetController = $auRefs[refTargetName];
             if (refTargetController === void 0) {
                 throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
             }

@@ -103,11 +103,10 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-            const binding = new attribute_1.AttributeBinding(expr, target, instruction.attr /*targetAttribute*/, instruction.to /*targetKey*/, runtime_1.BindingMode.toView, this.observerLocator, context);
+            const binding = new attribute_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context);
             runtime_1.addBinding(renderable, binding);
         }
     };
-    // @ts-ignore
     AttributeBindingRenderer.inject = [runtime_1.IExpressionParser, runtime_1.IObserverLocator];
     AttributeBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer("hc" /* attributeBinding */)

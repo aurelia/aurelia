@@ -27,6 +27,7 @@
         }
         catch (_a) {
             // If all fails, give up and create an object.
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
             return {};
         }
     })();

@@ -49,7 +49,7 @@
     NameTag = tslib_1.__decorate([
         runtime_1.customElement({
             name: 'name-tag',
-            template: '<template>${name}</template>',
+            template: `<template>\${name}</template>`,
             build: { required: true, compiler: 'default' },
             dependencies: [],
             instructions: [],

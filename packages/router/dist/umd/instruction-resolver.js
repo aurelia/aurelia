@@ -9,7 +9,6 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    // tslint:disable:no-non-null-assertion
     const viewport_instruction_1 = require("./viewport-instruction");
     class InstructionResolver {
         constructor() {
@@ -217,7 +216,6 @@
             instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
             let parametersString = void 0;
             tokens.shift(); // parameters
-            // tslint:disable-next-line:possible-timing-attack
             if (token === seps.parameters) {
                 ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
                 parametersString = instruction.slice(0, pos);
@@ -227,7 +225,6 @@
             }
             let viewport = void 0;
             tokens.shift(); // viewport
-            // tslint:disable-next-line:possible-timing-attack
             if (token === seps.viewport) {
                 ({ token, pos } = this.findNextToken(instruction, tokens));
                 viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
@@ -235,12 +232,10 @@
             }
             let scope = true;
             tokens.shift(); // noScope
-            // tslint:disable-next-line:possible-timing-attack
             if (token === seps.noScope) {
                 scope = false;
             }
             // Restore token that belongs to next instruction
-            // tslint:disable-next-line:possible-timing-attack
             if (token === seps.scopeEnd || token === seps.scope || token === seps.sibling) {
                 instruction = `${token}${instruction}`;
             }

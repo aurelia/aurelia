@@ -85,7 +85,7 @@ export declare class MockBrowserHistoryLocation {
     readonly pathname: string;
     readonly search: string;
     hash: string;
-    activate(callback: Function): void;
+    activate(): void;
     deactivate(): void;
     private readonly parts;
     pushState(data: Record<string, unknown>, title: string, path: string): void;

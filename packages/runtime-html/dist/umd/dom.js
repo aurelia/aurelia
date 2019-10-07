@@ -247,6 +247,7 @@
     // CompiledTemplates create instances of FragmentNodeSequence.
     /**
      * This is the most common form of INodeSequence.
+     *
      * @internal
      */
     class FragmentNodeSequence {
@@ -403,14 +404,16 @@
             this.dom = dom;
             const fragment = dom.createDocumentFragment(markupOrNode);
             const childNodes = fragment.childNodes;
+            let target;
+            let text;
             switch (childNodes.length) {
                 case 0:
                     this.createNodeSequence = () => runtime_1.NodeSequence.empty;
                     return;
                 case 2:
-                    const target = childNodes[0];
+                    target = childNodes[0];
                     if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-                        const text = childNodes[1];
+                        text = childNodes[1];
                         if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
                             this.deepClone = false;
                             this.node = text;

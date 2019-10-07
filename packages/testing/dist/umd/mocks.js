@@ -235,8 +235,8 @@
             this.pushState({}, null, path);
             this.notifyChange();
         }
-        activate(callback) { }
-        deactivate() { }
+        activate() { return; }
+        deactivate() { return; }
         // TODO: Fix a better split
         get parts() {
             const parts = [];

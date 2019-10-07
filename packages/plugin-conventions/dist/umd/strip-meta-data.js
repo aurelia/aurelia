@@ -67,7 +67,7 @@
     function stripTag(node, tagNames, cb) {
         if (!Array.isArray(tagNames))
             tagNames = [tagNames];
-        if (tagNames.indexOf(node.tagName) !== -1) {
+        if (tagNames.includes(node.tagName)) {
             const attrs = {};
             node.attrs.forEach(attr => attrs[attr.name] = attr.value);
             const loc = node.sourceCodeLocation;

@@ -180,24 +180,24 @@
     const methods = ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'];
     const observe = {
         // https://tc39.github.io/ecma262/#sec-array.prototype.push
-        push: function () {
+        push: function (...args) {
             let $this = this;
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
             const o = $this.$observer;
             if (o === void 0) {
-                return $push.apply($this, arguments);
+                return $push.apply($this, args);
             }
             const len = $this.length;
-            const argCount = arguments.length;
+            const argCount = args.length;
             if (argCount === 0) {
                 return len;
             }
             $this.length = o.indexMap.length = len + argCount;
             let i = len;
             while (i < $this.length) {
-                $this[i] = arguments[i - len];
+                $this[i] = args[i - len];
                 o.indexMap[i] = -2;
                 i++;
             }
@@ -205,23 +205,23 @@
             return $this.length;
         },
         // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-        unshift: function () {
+        unshift: function (...args) {
             let $this = this;
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
             const o = $this.$observer;
             if (o === void 0) {
-                return $unshift.apply($this, arguments);
+                return $unshift.apply($this, args);
             }
-            const argCount = arguments.length;
+            const argCount = args.length;
             const inserts = new Array(argCount);
             let i = 0;
             while (i < argCount) {
                 inserts[i++] = -2;
             }
             $unshift.apply(o.indexMap, inserts);
-            const len = $unshift.apply($this, arguments);
+            const len = $unshift.apply($this, args);
             o.notify();
             return len;
         },
@@ -267,20 +267,22 @@
             return element;
         },
         // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-        splice: function (start, deleteCount) {
+        splice: function (...args) {
+            const start = args[0];
+            const deleteCount = args[1];
             let $this = this;
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
             const o = $this.$observer;
             if (o === void 0) {
-                return $splice.apply($this, arguments);
+                return $splice.apply($this, args);
             }
             const len = this.length;
             const relativeStart = start | 0;
             const actualStart = relativeStart < 0 ? Math.max((len + relativeStart), 0) : Math.min(relativeStart, len);
             const indexMap = o.indexMap;
-            const argCount = arguments.length;
+            const argCount = args.length;
             const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
             if (actualDeleteCount > 0) {
                 let i = actualStart;
@@ -302,9 +304,9 @@
                 $splice.call(indexMap, start, deleteCount, ...inserts);
             }
             else {
-                $splice.apply(indexMap, arguments);
+                $splice.apply(indexMap, args);
             }
-            const deleted = $splice.apply($this, arguments);
+            const deleted = $splice.apply($this, args);
             o.notify();
             return deleted;
         },
@@ -361,7 +363,7 @@
                 }
                 i++;
             }
-            if (compareFn === void 0 || typeof compareFn !== 'function' /*spec says throw a TypeError, should we do that too?*/) {
+            if (compareFn === void 0 || typeof compareFn !== 'function' /* spec says throw a TypeError, should we do that too? */) {
                 compareFn = sortCompare;
             }
             quickSort($this, o.indexMap, 0, i, compareFn);

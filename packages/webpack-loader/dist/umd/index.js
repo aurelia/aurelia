@@ -40,7 +40,7 @@
     }
     exports.loader = loader;
     function stringModuleWrap(id) {
-        return '!!raw-loader!' + id;
+        return `!!raw-loader!${id}`;
     }
 });
 //# sourceMappingURL=index.js.map

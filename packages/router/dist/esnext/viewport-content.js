@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { Reporter } from '@aurelia/kernel';
 import { Controller } from '@aurelia/runtime';
 import { mergeParameters } from './parser';

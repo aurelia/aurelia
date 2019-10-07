@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellationResolver } from './type-resolvers';

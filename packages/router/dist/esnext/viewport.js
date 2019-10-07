@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { Reporter } from '@aurelia/kernel';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
@@ -137,7 +136,7 @@ export class Viewport {
     async remove(element, context) {
         if (this.element === element && this.context === context) {
             if (this.content.componentInstance) {
-                await this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful); //.catch(error => { throw error; });
+                await this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful); // .catch(error => { throw error; });
             }
             if (this.doForceRemove) {
                 await Promise.all(this.historyCache.map(content => content.freeContent(null, null, this.historyCache, false)));
@@ -228,7 +227,7 @@ export class Viewport {
         if (typeof usedBy === 'string') {
             usedBy = usedBy.split(',');
         }
-        return usedBy.indexOf(component) >= 0;
+        return usedBy.includes(component);
     }
     // TODO: Deal with non-string components
     acceptComponent(component) {
@@ -242,10 +241,10 @@ export class Viewport {
         if (typeof usedBy === 'string') {
             usedBy = usedBy.split(',');
         }
-        if (usedBy.indexOf(component) >= 0) {
+        if (usedBy.includes(component)) {
             return true;
         }
-        if (usedBy.filter((value) => value.indexOf('*') >= 0).length) {
+        if (usedBy.filter((value) => value.includes('*')).length) {
             return true;
         }
         return false;

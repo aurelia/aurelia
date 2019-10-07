@@ -1,8 +1,8 @@
 import { camelCase, kebabCase } from '@aurelia/kernel';
 export function nameConvention(className) {
-    const m = className.match(/^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/);
+    const m = /^(.+?)(CustomAttribute|ValueConverter|BindingBehavior|BindingCommand)?$/.exec(className);
     if (!m) {
-        throw new Error('No convention found for class name ' + className);
+        throw new Error(`No convention found for class name ${className}`);
     }
     const bareName = m[1];
     const type = (m[2] ? camelCase(m[2]) : 'customElement');

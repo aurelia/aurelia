@@ -16,7 +16,8 @@ let SanitizeValueConverter = class SanitizeValueConverter {
     }
     /**
      * Process the provided markup that flows to the view.
-     * @param untrustedMarkup The untrusted markup to be sanitized.
+     *
+     * @param untrustedMarkup - The untrusted markup to be sanitized.
      */
     toView(untrustedMarkup) {
         if (untrustedMarkup == null) {

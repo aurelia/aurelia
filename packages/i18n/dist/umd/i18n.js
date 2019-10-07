@@ -42,7 +42,6 @@
     exports.I18N = kernel_1.DI.createInterface('I18nService').noDefault();
     /**
      * Translation service class.
-     * @export
      */
     let I18nService = class I18nService {
         constructor(i18nextWrapper, options, ea, signaler) {
@@ -104,6 +103,7 @@
         /**
          * Formats the given `input` number according to the given `[options]`, and `[locales]`.
          * If the `locales` is skipped, then the number is formatted using the currently active locale.
+         *
          * @returns Formatted number.
          */
         nf(input, options, locales) {
@@ -119,6 +119,7 @@
         /**
          * Formats the given `input` date according to the given `[options]` and `[locales]`.
          * If the `locales` is skipped, then the date is formatted using the currently active locale.
+         *
          * @returns Formatted date.
          */
         df(input, options, locales) {

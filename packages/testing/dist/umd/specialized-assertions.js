@@ -209,7 +209,7 @@
                 }
             }
         }
-        if (path === 'instruction' && errors.some(e => e[0] === 'W')) {
+        if (path === 'instruction' && errors.some(e => e.startsWith('W'))) {
             throw new Error(`Failed assertion: binding instruction mismatch\n  - ${errors.join('\n  - ')}`);
         }
     }

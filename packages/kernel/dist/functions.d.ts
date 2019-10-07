@@ -64,7 +64,7 @@ export declare function compareNumber(a: number, b: number): number;
  *
  * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
  *
- * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+ * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
  */
 export declare function mergeDistinct<T>(arr1: readonly T[] | T[] | null | undefined, arr2: readonly T[] | T[] | null | undefined, slice: boolean): T[];
 //# sourceMappingURL=functions.d.ts.map

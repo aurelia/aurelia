@@ -4109,8 +4109,8 @@ export const CSS_PROPERTIES = {
     }
 };
 /**
-* A list of the pseudo elements.
-*/
+ * A list of the pseudo elements.
+ */
 export const PSEUDO_ELEMENTS = [
     ':after',
     ':before',

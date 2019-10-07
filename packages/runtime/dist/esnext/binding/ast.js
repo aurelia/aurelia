@@ -496,7 +496,7 @@ export class CallFunctionExpression {
     evaluate(flags, scope, locator, part) {
         const func = this.func.evaluate(flags, scope, locator, part);
         if (typeof func === 'function') {
-            return func.apply(null, evalList(flags, scope, locator, this.args, part));
+            return func(...evalList(flags, scope, locator, this.args, part));
         }
         if (!(flags & 2097152 /* mustEvaluate */) && (func == null)) {
             return void 0;
@@ -793,7 +793,7 @@ export class TaggedTemplateExpression {
         if (typeof func !== 'function') {
             throw Reporter.error(207 /* NotAFunction */, this);
         }
-        return func.apply(null, [this.cooked].concat(results));
+        return func(this.cooked, ...results);
     }
     connect(flags, scope, binding, part) {
         const expressions = this.expressions;
@@ -997,7 +997,6 @@ function $array(flags, result, func) {
         }
     }
 }
-;
 function $map(flags, result, func) {
     const arr = Array(result.size);
     let i = -1;
@@ -1006,7 +1005,6 @@ function $map(flags, result, func) {
     }
     $array(flags & ~8388608 /* isOriginalArray */, arr, func);
 }
-;
 function $set(flags, result, func) {
     const arr = Array(result.size);
     let i = -1;
@@ -1015,7 +1013,6 @@ function $set(flags, result, func) {
     }
     $array(flags & ~8388608 /* isOriginalArray */, arr, func);
 }
-;
 function $number(flags, result, func) {
     const arr = Array(result);
     for (let i = 0; i < result; ++i) {
@@ -1023,5 +1020,4 @@ function $number(flags, result, func) {
     }
     $array(flags & ~8388608 /* isOriginalArray */, arr, func);
 }
-;
 //# sourceMappingURL=ast.js.map

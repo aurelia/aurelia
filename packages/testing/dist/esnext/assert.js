@@ -110,7 +110,7 @@ function expectedException(actual, expected, msg) {
     if (expected.prototype !== void 0 && actual instanceof expected) {
         return true;
     }
-    if (Error.isPrototypeOf(expected)) {
+    if (Object.prototype.isPrototypeOf.call(Error, expected)) {
         return false;
     }
     return expected.call({}, actual) === true;

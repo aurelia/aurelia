@@ -16,7 +16,8 @@ let Focus = class Focus {
     }
     /**
      * Invoked everytime the bound value changes.
-     * @param newValue The new value.
+     *
+     * @param newValue - The new value.
      */
     valueChanged() {
         // In theory, we could/should react immediately

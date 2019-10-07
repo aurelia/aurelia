@@ -239,7 +239,7 @@
                     }
                     const nodeName = node.nodeName;
                     return svgPresentationElements[nodeName] !== undefined && svgPresentationAttributes[attributeName] !== undefined
-                        || svgElements[nodeName] !== undefined && svgElements[nodeName].indexOf(attributeName) !== -1;
+                        || svgElements[nodeName] !== undefined && svgElements[nodeName].includes(attributeName);
                 }
             };
         });

@@ -8,7 +8,7 @@ import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, O
 
 describe('binding-commands', function () {
 
-  const app = class App {
+  const app = class {
     public value = 'wOOt';
   };
 

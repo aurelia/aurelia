@@ -16,7 +16,7 @@ describe('value-converters', function () {
   // custom elements
   describe('01. Aliases', function () {
 
-    const app = class App {
+    const app = class {
       public value = 'wOOt';
       public method = () => {
         this.value = 'wOOt1';

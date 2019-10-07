@@ -9,7 +9,7 @@ import { TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
 interface Person { firstName?: string; lastName?: string; fullName?: string }
-const app = class App { public value = 'wOOt'; };
+const app = class { public value = 'wOOt'; };
 
 describe('custom-elements', function () {
 

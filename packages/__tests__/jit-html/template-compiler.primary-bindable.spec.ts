@@ -400,7 +400,6 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
   }
 
   describe('mimic vCurrent route-href', function() {
-    // eslint-disable-next-line @typescript-eslint/class-name-casing
     class $RouteHref$ {
 
       public static readonly inject = [INode, IDOM];
@@ -444,7 +443,6 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       {
         name: 'dot-converter'
       },
-      // eslint-disable-next-line @typescript-eslint/class-name-casing
       class $$DotConverter {
         public toView(val: string, replaceWith: string): string {
           return typeof val === 'string' && typeof replaceWith === 'string'

@@ -55,7 +55,7 @@ describe('value-converters', function () {
     }
 
     const resources: any[] = [WootConverter, WootConverter2, FooAttribute2, FooAttribute];
-    const app = class App { public value = 'wOOt'; };
+    const app = class { public value = 'wOOt'; };
 
     it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
       const options = setup('<template> <div foo53.bind="value | woot13"></div> </template>', app, resources);

@@ -171,7 +171,6 @@ describe.skip('controller', function () {
       allHooks,
     );
 
-    // eslint-disable-next-line @typescript-eslint/class-name-casing
     return addTracingHooks(class $ViewModel {
       public static readonly inject = inject;
       public static readonly kind = kind;

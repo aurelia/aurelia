@@ -1166,7 +1166,7 @@ describe(`The Container class`, function () {
 
   describe(`createChild()`, function () {
     it(`inherits non-resource obj keyed factories from root`, function () {
-      const type = class Type {};
+      const type = class {};
       const key = {} as any;
 
       const parent = DI.createContainer();
@@ -1183,7 +1183,7 @@ describe(`The Container class`, function () {
     });
 
     it(`inherits non-resource string keyed factories from root`, function () {
-      const type = class Type {};
+      const type = class {};
       const key = 'foo' as any;
 
       const parent = DI.createContainer();
@@ -1200,7 +1200,7 @@ describe(`The Container class`, function () {
     });
 
     it(`inherits resource factories from root`, function () {
-      const type = class Type {};
+      const type = class {};
       const key = 'foo:bar' as any;
 
       const parent = DI.createContainer();
@@ -1217,7 +1217,7 @@ describe(`The Container class`, function () {
     });
 
     it(`does NOT store non-resource obj keyed resolvers in resourceResolvers`, function () {
-      const type = class Type {};
+      const type = class {};
       const key = {} as any;
 
       const parent = DI.createContainer();
@@ -1235,7 +1235,7 @@ describe(`The Container class`, function () {
     });
 
     it(`does NOT store non-resource string keyed resolvers in resourceResolvers`, function () {
-      const type = class Type {};
+      const type = class {};
       const key = 'foo' as any;
 
       const parent = DI.createContainer();
@@ -1253,7 +1253,7 @@ describe(`The Container class`, function () {
     });
 
     it(`stores resource resolvers in resourceResolvers and inherits them from root`, function () {
-      const type = class Type {};
+      const type = class {};
       const key = 'foo:bar' as any;
 
       const parent = DI.createContainer();
@@ -1272,7 +1272,7 @@ describe(`The Container class`, function () {
 
     describe(`followed by another createChild()`, function () {
       it(`inherits non-resource obj keyed factories from root`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = {} as any;
 
         const root = DI.createContainer();
@@ -1290,7 +1290,7 @@ describe(`The Container class`, function () {
       });
 
       it(`inherits non-resource string keyed factories from root`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = 'foo' as any;
 
         const root = DI.createContainer();
@@ -1308,7 +1308,7 @@ describe(`The Container class`, function () {
       });
 
       it(`inherits resource factories from root`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = 'foo:bar' as any;
 
         const root = DI.createContainer();
@@ -1326,7 +1326,7 @@ describe(`The Container class`, function () {
       });
 
       it(`inherits non-resource obj keyed factories from parent`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = {} as any;
 
         const root = DI.createContainer();
@@ -1344,7 +1344,7 @@ describe(`The Container class`, function () {
       });
 
       it(`inherits non-resource string keyed factories from parent`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = 'foo' as any;
 
         const root = DI.createContainer();
@@ -1362,7 +1362,7 @@ describe(`The Container class`, function () {
       });
 
       it(`inherits resource factories from parent`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = 'foo:bar' as any;
 
         const root = DI.createContainer();
@@ -1380,7 +1380,7 @@ describe(`The Container class`, function () {
       });
 
       it(`does NOT store non-resource obj keyed resolvers in resourceResolvers`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = {} as any;
 
         const root = DI.createContainer();
@@ -1399,7 +1399,7 @@ describe(`The Container class`, function () {
       });
 
       it(`does NOT store non-resource string keyed resolvers in resourceResolvers`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = 'foo' as any;
 
         const root = DI.createContainer();
@@ -1418,7 +1418,7 @@ describe(`The Container class`, function () {
       });
 
       it(`stores resource resolvers in resourceResolvers in parent but does not inherit them from parent`, function () {
-        const type = class Type {};
+        const type = class {};
         const key = 'foo:bar' as any;
 
         const root = DI.createContainer();
@@ -1437,7 +1437,7 @@ describe(`The Container class`, function () {
       });
 
       it(`stores resource resolvers in resourceResolvers in parent and inherits them from root but does not from parent`, function () {
-        const type = class Type {};
+        const type = class {};
         const keyFromRoot = 'foo:bar' as any;
         const keyFromParent = 'foo:baz' as any;
 

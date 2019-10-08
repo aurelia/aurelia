@@ -378,76 +378,73 @@ describe('Router', function () {
     await tearDown();
   });
 
-  if (PLATFORM.isBrowserLike) {
-    // TODO: figure out why it doesn't work in nodejs and fix it
-    it('handles anchor click', async function () {
-      this.timeout(5000);
+  it('handles anchor click', async function () {
+    this.timeout(5000);
 
-      const { lifecycle, host, router, tearDown } = await setup({ useHref: true });
+    const { lifecycle, host, router, tearDown } = await setup({ useHref: true });
 
-      await $goto('foo@left', router, lifecycle);
-      assert.includes(host.textContent, 'foo', `host.textContent`);
+    await $goto('foo@left', router, lifecycle);
+    assert.includes(host.textContent, 'foo', `host.textContent`);
 
-      (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
-      await wait(100);
-      await waitForNavigation(router);
-      assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
+    (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
+    await wait(100);
+    await waitForNavigation(router);
+    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
-      await tearDown();
+    await tearDown();
+  });
+
+  it('handles anchor click with au-href', async function () {
+    this.timeout(5000);
+
+    const tests = [
+      { bind: false, value: 'id-name(1)', result: 1 },
+      { bind: true, value: "'id-name(2)'", result: 2 },
+      { bind: true, value: "{ component: 'id-name', parameters: '3' }", result: 3 },
+      { bind: true, value: "{ component: IdName, parameters: '4' }", result: 4 },
+    ];
+
+    const IdName = CustomElement.define({ name: 'id-name', template: `|id-name| Parameter id: [\${id}] Parameter name: [\${name}]` }, class {
+      public static parameters = ['id', 'name'];
+      public id = 'no id';
+      public name = 'no name';
+      public enter(params) {
+        if (params.id) { this.id = params.id; }
+        if (params.name) { this.name = params.name; }
+      }
     });
-
-    it('handles anchor click with au-href', async function () {
-      this.timeout(5000);
-
-      const tests = [
-        { bind: false, value: 'id-name(1)', result: 1 },
-        { bind: true, value: "'id-name(2)'", result: 2 },
-        { bind: true, value: "{ component: 'id-name', parameters: '3' }", result: 3 },
-        { bind: true, value: "{ component: IdName, parameters: '4' }", result: 4 },
-      ];
-
-      const IdName = CustomElement.define({ name: 'id-name', template: `|id-name| Parameter id: [\${id}] Parameter name: [\${name}]` }, class {
-        public static parameters = ['id', 'name'];
-        public id = 'no id';
-        public name = 'no name';
-        public enter(params) {
-          if (params.id) { this.id = params.id; }
-          if (params.name) { this.name = params.name; }
-        }
-      });
-      @customElement({
-        name: 'app',
-        dependencies: [IdName],
-        template: `
+    @customElement({
+      name: 'app',
+      dependencies: [IdName],
+      template: `
       ${tests.map(test => `<a au-href${test.bind ? '.bind' : ''}="${test.value}">${test.value}</a>`).join('<br>')}
       <br>
       <au-viewport></au-viewport>
       `}) class App {
-        // Wish the following two lines weren't necessary
-        public constructor() { this['IdName'] = IdName; }
-      }
+      // Wish the following two lines weren't necessary
+      public constructor() { this['IdName'] = IdName; }
+    }
 
-      const { host, router, container, tearDown } = await setup({ useHref: false }, App);
+    const { host, router, container, tearDown } = await setup({ useHref: false }, App);
 
-      container.register(IdName);
+    container.register(IdName);
 
-      for (let i = 0; i < tests.length; i++) {
-        const test = tests[i];
-        console.log('link', test);
+    for (let i = 0; i < tests.length; i++) {
+      const test = tests[i];
+      console.log('link', test);
 
-        (host.getElementsByTagName('A')[i] as HTMLElement).click();
-        await wait(100);
-        await waitForNavigation(router);
-        assert.includes(host.textContent, '|id-name|', `host.textContent`);
-        assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
+      (host.getElementsByTagName('A')[i] as HTMLElement).click();
+      await wait(100);
+      await waitForNavigation(router);
+      assert.includes(host.textContent, '|id-name|', `host.textContent`);
+      assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
 
-        await router.back();
-        assert.notIncludes(host.textContent, '|id-name|', `host.textContent`);
-      }
+      await router.back();
+      assert.notIncludes(host.textContent, '|id-name|', `host.textContent`);
+    }
 
-      await tearDown();
-    });
-  }
+    await tearDown();
+  });
 
   it('understands used-by', async function () {
     this.timeout(5000);

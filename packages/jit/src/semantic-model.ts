@@ -212,7 +212,7 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
   public isTarget: true = true;
   public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
   public isContainerless: boolean;
-  public marker: INode;
+  public marker: TMarker;
   public captureAttrs: boolean | string[];
 
   private _customAttributes: CustomAttributeSymbol[] | null = null;

@@ -105,6 +105,7 @@ export const enum LifecycleFlags {
   bindingStrategy               = 0b00000_0000000_0000000000000_00_1111,
   getterSetterStrategy          = 0b00000_0000000_0000000000000_00_0001,
   proxyStrategy                 = 0b00000_0000000_0000000000000_00_0010,
+  isStrictBindingStrategy       = 0b0000_00000000_0000000000000_00_0100,
   update                        = 0b00000_0000000_0000000000000_11_0000,
   updateTargetInstance          = 0b00000_0000000_0000000000000_01_0000,
   updateSourceExpression        = 0b00000_0000000_0000000000000_10_0000,

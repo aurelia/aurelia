@@ -45,9 +45,10 @@ describe('custom-elements', function () {
     });
   });
 
-  // //<let/>
+  // <let/>
   it('03.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class { public firstName = undefined; public lastName = undefined; });
+    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, 
+    class { public static isStrictBinding = true; public firstName = undefined; public lastName = undefined; });
     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
     component.firstName = 'bi';
@@ -64,7 +65,8 @@ describe('custom-elements', function () {
 
   // //<let [to-binding-context] />
   it('04.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class implements Person { });
+    const { tearDown, lifecycle, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,     
+    class implements Person { public static isStrictBinding = true; });
     component.firstName = 'bi';
     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
     component.lastName = 'go';

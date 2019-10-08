@@ -1,3 +1,4 @@
+import { AuHrefCustomAttribute } from './resources/au-href';
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { StartTask } from '@aurelia/runtime';
 import { NavCustomElement } from './resources/nav';
@@ -17,18 +18,22 @@ export const DefaultComponents = [
 export {
   ViewportCustomElement,
   NavCustomElement,
+  AuHrefCustomAttribute,
 };
 
 export const ViewportCustomElementRegistration = ViewportCustomElement as unknown as IRegistry;
 export const NavCustomElementRegistration = NavCustomElement as unknown as IRegistry;
+export const AuHrefCustomAttributeRegistration = AuHrefCustomAttribute as unknown as IRegistry;
 
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`, `au-nav`
+ * - Custom Attributes: `au-href`
  */
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
   NavCustomElement as unknown as IRegistry,
+  AuHrefCustomAttribute as unknown as IRegistry,
 ];
 
 let configurationOptions: IRouterOptions = {};

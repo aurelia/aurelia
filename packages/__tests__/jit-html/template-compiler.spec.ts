@@ -529,12 +529,35 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
   }
 }
 
-function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+function createCustomElement({
+  ctx,
+  tagName,
+  finalize,
+  attributes,
+  childInstructions,
+  siblingInstructions,
+  nestedElInstructions,
+  childOutput,
+  childInput,
+  capturedAttrs
+}: {
+  ctx: HTMLTestContext;
+  tagName: string;
+  finalize: boolean;
+  attributes: [string, string][];
+  childInstructions: any[];
+  siblingInstructions: any[];
+  nestedElInstructions: any[];
+  childOutput?: any;
+  childInput?: any;
+  capturedAttrs?: { name: string; value: string }[];
+}) {
   const instruction = {
     type: TT.hydrateElement,
     res: tagName,
     instructions: childInstructions,
-    parts: PLATFORM.emptyObject
+    parts: PLATFORM.emptyObject,
+    capturedAttrs: capturedAttrs || PLATFORM.emptyArray
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
@@ -1096,7 +1119,15 @@ describe(`TemplateCompiler - combinations`, function () {
         const childInstructions = !!bindableDescription ? instructions : [];
         const siblingInstructions = !bindableDescription ? instructions : [];
 
-        const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []) as [ITemplateDefinition, ITemplateDefinition];
+        const [input, output] = createCustomElement({
+          ctx,
+          tagName: 'foobar',
+          finalize: true,
+          attributes: [[attrName, attrValue]],
+          childInstructions,
+          siblingInstructions,
+          nestedElInstructions: []
+        }) as [ITemplateDefinition, ITemplateDefinition];
 
         if (attrName.endsWith('.qux')) {
           let e;
@@ -1132,9 +1163,33 @@ describe(`TemplateCompiler - combinations`, function () {
         TestContext.createHTMLTestContext
       ],
       [
-        (ctx) => createCustomElement(ctx, `foo`, true, [], [], [], []),
-        (ctx) => createCustomElement(ctx, `bar`, true, [], [], [], []),
-        (ctx) => createCustomElement(ctx, `baz`, true, [], [], [], [])
+        (ctx) => createCustomElement({
+          ctx,
+          tagName: `foo`,
+          finalize: true,
+          attributes: [],
+          childInstructions: [],
+          siblingInstructions: [],
+          nestedElInstructions: []
+        }),
+        (ctx) => createCustomElement({
+          ctx,
+          tagName: `bar`,
+          finalize: true,
+          attributes: [],
+          childInstructions: [],
+          siblingInstructions: [],
+          nestedElInstructions: []
+        }),
+        (ctx) => createCustomElement({
+          ctx,
+          tagName: `baz`,
+          finalize: true,
+          attributes: [],
+          childInstructions: [],
+          siblingInstructions: [],
+          nestedElInstructions: []
+        })
       ] as ((ctx: HTMLTestContext) => CTCResult)[]
       // <(($1: CTCResult) => CTCResult)[]>[
       //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),

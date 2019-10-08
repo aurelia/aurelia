@@ -64,7 +64,7 @@ export class LinkHandler {
    *
    * @param event - The Event to inspect for target anchor and href.
    */
-  private static getEventInfo(event: Event, win: Window, options: ILinkHandlerOptions): AnchorEventInfo {
+  private static getEventInfo(event: MouseEvent, win: Window, options: ILinkHandlerOptions): AnchorEventInfo {
     const info: AnchorEventInfo = {
       shouldHandleEvent: false,
       instruction: null,
@@ -80,7 +80,7 @@ export class LinkHandler {
       return info;
     }
 
-    if ((event as MouseEvent).altKey || (event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey || (event as MouseEvent).shiftKey) {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
       return info;
     }
 
@@ -93,7 +93,7 @@ export class LinkHandler {
     info.anchor = target;
     info.instruction = auHref || href;
 
-    const leftButtonClicked: boolean = (event as MouseEvent).which === 1;
+    const leftButtonClicked: boolean = event.button === 0;
 
     info.shouldHandleEvent = leftButtonClicked;
     return info;
@@ -155,7 +155,7 @@ export class LinkHandler {
     this.isActive = false;
   }
 
-  private readonly handler: EventListener = (e) => {
+  private readonly handler: EventListener = (e: MouseEvent) => {
     const info = LinkHandler.getEventInfo(e, this.window, this.options);
 
     if (info.shouldHandleEvent) {

@@ -230,7 +230,7 @@ class HydrateElementInstructionContext implements IHydrateElementInstructionCont
 
   public controller!: IController;
 
-  constructor(
+  public constructor(
     public readonly owningController: IController,
     public readonly instruction: IHydrateElementInstruction
   ) {}

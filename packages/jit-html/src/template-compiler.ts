@@ -177,17 +177,20 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileCustomElement(symbol: CustomElementSymbol): void {
+    const captureAttrsConfig = symbol.captureAttrs;
+    if (typeof captureAttrsConfig !== 'boolean' && !Array.isArray(captureAttrsConfig)) {
+      throw new Error('Invalid capture attributes config. Expected boolean or an array of string');
+    }
+
+    const capturedAttrs = captureElementSymbolAttrs(symbol, captureAttrsConfig);
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
     instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
       this.compileBindings(symbol),
-      this.compileParts(symbol)
+      this.compileParts(symbol),
+      capturedAttrs
     );
-
-    if (symbol.captureAttrs !== false) {
-      // todo: capture here, shift body of this method around
-    }
 
     this.instructionRows.push(instructionRow);
 
@@ -371,4 +374,58 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     return parts;
   }
+}
+
+function captureElementSymbolAttrs(symbol: CustomElementSymbol, captureAttrConfig: boolean | string[]): { name: string; value: string }[] | undefined {
+  let result: { name: string; value: string }[] | undefined = void 0;
+  if (captureAttrConfig === false) {
+    return result;
+  }
+
+  const plainAttrs = symbol.plainAttributes;
+
+  for (let i = 0, ii = plainAttrs.length; ii > i; ++i) {
+    const attrSyntax = plainAttrs[i].syntax;
+    const isValidAttr = captureAttrConfig === true || captureAttrConfig.includes(attrSyntax.target);
+
+    if (!isValidAttr) {
+      continue;
+    }
+
+    if (result === void 0) {
+      result = [];
+    }
+
+    result.push({ name: attrSyntax.rawName, value: attrSyntax.rawValue });
+
+    // do not recompile a symbol if it has been consumed
+    // though leave the raw attr intact
+    // todo: remove raw attr
+    plainAttrs.splice(i, 1);
+    --i;
+  }
+
+  const customAttrs = symbol.customAttributes;
+  for (let i = 0, ii = customAttrs.length; ii > i; ++i) {
+    const attrSyntax = customAttrs[i].syntax;
+    const isValidAttr = captureAttrConfig === true || captureAttrConfig.includes(attrSyntax.target);
+
+    if (!isValidAttr) {
+      continue;
+    }
+
+    if (result === void 0) {
+      result = [];
+    }
+
+    result.push({ name: attrSyntax.rawName, value: attrSyntax.rawValue });
+
+    // do not recompile a symbol if it has been consumed
+    // though leave the raw attr intact
+    // todo: remove raw attr
+    customAttrs.splice(i, 1);
+    --i;
+  }
+
+  return result;
 }

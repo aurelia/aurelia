@@ -17,10 +17,9 @@ import { Author } from './author';
 </template>` })
 @inject(AuthorsRepository, State)
 export class Authors {
-  public constructor(private readonly authorsRepository: AuthorsRepository, private readonly state: State) {
-    this['Author'] = Author;
-    console.log('Author', Author);
-  }
+  private readonly Author = Author;
+
+  public constructor(private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   get authors() { return this.authorsRepository.authors(); }
 

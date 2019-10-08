@@ -1,6 +1,6 @@
 import { AnchorEventInfo, LinkHandler, AuHrefCustomAttribute } from '@aurelia/router';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
-import { Writable, IRegistry } from '@aurelia/kernel';
+import { Writable, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 
 describe('LinkHandler', function () {

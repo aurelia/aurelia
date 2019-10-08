@@ -407,7 +407,7 @@ describe('Router', function () {
       { bind: true, value: "{ component: IdName, parameters: '4' }", result: 4 },
     ];
 
-    const IdName = CustomElement.define({ name: 'id-name', template: '|id-name| Parameter id: [${id}] Parameter name: [${name}]' }, class {
+    const IdName = CustomElement.define({ name: 'id-name', template: `|id-name| Parameter id: [\${id}] Parameter name: [\${name}]` }, class {
       public static parameters = ['id', 'name'];
       public id = 'no id';
       public name = 'no name';
@@ -425,8 +425,7 @@ describe('Router', function () {
       <au-viewport></au-viewport>
       `}) class App {
       // Wish the following two lines weren't necessary
-      public static inject = [IdName];
-      constructor(idName) { this['IdName'] = idName; }
+      public constructor() { this['IdName'] = IdName; }
     }
 
     const { host, router, container, tearDown } = await setup({ useHref: false }, App);

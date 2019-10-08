@@ -10,9 +10,7 @@ describe('LinkHandler', function () {
 
     const sut = container.get(LinkHandler);
 
-    function tearDown() { }
-
-    return { sut, tearDown, ctx };
+    return { sut, ctx };
   }
 
   async function setupApp(App) {
@@ -39,15 +37,13 @@ describe('LinkHandler', function () {
   }
 
   it('can be created', function () {
-    const { sut, tearDown } = setup();
+    const { sut } = setup();
 
     assert.notStrictEqual(sut, null, `sut`);
-
-    tearDown();
   });
 
   it('can be activated', function () {
-    const { sut, tearDown, ctx } = setup();
+    const { sut, ctx } = setup();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
@@ -66,12 +62,10 @@ describe('LinkHandler', function () {
     addEventListener.restore();
 
     sut.deactivate();
-
-    tearDown();
   });
 
   it('can be deactivated', function () {
-    const { sut, tearDown } = setup();
+    const { sut } = setup();
 
     sut.activate({ callback: info => console.log('can be deactivated', info) });
 
@@ -80,12 +74,10 @@ describe('LinkHandler', function () {
     sut.deactivate();
 
     assert.strictEqual(sut['isActive'], false, `linkHandler.isActive`);
-
-    tearDown();
   });
 
   it('throws when activated while active', function () {
-    const { sut, tearDown, ctx } = setup();
+    const { sut, ctx } = setup();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
@@ -112,12 +104,10 @@ describe('LinkHandler', function () {
     addEventListener.restore();
 
     sut.deactivate();
-
-    tearDown();
   });
 
   it('throws when deactivated while not active', function () {
-    const { sut, tearDown } = setup();
+    const { sut } = setup();
 
     let err;
     try {
@@ -126,8 +116,6 @@ describe('LinkHandler', function () {
       err = e;
     }
     assert.includes(err.message, 'Link handler has not been activated', `err.message`);
-
-    tearDown();
   });
 
   it('returns the right instruction', async function () {

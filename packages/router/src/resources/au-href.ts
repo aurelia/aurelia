@@ -6,7 +6,7 @@ export class AuHrefCustomAttribute {
   public value: unknown;
 
   private hasHref: boolean | null = null;
-  constructor(
+  public constructor(
     @INode private readonly element: HTMLElement,
   ) { }
 
@@ -23,7 +23,8 @@ export class AuHrefCustomAttribute {
       this.hasHref = this.element.hasAttribute('href');
     }
     if (!this.hasHref) {
-      const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value)
+      // TODO: Figure out a better value here for non-strings (using InstructionResolver?)
+      const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
       this.element.setAttribute('href', value);
     }
   }

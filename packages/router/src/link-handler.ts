@@ -53,7 +53,7 @@ export class LinkHandler {
 
   // private handler: EventListener;
 
-  constructor(
+  public constructor(
     dom: HTMLDOM
   ) {
     this.window = dom.window;

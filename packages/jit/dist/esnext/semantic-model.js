@@ -26,27 +26,28 @@ function createMarker(dom) {
  * A html attribute that is associated with a registered resource, specifically a template controller.
  */
 export class TemplateControllerSymbol {
-    constructor(dom, syntax, info, partName) {
-        this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
-        this.res = info.name;
-        this.partName = info.name === 'replaceable' ? partName : null;
-        this.physicalNode = null;
+    constructor(dom, syntax, info, partName, res = info.name) {
         this.syntax = syntax;
+        this.info = info;
+        this.res = res;
+        this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
+        this.physicalNode = null;
         this.template = null;
         this.templateController = null;
-        this.marker = createMarker(dom);
         this._bindings = null;
         this._parts = null;
+        this.partName = info.name === 'replaceable' ? partName : null;
+        this.marker = createMarker(dom);
     }
     get bindings() {
-        if (this._bindings == null) {
+        if (this._bindings === null) {
             this._bindings = [];
             this.flags |= 4096 /* hasBindings */;
         }
         return this._bindings;
     }
     get parts() {
-        if (this._parts == null) {
+        if (this._parts === null) {
             this._parts = [];
             this.flags |= 16384 /* hasParts */;
         }
@@ -60,26 +61,27 @@ export class TemplateControllerSymbol {
  * This element will be lifted from the DOM just like a template controller.
  */
 export class ReplacePartSymbol {
-    constructor(name) {
-        this.flags = 2 /* isReplacePart */;
+    constructor(name, physicalNode = null, parent = null, template = null) {
         this.name = name;
-        this.physicalNode = null;
-        this.parent = null;
-        this.template = null;
+        this.physicalNode = physicalNode;
+        this.parent = parent;
+        this.template = template;
+        this.flags = 2 /* isReplacePart */;
     }
 }
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
 export class CustomAttributeSymbol {
-    constructor(syntax, info) {
-        this.flags = 4 /* isCustomAttribute */;
-        this.res = info.name;
+    constructor(syntax, info, res = info.name) {
         this.syntax = syntax;
+        this.info = info;
+        this.res = res;
+        this.flags = 4 /* isCustomAttribute */;
         this._bindings = null;
     }
     get bindings() {
-        if (this._bindings == null) {
+        if (this._bindings === null) {
             this._bindings = [];
             this.flags |= 4096 /* hasBindings */;
         }
@@ -94,10 +96,10 @@ export class CustomAttributeSymbol {
  */
 export class PlainAttributeSymbol {
     constructor(syntax, command, expression) {
-        this.flags = 8 /* isPlainAttribute */;
         this.syntax = syntax;
         this.command = command;
         this.expression = expression;
+        this.flags = 8 /* isPlainAttribute */;
     }
 }
 /**
@@ -109,12 +111,12 @@ export class PlainAttributeSymbol {
  */
 export class BindingSymbol {
     constructor(command, bindable, expression, rawValue, target) {
-        this.flags = 256 /* isBinding */;
         this.command = command;
         this.bindable = bindable;
         this.expression = expression;
         this.rawValue = rawValue;
         this.target = target;
+        this.flags = 256 /* isBinding */;
     }
 }
 /**
@@ -122,13 +124,19 @@ export class BindingSymbol {
  * or the value of its `as-element` attribute.
  */
 export class CustomElementSymbol {
-    constructor(dom, node, info) {
+    constructor(dom, physicalNode, info, res = info.name, bindables = info.bindables) {
+        this.physicalNode = physicalNode;
+        this.info = info;
+        this.res = res;
+        this.bindables = bindables;
         this.flags = 16 /* isCustomElement */;
-        this.res = info.name;
-        this.physicalNode = node;
-        this.bindables = info.bindables;
         this.isTarget = true;
         this.templateController = null;
+        this._customAttributes = null;
+        this._plainAttributes = null;
+        this._bindings = null;
+        this._childNodes = null;
+        this._parts = null;
         if (info.containerless) {
             this.isContainerless = true;
             this.marker = createMarker(dom);
@@ -138,42 +146,37 @@ export class CustomElementSymbol {
             this.isContainerless = false;
             this.marker = null;
         }
-        this._customAttributes = null;
-        this._plainAttributes = null;
-        this._bindings = null;
-        this._childNodes = null;
-        this._parts = null;
     }
     get customAttributes() {
-        if (this._customAttributes == null) {
+        if (this._customAttributes === null) {
             this._customAttributes = [];
             this.flags |= 2048 /* hasAttributes */;
         }
         return this._customAttributes;
     }
     get plainAttributes() {
-        if (this._plainAttributes == null) {
+        if (this._plainAttributes === null) {
             this._plainAttributes = [];
             this.flags |= 2048 /* hasAttributes */;
         }
         return this._plainAttributes;
     }
     get bindings() {
-        if (this._bindings == null) {
+        if (this._bindings === null) {
             this._bindings = [];
             this.flags |= 4096 /* hasBindings */;
         }
         return this._bindings;
     }
     get childNodes() {
-        if (this._childNodes == null) {
+        if (this._childNodes === null) {
             this._childNodes = [];
             this.flags |= 8192 /* hasChildNodes */;
         }
         return this._childNodes;
     }
     get parts() {
-        if (this._parts == null) {
+        if (this._parts === null) {
             this._parts = [];
             this.flags |= 16384 /* hasParts */;
         }
@@ -181,15 +184,15 @@ export class CustomElementSymbol {
     }
 }
 export class LetElementSymbol {
-    constructor(dom, node) {
+    constructor(dom, physicalNode, marker = createMarker(dom)) {
+        this.physicalNode = physicalNode;
+        this.marker = marker;
         this.flags = 32 /* isLetElement */ | 512 /* hasMarker */;
-        this.physicalNode = node;
         this.toBindingContext = false;
-        this.marker = createMarker(dom);
         this._bindings = null;
     }
     get bindings() {
-        if (this._bindings == null) {
+        if (this._bindings === null) {
             this._bindings = [];
             this.flags |= 4096 /* hasBindings */;
         }
@@ -202,31 +205,32 @@ export class LetElementSymbol {
  * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
  */
 export class PlainElementSymbol {
-    constructor(node) {
+    constructor(dom, physicalNode) {
+        this.physicalNode = physicalNode;
         this.flags = 64 /* isPlainElement */;
-        this.physicalNode = node;
         this.isTarget = false;
         this.templateController = null;
+        this.hasSlots = false;
         this._customAttributes = null;
         this._plainAttributes = null;
         this._childNodes = null;
     }
     get customAttributes() {
-        if (this._customAttributes == null) {
+        if (this._customAttributes === null) {
             this._customAttributes = [];
             this.flags |= 2048 /* hasAttributes */;
         }
         return this._customAttributes;
     }
     get plainAttributes() {
-        if (this._plainAttributes == null) {
+        if (this._plainAttributes === null) {
             this._plainAttributes = [];
             this.flags |= 2048 /* hasAttributes */;
         }
         return this._plainAttributes;
     }
     get childNodes() {
-        if (this._childNodes == null) {
+        if (this._childNodes === null) {
             this._childNodes = [];
             this.flags |= 8192 /* hasChildNodes */;
         }
@@ -237,11 +241,11 @@ export class PlainElementSymbol {
  * A standalone text node that has an interpolation.
  */
 export class TextSymbol {
-    constructor(dom, node, interpolation) {
-        this.flags = 128 /* isText */ | 512 /* hasMarker */;
-        this.physicalNode = node;
+    constructor(dom, physicalNode, interpolation, marker = createMarker(dom)) {
+        this.physicalNode = physicalNode;
         this.interpolation = interpolation;
-        this.marker = createMarker(dom);
+        this.marker = marker;
+        this.flags = 128 /* isText */ | 512 /* hasMarker */;
     }
 }
 //# sourceMappingURL=semantic-model.js.map

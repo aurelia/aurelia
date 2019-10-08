@@ -20,63 +20,33 @@ export declare const enum SymbolFlags {
     hasChildNodes = 8192,
     hasParts = 16384
 }
-export interface ISymbol {
-    flags: SymbolFlags;
-}
-export interface IAttributeSymbol {
-    syntax: AttrSyntax;
-}
-export interface IPlainAttributeSymbol extends IAttributeSymbol {
-    command: IBindingCommand | null;
-    expression: AnyBindingExpression | null;
-}
-export interface ICustomAttributeSymbol extends IAttributeSymbol, IResourceAttributeSymbol {
-    syntax: AttrSyntax;
-}
-export interface ISymbolWithBindings extends ISymbol {
-    bindings: BindingSymbol[];
-}
-export interface IResourceAttributeSymbol extends ISymbolWithBindings {
-    res: string;
-    bindings: BindingSymbol[];
-}
-export interface INodeSymbol extends ISymbol {
-    physicalNode: INode;
-}
-export interface IParentNodeSymbol extends INodeSymbol {
-    physicalNode: INode;
-    templateController: TemplateControllerSymbol;
-}
-export interface ISymbolWithTemplate extends INodeSymbol {
-    physicalNode: INode;
-    template: IParentNodeSymbol;
-}
-export interface IElementSymbol extends IParentNodeSymbol {
-    customAttributes: ICustomAttributeSymbol[];
-    plainAttributes: IPlainAttributeSymbol[];
-    childNodes: INodeSymbol[];
-    isTarget: boolean;
-}
-export interface ISymbolWithMarker extends INodeSymbol {
-    marker: INode;
-}
+export declare type AnySymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomAttributeSymbol | CustomElementSymbol<TText, TElement, TMarker> | LetElementSymbol<TElement, TMarker> | PlainAttributeSymbol | PlainElementSymbol<TText, TElement, TMarker> | ReplacePartSymbol<TText, TElement, TMarker> | TemplateControllerSymbol<TText, TElement, TMarker> | TextSymbol<TText, TMarker>);
+export declare type AttributeSymbol = (CustomAttributeSymbol | PlainAttributeSymbol);
+export declare type SymbolWithBindings<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomAttributeSymbol | CustomElementSymbol<TText, TElement, TMarker> | LetElementSymbol<TElement, TMarker> | TemplateControllerSymbol<TText, TElement, TMarker>);
+export declare type ResourceAttributeSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomAttributeSymbol | TemplateControllerSymbol<TText, TElement, TMarker>);
+export declare type NodeSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomElementSymbol<TText, TElement, TMarker> | LetElementSymbol<TElement, TMarker> | PlainElementSymbol<TText, TElement, TMarker> | ReplacePartSymbol<TText, TElement, TMarker> | TemplateControllerSymbol<TText, TElement, TMarker> | TextSymbol<TText, TMarker>);
+export declare type ParentNodeSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomElementSymbol<TText, TElement, TMarker> | PlainElementSymbol<TText, TElement, TMarker> | TemplateControllerSymbol<TText, TElement, TMarker>);
+export declare type ElementSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomElementSymbol<TText, TElement, TMarker> | PlainElementSymbol<TText, TElement, TMarker>);
+export declare type SymbolWithTemplate<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (ReplacePartSymbol<TText, TElement, TMarker> | TemplateControllerSymbol<TText, TElement, TMarker>);
+export declare type SymbolWithMarker<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (CustomElementSymbol<TText, TElement, TMarker> | LetElementSymbol<TElement, TMarker> | TemplateControllerSymbol<TText, TElement, TMarker> | TextSymbol<TText, TMarker>);
 /**
  * A html attribute that is associated with a registered resource, specifically a template controller.
  */
-export declare class TemplateControllerSymbol implements IResourceAttributeSymbol, IParentNodeSymbol, ISymbolWithTemplate, ISymbolWithMarker {
-    flags: SymbolFlags;
-    res: string;
-    partName: string | null;
-    physicalNode: INode;
+export declare class TemplateControllerSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
     syntax: AttrSyntax;
-    template: IParentNodeSymbol;
-    templateController: TemplateControllerSymbol;
-    marker: INode;
+    info: AttrInfo;
+    res: string;
+    flags: SymbolFlags;
+    partName: string | null;
+    physicalNode: TElement | null;
+    template: ParentNodeSymbol<TText, TElement, TMarker> | null;
+    templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null;
+    marker: TMarker;
     private _bindings;
     readonly bindings: BindingSymbol[];
     private _parts;
-    readonly parts: ReplacePartSymbol[];
-    constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null);
+    readonly parts: ReplacePartSymbol<TText, TElement, TMarker>[];
+    constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null, res?: string);
 }
 /**
  * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
@@ -84,24 +54,25 @@ export declare class TemplateControllerSymbol implements IResourceAttributeSymbo
  *
  * This element will be lifted from the DOM just like a template controller.
  */
-export declare class ReplacePartSymbol implements ISymbolWithTemplate {
-    flags: SymbolFlags;
+export declare class ReplacePartSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
     name: string;
-    physicalNode: INode;
-    parent: IParentNodeSymbol | null;
-    template: IParentNodeSymbol;
-    constructor(name: string);
+    physicalNode: TElement | null;
+    parent: ParentNodeSymbol<TText, TElement, TMarker> | null;
+    template: ParentNodeSymbol<TText, TElement, TMarker> | null;
+    flags: SymbolFlags;
+    constructor(name: string, physicalNode?: TElement | null, parent?: ParentNodeSymbol<TText, TElement, TMarker> | null, template?: ParentNodeSymbol<TText, TElement, TMarker> | null);
 }
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
-export declare class CustomAttributeSymbol implements ICustomAttributeSymbol {
-    flags: SymbolFlags;
-    res: string;
+export declare class CustomAttributeSymbol {
     syntax: AttrSyntax;
+    info: AttrInfo;
+    res: string;
+    flags: SymbolFlags;
     private _bindings;
     readonly bindings: BindingSymbol[];
-    constructor(syntax: AttrSyntax, info: AttrInfo);
+    constructor(syntax: AttrSyntax, info: AttrInfo, res?: string);
 }
 /**
  * An attribute, with either a binding command or an interpolation, whose target is the html
@@ -109,11 +80,11 @@ export declare class CustomAttributeSymbol implements ICustomAttributeSymbol {
  *
  * This will never target a bindable property of a custom attribute or element;
  */
-export declare class PlainAttributeSymbol implements IPlainAttributeSymbol {
-    flags: SymbolFlags;
+export declare class PlainAttributeSymbol {
     syntax: AttrSyntax;
     command: IBindingCommand | null;
     expression: AnyBindingExpression | null;
+    flags: SymbolFlags;
     constructor(syntax: AttrSyntax, command: IBindingCommand | null, expression: AnyBindingExpression | null);
 }
 /**
@@ -123,76 +94,77 @@ export declare class PlainAttributeSymbol implements IPlainAttributeSymbol {
  *
  * This will always target a bindable property of a custom attribute or element;
  */
-export declare class BindingSymbol implements ISymbol {
-    flags: SymbolFlags;
+export declare class BindingSymbol {
     command: IBindingCommand | null;
     bindable: BindableInfo;
     expression: AnyBindingExpression | null;
     rawValue: string;
     target: string;
+    flags: SymbolFlags;
     constructor(command: IBindingCommand | null, bindable: BindableInfo, expression: AnyBindingExpression | null, rawValue: string, target: string);
 }
 /**
  * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`
  * or the value of its `as-element` attribute.
  */
-export declare class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings, ISymbolWithMarker {
-    flags: SymbolFlags;
+export declare class CustomElementSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+    physicalNode: TElement;
+    info: ElementInfo;
     res: string;
-    physicalNode: INode;
-    bindables: Record<string, BindableInfo>;
+    bindables: Record<string, BindableInfo | undefined>;
+    flags: SymbolFlags;
     isTarget: true;
-    templateController: TemplateControllerSymbol;
+    templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null;
     isContainerless: boolean;
-    marker: INode;
+    marker: TMarker;
     private _customAttributes;
-    readonly customAttributes: ICustomAttributeSymbol[];
+    readonly customAttributes: CustomAttributeSymbol[];
     private _plainAttributes;
-    readonly plainAttributes: IPlainAttributeSymbol[];
+    readonly plainAttributes: PlainAttributeSymbol[];
     private _bindings;
     readonly bindings: BindingSymbol[];
     private _childNodes;
-    readonly childNodes: INodeSymbol[];
+    readonly childNodes: NodeSymbol<TText, TElement, TMarker>[];
     private _parts;
-    readonly parts: ReplacePartSymbol[];
-    constructor(dom: IDOM, node: INode, info: ElementInfo);
+    readonly parts: ReplacePartSymbol<TText, TElement, TMarker>[];
+    constructor(dom: IDOM, physicalNode: TElement, info: ElementInfo, res?: string, bindables?: Record<string, BindableInfo | undefined>);
 }
-export declare class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymbolWithMarker {
+export declare class LetElementSymbol<TElement extends INode = INode, TMarker extends INode = INode> {
+    physicalNode: TElement;
+    marker: TMarker;
     flags: SymbolFlags;
-    physicalNode: INode;
     toBindingContext: boolean;
-    marker: INode;
     private _bindings;
     readonly bindings: BindingSymbol[];
-    constructor(dom: IDOM, node: INode);
+    constructor(dom: IDOM, physicalNode: TElement, marker?: TMarker);
 }
 /**
  * A normal html element that may or may not have attribute behaviors and/or child node behaviors.
  *
  * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
  */
-export declare class PlainElementSymbol implements IElementSymbol {
+export declare class PlainElementSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+    physicalNode: TElement;
     flags: SymbolFlags;
-    physicalNode: INode;
     isTarget: boolean;
-    templateController: TemplateControllerSymbol;
-    hasSlots?: boolean;
+    templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null;
+    hasSlots: boolean;
     private _customAttributes;
-    readonly customAttributes: ICustomAttributeSymbol[];
+    readonly customAttributes: CustomAttributeSymbol[];
     private _plainAttributes;
-    readonly plainAttributes: IPlainAttributeSymbol[];
+    readonly plainAttributes: PlainAttributeSymbol[];
     private _childNodes;
-    readonly childNodes: INodeSymbol[];
-    constructor(node: INode);
+    readonly childNodes: NodeSymbol<TText, TElement, TMarker>[];
+    constructor(dom: IDOM, physicalNode: TElement);
 }
 /**
  * A standalone text node that has an interpolation.
  */
-export declare class TextSymbol implements INodeSymbol, ISymbolWithMarker {
-    flags: SymbolFlags;
-    physicalNode: INode;
+export declare class TextSymbol<TText extends INode = INode, TMarker extends INode = INode> {
+    physicalNode: TText;
     interpolation: IInterpolationExpression;
-    marker: INode;
-    constructor(dom: IDOM, node: INode, interpolation: IInterpolationExpression);
+    marker: TMarker;
+    flags: SymbolFlags;
+    constructor(dom: IDOM, physicalNode: TText, interpolation: IInterpolationExpression, marker?: TMarker);
 }
 //# sourceMappingURL=semantic-model.d.ts.map

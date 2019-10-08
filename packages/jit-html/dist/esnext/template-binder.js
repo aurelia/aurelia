@@ -1,40 +1,113 @@
-import { BindableInfo, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, TemplateControllerSymbol, TextSymbol } from '@aurelia/jit';
-import { camelCase, Profiler, } from '@aurelia/kernel';
+/* eslint-disable compat/compat */
+import { BindableInfo, } from '@aurelia/jit';
+import { camelCase, } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
-const slice = Array.prototype.slice;
-const { enter, leave } = Profiler.createTimer('TemplateBinder');
-const invalidSurrogateAttribute = {
+import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, TemplateControllerSymbol, TextSymbol, } from './semantic-model';
+const invalidSurrogateAttribute = Object.assign(Object.create(null), {
     'id': true,
     'part': true,
     'replace-part': true
-};
-const attributesToIgnore = {
+});
+const attributesToIgnore = Object.assign(Object.create(null), {
     'as-element': true,
     'part': true,
     'replace-part': true
-};
+});
+function hasInlineBindings(rawValue) {
+    const len = rawValue.length;
+    let ch = 0;
+    for (let i = 0; i < len; ++i) {
+        ch = rawValue.charCodeAt(i);
+        if (ch === 92 /* Backslash */) {
+            ++i;
+            // Ignore whatever comes next because it's escaped
+        }
+        else if (ch === 58 /* Colon */) {
+            return true;
+        }
+        else if (ch === 36 /* Dollar */ && rawValue.charCodeAt(i + 1) === 123 /* OpenBrace */) {
+            return false;
+        }
+    }
+    return false;
+}
+function processInterpolationText(symbol) {
+    const node = symbol.physicalNode;
+    const parentNode = node.parentNode;
+    while (node.nextSibling !== null && node.nextSibling.nodeType === 3 /* Text */) {
+        parentNode.removeChild(node.nextSibling);
+    }
+    node.textContent = '';
+    parentNode.insertBefore(symbol.marker, node);
+}
+function isTemplateControllerOf(proxy, manifest) {
+    return proxy !== manifest;
+}
+/**
+ * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
+ * It's a first refactoring step towards separating DOM parsing/binding from mutations.
+ */
+function processTemplateControllers(dom, manifestProxy, manifest) {
+    const manifestNode = manifest.physicalNode;
+    let current = manifestProxy;
+    let currentTemplate;
+    while (isTemplateControllerOf(current, manifest)) {
+        if (current.template === manifest) {
+            // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
+            manifestNode.parentNode.replaceChild(current.marker, manifestNode);
+            // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
+            // and simply use the template directly, saving a bit of work
+            if (manifestNode.nodeName === 'TEMPLATE') {
+                current.physicalNode = manifestNode;
+                // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
+                manifestNode.remove();
+            }
+            else {
+                // the manifest is not a template element so we need to wrap it in one
+                currentTemplate = current.physicalNode = dom.createTemplate();
+                currentTemplate.content.appendChild(manifestNode);
+            }
+        }
+        else {
+            currentTemplate = current.physicalNode = dom.createTemplate();
+            currentTemplate.content.appendChild(current.marker);
+        }
+        manifestNode.removeAttribute(current.syntax.rawName);
+        current = current.template;
+    }
+}
+function processReplacePart(dom, replacePart, manifestProxy) {
+    let proxyNode;
+    let currentTemplate;
+    if ((manifestProxy.flags & 512 /* hasMarker */) > 0) {
+        proxyNode = manifestProxy.marker;
+    }
+    else {
+        proxyNode = manifestProxy.physicalNode;
+    }
+    if (proxyNode.nodeName === 'TEMPLATE') {
+        // if it's a template element, no need to do anything special, just assign it to the replacePart
+        replacePart.physicalNode = proxyNode;
+    }
+    else {
+        // otherwise wrap the replace-part in a template
+        currentTemplate = replacePart.physicalNode = dom.createTemplate();
+        currentTemplate.content.appendChild(proxyNode);
+    }
+}
 /**
  * TemplateBinder. Todo: describe goal of this class
  */
 export class TemplateBinder {
-    constructor(dom, resources, attrParser, exprParser, attrSyntaxModifier) {
+    constructor(dom, resources, attrParser, exprParser, attrSyntaxTransformer) {
         this.dom = dom;
         this.resources = resources;
         this.attrParser = attrParser;
         this.exprParser = exprParser;
-        this.attrSyntaxTransformer = attrSyntaxModifier;
-        this.surrogate = null;
-        this.manifest = null;
-        this.manifestRoot = null;
-        this.parentManifestRoot = null;
-        this.partName = null;
+        this.attrSyntaxTransformer = attrSyntaxTransformer;
     }
     bind(node) {
-        const surrogateSave = this.surrogate;
-        const parentManifestRootSave = this.parentManifestRoot;
-        const manifestRootSave = this.manifestRoot;
-        const manifestSave = this.manifest;
-        const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
+        const surrogate = new PlainElementSymbol(this.dom, node);
         const resources = this.resources;
         const attrSyntaxTransformer = this.attrSyntaxTransformer;
         const attributes = node.attributes;
@@ -47,88 +120,105 @@ export class TemplateBinder {
                 // TODO: use reporter
             }
             const bindingCommand = resources.getBindingCommand(attrSyntax, true);
-            if (bindingCommand == null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
+            if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
                 const attrInfo = resources.getAttributeInfo(attrSyntax);
-                if (attrInfo == null) {
+                if (attrInfo === null) {
                     // map special html attributes to their corresponding properties
                     attrSyntaxTransformer.transform(node, attrSyntax);
                     // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                    this.bindPlainAttribute(attrSyntax, attr);
+                    this.bindPlainAttribute(
+                    /* attrSyntax */ attrSyntax, 
+                    /* attr       */ attr, 
+                    /* surrogate  */ surrogate, 
+                    /* manifest   */ surrogate);
                 }
                 else if (attrInfo.isTemplateController) {
                     throw new Error('Cannot have template controller on surrogate element.');
                     // TODO: use reporter
                 }
                 else {
-                    this.bindCustomAttribute(attrSyntax, attrInfo, bindingCommand);
+                    this.bindCustomAttribute(
+                    /* attrSyntax */ attrSyntax, 
+                    /* attrInfo   */ attrInfo, 
+                    /* command    */ bindingCommand, 
+                    /* manifest   */ surrogate);
                 }
             }
             else {
                 // map special html attributes to their corresponding properties
                 attrSyntaxTransformer.transform(node, attrSyntax);
                 // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                this.bindPlainAttribute(attrSyntax, attr);
+                this.bindPlainAttribute(
+                /* attrSyntax */ attrSyntax, 
+                /* attr       */ attr, 
+                /* surrogate  */ surrogate, 
+                /* manifest   */ surrogate);
             }
             ++i;
         }
-        this.bindChildNodes(node);
-        this.surrogate = surrogateSave;
-        this.parentManifestRoot = parentManifestRootSave;
-        this.manifestRoot = manifestRootSave;
-        this.manifest = manifestSave;
-        return manifest;
+        this.bindChildNodes(
+        /* node               */ node, 
+        /* surrogate          */ surrogate, 
+        /* manifest           */ surrogate, 
+        /* manifestRoot       */ null, 
+        /* parentManifestRoot */ null, 
+        /* partName           */ null);
+        return surrogate;
     }
-    bindManifest(parentManifest, node) {
+    bindManifest(parentManifest, node, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {
         switch (node.nodeName) {
             case 'LET':
                 // let cannot have children and has some different processing rules, so return early
-                this.bindLetElement(parentManifest, node);
+                this.bindLetElement(
+                /* parentManifest */ parentManifest, 
+                /* node           */ node);
                 return;
             case 'SLOT':
-                this.surrogate.hasSlots = true;
+                surrogate.hasSlots = true;
         }
-        // nodes are processed bottom-up so we need to store the manifests before traversing down and
-        // restore them again afterwards
-        const parentManifestRootSave = this.parentManifestRoot;
-        const manifestRootSave = this.manifestRoot;
-        const manifestSave = this.manifest;
-        const partNameSave = this.partName;
         // get the part name to override the name of the compiled definition
-        this.partName = node.getAttribute('part');
-        if (this.partName === '' || (this.partName === null && node.hasAttribute('replaceable'))) {
-            this.partName = 'default';
+        partName = node.getAttribute('part');
+        if (partName === '' || (partName === null && node.hasAttribute('replaceable'))) {
+            partName = 'default';
         }
-        let manifestRoot = (void 0);
         let name = node.getAttribute('as-element');
-        if (name == null) {
+        if (name === null) {
             name = node.nodeName.toLowerCase();
         }
         const elementInfo = this.resources.getElementInfo(name);
-        if (elementInfo == null) {
+        if (elementInfo === null) {
             // there is no registered custom element with this name
-            this.manifest = new PlainElementSymbol(node);
+            manifest = new PlainElementSymbol(this.dom, node);
         }
         else {
             // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
-            this.parentManifestRoot = this.manifestRoot;
-            manifestRoot = this.manifestRoot = this.manifest = new CustomElementSymbol(this.dom, node, elementInfo);
+            parentManifestRoot = manifestRoot;
+            manifestRoot = manifest = new CustomElementSymbol(this.dom, node, elementInfo);
         }
         // lifting operations done by template controllers and replace-parts effectively unlink the nodes, so start at the bottom
-        this.bindChildNodes(node);
+        this.bindChildNodes(
+        /* node               */ node, 
+        /* surrogate          */ surrogate, 
+        /* manifest           */ manifest, 
+        /* manifestRoot       */ manifestRoot, 
+        /* parentManifestRoot */ parentManifestRoot, 
+        /* partName           */ partName);
         // the parentManifest will receive either the direct child nodes, or the template controllers / replace-parts
         // wrapping them
-        this.bindAttributes(node, parentManifest);
-        if (manifestRoot != null && manifestRoot.isContainerless) {
+        this.bindAttributes(
+        /* node               */ node, 
+        /* parentManifest     */ parentManifest, 
+        /* surrogate          */ surrogate, 
+        /* manifest           */ manifest, 
+        /* manifestRoot       */ manifestRoot, 
+        /* parentManifestRoot */ parentManifestRoot, 
+        /* partName           */ partName);
+        if (manifestRoot !== null && manifestRoot.isContainerless) {
             node.parentNode.replaceChild(manifestRoot.marker, node);
         }
-        else if (this.manifest.isTarget) {
+        else if (manifest.isTarget) {
             node.classList.add('au');
         }
-        // restore the stored manifests so the attributes are processed on the correct lavel
-        this.parentManifestRoot = parentManifestRootSave;
-        this.manifestRoot = manifestRootSave;
-        this.manifest = manifestSave;
-        this.partName = partNameSave;
     }
     bindLetElement(parentManifest, node) {
         const symbol = new LetElementSymbol(this.dom, node);
@@ -144,7 +234,7 @@ export class TemplateBinder {
             }
             const attrSyntax = this.attrParser.parse(attr.name, attr.value);
             const command = this.resources.getBindingCommand(attrSyntax, false);
-            const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
+            const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
             const to = camelCase(attrSyntax.target);
             const info = new BindableInfo(to, BindingMode.toView);
@@ -153,13 +243,15 @@ export class TemplateBinder {
         }
         node.parentNode.replaceChild(symbol.marker, node);
     }
-    bindAttributes(node, parentManifest) {
-        const { parentManifestRoot, manifestRoot, manifest } = this;
+    bindAttributes(node, parentManifest, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {
         // This is the top-level symbol for the current depth.
         // If there are no template controllers or replace-parts, it is always the manifest itself.
         // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
         let manifestProxy = manifest;
-        let replacePart = this.declareReplacePart(node);
+        const replacePart = this.declareReplacePart(
+        /* node               */ node, 
+        /* manifestRoot       */ manifestRoot, 
+        /* parentManifestRoot */ parentManifestRoot);
         let previousController = (void 0);
         let currentController = (void 0);
         const attributes = node.attributes;
@@ -174,16 +266,23 @@ export class TemplateBinder {
             const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
             if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
                 const attrInfo = this.resources.getAttributeInfo(attrSyntax);
-                if (attrInfo == null) {
+                if (attrInfo === null) {
                     // map special html attributes to their corresponding properties
                     this.attrSyntaxTransformer.transform(node, attrSyntax);
                     // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                    this.bindPlainAttribute(attrSyntax, attr);
+                    this.bindPlainAttribute(
+                    /* attrSyntax */ attrSyntax, 
+                    /* attr       */ attr, 
+                    /* surrogate  */ surrogate, 
+                    /* manifest   */ manifest);
                 }
                 else if (attrInfo.isTemplateController) {
                     // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
                     // so keep setting manifest.templateController to the latest template controller we find
-                    currentController = manifest.templateController = this.declareTemplateController(attrSyntax, attrInfo);
+                    currentController = manifest.templateController = this.declareTemplateController(
+                    /* attrSyntax */ attrSyntax, 
+                    /* attrInfo   */ attrInfo, 
+                    /* partName   */ partName);
                     // the proxy and the manifest are only identical when we're at the first template controller (since the controller
                     // is assigned to the proxy), so this evaluates to true at most once per node
                     if (manifestProxy === manifest) {
@@ -199,18 +298,26 @@ export class TemplateBinder {
                 }
                 else {
                     // a regular custom attribute
-                    this.bindCustomAttribute(attrSyntax, attrInfo, bindingCommand);
+                    this.bindCustomAttribute(
+                    /* attrSyntax */ attrSyntax, 
+                    /* attrInfo   */ attrInfo, 
+                    /* command    */ bindingCommand, 
+                    /* manifest   */ manifest);
                 }
             }
             else {
                 // map special html attributes to their corresponding properties
                 this.attrSyntaxTransformer.transform(node, attrSyntax);
                 // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                this.bindPlainAttribute(attrSyntax, attr);
+                this.bindPlainAttribute(
+                /* attrSyntax */ attrSyntax, 
+                /* attr       */ attr, 
+                /* surrogate  */ surrogate, 
+                /* manifest   */ manifest);
             }
         }
         processTemplateControllers(this.dom, manifestProxy, manifest);
-        if (replacePart == null) {
+        if (replacePart === null) {
             // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
             parentManifest.childNodes.push(manifestProxy);
         }
@@ -219,8 +326,7 @@ export class TemplateBinder {
             // element, so add the part to the parent wrapping custom element instead
             const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
             // Tried a replace part with place to put it (process normal)
-            if (!partOwner) {
-                replacePart = (void 0);
+            if (partOwner === null) {
                 parentManifest.childNodes.push(manifestProxy);
                 return;
             }
@@ -235,7 +341,7 @@ export class TemplateBinder {
             processReplacePart(this.dom, replacePart, manifestProxy);
         }
     }
-    bindChildNodes(node) {
+    bindChildNodes(node, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {
         let childNode;
         if (node.nodeName === 'TEMPLATE') {
             childNode = node.content.firstChild;
@@ -244,15 +350,24 @@ export class TemplateBinder {
             childNode = node.firstChild;
         }
         let nextChild;
-        while (childNode != null) {
+        while (childNode !== null) {
             switch (childNode.nodeType) {
                 case 1 /* Element */:
                     nextChild = childNode.nextSibling;
-                    this.bindManifest(this.manifest, childNode);
+                    this.bindManifest(
+                    /* parentManifest     */ manifest, 
+                    /* node               */ childNode, 
+                    /* surrogate          */ surrogate, 
+                    /* manifest           */ manifest, 
+                    /* manifestRoot       */ manifestRoot, 
+                    /* parentManifestRoot */ parentManifestRoot, 
+                    /* partName           */ partName);
                     childNode = nextChild;
                     break;
                 case 3 /* Text */:
-                    childNode = this.bindText(childNode).nextSibling;
+                    childNode = this.bindText(
+                    /* textNode */ childNode, 
+                    /* manifest */ manifest).nextSibling;
                     break;
                 case 4 /* CDATASection */:
                 case 7 /* ProcessingInstruction */:
@@ -266,37 +381,38 @@ export class TemplateBinder {
             }
         }
     }
-    bindText(node) {
-        const interpolation = this.exprParser.parse(node.wholeText, 2048 /* Interpolation */);
-        if (interpolation != null) {
-            const symbol = new TextSymbol(this.dom, node, interpolation);
-            this.manifest.childNodes.push(symbol);
+    bindText(textNode, manifest) {
+        const interpolation = this.exprParser.parse(textNode.wholeText, 2048 /* Interpolation */);
+        if (interpolation !== null) {
+            const symbol = new TextSymbol(this.dom, textNode, interpolation);
+            manifest.childNodes.push(symbol);
             processInterpolationText(symbol);
         }
-        while (node.nextSibling != null && node.nextSibling.nodeType === 3 /* Text */) {
-            node = node.nextSibling;
+        let next = textNode;
+        while (next.nextSibling !== null && next.nextSibling.nodeType === 3 /* Text */) {
+            next = next.nextSibling;
         }
-        return node;
+        return next;
     }
-    declareTemplateController(attrSyntax, attrInfo) {
+    declareTemplateController(attrSyntax, attrInfo, partName) {
         let symbol;
         const attrRawValue = attrSyntax.rawValue;
         const command = this.resources.getBindingCommand(attrSyntax, false);
         // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
-        const isMultiBindings = command == null && hasInlineBindings(attrRawValue);
+        const isMultiBindings = command === null && hasInlineBindings(attrRawValue);
         if (isMultiBindings) {
-            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
+            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
             this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
         }
         else {
-            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-            const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
+            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
+            const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrRawValue, bindingType);
             symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
         }
         return symbol;
     }
-    bindCustomAttribute(attrSyntax, attrInfo, command) {
+    bindCustomAttribute(attrSyntax, attrInfo, command, manifest) {
         let symbol;
         const attrRawValue = attrSyntax.rawValue;
         // Custom attributes are always in multiple binding mode,
@@ -306,7 +422,7 @@ export class TemplateBinder {
         //          In this scenario, the value of the custom attributes is required to be a valid expression
         //        * has no colon: ie: <div my-attr="abcd">
         //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        const isMultiBindings = command == null && hasInlineBindings(attrRawValue);
+        const isMultiBindings = command === null && hasInlineBindings(attrRawValue);
         if (isMultiBindings) {
             // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;
             // the binding commands must be declared in each of the property bindings
@@ -315,11 +431,10 @@ export class TemplateBinder {
         }
         else {
             symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-            const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
+            const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrRawValue, bindingType);
             symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
         }
-        const manifest = this.manifest;
         manifest.customAttributes.push(symbol);
         manifest.isTarget = true;
     }
@@ -360,7 +475,7 @@ export class TemplateBinder {
                 const attrSyntax = this.attrParser.parse(attrName, attrValue);
                 const attrTarget = attrSyntax.target;
                 const command = this.resources.getBindingCommand(attrSyntax, false);
-                const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
+                const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrValue, bindingType);
                 let bindable = bindables[attrTarget];
                 if (bindable === undefined) {
@@ -378,10 +493,9 @@ export class TemplateBinder {
             }
         }
     }
-    bindPlainAttribute(attrSyntax, attr) {
+    bindPlainAttribute(attrSyntax, attr, surrogate, manifest) {
         const command = this.resources.getBindingCommand(attrSyntax, false);
-        const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
-        const manifest = this.manifest;
+        const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
         const attrTarget = attrSyntax.target;
         const attrRawValue = attrSyntax.rawValue;
         let expr;
@@ -398,7 +512,7 @@ export class TemplateBinder {
         else {
             expr = this.exprParser.parse(attrRawValue, bindingType);
         }
-        if (manifest.flags & 16 /* isCustomElement */) {
+        if ((manifest.flags & 16 /* isCustomElement */) > 0) {
             const bindable = manifest.bindables[attrTarget];
             if (bindable != null) {
                 // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
@@ -417,7 +531,7 @@ export class TemplateBinder {
             manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
             manifest.isTarget = true;
         }
-        else if (manifest === this.surrogate) {
+        else if (manifest === surrogate) {
             // any attributes, even if they are plain (no command/interpolation etc), should be added if they
             // are on the surrogate element
             manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
@@ -427,11 +541,21 @@ export class TemplateBinder {
             attr.value = '';
         }
     }
-    declareReplacePart(node) {
+    declareReplacePart(node, manifestRoot, parentManifestRoot) {
         const name = node.getAttribute('replace-part');
-        if (name == null) {
-            const root = this.manifestRoot || this.parentManifestRoot;
-            if (root && root.flags & 16 /* isCustomElement */ /* isCustomElement */ && root.isTarget && root.isContainerless) {
+        if (name === null) {
+            let root = null;
+            if (manifestRoot !== null
+                && (manifestRoot.flags & 16 /* isCustomElement */) > 0
+                && manifestRoot.isContainerless) {
+                root = manifestRoot;
+            }
+            else if (parentManifestRoot !== null
+                && (parentManifestRoot.flags & 16 /* isCustomElement */) > 0
+                && parentManifestRoot.isContainerless) {
+                root = parentManifestRoot;
+            }
+            if (root !== null) {
                 const physicalNode = root.physicalNode;
                 if (physicalNode.childElementCount === 1) {
                     return new ReplacePartSymbol('default');
@@ -439,98 +563,7 @@ export class TemplateBinder {
             }
             return null;
         }
-        return name === '' ? new ReplacePartSymbol('default') : new ReplacePartSymbol(name);
+        return new ReplacePartSymbol(name === '' ? 'default' : name);
     }
 }
-function hasInlineBindings(rawValue) {
-    const len = rawValue.length;
-    let ch = 0;
-    for (let i = 0; i < len; ++i) {
-        ch = rawValue.charCodeAt(i);
-        if (ch === 92 /* Backslash */) {
-            ++i;
-            // Ignore whatever comes next because it's escaped
-        }
-        else if (ch === 58 /* Colon */) {
-            return true;
-        }
-        else if (ch === 36 /* Dollar */ && rawValue.charCodeAt(i + 1) === 123 /* OpenBrace */) {
-            return false;
-        }
-    }
-    return false;
-}
-function processInterpolationText(symbol) {
-    const node = symbol.physicalNode;
-    const parentNode = node.parentNode;
-    while (node.nextSibling != null && node.nextSibling.nodeType === 3 /* Text */) {
-        parentNode.removeChild(node.nextSibling);
-    }
-    node.textContent = '';
-    parentNode.insertBefore(symbol.marker, node);
-}
-/**
- * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
- * It's a first refactoring step towards separating DOM parsing/binding from mutations.
- */
-function processTemplateControllers(dom, manifestProxy, manifest) {
-    const manifestNode = manifest.physicalNode;
-    let current = manifestProxy;
-    let currentTemplate;
-    while (current !== manifest) {
-        if (current.template === manifest) {
-            // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
-            manifestNode.parentNode.replaceChild(current.marker, manifestNode);
-            // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
-            // and simply use the template directly, saving a bit of work
-            if (manifestNode.nodeName === 'TEMPLATE') {
-                current.physicalNode = manifestNode;
-                // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
-                manifestNode.remove();
-            }
-            else {
-                // the manifest is not a template element so we need to wrap it in one
-                currentTemplate = current.physicalNode = dom.createTemplate();
-                currentTemplate.content.appendChild(manifestNode);
-            }
-        }
-        else {
-            currentTemplate = current.physicalNode = dom.createTemplate();
-            currentTemplate.content.appendChild(current.marker);
-        }
-        manifestNode.removeAttribute(current.syntax.rawName);
-        current = current.template;
-    }
-}
-function processReplacePart(dom, replacePart, manifestProxy) {
-    let proxyNode;
-    let currentTemplate;
-    if (manifestProxy.flags & 512 /* hasMarker */) {
-        proxyNode = manifestProxy.marker;
-    }
-    else {
-        proxyNode = manifestProxy.physicalNode;
-    }
-    if (proxyNode.nodeName === 'TEMPLATE') {
-        // if it's a template element, no need to do anything special, just assign it to the replacePart
-        replacePart.physicalNode = proxyNode;
-    }
-    else {
-        // otherwise wrap the replace-part in a template
-        currentTemplate = replacePart.physicalNode = dom.createTemplate();
-        currentTemplate.content.appendChild(proxyNode);
-    }
-}
-var Char;
-(function (Char) {
-    Char[Char["Space"] = 32] = "Space";
-    Char[Char["DoubleQuote"] = 34] = "DoubleQuote";
-    Char[Char["Dollar"] = 36] = "Dollar";
-    Char[Char["SingleQuote"] = 39] = "SingleQuote";
-    Char[Char["Slash"] = 47] = "Slash";
-    Char[Char["Semicolon"] = 59] = "Semicolon";
-    Char[Char["Colon"] = 58] = "Colon";
-    Char[Char["Backslash"] = 92] = "Backslash";
-    Char[Char["OpenBrace"] = 123] = "OpenBrace";
-})(Char || (Char = {}));
 //# sourceMappingURL=template-binder.js.map

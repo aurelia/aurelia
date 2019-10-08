@@ -21,7 +21,6 @@
         required: false,
         compiler: 'default'
     });
-    const { enter, leave } = kernel_1.Profiler.createTimer('TemplateCompiler');
     /**
      * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
      *
@@ -87,16 +86,16 @@
             return definition;
         }
         compileChildNodes(parent) {
-            if (parent.flags & 8192 /* hasChildNodes */) {
+            if ((parent.flags & 8192 /* hasChildNodes */) > 0) {
                 const { childNodes } = parent;
                 let childNode;
                 const ii = childNodes.length;
                 for (let i = 0; i < ii; ++i) {
                     childNode = childNodes[i];
-                    if (childNode.flags & 128 /* isText */) {
+                    if ((childNode.flags & 128 /* isText */) > 0) {
                         this.instructionRows.push([new runtime_html_1.TextBindingInstruction(childNode.interpolation)]);
                     }
-                    else if (childNode.flags & 32 /* isLetElement */) {
+                    else if ((childNode.flags & 32 /* isLetElement */) > 0) {
                         const bindings = childNode.bindings;
                         const instructions = [];
                         let binding;
@@ -150,7 +149,7 @@
             this.scopeParts = kernel_1.mergeDistinct(scopePartsSave, scopeParts, false);
             const def = {
                 scopeParts,
-                name: symbol.partName == null ? symbol.res : symbol.partName,
+                name: symbol.partName === null ? symbol.res : symbol.partName,
                 template: symbol.physicalNode,
                 instructions: controllerInstructions,
                 build: buildNotRequired
@@ -166,7 +165,7 @@
         }
         compileBindings(symbol) {
             let bindingInstructions;
-            if (symbol.flags & 4096 /* hasBindings */) {
+            if ((symbol.flags & 4096 /* hasBindings */) > 0) {
                 // either a custom element with bindings, a custom attribute / template controller with dynamic options,
                 // or a single value custom attribute binding
                 const { bindings } = symbol;
@@ -183,9 +182,9 @@
             return bindingInstructions;
         }
         compileBinding(symbol) {
-            if (symbol.command == null) {
+            if (symbol.command === null) {
                 // either an interpolation or a normal string value assigned to an element or attribute binding
-                if (symbol.expression == null) {
+                if (symbol.expression === null) {
                     // the template binder already filtered out non-bindables, so we know we need a setProperty here
                     return new runtime_1.SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
                 }
@@ -202,7 +201,7 @@
         }
         compileAttributes(symbol, offset) {
             let attributeInstructions;
-            if (symbol.flags & 2048 /* hasAttributes */) {
+            if ((symbol.flags & 2048 /* hasAttributes */) > 0) {
                 // any attributes on a custom element (which are not bindables) or a plain element
                 const customAttributes = symbol.customAttributes;
                 const plainAttributes = symbol.plainAttributes;
@@ -232,8 +231,8 @@
             return new runtime_1.HydrateAttributeInstruction(symbol.res, bindings);
         }
         compilePlainAttribute(symbol) {
-            if (symbol.command == null) {
-                if (symbol.expression == null) {
+            if (symbol.command === null) {
+                if (symbol.expression === null) {
                     // a plain attribute on a surrogate
                     return new runtime_html_1.SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
                 }
@@ -257,7 +256,7 @@
         // }
         compileParts(symbol) {
             let parts;
-            if (symbol.flags & 16384 /* hasParts */) {
+            if ((symbol.flags & 16384 /* hasParts */) > 0) {
                 parts = {};
                 const replaceParts = symbol.parts;
                 const ii = replaceParts.length;

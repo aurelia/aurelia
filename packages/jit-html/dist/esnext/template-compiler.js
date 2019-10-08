@@ -1,6 +1,6 @@
 import { __decorate, __param } from "tslib";
-import { IAttributeParser, ResourceModel } from '@aurelia/jit';
-import { mergeDistinct, PLATFORM, Profiler, Registration, } from '@aurelia/kernel';
+import { IAttributeParser, ResourceModel, } from '@aurelia/jit';
+import { mergeDistinct, PLATFORM, Registration, } from '@aurelia/kernel';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IExpressionParser, InterpolationInstruction, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, SetPropertyInstruction } from '@aurelia/runtime';
 import { SetAttributeInstruction, TextBindingInstruction } from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
@@ -10,7 +10,6 @@ const buildNotRequired = Object.freeze({
     required: false,
     compiler: 'default'
 });
-const { enter, leave } = Profiler.createTimer('TemplateCompiler');
 /**
  * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
  *
@@ -76,16 +75,16 @@ let TemplateCompiler = class TemplateCompiler {
         return definition;
     }
     compileChildNodes(parent) {
-        if (parent.flags & 8192 /* hasChildNodes */) {
+        if ((parent.flags & 8192 /* hasChildNodes */) > 0) {
             const { childNodes } = parent;
             let childNode;
             const ii = childNodes.length;
             for (let i = 0; i < ii; ++i) {
                 childNode = childNodes[i];
-                if (childNode.flags & 128 /* isText */) {
+                if ((childNode.flags & 128 /* isText */) > 0) {
                     this.instructionRows.push([new TextBindingInstruction(childNode.interpolation)]);
                 }
-                else if (childNode.flags & 32 /* isLetElement */) {
+                else if ((childNode.flags & 32 /* isLetElement */) > 0) {
                     const bindings = childNode.bindings;
                     const instructions = [];
                     let binding;
@@ -139,7 +138,7 @@ let TemplateCompiler = class TemplateCompiler {
         this.scopeParts = mergeDistinct(scopePartsSave, scopeParts, false);
         const def = {
             scopeParts,
-            name: symbol.partName == null ? symbol.res : symbol.partName,
+            name: symbol.partName === null ? symbol.res : symbol.partName,
             template: symbol.physicalNode,
             instructions: controllerInstructions,
             build: buildNotRequired
@@ -155,7 +154,7 @@ let TemplateCompiler = class TemplateCompiler {
     }
     compileBindings(symbol) {
         let bindingInstructions;
-        if (symbol.flags & 4096 /* hasBindings */) {
+        if ((symbol.flags & 4096 /* hasBindings */) > 0) {
             // either a custom element with bindings, a custom attribute / template controller with dynamic options,
             // or a single value custom attribute binding
             const { bindings } = symbol;
@@ -172,9 +171,9 @@ let TemplateCompiler = class TemplateCompiler {
         return bindingInstructions;
     }
     compileBinding(symbol) {
-        if (symbol.command == null) {
+        if (symbol.command === null) {
             // either an interpolation or a normal string value assigned to an element or attribute binding
-            if (symbol.expression == null) {
+            if (symbol.expression === null) {
                 // the template binder already filtered out non-bindables, so we know we need a setProperty here
                 return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
             }
@@ -191,7 +190,7 @@ let TemplateCompiler = class TemplateCompiler {
     }
     compileAttributes(symbol, offset) {
         let attributeInstructions;
-        if (symbol.flags & 2048 /* hasAttributes */) {
+        if ((symbol.flags & 2048 /* hasAttributes */) > 0) {
             // any attributes on a custom element (which are not bindables) or a plain element
             const customAttributes = symbol.customAttributes;
             const plainAttributes = symbol.plainAttributes;
@@ -221,8 +220,8 @@ let TemplateCompiler = class TemplateCompiler {
         return new HydrateAttributeInstruction(symbol.res, bindings);
     }
     compilePlainAttribute(symbol) {
-        if (symbol.command == null) {
-            if (symbol.expression == null) {
+        if (symbol.command === null) {
+            if (symbol.expression === null) {
                 // a plain attribute on a surrogate
                 return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
             }
@@ -246,7 +245,7 @@ let TemplateCompiler = class TemplateCompiler {
     // }
     compileParts(symbol) {
         let parts;
-        if (symbol.flags & 16384 /* hasParts */) {
+        if ((symbol.flags & 16384 /* hasParts */) > 0) {
             parts = {};
             const replaceParts = symbol.parts;
             const ii = replaceParts.length;

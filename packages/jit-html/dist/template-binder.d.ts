@@ -1,21 +1,17 @@
-import { IAttributeParser, PlainElementSymbol, ResourceModel } from '@aurelia/jit';
+import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import { IDOM, IExpressionParser } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
+import { PlainElementSymbol } from './semantic-model';
 /**
  * TemplateBinder. Todo: describe goal of this class
  */
 export declare class TemplateBinder {
-    dom: IDOM;
-    resources: ResourceModel;
-    attrParser: IAttributeParser;
-    exprParser: IExpressionParser;
-    attrSyntaxTransformer: IAttrSyntaxTransformer;
-    private surrogate;
-    private manifest;
-    private manifestRoot;
-    private parentManifestRoot;
-    private partName;
-    constructor(dom: IDOM, resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser, attrSyntaxModifier: IAttrSyntaxTransformer);
+    readonly dom: IDOM;
+    readonly resources: ResourceModel;
+    readonly attrParser: IAttributeParser;
+    readonly exprParser: IExpressionParser;
+    readonly attrSyntaxTransformer: IAttrSyntaxTransformer;
+    constructor(dom: IDOM, resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser, attrSyntaxTransformer: IAttrSyntaxTransformer);
     bind(node: HTMLTemplateElement): PlainElementSymbol;
     private bindManifest;
     private bindLetElement;

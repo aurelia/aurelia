@@ -148,7 +148,7 @@ function createElementForType<T extends INode>(
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(tagName, childInstructions));
+  instructions.push(new HydrateElementInstruction(tagName, childInstructions, void 0, void 0));
 
   if (props) {
     Object.keys(props)

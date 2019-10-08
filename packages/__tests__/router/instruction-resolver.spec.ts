@@ -26,9 +26,9 @@ describe('InstructionResolver', function () {
     await au.start().wait();
 
     async function tearDown() {
+      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-      router.deactivate();
     }
 
     return { au, container, host, router, tearDown, ctx };

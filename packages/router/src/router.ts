@@ -35,6 +35,7 @@ export interface IGotoOptions {
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
+  useHref?: boolean;
   statefulHistoryLength?: number;
   reportCallback?(instruction: INavigatorInstruction): void;
 }
@@ -97,6 +98,7 @@ export class Router implements IRouter {
   public addedViewports: ViewportInstruction[] = [];
 
   public options: IRouterOptions = {
+    useHref: true,
     statefulHistoryLength: 0,
   };
   private isActive: boolean = false;
@@ -145,7 +147,7 @@ export class Router implements IRouter {
       statefulHistoryLength: this.options.statefulHistoryLength,
       serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
-    this.linkHandler.activate({ callback: this.linkCallback });
+    this.linkHandler.activate({ callback: this.linkCallback, useHref: this.options.useHref });
     this.navigation.activate({
       callback: this.browserNavigatorCallback,
       useUrlFragmentHash: this.options.useUrlFragmentHash
@@ -176,16 +178,16 @@ export class Router implements IRouter {
   }
 
   public linkCallback = (info: AnchorEventInfo): void => {
-    let href = info.href || '';
-    if (href.startsWith('#')) {
-      href = href.slice(1);
+    let instruction = info.instruction || '';
+    if (typeof instruction === 'string' && instruction.startsWith('#')) {
+      instruction = instruction.slice(1);
       // '#' === '/' === '#/'
-      if (!href.startsWith('/')) {
-        href = `/${href}`;
+      if (!instruction.startsWith('/')) {
+        instruction = `/${instruction}`;
       }
     }
     // Adds to Navigator's Queue, which makes sure it's serial
-    this.goto(href, { origin: info.anchor! }).catch(error => { throw error; });
+    this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
   };
 
   public navigatorCallback = (instruction: INavigatorInstruction): void => {

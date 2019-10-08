@@ -3,7 +3,7 @@ import { assert, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
-describe.only('app', function () {
+describe('app', function () {
 
   function getText(el: Element) {
     return el && el.textContent.replace(/\s\s+/g, ' ').trim();
@@ -209,7 +209,7 @@ describe.only('app', function () {
     });
   });
 
-  it.only('uses a user preference control that "computes" the organization of the user correctly - volatile', async function () {
+  it('uses a user preference control that "computes" the organization of the user correctly - volatile', async function () {
     await executeTest(async ({ host, ctx }) => {
 
       const { user } = getViewModel<App>(host);
@@ -225,21 +225,20 @@ describe.only('app', function () {
       const { changes: uc } = user;
       uc.clear();
       user.roleNonVolatile = 'Role2';
-      // user.locationVolatile = 'Country2';
-      user.country = 'Country2'
+      user.locationVolatile = 'Country2';
       ctx.lifecycle.processRAFQueue(undefined);
-      // assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
       assert.equal(getText(volatile), 'City1, Country2', 'incorrect text volatile - country');
-      // assert.equal(uc.has('nonVolatile'), true, 'nonVolatile change should have triggered - role');
+      assert.equal(uc.has('nonVolatile'), true, 'nonVolatile change should have triggered - role');
       assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
 
       uc.clear();
       user.organization = 'Org2'
       user.city = 'City2';
       ctx.lifecycle.processRAFQueue(undefined);
-      // assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
       assert.equal(getText(volatile), 'City2, Country2', 'incorrect text volatile - country');
-      // assert.equal(uc.has('nonVolatile'), false, 'nonVolatile change should not have triggered - role');
+      assert.equal(uc.has('nonVolatile'), false, 'nonVolatile change should not have triggered - role');
       assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
     });
   });

@@ -109,7 +109,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.currentValue = this.obj[this.propertyKey];
 
     const set = (newValue: unknown): void => { this.setValue(newValue); };
-    Reflect.defineProperty(this.obj, this.propertyKey, { set });
+    Reflect.defineProperty(this.obj, this.propertyKey, { set, get: this.descriptor.get });
   }
 }
 
@@ -147,7 +147,7 @@ export class GetterObserver implements GetterObserver {
     this.proxy = new Proxy(obj, createGetterTraps(flags, observerLocator, this));
 
     const get = (): unknown => this.getValue();
-    Reflect.defineProperty(obj, propertyKey, { get });
+    Reflect.defineProperty(obj, propertyKey, { get, set: descriptor.set });
   }
 
   public addPropertyDep(subscribable: ISubscribable): void {

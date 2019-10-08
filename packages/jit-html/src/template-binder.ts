@@ -218,6 +218,7 @@ export class TemplateBinder {
   }
 
   private bindManifest(
+    parentManifest: ElementSymbol,
     node: HTMLTemplateElement | HTMLElement,
     surrogate: PlainElementSymbol,
     manifest: ElementSymbol,
@@ -229,8 +230,8 @@ export class TemplateBinder {
       case 'LET':
         // let cannot have children and has some different processing rules, so return early
         this.bindLetElement(
-          /* manifest */ manifest,
-          /* node     */ node,
+          /* parentManifest */ parentManifest,
+          /* node           */ node,
         );
         return;
       case 'SLOT':
@@ -272,6 +273,7 @@ export class TemplateBinder {
     // wrapping them
     this.bindAttributes(
       /* node               */ node,
+      /* parentManifest     */ parentManifest,
       /* surrogate          */ surrogate,
       /* manifest           */ manifest,
       /* manifestRoot       */ manifestRoot,
@@ -287,11 +289,11 @@ export class TemplateBinder {
   }
 
   private bindLetElement(
-    manifest: ElementSymbol,
+    parentManifest: ElementSymbol,
     node: HTMLElement,
   ): void {
     const symbol = new LetElementSymbol(this.dom, node);
-    manifest.childNodes.push(symbol);
+    parentManifest.childNodes.push(symbol);
 
     const attributes = node.attributes;
     let i = 0;
@@ -317,6 +319,7 @@ export class TemplateBinder {
 
   private bindAttributes(
     node: HTMLTemplateElement | HTMLElement,
+    parentManifest: ElementSymbol,
     surrogate: PlainElementSymbol,
     manifest: ElementSymbol,
     manifestRoot: CustomElementSymbol | null,
@@ -408,7 +411,7 @@ export class TemplateBinder {
 
     if (replacePart === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
-      manifest.childNodes.push(manifestProxy);
+      parentManifest.childNodes.push(manifestProxy);
     } else {
 
       // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
@@ -417,18 +420,18 @@ export class TemplateBinder {
 
       // Tried a replace part with place to put it (process normal)
       if (partOwner === null) {
-        manifest.childNodes.push(manifestProxy);
+        parentManifest.childNodes.push(manifestProxy);
         return;
       }
 
       // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
       // instead of to the childNodes
-      replacePart.parent = manifest;
+      replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
       partOwner.parts.push(replacePart);
 
-      if (manifest.templateController !== null) {
-        manifest.templateController.parts.push(replacePart);
+      if (parentManifest.templateController != null) {
+        parentManifest.templateController.parts.push(replacePart);
       }
 
       processReplacePart(this.dom, replacePart, manifestProxy);
@@ -456,6 +459,7 @@ export class TemplateBinder {
         case NodeType.Element:
           nextChild = childNode.nextSibling;
           this.bindManifest(
+            /* parentManifest     */ manifest,
             /* node               */ childNode as HTMLElement,
             /* surrogate          */ surrogate,
             /* manifest           */ manifest,

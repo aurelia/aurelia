@@ -155,8 +155,8 @@ export class LinkHandler {
     this.isActive = false;
   }
 
-  private readonly handler: EventListener = (e: MouseEvent) => {
-    const info = LinkHandler.getEventInfo(e, this.window, this.options);
+  private readonly handler: EventListener = (e: Event) => {
+    const info = LinkHandler.getEventInfo(e as MouseEvent, this.window, this.options);
 
     if (info.shouldHandleEvent) {
       e.preventDefault();

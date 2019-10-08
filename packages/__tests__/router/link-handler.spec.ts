@@ -6,13 +6,13 @@ import { CustomElement, Aurelia } from '@aurelia/runtime';
 describe('LinkHandler', function () {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
-    const { container, doc } = ctx;
+    const { container } = ctx;
 
     const sut = container.get(LinkHandler);
 
     function tearDown() { }
 
-    return { addEventListener, removeEventListener, sut, tearDown, ctx };
+    return { sut, tearDown, ctx };
   }
 
   async function setupApp(App) {

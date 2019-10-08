@@ -3,10 +3,10 @@ import {
   DebugTracer
 } from '@aurelia/debug';
 import {
-  ICustomAttributeSymbol,
-  INodeSymbol,
-  IPlainAttributeSymbol,
-  ISymbol,
+  CustomAttributeSymbol,
+  NodeSymbol,
+  PlainAttributeSymbol,
+  AnySymbol,
   AttrSyntax,
 } from '@aurelia/jit';
 import {
@@ -47,14 +47,14 @@ export const SymbolTraceWriter = {
           if (p === null) {
             output += 'null';
           } else {
-            if ((p as ISymbol).flags !== undefined) {
-              const symbol = p as INodeSymbol | IPlainAttributeSymbol | ICustomAttributeSymbol;
+            if ((p as AnySymbol).flags !== undefined) {
+              const symbol = p as NodeSymbol | PlainAttributeSymbol | CustomAttributeSymbol;
               if ('target' in symbol) {
                 output += `attr: ${(symbol as AttrSyntax).target}=${(symbol as AttrSyntax).rawValue}`;
               } else if ('interpolation' in symbol) {
-                output += `text: "${((symbol as INodeSymbol).physicalNode as HTMLElement).textContent}"`;
+                output += `text: "${((symbol as NodeSymbol).physicalNode as HTMLElement).textContent}"`;
               } else {
-                output += `element: ${((symbol as INodeSymbol).physicalNode as HTMLElement).outerHTML}`;
+                output += `element: ${((symbol as NodeSymbol).physicalNode as HTMLElement).outerHTML}`;
               }
             } else {
               if ('outerHTML' in (p as HTMLElement)) {

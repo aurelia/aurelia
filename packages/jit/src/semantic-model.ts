@@ -22,105 +22,110 @@ export const enum SymbolFlags {
   hasParts             = 0b100000_000000000,
 }
 
-function createMarker(dom: IDOM): INode {
+function createMarker<N extends INode = INode>(dom: IDOM): N {
   const marker = dom.createElement('au-m');
   dom.makeTarget(marker);
-  return marker;
+  return marker as N;
 }
 
-export interface ISymbol {
-  flags: SymbolFlags;
-}
+export type AnySymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomAttributeSymbol |
+  CustomElementSymbol<TText, TElement, TMarker> |
+  LetElementSymbol<TElement, TMarker> |
+  PlainAttributeSymbol |
+  PlainElementSymbol<TText, TElement, TMarker> |
+  ReplacePartSymbol<TText, TElement, TMarker> |
+  TemplateControllerSymbol<TText, TElement, TMarker> |
+  TextSymbol<TText, TMarker>
+);
 
-export interface IAttributeSymbol {
-  syntax: AttrSyntax;
-}
+export type AttributeSymbol = (
+  CustomAttributeSymbol |
+  PlainAttributeSymbol
+);
 
-export interface IPlainAttributeSymbol extends IAttributeSymbol {
-  command: IBindingCommand | null;
-  expression: AnyBindingExpression | null;
-}
+export type SymbolWithBindings<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomAttributeSymbol |
+  CustomElementSymbol<TText, TElement, TMarker> |
+  LetElementSymbol<TElement, TMarker> |
+  TemplateControllerSymbol<TText, TElement, TMarker>
+);
 
-export interface ICustomAttributeSymbol extends IAttributeSymbol, IResourceAttributeSymbol {
-  syntax: AttrSyntax;
-}
+export type ResourceAttributeSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomAttributeSymbol |
+  TemplateControllerSymbol<TText, TElement, TMarker>
+);
 
-export interface ISymbolWithBindings extends ISymbol {
-  bindings: BindingSymbol[];
-}
+export type NodeSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomElementSymbol<TText, TElement, TMarker> |
+  LetElementSymbol<TElement, TMarker> |
+  PlainElementSymbol<TText, TElement, TMarker> |
+  ReplacePartSymbol<TText, TElement, TMarker> |
+  TemplateControllerSymbol<TText, TElement, TMarker> |
+  TextSymbol<TText, TMarker>
+);
 
-export interface IResourceAttributeSymbol extends ISymbolWithBindings {
-  res: string;
-  bindings: BindingSymbol[];
-}
+export type ParentNodeSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomElementSymbol<TText, TElement, TMarker> |
+  PlainElementSymbol<TText, TElement, TMarker> |
+  TemplateControllerSymbol<TText, TElement, TMarker>
+);
 
-export interface INodeSymbol extends ISymbol {
-  physicalNode: INode;
-}
+export type ElementSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomElementSymbol<TText, TElement, TMarker> |
+  PlainElementSymbol<TText, TElement, TMarker>
+);
 
-export interface IParentNodeSymbol extends INodeSymbol {
-  physicalNode: INode;
-  templateController: TemplateControllerSymbol;
-}
+export type SymbolWithTemplate<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  ReplacePartSymbol<TText, TElement, TMarker> |
+  TemplateControllerSymbol<TText, TElement, TMarker>
+);
 
-export interface ISymbolWithTemplate extends INodeSymbol {
-  physicalNode: INode;
-  template: IParentNodeSymbol;
-}
-
-export interface IElementSymbol extends IParentNodeSymbol {
-  customAttributes: ICustomAttributeSymbol[];
-  plainAttributes: IPlainAttributeSymbol[];
-  childNodes: INodeSymbol[];
-  isTarget: boolean;
-}
-
-export interface ISymbolWithMarker extends INodeSymbol {
-  marker: INode;
-}
+export type SymbolWithMarker<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
+  CustomElementSymbol<TText, TElement, TMarker> |
+  LetElementSymbol<TElement, TMarker> |
+  TemplateControllerSymbol<TText, TElement, TMarker> |
+  TextSymbol<TText, TMarker>
+);
 
 /**
  * A html attribute that is associated with a registered resource, specifically a template controller.
  */
-export class TemplateControllerSymbol implements IResourceAttributeSymbol, IParentNodeSymbol, ISymbolWithTemplate, ISymbolWithMarker {
-  public flags: SymbolFlags;
-  public res: string;
+export class TemplateControllerSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
   public partName: string | null;
-  public physicalNode: INode;
-  public syntax: AttrSyntax;
-  public template: IParentNodeSymbol;
-  public templateController: TemplateControllerSymbol;
-  public marker: INode;
+  public physicalNode: TElement | null = null;
+  public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null;
+  public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
+  public marker: TMarker;
 
-  private _bindings: BindingSymbol[] | null;
+  private _bindings: BindingSymbol[] | null = null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings == null) {
+    if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
     return this._bindings;
   }
 
-  private _parts: ReplacePartSymbol[] | null;
-  public get parts(): ReplacePartSymbol[] {
-    if (this._parts == null) {
+  private _parts: ReplacePartSymbol<TText, TElement, TMarker>[] | null = null;
+  public get parts(): ReplacePartSymbol<TText, TElement, TMarker>[] {
+    if (this._parts === null) {
       this._parts = [];
       this.flags |= SymbolFlags.hasParts;
     }
     return this._parts;
   }
 
-  public constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
-    this.flags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
-    this.res = info.name;
+  public constructor(
+    dom: IDOM,
+    public syntax: AttrSyntax,
+    public info: AttrInfo,
+    partName: string | null,
+    public res: string = info.name,
+  ) {
     this.partName = info.name === 'replaceable' ? partName : null;
-    this.physicalNode = null!;
-    this.syntax = syntax;
-    this.template = null!;
-    this.templateController = null!;
     this.marker = createMarker(dom);
-    this._bindings = null;
-    this._parts = null;
   }
 }
 
@@ -130,45 +135,37 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
  *
  * This element will be lifted from the DOM just like a template controller.
  */
-export class ReplacePartSymbol implements ISymbolWithTemplate {
-  public flags: SymbolFlags;
-  public name: string;
-  public physicalNode: INode;
-  public parent: IParentNodeSymbol | null;
-  public template: IParentNodeSymbol;
+export class ReplacePartSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isReplacePart;
 
-  public constructor(name: string) {
-    this.flags = SymbolFlags.isReplacePart;
-    this.name = name;
-    this.physicalNode = null!;
-    this.parent = null;
-    this.template = null!;
-  }
+  public constructor(
+    public name: string,
+    public physicalNode: TElement | null = null,
+    public parent: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
+    public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
+  ) {}
 }
 
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
-export class CustomAttributeSymbol implements ICustomAttributeSymbol {
-  public flags: SymbolFlags;
-  public res: string;
-  public syntax: AttrSyntax;
+export class CustomAttributeSymbol {
+  public flags: SymbolFlags = SymbolFlags.isCustomAttribute;
 
-  private _bindings: BindingSymbol[] | null;
+  private _bindings: BindingSymbol[] | null = null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings == null) {
+    if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
     return this._bindings;
   }
 
-  public constructor(syntax: AttrSyntax, info: AttrInfo) {
-    this.flags = SymbolFlags.isCustomAttribute;
-    this.res = info.name;
-    this.syntax = syntax;
-    this._bindings = null;
-  }
+  public constructor(
+    public syntax: AttrSyntax,
+    public info: AttrInfo,
+    public res: string = info.name,
+  ) {}
 }
 
 /**
@@ -177,22 +174,14 @@ export class CustomAttributeSymbol implements ICustomAttributeSymbol {
  *
  * This will never target a bindable property of a custom attribute or element;
  */
-export class PlainAttributeSymbol implements IPlainAttributeSymbol {
-  public flags: SymbolFlags;
-  public syntax: AttrSyntax;
-  public command: IBindingCommand | null;
-  public expression: AnyBindingExpression | null;
+export class PlainAttributeSymbol {
+  public flags: SymbolFlags = SymbolFlags.isPlainAttribute;
 
   public constructor(
-    syntax: AttrSyntax,
-    command: IBindingCommand | null,
-    expression: AnyBindingExpression | null
-  ) {
-    this.flags = SymbolFlags.isPlainAttribute;
-    this.syntax = syntax;
-    this.command = command;
-    this.expression = expression;
-  }
+    public syntax: AttrSyntax,
+    public command: IBindingCommand | null,
+    public expression: AnyBindingExpression | null
+  ) {}
 }
 
 /**
@@ -202,96 +191,81 @@ export class PlainAttributeSymbol implements IPlainAttributeSymbol {
  *
  * This will always target a bindable property of a custom attribute or element;
  */
-export class BindingSymbol implements ISymbol {
-  public flags: SymbolFlags;
-  public command: IBindingCommand | null;
-  public bindable: BindableInfo;
-  public expression: AnyBindingExpression | null;
-  public rawValue: string;
-  public target: string;
+export class BindingSymbol {
+  public flags: SymbolFlags = SymbolFlags.isBinding;
 
   public constructor(
-    command: IBindingCommand | null,
-    bindable: BindableInfo,
-    expression: AnyBindingExpression | null,
-    rawValue: string,
-    target: string
-  ) {
-    this.flags = SymbolFlags.isBinding;
-    this.command = command;
-    this.bindable = bindable;
-    this.expression = expression;
-    this.rawValue = rawValue;
-    this.target = target;
-  }
+    public command: IBindingCommand | null,
+    public bindable: BindableInfo,
+    public expression: AnyBindingExpression | null,
+    public rawValue: string,
+    public target: string
+  ) {}
 }
 
 /**
  * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`
  * or the value of its `as-element` attribute.
  */
-export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings, ISymbolWithMarker {
-  public flags: SymbolFlags;
-  public res: string;
-  public physicalNode: INode;
-  public bindables: Record<string, BindableInfo>;
-  public isTarget: true;
-  public templateController: TemplateControllerSymbol;
+export class CustomElementSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isCustomElement;
+  public isTarget: true = true;
+  public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
   public isContainerless: boolean;
-  public marker: INode;
+  public marker: TMarker;
 
-  private _customAttributes: ICustomAttributeSymbol[] | null;
-  public get customAttributes(): ICustomAttributeSymbol[] {
-    if (this._customAttributes == null) {
+  private _customAttributes: CustomAttributeSymbol[] | null = null;
+  public get customAttributes(): CustomAttributeSymbol[] {
+    if (this._customAttributes === null) {
       this._customAttributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
     return this._customAttributes;
   }
 
-  private _plainAttributes: IPlainAttributeSymbol[] | null;
-  public get plainAttributes(): IPlainAttributeSymbol[] {
-    if (this._plainAttributes == null) {
+  private _plainAttributes: PlainAttributeSymbol[] | null = null;
+  public get plainAttributes(): PlainAttributeSymbol[] {
+    if (this._plainAttributes === null) {
       this._plainAttributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
     return this._plainAttributes;
   }
 
-  private _bindings: BindingSymbol[] | null;
+  private _bindings: BindingSymbol[] | null = null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings == null) {
+    if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
     return this._bindings;
   }
 
-  private _childNodes: INodeSymbol[] | null;
-  public get childNodes(): INodeSymbol[] {
-    if (this._childNodes == null) {
+  private _childNodes: NodeSymbol<TText, TElement, TMarker>[] | null = null;
+  public get childNodes(): NodeSymbol<TText, TElement, TMarker>[] {
+    if (this._childNodes === null) {
       this._childNodes = [];
       this.flags |= SymbolFlags.hasChildNodes;
     }
     return this._childNodes;
   }
 
-  private _parts: ReplacePartSymbol[] | null;
-  public get parts(): ReplacePartSymbol[] {
-    if (this._parts == null) {
+  private _parts: ReplacePartSymbol<TText, TElement, TMarker>[] | null = null;
+  public get parts(): ReplacePartSymbol<TText, TElement, TMarker>[] {
+    if (this._parts === null) {
       this._parts = [];
       this.flags |= SymbolFlags.hasParts;
     }
     return this._parts;
   }
 
-  public constructor(dom: IDOM, node: INode, info: ElementInfo) {
-    this.flags = SymbolFlags.isCustomElement;
-    this.res = info.name;
-    this.physicalNode = node;
-    this.bindables = info.bindables;
-    this.isTarget = true;
-    this.templateController = null!;
+  public constructor(
+    dom: IDOM,
+    public physicalNode: TElement,
+    public info: ElementInfo,
+    public res: string = info.name,
+    public bindables: Record<string, BindableInfo | undefined> = info.bindables,
+  ) {
     if (info.containerless) {
       this.isContainerless = true;
       this.marker = createMarker(dom);
@@ -300,36 +274,27 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
       this.isContainerless = false;
       this.marker = null!;
     }
-    this._customAttributes = null;
-    this._plainAttributes = null;
-    this._bindings = null;
-    this._childNodes = null;
-    this._parts = null;
   }
 }
 
-export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymbolWithMarker {
-  public flags: SymbolFlags;
-  public physicalNode: INode;
-  public toBindingContext: boolean;
-  public marker: INode;
+export class LetElementSymbol<TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isLetElement | SymbolFlags.hasMarker;
+  public toBindingContext: boolean = false;
 
-  private _bindings: BindingSymbol[] | null;
+  private _bindings: BindingSymbol[] | null = null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings == null) {
+    if (this._bindings === null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
     return this._bindings;
   }
 
-  public constructor(dom: IDOM, node: INode) {
-    this.flags = SymbolFlags.isLetElement | SymbolFlags.hasMarker;
-    this.physicalNode = node;
-    this.toBindingContext = false;
-    this.marker = createMarker(dom);
-    this._bindings = null;
-  }
+  public constructor(
+    dom: IDOM,
+    public physicalNode: TElement,
+    public marker: TMarker = createMarker(dom),
+  ) {}
 }
 
 /**
@@ -337,64 +302,56 @@ export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymb
  *
  * It is possible for a PlainElementSymbol to not yield any instructions during compilation.
  */
-export class PlainElementSymbol implements IElementSymbol {
-  public flags: SymbolFlags;
-  public physicalNode: INode;
-  public isTarget: boolean;
-  public templateController: TemplateControllerSymbol;
-  public hasSlots?: boolean;
+export class PlainElementSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isPlainElement;
 
-  private _customAttributes: ICustomAttributeSymbol[] | null;
-  public get customAttributes(): ICustomAttributeSymbol[] {
-    if (this._customAttributes == null) {
+  public isTarget: boolean = false;
+  public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
+  public hasSlots: boolean = false;
+
+  private _customAttributes: CustomAttributeSymbol[] | null = null;
+  public get customAttributes(): CustomAttributeSymbol[] {
+    if (this._customAttributes === null) {
       this._customAttributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
     return this._customAttributes;
   }
 
-  private _plainAttributes: IPlainAttributeSymbol[] | null;
-  public get plainAttributes(): IPlainAttributeSymbol[] {
-    if (this._plainAttributes == null) {
+  private _plainAttributes: PlainAttributeSymbol[] | null = null;
+  public get plainAttributes(): PlainAttributeSymbol[] {
+    if (this._plainAttributes === null) {
       this._plainAttributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
     return this._plainAttributes;
   }
 
-  private _childNodes: INodeSymbol[] | null;
-  public get childNodes(): INodeSymbol[] {
-    if (this._childNodes == null) {
+  private _childNodes: NodeSymbol<TText, TElement, TMarker>[] | null = null;
+  public get childNodes(): NodeSymbol<TText, TElement, TMarker>[] {
+    if (this._childNodes === null) {
       this._childNodes = [];
       this.flags |= SymbolFlags.hasChildNodes;
     }
     return this._childNodes;
   }
 
-  public constructor(node: INode) {
-    this.flags = SymbolFlags.isPlainElement;
-    this.physicalNode = node;
-    this.isTarget = false;
-    this.templateController = null!;
-    this._customAttributes = null;
-    this._plainAttributes = null;
-    this._childNodes = null;
-  }
+  public constructor(
+    dom: IDOM,
+    public physicalNode: TElement,
+  ) {}
 }
 
 /**
  * A standalone text node that has an interpolation.
  */
-export class TextSymbol implements INodeSymbol, ISymbolWithMarker {
-  public flags: SymbolFlags;
-  public physicalNode: INode;
-  public interpolation: IInterpolationExpression;
-  public marker: INode;
+export class TextSymbol<TText extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isText | SymbolFlags.hasMarker;
 
-  public constructor(dom: IDOM, node: INode, interpolation: IInterpolationExpression) {
-    this.flags = SymbolFlags.isText | SymbolFlags.hasMarker;
-    this.physicalNode = node;
-    this.interpolation = interpolation;
-    this.marker = createMarker(dom);
-  }
+  public constructor(
+    dom: IDOM,
+    public physicalNode: TText,
+    public interpolation: IInterpolationExpression,
+    public marker: TMarker = createMarker(dom),
+  ) {}
 }

@@ -1,7 +1,14 @@
+import { HTMLDOM } from '@aurelia/runtime-html';
+import { Key } from '@aurelia/kernel';
 /**
  * Provides information about how to handle an anchor event.
  */
 export interface ILinkHandlerOptions {
+    /**
+     * Attribute href should be used for route if present and
+     * attribute au-href is not present
+     */
+    useHref?: boolean;
     /**
      * Callback method for when a link is clicked
      */
@@ -16,9 +23,9 @@ export interface AnchorEventInfo {
      */
     shouldHandleEvent: boolean;
     /**
-     * The href of the link or null if not-applicable.
+     * The instruction (href) of the link or null if not-applicable.
      */
-    href: string | null;
+    instruction: string | null;
     /**
      * The anchor element or null if not-applicable.
      */
@@ -28,8 +35,12 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export declare class LinkHandler {
+    static readonly inject: readonly Key[];
+    window: Window;
+    document: Document;
     private options;
     private isActive;
+    constructor(dom: HTMLDOM);
     /**
      * Gets the href and a "should handle" recommendation, given an Event.
      *

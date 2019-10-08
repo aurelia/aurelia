@@ -14,5 +14,5 @@ export { IRouteTransformer, IRouterOptions, IRouter, Router, } from './router';
 export { IViewportOptions, Viewport, } from './viewport';
 export { ContentStatus, ViewportContent, } from './viewport-content';
 export { ViewportInstruction, } from './viewport-instruction';
-export { RouterConfiguration, RouterRegistration, DefaultComponents, DefaultResources, ViewportCustomElement, ViewportCustomElementRegistration, NavCustomElement, NavCustomElementRegistration, } from './configuration';
+export { RouterConfiguration, RouterRegistration, DefaultComponents, DefaultResources, ViewportCustomElement, ViewportCustomElementRegistration, NavCustomElement, NavCustomElementRegistration, AuHrefCustomAttribute, AuHrefCustomAttributeRegistration, } from './configuration';
 //# sourceMappingURL=index.d.ts.map

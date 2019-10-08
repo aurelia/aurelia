@@ -1,3 +1,4 @@
+import { AuHrefCustomAttribute } from './resources/au-href';
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
@@ -8,12 +9,14 @@ export declare const RouterRegistration: IRegistry;
  * - `IRouter`
  */
 export declare const DefaultComponents: IRegistry[];
-export { ViewportCustomElement, NavCustomElement, };
+export { ViewportCustomElement, NavCustomElement, AuHrefCustomAttribute, };
 export declare const ViewportCustomElementRegistration: IRegistry;
 export declare const NavCustomElementRegistration: IRegistry;
+export declare const AuHrefCustomAttributeRegistration: IRegistry;
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`, `au-nav`
+ * - Custom Attributes: `au-href`
  */
 export declare const DefaultResources: IRegistry[];
 export declare const RouterConfiguration: {

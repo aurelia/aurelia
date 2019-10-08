@@ -27,6 +27,7 @@ export interface IGotoOptions {
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
     separators?: IRouteSeparators;
     useUrlFragmentHash?: boolean;
+    useHref?: boolean;
     statefulHistoryLength?: number;
     reportCallback?(instruction: INavigatorInstruction): void;
 }

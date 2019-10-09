@@ -83,14 +83,14 @@ describe.skip('tracing', function () {
   });
   it('tag$04 text$03 _', function () {
     const { au, host } = setup();
-    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable part="part1"></template><template replaceable part="part2"></template></template>' }, class {
+    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public msg = '';
       public not = '';
       public item = '';
     });
     au.register(MyFoo);
-    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace-part="part1">\${msg}</template></my-foo></template>` }, class {
+    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace="part1">\${msg}</template></my-foo></template>` }, class {
       public msg = 'a';
     });
     const component = new App();
@@ -116,7 +116,7 @@ describe.skip('tracing', function () {
   });
   it('tag$06 text$03 _', function () {
     const { au, host } = setup();
-    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable part="part1"></template><template replaceable part="part2"></template></template>' }, class {
+    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static containerless = true;
       public msg = '';
@@ -124,7 +124,7 @@ describe.skip('tracing', function () {
       public item = '';
     });
     au.register(MyFoo);
-    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace-part="part1">\${msg}</template></my-foo></template>` }, class {
+    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace="part1">\${msg}</template></my-foo></template>` }, class {
       public msg = 'a';
     });
     const component = new App();
@@ -150,7 +150,7 @@ describe.skip('tracing', function () {
   });
   it('tag$08 text$03 _', function () {
     const { au, host } = setup();
-    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable part="part1"></template><template replaceable part="part2"></template></template>' }, class {
+    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static shadowOptions = { mode: 'open' };
       public msg = '';
@@ -158,7 +158,7 @@ describe.skip('tracing', function () {
       public item = '';
     });
     au.register(MyFoo);
-    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace-part="part1">\${msg}</template></my-foo></template>` }, class {
+    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace="part1">\${msg}</template></my-foo></template>` }, class {
       public msg = 'a';
     });
     const component = new App();
@@ -184,7 +184,7 @@ describe.skip('tracing', function () {
   });
   it('tag$10 text$03 _', function () {
     const { au, host } = setup();
-    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable part="part1"></template><template replaceable part="part2"></template></template>' }, class {
+    const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static shadowOptions = { mode: 'closed' };
       public msg = '';
@@ -192,7 +192,7 @@ describe.skip('tracing', function () {
       public item = '';
     });
     au.register(MyFoo);
-    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace-part="part1">\${msg}</template></my-foo></template>` }, class {
+    const App = CustomElement.define({ name: 'app', template: `<template><my-foo msg.bind="msg"><template replace="part1">\${msg}</template></my-foo></template>` }, class {
       public msg = 'a';
     });
     const component = new App();

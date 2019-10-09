@@ -34,7 +34,7 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
   public hasChanges: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     handler: IEventSubscriber,

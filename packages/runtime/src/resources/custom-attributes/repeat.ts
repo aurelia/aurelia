@@ -81,7 +81,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     name: 'repeat',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
     strategy: BindingStrategy.getterSetter,
@@ -111,7 +110,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private _items: Items<C>;
 
-  constructor(
+  public constructor(
     location: IRenderLocation<T>,
     renderable: IController<T>,
     factory: IViewFactory<T>
@@ -539,7 +538,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       next = views[i + 1];
       if (next !== void 0) {
-        views[i].nodes!.link(next.nodes!);
+        views[i].nodes!.link(next.nodes);
       } else {
         views[i].nodes!.link(location);
       }

@@ -1,12 +1,12 @@
 import { DelegationStrategy } from '@aurelia/runtime';
 import {
   DelegateOrCaptureSubscription,
+  EventManager,
   EventSubscriber,
   IManagedEvent,
   ListenerTracker,
   TriggerSubscription
 } from '@aurelia/runtime-html';
-import { EventManager } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 const CAPTURING_PHASE = 1;

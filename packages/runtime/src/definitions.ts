@@ -89,6 +89,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   bindables?: Record<string, IBindableDescription> | string[];
   childrenObservers?: Record<string, IChildrenObserverDescription>;
   containerless?: boolean;
+  isStrictBinding?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
   strategy?: BindingStrategy;
@@ -104,7 +105,6 @@ export type BindableDefinitions = Record<string, IBindableDescription>;
 export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
   isTemplateController?: boolean;
-  hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription> | string[];
   strategy?: BindingStrategy;
   hooks?: Readonly<HooksDefinition>;
@@ -114,7 +114,7 @@ export type AttributeDefinition = Required<IAttributeDefinition>;
 
 export type InstructionTypeName = string;
 
-export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('createInterface').noDefault();
+export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
 }
@@ -207,7 +207,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
-  toViewModel: boolean;
+  toBindingContext: boolean;
 }
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
@@ -246,7 +246,7 @@ export class HooksDefinition {
   public readonly hasDetached: boolean;
   public readonly hasCaching: boolean;
 
-  constructor(target: object) {
+  public constructor(target: object) {
     this.hasRender = 'render' in target;
     this.hasCreated = 'created' in target;
     this.hasBinding = 'binding' in target;
@@ -281,10 +281,12 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public strategy: BindingStrategy;
   public hooks: Readonly<HooksDefinition>;
   public scopeParts: readonly string[];
+  public isStrictBinding: boolean;
 
-  constructor() {
+  public constructor() {
     this.name = 'unnamed';
     this.template = null;
+    this.isStrictBinding = false;
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
@@ -309,6 +311,7 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
+  'isStrictBinding',
   'hasSlots'
 ];
 
@@ -323,6 +326,7 @@ export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  isStrictBinding?: TemplateDefinition['isStrictBinding'];
   aliases?: string[];
   childrenObservers?: TemplateDefinition['childrenObservers'];
 };
@@ -353,6 +357,7 @@ export function buildTemplateDefinition(
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
   aliases?: readonly string[] | null,
+  isStrictBinding?: boolean | null,
 ): TemplateDefinition;
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -370,6 +375,7 @@ export function buildTemplateDefinition(
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
   aliases?: readonly string[] | null,
+  isStrictBinding?: boolean | null,
 ): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
@@ -378,23 +384,27 @@ export function buildTemplateDefinition(
   /* deepscan-disable */
   const argLen = arguments.length;
   switch (argLen) {
+    case 16: if (isStrictBinding != null) def.isStrictBinding = isStrictBinding;
     case 15: if (aliases != null) def.aliases = toArray(aliases);
     case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
-    case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
-    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions!;
-    case 10: if (containerless != null) def.containerless = containerless!;
-    case 9: if (surrogates != null) def.surrogates = toArray(surrogates!);
-    case 8: if (dependencies != null) def.dependencies = toArray(dependencies!);
-    case 7: if (instructions != null) def.instructions = toArray(instructions!) as ITargetedInstruction[][];
+    case 12: if (hasSlots != null) def.hasSlots = hasSlots;
+    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions;
+    case 10: if (containerless != null) def.containerless = containerless;
+    case 9: if (surrogates != null) def.surrogates = toArray(surrogates);
+    case 8: if (dependencies != null) def.dependencies = toArray(dependencies);
+    case 7: if (instructions != null) def.instructions = toArray(instructions) as ITargetedInstruction[][];
     case 6: if (bindables != null) def.bindables = { ...bindables };
-    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build! };
-    case 4: if (cache != null) def.cache = cache!;
+    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
+    case 4: if (cache != null) def.cache = cache;
     case 3: if (template != null) def.template = template;
     case 2:
       if (ctor != null) {
         if (ctor.bindables) {
           def.bindables = Bindable.for(ctor as unknown as {}).get();
+        }
+        if (ctor.isStrictBinding) {
+          def.isStrictBinding = ctor.isStrictBinding;
         }
         if (ctor.containerless) {
           def.containerless = ctor.containerless;
@@ -417,13 +427,13 @@ export function buildTemplateDefinition(
         def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {
-            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
+            // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
             def[prop] = nameOrDef[prop as keyof typeof nameOrDef];
           }
         });
         templateDefinitionArrays.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {
-            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
+            // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
             def[prop] = toArray(nameOrDef[prop as keyof typeof nameOrDef] as unknown[]);
           }
         });

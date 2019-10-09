@@ -5,18 +5,18 @@ import { UserService } from 'shared/services/user-service';
 
 @inject(UserService, IRouter)
 export class Auth {
-  private user: User = {};
+  private readonly user: User = {};
   private type: string = 'login';
   private errors?: string[];
 
-  constructor(private readonly userService: UserService, private readonly router: IRouter) {
+  public constructor(private readonly userService: UserService, private readonly router: IRouter) {
   }
 
   public enter(parameters: { type: string }) {
     this.type = parameters.type;
   }
 
-  get canSave() {
+  public get canSave() {
     if (this.type === 'login') { return this.user.email !== '' && this.user.password !== ''; }
     return this.user.username !== '' && this.user.email !== '' && this.user.password !== '';
   }

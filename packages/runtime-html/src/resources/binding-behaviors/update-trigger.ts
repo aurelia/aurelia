@@ -25,7 +25,7 @@ export class UpdateTriggerBindingBehavior {
   public persistentFlags!: LifecycleFlags;
   private readonly observerLocator: IObserverLocator;
 
-  constructor(observerLocator: IObserverLocator) {
+  public constructor(observerLocator: IObserverLocator) {
     this.observerLocator = observerLocator;
   }
 

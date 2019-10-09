@@ -51,8 +51,8 @@ describe('local dependency inheritance', function () {
         template: `7<c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5><c-6></c-6>`, // c1-c6 don't propagate here, so they should equate empty text
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -65,8 +65,8 @@ describe('local dependency inheritance', function () {
         template: `8<c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5><c-6></c-6>`, // c1-c6 don't propagate here, so they should equate empty text
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -79,8 +79,8 @@ describe('local dependency inheritance', function () {
         template: `9<c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5><c-6></c-6>`, // c1-c6 don't propagate here, so they should equate empty text
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -94,8 +94,8 @@ describe('local dependency inheritance', function () {
         template: `4<c-7></c-7><c-1></c-1><c-2></c-2><c-3></c-3><c-5></c-5><c-6></c-6>`, // c1-c3 + c5-c6 don't propagate here, so they should equate empty text
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -108,8 +108,8 @@ describe('local dependency inheritance', function () {
         template: `5<c-8></c-8><c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-6></c-6>`, // c1-c4 + c6 don't propagate here, so they should equate empty text
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -122,8 +122,8 @@ describe('local dependency inheritance', function () {
         template: `6<c-9></c-9><c-1></c-1><c-2></c-2><c-3></c-3><c-4></c-4><c-5></c-5>`, // c1-c5 don't propagate here, so they should equate empty text
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -138,8 +138,8 @@ describe('local dependency inheritance', function () {
         dependencies: [C4],
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -153,8 +153,8 @@ describe('local dependency inheritance', function () {
         dependencies: [C5],
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
@@ -168,8 +168,8 @@ describe('local dependency inheritance', function () {
         dependencies: [C6],
       },
       class {
-        static get inject() { return [IContainer]; }
-        constructor(private readonly container: IContainer) {}
+        public static get inject() { return [IContainer]; }
+        public constructor(private readonly container: IContainer) {}
 
         public binding() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);

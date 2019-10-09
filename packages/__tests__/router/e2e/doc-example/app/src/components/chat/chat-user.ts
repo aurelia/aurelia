@@ -12,7 +12,7 @@ export class ChatUser {
   public static parameters = ['id'];
 
   public user = {};
-  constructor(private readonly usersRepository: UsersRepository) { }
+  public constructor(private readonly usersRepository: UsersRepository) { }
 
   public enter(parameters) {
     if (parameters.id) {

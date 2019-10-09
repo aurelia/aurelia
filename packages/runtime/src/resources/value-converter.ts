@@ -57,7 +57,7 @@ export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
       registerAliases([...aliases, ...this.aliases], ValueConverter, key, container);
     };
 
-    return Type as T & IValueConverterType<T>;
+    return Type;
   },
 });
 

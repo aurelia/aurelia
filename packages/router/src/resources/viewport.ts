@@ -39,7 +39,7 @@ export class ViewportCustomElement {
 
   public $controller!: IController; // This is set by the controller after this instance is constructed
 
-  constructor(
+  public constructor(
     private readonly router: IRouter,
     private readonly element: Element, private readonly renderingEngine: IRenderingEngine
   ) { }
@@ -50,7 +50,7 @@ export class ViewportCustomElement {
       parentContext = this.$controller.context as IRenderContext;
     }
     const dom = parentContext.get(IDOM);
-    const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
+    const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type) as ITemplate;
     (template as Writable<ITemplate>).renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
     template.render(this, host, parts);
   }
@@ -90,6 +90,12 @@ export class ViewportCustomElement {
     this.disconnect();
   }
 
+  public attached(): void {
+    if (this.viewport) {
+      this.viewport.clearTaggedNodes();
+    }
+  }
+
   public connect(): void {
     const options: IViewportOptions = { scope: !this.element.hasAttribute('no-scope') };
     if (this.usedBy && this.usedBy.length) {
@@ -107,11 +113,11 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
     }
   }
 
@@ -121,21 +127,23 @@ export class ViewportCustomElement {
     }
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public attaching(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.attaching(flags);
+      return this.viewport.attaching(flags);
     }
+    return Promise.resolve();
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public detaching(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.detaching(flags);
+      return this.viewport.detaching(flags);
     }
+    return Promise.resolve();
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public async unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.unbinding(flags);
+      await this.viewport.unbinding(flags);
     }
   }
 }

@@ -39,7 +39,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   private forwardedState: ForwardedState = {};
 
-  constructor(
+  public constructor(
     public readonly lifecycle: ILifecycle,
     dom: HTMLDOM
   ) {
@@ -123,7 +123,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         },
       });
     }
-    if (resolve) {
+    if (resolve !== null && resolve !== void 0) {
       resolve();
     }
   }
@@ -196,6 +196,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         this.forwardedState.suppressPopstate = false;
       }
     }
+    // eslint-disable-next-line @typescript-eslint/ban-types
     const method = (call.target as { [key: string]: Function | undefined })[call.methodName];
     Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
     if (method) {

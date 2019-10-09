@@ -1,13 +1,8 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { About } from './components/about';
-import { Authors } from './components/authors/authors';
-import { Books } from './components/books/books';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';
-
-import { arrayRemove } from '../../../../../../router/src/utils';
 
 @inject(IRouter, AuthorsRepository, State)
 @customElement({
@@ -21,7 +16,7 @@ import { arrayRemove } from '../../../../../../router/src/utils';
 <au-viewport no-scope name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
 ` })
 export class App {
-  constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
+  public constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 

@@ -4,7 +4,6 @@ import {
   IContainer,
   IRegistry,
   PLATFORM,
-  Profiler,
   Registration
 } from '@aurelia/kernel';
 import { IActivator } from './activator';
@@ -60,7 +59,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   private createTask?: ILifecycleTask;
 
-  constructor(
+  public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
   ) {
@@ -204,7 +203,7 @@ export class Aurelia<TNode extends INode = INode> {
 
   private next?: CompositionRoot<TNode>;
 
-  constructor(container: IContainer = DI.createContainer()) {
+  public constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
     this.task = LifecycleTask.done;
 

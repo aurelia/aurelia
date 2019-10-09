@@ -12,19 +12,19 @@ interface ISprite {
   width?: number;
 }
 
-
 @customElement({ name: 'app', template })
 export class App {
   public sprites: ISprite[];
   public timestamp: number;
-  constructor() {
+  public constructor() {
     this.timestamp = 0;
     this.sprites = [];
   }
 
-  public async binding(): Promise<void> {
+  public binding(): void {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     loader.add('logo', require('img/aurelia-icon-256x256.png'));
-    await loader.load();
+    loader.load();
 
     for (let i = 0; i < 50; ++i) {
       this.addSprite();
@@ -33,7 +33,7 @@ export class App {
 
   public update({delta}: {delta: number}): void {
     this.timestamp += delta;
-    let sprite: App['sprites'] extends Array<infer S> ? S : never;
+    let sprite: App['sprites'] extends (infer S)[] ? S : never;
     const sprites = this.sprites;
     const len = sprites.length;
     let entropy: number;

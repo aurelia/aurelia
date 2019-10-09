@@ -21,6 +21,10 @@ export {
 } from './guardian';
 
 export {
+  InstructionResolver,
+} from './instruction-resolver';
+
+export {
   GuardFunction,
   GuardTarget,
   INavigatorInstruction,
@@ -30,6 +34,11 @@ export {
   NavigationInstruction,
   ReentryBehavior,
 } from './interfaces';
+
+export {
+  lifecycleLogger,
+  LifecycleClass,
+} from './lifecycle-logger';
 
 export {
   INavRoute,
@@ -84,12 +93,6 @@ export {
 } from './router';
 
 export {
-  IFindViewportsResult,
-  ChildContainer,
-  Scope,
-} from './scope';
-
-export {
   IViewportOptions,
   Viewport,
 } from './viewport';
@@ -112,4 +115,6 @@ export {
   ViewportCustomElementRegistration,
   NavCustomElement,
   NavCustomElementRegistration,
+  GotoCustomAttribute,
+  GotoCustomAttributeRegistration,
 } from './configuration';

@@ -1,6 +1,5 @@
-import { Constructable } from '@aurelia/kernel';
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { ComponentAppellation, GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -10,12 +9,12 @@ export class Guard {
   public includeTargets: Target[] = [];
   public excludeTargets: Target[] = [];
 
-  constructor(
+  public constructor(
     public guard: GuardFunction,
     options: IGuardOptions,
     public id: GuardIdentity
   ) {
-    if (options.type) {
+    if (options.type !== void 0) {
       this.type = options.type;
     }
 
@@ -48,7 +47,7 @@ class Target {
   public viewport: Viewport | null = null;
   public viewportName: string | null = null;
 
-  constructor(target: GuardTarget) {
+  public constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
     } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {
@@ -57,12 +56,14 @@ class Target {
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       if (cvTarget.component) {
-        this.componentType = ComponentAppellationResolver.isType(cvTarget.component as Constructable & string) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
-        this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation);
+        this.componentType = ComponentAppellationResolver.isType(cvTarget.component)
+          ? ComponentAppellationResolver.getType(cvTarget.component)
+          : null;
+        this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {
-        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as Viewport) ? cvTarget.viewport as Viewport : null;
-        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as Viewport);
+        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
       }
     }
   }
@@ -73,10 +74,10 @@ class Target {
       instructions.push(new ViewportInstruction(''));
     }
     for (const instruction of instructions) {
-      if (this.componentName === instruction.componentName ||
-        this.componentType === instruction.componentType ||
-        this.viewportName === instruction.viewportName ||
-        this.viewport === instruction.viewport) {
+      if ((this.componentName !== null && this.componentName === instruction.componentName) ||
+        (this.componentType !== null && this.componentType === instruction.componentType) ||
+        (this.viewportName !== null && this.viewportName === instruction.viewportName) ||
+        (this.viewport !== null && this.viewport === instruction.viewport)) {
         return true;
       }
     }

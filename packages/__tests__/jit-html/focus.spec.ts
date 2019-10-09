@@ -217,7 +217,7 @@ describe('focus.spec.ts', function() {
         app: class App {
           public hasFocus = true;
         },
-        assertionFn: async (ctx, testHost, component, focusable) => {
+        assertionFn: (ctx, testHost, component, focusable) => {
           const doc = ctx.doc;
           const win = ctx.wnd;
           const button = testHost.querySelector('button');
@@ -286,8 +286,8 @@ describe('focus.spec.ts', function() {
           public hasFocus = true;
           public isFocused2 = false;
         },
-        async assertionFn(ctx, testHost, component, focusable) {
-          const input2 = testHost.querySelector('#input2') as HTMLInputElement;
+        assertionFn(ctx, testHost, component, focusable) {
+          const input2: HTMLInputElement = testHost.querySelector('#input2');
           assert.notEqual(focusable, input2, '@setup: focusable === #input2');
           input2.focus();
           dispatchEventWith(ctx, input2, 'focus', false);
@@ -303,7 +303,7 @@ describe('focus.spec.ts', function() {
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
         it(title(command), async function() {
-          const { testHost, start, dispose, component, ctx } = await setup<IApp>(
+          const { testHost, start, dispose, component, ctx } = setup<IApp>(
             template(command),
             app,
             false
@@ -312,8 +312,8 @@ describe('focus.spec.ts', function() {
           await start();
           const doc = ctx.doc;
           const activeElement = doc.activeElement;
-          const focusable = typeof getFocusable === 'string'
-            ? testHost.querySelector(getFocusable) as HTMLElement
+          const focusable: HTMLElement = typeof getFocusable === 'string'
+            ? testHost.querySelector(getFocusable)
             : getFocusable(testHost);
           assert.notEqual(focusable, null);
           if (typeof getFocusable === 'string') {
@@ -377,7 +377,7 @@ describe('focus.spec.ts', function() {
 
   function defineCustomElement(ctx: HTMLTestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
     class CustomEl extends ctx.HTMLElement {
-      constructor() {
+      public constructor() {
         super();
         if (mode !== null) {
           this.attachShadow({ mode }).innerHTML = template;

@@ -17,6 +17,7 @@ export interface IPerformanceEntry {
 
 export type ITimerHandler = string | ((...args: unknown[]) => void);
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace NodeJS {
   interface Process {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

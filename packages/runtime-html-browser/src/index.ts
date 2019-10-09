@@ -7,7 +7,7 @@ class BrowserDOMInitializer implements IDOMInitializer {
 
   private readonly container: IContainer;
 
-  constructor(container: IContainer) {
+  public constructor(container: IContainer) {
     this.container = container;
   }
 

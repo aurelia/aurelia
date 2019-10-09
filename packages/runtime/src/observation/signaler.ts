@@ -17,7 +17,7 @@ export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(
 export class Signaler implements ISignaler {
   public signals: Record<string, Set<ISubscriber>>;
 
-  constructor() {
+  public constructor() {
     this.signals = Object.create(null);
   }
 

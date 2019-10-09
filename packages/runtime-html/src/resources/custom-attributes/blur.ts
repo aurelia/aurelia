@@ -45,7 +45,7 @@ export class BlurManager {
 
   public register(blur: Blur): void {
     const blurs = this.blurs;
-    if (blurs.indexOf(blur) === -1 && blurs.push(blur) === 1) {
+    if (!blurs.includes(blur) && blurs.push(blur) === 1) {
       this.addListeners();
     }
   }
@@ -94,10 +94,7 @@ export interface HasContains {
   contains(el: Element): boolean;
 }
 
-@customAttribute({
-  name: 'blur',
-  hasDynamicOptions: true
-})
+@customAttribute('blur')
 export class Blur {
 
   @bindable()
@@ -138,11 +135,12 @@ export class Blur {
 
   /**
    * Manager of this custom attribute to centralize listeners
+   *
    * @internal No need to expose BlurManager
    */
   private readonly manager: BlurManager;
 
-  constructor(
+  public constructor(
     @INode private readonly element: HTMLElement,
     @IDOM private readonly dom: HTMLDOM,
     @ILifecycle lifecycle: ILifecycle

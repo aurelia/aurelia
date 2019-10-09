@@ -9,7 +9,7 @@ class JSDOMInitializer implements IDOMInitializer {
   private readonly container: IContainer;
   private readonly jsdom: JSDOM;
 
-  constructor(container: IContainer) {
+  public constructor(container: IContainer) {
     this.container = container;
     this.jsdom = new JSDOM();
   }

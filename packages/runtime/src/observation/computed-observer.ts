@@ -1,4 +1,4 @@
-import { Constructable, IIndexable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, IIndexable, PLATFORM, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -75,7 +75,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   private readonly descriptor: PropertyDescriptor;
   private observing: boolean;
 
-  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
+  public constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.currentValue = this.oldValue = undefined;
@@ -133,7 +133,7 @@ export class GetterObserver implements GetterObserver {
   private subscriberCount: number;
   private isCollecting: boolean;
 
-  constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+  public constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;
@@ -151,13 +151,13 @@ export class GetterObserver implements GetterObserver {
   }
 
   public addPropertyDep(subscribable: ISubscribable): void {
-    if (this.propertyDeps.indexOf(subscribable) === -1) {
+    if (!this.propertyDeps.includes(subscribable)) {
       this.propertyDeps.push(subscribable);
     }
   }
 
   public addCollectionDep(subscribable: ICollectionSubscribable): void {
-    if (this.collectionDeps.indexOf(subscribable) === -1) {
+    if (!this.collectionDeps.includes(subscribable)) {
       this.collectionDeps.push(subscribable);
     }
   }

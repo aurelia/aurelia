@@ -16,10 +16,9 @@ const url = require('url');
       const parsedUrl = url.parse(req.url);
       let relativePath = parsedUrl.path;
 
-      if (relativePath && relativePath[0] === '/') {
+      if (relativePath && relativePath.startsWith('/')) {
         relativePath = relativePath.slice(1);
       }
-
 
       if (!relativePath || relativePath === '/') {
         relativePath += 'index.html';
@@ -28,8 +27,6 @@ const url = require('url');
       if (!relativePath.includes('.')) {
         relativePath += '/index.html';
       }
-
-
 
       let mimeType;
       switch (relativePath.split('.').pop()) {

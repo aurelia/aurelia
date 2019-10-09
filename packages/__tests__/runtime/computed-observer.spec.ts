@@ -104,7 +104,7 @@ describe.skip('ComputedObserver', function () {
         public prop: unknown;
         public dep: unknown;
 
-        constructor() {
+        public constructor() {
           this._prop = propInitialValue;
           this._dep = depInitialValue;
         }
@@ -175,12 +175,12 @@ describe.skip('ComputedObserver', function () {
       sut.subscribe(subscriber1);
       sut.subscribe(subscriber2);
 
-      if (isVolatile || !propDescriptor.hasOwnProperty('set')) {
+      if (isVolatile || !Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
         // when volatile is specified, getter traps should always be created regardless of
         // other settings, and changing any dependent property should trigger subscribers
         // (except backing properties on dependencies with setters)
         // also, when there is no setter, it should behave the same way
-        if (depDescriptor.hasOwnProperty('value') || depDescriptor.hasOwnProperty('set')) {
+        if (Object.prototype.hasOwnProperty.call(depDescriptor, 'value') || Object.prototype.hasOwnProperty.call(depDescriptor, 'set')) {
           instance.dep = depNewValue;
           verifyCalled(1, 1);
           instance.dep = depNewValue;
@@ -196,18 +196,18 @@ describe.skip('ComputedObserver', function () {
         verifyCalled(1, 5);
         instance._prop = propNewValue;
         verifyCalled(0, 6);
-        if (propDescriptor.hasOwnProperty('set')) {
+        if (Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
           instance.prop = propNewValue;
           verifyCalled(0, 7);
           instance.prop = `${propNewValue}1`;
           verifyCalled(1, 8);
         }
-      } else if (propDescriptor.hasOwnProperty('set')) {
+      } else if (Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
         // when not volatile and there is a setter, using the own setter is the only way to trigger
         // subscribers
         instance._dep = depNewValue;
         verifyCalled(0, 9);
-        if (depDescriptor.hasOwnProperty('value') || depDescriptor.hasOwnProperty('set')) {
+        if (Object.prototype.hasOwnProperty.call(depDescriptor, 'value') || Object.prototype.hasOwnProperty.call(depDescriptor, 'set')) {
           instance.dep = depNewValue;
           verifyCalled(0, 10);
         }
@@ -222,12 +222,12 @@ describe.skip('ComputedObserver', function () {
       sut.unsubscribe(subscriber1);
       sut.unsubscribe(subscriber2);
 
-      if (isVolatile || !propDescriptor.hasOwnProperty('set')) {
+      if (isVolatile || !Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
         // when volatile is specified, getter traps should always be created regardless of
         // other settings, and changing any dependent property should trigger subscribers
         // (except backing properties on dependencies with setters)
         // also, when there is no setter, it should behave the same way
-        if (depDescriptor.hasOwnProperty('value') || depDescriptor.hasOwnProperty('set')) {
+        if (Object.prototype.hasOwnProperty.call(depDescriptor, 'value') || Object.prototype.hasOwnProperty.call(depDescriptor, 'set')) {
           instance.dep = depNewValue;
           verifyCalled(0, 13);
         } else {
@@ -237,16 +237,16 @@ describe.skip('ComputedObserver', function () {
 
         instance._prop = propNewValue;
         verifyCalled(0, 15);
-        if (propDescriptor.hasOwnProperty('set')) {
+        if (Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
           instance.prop = propNewValue;
           verifyCalled(0, 16);
         }
-      } else if (propDescriptor.hasOwnProperty('set')) {
+      } else if (Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
         // when not volatile and there is a setter, using the own setter is the only way to trigger
         // subscribers
         instance._dep = depNewValue;
         verifyCalled(0, 17);
-        if (depDescriptor.hasOwnProperty('value') || depDescriptor.hasOwnProperty('set')) {
+        if (Object.prototype.hasOwnProperty.call(depDescriptor, 'value') || Object.prototype.hasOwnProperty.call(depDescriptor, 'set')) {
           instance.dep = depNewValue;
           verifyCalled(0, 18);
         }
@@ -279,7 +279,7 @@ describe.skip('ComputedObserver', function () {
         public children: Foo[];
         public branch: 1 | 2;
         public sortFn: (a: unknown, b: unknown) => number;
-        constructor(...children: Foo[]) {
+        public constructor(...children: Foo[]) {
           this.array1 = [];
           this.array2 = [];
           this.set1 = new Set();

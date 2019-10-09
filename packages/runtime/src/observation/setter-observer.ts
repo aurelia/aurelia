@@ -1,4 +1,4 @@
-import { IIndexable, Reporter, Tracer } from '@aurelia/kernel';
+import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IPropertyObserver, ISubscriber } from '../observation';
@@ -24,7 +24,7 @@ export class SetterObserver {
   public inBatch: boolean;
   public observing: boolean;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     obj: object,

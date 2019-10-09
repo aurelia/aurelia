@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
   hasBind,
@@ -36,7 +36,7 @@ export class Listener implements IBinding {
   private readonly eventManager: IEventManager;
   private handler!: IDisposable;
 
-  constructor(
+  public constructor(
     dom: IDOM,
     targetEvent: string,
     delegationStrategy: DelegationStrategy,

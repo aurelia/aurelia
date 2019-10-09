@@ -17,7 +17,7 @@ declare namespace Intl {
   }
 
   class RelativeTimeFormat {
-    constructor(locale?: string | string[], options: RelativeTimeFormatOptions = defaultOptions);
+    public constructor(locale?: string | string[], options: RelativeTimeFormatOptions = defaultOptions);
     format(value: number, unit: TimeUnit): string;
   }
 }

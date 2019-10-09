@@ -115,6 +115,6 @@ export {
   ViewportCustomElementRegistration,
   NavCustomElement,
   NavCustomElementRegistration,
-  AuHrefCustomAttribute,
-  AuHrefCustomAttributeRegistration,
+  GotoCustomAttribute,
+  GotoCustomAttributeRegistration,
 } from './configuration';

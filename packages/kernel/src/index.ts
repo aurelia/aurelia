@@ -102,4 +102,6 @@ export {
   resetId,
   compareNumber,
   mergeDistinct,
+  isNumberOrBigInt,
+  isStringOrDate,
 } from './functions';

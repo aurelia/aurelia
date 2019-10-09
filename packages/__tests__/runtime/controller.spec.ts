@@ -144,6 +144,7 @@ describe.skip('controller', function () {
       surrogates: noSurrogates,
       aliases: noAliases,
       containerless: false,
+      isStrictBinding: true,
       shadowOptions: noShadowOptions,
       hasSlots: false,
       strategy: BindingStrategy.getterSetter,

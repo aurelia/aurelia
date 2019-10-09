@@ -277,6 +277,24 @@ export {
 } from './resources/value-converters/view';
 
 export {
+  Clock,
+  IClock,
+  IClockSettings,
+  INativeSchedulers,
+  IScheduler,
+  ITask,
+  ITaskQueue,
+  QueueTaskOptions,
+  Scheduler,
+  Task,
+  TaskAbortError,
+  TaskCallback,
+  TaskQueue,
+  TaskQueuePriority,
+  TaskStatus,
+} from './scheduler';
+
+export {
   bindable,
   BindableDecorator,
   WithBindables,

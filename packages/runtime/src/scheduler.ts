@@ -1,4 +1,4 @@
-import { IDisposable, PLATFORM, DI } from '@aurelia/kernel';
+import { IDisposable, PLATFORM, DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
 
 export const INativeSchedulers = DI.createInterface<INativeSchedulers>('INativeSchedulers').noDefault();
 export interface INativeSchedulers {
@@ -16,10 +16,10 @@ export interface INativeSchedulers {
 
 export interface IClockSettings {
   refreshInterval?: number;
-  forceUpdateInterval?: number
+  forceUpdateInterval?: number;
   now?(): number;
-  setInterval?(cb: () => void, timeout?: number): number,
-  clearInterval?(handle: number): void,
+  setInterval?(cb: () => void, timeout?: number): number;
+  clearInterval?(handle: number): void;
 }
 
 const defaultClockSettings: Required<IClockSettings> = {
@@ -57,6 +57,10 @@ export class Clock implements IClock {
       clearInterval(handle);
     };
   }
+
+  public static register(container: IContainer): IResolver<IClock> {
+    return Registration.singleton(IClock, this).register(container);
+  }
 }
 
 export const globalClock = new Clock();
@@ -82,7 +86,7 @@ export interface IScheduler {
   /* @internal */requestFlush(taskQueue: ITaskQueue): void;
 }
 
-export class Scheduler {
+export class Scheduler implements IScheduler {
   private readonly [TaskQueuePriority.microTask]: TaskQueue[];
   private readonly [TaskQueuePriority.eventLoop]: TaskQueue[];
   private readonly [TaskQueuePriority.render]: TaskQueue[];
@@ -121,6 +125,10 @@ export class Scheduler {
     };
   }
 
+  public static register(container: IContainer): IResolver<IScheduler> {
+    return Registration.singleton(IScheduler, this).register(container);
+  }
+
   public getTaskQueue(priority: TaskQueuePriority): TaskQueue {
     return this[priority][0];
   }
@@ -136,7 +144,7 @@ export class Scheduler {
 
   public requestFlush(taskQueue: TaskQueue): void {
     const flush = () => {
-      this.flush(taskQueue.priority)
+      this.flush(taskQueue.priority);
     };
 
     switch (taskQueue.priority) {
@@ -212,7 +220,7 @@ type TaskQueueOptions = {
   clock: IClock;
   priority: TaskQueuePriority;
   scheduler: IScheduler;
-}
+};
 
 export type QueueTaskOptions = {
   /**
@@ -228,7 +236,7 @@ export type QueueTaskOptions = {
    */
   preempt?: boolean;
   priority?: TaskQueuePriority;
-}
+};
 
 const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   delay: 0,
@@ -541,7 +549,7 @@ export class TaskQueue {
 }
 
 export class TaskAbortError<T = any> extends Error {
-  constructor(public task: Task<T>) {
+  public constructor(public task: Task<T>) {
     super('Task was canceled.');
   }
 }
@@ -576,7 +584,7 @@ export class Task<T = any> implements ITask {
           return promise;
         }
         case 'running':
-          throw new Error('Trying to await task from within task will cause a deadlock.')
+          throw new Error('Trying to await task from within task will cause a deadlock.');
         case 'completed':
           return this._result = Promise.resolve() as unknown as Promise<T>;
         case 'canceled':
@@ -651,5 +659,3 @@ export class Task<T = any> implements ITask {
     };
   }
 }
-
-

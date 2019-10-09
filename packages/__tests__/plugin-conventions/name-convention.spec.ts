@@ -60,4 +60,16 @@ describe('nameConvention', function () {
       type: 'bindingCommand'
     });
   });
+
+  it('gets template controller like resource', function() {
+    assert.deepEqual(nameConvention('FooBarTemplateController'), {
+      name: 'foo-bar',
+      type: 'templateController'
+    });
+
+    assert.deepEqual(nameConvention('FOOBarTemplateController'), {
+      name: 'foo-bar',
+      type: 'templateController'
+    });
+  });
 });

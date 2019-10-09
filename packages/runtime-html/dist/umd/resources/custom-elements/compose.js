@@ -215,6 +215,7 @@
         surrogates: kernel_1.PLATFORM.emptyArray,
         aliases: kernel_1.PLATFORM.emptyArray,
         containerless: true,
+        isStrictBinding: true,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         shadowOptions: null,
         hasSlots: false,

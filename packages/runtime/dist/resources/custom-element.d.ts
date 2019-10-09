@@ -22,6 +22,7 @@ export interface IProjectorLocator<T extends INode = INode> {
 }
 export interface ICustomElementStaticProperties {
     containerless?: TemplateDefinition['containerless'];
+    isStrictBinding?: TemplateDefinition['isStrictBinding'];
     shadowOptions?: TemplateDefinition['shadowOptions'];
     bindables?: TemplateDefinition['bindables'];
     strategy?: TemplateDefinition['strategy'];
@@ -59,5 +60,15 @@ export declare function containerless(): typeof containerlessDecorator;
  * Decorator: Indicates that the custom element should be rendered without its element container.
  */
 export declare function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
+declare type HasStrictBindOption = Required<Pick<ITemplateDefinition, 'isStrictBinding'>>;
+declare function strictBindingDecorator<T extends Constructable>(target: T & HasStrictBindOption): T & HasStrictBindOption;
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export declare function strict(): typeof strictBindingDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export declare function strict<T extends Constructable>(target: T & HasStrictBindOption): T & HasStrictBindOption;
 export {};
 //# sourceMappingURL=custom-element.d.ts.map

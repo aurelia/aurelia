@@ -49,6 +49,37 @@
     }
     exports.isNumeric = isNumeric;
     /**
+     * Determines if the value passed is a number or bigint for parsing purposes
+     *
+     * @param value - Value to evaluate
+     */
+    function isNumberOrBigInt(value) {
+        switch (typeof value) {
+            case 'number':
+            case 'bigint':
+                return true;
+            default:
+                return false;
+        }
+    }
+    exports.isNumberOrBigInt = isNumberOrBigInt;
+    /**
+     * Determines if the value passed is a number or bigint for parsing purposes
+     *
+     * @param value - Value to evaluate
+     */
+    function isStringOrDate(value) {
+        switch (typeof value) {
+            case 'string':
+                return true;
+            case 'object':
+                return value instanceof Date;
+            default:
+                return false;
+        }
+    }
+    exports.isStringOrDate = isStringOrDate;
+    /**
      * Base implementation of camel and kebab cases
      */
     const baseCase = (function () {

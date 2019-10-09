@@ -59,7 +59,7 @@
                 sourceExpression.bind(flags, scope, this);
             }
             // sourceExpression might have been changed during bind
-            this.target[this.targetProperty] = this.sourceExpression.evaluate(4096 /* fromBind */, scope, this.locator, part);
+            this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 4096 /* fromBind */, scope, this.locator, part);
             this.sourceExpression.connect(flags, scope, this, part);
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;

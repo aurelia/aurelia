@@ -103,6 +103,7 @@ export var LifecycleFlags;
     LifecycleFlags[LifecycleFlags["bindingStrategy"] = 15] = "bindingStrategy";
     LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
     LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
+    LifecycleFlags[LifecycleFlags["isStrictBindingStrategy"] = 4] = "isStrictBindingStrategy";
     LifecycleFlags[LifecycleFlags["update"] = 48] = "update";
     LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 16] = "updateTargetInstance";
     LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 32] = "updateSourceExpression";

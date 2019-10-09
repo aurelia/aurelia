@@ -24,7 +24,7 @@ export const CustomElement = Object.freeze({
         const WritableType = Type;
         const description = buildTemplateDefinition(Type, nameOrDefinition);
         WritableType.kind = CustomElement;
-        Type.description = description;
+        WritableType.description = description;
         WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
         Type.register = function register(container) {
             const aliases = description.aliases;
@@ -55,5 +55,12 @@ function containerlessDecorator(target) {
 }
 export function containerless(target) {
     return target === undefined ? containerlessDecorator : containerlessDecorator(target);
+}
+function strictBindingDecorator(target) {
+    target.isStrictBinding = true;
+    return target;
+}
+export function strict(target) {
+    return target === undefined ? strictBindingDecorator : strictBindingDecorator(target);
 }
 //# sourceMappingURL=custom-element.js.map

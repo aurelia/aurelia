@@ -61,6 +61,7 @@ class DefaultTemplateDefinition {
     constructor() {
         this.name = 'unnamed';
         this.template = null;
+        this.isStrictBinding = false;
         this.cache = 0;
         this.build = buildNotRequired;
         this.bindables = PLATFORM.emptyObject;
@@ -84,6 +85,7 @@ const templateDefinitionAssignables = [
     'build',
     'containerless',
     'shadowOptions',
+    'isStrictBinding',
     'hasSlots'
 ];
 const templateDefinitionArrays = [
@@ -92,12 +94,14 @@ const templateDefinitionArrays = [
     'surrogates',
     'aliases'
 ];
-export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases) {
+export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases, isStrictBinding) {
     const def = new DefaultTemplateDefinition();
     // all cases fall through intentionally
     /* deepscan-disable */
     const argLen = arguments.length;
     switch (argLen) {
+        case 16: if (isStrictBinding != null)
+            def.isStrictBinding = isStrictBinding;
         case 15: if (aliases != null)
             def.aliases = toArray(aliases);
         case 14: if (childrenObservers !== null)
@@ -128,6 +132,9 @@ export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build,
             if (ctor != null) {
                 if (ctor.bindables) {
                     def.bindables = Bindable.for(ctor).get();
+                }
+                if (ctor.isStrictBinding) {
+                    def.isStrictBinding = ctor.isStrictBinding;
                 }
                 if (ctor.containerless) {
                     def.containerless = ctor.containerless;

@@ -48,6 +48,7 @@ export class Controller {
             this.host = void 0; // stays undefined
             this.vmKind = 2 /* synthetic */;
             this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+            this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
             this.scope = void 0; // will be populated during bindSynthetic()
             this.projector = void 0; // stays undefined
             this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
@@ -150,7 +151,7 @@ export class Controller {
     static forCustomAttribute(viewModel, parentContext, flags = 0 /* none */) {
         let controller = Controller.lookup.get(viewModel);
         if (controller === void 0) {
-            controller = new Controller(flags, void 0, void 0, viewModel, parentContext, void 0, PLATFORM.emptyObject);
+            controller = new Controller(flags | 4 /* isStrictBindingStrategy */, void 0, void 0, viewModel, parentContext, void 0, PLATFORM.emptyObject);
             this.lookup.set(viewModel, controller);
         }
         return controller;
@@ -369,6 +370,9 @@ export class Controller {
         const { bindings } = this;
         if (bindings !== void 0) {
             const { length } = bindings;
+            if (this.isStrictBinding) {
+                flags |= 4 /* isStrictBindingStrategy */;
+            }
             for (let i = 0; i < length; ++i) {
                 bindings[i].$bind(flags, scope, this.part);
             }

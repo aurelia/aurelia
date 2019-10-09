@@ -1,4 +1,4 @@
-import { isNumeric, PLATFORM, Reporter, } from '@aurelia/kernel';
+import { isNumeric, PLATFORM, Reporter, isNumberOrBigInt, isStringOrDate, } from '@aurelia/kernel';
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
@@ -321,7 +321,12 @@ export class AccessScopeExpression {
         this.ancestor = ancestor;
     }
     evaluate(flags, scope, locator, part) {
-        return BindingContext.get(scope, this.name, this.ancestor, flags, part)[this.name];
+        const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part);
+        let evaluatedValue = obj[this.name];
+        if (flags & 4 /* isStrictBindingStrategy */) {
+            return evaluatedValue;
+        }
+        return evaluatedValue == null ? '' : evaluatedValue;
     }
     assign(flags, scope, locator, value, part) {
         const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part);
@@ -352,7 +357,10 @@ export class AccessMemberExpression {
     }
     evaluate(flags, scope, locator, part) {
         const instance = this.object.evaluate(flags, scope, locator, part);
-        return instance == null ? instance : instance[this.name];
+        if (flags & 4 /* isStrictBindingStrategy */) {
+            return instance == null ? instance : instance[this.name];
+        }
+        return instance ? instance[this.name] : '';
     }
     assign(flags, scope, locator, value, part) {
         const obj = this.object.evaluate(flags, scope, locator, part);
@@ -579,7 +587,23 @@ export class BinaryExpression {
     // this makes bugs in user code easier to track down for end users
     // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
     ['+'](f, s, l, p) {
-        return this.left.evaluate(f, s, l, p) + this.right.evaluate(f, s, l, p);
+        const left = this.left.evaluate(f, s, l, p);
+        const right = this.right.evaluate(f, s, l, p);
+        if ((f & 4 /* isStrictBindingStrategy */) > 0) {
+            return left + right;
+        }
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        if (!left || !right) {
+            if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+                return (left || 0) + (right || 0);
+            }
+            if (isStringOrDate(left) || isStringOrDate(right)) {
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+                return (left || '') + (right || '');
+            }
+        }
+        return left + right;
     }
     ['-'](f, s, l, p) {
         return this.left.evaluate(f, s, l, p) - this.right.evaluate(f, s, l, p);
@@ -628,7 +652,7 @@ export class UnaryExpression {
         return void this.expression.evaluate(f, s, l, p);
     }
     ['typeof'](f, s, l, p) {
-        return typeof this.expression.evaluate(f, s, l, p);
+        return typeof this.expression.evaluate(f | 4 /* isStrictBindingStrategy */, s, l, p);
     }
     ['!'](f, s, l, p) {
         return !this.expression.evaluate(f, s, l, p);

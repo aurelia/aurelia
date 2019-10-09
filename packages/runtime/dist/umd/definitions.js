@@ -74,6 +74,7 @@
         constructor() {
             this.name = 'unnamed';
             this.template = null;
+            this.isStrictBinding = false;
             this.cache = 0;
             this.build = buildNotRequired;
             this.bindables = kernel_1.PLATFORM.emptyObject;
@@ -97,6 +98,7 @@
         'build',
         'containerless',
         'shadowOptions',
+        'isStrictBinding',
         'hasSlots'
     ];
     const templateDefinitionArrays = [
@@ -105,12 +107,14 @@
         'surrogates',
         'aliases'
     ];
-    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases) {
+    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases, isStrictBinding) {
         const def = new DefaultTemplateDefinition();
         // all cases fall through intentionally
         /* deepscan-disable */
         const argLen = arguments.length;
         switch (argLen) {
+            case 16: if (isStrictBinding != null)
+                def.isStrictBinding = isStrictBinding;
             case 15: if (aliases != null)
                 def.aliases = kernel_1.toArray(aliases);
             case 14: if (childrenObservers !== null)
@@ -141,6 +145,9 @@
                 if (ctor != null) {
                     if (ctor.bindables) {
                         def.bindables = bindable_1.Bindable.for(ctor).get();
+                    }
+                    if (ctor.isStrictBinding) {
+                        def.isStrictBinding = ctor.isStrictBinding;
                     }
                     if (ctor.containerless) {
                         def.containerless = ctor.containerless;

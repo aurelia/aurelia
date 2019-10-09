@@ -10,6 +10,18 @@
  */
 export declare function isNumeric(value: unknown): value is number | string;
 /**
+ * Determines if the value passed is a number or bigint for parsing purposes
+ *
+ * @param value - Value to evaluate
+ */
+export declare function isNumberOrBigInt(value: unknown): value is number | bigint;
+/**
+ * Determines if the value passed is a number or bigint for parsing purposes
+ *
+ * @param value - Value to evaluate
+ */
+export declare function isStringOrDate(value: unknown): value is string | Date;
+/**
  * Efficiently convert a string to camelCase.
  *
  * Non-alphanumeric characters are treated as separators.

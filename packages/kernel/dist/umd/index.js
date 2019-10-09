@@ -48,5 +48,7 @@
     exports.resetId = functions_1.resetId;
     exports.compareNumber = functions_1.compareNumber;
     exports.mergeDistinct = functions_1.mergeDistinct;
+    exports.isNumberOrBigInt = functions_1.isNumberOrBigInt;
+    exports.isStringOrDate = functions_1.isStringOrDate;
 });
 //# sourceMappingURL=index.js.map

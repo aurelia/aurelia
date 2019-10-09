@@ -36,7 +36,7 @@
             const WritableType = Type;
             const description = definitions_1.buildTemplateDefinition(Type, nameOrDefinition);
             WritableType.kind = exports.CustomElement;
-            Type.description = description;
+            WritableType.description = description;
             WritableType.aliases = Type.aliases == null ? kernel_1.PLATFORM.emptyArray : Type.aliases;
             Type.register = function register(container) {
                 const aliases = description.aliases;
@@ -70,5 +70,13 @@
         return target === undefined ? containerlessDecorator : containerlessDecorator(target);
     }
     exports.containerless = containerless;
+    function strictBindingDecorator(target) {
+        target.isStrictBinding = true;
+        return target;
+    }
+    function strict(target) {
+        return target === undefined ? strictBindingDecorator : strictBindingDecorator(target);
+    }
+    exports.strict = strict;
 });
 //# sourceMappingURL=custom-element.js.map

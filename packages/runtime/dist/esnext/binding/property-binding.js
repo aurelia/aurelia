@@ -70,6 +70,8 @@ let PropertyBinding = class PropertyBinding {
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
+        // Force property binding to always be strict
+        flags |= 4 /* isStrictBindingStrategy */;
         // Store flags which we can only receive during $bind and need to pass on
         // to the AST during evaluate/connect/assign
         this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;

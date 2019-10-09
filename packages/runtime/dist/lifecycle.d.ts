@@ -45,6 +45,7 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
     readonly host?: T;
     readonly vmKind: ViewModelKind;
     readonly scopeParts?: readonly string[];
+    readonly isStrictBinding?: boolean;
     scope?: IScope;
     part?: string;
     projector?: IElementProjector;

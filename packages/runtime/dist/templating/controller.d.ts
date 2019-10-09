@@ -51,6 +51,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     readonly host?: T;
     readonly vmKind: ViewModelKind;
     scopeParts?: string[];
+    isStrictBinding?: boolean;
     scope?: IScope;
     part?: string;
     projector?: IElementProjector;

@@ -5,5 +5,5 @@ export { Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';
 export { RuntimeCompilationResources } from './resource';
 export { EventAggregator, IEventAggregator, } from './eventaggregator';
-export { isNumeric, camelCase, kebabCase, toArray, nextId, resetId, compareNumber, mergeDistinct, } from './functions';
+export { isNumeric, camelCase, kebabCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, } from './functions';
 //# sourceMappingURL=index.js.map

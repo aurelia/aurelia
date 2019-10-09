@@ -6,5 +6,5 @@ export { ITraceInfo, ITraceWriter, ILiveLoggingOptions, Reporter, Tracer, LogLev
 export { Profiler } from './profiler';
 export { IResourceDefinition, IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription, ResourcePartDescription, RuntimeCompilationResources } from './resource';
 export { EventAggregator, EventAggregatorCallback, IEventAggregator, } from './eventaggregator';
-export { isNumeric, camelCase, kebabCase, toArray, nextId, resetId, compareNumber, mergeDistinct, } from './functions';
+export { isNumeric, camelCase, kebabCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, } from './functions';
 //# sourceMappingURL=index.d.ts.map

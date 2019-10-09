@@ -80,6 +80,7 @@ export declare const enum LifecycleFlags {
     bindingStrategy = 15,
     getterSetterStrategy = 1,
     proxyStrategy = 2,
+    isStrictBindingStrategy = 4,
     update = 48,
     updateTargetInstance = 16,
     updateSourceExpression = 32,

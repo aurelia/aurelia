@@ -10,7 +10,7 @@ import { Author } from './author';
 <h3>Authors</h3>
 <ul>
   <li data-test="authors-element-item" repeat.for="author of authors">
-    <a data-test="authors-element-author-link" href="\${author.name}" au-href.bind="{ component: Author, parameters: \`\${author.id}\` }">\${author.name}</a>
+    <a data-test="authors-element-author-link" href="\${author.name}" goto.bind="{ component: Author, parameters: \`\${author.id}\` }">\${author.name}</a>
     <ul><li data-test="authors-element-book-name" repeat.for="book of author.books">\${book.title}</li></ul>
   </li>
 </ul>

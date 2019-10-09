@@ -394,7 +394,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('handles anchor click with au-href', async function () {
+  it('handles anchor click with goto', async function () {
     this.timeout(5000);
 
     const tests = [
@@ -417,7 +417,7 @@ describe('Router', function () {
       name: 'app',
       dependencies: [IdName],
       template: `
-      ${tests.map(test => `<a au-href${test.bind ? '.bind' : ''}="${test.value}">${test.value}</a>`).join('<br>')}
+      ${tests.map(test => `<a goto${test.bind ? '.bind' : ''}="${test.value}">${test.value}</a>`).join('<br>')}
       <br>
       <au-viewport></au-viewport>
       `}) class App {

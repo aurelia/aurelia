@@ -1,13 +1,9 @@
 import { CustomElement } from '@aurelia/runtime';
-import { assert, fail } from '@aurelia/testing';
+import { assert, fail, getVisibleText } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
 describe('app', function () {
-
-  function getText(el: Element) {
-    return el && el.textContent.replace(/\s\s+/g, ' ').trim();
-  }
 
   function getViewModel<T>(element: Element) {
     const { viewModel } = CustomElement.behaviorFor(element) as unknown as { viewModel: T };
@@ -28,7 +24,8 @@ describe('app', function () {
   it('has some readonly texts with different binding modes', async function () {
     await executeTest(({ host }) => {
       for (let i = 0; i < 4; i++) {
-        assert.equal(getText(host.querySelector(`read-only-text#text${i}`)), `text${i}`);
+        const selector = `read-only-text#text${i}`;
+        assert.html.textContent(selector, `text${i}`, `incorrect text for ${selector}`, host);
       }
     });
   });
@@ -38,10 +35,10 @@ describe('app', function () {
       (host.querySelector('button#staticTextChanger') as unknown as HTMLButtonElement).click();
       await ctx.lifecycle.nextFrame;
 
-      assert.equal(getText(host.querySelector("read-only-text#text0")), "text0");
-      assert.equal(getText(host.querySelector("read-only-text#text1")), "text1");
-      assert.equal(getText(host.querySelector("read-only-text#text2")), "newText2");
-      assert.equal(getText(host.querySelector("read-only-text#text3")), "newText3");
+      assert.html.textContent('read-only-text#text0', 'text0', 'incorrect text for read-only-text#text0', host);
+      assert.html.textContent('read-only-text#text1', 'text1', 'incorrect text for read-only-text#text1', host);
+      assert.html.textContent('read-only-text#text2', 'newText2', 'incorrect text for read-only-text#text2', host);
+      assert.html.textContent('read-only-text#text3', 'newText3', 'incorrect text for read-only-text#text3', host);
     });
   });
 
@@ -57,13 +54,13 @@ describe('app', function () {
 
       const vm = getViewModel<App>(host);
 
-      assert.equal(_static.value, 'input0');
-      assert.equal(oneTime.value, vm.inputOneTime);
-      assert.equal(twoWay.value, vm.inputTwoWay);
-      assert.equal(toView.value, vm.inputToView);
-      assert.equal(fromView.value, '');
-      assert.equal(blurredInputTw.value, vm.inputBlrTw);
-      assert.equal(blurredInputFv.value, '');
+      assert.html.value(_static, 'input0');
+      assert.html.value(oneTime, vm.inputOneTime);
+      assert.html.value(twoWay, vm.inputTwoWay);
+      assert.html.value(toView, vm.inputToView);
+      assert.html.value(fromView, '');
+      assert.html.value(blurredInputTw, vm.inputBlrTw);
+      assert.html.value(blurredInputFv, '');
     });
   });
 
@@ -114,10 +111,10 @@ describe('app', function () {
       const toView: HTMLInputElement = host.querySelector('#input-to-view input');
       const fromView: HTMLInputElement = host.querySelector('#input-from-view input');
 
-      assert.equal(oneTime.value, 'input1');
-      assert.equal(twoWay.value, newInputs[1]);
-      assert.equal(toView.value, newInputs[2]);
-      assert.equal(fromView.value, '');
+      assert.html.value(oneTime, 'input1');
+      assert.html.value(twoWay, newInputs[1]);
+      assert.html.value(toView, newInputs[2]);
+      assert.html.value(fromView, '');
     });
   });
 
@@ -127,8 +124,8 @@ describe('app', function () {
       const fromView: HTMLInputElement = host.querySelector('#blurred-input-from-view input');
 
       const vm = getViewModel<App>(host);
-      assert.equal(twoWay.value, vm.inputBlrTw);
-      assert.equal(fromView.value, '');
+      assert.html.value(twoWay, vm.inputBlrTw);
+      assert.html.value(fromView, '');
 
       const newInputFv = 'new blurred input fv', newInputTw = 'new blurred input tw';
       twoWay.value = newInputTw;
@@ -149,7 +146,7 @@ describe('app', function () {
     });
   });
 
-  it.skip('uses specs-viewer to "compose" display for heterogenous collection of things', async function () {
+  it.skip('uses specs-viewer to \'compose\' display for heterogenous collection of things', async function () {
     await executeTest(({ host }) => {
       const specsViewer = host.querySelector('specs-viewer');
       assert.notEqual(specsViewer, null);
@@ -157,32 +154,32 @@ describe('app', function () {
 
       const vm = getViewModel<App>(host);
       const [camera, laptop] = vm.things;
-      assert.equal(getText(specsViewer.querySelector("h2")), `${camera.modelNumber} by ${camera.make}`);
+      assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
     });
   });
 
-  it('uses a user preference control that "computes" the full name of the user correctly - static', async function () {
+  it('uses a user preference control that \'computes\' the full name of the user correctly - static', async function () {
     await executeTest(async ({ host, ctx }) => {
 
       const { user } = getViewModel<App>(host);
 
       const userPref = host.querySelector('user-preference');
 
-      const statc = userPref.querySelector("#static");
-      const nonStatic = userPref.querySelector("#nonStatic");
-      const wrongStatic = userPref.querySelector("#wrongStatic");
+      const statc = userPref.querySelector('#static');
+      const nonStatic = userPref.querySelector('#nonStatic');
+      const wrongStatic = userPref.querySelector('#wrongStatic');
 
-      assert.equal(getText(statc), 'John Doe', 'incorrect text statc');
-      assert.equal(getText(nonStatic), 'infant', 'incorrect text nonStatic');
-      assert.equal(getText(wrongStatic), 'infant', 'incorrect text wrongStatic');
+      assert.html.textContent(statc, 'John Doe', 'incorrect text statc');
+      assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic');
+      assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic');
 
       const { changes: uc } = user;
       uc.clear();
       user.firstName = 'Jane';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(statc), 'Jane Doe', 'incorrect text statc - fname');
-      assert.equal(getText(nonStatic), 'infant', 'incorrect text nonStatic - fname');
-      assert.equal(getText(wrongStatic), 'infant', 'incorrect text wrongStatic - fname');
+      assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
+      assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
+      assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic - fname');
       assert.equal(uc.has('static'), true, 'static change should have triggered - fname');
       assert.equal(uc.has('nonStatic'), false, 'nonStatic change should not have triggered - fname');
       assert.equal(uc.has('wrongStatic'), false, 'wrongStatic change should not have triggered - fname');
@@ -190,9 +187,9 @@ describe('app', function () {
       uc.clear();
       user.age = 10;
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(statc), 'Jane Doe', 'incorrect text statc - age');
-      assert.equal(getText(nonStatic), 'Jane Doe', 'incorrect text nonStatic - age');
-      assert.equal(getText(wrongStatic), 'Jane Doe', 'incorrect text wrongStatic - age');
+      assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
+      assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
+      assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - age');
       assert.equal(uc.has('static'), false, 'static change should not have triggered - age');
       assert.equal(uc.has('nonStatic'), true, 'nonStatic change should have triggered - age');
       assert.equal(uc.has('wrongStatic'), true, 'wrongStatic change should have triggered - age');
@@ -200,35 +197,35 @@ describe('app', function () {
       uc.clear();
       user.lastName = 'Smith';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(statc), 'Jane Smith', 'incorrect text statc - lname');
-      assert.equal(getText(nonStatic), 'Jane Smith', 'incorrect text nonStatic - lname');
-      assert.equal(getText(wrongStatic), 'Jane Doe', 'incorrect text wrongStatic - lname');
+      assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
+      assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
+      assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - lname');
       assert.equal(uc.has('static'), true, 'static change should have triggered - lname');
       assert.equal(uc.has('nonStatic'), true, 'nonStatic change should have triggered - lname');
       assert.equal(uc.has('wrongStatic'), false, 'wrongStatic change should have triggered - lname');
     });
   });
 
-  it('uses a user preference control that "computes" the organization of the user correctly - volatile', async function () {
+  it('uses a user preference control that \'computes\' the organization of the user correctly - volatile', async function () {
     await executeTest(async ({ host, ctx }) => {
 
       const { user } = getViewModel<App>(host);
 
       const userPref = host.querySelector('user-preference');
 
-      const nonVolatile = userPref.querySelector("#nonVolatile");
-      const volatile = userPref.querySelector("#volatile");
+      const nonVolatile = userPref.querySelector('#nonVolatile');
+      const volatile = userPref.querySelector('#volatile');
 
-      assert.equal(getText(nonVolatile), 'Role1, Org1', 'incorrect text nonVolatile');
-      assert.equal(getText(volatile), 'City1, Country1', 'incorrect text volatile');
+      assert.html.textContent(nonVolatile, 'Role1, Org1', 'incorrect text nonVolatile');
+      assert.html.textContent(volatile, 'City1, Country1', 'incorrect text volatile');
 
       const { changes: uc } = user;
       uc.clear();
       user.roleNonVolatile = 'Role2';
       user.locationVolatile = 'Country2';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
-      assert.equal(getText(volatile), 'City1, Country2', 'incorrect text volatile - country');
+      assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
       assert.equal(uc.has('nonVolatile'), true, 'nonVolatile change should have triggered - role');
       assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
 
@@ -236,8 +233,8 @@ describe('app', function () {
       user.organization = 'Org2'
       user.city = 'City2';
       ctx.lifecycle.processRAFQueue(undefined);
-      assert.equal(getText(nonVolatile), 'Role2, Org1', 'incorrect text nonVolatile - role');
-      assert.equal(getText(volatile), 'City2, Country2', 'incorrect text volatile - country');
+      assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
       assert.equal(uc.has('nonVolatile'), false, 'nonVolatile change should not have triggered - role');
       assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
     });

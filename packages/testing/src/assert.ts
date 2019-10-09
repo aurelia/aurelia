@@ -52,6 +52,7 @@ import {
   Object_is,
   Object_keys,
 } from './util';
+import { DOM } from '@aurelia/runtime-html';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
@@ -671,6 +672,38 @@ export function isCustomAttributeType(actual: any, message?: string): void {
   }
 }
 
+function getNode(elementOrSelector: string | Node, root: Node = DOM.document) {
+  return typeof elementOrSelector === "string"
+    ? (root as Element).querySelector(elementOrSelector)
+    : elementOrSelector;
+}
+function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node) {
+  const host = getNode(elementOrSelector, root);
+  const actualText = host && getVisibleText((void 0)!, host, true);
+  if (actualText !== expectedText) {
+    innerFail({
+      actual: actualText,
+      expected: expectedText,
+      message,
+      operator: '==' as any,
+      stackStartFn: isTextContentEqual
+    });
+  }
+}
+function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, message?: string, root?: Node) {
+  const input = getNode(inputElementOrSelector, root);
+  const actual = input instanceof HTMLInputElement && input.value;
+  if (actual !== expected) {
+    innerFail({
+      actual: actual,
+      expected: expected,
+      message,
+      operator: '==' as any,
+      stackStartFn: isValueEqual
+    });
+  }
+}
+
 const assert = Object_freeze({
   throws,
   doesNotThrow,
@@ -707,6 +740,10 @@ const assert = Object_freeze({
     notDeepEqual: notDeepStrictEqual,
     equal: strictEqual,
     notEqual: notStrictEqual,
+  },
+  html: {
+    textContent: isTextContentEqual,
+    value: isValueEqual
   }
 });
 

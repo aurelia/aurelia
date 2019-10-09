@@ -4,12 +4,9 @@ import {
   IContainer,
   IDisposable,
   IIndexable,
-  InstanceProvider,
-  IResolver,
   IResourceDescriptions,
   Key,
   Reporter,
-  RuntimeCompilationResources,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -24,7 +21,6 @@ import {
   IDOM,
   INode,
   INodeSequenceFactory,
-  IRenderLocation,
   NodeSequence,
 } from './dom';
 import { LifecycleFlags } from './flags';
@@ -34,7 +30,6 @@ import {
   IRenderContext,
   IViewFactory,
   IViewModel,
-  Priority,
 } from './lifecycle';
 import {
   IAccessor,

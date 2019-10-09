@@ -1211,7 +1211,7 @@ describe.skip('controller', function () {
  * - ce -> repeat -> ce
  * - ce -> with -> ce
  * - ce -> compose -> ce
- * - ce -> replace-part -> ce -> replaceable
+ * - ce -> replace -> ce -> replaceable
  * - ce -> if -> ce
  * - custom-element -> repeat -> view
  *```

@@ -1,6 +1,5 @@
 import * as fs from 'fs';
-import {JSONResult, config, initializeFrameworks} from './common';
-import {BenchmarkType, Benchmark, benchmarks} from './benchmarks';
+import {initializeFrameworks} from './common';
 
 async function main() {
   let frameworks = await initializeFrameworks();

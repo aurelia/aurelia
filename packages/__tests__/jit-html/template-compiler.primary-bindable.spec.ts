@@ -7,7 +7,6 @@ import {
   bindingBehavior,
   customAttribute,
   CustomElement,
-  ICustomAttributeResource,
   INode,
   valueConverter,
   CustomAttribute,

@@ -1,7 +1,6 @@
 import results from './data';
 import {
   defineElement as el,
-  defineView as vw,
   createView as cv,
 } from '../node_modules/domvm/dist/pico/domvm.pico.es.js'; // eslint-disable-line import/extensions
 

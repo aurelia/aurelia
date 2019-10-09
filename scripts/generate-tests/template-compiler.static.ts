@@ -246,7 +246,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
       function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null): Statement[] {
         if (tag.hasReplaceable) {
-          markup = `<${tag.name} replaceable part="part1"></${tag.name}><${tag.name} replaceable part="part2"></${tag.name}>`;
+          markup = `<${tag.name} replaceable="part1"></${tag.name}><${tag.name} replaceable="part2"></${tag.name}>`;
         }
         return [
           $$const(tag.elName, $call('CustomElement.define', [
@@ -292,7 +292,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           const $tag = kebabCase(tag.elName);
           if (tag.hasReplaceable) {
             staticTests.push($$test(
-              `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace-part="part1">${ifText.markup}</${tag.name}></${$tag}>`,
+              `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace="part1">${ifText.markup}</${tag.name}></${$tag}>`,
               ifText.value,
               ifText.properties,
               [tag, ifText],
@@ -322,8 +322,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         const $tag = kebabCase(tag.elName);
         resources.push(...registerCustomElement(`${ifText.markup}${elseText.markup}\${item}`, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode));
         if (tag.hasReplaceable) {
-          ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace-part="part1">${ifText.markup}</${tag.name}></${$tag}>`;
-          elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"><${tag.name} replace-part="part2">${elseText.markup}</${tag.name}></${$tag}>`;
+          ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace="part1">${ifText.markup}</${tag.name}></${$tag}>`;
+          elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"><${tag.name} replace="part2">${elseText.markup}</${tag.name}></${$tag}>`;
         } else {
           ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`;
           elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"></${$tag}>`;

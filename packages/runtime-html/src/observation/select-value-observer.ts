@@ -1,6 +1,5 @@
 import {
   CollectionKind,
-  collectionSubscriberCollection,
   IAccessor,
   ICollectionObserver,
   IDOM,

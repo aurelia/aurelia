@@ -182,7 +182,7 @@ function isExported(node: ts.Node): boolean {
   return false;
 }
 
-const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
 function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   if (!node.decorators) return;

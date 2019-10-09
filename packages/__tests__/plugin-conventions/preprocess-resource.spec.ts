@@ -278,6 +278,39 @@ export class FooBarCustomAttribute {}
     assert.equal(result.code, expected);
   });
 
+  it('injects templateController decorator', function () {
+    const code = `export class FooBarTemplateController {}\n`;
+    const expected = `import { templateController } from '@aurelia/runtime';
+@templateController('foo-bar')
+export class FooBarTemplateController {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects templateController decorator for non-kebab case file name', function () {
+    const code = `export class FooBarTemplateController {}\n`;
+    const expected = `import { templateController } from '@aurelia/runtime';
+@templateController('foo-bar')
+export class FooBarTemplateController {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects valueConverter decorator', function () {
     const code = `export class FooBarValueConverter {}\n`;
     const expected = `import { valueConverter } from '@aurelia/runtime';
@@ -459,7 +492,7 @@ export class AbcBindingCommand {
 
   it('injects various decorators when there is implicit custom element', function () {
     const code = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
+import { templateController } from '@aurelia/runtime';
 import { other } from '@aurelia/jit';
 
 export class LeaveMeAlone {}
@@ -470,11 +503,8 @@ export class LoremCustomAttribute {
 
 }
 
-@valueConverter('one')
+@templateController('one')
 export class ForOne {
-  toView(value: number): string {
-    return '' + value;
-  }
 }
 
 export class TheSecondValueConverter {
@@ -493,7 +523,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
-import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
+import { templateController, customElement, customAttribute, valueConverter, bindingBehavior } from '@aurelia/runtime';
 import { other, bindingCommand } from '@aurelia/jit';
 
 export class LeaveMeAlone {}
@@ -505,11 +535,8 @@ export class LoremCustomAttribute {
 
 }
 
-@valueConverter('one')
+@templateController('one')
 export class ForOne {
-  toView(value: number): string {
-    return '' + value;
-  }
 }
 
 @valueConverter('theSecond')

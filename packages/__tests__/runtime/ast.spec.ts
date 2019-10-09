@@ -1034,10 +1034,10 @@ describe('AccessMemberExpression', function () {
   const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
 
   eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
-    it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+    it(`STRICT - ${t1}.${t2}.evaluate() -> connect -> assign`, function () {
       const scope = createScopeForTest({ foo: obj });
       const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-      const actual = sut.evaluate(LF.none, scope, null);
+      const actual = sut.evaluate(LF.isStrictBindingStrategy, scope, null);
       if (canHaveProperty) {
         assert.strictEqual(actual, value, `actual`);
       } else {
@@ -1062,6 +1062,38 @@ describe('AccessMemberExpression', function () {
         assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
       }
     });
+
+    it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+      const scope = createScopeForTest({ foo: obj });
+      const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+      const actual = sut.evaluate(LF.none, scope, null);
+      if (canHaveProperty) {
+        if (obj == null) {
+          assert.strictEqual(actual, '', `actual`);
+        } else {
+          assert.strictEqual(actual, value, `actual`);
+        }
+      } else {
+        if (obj == null) {
+          assert.strictEqual(actual, '', `actual`);
+        }
+      }
+      const binding = new MockBinding();
+      sut.connect(LF.none, scope, binding);
+      if (canHaveProperty) {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      } else {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      }
+
+      if (!(obj instanceof Object)) {
+        assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        sut.assign(LF.none, scope, null, 42);
+        assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+      }
+    });
+
   })
   );
 
@@ -1150,7 +1182,12 @@ describe('AccessScopeExpression', function () {
 
   it('evaluates undefined bindingContext', function () {
     const scope = Scope.create(LF.none, undefined, null);
-    assert.strictEqual(foo.evaluate(LF.none, scope, null), undefined, `foo.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(foo.evaluate(LF.none, scope, null), '', `foo.evaluate(LF.none, scope, null)`);
+  });
+
+  it('evaluates undefined bindingContext STRICT', function () {
+    const scope = Scope.create(LF.none, undefined, null);
+    assert.strictEqual(foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null), undefined, `foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   it('assigns undefined bindingContext', function () {
@@ -1169,7 +1206,12 @@ describe('AccessScopeExpression', function () {
 
   it('evaluates null bindingContext', function () {
     const scope = Scope.create(LF.none, null, null);
-    assert.strictEqual(foo.evaluate(LF.none, scope, null), undefined, `foo.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(foo.evaluate(LF.none, scope, null), '', `foo.evaluate(LF.none, scope, null)`);
+  });
+
+  it('evaluates null bindingContext STRICT', function () {
+    const scope = Scope.create(LF.none, null, null);
+    assert.strictEqual(foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null), undefined, `foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   it('assigns null bindingContext', function () {
@@ -1451,19 +1493,19 @@ describe('BinaryExpression', function () {
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'anull', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'a', `expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'nullb', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'b', `expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'aundefined', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'a', `expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'undefinedb', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'b', `expression.evaluate(LF.none, scope, null)`);
   });
 
   it('adds numbers', function () {
@@ -1481,11 +1523,56 @@ describe('BinaryExpression', function () {
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
     scope = createScopeForTest({});
-    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), true, `isNaN(expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), false, `isNaN(expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
     scope = createScopeForTest({});
-    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), true, `isNaN(expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), false, `isNaN(expression.evaluate(LF.none, scope, null)`);
+  });
+
+  const flags = LF.none | LF.isStrictBindingStrategy;
+  it('concats strings - STRICT', function () {
+    let expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), new PrimitiveLiteralExpression('b'));
+    let scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'ab', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'anull', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'nullb', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'aundefined', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'undefinedb', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+  });
+
+  it('adds numbers - STRICT', function () {
+    let expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+    let scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 3, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $null);
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 1, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression(2));
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 2, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
+    scope = createScopeForTest({});
+    assert.strictEqual(isNaN(expression.evaluate(flags, scope, null) as number), true, `isNaN(expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
+    scope = createScopeForTest({});
+    assert.strictEqual(isNaN(expression.evaluate(flags, scope, null) as number), true, `isNaN(expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   describe('performs \'in\'', function () {

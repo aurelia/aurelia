@@ -5,6 +5,8 @@ import {
   PLATFORM,
   Reporter,
   StrictPrimitive,
+  isNumberOrBigInt,
+  isStringOrDate,
 } from '@aurelia/kernel';
 import {
   BinaryOperator,
@@ -452,7 +454,12 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
-    return (BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext)[this.name] as IBindingContext | IBinding | IOverrideContext;
+    const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
+    let evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+    if (flags & LifecycleFlags.isStrictBindingStrategy) {
+      return evaluatedValue;
+    }
+    return evaluatedValue == null ? '' as unknown as ReturnType<AccessScopeExpression['evaluate']> : evaluatedValue;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {
@@ -491,7 +498,10 @@ export class AccessMemberExpression implements IAccessMemberExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
-    return instance == null ? instance : instance[this.name];
+    if (flags & LifecycleFlags.isStrictBindingStrategy) {
+      return instance == null ? instance : instance[this.name];
+    }
+    return instance ? instance[this.name] : '';
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {
@@ -763,12 +773,31 @@ export class BinaryExpression implements IBinaryExpression {
     }
     return false;
   }
+
   // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
   // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
   // this makes bugs in user code easier to track down for end users
   // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-  private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number {
-    return (this.left.evaluate(f, s, l, p) as number) + (this.right.evaluate(f, s, l, p) as number);
+  private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number | string {
+    const left: any = this.left.evaluate(f, s, l, p);
+    const right: any = this.right.evaluate(f, s, l, p);
+
+    if ((f & LifecycleFlags.isStrictBindingStrategy) > 0) {
+      return left + right;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if (!left || !right) {
+      if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+        return (left || 0) + (right || 0);
+      }
+      if (isStringOrDate(left) || isStringOrDate(right)) {
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+        return (left || '') + (right || '');
+      }
+    }
+    return (left as number) + (right as number);
   }
   private ['-'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number {
     return (this.left.evaluate(f, s, l, p) as number) - (this.right.evaluate(f, s, l, p) as number);
@@ -828,7 +857,7 @@ export class UnaryExpression implements IUnaryExpression {
     return void this.expression.evaluate(f, s, l, p);
   }
   public ['typeof'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): string {
-    return typeof this.expression.evaluate(f, s, l, p);
+    return typeof this.expression.evaluate(f | LifecycleFlags.isStrictBindingStrategy, s, l, p);
   }
   public ['!'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): boolean {
     return !this.expression.evaluate(f, s, l, p);
@@ -1141,7 +1170,7 @@ export class BindingIdentifier implements IBindingIdentifier {
 }
 
 const toStringTag = Object.prototype.toString as {
-  call(obj: unknown): keyof '[object Array]'|'[object Map]'|'[object Set]'|'[object Number]'|'[object Null]'|'[object Undefined]';
+  call(obj: unknown): keyof '[object Array]' | '[object Map]' | '[object Set]' | '[object Number]' | '[object Null]' | '[object Undefined]';
 };
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements

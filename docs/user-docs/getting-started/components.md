@@ -264,7 +264,9 @@ We highly recommend that you leverage conventions where possible. A few benefits
 
 ## The Component Lifecycle
 
-Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times. For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document. Below is a summary of the various lifecycle callbacks that you can hook into in your component.
+Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times. For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document. 
+
+Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs \(`binding/unbinding`, `bound/unbound`, `attaching/detaching`, `attached/detached`\) in order to clean up any resources you have allocated. If you register a listener or subscriber in one callback, remember to remove it in the opposite callback.
 
 | Lifecycle Callback | Description |
 | :--- | :--- |
@@ -329,52 +331,7 @@ There are various ways to tell the framework what you want to inject. The above 
 If you need access to a DOM element from within your view, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](displaying-basic-data.md#referencing-dom-elements).
 {% endhint %}
 
-## Shadow DOM and Slots
+## So Much More...
 
-// TODO
-
-## HTML-Only Components
-
-// TODO
-
-## Odds and Ends
-
-Aurelia's component system is rich with features, designed to enable you to tackle any scenario that your app demands.
-
-### Bindable Options
-
-// TODO
-
-### Containerless Components
-
-// TODO
-
-### The `@children` Decorator
-
-// TODO
-
-### The `as-element` Attribute
-
-In some cases, especially when creating table rows out of Aurelia custom elements, you may need to have a custom element masquerade as a standard HTML element. For example, if you're trying to fill table rows with data, you may need your custom element to appear as a `<tr>` row or `<td>` cell. This is where the `as-element` attribute comes in handy.
-
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
-```markup
-<import from="./hello-row.html">
-
-<table>
-  <tr as-element="hello-row">
-</table>
-```
-{% endcode-tabs-item %}
-
-{% code-tabs-item title="hello-row.html" %}
-```markup
-<td>Hello</td>
-<td>World</td>
-```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
-
-The `as-element` attribute tells Aurelia that we want the content of the table row to be exactly what our `hello-row` template wraps. The way different browsers render tables means this may be necessary sometimes.
+So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our App Basics article [Components Revisited](../app-basics/more-components.md).
 

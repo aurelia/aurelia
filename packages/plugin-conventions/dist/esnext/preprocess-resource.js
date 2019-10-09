@@ -7,6 +7,7 @@ export function preprocessResource(unit, options) {
     const basename = path.basename(unit.path, path.extname(unit.path));
     const expectedResourceName = kebabCase(basename);
     const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
+    let auImport = { names: [], start: 0, end: 0 };
     let runtimeImport = { names: [], start: 0, end: 0 };
     let jitImport = { names: [], start: 0, end: 0 };
     let implicitElement;
@@ -15,6 +16,13 @@ export function preprocessResource(unit, options) {
     const localDeps = [];
     const conventionalDecorators = [];
     sf.statements.forEach(s => {
+        // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
+        const au = captureImport(s, 'aurelia', unit.contents);
+        if (au) {
+            // Assumes only one import statement for @aurelia/runtime
+            auImport = au;
+            return;
+        }
         // Find existing import {customElement} from '@aurelia/runtime';
         const runtime = captureImport(s, '@aurelia/runtime', unit.contents);
         if (runtime) {
@@ -43,10 +51,12 @@ export function preprocessResource(unit, options) {
             conventionalDecorators.push(needDecorator);
         if (implicitStatement)
             implicitElement = implicitStatement;
-        if (runtimeImportName)
+        if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
             ensureTypeIsExported(runtimeImport.names, runtimeImportName);
-        if (jitImportName)
+        }
+        if (jitImportName && !auImport.names.includes(jitImportName)) {
             ensureTypeIsExported(jitImport.names, jitImportName);
+        }
     });
     return modifyResource(unit, {
         expectedResourceName,
@@ -130,7 +140,7 @@ function isExported(node) {
     }
     return false;
 }
-const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 function findDecoratedResourceType(node) {
     if (!node.decorators)
         return;

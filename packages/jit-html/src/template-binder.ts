@@ -42,14 +42,12 @@ import {
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
   'id': true,
-  'part': true,
-  'replace-part': true
+  'replace': true
 }) as Record<string, boolean | undefined>;
 
 const attributesToIgnore = Object.assign(Object.create(null), {
   'as-element': true,
-  'part': true,
-  'replace-part': true
+  'replace': true
 }) as Record<string, boolean | undefined>;
 
 function hasInlineBindings(rawValue: string): boolean {
@@ -132,7 +130,7 @@ function processReplacePart(
     // if it's a template element, no need to do anything special, just assign it to the replacePart
     replacePart.physicalNode = proxyNode as HTMLTemplateElement;
   } else {
-    // otherwise wrap the replace-part in a template
+    // otherwise wrap the replace in a template
     currentTemplate = replacePart.physicalNode = dom.createTemplate() as HTMLTemplateElement;
     currentTemplate.content.appendChild(proxyNode);
   }
@@ -239,8 +237,8 @@ export class TemplateBinder {
     }
 
     // get the part name to override the name of the compiled definition
-    partName = node.getAttribute('part');
-    if (partName === '' || (partName === null && node.hasAttribute('replaceable'))) {
+    partName = node.getAttribute('replaceable');
+    if (partName === '') {
       partName = 'default';
     }
 
@@ -254,12 +252,12 @@ export class TemplateBinder {
       // there is no registered custom element with this name
       manifest = new PlainElementSymbol(this.dom, node);
     } else {
-      // it's a custom element so we set the manifestRoot as well (for storing replace-parts)
+      // it's a custom element so we set the manifestRoot as well (for storing replaces)
       parentManifestRoot = manifestRoot;
       manifestRoot = manifest = new CustomElementSymbol(this.dom, node, elementInfo);
     }
 
-    // lifting operations done by template controllers and replace-parts effectively unlink the nodes, so start at the bottom
+    // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
     this.bindChildNodes(
       /* node               */ node,
       /* surrogate          */ surrogate,
@@ -269,7 +267,7 @@ export class TemplateBinder {
       /* partName           */ partName,
     );
 
-    // the parentManifest will receive either the direct child nodes, or the template controllers / replace-parts
+    // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
     // wrapping them
     this.bindAttributes(
       /* node               */ node,
@@ -327,7 +325,7 @@ export class TemplateBinder {
     partName: string | null,
   ): void {
     // This is the top-level symbol for the current depth.
-    // If there are no template controllers or replace-parts, it is always the manifest itself.
+    // If there are no template controllers or replaces, it is always the manifest itself.
     // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
     let manifestProxy: ParentNodeSymbol = manifest;
 
@@ -414,7 +412,7 @@ export class TemplateBinder {
       parentManifest.childNodes.push(manifestProxy);
     } else {
 
-      // if the current manifest is also the manifestRoot, it means the replace-part sits on a custom
+      // if the current manifest is also the manifestRoot, it means the replace sits on a custom
       // element, so add the part to the parent wrapping custom element instead
       const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
 
@@ -424,7 +422,7 @@ export class TemplateBinder {
         return;
       }
 
-      // there is a replace-part attribute on this node, so add it to the parts collection of the manifestRoot
+      // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
       // instead of to the childNodes
       replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
@@ -685,7 +683,7 @@ export class TemplateBinder {
     manifestRoot: CustomElementSymbol | null,
     parentManifestRoot: CustomElementSymbol | null,
   ): ReplacePartSymbol | null {
-    const name = node.getAttribute('replace-part');
+    const name = node.getAttribute('replace');
     if (name === null) {
       let root: CustomElementSymbol | null = null;
       if (

@@ -776,23 +776,29 @@ export class BinaryExpression implements IBinaryExpression {
   // this makes bugs in user code easier to track down for end users
   // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
   private ['+'](f: LifecycleFlags, s: IScope, l: IServiceLocator, p?: string): number | string {
-    const left = this.left.evaluate(f, s, l, p) as unknown;
-    const right = this.right.evaluate(f, s, l, p) as unknown;
-    if (f & LifecycleFlags.isStrictBindingStrategy) {
-      return (left as number) + (right as number);
+    const left: any = this.left.evaluate(f, s, l, p);
+    const right: any = this.right.evaluate(f, s, l, p);
+
+    if ((f & LifecycleFlags.isStrictBindingStrategy) > 0) {
+      return left + right;
     }
 
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!left || !right) {
+      const bigint = 'bigint';
+      const number = 'number';
       const leftType = typeof left;
       const rightType = typeof right;
-      if (leftType === 'bigint' || leftType === 'number' ||
-        rightType === 'bigint' || rightType === 'number') {
-        return (left as number) || 0 + (right as number) || 0;
+      if (leftType === bigint || leftType === number ||
+        rightType === bigint || rightType === number) {
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+        return (left || 0) + (right || 0);
       }
       if (leftType === 'string' || rightType === 'string' ||
         left instanceof Date || right instanceof Date
       ) {
-        return (left as number) || '' + (right as number) || '';
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+        return (left || '') + (right || '');
       }
     }
     return (left as number) + (right as number);

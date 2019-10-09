@@ -62,6 +62,7 @@ export class Compose<T extends INode = Node> {
     surrogates: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[],
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     containerless: true,
+    isStrictBinding: true,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     shadowOptions: null!,
     hasSlots: false,

@@ -4,7 +4,6 @@ import {
   IContainer,
   IRegistry,
   PLATFORM,
-  Profiler,
   Registration
 } from '@aurelia/kernel';
 import { IActivator } from './activator';

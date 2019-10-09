@@ -1,13 +1,8 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { About } from './components/about';
-import { Authors } from './components/authors/authors';
-import { Books } from './components/books/books';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';
-
-import { arrayRemove } from '../../../../../../router/src/utils';
 
 @inject(IRouter, AuthorsRepository, State)
 @customElement({

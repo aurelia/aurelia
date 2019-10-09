@@ -1,5 +1,5 @@
 import * as yargs from 'yargs';
-import {buildDriver, setUseShadowRoot, testTextContains, testTextNotContained, testClassContains, testElementLocatedByXpath, testElementNotLocatedByXPath, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath, shadowRoot, findByXPath} from './webdriverAccess';
+import {buildDriver, setUseShadowRoot, testTextContains, testTextNotContained, testElementLocatedById, clickElementById, clickElementByXPath, getTextByXPath, shadowRoot, findByXPath} from './webdriverAccess';
 import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './common';
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import * as R from 'ramda';

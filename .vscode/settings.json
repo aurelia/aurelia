@@ -4,7 +4,10 @@
   "html.format.endWithNewline": true,
   "eslint.validate": [
     "javascript",
-    "typescript",
+    {
+      "autoFix": true,
+      "language": "typescript"
+    }
   ],
   "emmet.triggerExpansionOnTab": true,
   "prettier.printWidth": 260,

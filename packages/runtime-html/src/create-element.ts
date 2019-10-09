@@ -1,8 +1,7 @@
 import {
   Constructable,
   IContainer,
-  IRegistry,
-  Tracer
+  IRegistry
 } from '@aurelia/kernel';
 import {
   buildTemplateDefinition,

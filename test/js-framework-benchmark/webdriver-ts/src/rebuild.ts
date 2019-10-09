@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as _ from 'lodash';
-import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError, ErrorsAndWarning, BenchmarkOptions } from './common';
-const ncu = require('npm-check-updates');
 var exec = require('child_process').execSync;
 
 function main() {

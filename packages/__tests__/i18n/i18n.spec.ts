@@ -220,7 +220,7 @@ describe('I18N', function () {
     it('formats a given number considering it as UNIX timestamp', async function () {
       const { sut } = await setup();
 
-      assert.equal(sut.df(0), '1/1/1970');
+      assert.equal(sut.df(0), new Date(0).toLocaleDateString());
     });
   });
 

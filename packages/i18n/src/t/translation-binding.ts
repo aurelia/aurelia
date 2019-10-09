@@ -1,4 +1,4 @@
-import { IEventAggregator, IServiceLocator, PLATFORM, toArray } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
 import {
   addBinding,
   BindingType,

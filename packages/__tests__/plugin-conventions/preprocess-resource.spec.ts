@@ -278,6 +278,26 @@ export class FooBarCustomAttribute {}
     assert.equal(result.code, expected);
   });
 
+  it('skips existing customAttribute decorator', function () {
+    const code = `import { customAttribute } from 'aurelia';
+@customAttribute('some-thing')
+export class FooBar {}
+`;
+    const expected = `import { customAttribute } from 'aurelia';
+@customAttribute('some-thing')
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects templateController decorator', function () {
     const code = `export class FooBarTemplateController {}\n`;
     const expected = `import { templateController } from '@aurelia/runtime';
@@ -299,6 +319,26 @@ export class FooBarTemplateController {}
     const expected = `import { templateController } from '@aurelia/runtime';
 @templateController('foo-bar')
 export class FooBarTemplateController {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('skips existing templateController decorator', function () {
+    const code = `import { templateController } from '@aurelia/runtime';
+@templateController('some-thing')
+export class FooBar {}
+`;
+    const expected = `import { templateController } from '@aurelia/runtime';
+@templateController('some-thing')
+export class FooBar {}
 `;
     const result = preprocessResource(
       {
@@ -344,6 +384,26 @@ export class FooBarValueConverter {}
     assert.equal(result.code, expected);
   });
 
+  it('skips existing valueConverter decorator', function () {
+    const code = `import { valueConverter } from '@aurelia/runtime';
+@valueConverter('fooBar')
+export class FooBar {}
+`;
+    const expected = `import { valueConverter } from '@aurelia/runtime';
+@valueConverter('fooBar')
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects bindingBehavior decorator', function () {
     const code = `export class FooBarBindingBehavior {}\n`;
     const expected = `import { bindingBehavior } from '@aurelia/runtime';
@@ -365,6 +425,26 @@ export class FooBarBindingBehavior {}
     const expected = `import { bindingBehavior } from '@aurelia/runtime';
 @bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('skips existing bindingBehavior decorator', function () {
+    const code = `import { bindingBehavior } from 'aurelia';
+@bindingBehavior('fooBar')
+export class FooBar {}
+`;
+    const expected = `import { bindingBehavior } from 'aurelia';
+@bindingBehavior('fooBar')
+export class FooBar {}
 `;
     const result = preprocessResource(
       {
@@ -409,13 +489,33 @@ export class FooBarBindingCommand {}
     );
     assert.equal(result.code, expected);
   });
+
+  it('skips existing bindingCommand decorator', function () {
+    const code = `import { bindingCommand } from '@aurelia/jit';
+@bindingCommand('lorem')
+export class FooBarBindingCommand {}
+`;
+    const expected = `import { bindingCommand } from '@aurelia/jit';
+@bindingCommand('lorem')
+export class FooBarBindingCommand {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'FooBar.js'),
+        contents: code,
+        filePair: 'FooBar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
 });
 
 describe('preprocessResource for complex resource', function () {
 
   it('injects various decorators when there is no implicit custom element', function () {
     const code = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
+import Aurelia, { valueConverter } from 'aurelia';
 
 export class LeaveMeAlone {}
 
@@ -444,9 +544,10 @@ export class AbcBindingCommand {
 
 }
 `;
-    const expected = `import { bindingCommand } from '@aurelia/jit';
+    const expected = `import { customAttribute, bindingBehavior } from '@aurelia/runtime';
+import { bindingCommand } from '@aurelia/jit';
 import {Foo} from './foo';
-import { valueConverter, customAttribute, bindingBehavior } from '@aurelia/runtime';
+import Aurelia, { valueConverter } from 'aurelia';
 
 export class LeaveMeAlone {}
 

@@ -2,9 +2,9 @@
 
 ## Application Startup
 
-### New Quick Startup (recommended)
+### New Quick Startup \(recommended\)
 
-```ts
+```typescript
 import Aurelia, { StyleConfiguration, RouterConfiguration } from 'aurelia';
 import { MyRootComponent } from './my-root-component';
 // By default host to element name (<my-root-component> for MyRootComponent),

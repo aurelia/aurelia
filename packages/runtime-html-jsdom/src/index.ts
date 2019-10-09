@@ -11,7 +11,7 @@ class JSDOMInitializer implements IDOMInitializer {
 
   public constructor(container: IContainer) {
     this.container = container;
-    this.jsdom = new JSDOM();
+    this.jsdom = new JSDOM('', { pretendToBeVisual: true });
   }
 
   public static register(container: IContainer): IResolver<IDOMInitializer> {

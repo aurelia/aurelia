@@ -28,19 +28,19 @@ Should you find anything to be incorrect or missing as you read our documentatio
 
 ## Creating Your First Aurelia App
 
-There are various ways that you can setup an Aurelia project, including everything from adding a simple script tag to your HTML page to creating a custom [Webpack](https://github.com/aurelia/aurelia/tree/master/packages/webpack-loader) configuration. We think one of the easiest and most powerful ways to get started is by using [the `makes` tool.](https://github.com/aurelia/new)
+There are various ways that you can setup an Aurelia project, including everything from adding a simple script tag to your HTML page to creating a custom [Webpack](https://github.com/aurelia/aurelia/tree/master/packages/webpack-loader) configuration. We think one of the easiest and most powerful ways to get started is by using the Aurelia CLI.
 
-Before you run `makes`, you'll need a recent version of Node.js installed on your machine. Anything from version `8.9.0` or above should do the trick. If you don't have Node.js at all, you can [get it here.](https://nodejs.org/en/)
+Before you run the CLI, you'll need a recent version of Node.js installed on your machine. Anything from version `8.9.0` or above should do the trick. If you don't have Node.js at all, you can [get it here.](https://nodejs.org/en/)
 
 With Node.js installed, open a command prompt and run the following command:
 
 ```bash
-npx makes aurelia
+npx au2 new
 ```
 
-`makes` will then start the Aurelia project wizard, asking you a few questions to help you get things set up properly. When prompted, give your project a name and then select a default setup, either ESNext or TypeScript, depending on your preference. Finally, say "yes" to install the project dependencies.
+The CLI will then start the Aurelia project wizard, asking you a few questions to help you get things set up properly. When prompted, give your project a name and then select a default setup, either ESNext or TypeScript, depending on your preference. Finally, say "yes" to install the project dependencies.
 
-That's all there is to creating a new project. You now have an Aurelia setup ready for you to run, debug, or deploy. To try it out, `cd` into your project folder and run `npm start`. Your project will then build and a web browser will open, showing you the message "Hello World".
+That's all there is to creating a new project. You now have an Aurelia setup ready for you to run, debug, or deploy. To try it out, `cd` into your project folder and run `npx au2 start`. Your project will then build and a web browser will open, showing you the message "Hello World".
 
 Congratulations! 🎊 You just ran your first Aurelia app. If you're feeling adventurous, have a look through the code in the `src` folder yourself to see how it's put together. Either way, you'll want to head on over to our [Quick Start Guide](getting-started/quick-start-guide.md) next, to begin learning the interesting details of building apps.
 

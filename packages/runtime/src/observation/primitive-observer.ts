@@ -1,4 +1,4 @@
-import { PLATFORM, Primitive, Tracer } from '@aurelia/kernel';
+import { PLATFORM, Primitive } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from '../observation';
 
 const slice = Array.prototype.slice;

@@ -1,8 +1,7 @@
 import * as _ from 'lodash';
 import * as fs from 'fs';
-import {JSONResult, config, FrameworkData, initializeFrameworks} from './common';
-import {BenchmarkType, Benchmark, benchmarks, fileName, BenchmarkInfo} from './benchmarks';
-import * as yargs from 'yargs';
+import {JSONResult, initializeFrameworks} from './common';
+import {benchmarks, fileName, BenchmarkInfo} from './benchmarks';
 
 async function main() {
   let frameworks = await initializeFrameworks();

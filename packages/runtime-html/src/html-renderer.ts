@@ -1,4 +1,4 @@
-import { InterfaceSymbol, IRegistry, Key, Tracer } from '@aurelia/kernel';
+import { InterfaceSymbol, IRegistry, Key } from '@aurelia/kernel';
 import {
   addBinding,
   BindingMode,

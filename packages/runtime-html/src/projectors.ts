@@ -4,8 +4,7 @@ import {
   PLATFORM,
   Registration,
   Reporter,
-  toArray,
-  Tracer
+  toArray
 } from '@aurelia/kernel';
 import {
   CustomElementHost,

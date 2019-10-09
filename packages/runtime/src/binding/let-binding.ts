@@ -2,7 +2,6 @@ import {
   IIndexable,
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
 import { IExpression } from '../ast';
 import {

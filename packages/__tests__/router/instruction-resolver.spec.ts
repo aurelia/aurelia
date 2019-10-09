@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 

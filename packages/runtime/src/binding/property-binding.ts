@@ -1,7 +1,6 @@
 import {
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
 import {
   IForOfStatement,

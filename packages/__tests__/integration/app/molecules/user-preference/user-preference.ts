@@ -1,14 +1,16 @@
 import { computed, customElement, bindable } from '@aurelia/runtime';
 import template from './user-preference.html';
+import { trace } from '@aurelia/testing';
+import { callCollection } from '../../debug';
 
 @customElement({ name: 'user-preference', template })
 export class UserPreference {
   @bindable public user: User;
 }
 
+@trace(callCollection)
 export class User {
 
-  public changes = new Set<string>();
   constructor(
     public firstName: string,
     public lastName: string,
@@ -21,13 +23,11 @@ export class User {
 
   @computed({ static: true })
   public get fullNameStatic() {
-    this.log('static');
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  // default setting that is no decorator === `@computed({ static: false })`
+  // default setting, that is no decorator === `@computed({ static: false })`
   public get fullNameNonStatic() {
-    this.log('nonStatic');
     if (this.age < 1) {
       return 'infant';
     }
@@ -36,7 +36,6 @@ export class User {
 
   @computed({ static: true })
   public get fullNameWrongStatic() {
-    this.log('wrongStatic');
     if (this.age < 1) {
       return `infant`;
     }
@@ -44,7 +43,6 @@ export class User {
   }
 
   public get roleNonVolatile() {
-    this.log('nonVolatile');
     return `${this.role}, ${this.organization}`;
   }
   public set roleNonVolatile(value: string) {
@@ -54,17 +52,9 @@ export class User {
 
   @computed({ volatile: true })
   public get locationVolatile() {
-    this.log('volatile');
     return `${this.city}, ${this.country}`;
   }
   public set locationVolatile(value: string) {
     this.country = value;
-  }
-
-  private log(name: 'default' | 'static' | 'nonStatic' | 'wrongStatic' | 'nonVolatile' | 'volatile') {
-    this.changes.add(name);
-  }
-  private getFullName() {
-    return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 }

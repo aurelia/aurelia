@@ -102,6 +102,7 @@ export {
   CallCollection,
   recordCalls,
   stopRecordingCalls,
+  trace
 } from './tracing';
 export {
   trimFull,

@@ -1,16 +1,18 @@
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, FrequentMutations } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, CallCollection } from '@aurelia/testing';
 import { App as component } from './app';
 import { atoms } from './atoms';
 import { molecules } from './molecules';
+import { callCollection } from './debug';
 
 export class TestExecutionContext {
   constructor(
     public au: Aurelia,
     public host: HTMLElement,
     public ctx: HTMLTestContext,
-    public tearDown: () => Promise<void>
+    public tearDown: () => Promise<void>,
+    public callCollection: CallCollection
   ) { }
 }
 
@@ -33,7 +35,8 @@ export async function startup() {
   async function tearDown() {
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    callCollection.calls.splice(0);
   }
 
-  return new TestExecutionContext(au, host, ctx, tearDown);
+  return new TestExecutionContext(au, host, ctx, tearDown, callCollection);
 }

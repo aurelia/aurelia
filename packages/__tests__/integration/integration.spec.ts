@@ -1,17 +1,12 @@
 import { CustomElement } from '@aurelia/runtime';
-import { assert, fail } from '@aurelia/testing';
+import { assert, fail, Call } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
-describe.only('app', function () {
+describe('app', function () {
 
-  function getViewModel<T>(element: Element) {
-    const { viewModel } = CustomElement.behaviorFor(element) as unknown as { viewModel: T };
-    return viewModel;
-  }
-
-  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    return it(title, async function () {
+  function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+    return async function () {
       const ctx = await startup();
       try {
         await testFunction(ctx);
@@ -20,10 +15,36 @@ describe.only('app', function () {
       } finally {
         await ctx.tearDown();
       }
-    });
+    }
   }
-  $it.skip = function (title: string, _testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    return it.skip(title);
+  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+    return it(title, createTestFunction(testFunction));
+  }
+  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+    return it.skip(title, createTestFunction(testFunction));
+  }
+  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+    return it.only(title, createTestFunction(testFunction));
+  }
+
+  function getViewModel<T>(element: Element) {
+    const { viewModel } = CustomElement.behaviorFor(element) as unknown as { viewModel: T };
+    return viewModel;
+  }
+  function assertCalls(
+    calls: Call[],
+    fromIndex: number,
+    instance: any,
+    expectedCalls: string[],
+    unexpectedCalls?: string[],
+    message?: string) {
+    const recentCalls = new Set(calls.slice(fromIndex).map((c) => Object.is(c.instance, instance) && c.method));
+    for (const expectedCall of expectedCalls) {
+      assert.equal(recentCalls.has(expectedCall), true, `${message||''} expected ${expectedCall}`);
+    }
+    for (const expectedCall of unexpectedCalls) {
+      assert.equal(recentCalls.has(expectedCall), false, `${message||''} not expected ${expectedCall}`);
+    }
   }
 
   $it('has some readonly texts with different binding modes', async function ({ host }) {
@@ -149,80 +170,79 @@ describe.only('app', function () {
     assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
   });
 
-  $it('uses a user preference control that \'computes\' the full name of the user correctly - static', async function ({ host, ctx }) {
-    const { user } = getViewModel<App>(host);
+  $it('uses a user preference control that \'computes\' the full name of the user correctly - static',
+    async function ({ host, ctx, callCollection: { calls } }) {
+      const { user } = getViewModel<App>(host);
 
-    const userPref = host.querySelector('user-preference');
+      const userPref = host.querySelector('user-preference');
 
-    const statc = userPref.querySelector('#static');
-    const nonStatic = userPref.querySelector('#nonStatic');
-    const wrongStatic = userPref.querySelector('#wrongStatic');
+      const statc = userPref.querySelector('#static');
+      const nonStatic = userPref.querySelector('#nonStatic');
+      const wrongStatic = userPref.querySelector('#wrongStatic');
 
-    assert.html.textContent(statc, 'John Doe', 'incorrect text statc');
-    assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic');
-    assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic');
+      assert.html.textContent(statc, 'John Doe', 'incorrect text statc');
+      assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic');
+      assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic');
 
-    const { changes: uc } = user;
-    uc.clear();
-    user.firstName = 'Jane';
-    ctx.lifecycle.processRAFQueue(undefined);
-    assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
-    assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
-    assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic - fname');
-    assert.equal(uc.has('static'), true, 'static change should have triggered - fname');
-    assert.equal(uc.has('nonStatic'), false, 'nonStatic change should not have triggered - fname');
-    assert.equal(uc.has('wrongStatic'), false, 'wrongStatic change should not have triggered - fname');
+      let index = calls.length;
+      user.firstName = 'Jane';
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
+      assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
+      assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic - fname');
+      assert.greaterThan(calls.length, index);
+      assertCalls(calls, index, user, ['get fullNameStatic'], ['get fullNameNonStatic', 'get fullNameWrongStatic']);
 
-    uc.clear();
-    user.age = 10;
-    ctx.lifecycle.processRAFQueue(undefined);
-    assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
-    assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
-    assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - age');
-    assert.equal(uc.has('static'), false, 'static change should not have triggered - age');
-    assert.equal(uc.has('nonStatic'), true, 'nonStatic change should have triggered - age');
-    assert.equal(uc.has('wrongStatic'), true, 'wrongStatic change should have triggered - age');
+      index = calls.length;
+      user.age = 10;
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
+      assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
+      assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - age');
+      assert.greaterThan(calls.length, index);
+      assertCalls(calls, index, user, ['get fullNameNonStatic', 'get fullNameWrongStatic'], ['get fullNameStatic']);
 
-    uc.clear();
-    user.lastName = 'Smith';
-    ctx.lifecycle.processRAFQueue(undefined);
-    assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
-    assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
-    assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - lname');
-    assert.equal(uc.has('static'), true, 'static change should have triggered - lname');
-    assert.equal(uc.has('nonStatic'), true, 'nonStatic change should have triggered - lname');
-    assert.equal(uc.has('wrongStatic'), false, 'wrongStatic change should have triggered - lname');
-  });
+      index = calls.length;
+      user.lastName = 'Smith';
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
+      assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
+      assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - lname');
+      assert.greaterThan(calls.length, index);
+      assertCalls(calls, index, user, ['get fullNameStatic', 'get fullNameNonStatic'], ['get fullNameWrongStatic']);
+    }
+  );
 
-  $it('uses a user preference control that \'computes\' the organization of the user correctly - volatile', async function ({ host, ctx }) {
+  $it('uses a user preference control that \'computes\' the organization of the user correctly - volatile',
+    async function ({ host, ctx, callCollection: { calls } }) {
 
-    const { user } = getViewModel<App>(host);
+      const { user } = getViewModel<App>(host);
 
-    const userPref = host.querySelector('user-preference');
+      const userPref = host.querySelector('user-preference');
 
-    const nonVolatile = userPref.querySelector('#nonVolatile');
-    const volatile = userPref.querySelector('#volatile');
+      const nonVolatile = userPref.querySelector('#nonVolatile');
+      const volatile = userPref.querySelector('#volatile');
 
-    assert.html.textContent(nonVolatile, 'Role1, Org1', 'incorrect text nonVolatile');
-    assert.html.textContent(volatile, 'City1, Country1', 'incorrect text volatile');
+      assert.html.textContent(nonVolatile, 'Role1, Org1', 'incorrect text nonVolatile');
+      assert.html.textContent(volatile, 'City1, Country1', 'incorrect text volatile');
 
-    const { changes: uc } = user;
-    uc.clear();
-    user.roleNonVolatile = 'Role2';
-    user.locationVolatile = 'Country2';
-    ctx.lifecycle.processRAFQueue(undefined);
-    assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
-    assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
-    assert.equal(uc.has('nonVolatile'), true, 'nonVolatile change should have triggered - role');
-    assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
+      let index = calls.length;
+      user.roleNonVolatile = 'Role2';
+      user.locationVolatile = 'Country2';
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
+      assert.greaterThan(calls.length, index);
+      assertCalls(calls, index, user, ['get roleNonVolatile', 'get locationVolatile'], []);
 
-    uc.clear();
-    user.organization = 'Org2'
-    user.city = 'City2';
-    ctx.lifecycle.processRAFQueue(undefined);
-    assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
-    assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
-    assert.equal(uc.has('nonVolatile'), false, 'nonVolatile change should not have triggered - role');
-    assert.equal(uc.has('volatile'), true, 'volatile change should have triggered - country');
-  });
+      index = calls.length;
+      user.organization = 'Org2'
+      user.city = 'City2';
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
+      assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
+      assert.greaterThan(calls.length, index);
+      assertCalls(calls, index, user, ['get locationVolatile'], ['get roleNonVolatile']);
+    }
+  );
 });

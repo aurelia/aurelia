@@ -38,6 +38,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const expectedResourceName = kebabCase(basename);
   const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
 
+  let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let jitImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
@@ -49,6 +50,14 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const conventionalDecorators: [number, string][] = [];
 
   sf.statements.forEach(s => {
+    // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
+    const au = captureImport(s, 'aurelia', unit.contents);
+    if (au) {
+      // Assumes only one import statement for @aurelia/runtime
+      auImport = au;
+      return;
+    }
+
     // Find existing import {customElement} from '@aurelia/runtime';
     const runtime = captureImport(s, '@aurelia/runtime', unit.contents);
     if (runtime) {
@@ -82,8 +91,12 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (localDep) localDeps.push(localDep);
     if (needDecorator) conventionalDecorators.push(needDecorator);
     if (implicitStatement) implicitElement = implicitStatement;
-    if (runtimeImportName) ensureTypeIsExported(runtimeImport.names, runtimeImportName);
-    if (jitImportName) ensureTypeIsExported(jitImport.names, jitImportName);
+    if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
+      ensureTypeIsExported(runtimeImport.names, runtimeImportName);
+    }
+    if (jitImportName && !auImport.names.includes(jitImportName)) {
+      ensureTypeIsExported(jitImport.names, jitImportName);
+    }
   });
 
   return modifyResource(unit, {
@@ -182,7 +195,7 @@ function isExported(node: ts.Node): boolean {
   return false;
 }
 
-const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
 function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   if (!node.decorators) return;

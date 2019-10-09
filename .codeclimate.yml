@@ -3,25 +3,19 @@ checks:
 # Argument count
 # Methods or functions defined with a high number of arguments
   argument-count:
-    enabled: true
-    config:
-      treshold: 4 # default 4
+    enabled: false
 # Complex logic
 # Boolean logic that may be hard to understand
   complex-logic:
-    enabled: true
-    config:
-      treshold: 4 # default 4
+    enabled: false
 # File length
 # Excessive lines of code within a single file
   file-lines:
-    enabled: true
-    config:
-      treshold: 250 # default 250
+    enabled: false
 # Identical blocks of code
 # Duplicate code which is syntactically identical (but may be formatted differently)
   identical-code:
-    enabled: true
+    enabled: false
 # Method complexity (= cognitive complexity)
 # Functions or methods that may be hard to understand
   method-complexity:
@@ -29,27 +23,19 @@ checks:
 # Method count
 # Classes defined with a high number of functions or methods
   method-count:
-    enabled: true
-    config:
-      treshold: 20 # default 20
+    enabled: false
 # Method length
 # Excessive lines of code within a single function or method
   method-lines:
-    enabled: true
-    config:
-      treshold: 200 # default 25
+    enabled: false
 # Nested control flow
 # Deeply nested control structures like if or case
   nested-control-flow:
-    enabled: true
-    config:
-      treshold: 4 # default 4
+    enabled: false
 # Return statements
 # Functions or methods with a high number of return statements
   return-statements:
-    enabled: true
-    config:
-      treshold: 4 # default 4
+    enabled: false
 # Similar blocks of code
 # Duplicate code which is not identical but shares the same structure (e.g. variable names may differ)
   similar-code:
@@ -71,6 +57,3 @@ exclude_patterns:
 - "**/test/"
 - "**/examples/"
 - "/scripts/"
-# The array-observer is complex because it closely follows the (well-documented) ES spec and uses a quickSort algorithm based on the well-known V8 engine.
-# This logic is thoroughly tested and will likely never need to change, thus shouldn't be considered a maintenance burden.
-- "packages/runtime/src/binding/array-observer.ts"

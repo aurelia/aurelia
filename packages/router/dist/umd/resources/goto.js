@@ -11,7 +11,7 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
-    let AuHrefCustomAttribute = class AuHrefCustomAttribute {
+    let GotoCustomAttribute = class GotoCustomAttribute {
         constructor(element) {
             this.element = element;
             this.hasHref = null;
@@ -35,11 +35,11 @@
     };
     tslib_1.__decorate([
         runtime_1.bindable({ mode: runtime_1.BindingMode.toView })
-    ], AuHrefCustomAttribute.prototype, "value", void 0);
-    AuHrefCustomAttribute = tslib_1.__decorate([
-        runtime_1.customAttribute('au-href'),
+    ], GotoCustomAttribute.prototype, "value", void 0);
+    GotoCustomAttribute = tslib_1.__decorate([
+        runtime_1.customAttribute('goto'),
         tslib_1.__param(0, runtime_1.INode)
-    ], AuHrefCustomAttribute);
-    exports.AuHrefCustomAttribute = AuHrefCustomAttribute;
+    ], GotoCustomAttribute);
+    exports.GotoCustomAttribute = GotoCustomAttribute;
 });
-//# sourceMappingURL=au-href.js.map
+//# sourceMappingURL=goto.js.map

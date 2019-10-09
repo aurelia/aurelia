@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./resources/au-href", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./router"], factory);
+        define(["require", "exports", "./resources/goto", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const au_href_1 = require("./resources/au-href");
-    exports.AuHrefCustomAttribute = au_href_1.AuHrefCustomAttribute;
+    const goto_1 = require("./resources/goto");
+    exports.GotoCustomAttribute = goto_1.GotoCustomAttribute;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const nav_1 = require("./resources/nav");
@@ -28,16 +28,16 @@
     ];
     exports.ViewportCustomElementRegistration = viewport_1.ViewportCustomElement;
     exports.NavCustomElementRegistration = nav_1.NavCustomElement;
-    exports.AuHrefCustomAttributeRegistration = au_href_1.AuHrefCustomAttribute;
+    exports.GotoCustomAttributeRegistration = goto_1.GotoCustomAttribute;
     /**
      * Default router resources:
      * - Custom Elements: `au-viewport`, `au-nav`
-     * - Custom Attributes: `au-href`
+     * - Custom Attributes: `goto`
      */
     exports.DefaultResources = [
         viewport_1.ViewportCustomElement,
         nav_1.NavCustomElement,
-        au_href_1.AuHrefCustomAttribute,
+        goto_1.GotoCustomAttribute,
     ];
     let configurationOptions = {};
     let configurationCall = (router) => {

@@ -65,7 +65,7 @@
     exports.ViewportCustomElementRegistration = configuration_1.ViewportCustomElementRegistration;
     exports.NavCustomElement = configuration_1.NavCustomElement;
     exports.NavCustomElementRegistration = configuration_1.NavCustomElementRegistration;
-    exports.AuHrefCustomAttribute = configuration_1.AuHrefCustomAttribute;
-    exports.AuHrefCustomAttributeRegistration = configuration_1.AuHrefCustomAttributeRegistration;
+    exports.GotoCustomAttribute = configuration_1.GotoCustomAttribute;
+    exports.GotoCustomAttributeRegistration = configuration_1.GotoCustomAttributeRegistration;
 });
 //# sourceMappingURL=index.js.map

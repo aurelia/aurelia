@@ -1,4 +1,4 @@
-export declare class AuHrefCustomAttribute {
+export declare class GotoCustomAttribute {
     private readonly element;
     value: unknown;
     private hasHref;
@@ -7,4 +7,4 @@ export declare class AuHrefCustomAttribute {
     valueChanged(newValue: unknown): void;
     private updateValue;
 }
-//# sourceMappingURL=au-href.d.ts.map
+//# sourceMappingURL=goto.d.ts.map

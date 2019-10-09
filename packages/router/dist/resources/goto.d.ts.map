@@ -1,0 +1,1 @@
+{"version":3,"file":"goto.d.ts","sourceRoot":"","sources":["../../src/resources/goto.ts"],"names":[],"mappings":"AAEA,qBACa,mBAAmB;IAMrB,OAAO,CAAC,QAAQ,CAAC,OAAO;IAJ1B,KAAK,EAAE,OAAO,CAAC;IAEtB,OAAO,CAAC,OAAO,CAAwB;gBAEb,OAAO,EAAE,WAAW;IAGvC,OAAO,IAAI,IAAI;IAIf,YAAY,CAAC,QAAQ,EAAE,OAAO,GAAG,IAAI;IAI5C,OAAO,CAAC,WAAW;CAUpB"}

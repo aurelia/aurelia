@@ -42,13 +42,13 @@ export class LinkHandler {
         if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
             return info;
         }
-        const auHref = target.$au !== void 0 && target.$au['au-href'] !== void 0 ? target.$au['au-href'].viewModel.value : null;
+        const goto = target.$au !== void 0 && target.$au['goto'] !== void 0 ? target.$au['goto'].viewModel.value : null;
         const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-        if ((auHref === null || auHref.length === 0) && (href === null || href.length === 0)) {
+        if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
             return info;
         }
         info.anchor = target;
-        info.instruction = auHref || href;
+        info.instruction = goto || href;
         const leftButtonClicked = event.button === 0;
         info.shouldHandleEvent = leftButtonClicked;
         return info;

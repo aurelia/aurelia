@@ -1,6 +1,6 @@
 import { __decorate, __param } from "tslib";
 import { customAttribute, INode, bindable, BindingMode } from '@aurelia/runtime';
-let AuHrefCustomAttribute = class AuHrefCustomAttribute {
+let GotoCustomAttribute = class GotoCustomAttribute {
     constructor(element) {
         this.element = element;
         this.hasHref = null;
@@ -24,10 +24,10 @@ let AuHrefCustomAttribute = class AuHrefCustomAttribute {
 };
 __decorate([
     bindable({ mode: BindingMode.toView })
-], AuHrefCustomAttribute.prototype, "value", void 0);
-AuHrefCustomAttribute = __decorate([
-    customAttribute('au-href'),
+], GotoCustomAttribute.prototype, "value", void 0);
+GotoCustomAttribute = __decorate([
+    customAttribute('goto'),
     __param(0, INode)
-], AuHrefCustomAttribute);
-export { AuHrefCustomAttribute };
-//# sourceMappingURL=au-href.js.map
+], GotoCustomAttribute);
+export { GotoCustomAttribute };
+//# sourceMappingURL=goto.js.map

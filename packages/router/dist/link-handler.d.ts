@@ -5,8 +5,8 @@ import { Key } from '@aurelia/kernel';
  */
 export interface ILinkHandlerOptions {
     /**
-     * Attribute href should be used for route if present and
-     * attribute au-href is not present
+     * Attribute href should be used for instruction if present and
+     * attribute goto is not present
      */
     useHref?: boolean;
     /**

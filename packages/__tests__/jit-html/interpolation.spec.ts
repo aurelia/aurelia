@@ -7,6 +7,10 @@ import { LifecycleFlags, CustomElement } from '@aurelia/runtime';
 type CaseType = {
   expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;
 };
+
+const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
+const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
+const ThreeDaysDateString = new Date('Sat Feb 03 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 describe('interpolation', function () {
   const cases: CaseType[] = [
     {
@@ -58,41 +62,37 @@ describe('interpolation', function () {
       it: 'Coalesce works properly'
     },
     {
-      expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
-      expectedValueAfterChange: 'Sun Feb 03 2002 00:00:00 GMT-0600 (Central Standard Time)',
+      expected: testDateString,
+      expectedValueAfterChange: ThreeDaysDateString,
       changeFnc: (val: Date) => {
-        val.setDate(3);
-        return val; // Date observation no worky
-      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)'); },
+        return new Date(ThreeDaysDateString);
+      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly'
     },
     {
-      expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
-      expectedStrictMode: 'undefinedSat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
-      expectedValueAfterChange: 'Sun Feb 03 2002 00:00:00 GMT-0600 (Central Standard Time)',
+      expected: testDateString,
+      expectedStrictMode: `undefined${testDateString}`,
+      expectedValueAfterChange: ThreeDaysDateString,
       changeFnc: (val: Date) => {
-        val.setDate(3);
-        return val; // Date observation no worky
-      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)'); },
+        return new Date(ThreeDaysDateString);
+      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{undefined + value}`, it: 'Date works with undefined expression and setDate triggers change properly'
     },
     {
-      expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
-      expectedStrictMode: 'nullSat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
-      expectedValueAfterChange: 'Sun Feb 03 2002 00:00:00 GMT-0600 (Central Standard Time)',
+      expected: testDateString,
+      expectedStrictMode: `null${testDateString}`,
+      expectedValueAfterChange: ThreeDaysDateString,
       changeFnc: (val: Date) => {
-        val.setDate(3);
-        return val; // Date observation no worky
-      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)'); },
+        return new Date(ThreeDaysDateString);
+      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{null + value}`, it: 'Date works with null expression and setDate triggers change properly'
     },
     {
-      expected: 'Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)',
-      expectedValueAfterChange: 'Sat Feb 02 2002 03:00:00 GMT-0600 (Central Standard Time)',
+      expected: testDateString,
+      expectedValueAfterChange: ThreeHoursAheadDateString,
       changeFnc: (val: Date) => {
-        val.setHours(3);
-        return val; // Date observation no worky
-      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT-0600 (Central Standard Time)'); },
+        return new Date(ThreeHoursAheadDateString);
+      }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
       interpolation: `$\{value}`, it: 'Date works and setHours triggers change properly'
     },
     {

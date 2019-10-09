@@ -5,6 +5,8 @@ import {
   PLATFORM,
   Reporter,
   StrictPrimitive,
+  isNumberOrBigInt,
+  isStringOrDate,
 } from '@aurelia/kernel';
 import {
   BinaryOperator,
@@ -771,6 +773,7 @@ export class BinaryExpression implements IBinaryExpression {
     }
     return false;
   }
+
   // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
   // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
   // this makes bugs in user code easier to track down for end users
@@ -785,18 +788,11 @@ export class BinaryExpression implements IBinaryExpression {
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!left || !right) {
-      const bigint = 'bigint';
-      const number = 'number';
-      const leftType = typeof left;
-      const rightType = typeof right;
-      if (leftType === bigint || leftType === number ||
-        rightType === bigint || rightType === number) {
+      if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         return (left || 0) + (right || 0);
       }
-      if (leftType === 'string' || rightType === 'string' ||
-        left instanceof Date || right instanceof Date
-      ) {
+      if (isStringOrDate(left) || isStringOrDate(right)) {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
         return (left || '') + (right || '');
       }

@@ -75,7 +75,7 @@ export function isStringOrDate(value: unknown): value is string | Date {
  */
 const baseCase = (function () {
   const enum CharKind {
-    none = 0,
+    none  = 0,
     digit = 1,
     upper = 2,
     lower = 3,

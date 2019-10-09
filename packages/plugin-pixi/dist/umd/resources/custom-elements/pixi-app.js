@@ -129,7 +129,7 @@
         runtime_1.bindable
     ], PixiApp.prototype, "tick", void 0);
     PixiApp = tslib_1.__decorate([
-        runtime_1.customElement({ name: 'pixi-app', template: '<template><div replaceable part="children"></div></template>' })
+        runtime_1.customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' })
     ], PixiApp);
     exports.PixiApp = PixiApp;
 });

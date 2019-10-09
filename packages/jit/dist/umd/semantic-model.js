@@ -68,7 +68,7 @@
     exports.TemplateControllerSymbol = TemplateControllerSymbol;
     /**
      * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
-     * that has a replace-part attribute on it.
+     * that has a replace attribute on it.
      *
      * This element will be lifted from the DOM just like a template controller.
      */

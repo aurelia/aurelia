@@ -1,5 +1,6 @@
-import { IDisposable, IPerformance, PLATFORM } from '@aurelia/kernel';
+import { IDisposable, PLATFORM, DI } from '@aurelia/kernel';
 
+export const INativeSchedulers = DI.createInterface<INativeSchedulers>('INativeSchedulers').noDefault();
 export interface INativeSchedulers {
   queueMicroTask(cb: () => void): void;
   postMessage(cb: () => void): void;
@@ -29,6 +30,7 @@ const defaultClockSettings: Required<IClockSettings> = {
   now: PLATFORM.now,
 };
 
+export const IClock = DI.createInterface<IClock>('IClock').noDefault();
 export interface IClock extends IDisposable {
   now(force?: boolean): number;
 }
@@ -71,6 +73,15 @@ export type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
 
 export type TaskCallback<T = any> = () => T;
 
+export const IScheduler = DI.createInterface<IScheduler>('IScheduler').noDefault();
+export interface IScheduler {
+  getTaskQueue(priority: TaskQueuePriority): ITaskQueue;
+  yield(priority: TaskQueuePriority): Promise<void>;
+  queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  /* @internal */cancelFlush(taskQueue: ITaskQueue): void;
+  /* @internal */requestFlush(taskQueue: ITaskQueue): void;
+}
+
 export class Scheduler {
   private readonly [TaskQueuePriority.microTask]: TaskQueue[];
   private readonly [TaskQueuePriority.eventLoop]: TaskQueue[];
@@ -81,7 +92,9 @@ export class Scheduler {
   private readonly flush: (priority: TaskQueuePriority) => void;
 
   public constructor(
+    @IClock
     private readonly clock: IClock,
+    @INativeSchedulers
     private readonly native: INativeSchedulers,
   ) {
     // Note: these aren't necessarily supposed to be arrays, it's just a WIP structure for virtual queues
@@ -195,19 +208,11 @@ const createPromise = (function () {
   };
 })();
 
-export const globalScheduler = new Scheduler(globalClock, );
-
-export type TaskQueueOptions = {
-  clock?: IClock;
-  priority?: TaskQueuePriority;
-  scheduler?: Scheduler;
+type TaskQueueOptions = {
+  clock: IClock;
+  priority: TaskQueuePriority;
+  scheduler: IScheduler;
 }
-
-const defaultTaskQueueOptions: Required<TaskQueueOptions> = {
-  clock: globalClock,
-  priority: TaskQueuePriority.render,
-  scheduler: globalScheduler,
-};
 
 export type QueueTaskOptions = {
   /**
@@ -231,6 +236,16 @@ const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   priority: TaskQueuePriority.render,
 };
 
+export interface ITaskQueue {
+  readonly priority: TaskQueuePriority;
+  flush(): void;
+  cancel(): void;
+  yield(): Promise<void>;
+  queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  take(task: ITask): void;
+  remove(task: ITask): void;
+}
+
 export class TaskQueue {
   public readonly priority: TaskQueuePriority;
   public handle: number = -1;
@@ -249,15 +264,14 @@ export class TaskQueue {
 
   private flushRequested: boolean = false;
 
-  private readonly scheduler: Scheduler;
+  private readonly scheduler: IScheduler;
   private readonly clock: IClock;
 
   public get isEmpty(): boolean {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
   }
 
-  public constructor(opts?: TaskQueueOptions) {
-    const { clock, priority, scheduler } = { ...defaultTaskQueueOptions, ...opts };
+  public constructor({ clock, priority, scheduler }: TaskQueueOptions) {
     this.priority = priority;
     this.scheduler = scheduler;
     this.clock = clock;
@@ -532,9 +546,17 @@ export class TaskAbortError<T = any> extends Error {
   }
 }
 
+export interface ITask<T = any> {
+  readonly result: Promise<T>;
+  readonly status: TaskStatus;
+  readonly priority: TaskQueuePriority;
+  run(): void;
+  cancel(): void;
+}
+
 let id: number = 0;
 
-export class Task<T = any> {
+export class Task<T = any> implements ITask {
   public readonly id: number = ++id;
   public next: Task<T> | undefined = void 0;
   public prev: Task<T> | undefined = void 0;

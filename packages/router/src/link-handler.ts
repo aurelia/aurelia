@@ -7,8 +7,8 @@ import { Key } from '@aurelia/kernel';
  */
 export interface ILinkHandlerOptions {
   /**
-   * Attribute href should be used for route if present and
-   * attribute au-href is not present
+   * Attribute href should be used for instruction if present and
+   * attribute goto is not present
    */
   useHref?: boolean;
   /**
@@ -84,14 +84,14 @@ export class LinkHandler {
       return info;
     }
 
-    const auHref: string | null = (target as any).$au !== void 0 && (target as any).$au['au-href'] !== void 0 ? (target as any).$au['au-href'].viewModel.value : null;
+    const goto: string | null = (target as any).$au !== void 0 && (target as any).$au['goto'] !== void 0 ? (target as any).$au['goto'].viewModel.value : null;
     const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-    if ((auHref === null || auHref.length === 0) && (href === null || href.length === 0)) {
+    if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.instruction = auHref || href;
+    info.instruction = goto || href;
 
     const leftButtonClicked: boolean = event.button === 0;
 

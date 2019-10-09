@@ -1,4 +1,4 @@
-import { AnchorEventInfo, LinkHandler, AuHrefCustomAttribute } from '@aurelia/router';
+import { AnchorEventInfo, LinkHandler, GotoCustomAttribute } from '@aurelia/router';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
 import { Writable, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
@@ -21,7 +21,7 @@ describe('LinkHandler', function () {
     doc.body.appendChild(host as any);
 
     const au = new Aurelia(container)
-      .register(AuHrefCustomAttribute as unknown as IRegistry)
+      .register(GotoCustomAttribute as unknown as IRegistry)
       .app({ host, component: App });
 
     await au.start().wait();
@@ -122,21 +122,21 @@ describe('LinkHandler', function () {
     // TODO: figure out why it doesn't work in nodejs and fix it
     it('returns the right instruction', async function () {
       const tests = [
-        { useHref: true, href: true, auHref: true, result: 'au-href' },
-        { useHref: true, href: false, auHref: true, result: 'au-href' },
-        { useHref: true, href: true, auHref: false, result: 'href' },
-        { useHref: true, href: false, auHref: false, result: null },
+        { useHref: true, href: true, goto: true, result: 'goto' },
+        { useHref: true, href: false, goto: true, result: 'goto' },
+        { useHref: true, href: true, goto: false, result: 'href' },
+        { useHref: true, href: false, goto: false, result: null },
 
-        { useHref: false, href: true, auHref: true, result: 'au-href' },
-        { useHref: false, href: false, auHref: true, result: 'au-href' },
-        { useHref: false, href: true, auHref: false, result: null },
-        { useHref: false, href: false, auHref: false, result: null },
+        { useHref: false, href: true, goto: true, result: 'goto' },
+        { useHref: false, href: false, goto: true, result: 'goto' },
+        { useHref: false, href: true, goto: false, result: null },
+        { useHref: false, href: false, goto: false, result: null },
       ];
 
       for (const test of tests) {
         const App = CustomElement.define({
           name: 'app',
-          template: `<a ${test.href ? 'href="href"' : ''} ${test.auHref ? 'au-href="au-href"' : ''}>Link</a>`
+          template: `<a ${test.href ? 'href="href"' : ''} ${test.goto ? 'goto="goto"' : ''}>Link</a>`
         });
 
         const { sut, tearDown, ctx } = await setupApp(App);

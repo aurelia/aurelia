@@ -1,7 +1,7 @@
 import { customAttribute, INode, bindable, BindingMode } from '@aurelia/runtime';
 
-@customAttribute('au-href')
-export class AuHrefCustomAttribute {
+@customAttribute('goto')
+export class GotoCustomAttribute {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 

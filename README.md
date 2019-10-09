@@ -61,11 +61,11 @@ export class App {
 
 This example shows you some of the powerful features of the aurelia binding syntax. To learn further, please [see our documentation](docs/user-docs).
 
-Feeling excited? Check out how to how to use `makes` to get started in the next section.
+Feeling excited? Check out how to how to use the Aurelia CLI to get started in the next section.
 
 ## Getting Started
 
-To get started with a new Aurelia 2 project, with Node.js installed, simply run `npx makes aurelia`. You'll then be guided through a series of choices on how you'd like to setup your project. Once complete, you'll have a new Aurelia 2 project ready to run. For more information on Aurelia's use of `makes`, see [here](https://github.com/aurelia/new). If you aren't interested in taking our preferred approach to generating a project, you can also see [the examples folder in this repo](examples) for pure JIT setups (no conventions) with various loaders and bundlers.
+To get started with a new Aurelia 2 project, with Node.js installed, simply run `npx au2 new`. You'll then be guided through a series of choices on how you'd like to setup your project. Once complete, you'll have a new Aurelia 2 project ready to run. Aurelia uses the `makes` tool for project scaffolding, see [here](https://github.com/aurelia/new) for more information. If you aren't interested in taking our preferred approach to generating a project, you can also see [the examples folder in this repo](examples) for pure JIT setups (no conventions) with various loaders and bundlers.
 
 ## Documentation
 

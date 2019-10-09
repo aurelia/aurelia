@@ -334,11 +334,11 @@ export class FooBarTemplateController {}
   it('skips existing templateController decorator', function () {
     const code = `import { templateController } from '@aurelia/runtime';
 @templateController('some-thing')
-export class FooBar {}
+export class FooBarCustomAttribute {}
 `;
     const expected = `import { templateController } from '@aurelia/runtime';
 @templateController('some-thing')
-export class FooBar {}
+export class FooBarCustomAttribute {}
 `;
     const result = preprocessResource(
       {

@@ -255,9 +255,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
         if (this.task.done) {
-          this.sortViewsByKey(indexMap, flags);
+          this.sortViewsByKey(oldLength, indexMap, flags);
         } else {
-          this.task = new ContinuationTask(this.task, this.sortViewsByKey, this, indexMap, flags);
+          this.task = new ContinuationTask(this.task, this.sortViewsByKey, this, oldLength, indexMap, flags);
         }
       }
     }
@@ -567,7 +567,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.$controller.lifecycle.attached.end(flags);
   }
 
-  private sortViewsByKey(indexMap: IndexMap, flags: LF): void {
+  private sortViewsByKey(oldLength: number, indexMap: IndexMap, flags: LF): void {
     // TODO: integrate with tasks
     const location = this.location;
     const views = this.views;
@@ -588,15 +588,17 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let view: IController;
     for (; i >= 0; --i) {
       view = views[i];
-      // todo: should not have to always update?
-      // update oc
-      setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
       if (indexMap[i] === -2) {
+        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
         view.hold(location);
         view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
         view.attach(flags);
       } else {
+        if (oldLength !== newLen) {
+          setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+        }
         --j;
       }
 

@@ -16,7 +16,7 @@ describe('app', function () {
         await ctx.tearDown();
       }
     };
-    }
+  }
   function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     it(title, createTestFunction(testFunction));
   }
@@ -40,10 +40,10 @@ describe('app', function () {
     message?: string) {
     const recentCalls = new Set(calls.slice(fromIndex).map((c) => Object.is(c.instance, instance) && c.method));
     for (const expectedCall of expectedCalls) {
-      assert.equal(recentCalls.has(expectedCall), true, `${message||''} expected ${expectedCall}`);
+      assert.equal(recentCalls.has(expectedCall), true, `${message || ''} expected ${expectedCall}`);
     }
     for (const expectedCall of unexpectedCalls) {
-      assert.equal(recentCalls.has(expectedCall), false, `${message||''} not expected ${expectedCall}`);
+      assert.equal(recentCalls.has(expectedCall), false, `${message || ''} not expected ${expectedCall}`);
     }
   }
 

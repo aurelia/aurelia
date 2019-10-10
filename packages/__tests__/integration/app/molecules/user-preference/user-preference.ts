@@ -49,7 +49,6 @@ export class User {
     this.role = value;
   }
 
-
   @computed({ volatile: true })
   public get locationVolatile() {
     return `${this.city}, ${this.country}`;

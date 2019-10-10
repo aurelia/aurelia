@@ -19,7 +19,7 @@ export class ElementPropertyAccessor implements IAccessor<unknown> {
   public hasChanges: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     obj: Node,

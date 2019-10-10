@@ -58,9 +58,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   return { html, deps, shadowMode, containerless, bindables, aliases };
 }
 
-// tslint:disable-next-line:no-any
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
-  // tslint:disable-next-line:no-any
   tree.childNodes.forEach((n: any) => {
     cb(n as DefaultTreeElement);
     if (n.childNodes) traverse(n, cb);
@@ -71,7 +69,7 @@ function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
 
 function stripTag(node: DefaultTreeElement, tagNames: string[] | string, cb: (attrs: Record<string, string>, ranges: [number, number][]) => void): boolean {
   if (!Array.isArray(tagNames)) tagNames = [tagNames];
-  if (tagNames.indexOf(node.tagName) !== -1) {
+  if (tagNames.includes(node.tagName)) {
     const attrs: Record<string, string> = {};
     node.attrs.forEach(attr => attrs[attr.name] = attr.value);
     const loc = node.sourceCodeLocation as ElementLocation;

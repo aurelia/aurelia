@@ -4,15 +4,11 @@ import {
   IContainer,
   IDisposable,
   IIndexable,
-  InstanceProvider,
-  IResolver,
   IResourceDescriptions,
   Key,
   Reporter,
-  RuntimeCompilationResources,
   Writable,
 } from '@aurelia/kernel';
-
 import {
   buildTemplateDefinition,
   InstructionTypeName,
@@ -25,7 +21,6 @@ import {
   IDOM,
   INode,
   INodeSequenceFactory,
-  IRenderLocation,
   NodeSequence,
 } from './dom';
 import { LifecycleFlags } from './flags';
@@ -35,7 +30,6 @@ import {
   IRenderContext,
   IViewFactory,
   IViewModel,
-  Priority,
 } from './lifecycle';
 import {
   IAccessor,
@@ -99,7 +93,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 
   public readonly definition: TemplateDefinition;
 
-  constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
+  public constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
     this.dom = dom;
     this.definition = definition;
     this.factory = factory;
@@ -118,6 +112,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     const nodes = (controller as Writable<IController>).nodes = this.factory.createNodeSequence();
     (controller as Writable<IController>).context = this.renderContext;
     (controller as Writable<IController>).scopeParts = this.definition.scopeParts;
+    (controller as Writable<IController>).isStrictBinding = this.definition.isStrictBinding;
     flags |= this.definition.strategy;
     this.renderContext.render(flags, controller, nodes.findTargets(), this.definition, host, parts);
   }
@@ -180,7 +175,7 @@ export interface IRenderingEngine {
     definition: TemplateDefinition,
     parentContext?: IContainer | IRenderContext<T>,
     componentType?: ICustomElementType,
-  ): ITemplate<T>;
+  ): ITemplate<T>|undefined;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
@@ -205,7 +200,7 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly lifecycle: ILifecycle;
   private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
-  constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
+  public constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.container = container;
     this.templateFactory = templateFactory;
     this.viewFactoryLookup = new Map();
@@ -222,7 +217,6 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  // @ts-ignore
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
@@ -329,7 +323,7 @@ export class ChildrenObserver {
   private readonly callback: () => void;
   private children: any[];
 
-  constructor(
+  public constructor(
     controller: IController,
     viewModel: any,
     flags: LifecycleFlags,
@@ -339,7 +333,7 @@ export class ChildrenObserver {
     filter = defaultChildFilter,
     map = defaultChildMap,
     options?: MutationObserverInit
-    ) {
+  ) {
     this.propertyKey = propertyName;
     this.obj = viewModel;
     this.callback = viewModel[cbName] as typeof ChildrenObserver.prototype.callback;

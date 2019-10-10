@@ -1,17 +1,28 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { PLATFORM } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
-import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ILifecycle, LifecycleFlags, customElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
-  async function setup() {
+  function getModifiedRouter(container) {
+    const router = container.get(IRouter);
+    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
+    router.navigation.history = mockBrowserHistoryLocation as any;
+    router.navigation.location = mockBrowserHistoryLocation as any;
+    return router;
+  }
+
+  async function setup(config?, App?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle } = ctx;
 
-    const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    if (App === void 0) {
+      App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    }
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
-    const Bar = CustomElement.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
+    const Bar = CustomElement.define({ name: 'bar', template: `<template>Viewport: bar Parameter id: [\${id}] Parameter name: [\${name}] <au-viewport name="bar"></au-viewport></template>` }, class {
       public static parameters = ['id', 'name'];
       public id = 'no id';
       public name = 'no name';
@@ -20,7 +31,7 @@ describe('Router', function () {
         if (params.name) { this.name = params.name; }
       }
     });
-    const Baz = CustomElement.define({ name: 'baz', template: '<template>Viewport: baz Parameter id: [${id}] <au-viewport name="baz"></au-viewport></template>' }, class {
+    const Baz = CustomElement.define({ name: 'baz', template: `<template>Viewport: baz Parameter id: [\${id}] <au-viewport name="baz"></au-viewport></template>` }, class {
       public static parameters = ['id'];
       public id = 'no id';
       public enter(params) { if (params.id) { this.id = params.id; } }
@@ -69,7 +80,7 @@ describe('Router', function () {
       class { });
     const Plugh = CustomElement.define(
       {
-        name: 'plugh', template: '<template>Parameter: ${param} Entry: ${entry}</template>'
+        name: 'plugh', template: `<template>Parameter: \${param} Entry: \${entry}</template>`
       },
       class {
         public param: number;
@@ -86,23 +97,22 @@ describe('Router', function () {
     ctx.doc.body.appendChild(host as any);
 
     const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
+      .register(
+        DebugConfiguration,
+        !config ? RouterConfiguration : RouterConfiguration.customize(config),
+        App)
       .app({ host: host, component: App });
 
-    container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
+    const router = getModifiedRouter(container);
 
-    const router = container.get(IRouter);
-    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-    router.navigation.history = mockBrowserHistoryLocation as any;
-    router.navigation.location = mockBrowserHistoryLocation as any;
+    container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
     await au.start().wait();
 
     async function tearDown() {
+      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-      router.deactivate();
     }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
@@ -192,7 +202,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
-    await router.replace('bar@left');
+    await router.goto('bar@left', { replace: true });
 
     assert.includes(host.textContent, 'bar', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
@@ -316,6 +326,8 @@ describe('Router', function () {
 
     const { lifecycle, host, router, tearDown } = await setup();
 
+    quxCantLeave = 1;
+
     await $goto('baz@left+qux@right', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
@@ -325,6 +337,28 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+
+    await tearDown();
+  });
+
+  it('cancels if not child canLeave', async function () {
+    this.timeout(5000);
+
+    const { lifecycle, host, router, tearDown } = await setup();
+
+    quxCantLeave = 1;
+
+    await $goto('foo@left/qux@foo+uier@right', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
+
+    await $goto('bar@left+baz@right', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await tearDown();
   });
@@ -344,24 +378,73 @@ describe('Router', function () {
     await tearDown();
   });
 
-  if (PLATFORM.isBrowserLike) {
-    // TODO: figure out why it doesn't work in nodejs and fix it
-    it('handles anchor click', async function () {
-      this.timeout(5000);
+  it('handles anchor click', async function () {
+    this.timeout(5000);
 
-      const { lifecycle, host, router, tearDown } = await setup();
+    const { lifecycle, host, router, tearDown } = await setup({ useHref: true });
 
-      await $goto('foo@left', router, lifecycle);
-      assert.includes(host.textContent, 'foo', `host.textContent`);
+    await $goto('foo@left', router, lifecycle);
+    assert.includes(host.textContent, 'foo', `host.textContent`);
 
-      (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
+    (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
+    await wait(100);
+    await waitForNavigation(router);
+    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
+
+    await tearDown();
+  });
+
+  it('handles anchor click with goto', async function () {
+    this.timeout(5000);
+
+    const tests = [
+      { bind: false, value: 'id-name(1)', result: 1 },
+      { bind: true, value: "'id-name(2)'", result: 2 },
+      { bind: true, value: "{ component: 'id-name', parameters: '3' }", result: 3 },
+      { bind: true, value: "{ component: IdName, parameters: '4' }", result: 4 },
+    ];
+
+    const IdName = CustomElement.define({ name: 'id-name', template: `|id-name| Parameter id: [\${id}] Parameter name: [\${name}]` }, class {
+      public static parameters = ['id', 'name'];
+      public id = 'no id';
+      public name = 'no name';
+      public enter(params) {
+        if (params.id) { this.id = params.id; }
+        if (params.name) { this.name = params.name; }
+      }
+    });
+    @customElement({
+      name: 'app',
+      dependencies: [IdName],
+      template: `
+      ${tests.map(test => `<a goto${test.bind ? '.bind' : ''}="${test.value}">${test.value}</a>`).join('<br>')}
+      <br>
+      <au-viewport></au-viewport>
+      `}) class App {
+      // Wish the following two lines weren't necessary
+      public constructor() { this['IdName'] = IdName; }
+    }
+
+    const { host, router, container, tearDown } = await setup({ useHref: false }, App);
+
+    container.register(IdName);
+
+    for (let i = 0; i < tests.length; i++) {
+      const test = tests[i];
+      console.log('link', test);
+
+      (host.getElementsByTagName('A')[i] as HTMLElement).click();
       await wait(100);
       await waitForNavigation(router);
-      assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
+      assert.includes(host.textContent, '|id-name|', `host.textContent`);
+      assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
 
-      await tearDown();
-    });
-  }
+      await router.back();
+      assert.notIncludes(host.textContent, '|id-name|', `host.textContent`);
+    }
+
+    await tearDown();
+  });
 
   it('understands used-by', async function () {
     this.timeout(5000);
@@ -626,6 +709,7 @@ describe('Router', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
+    await wait(0);
     await waitForNavigation(router);
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -668,7 +752,7 @@ describe('Router', function () {
       await tearDown();
     });
   }
-  it('keeps input when grandparent stateful', async function () {
+  it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 
     const { lifecycle, host, router, tearDown } = await setup();
@@ -700,6 +784,65 @@ describe('Router', function () {
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
+
+    await tearDown();
+  });
+
+  it.skip('keeps children\'s custom element\'s input when navigation history stateful', async function () {
+    this.timeout(5000);
+
+    const { lifecycle, host, router, tearDown, container } = await setup({ statefulHistoryLength: 2 });
+
+    const GrandGrandChild = CustomElement.define({ name: 'grandgrandchild', template: '|grandgrandchild|<input>' }, null);
+    const GrandChild = CustomElement.define({ name: 'grandchild', template: '|grandchild|<input> <grandgrandchild></grandgrandchild>', dependencies: [GrandGrandChild] }, null);
+    const Child = CustomElement.define({ name: 'child', template: '|child|<input> <input type="checkbox" checked.bind="toggle"> <div if.bind="toggle"><input> <au-viewport name="child"></au-viewport></div>', dependencies: [GrandChild] }, class { public toggle = true; });
+    const ChildSibling = CustomElement.define({ name: 'sibling', template: '|sibling|' }, null);
+    const Parent = CustomElement.define({ name: 'parent', template: '<br><br>|parent|<input> <au-viewport name="parent"></au-viewport>', dependencies: [Child, ChildSibling] }, null);
+    container.register(Parent);
+
+    const values = ['parent', 'child', false, 'child-hidden', 'grandchild', 'grandgrandchild'];
+
+    await $goto('parent@left/child@parent/grandchild@child', router, lifecycle);
+
+    assert.includes(host.textContent, '|parent|', `host.textContent`);
+    assert.includes(host.textContent, '|child|', `host.textContent`);
+    assert.includes(host.textContent, '|grandchild|', `host.textContent`);
+    assert.includes(host.textContent, '|grandgrandchild|', `host.textContent`);
+
+    let inputs = host.getElementsByTagName('INPUT') as HTMLCollectionOf<HTMLInputElement>;
+    for (let i = 0; i < inputs.length; i++) {
+      if (typeof values[i] === 'string') {
+        inputs[i].value = values[i] as string;
+      }
+    }
+    for (let i = 0; i < inputs.length; i++) {
+      if (typeof values[i] === 'string') {
+        assert.strictEqual(inputs[i].value, values[i], `host.getElementsByTagName('INPUT')[${i}].value`);
+      }
+    }
+
+    await $goto('parent@left/sibling@parent', router, lifecycle);
+
+    assert.includes(host.textContent, '|parent|', `host.textContent`);
+    assert.includes(host.textContent, '|sibling|', `host.textContent`);
+    assert.notIncludes(host.textContent, '|child|', `host.textContent`);
+    assert.notIncludes(host.textContent, '|grandchild|', `host.textContent`);
+    assert.notIncludes(host.textContent, '|grandgrandchild|', `host.textContent`);
+
+    await router.back();
+
+    assert.includes(host.textContent, '|parent|', `host.textContent`);
+    assert.includes(host.textContent, '|child|', `host.textContent`);
+    assert.includes(host.textContent, '|grandchild|', `host.textContent`);
+    assert.includes(host.textContent, '|grandgrandchild|', `host.textContent`);
+    assert.notIncludes(host.textContent, '|sibling|', `host.textContent`);
+
+    inputs = inputs = host.getElementsByTagName('INPUT') as HTMLCollectionOf<HTMLInputElement>;
+    for (let i = 0; i < inputs.length; i++) {
+      if (typeof values[i] === 'string') {
+        assert.strictEqual(inputs[i].value, values[i], `host.getElementsByTagName('INPUT')[${i}].value`);
+      }
+    }
 
     await tearDown();
   });
@@ -747,8 +890,8 @@ describe('Router', function () {
       const component = new App();
 
       const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
-      .app({ host: host, component: App });
+        .register(DebugConfiguration, RouterConfiguration)
+        .app({ host: host, component: App });
 
       const router = container.get(IRouter);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
@@ -965,7 +1108,7 @@ describe('Router', function () {
         const path = segments.join('/');
         const expectedText = new RegExp(`.*${texts.join('.*')}.*`);
 
-        it.skip(`path: ${path}, expectedText: ${expectedText}`, async function () {
+        it(`path: ${path}, expectedText: ${expectedText}`, async function () {
           const Conflict1 = CustomElement.define({ name: 'conflict', template: 'conflict1<au-viewport></au-viewport>' }, null);
           const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
           const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
@@ -982,16 +1125,16 @@ describe('Router', function () {
       }
     });
   });
-  /////////
+  /*******************/
 });
 
-let quxCantLeave = 2;
+let quxCantLeave = 0;
 let plughReentryBehavior = 'default';
 
 const $goto = async (path: string, router: IRouter, lifecycle: ILifecycle) => {
   await router.goto(path);
   lifecycle.processRAFQueue(LifecycleFlags.none);
-}
+};
 
 const wait = async (time = 500) => {
   await new Promise((resolve) => {

@@ -93,8 +93,8 @@ export interface IDOM<T extends INode = INode> {
 
 const ni = function(...args: unknown[]): unknown {
   throw Reporter.error(1000); // TODO: create error code (not implemented exception)
-  // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
-} as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any; // this function doesn't need typing because it is never directly called
 
 const niDOM: IDOM = {
   addEventListener: ni,
@@ -180,12 +180,12 @@ const emptySequence: INodeSequence = {
   firstChild: null!,
   lastChild: null!,
   findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
-  insertBefore(refNode: INode): void { /*do nothing*/ },
-  appendTo(parent: INode): void { /*do nothing*/ },
-  remove(): void { /*do nothing*/ },
-  addToLinked(): void { /*do nothing*/ },
-  unlink(): void { /*do nothing*/ },
-  link(next: INodeSequence | IRenderLocation | undefined): void { /*do nothing*/ },
+  insertBefore(refNode: INode): void { /* do nothing */ },
+  appendTo(parent: INode): void { /* do nothing */ },
+  remove(): void { /* do nothing */ },
+  addToLinked(): void { /* do nothing */ },
+  unlink(): void { /* do nothing */ },
+  link(next: INodeSequence | IRenderLocation | undefined): void { /* do nothing */ },
 };
 
 export const NodeSequence = {

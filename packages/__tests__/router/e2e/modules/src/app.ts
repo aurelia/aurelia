@@ -21,7 +21,7 @@ export class App {
   private readonly left: any;
   private readonly right: any;
 
-  constructor(private readonly router: Router, private readonly appState: AppState) {
+  public constructor(private readonly router: Router, private readonly appState: AppState) {
     this.configureRouter();
   }
 

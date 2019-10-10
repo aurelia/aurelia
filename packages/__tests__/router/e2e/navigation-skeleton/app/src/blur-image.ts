@@ -2,7 +2,7 @@ import { inject } from '@aurelia/kernel';
 
 @inject(Element)
 export class BlurImageCustomAttribute {
-  constructor(private element: Element) {
+  public constructor(private element: Element) {
   }
 
   public valueChanged(newImage: HTMLImageElement) {
@@ -14,7 +14,7 @@ export class BlurImageCustomAttribute {
   }
 }
 
-/* tslint:disable */
+/* eslint-disable */
 
 /*
 This Snippet is using a modified Stack Blur js lib for blurring the header images.

@@ -1,5 +1,5 @@
-import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { Transform } from 'stream';
+import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import * as Vinyl from 'vinyl';
 
 export default function(options: IOptionalPreprocessOptions = {}) {
@@ -50,5 +50,5 @@ export function plugin(
 }
 
 function stringModuleWrap(id: string) {
-  return 'text!' + id;
+  return `text!${id}`;
 }

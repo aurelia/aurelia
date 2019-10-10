@@ -61,7 +61,7 @@ export {
 
   DefaultBindingLanguage,
 
-  BasicConfiguration
+  JitConfiguration
 } from './configuration';
 export {
   Access,
@@ -81,24 +81,22 @@ export {
   AttrInfo
 } from './resource-model';
 export {
+  AnySymbol,
   BindingSymbol,
   CustomAttributeSymbol,
   CustomElementSymbol,
-  ICustomAttributeSymbol,
-  IPlainAttributeSymbol,
-  IElementSymbol,
-  INodeSymbol,
-  IParentNodeSymbol,
-  IResourceAttributeSymbol,
-  ISymbol,
-  ISymbolWithBindings,
-  ISymbolWithMarker,
-  ISymbolWithTemplate,
+  ElementSymbol,
   LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
   ReplacePartSymbol,
+  ResourceAttributeSymbol,
   SymbolFlags,
+  SymbolWithBindings,
+  SymbolWithMarker,
+  SymbolWithTemplate,
   TemplateControllerSymbol,
-  TextSymbol
+  TextSymbol,
 } from './semantic-model';

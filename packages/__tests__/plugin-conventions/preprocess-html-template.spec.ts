@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { preprocessHtmlTemplate, preprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
-import * as path from 'path';
 
 describe('preprocessHtmlTemplate', function () {
   it('processes template with no dependencies', function () {
@@ -40,7 +40,6 @@ export function register(container) {
     const result = preprocessHtmlTemplate({ path: path.join('lo', 'FooBar.html'), contents: html }, preprocessOptions());
     assert.equal(result.code, expected);
   });
-
 
   it('processes template with css pair', function () {
     const html = '<template></template>';
@@ -411,7 +410,6 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
-
   it('processes template with containerless, bindables, and aliases (noth)', function () {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template alias="test3, test4" bindable="firstName, lastName"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
@@ -572,6 +570,5 @@ export function register(container) {
     );
     assert.equal(result.code, expected);
   });
-
 
 });

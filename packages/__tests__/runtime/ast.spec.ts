@@ -482,12 +482,12 @@ describe('AST', function () {
         ...SimpleCallScopeList,
         ...SimpleCallMemberList
       ]) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -533,12 +533,12 @@ describe('AST', function () {
 
     describe('assign() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleUnaryList) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -582,12 +582,12 @@ describe('AST', function () {
         ...SimpleLogicalANDList,
         ...SimpleLogicalORList
       ]) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -624,12 +624,12 @@ describe('AST', function () {
 
     describe('assign() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleConditionalList) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
+        it(`${text}, undefined`, function () {
+          assert.strictEqual(expr.assign(null, undefined, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
+        });
+        it(`${text}, null`, function () {
+          assert.strictEqual(expr.assign(null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
+        });
       }
     });
 
@@ -834,8 +834,8 @@ describe('AST', function () {
       }
     });
 
-      // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
-      // tests (which need to be fixed of course)
+    // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
+    // tests (which need to be fixed of course)
     // describe('bind() throws when returned behavior is already present', function () {
     //   const behavior = {};
     //   const locator = { get() {
@@ -928,16 +928,15 @@ describe('AccessKeyedExpression', function () {
     const inputs: [typeof objects, typeof keys] = [objects, keys];
 
     eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
-          const binding = new MockBinding();
-          sut.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.length, 1);
-          assert.strictEqual(binding.calls[0][0], 'observeProperty');
-        });
-      })
-    )
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
+        const binding = new MockBinding();
+        sut.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.length, 1);
+        assert.strictEqual(binding.calls[0][0], 'observeProperty');
+      });
+    }));
   });
 });
 
@@ -1035,35 +1034,67 @@ describe('AccessMemberExpression', function () {
   const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
 
   eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
-      it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
-        const scope = createScopeForTest({ foo: obj });
-        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-        const actual = sut.evaluate(LF.none, scope, null);
-        if (canHaveProperty) {
-          assert.strictEqual(actual, value, `actual`);
+    it(`STRICT - ${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+      const scope = createScopeForTest({ foo: obj });
+      const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+      const actual = sut.evaluate(LF.isStrictBindingStrategy, scope, null);
+      if (canHaveProperty) {
+        assert.strictEqual(actual, value, `actual`);
+      } else {
+        if (obj === null) {
+          assert.strictEqual(actual, null, `actual`);
         } else {
-          if (obj === null) {
-            assert.strictEqual(actual, null, `actual`);
-          } else {
-            assert.strictEqual(actual, undefined, `actual`);
-          }
+          assert.strictEqual(actual, undefined, `actual`);
         }
-        const binding = new MockBinding();
-        sut.connect(LF.none, scope, binding);
-        if (canHaveProperty) {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        } else {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        }
+      }
+      const binding = new MockBinding();
+      sut.connect(LF.none, scope, binding);
+      if (canHaveProperty) {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      } else {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      }
 
-        if (!(obj instanceof Object)) {
-          assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          sut.assign(LF.none, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+      if (!(obj instanceof Object)) {
+        assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        sut.assign(LF.none, scope, null, 42);
+        assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+      }
+    });
+
+    it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+      const scope = createScopeForTest({ foo: obj });
+      const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+      const actual = sut.evaluate(LF.none, scope, null);
+      if (canHaveProperty) {
+        if (obj == null) {
+          assert.strictEqual(actual, '', `actual`);
+        } else {
+          assert.strictEqual(actual, value, `actual`);
         }
-      });
-    })
+      } else {
+        if (obj == null) {
+          assert.strictEqual(actual, '', `actual`);
+        }
+      }
+      const binding = new MockBinding();
+      sut.connect(LF.none, scope, binding);
+      if (canHaveProperty) {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      } else {
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      }
+
+      if (!(obj instanceof Object)) {
+        assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        sut.assign(LF.none, scope, null, 42);
+        assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+        assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+      }
+    });
+
+  })
   );
 
   it('evaluates member on bindingContext', function () {
@@ -1097,11 +1128,11 @@ describe('AccessMemberExpression', function () {
 
   describe('does not attempt to observe property when object is falsey', function () {
     const objects2: [string, any][] = [
-        [`     null`, null],
-        [`undefined`, undefined],
-        [`       ''`, ''],
-        [`    false`, false]
-      ];
+      [`     null`, null],
+      [`undefined`, undefined],
+      [`       ''`, ''],
+      [`    false`, false]
+    ];
     const props2: [string, any][] = [
       [`.0`, 0],
       [`.a`, 'a']
@@ -1109,15 +1140,14 @@ describe('AccessMemberExpression', function () {
     const inputs2: [typeof objects2, typeof props2] = [objects2, props2];
 
     eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          sut.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        });
-      })
-    );
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const binding = new MockBinding();
+        sut.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      });
+    }));
   });
 
   describe('does not observe if object does not / cannot have the property', function () {
@@ -1135,15 +1165,14 @@ describe('AccessMemberExpression', function () {
     const inputs3: [typeof objects3, typeof props3] = [objects3, props3];
 
     eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          expression2.connect(LF.none, scope, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-        });
-      })
-    );
+      it(`${t1}${t2}`, function () {
+        const scope = createScopeForTest({ foo: obj });
+        const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const binding = new MockBinding();
+        expression2.connect(LF.none, scope, binding);
+        assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
+      });
+    }));
   });
 });
 
@@ -1153,7 +1182,12 @@ describe('AccessScopeExpression', function () {
 
   it('evaluates undefined bindingContext', function () {
     const scope = Scope.create(LF.none, undefined, null);
-    assert.strictEqual(foo.evaluate(LF.none, scope, null), undefined, `foo.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(foo.evaluate(LF.none, scope, null), '', `foo.evaluate(LF.none, scope, null)`);
+  });
+
+  it('evaluates undefined bindingContext STRICT', function () {
+    const scope = Scope.create(LF.none, undefined, null);
+    assert.strictEqual(foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null), undefined, `foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   it('assigns undefined bindingContext', function () {
@@ -1172,7 +1206,12 @@ describe('AccessScopeExpression', function () {
 
   it('evaluates null bindingContext', function () {
     const scope = Scope.create(LF.none, null, null);
-    assert.strictEqual(foo.evaluate(LF.none, scope, null), undefined, `foo.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(foo.evaluate(LF.none, scope, null), '', `foo.evaluate(LF.none, scope, null)`);
+  });
+
+  it('evaluates null bindingContext STRICT', function () {
+    const scope = Scope.create(LF.none, null, null);
+    assert.strictEqual(foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null), undefined, `foo.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   it('assigns null bindingContext', function () {
@@ -1454,19 +1493,19 @@ describe('BinaryExpression', function () {
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'anull', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'a', `expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'nullb', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'b', `expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'aundefined', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'a', `expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
     scope = createScopeForTest({});
-    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'undefinedb', `expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(expression.evaluate(LF.none, scope, null), 'b', `expression.evaluate(LF.none, scope, null)`);
   });
 
   it('adds numbers', function () {
@@ -1484,11 +1523,56 @@ describe('BinaryExpression', function () {
 
     expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
     scope = createScopeForTest({});
-    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), true, `isNaN(expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), false, `isNaN(expression.evaluate(LF.none, scope, null)`);
 
     expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
     scope = createScopeForTest({});
-    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), true, `isNaN(expression.evaluate(LF.none, scope, null)`);
+    assert.strictEqual(isNaN(expression.evaluate(LF.none, scope, null) as number), false, `isNaN(expression.evaluate(LF.none, scope, null)`);
+  });
+
+  const flags = LF.none | LF.isStrictBindingStrategy;
+  it('concats strings - STRICT', function () {
+    let expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), new PrimitiveLiteralExpression('b'));
+    let scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'ab', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'anull', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'nullb', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'aundefined', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 'undefinedb', `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+  });
+
+  it('adds numbers - STRICT', function () {
+    let expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+    let scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 3, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $null);
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 1, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression(2));
+    scope = createScopeForTest({});
+    assert.strictEqual(expression.evaluate(flags, scope, null), 2, `expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
+    scope = createScopeForTest({});
+    assert.strictEqual(isNaN(expression.evaluate(flags, scope, null) as number), true, `isNaN(expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
+
+    expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
+    scope = createScopeForTest({});
+    assert.strictEqual(isNaN(expression.evaluate(flags, scope, null) as number), true, `isNaN(expression.evaluate(LF.none | LF.isStrictBindingStrategy, scope, null)`);
   });
 
   describe('performs \'in\'', function () {
@@ -1750,13 +1834,13 @@ describe('CallScopeExpression', function () {
 
 class Test {
   public value: string;
-  constructor() {
+  public constructor() {
     this.value = 'foo';
   }
 
   public makeString = (cooked: string[], a: any, b: any): string => {
     return cooked[0] + a + cooked[1] + b + cooked[2] + this.value;
-  }
+  };
 }
 
 describe('LiteralTemplate', function () {
@@ -1777,37 +1861,48 @@ describe('LiteralTemplate', function () {
       expected: 'a1c2e',
       ctx: { b: 1, d: 2 }
     },
-    { expr: new TaggedTemplateExpression(
-      [''], [],
-      new AccessScopeExpression('foo', 0)),
-      expected: 'foo',
-      ctx: { foo: () => 'foo' } },
     {
       expr: new TaggedTemplateExpression(
-        ['foo'], ['bar'],
-        new AccessScopeExpression('baz', 0)),
+        [''],
+        [],
+        new AccessScopeExpression('foo', 0)
+      ),
+      expected: 'foo',
+      ctx: { foo: () => 'foo' }
+    },
+    {
+      expr: new TaggedTemplateExpression(
+        ['foo'],
+        ['bar'],
+        new AccessScopeExpression('baz', 0)
+      ),
       expected: 'foobar',
       ctx: { baz: cooked => cooked[0] + cooked.raw[0] }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2'], [],
+        ['1', '2'],
+        [],
         new AccessScopeExpression('makeString', 0),
-        [new PrimitiveLiteralExpression('foo')]),
+        [new PrimitiveLiteralExpression('foo')]
+      ),
       expected: '1foo2',
       ctx: { makeString: (cooked, foo) => cooked[0] + foo + cooked[1] }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2'], [],
+        ['1', '2'],
+        [],
         new AccessScopeExpression('makeString', 0),
-        [new AccessScopeExpression('foo', 0)]),
+        [new AccessScopeExpression('foo', 0)]
+      ),
       expected: '1bar2',
       ctx: { foo: 'bar', makeString: (cooked, foo) => cooked[0] + foo + cooked[1] }
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2', '3'], [],
+        ['1', '2', '3'],
+        [],
         new AccessScopeExpression('makeString', 0),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
@@ -1816,7 +1911,8 @@ describe('LiteralTemplate', function () {
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2', '3'], [],
+        ['1', '2', '3'],
+        [],
         new AccessMemberExpression(new AccessScopeExpression('test', 0), 'makeString'),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
@@ -1825,7 +1921,8 @@ describe('LiteralTemplate', function () {
     },
     {
       expr: new TaggedTemplateExpression(
-        ['1', '2', '3'], [],
+        ['1', '2', '3'],
+        [],
         new AccessKeyedExpression(new AccessScopeExpression('test', 0), new PrimitiveLiteralExpression('makeString')),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
@@ -1900,9 +1997,9 @@ describe('UnaryExpression', function () {
 });
 
 describe('BindingBehaviorExpression', function () {
-  type $1 = [/*title*/string, /*flags*/LF];
-  type $2 = [/*title*/string, /*$kind*/ExpressionKind];
-  type $3 = [/*title*/string, /*scope*/IScope, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]];
+  type $1 = [/* title */string, /* flags */LF];
+  type $2 = [/* title */string, /* $kind */ExpressionKind];
+  type $3 = [/* title */string, /* scope */IScope, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -1978,7 +2075,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const bindVariations: (($1: $1, $2: $2, $3: $3) => /*bind*/() => void)[] = [
+  const bindVariations: (($1: $1, $2: $2, $3: $3) => /* bind */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding['binding-behavior:mock'], undefined, `binding['binding-behavior:mock']`);
 
@@ -2022,7 +2119,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/() => void)[] = [
+  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2044,7 +2141,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const connectVariations: (($1: $1, $2: $2, $3: $3) => /*connect*/() => void)[] = [
+  const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
@@ -2068,7 +2165,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const assignVariations: (($1: $1, $2: $2, $3: $3) => /*assign*/() => void)[] = [
+  const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       const newValue = {};
 
@@ -2094,7 +2191,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/(value: any) => void)[] = [
+  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => (newValue) => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2116,7 +2213,7 @@ describe('BindingBehaviorExpression', function () {
     }
   ];
 
-  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /*unbind*/() => void)[] = [
+  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding['binding-behavior:mock'], mock, `binding['binding-behavior:mock']`);
 
@@ -2153,22 +2250,22 @@ describe('BindingBehaviorExpression', function () {
     = [flagVariations, kindVariations, inputVariations, bindVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], bind, evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
-        bind();
-        evaluate1();
-        connect();
-        const newValue = assign();
-        evaluate2(newValue);
-        unbind();
-      });
-    }
+    it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+      bind();
+      evaluate1();
+      connect();
+      const newValue = assign();
+      evaluate2(newValue);
+      unbind();
+    });
+  }
   );
 });
 
 describe('ValueConverterExpression', function () {
-  type $1 = [/*title*/string, /*flags*/LF];
-  type $2 = [/*title*/string, /*signals*/string[], /*signaler*/MockSignaler];
-  type $3 = [/*title*/string, /*scope*/IScope, /*sut*/ValueConverterExpression, /*mock*/MockValueConverter, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[], /*methods*/string[]];
+  type $1 = [/* title */string, /* flags */LF];
+  type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler];
+  type $3 = [/* title */string, /* scope */IScope, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2297,7 +2394,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/() => void)[] = [
+  const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2343,7 +2440,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const connectVariations: (($1: $1, $2: $2, $3: $3) => /*connect*/() => void)[] = [
+  const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
@@ -2391,7 +2488,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const assignVariations: (($1: $1, $2: $2, $3: $3) => /*assign*/() => void)[] = [
+  const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       const newValue = {};
 
@@ -2440,7 +2537,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /*evaluate*/(value: any) => void)[] = [
+  const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => (newValue) => {
       // act
       const actual = sut.evaluate(flags, scope, binding.locator);
@@ -2485,7 +2582,7 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /*unbind*/() => void)[] = [
+  const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
       // act
       sut.unbind(flags, scope, binding);
@@ -2515,19 +2612,19 @@ describe('ValueConverterExpression', function () {
     = [flagVariations, kindVariations, inputVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
-        evaluate1();
-        connect();
-        const newValue = assign();
-        evaluate2(newValue);
-        unbind();
-      });
-    }
+    it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+      evaluate1();
+      connect();
+      const newValue = assign();
+      evaluate2(newValue);
+      unbind();
+    });
+  }
   );
 });
 
 const e = new PrimitiveLiteralExpression('') as any;
-// tslint:disable:space-within-parens
+/* eslint-disable space-in-parens */
 describe('helper functions', function () {
   it('connects', function () {
     assert.strictEqual(connects(new AccessThisExpression()                ), false, `connects(new AccessThisExpression()                )`);

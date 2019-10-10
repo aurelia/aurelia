@@ -1,4 +1,4 @@
-// // tslint:disable:quotemark member-access no-all-duplicated-branches
+// /* eslint-disable @typescript-eslint/quotes, @typescript-eslint/explicit-member-accessibility, @typescript-eslint/indent, sonarjs/no-all-duplicated-branches, no-template-curly-in-string */
 // import { Aurelia, CustomElement, INode } from "@aurelia/runtime";
 // import { expect } from "chai";
 // import { TestContext } from "@aurelia/testing";

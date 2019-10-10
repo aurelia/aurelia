@@ -1,4 +1,4 @@
-import { IEventAggregator, IServiceLocator, PLATFORM, toArray } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
 import {
   addBinding,
   BindingType,
@@ -52,14 +52,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18nService;
-  private readonly contentAttributes: ReadonlyArray<string> = contentAttributes;
+  private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression!: string;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
-  constructor(
+  public constructor(
     public readonly target: HTMLElement,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator
@@ -97,8 +97,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
     if (this.parametersExpr) {
-      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as i18next.TOptions;
-      this.parametersExpr.connect(flags, scope, this as any, part);
+      const parametersFlags = flags | LifecycleFlags.secondaryExpression;
+      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
+      this.parametersExpr.connect(parametersFlags, scope, this as any, part);
     }
 
     const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
@@ -122,7 +123,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     if (this.parametersExpr && this.parametersExpr.unbind) {
-      this.parametersExpr.unbind(flags, this.scope, this as any);
+      this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this as any);
     }
     this.unobserveTargets(flags);
 
@@ -131,12 +132,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    if (typeof newValue === 'object') {
-      this.translationParameters = newValue;
+    if (flags & LifecycleFlags.secondaryExpression) {
+      // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
+      this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
         ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
-        : newValue;
+        : newValue as string;
     }
     this.updateTranslations(flags);
   }

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { ModifyCodeResult } from 'modify-code';
 import * as path from 'path';
+import { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
 import { preprocessHtmlTemplate } from './preprocess-html-template';
 import { preprocessResource } from './preprocess-resource';
@@ -22,7 +22,7 @@ export function preprocess(
     const filePair = possibleFilePair.find(_fileExists);
     if (filePair) {
       if (allOptions.useProcessedFilePairFilename) {
-        unit.filePair = basename + '.css';
+        unit.filePair = `${basename}.css`;
       } else {
         unit.filePair = path.basename(filePair);
       }
@@ -35,7 +35,7 @@ export function preprocess(
     const filePair = possibleFilePair.find(_fileExists);
     if (filePair) {
       if (allOptions.useProcessedFilePairFilename) {
-        unit.filePair = basename + '.html';
+        unit.filePair = `${basename}.html`;
       } else {
         unit.filePair = path.basename(filePair);
       }
@@ -43,12 +43,12 @@ export function preprocess(
       // Try foo.js and foo-view.html convention.
       // This convention is handled by @view(), not @customElement().
       const possibleViewPair = allOptions.templateExtensions.map(e =>
-        path.join(base, unit.path.slice(0, - ext.length) + '-view' + e)
+        path.join(base, `${unit.path.slice(0, - ext.length)  }-view${e}`)
       );
       const viewPair = possibleViewPair.find(_fileExists);
       if (viewPair) {
         if (allOptions.useProcessedFilePairFilename) {
-          unit.filePair = basename  + '-view' + '.html';
+          unit.filePair = `${basename}-view.html`;
         } else {
           unit.filePair = path.basename(viewPair);
         }
@@ -60,7 +60,6 @@ export function preprocess(
 
 function fileExists(p: string): boolean {
   try {
-    // tslint:disable-next-line:non-literal-fs-path
     const stats = fs.statSync(p);
     return stats.isFile();
   } catch (e) {

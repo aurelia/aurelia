@@ -1,5 +1,5 @@
 export class AttrSyntax {
-  constructor(
+  public constructor(
     public rawName: string,
     public rawValue: string,
     public target: string,

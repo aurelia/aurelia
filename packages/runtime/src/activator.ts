@@ -6,7 +6,6 @@ import {
   Registration,
   Key,
 } from '@aurelia/kernel';
-
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { IController, IViewModel } from './lifecycle';
@@ -30,7 +29,7 @@ export const IActivator = DI.createInterface<IActivator>('IActivator').withDefau
 export class Activator implements IActivator {
   public static readonly inject: readonly Key[] = [IStartTaskManager];
 
-  constructor(
+  public constructor(
     private readonly taskManager: IStartTaskManager,
   ) {}
 

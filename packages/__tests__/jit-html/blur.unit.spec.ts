@@ -18,14 +18,14 @@ describe('[UNIT] blur.unit.spec.ts', function() {
         const accessed: Record<string, number> = {};
         sut.value = value as unknown as boolean;
         sut.contains = (originalFn => {
-          return function() {
+          return function(...args: unknown[]) {
             const proxy = new Proxy(this, {
               get(obj: Blur, propertyName: string): unknown {
                 accessed[propertyName] = (accessed[propertyName] || 0) + 1;
                 return obj[propertyName];
               }
             });
-            return originalFn.apply(proxy, arguments);
+            return originalFn.apply(proxy, args);
           };
         })(sut.contains);
 
@@ -59,14 +59,14 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       let accessed: Record<string, number> = {};
       sut.value = true;
       sut.contains = (originalFn => {
-        return function() {
+        return function(...args: unknown[]) {
           const proxy = new Proxy(this, {
             get(obj: Blur, propertyName: string): unknown {
               accessed[propertyName] = (accessed[propertyName] || 0) + 1;
               return obj[propertyName];
             }
           });
-          return originalFn.apply(proxy, arguments);
+          return originalFn.apply(proxy, args);
         };
       })(sut.contains);
 
@@ -126,7 +126,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     for (let i = 1; 10 > i; ++i) {
-      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, async function() {
+      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, function() {
         const { ctx, target, sut, dispose } = setup();
         const { rootShadowRoot, lastShadowRoot } = createNestingShadowRoot(ctx, i, target);
         assert.notEqual(rootShadowRoot, lastShadowRoot, 'root #ShadowRoot !== leaf #ShadowRoot');
@@ -183,7 +183,6 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     it('does not call onBlur if value is not a function', function() {
-      // tslint:disable-next-line:prefer-const
       let { sut, dispose } = setup();
       const testValues = [true, 'a', 5, Symbol(), new Date(), null, undefined, {}, [], new Proxy({}, {})];
       let onBlurValue: any;
@@ -457,7 +456,6 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       linkedWith: string | Element | (string | Element)[];
       linkingContext: string | Element | null;
       blurHost: string | HTMLElement;
-      // tslint:disable:prefer-method-signature
       title: () => string;
       template: () => string;
       assertFn: (ctx: HTMLTestContext, host: HTMLElement, sut: Blur) => void | Promise<void>;

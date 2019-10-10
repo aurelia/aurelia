@@ -18,7 +18,7 @@ export class NavRoute {
   public visible: boolean = true;
   public active: string = '';
 
-  constructor(
+  public constructor(
     public nav: Nav,
     route: INavRoute
   ) {
@@ -79,8 +79,7 @@ export class NavRoute {
       return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
     const components = this.linkActive as ViewportInstruction[];
-    let activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
-    activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(activeComponents);
+    const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
         return '';

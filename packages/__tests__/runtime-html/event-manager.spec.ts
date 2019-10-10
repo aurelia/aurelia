@@ -1,12 +1,12 @@
 import { DelegationStrategy } from '@aurelia/runtime';
 import {
   DelegateOrCaptureSubscription,
+  EventManager,
   EventSubscriber,
   IManagedEvent,
   ListenerTracker,
   TriggerSubscription
 } from '@aurelia/runtime-html';
-import { EventManager } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 const CAPTURING_PHASE = 1;
@@ -33,7 +33,6 @@ function assertHandlerPath(expectedPhases: number[], actualPhases: ReturnType<ty
   }
 
   if (errors.length > 0) {
-    // tslint:disable-next-line:no-nested-template-literals
     const msg = `ASSERTION ERRORS:\n${errors.map(e => `  - ${e}`).join('\n')}`;
     throw new Error(msg);
   }

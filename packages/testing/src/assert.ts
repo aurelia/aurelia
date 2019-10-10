@@ -26,11 +26,9 @@
 import {
   IIndexable,
 } from '@aurelia/kernel';
-
 import {
   CompositionRoot, CustomElement, CustomAttribute,
 } from '@aurelia/runtime';
-
 import {
   isDeepEqual,
   isDeepStrictEqual,
@@ -55,12 +53,7 @@ import {
   Object_keys,
 } from './util';
 
-// tslint:disable: no-commented-code
-// tslint:disable: ban-types
-// tslint:disable: no-non-null-assertion
-// tslint:disable: no-any
-// tslint:disable: completed-docs
-// tslint:disable: strict-boolean-expressions
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
 type ErrorMatcher = string | Error | RegExp;
 
@@ -100,7 +93,7 @@ function innerOk(fn: Function, argLen: number, value: any, message: string | Err
 class Comparison {
   [key: string]: unknown;
 
-  constructor(
+  public constructor(
     obj: IIndexable,
     keys: string[],
     actual?: IIndexable,
@@ -200,7 +193,7 @@ function expectedException(
   if (expected.prototype !== void 0 && actual instanceof expected) {
     return true;
   }
-  if (Error.isPrototypeOf(expected)) {
+  if (Object.prototype.isPrototypeOf.call(Error, expected)) {
     return false;
   }
   return expected.call({}, actual) === true;

@@ -5,7 +5,6 @@ import {
   PLATFORM,
   Registration
 } from '@aurelia/kernel';
-
 import {
   HooksDefinition,
   IAttributeDefinition
@@ -40,7 +39,6 @@ export class With<T extends INode = INode> {
     name: 'with',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
     strategy: BindingStrategy.getterSetter,
@@ -66,12 +64,12 @@ export class With<T extends INode = INode> {
 
   public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
   private _value: object | undefined;
 
-  constructor(
+  public constructor(
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {

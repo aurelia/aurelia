@@ -7,60 +7,60 @@ let lastMeasure: string;
 const startMeasure = function (name: string) {
   startTime = performance.now();
   lastMeasure = name;
-}
+};
 const stopMeasure = function () {
   window.setTimeout(function () {
     var stop = performance.now();
-    console.log(lastMeasure + " took " + (stop - startTime));
+    console.log(`${lastMeasure} took ${stop - startTime}`);
   }, 0);
-}
+};
 
 @customElement({ name: 'app', template })
 export class App {
-  store: Store;
-  constructor(@ILifecycle lifecycle: ILifecycle) {
+  public store: Store;
+  public constructor(@ILifecycle lifecycle: ILifecycle) {
     this.store = new Store(lifecycle);
   }
 
-  run() {
+  public run() {
     startMeasure("run");
     this.store.run();
     stopMeasure();
   }
-  add() {
+  public add() {
     startMeasure("add");
     this.store.add();
     stopMeasure();
   }
-  remove(item: { id: any; }) {
+  public remove(item: { id: any }) {
     startMeasure("delete");
     this.store.delete(item.id);
     stopMeasure();
   }
-  select(item: { id: any; }) {
+  public select(item: { id: any }) {
     startMeasure("select");
     this.store.select(item.id);
     stopMeasure();
   }
-  update() {
+  public update() {
     startMeasure("update");
     this.store.update();
     stopMeasure();
   }
 
-  runLots() {
+  public runLots() {
     startMeasure("runLots");
     this.store.runLots();
     stopMeasure();
   }
 
-  clear() {
+  public clear() {
     startMeasure("clear");
     this.store.clear();
     stopMeasure();
   }
 
-  swapRows() {
+  public swapRows() {
     startMeasure("swapRows");
     this.store.swapRows();
     stopMeasure();

@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -255,7 +255,7 @@ const App = CustomElementResource.define(
   }
 );
 
-new Aurelia().register(BasicConfiguration, { register }).app(
+new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app'),
     component: App,

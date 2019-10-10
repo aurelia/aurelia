@@ -4,7 +4,7 @@ import { ApiService } from './api-service';
 @inject(ApiService)
 export class TagService {
 
-  constructor(private readonly apiService: ApiService) {
+  public constructor(private readonly apiService: ApiService) {
   }
 
   public async getList() {

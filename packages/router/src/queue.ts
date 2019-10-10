@@ -28,7 +28,7 @@ export class Queue<T> {
   public currentExecutionCostInCurrentTick: number = 0;
   private lifecycle: ILifecycle | null = null;
 
-  constructor(
+  public constructor(
     private readonly callback: (item: QueueItem<T>) => void
   ) { }
 
@@ -68,7 +68,6 @@ export class Queue<T> {
     for (const item of items) {
       const qItem: QueueItem<T> = { ...item };
       qItem.cost = costs.shift();
-      // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise((resolve, reject) => {
         qItem.resolve = () => {
           resolve();

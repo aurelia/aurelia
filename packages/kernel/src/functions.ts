@@ -28,12 +28,43 @@ export function isNumeric(value: unknown): value is number | string {
       let ch = 0;
       for (let i = 0; i < length; ++i) {
         ch = value.charCodeAt(i);
-        if (ch < 0x30 /*0*/ || ch > 0x39/*9*/) {
+        if (ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
           return isNumericLookup[value] = false;
         }
       }
       return isNumericLookup[value] = true;
     }
+    default:
+      return false;
+  }
+}
+
+/**
+ * Determines if the value passed is a number or bigint for parsing purposes
+ *
+ * @param value - Value to evaluate
+ */
+export function isNumberOrBigInt(value: unknown): value is number | bigint {
+  switch (typeof value) {
+    case 'number':
+    case 'bigint':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Determines if the value passed is a number or bigint for parsing purposes
+ *
+ * @param value - Value to evaluate
+ */
+export function isStringOrDate(value: unknown): value is string | Date {
+  switch (typeof value) {
+    case 'string':
+      return true;
+    case 'object':
+      return value instanceof Date;
     default:
       return false;
   }
@@ -50,6 +81,7 @@ const baseCase = (function () {
     lower = 3,
   }
 
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const isDigit = Object.freeze(Object.assign(Object.create(null) as {}, {
     '0': true,
     '1': true,
@@ -170,7 +202,7 @@ export const kebabCase = (function () {
   const cache = Object.create(null) as Record<string, string | undefined>;
 
   function callback(char: string, sep: boolean): string {
-    return sep ? '-' + char.toLowerCase() : char.toLowerCase();
+    return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
   }
 
   return function (input: string): string {
@@ -193,7 +225,7 @@ export function toArray<T = unknown>(input: ArrayLike<T>): T[] {
   const { length } = input;
   const arr = Array(length);
   for (let i = 0; i < length; ++i) {
-      arr[i] = input[i];
+    arr[i] = input[i];
   }
   return arr;
 }
@@ -243,7 +275,7 @@ const emptyArray = PLATFORM.emptyArray;
  *
  * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
  *
- * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+ * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
  */
 export function mergeDistinct<T>(
   arr1: readonly T[] | T[] | null | undefined,

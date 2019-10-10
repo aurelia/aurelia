@@ -21,7 +21,7 @@ class TraceInfo implements ITraceInfo {
   public next: ITraceInfo | null;
   public prev: ITraceInfo | null;
 
-  constructor(objName: string, methodName: string, params: unknown[] | null) {
+  public constructor(objName: string, methodName: string, params: unknown[] | null) {
     this.objName = objName;
     this.methodName = methodName;
     this.depth = TraceInfo.stack.length;
@@ -72,9 +72,10 @@ export const DebugTracer: typeof Tracer = {
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
-   * @param objName Any human-friendly name to identify the traced object with.
-   * @param methodName Any human-friendly name to identify the traced method with.
-   * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
+   *
+   * @param objName - Any human-friendly name to identify the traced object with.
+   * @param methodName - Any human-friendly name to identify the traced method with.
+   * @param args - Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
    */
   enter(objName: string, methodName: string, args: unknown[] | null): void {
     if (this.enabled) {
@@ -94,7 +95,8 @@ export const DebugTracer: typeof Tracer = {
   },
   /**
    * Writes only the trace info leading up to the current method call.
-   * @param writer An object to write the output to.
+   *
+   * @param writer - An object to write the output to.
    */
   writeStack(writer: ITraceWriter): void {
     let i = 0;
@@ -107,7 +109,8 @@ export const DebugTracer: typeof Tracer = {
   },
   /**
    * Writes all trace info captured since the previous flushAll operation.
-   * @param writer An object to write the output to. Can be null to simply reset the tracer state.
+   *
+   * @param writer - An object to write the output to. Can be null to simply reset the tracer state.
    */
   flushAll(writer: ITraceWriter | null): void {
     if (writer != null) {
@@ -142,12 +145,14 @@ const defaultOptions: ILiveLoggingOptions = Object.freeze({
 
 /**
  * Writes out each trace info item as they are traced.
- * @param writer An object to write the output to.
+ *
+ * @param writer - An object to write the output to.
  */
 function enableLiveLogging(this: typeof DebugTracer, writer: ITraceWriter): void;
 /**
  * Writes out each trace info item as they are traced.
- * @param options Optional. Specify which logging categories to output. If omitted, all will be logged.
+ *
+ * @param options - Optional. Specify which logging categories to output. If omitted, all will be logged.
  */
 function enableLiveLogging(this: typeof DebugTracer, options?: ILiveLoggingOptions): void;
 function enableLiveLogging(this: typeof DebugTracer, optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void {
@@ -331,11 +336,11 @@ const BindingArgsProcessor = {
 
 const ObservationArgsProcessor = {
   callSource(info: ITraceInfo): string {
+    const names: string[] = [];
     switch (info.objName) {
       case 'Listener':
-        return ((info.params as ReadonlyArray<{ type: string }>)[0]).type;
+        return ((info.params as readonly { type: string }[])[0]).type;
       case 'CallBinding':
-        const names: string[] = [];
         if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {
             names.push(ctorName(info, i));
@@ -348,7 +353,7 @@ const ObservationArgsProcessor = {
   },
   setValue(info: ITraceInfo): string {
     let valueText: string;
-    const value = (info.params as ReadonlyArray<unknown>)[0];
+    const value = (info.params as readonly unknown[])[0];
     switch (typeof value) {
       case 'undefined':
         valueText = 'undefined';
@@ -393,7 +398,7 @@ const AttachingArgsProcessor = {
     return flagsText(info);
   },
   hold(info: ITraceInfo): string {
-    return `Node{'${((info.params as ReadonlyArray<{ textContent: string }>)[0]).textContent}'}`;
+    return `Node{'${((info.params as readonly { textContent: string }[])[0]).textContent}'}`;
   },
   release(info: ITraceInfo): string {
     return flagsText(info);
@@ -420,12 +425,12 @@ const DIArgsProcessor = {
     return ctorName(info);
   },
   Container(info: ITraceInfo): string {
+    const names: string[] = [];
     switch (info.methodName) {
       case 'get':
       case 'getAll':
         return keyText(info);
       case 'register':
-        const names: string[] = [];
         if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {
             names.push(keyText(info, i));
@@ -546,11 +551,11 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.fromCache) { flagNames.push('fromCache'); }
   if (flags & LifecycleFlags.fromDOMEvent) { flagNames.push('fromDOMEvent'); }
   if (flags & LifecycleFlags.fromLifecycleTask) { flagNames.push('fromLifecycleTask'); }
-  if (flags & LifecycleFlags.parentUnmountQueued) { flagNames.push('parentUnmountQueued'); }
   if (flags & LifecycleFlags.isTraversingParentScope) { flagNames.push('isTraversingParentScope'); }
   if (flags & LifecycleFlags.allowParentScopeTraversal) { flagNames.push('allowParentScopeTraversal'); }
   if (flags & LifecycleFlags.getterSetterStrategy) { flagNames.push('getterSetterStrategy'); }
   if (flags & LifecycleFlags.proxyStrategy) { flagNames.push('proxyStrategy'); }
+  if (flags & LifecycleFlags.secondaryExpression) { flagNames.push('secondaryExpression'); }
 
   if (flagNames.length === 0) {
     return 'none';

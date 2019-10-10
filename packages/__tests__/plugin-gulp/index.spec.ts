@@ -1,17 +1,19 @@
+import { Readable, Writable } from 'stream';
 import { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { plugin } from '@aurelia/plugin-gulp';
 import { assert } from '@aurelia/testing';
-import { Readable, Writable } from 'stream';
 import * as v from 'vinyl';
+
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 
 function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
   if (unit.path.endsWith('.css')) return;
   const { defaultShadowOptions, stringModuleWrap } = options;
+  const shadowOptionsString = defaultShadowOptions ? (`${JSON.stringify(defaultShadowOptions)} `) : '';
+  const stringModuleWrapString = defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path;
   return {
-    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
-          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
+    code: `processed ${shadowOptionsString}${stringModuleWrapString} ${unit.contents}`,
     map: { version: 3 }
   };
 }

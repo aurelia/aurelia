@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
@@ -38,6 +38,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const expectedResourceName = kebabCase(basename);
   const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
 
+  let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let jitImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
@@ -49,6 +50,14 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const conventionalDecorators: [number, string][] = [];
 
   sf.statements.forEach(s => {
+    // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
+    const au = captureImport(s, 'aurelia', unit.contents);
+    if (au) {
+      // Assumes only one import statement for @aurelia/runtime
+      auImport = au;
+      return;
+    }
+
     // Find existing import {customElement} from '@aurelia/runtime';
     const runtime = captureImport(s, '@aurelia/runtime', unit.contents);
     if (runtime) {
@@ -82,8 +91,12 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (localDep) localDeps.push(localDep);
     if (needDecorator) conventionalDecorators.push(needDecorator);
     if (implicitStatement) implicitElement = implicitStatement;
-    if (runtimeImportName) ensureTypeIsExported(runtimeImport.names, runtimeImportName);
-    if (jitImportName) ensureTypeIsExported(jitImport.names, jitImportName);
+    if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
+      ensureTypeIsExported(runtimeImport.names, runtimeImportName);
+    }
+    if (jitImportName && !auImport.names.includes(jitImportName)) {
+      ensureTypeIsExported(jitImport.names, jitImportName);
+    }
   });
 
   return modifyResource(unit, {
@@ -110,7 +123,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
-    const dec = kebabCase(unit.filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement';
+    const dec = kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
 
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
@@ -152,11 +165,11 @@ function captureImport(s: ts.Statement, lib: string, code: string): ICapturedImp
       s.importClause &&
       s.importClause.namedBindings &&
       ts.isNamedImports(s.importClause.namedBindings)) {
-        return {
-          names: s.importClause.namedBindings.elements.map(e => e.name.text),
-          start: ensureTokenStart(s.pos, code),
-          end: s.end
-        };
+    return {
+      names: s.importClause.namedBindings.elements.map(e => e.name.text),
+      start: ensureTokenStart(s.pos, code),
+      end: s.end
+    };
   }
 }
 
@@ -170,7 +183,7 @@ function ensureTypeIsExported(runtimeExports: string[], type: string) {
 // TypeScript parsed statement could contain leading white spaces.
 // This find the exact starting position for latter code injection.
 function ensureTokenStart(start: number, code: string) {
-  while (start < code.length - 1 && code[start].match(/^\s$/)) start++;
+  while (start < code.length - 1 && /^\s$/.exec(code[start])) start++;
   return start;
 }
 
@@ -182,7 +195,7 @@ function isExported(node: ts.Node): boolean {
   return false;
 }
 
-const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
 function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   if (!node.decorators) return;
@@ -224,7 +237,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       if (isImplicitResource && filePair) {
         return {
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: kebabCase(filePair).startsWith(expectedResourceName + '-view') ? 'view' : 'customElement'
+          runtimeImportName: kebabCase(filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement'
         };
       }
     } else {

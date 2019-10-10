@@ -1,9 +1,7 @@
 import {
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
-
 import {
   IForOfStatement,
   IsBindingBehavior,
@@ -61,7 +59,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior | IForOfStatement,
     target: object,
     targetProperty: string,
@@ -137,6 +135,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     // add isBinding flag
     this.$state |= State.isBinding;
+    // Force property binding to always be strict
+    flags |= LifecycleFlags.isStrictBindingStrategy;
 
     // Store flags which we can only receive during $bind and need to pass on
     // to the AST during evaluate/connect/assign

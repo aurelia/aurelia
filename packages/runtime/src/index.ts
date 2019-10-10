@@ -224,7 +224,6 @@ export {
   CustomAttributeConstructor,
   CustomAttributeDecorator,
   CustomAttribute,
-  dynamicOptions,
   ICustomAttributeResource,
   ICustomAttributeType,
   templateController
@@ -340,7 +339,7 @@ export {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  RuntimeBasicConfiguration
+  RuntimeConfiguration
 } from './configuration';
 export {
   AttributeDefinition,

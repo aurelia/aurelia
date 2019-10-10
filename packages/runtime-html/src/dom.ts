@@ -8,7 +8,6 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-
 import {
   CompiledTemplate,
   DOM,
@@ -55,7 +54,7 @@ export class HTMLDOM implements IDOM {
   public readonly window: Window;
   public readonly document: Document;
 
-  constructor(
+  public constructor(
     window: Window,
     document: Document,
     TNode: typeof Node,
@@ -144,8 +143,8 @@ export class HTMLDOM implements IDOM {
     return this.window.fetch(input, init);
   }
 
-  // tslint:disable-next-line:no-any // this is how the DOM is typed
-  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> { // this is how the DOM is typed
     return new this.CustomEvent(eventType, options);
   }
 
@@ -157,8 +156,8 @@ export class HTMLDOM implements IDOM {
     if (typeof MutationObserver === 'undefined') {
       // TODO: find a proper response for this scenario
       return {
-        disconnect(): void { /*empty*/ },
-        observe(): void { /*empty*/ },
+        disconnect(): void { /* empty */ },
+        observe(): void { /* empty */ },
         takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & MutationRecord[]; }
       };
     }
@@ -251,7 +250,7 @@ export class TextNodeSequence implements INodeSequence {
 
   private readonly targets: [Node];
 
-  constructor(dom: HTMLDOM, text: Text) {
+  public constructor(dom: HTMLDOM, text: Text) {
     this.isMounted = false;
     this.isLinked = false;
 
@@ -323,7 +322,7 @@ export class TextNodeSequence implements INodeSequence {
     }
   }
 }
-// tslint:enable:no-any
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // This is the most common form of INodeSequence.
 // Every custom element or template controller whose node sequence is based on an HTML template
@@ -332,6 +331,7 @@ export class TextNodeSequence implements INodeSequence {
 // CompiledTemplates create instances of FragmentNodeSequence.
 /**
  * This is the most common form of INodeSequence.
+ *
  * @internal
  */
 export class FragmentNodeSequence implements INodeSequence {
@@ -350,13 +350,12 @@ export class FragmentNodeSequence implements INodeSequence {
   private readonly fragment: DocumentFragment;
   private readonly targets: ArrayLike<Node>;
 
-  constructor(dom: IDOM, fragment: DocumentFragment) {
+  public constructor(dom: IDOM, fragment: DocumentFragment) {
     this.isMounted = false;
     this.isLinked = false;
 
     this.dom = dom;
     this.fragment = fragment;
-    // tslint:disable-next-line:no-any
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
@@ -530,18 +529,20 @@ export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly node!: Node;
   private readonly Type!: Constructable<INodeSequence>;
 
-  constructor(dom: IDOM, markupOrNode: string | Node) {
+  public constructor(dom: IDOM, markupOrNode: string | Node) {
     this.dom = dom;
     const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
     const childNodes = fragment.childNodes;
+    let target: ChildNode;
+    let text: ChildNode;
     switch (childNodes.length) {
       case 0:
         this.createNodeSequence = () => NodeSequence.empty;
         return;
       case 2:
-        const target = childNodes[0];
+        target = childNodes[0];
         if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-          const text = childNodes[1];
+          text = childNodes[1];
           if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
             this.deepClone = false;
             this.node = text;
@@ -579,7 +580,7 @@ export class AuMarker implements INode {
 
   public textContent: string;
 
-  constructor(next: Node) {
+  public constructor(next: Node) {
     this.nextSibling = next;
     this.textContent = '';
   }
@@ -600,7 +601,7 @@ export class HTMLTemplateFactory implements ITemplateFactory {
 
   private readonly dom: IDOM;
 
-  constructor(dom: IDOM) {
+  public constructor(dom: IDOM) {
     this.dom = dom;
   }
 

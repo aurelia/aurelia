@@ -33,7 +33,7 @@ describe(spec, function () {
     assert.strictEqual(host.textContent, '', `host.textContent`);
   });
 
-  it.skip('signaler', async function () {
+  it.skip('signaler', function () {
 
     const items = [0, 1, 2];
     const App = CustomElement.define(
@@ -72,7 +72,7 @@ describe(spec, function () {
 
   });
 
-  it.skip('signaler + oneTime', async function () {
+  it.skip('signaler + oneTime', function () {
 
     const items = [0, 1, 2];
     const App = CustomElement.define({
@@ -108,7 +108,7 @@ describe(spec, function () {
 
   });
 
-  it.skip('render hook', async function () {
+  it.skip('render hook', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const App = CustomElement.define({
@@ -219,11 +219,11 @@ describe('dependency injection', function () {
 
 // commented out code left here intentionally, serves as a staring point for template controller tests
 
-// describe('test', () => {
-//   it.skip('if', () => {
+// describe('test', function() {
+//   it.skip('$1', function() {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
-//     const container = BasicConfiguration.createContainer();
+//     const container = JitHtmlBrowserConfiguration.createContainer();
 //     const dom = new HTMLDOM(document);
 //     Registration.instance(IDOM, dom).register(container, IDOM);
 //     const host = document.createElement('div');
@@ -260,7 +260,7 @@ describe('dependency injection', function () {
 //     expect(host.textContent).to.equal('bar')
 //   });
 
-//   it.skip('if2', () => {
+//   it.skip('$1', function() {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     // common stuff
@@ -307,9 +307,7 @@ describe('dependency injection', function () {
 //       }
 //     };
 
-//     //@ts-ignore
 //     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
-//     //@ts-ignore
 //     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
 
 //     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
@@ -319,14 +317,10 @@ describe('dependency injection', function () {
 //     (sut as Writable<If>).$scope = null;
 //     (elseSut as Writable<Else>).$scope = null;
 
-//     //@ts-ignore
 //     const ifBehavior = RuntimeBehavior.create(If);
-//     //@ts-ignore
 //     ifBehavior.applyTo(sut, lifecycle);
 
-//     //@ts-ignore
 //     const elseBehavior = RuntimeBehavior.create(Else);
-//     //@ts-ignore
 //     elseBehavior.applyTo(elseSut, lifecycle);
 
 //     let firstBindInitialNodesText: string;

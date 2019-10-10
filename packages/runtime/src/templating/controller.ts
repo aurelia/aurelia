@@ -7,7 +7,6 @@ import {
   PLATFORM,
   Writable,
 } from '@aurelia/kernel';
-
 import {
   PropertyBinding,
 } from '../binding/property-binding';
@@ -84,26 +83,24 @@ interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
 
-type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<
-  C & {
-    render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
-    created(flags: LifecycleFlags): void;
+type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
+  render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
+  created(flags: LifecycleFlags): void;
 
-    binding(flags: LifecycleFlags): MaybePromiseOrTask;
-    bound(flags: LifecycleFlags): void;
+  binding(flags: LifecycleFlags): MaybePromiseOrTask;
+  bound(flags: LifecycleFlags): void;
 
-    unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
-    unbound(flags: LifecycleFlags): void;
+  unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
+  unbound(flags: LifecycleFlags): void;
 
-    attaching(flags: LifecycleFlags): void;
-    attached(flags: LifecycleFlags): void;
+  attaching(flags: LifecycleFlags): void;
+  attached(flags: LifecycleFlags): void;
 
-    detaching(flags: LifecycleFlags): void;
-    detached(flags: LifecycleFlags): void;
+  detaching(flags: LifecycleFlags): void;
+  detached(flags: LifecycleFlags): void;
 
-    caching(flags: LifecycleFlags): void;
-  }
->;
+  caching(flags: LifecycleFlags): void;
+}>;
 
 export class Controller<
   T extends INode = INode,
@@ -148,6 +145,7 @@ export class Controller<
   public readonly vmKind: ViewModelKind;
 
   public scopeParts?: string[];
+  public isStrictBinding?: boolean;
 
   public scope?: IScope;
   public part?: string;
@@ -158,8 +156,7 @@ export class Controller<
   public location?: IRenderLocation<T>;
 
   // todo: refactor
-  // tslint:disable-next-line:cognitive-complexity
-  constructor(
+  public constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,
@@ -213,6 +210,7 @@ export class Controller<
       this.vmKind = ViewModelKind.synthetic;
 
       this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+      this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
 
       this.scope = void 0; // will be populated during bindSynthetic()
       this.projector = void 0; // stays undefined
@@ -243,6 +241,10 @@ export class Controller<
 
       this.host = host;
 
+      let instruction: IHydrateElementInstruction | IHydrateTemplateController;
+      let parts: Record<string, TemplateDefinition>;
+      let renderingEngine: IRenderingEngine;
+      let template: ITemplate<INode>|undefined = void 0;
       switch (Type.kind.name) {
         case 'custom-element':
           if (host == void 0) {
@@ -252,9 +254,8 @@ export class Controller<
 
           this.vmKind = ViewModelKind.customElement;
 
-          const renderingEngine = parentContext.get(IRenderingEngine);
+          renderingEngine = parentContext.get(IRenderingEngine);
 
-          let template: ITemplate<INode> | undefined = void 0;
           if (this.hooks.hasRender) {
             const result = this.bindingContext.render(
               flags,
@@ -269,12 +270,10 @@ export class Controller<
               template = result.getElementTemplate(renderingEngine, Type, parentContext);
             }
           } else {
-            const dom = parentContext.get(IDOM);
-            template = renderingEngine.getElementTemplate(dom, description as Required<ITemplateDefinition>, parentContext, Type as ICustomElementType);
+            template = renderingEngine.getElementTemplate(parentContext.get(IDOM), description as Required<ITemplateDefinition>, parentContext, Type as ICustomElementType);
           }
 
           if (template !== void 0) {
-            let parts: Record<string, TemplateDefinition>;
             if (
               template.definition == null ||
               template.definition.instructions.length === 0 ||
@@ -289,7 +288,7 @@ export class Controller<
                 parts = options.parts;
               }
             } else {
-              const instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
+              instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
               if (options.parts == void 0) {
                 parts = instruction.parts as typeof parts;
               } else {
@@ -361,7 +360,7 @@ export class Controller<
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
       controller = new Controller<T>(
-        flags,
+        flags | LifecycleFlags.isStrictBindingStrategy,
         void 0,
         void 0,
         viewModel,
@@ -403,8 +402,8 @@ export class Controller<
   public release(flags: LifecycleFlags): boolean {
     this.state |= State.canBeCached;
     if ((this.state & State.isAttached) > 0) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      return this.viewCache!.canReturnToCache(this);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return this.viewCache!.canReturnToCache(this); // non-null is implied by the hook
     }
 
     return this.unmountSynthetic(flags);
@@ -444,13 +443,13 @@ export class Controller<
   }
 
   public bound(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.bound(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.bound(flags); // non-null is implied by the hook
   }
 
   public unbound(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.unbound(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.unbound(flags); // non-null is implied by the hook
   }
 
   public attach(flags: LifecycleFlags): void {
@@ -490,13 +489,13 @@ export class Controller<
   }
 
   public attached(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.attached(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.attached(flags); // non-null is implied by the hook
   }
 
   public detached(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.detached(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.detached(flags); // non-null is implied by the hook
   }
 
   public mount(flags: LifecycleFlags): void {
@@ -641,6 +640,9 @@ export class Controller<
     const { bindings } = this;
     if (bindings !== void 0) {
       const { length } = bindings;
+      if (this.isStrictBinding) {
+        flags |= LifecycleFlags.isStrictBindingStrategy;
+      }
       for (let i = 0; i < length; ++i) {
         bindings[i].$bind(flags, scope, this.part);
       }
@@ -927,14 +929,14 @@ export class Controller<
     }
 
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.projector!.project(this.nodes!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.projector!.project(this.nodes!); // non-null is implied by the hook
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.insertBefore(this.location!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.nodes!.insertBefore(this.location!); // non-null is implied by the hook
   }
 
   private unmountCustomElement(flags: LifecycleFlags): void {
@@ -943,8 +945,8 @@ export class Controller<
     }
 
     this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.projector!.take(this.nodes!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.projector!.take(this.nodes!); // non-null is implied by the hook
   }
 
   private unmountSynthetic(flags: LifecycleFlags): boolean {
@@ -953,14 +955,14 @@ export class Controller<
     }
 
     this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.remove();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.nodes!.remove(); // non-null is implied by the hook
     this.nodes!.unlink();
 
     if ((this.state & State.canBeCached) > 0) {
       this.state = (this.state | State.canBeCached) ^ State.canBeCached;
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      if (this.viewCache!.tryReturnToCache(this)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (this.viewCache!.tryReturnToCache(this)) { // non-null is implied by the hook
         this.state |= State.isCached;
         return true;
       }
@@ -971,16 +973,16 @@ export class Controller<
   private cacheCustomElement(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromCache;
     if (this.hooks.hasCaching) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      this.bindingContext!.caching(flags);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.bindingContext!.caching(flags); // non-null is implied by the hook
     }
   }
 
   private cacheCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromCache;
     if (this.hooks.hasCaching) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      this.bindingContext!.caching(flags);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.bindingContext!.caching(flags); // non-null is implied by the hook
     }
 
     const { controllers } = this;

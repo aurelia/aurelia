@@ -1,9 +1,8 @@
-// tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingInstruction, TranslationBindBindingRenderer, TranslationBinding, TranslationBindingCommand, TranslationBindingInstruction, TranslationBindingRenderer, TranslationBindInstructionType, TranslationInstructionType } from '@aurelia/i18n';
 import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
@@ -102,13 +101,14 @@ describe('TranslationBindingCommand', function () {
   it('compiles the binding to a TranslationBindingInstruction', function () {
     const [sut] = setup();
     const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '' };
-
-    const actual = sut.compile({
+    const plainAttributeSymbol: PlainAttributeSymbol = {
       command: new AttrBindingCommand(),
       flags: (void 0)!,
       expression: { syntax } as unknown as AnyBindingExpression,
       syntax
-    } as PlainAttributeSymbol);
+    };
+
+    const actual = sut.compile(plainAttributeSymbol);
 
     assert.instanceOf(actual, TranslationBindingInstruction);
   });
@@ -118,7 +118,7 @@ describe('TranslationBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -135,13 +135,14 @@ describe('TranslationBindingRenderer', function () {
     const renderable = ({} as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       DOM.createElement('span'),
-      { from } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -155,13 +156,14 @@ describe('TranslationBindingRenderer', function () {
     const renderable = ({ bindings: [binding] } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       targetElement,
-      { from } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.equal(binding.expr, from);
   });
@@ -282,7 +284,7 @@ describe('TranslationBindBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -299,13 +301,14 @@ describe('TranslationBindBindingRenderer', function () {
     const renderable = ({} as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       DOM.createElement('span'),
-      { from, to: '.bind' } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -317,13 +320,14 @@ describe('TranslationBindBindingRenderer', function () {
     const renderable = ({} as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       DOM.createElement('span'),
-      { from, to: '.bind' } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -337,13 +341,14 @@ describe('TranslationBindBindingRenderer', function () {
     const renderable = ({ bindings: [binding] } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       targetElement,
-      { from: from, to: '.bind' } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.equal(binding.expr, from);
   });

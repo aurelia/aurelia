@@ -10,7 +10,7 @@
       <span class="date">${article.createdAt | date}</span>
     </div>
     <favorite-button article.bind="article" toggle.bind="onToggleFavorited" class="pull-xs-right">
-      <template replace-part="content">
+      <template replace="content">
         ${article.favoritesCount}
       </template>
     </favorite-button>

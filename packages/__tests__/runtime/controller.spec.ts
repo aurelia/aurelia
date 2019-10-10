@@ -81,34 +81,34 @@ describe.skip('controller', function () {
 
     proto.created = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'created', ...args);
-    }
+    };
     proto.binding = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'binding', ...args);
-    }
+    };
     proto.bound = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'bound', ...args);
-    }
+    };
     proto.attaching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'attaching', ...args);
-    }
+    };
     proto.attached = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'attached', ...args);
-    }
+    };
     proto.detaching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'detaching', ...args);
-    }
+    };
     proto.caching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'caching', ...args);
-    }
+    };
     proto.detached = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'detached', ...args);
-    }
+    };
     proto.unbinding = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'unbinding', ...args);
-    }
+    };
     proto.unbound = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'unbound', ...args);
-    }
+    };
 
     return ctor as any;
   }
@@ -133,17 +133,18 @@ describe.skip('controller', function () {
               attribute: kebabCase(cur),
               callback: `${cur}Changed`,
               mode: BindingMode.oneTime,
-            })
+            });
             return acc;
           },
           {},
         )
-      ) as ReadonlyArray<string> & string[],
+      ) as readonly string[] & string[],
       instructions,
       dependencies: noDependencies,
       surrogates: noSurrogates,
       aliases: noAliases,
       containerless: false,
+      isStrictBinding: true,
       shadowOptions: noShadowOptions,
       hasSlots: false,
       strategy: BindingStrategy.getterSetter,
@@ -180,7 +181,7 @@ describe.skip('controller', function () {
       public readonly id: number;
       public readonly $$calls: CallCollection;
 
-      constructor(
+      public constructor(
         calls: CallCollection,
       ) {
         this.id = nextId('au$component');
@@ -395,7 +396,7 @@ describe.skip('controller', function () {
         [],
         [
           [
-            new TextBindingInstruction(parseExpression('${id&oneTime}', BindingType.Interpolation)),
+            new TextBindingInstruction(parseExpression(`\${id&oneTime}`, BindingType.Interpolation)),
           ],
           [
             new HydrateTemplateController(
@@ -432,7 +433,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView!.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0];
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -790,7 +791,7 @@ describe.skip('controller', function () {
         ],
         [
           [
-            new TextBindingInstruction(parseExpression('${msg}', BindingType.Interpolation)),
+            new TextBindingInstruction(parseExpression(`\${msg}`, BindingType.Interpolation)),
           ],
           [
             new HydrateTemplateController(
@@ -833,7 +834,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView!.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0];
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -1171,6 +1172,7 @@ describe.skip('controller', function () {
 });
 
 /**
+ * ```
  * (incomplete notes)
  * - repeater
  *   - array
@@ -1209,8 +1211,8 @@ describe.skip('controller', function () {
  * - ce -> repeat -> ce
  * - ce -> with -> ce
  * - ce -> compose -> ce
- * - ce -> replace-part -> ce -> replaceable
+ * - ce -> replace -> ce -> replaceable
  * - ce -> if -> ce
  * - custom-element -> repeat -> view
- *
-*/
+ *```
+ */

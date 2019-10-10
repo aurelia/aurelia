@@ -1,10 +1,9 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { HttpClient } from '@aurelia/fetch-client';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { IRegistry } from '@aurelia/kernel';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
-import 'promise-polyfill/lib/polyfill';
+import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
 import { App } from './app';
 import { Auth } from './components/auth/auth';
 import { DateValueConverter } from './resources/value-converters/date';
@@ -27,9 +26,9 @@ const globalResources = [
 
 (global as any).au = new Aurelia()
   .register(
-    BasicConfiguration,
+    JitHtmlBrowserConfiguration,
     DebugConfiguration,
-    RouterConfiguration.customize({ useUrlFragmentHash: false }),
+    RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
     ...globalResources,
   )
   .app({

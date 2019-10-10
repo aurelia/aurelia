@@ -12,14 +12,13 @@ const { enter, leave } = Profiler.createTimer('AttributeParser');
 
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  // @ts-ignore
   public static readonly inject: readonly Key[] = [ISyntaxInterpreter, all(IAttributePattern)];
 
   private readonly interpreter: ISyntaxInterpreter;
   private readonly cache: Record<string, Interpretation>;
   private readonly patterns: Record<string, IAttributePatternHandler>;
 
-  constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]) {
+  public constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]) {
     this.interpreter = interpreter;
     this.cache = {};
     const patterns: AttributeParser['patterns'] = this.patterns = {};

@@ -3,7 +3,6 @@ import {
   IContainer,
   IRegistry
 } from '@aurelia/kernel';
-
 import { Lifecycle } from './lifecycle';
 import { StartTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';
@@ -153,7 +152,7 @@ export const DefaultRenderers = [
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-export const RuntimeBasicConfiguration = {
+export const RuntimeConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */

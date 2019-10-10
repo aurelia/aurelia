@@ -11,7 +11,6 @@ import {
   RuntimeCompilationResources,
   Transformer,
 } from '@aurelia/kernel';
-
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
@@ -36,7 +35,7 @@ export class RenderContext implements IRenderContext {
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation>;
   private readonly renderer: IRenderer;
 
-  constructor(
+  public constructor(
     private readonly dom: IDOM,
     private readonly parentContainer: IContainer,
     private readonly dependencies: readonly Key[],
@@ -73,7 +72,7 @@ export class RenderContext implements IRenderContext {
       container.register(...dependencies);
     }
 
-    //If the element has a view, support Recursive Components by adding self to own view template container.
+    // If the element has a view, support Recursive Components by adding self to own view template container.
     if (componentType) {
       componentType.register(container);
     }

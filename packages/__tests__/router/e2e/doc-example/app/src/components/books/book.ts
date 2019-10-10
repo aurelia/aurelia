@@ -26,7 +26,7 @@ export class Book {
 
   public book: { id: number };
 
-  constructor(private readonly router: IRouter, private readonly booksRepository: BooksRepository) { }
+  public constructor(private readonly router: IRouter, private readonly booksRepository: BooksRepository) { }
 
   public enter(parameters) {
     let id = +(parameters.id ? parameters.id : parameters[0]);

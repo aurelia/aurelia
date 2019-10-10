@@ -6,7 +6,7 @@ let id = 0;
 class Todo {
   public done: boolean = false;
   public id: number = id++;
-  constructor(public description: string, public app: App) {}
+  public constructor(public description: string, public app: App) {}
 }
 
 @inlineView(`
@@ -38,7 +38,7 @@ export class App {
   public description: string = 'Hello World';
   public todos: Todo[] = [];
 
-  constructor(public tq: TaskQueue) {
+  public constructor(public tq: TaskQueue) {
     instrumenter.markLifecycle(`app-constructor`);
   }
 

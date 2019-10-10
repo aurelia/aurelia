@@ -9,7 +9,7 @@ export class BookDetails {
   public static parameters = ['id'];
 
   public book = {};
-  constructor(private readonly booksRepository: BooksRepository) { }
+  public constructor(private readonly booksRepository: BooksRepository) { }
 
   public enter(parameters) {
     if (parameters.id) {

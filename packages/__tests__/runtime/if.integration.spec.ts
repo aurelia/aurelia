@@ -149,197 +149,195 @@ describe(`If/Else`, function () {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
-    it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async function () {
-      const { strategy } = strategySpec;
-      const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
-      const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;
-      const { newValue1, newValue2 } = mutationSpec;
-      const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
+      it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
+        const { strategy } = strategySpec;
+        const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
+        const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;
+        const { newValue1, newValue2 } = mutationSpec;
+        const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
-      // common stuff
-      const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
-      const proxies = (strategy & BindingStrategy.proxies) > 0;
-      const container = AuDOMConfiguration.createContainer();
-      const dom = container.get<AuDOM>(IDOM);
-      const observerLocator = container.get(IObserverLocator);
-      const lifecycle = container.get(ILifecycle);
+        // common stuff
+        const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
+        const proxies = (strategy & BindingStrategy.proxies) > 0;
+        const container = AuDOMConfiguration.createContainer();
+        const dom = container.get<AuDOM>(IDOM);
+        const observerLocator = container.get(IObserverLocator);
+        const lifecycle = container.get(ILifecycle);
 
-      const location = AuNode.createRenderLocation();
-      const location2 = AuNode.createRenderLocation();
-      const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
+        const location = AuNode.createRenderLocation();
+        const location2 = AuNode.createRenderLocation();
+        const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
 
-      const ifTemplate: ITemplate<AuNode> = {
-        renderContext: null as any,
-        dom: null as any,
-        definition: null as any,
-        render(controller: IController<AuNode>) {
-          const text = AuNode.createText();
-          const wrapper = AuNode.createTemplate().appendChild(text);
+        const ifTemplate: ITemplate<AuNode> = {
+          renderContext: null as any,
+          dom: null as any,
+          definition: null as any,
+          render(controller: IController<AuNode>) {
+            const text = AuNode.createText();
+            const wrapper = AuNode.createTemplate().appendChild(text);
 
-          const nodes = new AuNodeSequence(dom, wrapper);
-          const binding = new PropertyBinding(new AccessScopeExpression(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
-          binding.persistentFlags |= baseFlags;
+            const nodes = new AuNodeSequence(dom, wrapper);
+            const binding = new PropertyBinding(new AccessScopeExpression(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
+            binding.persistentFlags |= baseFlags;
 
-          (controller as Writable<typeof controller>).nodes = nodes;
-          addBinding(controller, binding);
+            (controller as Writable<typeof controller>).nodes = nodes;
+            addBinding(controller, binding);
+          }
+        };
+
+        const elseTemplate: ITemplate<AuNode> = {
+          renderContext: null as any,
+          dom: null as any,
+          definition: null as any,
+          render(controller: IController<AuNode>) {
+            const text = AuNode.createText();
+            const wrapper = AuNode.createTemplate().appendChild(text);
+
+            const nodes = new AuNodeSequence(dom, wrapper);
+            const binding = new PropertyBinding(new AccessScopeExpression(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
+            binding.persistentFlags |= baseFlags;
+
+            (controller as Writable<typeof controller>).nodes = nodes;
+            addBinding(controller, binding);
+          }
+        };
+
+        const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
+        const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
+        let sut: If<AuNode>;
+        let elseSut: Else<AuNode>;
+        if (proxies) {
+          sut = ProxyObserver.getOrCreate(new If<AuNode>(ifFactory, location)).proxy;
+          elseSut = ProxyObserver.getOrCreate(new Else<AuNode>(elseFactory)).proxy;
+        } else {
+          sut = new If<AuNode>(ifFactory, location);
+          elseSut = new Else<AuNode>(elseFactory);
         }
-      };
+        elseSut.link(sut);
+        sut.$controller = Controller.forCustomAttribute(sut, container);
 
-      const elseTemplate: ITemplate<AuNode> = {
-        renderContext: null as any,
-        dom: null as any,
-        definition: null as any,
-        render(controller: IController<AuNode>) {
-          const text = AuNode.createText();
-          const wrapper = AuNode.createTemplate().appendChild(text);
+        let firstBindInitialNodesText: string;
+        let firstBindFinalNodesText: string;
+        let secondBindInitialNodesText: string;
+        let secondBindFinalNodesText: string;
+        let firstAttachInitialHostText: string;
+        let firstAttachFinalHostText: string;
+        let secondAttachInitialHostText: string;
+        let secondAttachFinalHostText: string;
 
-          const nodes = new AuNodeSequence(dom, wrapper);
-          const binding = new PropertyBinding(new AccessScopeExpression(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
-          binding.persistentFlags |= baseFlags;
-
-          (controller as Writable<typeof controller>).nodes = nodes;
-          addBinding(controller, binding);
+        firstBindInitialNodesText = value1 ? ifText : elseText;
+        if (bindTwice) {
+          firstAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
+          firstBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
+        } else {
+          firstBindFinalNodesText = firstBindInitialNodesText;
+          firstAttachInitialHostText = value1 ? ifText : elseText;
         }
-      };
+        firstAttachFinalHostText = newValue1 ? ifText : elseText;
 
-      const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
-      const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
-      let sut: If<AuNode>;
-      let elseSut: Else<AuNode>;
-      if (proxies) {
-        sut = ProxyObserver.getOrCreate(new If<AuNode>(ifFactory, location)).proxy;
-        elseSut = ProxyObserver.getOrCreate(new Else<AuNode>(elseFactory)).proxy;
-      } else {
-        sut = new If<AuNode>(ifFactory, location);
-        elseSut = new Else<AuNode>(elseFactory);
-      }
-      elseSut.link(sut);
-      sut.$controller = Controller.forCustomAttribute(sut, container);
-
-      let firstBindInitialNodesText: string;
-      let firstBindFinalNodesText: string;
-      let secondBindInitialNodesText: string;
-      let secondBindFinalNodesText: string;
-      let firstAttachInitialHostText: string;
-      let firstAttachFinalHostText: string;
-      let secondAttachInitialHostText: string;
-      let secondAttachFinalHostText: string;
-
-      firstBindInitialNodesText = value1 ? ifText : elseText;
-      if (bindTwice) {
-        firstAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-        firstBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
-      } else {
-        firstBindFinalNodesText = firstBindInitialNodesText;
-        firstAttachInitialHostText = value1 ? ifText : elseText;
-      }
-      firstAttachFinalHostText = newValue1 ? ifText : elseText;
-
-      secondBindInitialNodesText = value2 ? ifText : elseText;
-      if (bindTwice) {
-        secondAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-        secondBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
-      } else {
-        secondBindFinalNodesText = secondBindInitialNodesText;
-        secondAttachInitialHostText = value2 ? ifText : elseText;
-      }
-      secondAttachFinalHostText = newValue2 ? ifText : elseText;
-
-      // -- Round 1 --
-
-      const ctx = BindingContext.create(baseFlags, {
-        [ifPropName]: ifText,
-        [elsePropName]: elseText
-      });
-      let scope = Scope.create(baseFlags, ctx);
-
-      sut.value = value1;
-
-      runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
-
-      assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
-
-      // after binding the nodes should be present and already updated with the correct values
-      if (bindTwice) {
-        if (newScopeForDuplicateBind) {
-          scope = Scope.create(baseFlags, ctx);
+        secondBindInitialNodesText = value2 ? ifText : elseText;
+        if (bindTwice) {
+          secondAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
+          secondBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
+        } else {
+          secondBindFinalNodesText = secondBindInitialNodesText;
+          secondAttachInitialHostText = value2 ? ifText : elseText;
         }
-        sut.value = newValueForDuplicateBind;
+        secondAttachFinalHostText = newValue2 ? ifText : elseText;
+
+        // -- Round 1 --
+
+        const ctx = BindingContext.create(baseFlags, {
+          [ifPropName]: ifText,
+          [elsePropName]: elseText
+        });
+        let scope = Scope.create(baseFlags, ctx);
+
+        sut.value = value1;
 
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
-      }
-      assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
 
-      runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
 
-      assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
-      if (attachTwice) {
+        // after binding the nodes should be present and already updated with the correct values
+        if (bindTwice) {
+          if (newScopeForDuplicateBind) {
+            scope = Scope.create(baseFlags, ctx);
+          }
+          sut.value = newValueForDuplicateBind;
+
+          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+        }
+        assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
+
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
 
-        assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #2');
-      }
+        assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
+        if (attachTwice) {
+          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
 
-      sut.value = newValue1;
-
-      assert.strictEqual(host.textContent, firstAttachFinalHostText, 'host.textContent #2');
-
-      runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
-      if (detachTwice) {
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
-      }
-      // host should be empty but nodes below should still be intact and up-to-date
-
-
-      assert.strictEqual(host.textContent, '', 'host.textContent #3');
-
-      runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
-      if (unbindTwice) {
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
-      }
-      // unbind should not affect existing values but stops them from updating afterwards
-
-      // -- Round 2 --
-
-      sut.value = value2;
-
-      runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
-
-      assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
-      if (bindTwice) {
-        if (newScopeForDuplicateBind) {
-          scope = Scope.create(baseFlags, ctx);
+          assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #2');
         }
-        sut.value = newValueForDuplicateBind;
+
+        sut.value = newValue1;
+
+        assert.strictEqual(host.textContent, firstAttachFinalHostText, 'host.textContent #2');
+
+        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+        if (detachTwice) {
+          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+        }
+        // host should be empty but nodes below should still be intact and up-to-date
+
+        assert.strictEqual(host.textContent, '', 'host.textContent #3');
+
+        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+        if (unbindTwice) {
+          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+        }
+        // unbind should not affect existing values but stops them from updating afterwards
+
+        // -- Round 2 --
+
+        sut.value = value2;
+
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
-      }
 
-      assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
+        assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
+        if (bindTwice) {
+          if (newScopeForDuplicateBind) {
+            scope = Scope.create(baseFlags, ctx);
+          }
+          sut.value = newValueForDuplicateBind;
+          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+        }
 
-      runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+        assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
 
-      assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
-      if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
 
-        assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #5');
-      }
+        assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
+        if (attachTwice) {
+          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
 
-      sut.value = newValue2;
+          assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #5');
+        }
 
-      assert.strictEqual(host.textContent, secondAttachFinalHostText, 'host.textContent #5');
+        sut.value = newValue2;
 
-      runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
-      if (detachTwice) {
+        assert.strictEqual(host.textContent, secondAttachFinalHostText, 'host.textContent #5');
+
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
-      }
+        if (detachTwice) {
+          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+        }
 
+        assert.strictEqual(host.textContent, '', 'host.textContent #6');
 
-      assert.strictEqual(host.textContent, '', 'host.textContent #6');
-
-      runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
-      if (unbindTwice) {
         runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
-      }
+        if (unbindTwice) {
+          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
+        }
+      });
     });
-  });
 });

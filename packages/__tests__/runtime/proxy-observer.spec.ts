@@ -40,7 +40,7 @@
 //     { t: '              "foo"', name:               'foo' }
 //   ];
 
-//   // tslint:disable
+//   // eslint-disable
 //   // using strange objects is the point of this test, so don't complain
 //   const objSpecs: ObjSpec[] = [
 //     { t: '                 {}', createObj() { return                  {}; } },
@@ -59,7 +59,7 @@
 //     { t: '  Promise.resolve()', createObj() { return   Promise.resolve(); } },
 //     { t: '  new Proxy({}, {})', createObj() { return   new Proxy({}, {}); } }
 //   ];
-//   // tslint:enable
+//   // eslint-enable
 
 //   eachCartesianJoin([valueSpecs, propertySpecs, objSpecs], function(valueSpec, propertySpec, objSpec) {
 //     it(`valueSpec ${valueSpec.t}, propertySpec ${propertySpec.t} objSpec ${objSpec.t}`, function () {

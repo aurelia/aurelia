@@ -1,6 +1,6 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
-import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
+import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 class JSDOMInitializer implements IDOMInitializer {
@@ -9,7 +9,7 @@ class JSDOMInitializer implements IDOMInitializer {
   private readonly container: IContainer;
   private readonly jsdom: JSDOM;
 
-  constructor(container: IContainer) {
+  public constructor(container: IContainer) {
     this.container = container;
     this.jsdom = new JSDOM();
   }
@@ -81,10 +81,10 @@ export const DefaultComponents = [
 
 /**
  * A DI configuration object containing html-specific, jsdom-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export const BasicConfiguration = {
+export const RuntimeHtmlJsdomConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */

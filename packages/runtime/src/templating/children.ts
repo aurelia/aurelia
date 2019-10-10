@@ -2,23 +2,25 @@ import { Constructable } from '@aurelia/kernel';
 import { ChildrenObserverSource, IChildrenObserverDescription, ITemplateDefinition } from '../definitions';
 
 export type HasChildrenObservers = Pick<ITemplateDefinition, 'childrenObservers'>;
-export type ChildrenDecorator = <T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>
-  (target: T, prop: string) => void;
+export type ChildrenDecorator = <T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>(target: T, prop: string) => void;
 
 /**
  * Decorator: Specifies custom behavior for an array children property that synchronizes its items with child content nodes of the element.
- * @param config The overrides
+ *
+ * @param config - The overrides
  */
 export function children(config?: ChildrenObserverSource): ChildrenDecorator;
 /**
  * Decorator: Specifies an array property on a class that synchronizes its items with child content nodes of the element.
- * @param prop The property name
+ *
+ * @param prop - The property name
  */
 export function children(prop: string): ClassDecorator;
 /**
  * Decorator: Decorator: Specifies an array property that synchronizes its items with child content nodes of the element.
- * @param target The class
- * @param prop The property name
+ *
+ * @param target - The class
+ * @param prop - The property name
  */
 export function children<T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>(target: T, prop: string): void;
 export function children<T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>(configOrTarget?: ChildrenObserverSource | T, prop?: string): void | ChildrenDecorator | ClassDecorator {

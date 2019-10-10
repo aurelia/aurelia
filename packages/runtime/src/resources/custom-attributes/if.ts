@@ -57,7 +57,6 @@ export class If<T extends INode = INode> {
     name: 'if',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
     strategy: BindingStrategy.getterSetter,
@@ -77,14 +76,13 @@ export class If<T extends INode = INode> {
   public location: IRenderLocation<T>;
   public readonly noProxy: true;
   public view?: IController<T>;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController<T>;
+  public $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask;
 
   private _value: boolean;
 
-  constructor(
+  public constructor(
     ifFactory: IViewFactory<T>,
     location: IRenderLocation<T>,
   ) {
@@ -279,7 +277,6 @@ export class Else<T extends INode = INode> {
     name: 'else',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
     isTemplateController: true,
     bindables: PLATFORM.emptyObject,
     strategy: BindingStrategy.getterSetter,
@@ -288,7 +285,7 @@ export class Else<T extends INode = INode> {
 
   private readonly factory: IViewFactory<T>;
 
-  constructor(factory: IViewFactory<T>) {
+  public constructor(factory: IViewFactory<T>) {
     this.factory = factory;
   }
 

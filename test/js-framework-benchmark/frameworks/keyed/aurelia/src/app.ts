@@ -3,63 +3,63 @@ import {Store} from './store';
 var startTime: number;
 var lastMeasure: string;
 var startMeasure = function(name) {
-    startTime = performance.now();
-    lastMeasure = name;
-}
+  startTime = performance.now();
+  lastMeasure = name;
+};
 var stopMeasure = function() {
-    window.setTimeout(function() {
-        var stop = performance.now();
-        console.log(lastMeasure+" took "+(stop-startTime));
-    }, 0);
-}
+  window.setTimeout(function() {
+    var stop = performance.now();
+    console.log(`${lastMeasure} took ${stop-startTime}`);
+  }, 0);
+};
 
 export class App {
-    store: Store;
-    constructor() {
-        this.store = new Store();
-    }
+  public store: Store;
+  public constructor() {
+    this.store = new Store();
+  }
 
-    run() {
-        startMeasure("run");
-        this.store.run();
-        stopMeasure();
-    }
-    add() {
-        startMeasure("add");
-        this.store.add();
-        stopMeasure();
-    }
-    remove(item) {
-        startMeasure("delete");
-        this.store.delete(item.id);
-        stopMeasure();
-    }
-    select(item) {
-        startMeasure("select");
-        this.store.select(item.id);
-        stopMeasure();
-    }
-    update() {
-        startMeasure("update");
-        this.store.update();
-        stopMeasure();
-    }
+  public run() {
+    startMeasure("run");
+    this.store.run();
+    stopMeasure();
+  }
+  public add() {
+    startMeasure("add");
+    this.store.add();
+    stopMeasure();
+  }
+  public remove(item) {
+    startMeasure("delete");
+    this.store.delete(item.id);
+    stopMeasure();
+  }
+  public select(item) {
+    startMeasure("select");
+    this.store.select(item.id);
+    stopMeasure();
+  }
+  public update() {
+    startMeasure("update");
+    this.store.update();
+    stopMeasure();
+  }
 
-    runLots() {
-        startMeasure("runLots");
-        this.store.runLots();
-        stopMeasure();
-    }
+  public runLots() {
+    startMeasure("runLots");
+    this.store.runLots();
+    stopMeasure();
+  }
 
-    clear() {
-        startMeasure("clear");
-        this.store.clear();
-        stopMeasure();
-    }
+  public clear() {
+    startMeasure("clear");
+    this.store.clear();
+    stopMeasure();
+  }
 
-    swapRows() {
-        startMeasure("swapRows");
-        this.store.swapRows();
-        stopMeasure();
-    }
+  public swapRows() {
+    startMeasure("swapRows");
+    this.store.swapRows();
+    stopMeasure();
+  }
 }

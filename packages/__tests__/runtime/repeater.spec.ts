@@ -569,167 +569,165 @@ describe(`Repeat`, function () {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-    it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async function () {
-      const { strategy } = strategySpec;
-      const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
-      const { items: $items, flush, mutations } = bindSpec;
-      const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
+      it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
+        const { strategy } = strategySpec;
+        const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
+        const { items: $items, flush, mutations } = bindSpec;
+        const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
-      const items = $items.slice();
-      // common stuff
-      const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
-      const proxies = (strategy & BindingStrategy.proxies) > 0;
-      const container = AuDOMConfiguration.createContainer();
-      const dom = container.get<AuDOM>(IDOM);
-      const observerLocator = container.get(IObserverLocator);
-      const lifecycle = container.get(ILifecycle);
+        const items = $items.slice();
+        // common stuff
+        const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
+        const proxies = (strategy & BindingStrategy.proxies) > 0;
+        const container = AuDOMConfiguration.createContainer();
+        const dom = container.get<AuDOM>(IDOM);
+        const observerLocator = container.get(IObserverLocator);
+        const lifecycle = container.get(ILifecycle);
 
-      const location = AuNode.createRenderLocation();
-      const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
+        const location = AuNode.createRenderLocation();
+        const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
 
-      const itemTemplate: ITemplate<AuNode> = {
-        renderContext: null as any,
-        dom: null as any,
-        definition: null as any,
-        render(itemRenderable) {
-          const text = AuNode.createText();
-          const wrapper = AuNode.createTemplate().appendChild(text);
+        const itemTemplate: ITemplate<AuNode> = {
+          renderContext: null as any,
+          dom: null as any,
+          definition: null as any,
+          render(itemRenderable) {
+            const text = AuNode.createText();
+            const wrapper = AuNode.createTemplate().appendChild(text);
 
-          const nodes = new AuNodeSequence(dom, wrapper);
-          const itemBinding = new PropertyBinding(new AccessScopeExpression('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
-          binding.persistentFlags |= strategy;
+            const nodes = new AuNodeSequence(dom, wrapper);
+            const itemBinding = new PropertyBinding(new AccessScopeExpression('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
+            binding.persistentFlags |= strategy;
 
-          (itemRenderable as Writable<typeof itemRenderable>).nodes = nodes;
-          addBinding(itemRenderable, itemBinding);
+            (itemRenderable as Writable<typeof itemRenderable>).nodes = nodes;
+            addBinding(itemRenderable, itemBinding);
+          }
+        };
+
+        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemTemplate, lifecycle);
+
+        const binding: PropertyBinding = {
+          target: null,
+          targetProperty: 'items',
+          sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
+        } as any;
+        const renderable: IController<AuNode> = {
+          bindings: [binding]
+        } as any;
+        let sut: Repeat<IObservedArray, AuNode>;
+        if (proxies) {
+          const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+          sut = new ProxyObserver(raw).proxy;
+          raw.$controller = Controller.forCustomAttribute(sut, container);
+        } else {
+          sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+          sut.$controller = Controller.forCustomAttribute(sut, container);
         }
-      };
+        binding.target = sut;
 
-      const itemFactory = new ViewFactory<AuNode>(`item-view`, itemTemplate, lifecycle);
+        // -- Round 1 --
+        let scope = Scope.create(baseFlags, BindingContext.create(baseFlags));
 
-      const binding: PropertyBinding = {
-        target: null,
-        targetProperty: 'items',
-        sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
-      } as any;
-      const renderable: IController<AuNode> = {
-        bindings: [binding]
-      } as any;
-      let sut: Repeat<IObservedArray, AuNode>;
-      if (proxies) {
-        const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
-        sut = new ProxyObserver(raw).proxy;
-        raw.$controller = Controller.forCustomAttribute(sut, container);
-      } else {
-        sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
-        sut.$controller = Controller.forCustomAttribute(sut, container);
-      }
-      binding.target = sut;
+        sut.items = items;
+        const expectedText1 = sut.items ? sut.items.join('') : '';
 
-      // -- Round 1 --
-      let scope = Scope.create(baseFlags, BindingContext.create(baseFlags));
-
-      sut.items = items;
-      const expectedText1 = sut.items ? sut.items.join('') : '';
-
-      runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
-
-      if (bindTwice) {
-        if (newScopeForDuplicateBind) {
-          scope = Scope.create(baseFlags, scope.bindingContext);
-        }
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
-      }
 
-      runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        if (bindTwice) {
+          if (newScopeForDuplicateBind) {
+            scope = Scope.create(baseFlags, scope.bindingContext);
+          }
+          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+        }
 
-      assert.strictEqual(host.textContent, expectedText1, 'host.textContent #1');
-      if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
 
-        assert.strictEqual(host.textContent, expectedText1, 'host.textContent #2');
-      }
+        assert.strictEqual(host.textContent, expectedText1, 'host.textContent #1');
+        if (attachTwice) {
+          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
 
-      applyMutations(sut, mutations);
-      const expectedText2 = sut.items ? sut.items.join('') : '';
+          assert.strictEqual(host.textContent, expectedText1, 'host.textContent #2');
+        }
 
-      if (flush) {
-        lifecycle.processRAFQueue(baseFlags);
+        applyMutations(sut, mutations);
+        const expectedText2 = sut.items ? sut.items.join('') : '';
 
-        assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
-      } else {
-        const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
+        if (flush) {
+          lifecycle.processRAFQueue(baseFlags);
 
-        if (assign) {
-          assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #4');
+          assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
         } else {
-          assert.strictEqual(host.textContent, expectedText1, 'host.textContent #5');
-        }
-      }
+          const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
 
-      runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
-      if (detachTwice) {
+          if (assign) {
+            assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #4');
+          } else {
+            assert.strictEqual(host.textContent, expectedText1, 'host.textContent #5');
+          }
+        }
+
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
-      }
-
-
-      assert.strictEqual(host.textContent, '', 'host.textContent #6');
-
-      runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
-      if (unbindTwice) {
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
-      }
-
-      // -- Round 2 --
-
-      sut.items = items;
-      const expectedText3 = sut.items ? sut.items.join('') : '';
-
-      runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
-      if (bindTwice) {
-        if (newScopeForDuplicateBind) {
-          scope = Scope.create(baseFlags, scope.bindingContext);
+        if (detachTwice) {
+          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
         }
+
+        assert.strictEqual(host.textContent, '', 'host.textContent #6');
+
+        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+        if (unbindTwice) {
+          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+        }
+
+        // -- Round 2 --
+
+        sut.items = items;
+        const expectedText3 = sut.items ? sut.items.join('') : '';
+
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
-      }
+        if (bindTwice) {
+          if (newScopeForDuplicateBind) {
+            scope = Scope.create(baseFlags, scope.bindingContext);
+          }
+          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+        }
 
-      runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-
-      assert.strictEqual(host.textContent, expectedText3, 'host.textContent #7');
-      if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
 
-        assert.strictEqual(host.textContent, expectedText3, 'host.textContent #8');
-      }
+        assert.strictEqual(host.textContent, expectedText3, 'host.textContent #7');
+        if (attachTwice) {
+          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
 
-      applyMutations(sut, mutations);
-      const expectedText4 = sut.items ? sut.items.join('') : '';
-
-      if (flush) {
-        lifecycle.processRAFQueue(baseFlags);
-
-        assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
-      } else {
-        const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
-
-        if (assign) {
-          assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #10');
-        } else {
-          assert.strictEqual(host.textContent, expectedText3, 'host.textContent #11');
+          assert.strictEqual(host.textContent, expectedText3, 'host.textContent #8');
         }
-      }
 
-      runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
-      if (detachTwice) {
+        applyMutations(sut, mutations);
+        const expectedText4 = sut.items ? sut.items.join('') : '';
+
+        if (flush) {
+          lifecycle.processRAFQueue(baseFlags);
+
+          assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
+        } else {
+          const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
+
+          if (assign) {
+            assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #10');
+          } else {
+            assert.strictEqual(host.textContent, expectedText3, 'host.textContent #11');
+          }
+        }
+
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
-      }
+        if (detachTwice) {
+          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+        }
 
+        assert.strictEqual(host.textContent, '', 'host.textContent #12');
 
-      assert.strictEqual(host.textContent, '', 'host.textContent #12');
-
-      runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
-      if (unbindTwice) {
         runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
-      }
+        if (unbindTwice) {
+          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
+        }
+      });
     });
-  });
 });

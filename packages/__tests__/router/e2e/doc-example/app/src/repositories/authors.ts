@@ -10,7 +10,7 @@ export class AuthorsRepository {
     { id: 4, name: 'Neil Gaiman', born: 1960 },
   ];
 
-  constructor(private readonly booksRepository: BooksRepository) {
+  public constructor(private readonly booksRepository: BooksRepository) {
     for (const book of this.booksRepository.data) {
       for (const bookAuthor of book.authors) {
         const author = this.data.find(v => v.name === bookAuthor.name);

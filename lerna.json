@@ -5,10 +5,12 @@
     }
   },
   "packages": [
+    "packages/__e2e__",
     "packages/__tests__",
-    "packages/__tests__/e2e",
     "packages/aot",
+    "packages/aurelia",
     "packages/debug",
+    "packages/dialog",
     "packages/fetch-client",
     "packages/i18n",
     "packages/jit",
@@ -17,11 +19,10 @@
     "packages/jit-html-jsdom",
     "packages/kernel",
     "packages/plugin-conventions",
+    "packages/plugin-gulp",
     "packages/plugin-parcel",
     "packages/plugin-pixi",
-    "packages/plugin-gulp",
     "packages/plugin-svg",
-    "packages/webpack-loader",
     "packages/router",
     "packages/runtime",
     "packages/runtime-html",
@@ -30,7 +31,7 @@
     "packages/store",
     "packages/testing",
     "packages/validation",
-    "packages/dialog"
+    "packages/webpack-loader"
   ],
   "version": "0.3.0"
 }

@@ -63,6 +63,7 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
     ['input', 'formmethod', 'formMethod'],
     ['input', 'formnovalidate', 'formNoValidate'],
     ['input', 'formtarget', 'formTarget'],
+    ['input', 'inputmode', 'inputMode'],
     ['textarea', 'maxlength', 'maxLength'],
     ['td', 'rowspan', 'rowSpan'],
     ['td', 'colspan', 'colSpan'],
@@ -113,14 +114,12 @@ function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], 
     const expectedInst = expectation[i];
     const ofType = type ? `of ${type}` : '';
     for (const prop of expectedInst.toVerify) {
-      // tslint:disable-next-line:no-all-duplicated-branches
       if (expectedInst[prop] instanceof Object) {
         assert.deepStrictEqual(
           actualInst[prop],
           expectedInst[prop],
           `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
         );
-        // tslint:disable-next-line:no-duplicated-branches
       } else {
         assert.deepStrictEqual(
           actualInst[prop],

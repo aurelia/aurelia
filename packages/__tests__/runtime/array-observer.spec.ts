@@ -22,7 +22,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   public readonly oldArr: unknown[];
   public readonly newArr: unknown[];
 
-  constructor(
+  public constructor(
     oldArr: unknown[],
     newArr: unknown[],
   ) {
@@ -76,7 +76,7 @@ describe(`ArrayObserver`, function () {
       );
     });
 
-    it('push', function () {
+    it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
@@ -119,7 +119,7 @@ describe(`ArrayObserver`, function () {
       );
     });
 
-    it('push', function () {
+    it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
       const lifecycle = DI.createContainer().get(ILifecycle);
@@ -161,7 +161,7 @@ describe(`ArrayObserver`, function () {
       const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(LF.none, lifecycle, arr);
       lifecycle.batch.inline(
-        function () {},
+        function () { return; },
       );
       assert.strictEqual(s.collectionChanges.length, 0);
     });
@@ -222,7 +222,7 @@ describe(`ArrayObserver`, function () {
           }
         });
       },
-    )
+    );
   });
 
   describe(`observeUnshift`, function () {
@@ -572,6 +572,7 @@ function getNumberFactory(arraySize: number) {
 }
 
 function getValueFactory(getNumber: (i: number) => unknown, type: string, types: string[]): (i: number) => unknown {
+  let factories: ((i: number) => unknown)[];
   switch (type) {
     case 'undefined':
       return () => undefined;
@@ -584,9 +585,10 @@ function getValueFactory(getNumber: (i: number) => unknown, type: string, types:
     case 'number':
       return getNumber;
     case 'object':
+      // eslint-disable-next-line no-unused-expressions
       return (i) => {[getNumber(i)]; };
     case 'mixed':
-      const factories = [
+      factories = [
         getValueFactory(getNumber, types[0], types),
         getValueFactory(getNumber, types[1], types),
         getValueFactory(getNumber, types[2], types),

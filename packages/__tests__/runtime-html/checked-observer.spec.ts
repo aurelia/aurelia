@@ -509,7 +509,7 @@ describe.skip('CheckedObserver', function () {
           for (const checkedAfter of [true, false]) {
             for (const event of ['change', 'input']) {
 
-              it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
+              it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
                 const { ctx, sut, el, subscriber } = setup(value, prop);
 

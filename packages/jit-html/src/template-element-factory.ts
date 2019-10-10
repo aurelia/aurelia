@@ -11,20 +11,20 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
   /**
    * Create a `HTMLTemplateElement` from a provided html string.
    *
-   * @param markup A raw html string that may or may not be wrapped in `<template></template>`
+   * @param markup - A raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(markup: string): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node. If the node is already a template, it
    * will be returned as-is (and removed from the DOM).
    *
-   * @param node A DOM node that may or may not be wrapped in `<template></template>`
+   * @param node - A DOM node that may or may not be wrapped in `<template></template>`
    */
   createTemplate(node: TNode): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
-   * @param input A DOM node or raw html string that may or may not be wrapped in `<template></template>`
+   * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(input: unknown): TNode;
   createTemplate(input: unknown): TNode;
@@ -50,7 +50,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   private readonly dom: IDOM;
   private template: HTMLTemplateElement;
 
-  constructor(dom: IDOM) {
+  public constructor(dom: IDOM) {
     this.dom = dom;
     this.template = dom.createTemplate() as HTMLTemplateElement;
   }
@@ -63,7 +63,6 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   public createTemplate(node: Node): HTMLTemplateElement;
   public createTemplate(input: unknown): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement {
-    if (Profiler.enabled) { enter(); }
     if (typeof input === 'string') {
       let result = markupCache[input];
       if (result === void 0) {
@@ -85,14 +84,12 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
         markupCache[input] = result;
       }
 
-      if (Profiler.enabled) { leave(); }
       return result.cloneNode(true) as HTMLTemplateElement;
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
       const template = this.dom.createTemplate() as HTMLTemplateElement;
       template.content.appendChild(input);
-      if (Profiler.enabled) { leave(); }
       return template;
     }
     // we got a template element, remove it from the DOM if it's present there and don't
@@ -100,7 +97,6 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     if (input.parentNode != null) {
       input.parentNode.removeChild(input);
     }
-    if (Profiler.enabled) { leave(); }
     return input as HTMLTemplateElement;
   }
 }

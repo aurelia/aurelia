@@ -1,63 +1,51 @@
-import { IRegistry } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
-import { BindingBehavior } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 
-const { oneTime, toView, fromView, twoWay } = BindingMode;
-
-export type WithMode = { mode: BindingMode; originalMode?: BindingMode };
+export type WithMode = { mode: BindingMode };
 
 export abstract class BindingModeBehavior {
-  private readonly mode: BindingMode;
+  private readonly originalModes: WeakMap<PropertyBinding, BindingMode> = new WeakMap();
 
-  constructor(mode: BindingMode) {
-    this.mode = mode;
-  }
+  public constructor(
+    private readonly mode: BindingMode,
+  ) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
-    binding.originalMode = binding.mode;
+    this.originalModes.set(binding, binding.mode);
     binding.mode = this.mode;
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
-    binding.mode = binding.originalMode!;
-    binding.originalMode = null!;
+    binding.mode = this.originalModes.get(binding) as BindingMode;
   }
 }
 
+@bindingBehavior('oneTime')
 export class OneTimeBindingBehavior extends BindingModeBehavior {
-  public static register: IRegistry['register'];
-
-  constructor() {
-    super(oneTime);
+  public constructor() {
+    super(BindingMode.oneTime);
   }
 }
-BindingBehavior.define('oneTime', OneTimeBindingBehavior);
 
+@bindingBehavior('toView')
 export class ToViewBindingBehavior extends BindingModeBehavior {
-  public static register: IRegistry['register'];
-
-  constructor() {
-    super(toView);
+  public constructor() {
+    super(BindingMode.toView);
   }
 }
-BindingBehavior.define('toView', ToViewBindingBehavior);
 
+@bindingBehavior('fromView')
 export class FromViewBindingBehavior extends BindingModeBehavior {
-  public static register: IRegistry['register'];
-
-  constructor() {
-    super(fromView);
+  public constructor() {
+    super(BindingMode.fromView);
   }
 }
-BindingBehavior.define('fromView', FromViewBindingBehavior);
 
+@bindingBehavior('twoWay')
 export class TwoWayBindingBehavior extends BindingModeBehavior {
-  public static register: IRegistry['register'];
-
-  constructor() {
-    super(twoWay);
+  public constructor() {
+    super(BindingMode.twoWay);
   }
 }
-BindingBehavior.define('twoWay', TwoWayBindingBehavior);

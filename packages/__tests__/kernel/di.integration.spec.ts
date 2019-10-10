@@ -385,7 +385,7 @@ describe('DI.createInterface() -> container.get()', function () {
   // });
 
   describe('transient parent', function () {
-    interface ITransientParent { dep: any; }
+    interface ITransientParent { dep: any }
     let ITransientParent: InterfaceSymbol<ITransientParent>;
 
     function register(cls: any) {
@@ -394,7 +394,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`transient child registration returns a new instance each time`, function () {
       @inject(ITransient)
-      class TransientParent implements ITransientParent { constructor(public dep: ITransient) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: ITransient) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -423,7 +423,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`singleton child registration returns the same instance each time`, function () {
       @inject(ISingleton)
-      class TransientParent implements ITransientParent { constructor(public dep: ISingleton) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: ISingleton) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -452,7 +452,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`instance child registration returns the same instance each time`, function () {
       @inject(IInstance)
-      class TransientParent implements ITransientParent { constructor(public dep: IInstance) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: IInstance) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -481,7 +481,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`callback child registration is invoked each time`, function () {
       @inject(ICallback)
-      class TransientParent implements ITransientParent { constructor(public dep: ICallback) {} }
+      class TransientParent implements ITransientParent { public constructor(public dep: ICallback) {} }
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
@@ -518,7 +518,7 @@ describe('DI.createInterface() -> container.get()', function () {
   });
 
   describe('singleton parent', function () {
-    interface ISingletonParent { dep: any; }
+    interface ISingletonParent { dep: any }
     let ISingletonParent: InterfaceSymbol<ISingletonParent>;
 
     function register(cls: any) {
@@ -527,7 +527,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`transient child registration is reused by the singleton parent`, function () {
       @inject(ITransient)
-      class SingletonParent implements ISingletonParent { constructor(public dep: ITransient) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: ITransient) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -555,7 +555,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`singleton registration is reused by the singleton parent`, function () {
       @inject(ISingleton)
-      class SingletonParent implements ISingletonParent { constructor(public dep: ISingleton) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: ISingleton) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -583,7 +583,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`instance registration is reused by the singleton parent`, function () {
       @inject(IInstance)
-      class SingletonParent implements ISingletonParent { constructor(public dep: IInstance) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: IInstance) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -611,7 +611,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`callback registration is reused by the singleton parent`, function () {
       @inject(ICallback)
-      class SingletonParent implements ISingletonParent { constructor(public dep: ICallback) {} }
+      class SingletonParent implements ISingletonParent { public constructor(public dep: ICallback) {} }
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
@@ -646,7 +646,7 @@ describe('DI.createInterface() -> container.get()', function () {
   });
 
   describe('instance parent', function () {
-    interface IInstanceParent { dep: any; }
+    interface IInstanceParent { dep: any }
     let IInstanceParent: InterfaceSymbol<IInstanceParent>;
     let instanceParent: IInstanceParent;
 
@@ -658,7 +658,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`transient registration is reused by the instance parent`, function () {
       @inject(ITransient)
-      class InstanceParent implements IInstanceParent { constructor(public dep: ITransient) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: ITransient) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -685,7 +685,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`singleton registration is reused by the instance parent`, function () {
       @inject(ISingleton)
-      class InstanceParent implements IInstanceParent { constructor(public dep: ISingleton) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: ISingleton) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -712,7 +712,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`instance registration is reused by the instance parent`, function () {
       @inject(IInstance)
-      class InstanceParent implements IInstanceParent { constructor(public dep: IInstance) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: IInstance) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -739,7 +739,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     it(`callback registration is reused by the instance parent`, function () {
       @inject(ICallback)
-      class InstanceParent implements IInstanceParent { constructor(public dep: ICallback) {} }
+      class InstanceParent implements IInstanceParent { public constructor(public dep: ICallback) {} }
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
@@ -768,6 +768,78 @@ describe('DI.createInterface() -> container.get()', function () {
           [IInstanceParent],
         ],
         `get.calls`,
+      );
+    });
+  });
+});
+
+describe('defer registration', function() {
+  class FakeCSSService {
+    public constructor(public data: any) {}
+  }
+
+  class FakeCSSHandler {
+    public register(container: IContainer, data) {
+      container.register(
+        Registration.instance(
+          FakeCSSService,
+          new FakeCSSService(data)
+        )
+      );
+    }
+  }
+
+  it(`enables the handler class to provide registrations for data`, function() {
+    const container = DI.createContainer();
+    const data = {};
+
+    container.register(
+      Registration.singleton('.css', FakeCSSHandler)
+    );
+
+    container.register(
+      Registration.defer('.css', data)
+    );
+
+    const service = container.get(FakeCSSService);
+
+    assert.strictEqual(service.data, data);
+  });
+
+  it(`passes the params to the container's register method if no handler is found`, function() {
+    const container = DI.createContainer();
+    const data = {
+      wasCalled: false,
+      register() {
+        this.wasCalled = true;
+      }
+    };
+
+    container.register(
+      Registration.defer('.css', data)
+    );
+
+    assert.strictEqual(data.wasCalled, true);
+  });
+
+  [
+    {
+      name: 'string',
+      value: 'some string value'
+    },
+    {
+      name: 'boolean',
+      value: true
+    },
+    {
+      name: 'number',
+      value: 42
+    }
+  ].forEach(x => {
+    it (`does not pass ${x.name} params to the container's register when no handler is found`, function() {
+      const container = DI.createContainer();
+      container.register(
+        Registration.defer('.css', x.value)
       );
     });
   });

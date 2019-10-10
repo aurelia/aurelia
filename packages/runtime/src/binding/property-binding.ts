@@ -1,9 +1,7 @@
 import {
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
-
 import {
   IForOfStatement,
   IsBindingBehavior,
@@ -61,7 +59,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior | IForOfStatement,
     target: object,
     targetProperty: string,
@@ -95,9 +93,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', 'handleChange', slice.call(arguments)); }
     if ((this.$state & State.isBound) === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -117,7 +113,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
         this.sourceExpression.connect(flags, this.$scope!, this, this.part);
         this.unobserve(false);
       }
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -125,25 +120,23 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part)) {
         this.updateSource(newValue, flags);
       }
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     throw Reporter.error(15, flags);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
       this.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
+    // Force property binding to always be strict
+    flags |= LifecycleFlags.isStrictBindingStrategy;
 
     // Store flags which we can only receive during $bind and need to pass on
     // to the AST during evaluate/connect/assign
@@ -185,13 +178,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -216,6 +206,5 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

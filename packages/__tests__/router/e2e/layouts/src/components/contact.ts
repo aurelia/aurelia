@@ -12,7 +12,7 @@ export class Contact {
   public static parameters = ['id'];
 
   public contact = {};
-  constructor(private readonly contactList: ContactList) { }
+  public constructor(private readonly contactList: ContactList) { }
 
   public enter(parameters) {
     if (parameters.id) {

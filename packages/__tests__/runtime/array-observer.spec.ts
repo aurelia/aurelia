@@ -1,26 +1,28 @@
+import { DI } from '@aurelia/kernel';
 import {
   ArrayObserver,
+  copyIndexMap,
   disableArrayObservation,
   enableArrayObservation,
+  ICollectionSubscriber,
+  ILifecycle,
   IndexMap,
   LifecycleFlags as LF,
-  ILifecycle,
-  copyIndexMap,
-  ICollectionSubscriber,
+  applyMutationsToIndices,
+  synchronizeIndices,
 } from '@aurelia/runtime';
 import {
-  SpySubscriber,
   assert,
   CollectionChangeSet,
   eachCartesianJoin,
+  SpySubscriber,
 } from '@aurelia/testing';
-import { DI } from '@aurelia/kernel';
 
 export class SynchronizingCollectionSubscriber implements ICollectionSubscriber {
   public readonly oldArr: unknown[];
   public readonly newArr: unknown[];
 
-  constructor(
+  public constructor(
     oldArr: unknown[],
     newArr: unknown[],
   ) {
@@ -29,30 +31,27 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LF): void {
+    applyMutationsToIndices(indexMap);
+
     const newArr = this.newArr;
     const oldArr = this.oldArr;
 
-    if (newArr.length === 0 && oldArr.length === 0) {
-      return;
+    const deleted = indexMap.deletedItems.sort((a, b) => a - b);
+    const deletedLen = deleted.length;
+    let j = 0;
+    for (let i = 0; i < deletedLen; ++i) {
+      j = deleted[i] - i;
+      oldArr.splice(j, 1);
     }
 
-    const copy = oldArr.slice();
-
-    const len = indexMap.length;
-    let to = 0;
-    let from = 0;
-    while (to < len) {
-      from = indexMap[to];
-      if (from > -1) {
-        // move existing
-        oldArr[to] = copy[from];
-      } else if (from < -1) {
-        // add new
-        oldArr[to] = newArr[to];
+    const mapLen = indexMap.length;
+    for (let i = 0; i < mapLen; ++i) {
+      if (indexMap[i] === -2) {
+        oldArr.splice(i, 0, newArr[i]);
       }
-      to++;
     }
-    oldArr.length = newArr.length;
+
+    synchronizeIndices(oldArr, indexMap);
   }
 }
 
@@ -77,7 +76,7 @@ describe(`ArrayObserver`, function () {
       );
     });
 
-    it('push', function () {
+    it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
@@ -120,7 +119,7 @@ describe(`ArrayObserver`, function () {
       );
     });
 
-    it('push', function () {
+    it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
       const lifecycle = DI.createContainer().get(ILifecycle);
@@ -162,7 +161,7 @@ describe(`ArrayObserver`, function () {
       const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(LF.none, lifecycle, arr);
       lifecycle.batch.inline(
-        function () {},
+        function () { return; },
       );
       assert.strictEqual(s.collectionChanges.length, 0);
     });
@@ -223,7 +222,7 @@ describe(`ArrayObserver`, function () {
           }
         });
       },
-    )
+    );
   });
 
   describe(`observeUnshift`, function () {
@@ -573,6 +572,7 @@ function getNumberFactory(arraySize: number) {
 }
 
 function getValueFactory(getNumber: (i: number) => unknown, type: string, types: string[]): (i: number) => unknown {
+  let factories: ((i: number) => unknown)[];
   switch (type) {
     case 'undefined':
       return () => undefined;
@@ -585,9 +585,10 @@ function getValueFactory(getNumber: (i: number) => unknown, type: string, types:
     case 'number':
       return getNumber;
     case 'object':
+      // eslint-disable-next-line no-unused-expressions
       return (i) => {[getNumber(i)]; };
     case 'mixed':
-      const factories = [
+      factories = [
         getValueFactory(getNumber, types[0], types),
         getValueFactory(getNumber, types[1], types),
         getValueFactory(getNumber, types[2], types),

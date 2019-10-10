@@ -1,12 +1,24 @@
 {
   "compilerOptions": {
+    "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": ["esnext", "dom"],
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "module": "esnext",
     "moduleResolution": "node",
-    "outDir": "dist",
-    "target": "es2018"
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "target": "es5",
+    "esModuleInterop": false,
+    "baseUrl": "src"
   },
-  "include": ["src"]
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "./src/**/*"
+  ],
 }

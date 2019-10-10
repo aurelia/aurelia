@@ -94,8 +94,8 @@ class App extends React.Component<{}, State> {
                   frameworks,
                   frameworksKeyed: frameworks.filter(f => f.keyed === true),
                   frameworksNonKeyed: frameworks.filter(f => f.keyed === false),
-                  selectedBenchmarks: _allBenchmarks,
-                  selectedFrameworks: _allFrameworks,
+                  selectedBenchmarks: _allBenchmarks as Set<Benchmark>,
+                  selectedFrameworks: _allFrameworks as Set<Framework>,
                   separateKeyedAndNonKeyed: true,
                   resultTables: [],
                   sortKey: SORT_BY_GEOMMEAN_CPU,
@@ -111,18 +111,18 @@ class App extends React.Component<{}, State> {
     else set.add(benchmark);
     let sortKey = this.state.sortKey;
     let setIds = new Set();
-    set.forEach(b => setIds.add(b.id))
+    set.forEach((b: Benchmark) => setIds.add(b.id))
     if ((sortKey!=SORT_BY_NAME && sortKey!=SORT_BY_GEOMMEAN_CPU && sortKey!=SORT_BY_GEOMMEAN_MEM && sortKey!=SORT_BY_GEOMMEAN_STARTUP) && !setIds.has(sortKey)) sortKey = SORT_BY_NAME;
-    this.nextState.selectedBenchmarks = set;
-    this.setState({selectedBenchmarks: set, sortKey, resultTables: this.updateResultTable()});
+    this.nextState.selectedBenchmarks = set as Set<Benchmark>;
+    this.setState({selectedBenchmarks: set as Set<Benchmark>, sortKey, resultTables: this.updateResultTable()});
   }
   selectFramework = (framework: Framework, value: boolean): void => {
     let set = new Set();
     this.state.selectedFrameworks.forEach(framework => set.add(framework));
     if (set.has(framework)) set.delete(framework);
     else set.add(framework);
-    this.nextState.selectedFrameworks = set;
-    this.setState({selectedFrameworks: set, resultTables: this.updateResultTable()});
+    this.nextState.selectedFrameworks = set as Set<Framework>;
+    this.setState({selectedFrameworks: set as Set<Framework>, resultTables: this.updateResultTable()});
   }
   selectSeparateKeyedAndNonKeyed = (value: boolean): void => {
     this.nextState.separateKeyedAndNonKeyed = value;

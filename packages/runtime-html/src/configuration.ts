@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { RuntimeConfiguration } from '@aurelia/runtime';
 import { HTMLTemplateFactory } from './dom';
 import {
   AttributeBindingRenderer,
@@ -13,6 +13,8 @@ import { HTMLProjectorLocator } from './projectors';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
+import { Blur } from './resources/custom-attributes/blur';
+import { Focus } from './resources/custom-attributes/focus';
 import { Compose } from './resources/custom-elements/compose';
 
 export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
@@ -38,6 +40,8 @@ export const AttrBindingBehaviorRegistration = AttrBindingBehavior as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as IRegistry;
 export const ComposeRegistration = Compose as IRegistry;
+export const FocusRegistration = Focus as unknown as IRegistry;
+export const BlurRegistration = Blur as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) resources:
@@ -49,6 +53,8 @@ export const DefaultResources = [
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
   ComposeRegistration,
+  FocusRegistration,
+  BlurRegistration
 ];
 
 export const ListenerBindingRendererRegistration = ListenerBindingRenderer as IRegistry;
@@ -74,17 +80,17 @@ export const DefaultRenderers = [
 
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-export const BasicConfiguration = {
+export const RuntimeHtmlConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeBasicConfiguration
+    return RuntimeConfiguration
       .register(container)
       .register(
         ...DefaultComponents,

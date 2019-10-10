@@ -1,5 +1,5 @@
 import { ConfigurableRoute, RouteRecognizer } from '@aurelia/router';
-import { eachCartesianJoin, assert } from '@aurelia/testing';
+import { assert, eachCartesianJoin } from '@aurelia/testing';
 
 const staticRoute = {'path': 'static', 'handler': {'name': 'static'}};
 const dynamicRoute = {'path': 'dynamic/:id', 'handler': {'name': 'dynamic'}};

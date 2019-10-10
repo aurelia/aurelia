@@ -1,10 +1,6 @@
 export {
-  INavigationStore,
-  INavigationViewer,
-  INavigationViewerEvent,
-  INavigationState,
-  BrowserNavigation,
-} from './browser-navigation';
+  BrowserNavigator,
+} from './browser-navigator';
 
 export {
   ILinkHandlerOptions,
@@ -18,28 +14,50 @@ export {
 } from './guard';
 
 export {
-  IGuardTarget,
   GuardTypes,
-  GuardFunction,
-  GuardTarget,
   GuardIdentity,
   IGuardOptions,
   Guardian,
 } from './guardian';
 
 export {
-  IViewportComponent,
-  NavInstruction,
+  InstructionResolver,
+} from './instruction-resolver';
+
+export {
+  GuardFunction,
+  GuardTarget,
+  INavigatorInstruction,
+  IRouteableComponent,
+  IRouteableComponentType,
+  IViewportInstruction,
+  NavigationInstruction,
+  ReentryBehavior,
+} from './interfaces';
+
+export {
+  lifecycleLogger,
+  LifecycleClass,
+} from './lifecycle-logger';
+
+export {
   INavRoute,
   Nav,
 } from './nav';
 
 export {
-  IStoredNavigationEntry,
-  INavigationEntry,
+  NavRoute,
+} from './nav-route';
+
+export {
+  IStoredNavigatorEntry,
+  INavigatorEntry,
   INavigatorOptions,
-  INavigationFlags,
-  INavigationInstruction,
+  INavigatorFlags,
+  INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerEvent,
   Navigator,
 } from './navigator';
 
@@ -70,17 +88,9 @@ export {
 export {
   IRouteTransformer,
   IRouterOptions,
-  IRouteViewport,
   IRouter,
   Router,
 } from './router';
-
-export {
-  IViewportCustomElementType,
-  IFindViewportsResult,
-  ChildContainer,
-  Scope,
-} from './scope';
 
 export {
   IViewportOptions,
@@ -88,10 +98,7 @@ export {
 } from './viewport';
 
 export {
-  IRouteableCustomElement,
-  IRouteableCustomElementType,
   ContentStatus,
-  ReentryBehavior,
   ViewportContent,
 } from './viewport-content';
 
@@ -108,4 +115,6 @@ export {
   ViewportCustomElementRegistration,
   NavCustomElement,
   NavCustomElementRegistration,
+  GotoCustomAttribute,
+  GotoCustomAttributeRegistration,
 } from './configuration';

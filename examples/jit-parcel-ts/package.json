@@ -12,14 +12,7 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "@aurelia/debug": "dev",
-    "@aurelia/jit-html": "dev",
-    "@aurelia/jit-html-browser": "dev",
-    "@aurelia/jit": "dev",
-    "@aurelia/kernel": "dev",
-    "@aurelia/runtime-html": "dev",
-    "@aurelia/runtime-html-browser": "dev",
-    "@aurelia/runtime": "dev"
+    "aurelia": "dev"
   },
   "devDependencies": {
     "@types/node": "latest",

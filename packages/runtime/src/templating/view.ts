@@ -1,17 +1,24 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
   IController,
   ILifecycle,
-  IViewFactory
+  IViewFactory,
+  IViewModel
 } from '../lifecycle';
+import { Scope } from '../observation/binding-context';
 import { ITemplate } from '../rendering-engine';
+import { CustomElement } from '../resources/custom-element';
 import { Controller } from './controller';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
+
+  public get parentContextId(): number {
+    return this.template.renderContext.parentId;
+  }
 
   public isCaching: boolean;
   public name: string;
@@ -22,7 +29,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   private readonly lifecycle: ILifecycle;
   private readonly template: ITemplate<T>;
 
-  constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
+  public constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
 
     this.cacheSize = -1;
@@ -93,5 +100,193 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     } else {
       Object.assign(this.parts, parts);
     }
+  }
+}
+
+type HasAssociatedViews = {
+  $views: ITemplateDefinition[];
+};
+
+export function view(v: ITemplateDefinition) {
+  return function<T extends Constructable>(target: T & Partial<HasAssociatedViews>) {
+    const views = target.$views || (target.$views = []);
+    views.push(v);
+  };
+}
+
+function hasAssociatedViews<T>(object: T): object is T & HasAssociatedViews {
+  return object && '$views' in object;
+}
+
+export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
+  .noDefault();
+
+export interface IViewLocator {
+  getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
+    object: T | null | undefined,
+    viewNameOrSelector?: string | ViewSelector,
+  ): ComposableObjectComponentType<T> | null;
+}
+
+export type ClassInstance<T> = T & {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  readonly constructor: Function;
+};
+
+export type ComposableObject = Omit<IViewModel, '$controller'>;
+export type ViewSelector = (object: ComposableObject, views: ITemplateDefinition[]) => string;
+export type ComposableObjectComponentType<T extends ComposableObject>
+  = ConstructableClass<{ viewModel: T } & ComposableObject>;
+
+const lifecycleCallbacks = [
+  'binding',
+  'bound',
+  'attaching',
+  'attached',
+  'detaching',
+  'caching',
+  'detached',
+  'unbinding',
+  'unbound'
+] as const;
+
+export class ViewLocator implements IViewLocator {
+  private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new WeakMap();
+  private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new Map();
+
+  public static register(container: IContainer): IResolver<IViewLocator> {
+    return Registration.singleton(IViewLocator, this).register(container);
+  }
+
+  public getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
+    object: T | null | undefined,
+    viewNameOrSelector?: string | ViewSelector
+  ): ComposableObjectComponentType<T> | null {
+    if (object) {
+      const availableViews = hasAssociatedViews(object.constructor)
+        ? object.constructor.$views
+        : [];
+      const resolvedViewName = typeof viewNameOrSelector === 'function'
+        ? viewNameOrSelector(object, availableViews)
+        : this.getViewName(availableViews, viewNameOrSelector);
+
+      return this.getOrCreateBoundComponent<T>(
+        object,
+        availableViews,
+        resolvedViewName
+      );
+    }
+
+    return null;
+  }
+
+  private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
+    object: T,
+    availableViews: ITemplateDefinition[],
+    resolvedViewName: string
+  ): ComposableObjectComponentType<T> {
+    let lookup = this.modelInstanceToBoundComponent.get(object);
+    let BoundComponent: ComposableObjectComponentType<T> | undefined;
+
+    if (lookup === void 0) {
+      lookup = {};
+      this.modelInstanceToBoundComponent.set(object, lookup);
+    } else {
+      BoundComponent = lookup[resolvedViewName] as ComposableObjectComponentType<T>;
+    }
+
+    if (BoundComponent === void 0) {
+      const UnboundComponent = this.getOrCreateUnboundComponent<T>(
+        object,
+        availableViews,
+        resolvedViewName
+      );
+
+      BoundComponent = class extends UnboundComponent {
+        public constructor() {
+          super(object);
+        }
+      };
+
+      lookup[resolvedViewName] = BoundComponent;
+    }
+
+    return BoundComponent;
+  }
+
+  private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
+    object: T,
+    availableViews: ITemplateDefinition[],
+    resolvedViewName: string
+  ): ComposableObjectComponentType<T> {
+    let lookup = this.modelTypeToUnboundComponent.get(object.constructor);
+    let UnboundComponent: ComposableObjectComponentType<T> | undefined;
+
+    if (lookup === void 0) {
+      lookup = {};
+      this.modelTypeToUnboundComponent.set(object.constructor, lookup);
+    } else {
+      UnboundComponent = lookup[resolvedViewName] as ComposableObjectComponentType<T>;
+    }
+
+    if (UnboundComponent === void 0) {
+      UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+        this.getView(availableViews, resolvedViewName),
+        class {
+          protected $controller!: IController;
+
+          public constructor(public viewModel: T) {}
+
+          public created(flags: LifecycleFlags) {
+            this.$controller.scope = Scope.fromParent(
+              flags,
+              this.$controller.scope!,
+              this.viewModel
+            );
+
+            if (this.viewModel.created) {
+              this.viewModel.created(flags);
+            }
+          }
+        }
+      );
+
+      const proto = UnboundComponent.prototype;
+
+      lifecycleCallbacks.forEach(x => {
+        if (x in object) {
+          const fn = function (this: InstanceType<ComposableObjectComponentType<T>>, flags: LifecycleFlags) { return this.viewModel[x]!(flags); };
+          Reflect.defineProperty(fn, 'name', { configurable: true, value: x });
+          proto[x] = fn;
+        }
+      });
+
+      lookup[resolvedViewName] = UnboundComponent;
+    }
+
+    return UnboundComponent;
+  }
+
+  private getViewName(views: ITemplateDefinition[], requestedName?: string) {
+    if (requestedName) {
+      return requestedName;
+    }
+
+    if (views.length === 1) {
+      return views[0].name;
+    }
+
+    return 'default-view';
+  }
+
+  private getView(views: ITemplateDefinition[], name: string): ITemplateDefinition {
+    const v = views.find(x => x.name === name);
+
+    if (v === void 0) {
+      // TODO: Use Reporter
+      throw new Error(`Could not find view: ${name}`);
+    }
+
+    return v;
   }
 }

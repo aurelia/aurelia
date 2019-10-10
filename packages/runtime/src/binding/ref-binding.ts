@@ -1,9 +1,7 @@
 import {
   IIndexable,
   IServiceLocator,
-  Tracer,
 } from '@aurelia/kernel';
-
 import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
@@ -32,7 +30,7 @@ export class RefBinding implements IBinding {
   public sourceExpression: IsBindingBehavior;
   public target: IObservable;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior,
     target: object,
     locator: IServiceLocator,
@@ -46,10 +44,8 @@ export class RefBinding implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (Tracer.enabled) { Tracer.enter('Ref', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
 
@@ -70,23 +66,22 @@ export class RefBinding implements IBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Ref', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
-    if (this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part) === this.target) {
-      this.sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.part);
+    let sourceExpression = this.sourceExpression;
+    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part) === this.target) {
+      sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.part);
     }
 
-    const sourceExpression = this.sourceExpression;
+    // source expression might have been modified durring assign, via a BB
+    sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
       sourceExpression.unbind(flags, this.$scope!, this);
     }
@@ -95,7 +90,6 @@ export class RefBinding implements IBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {

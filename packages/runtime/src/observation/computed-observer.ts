@@ -1,4 +1,4 @@
-import { Constructable, IIndexable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, IIndexable, PLATFORM, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -78,7 +78,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   private readonly descriptor: PropertyDescriptor;
   private observing: boolean;
 
-  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
+  public constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.currentValue = this.oldValue = undefined;
@@ -87,15 +87,13 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public setValue(newValue: unknown): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments)); }
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without setters won't end up here
-    this.descriptor.set!.call(this.obj, newValue);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.descriptor.set!.call(this.obj, newValue); // Non-null is implied because descriptors without setters won't end up here
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
       this.currentValue = newValue;
       this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTargetInstance);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -110,13 +108,11 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public convertProperty(): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'convertProperty', slice.call(arguments)); }
     this.observing = true;
     this.currentValue = this.obj[this.propertyKey];
 
     const set = (newValue: unknown): void => { this.setValue(newValue); };
     Reflect.defineProperty(this.obj, this.propertyKey, { set });
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -140,7 +136,7 @@ export class GetterObserver implements GetterObserver {
   private subscriberCount: number;
   private isCollecting: boolean;
 
-  constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+  public constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;
@@ -158,27 +154,25 @@ export class GetterObserver implements GetterObserver {
   }
 
   public addPropertyDep(subscribable: ISubscribable): void {
-    if (this.propertyDeps.indexOf(subscribable) === -1) {
+    if (!this.propertyDeps.includes(subscribable)) {
       this.propertyDeps.push(subscribable);
     }
   }
 
   public addCollectionDep(subscribable: ICollectionSubscribable): void {
-    if (this.collectionDeps.indexOf(subscribable) === -1) {
+    if (!this.collectionDeps.includes(subscribable)) {
       this.collectionDeps.push(subscribable);
     }
   }
 
   public getValue(): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValue', slice.call(arguments)); }
     if (this.subscriberCount === 0 || this.isCollecting) {
-      // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
-      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     } else {
-      // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
-      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
@@ -213,7 +207,6 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValueAndCollectDependencies(requireCollect: boolean): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValueAndCollectDependencies', slice.call(arguments)); }
     const dynamicDependencies = !this.overrides.static || requireCollect;
 
     if (dynamicDependencies) {
@@ -229,7 +222,6 @@ export class GetterObserver implements GetterObserver {
       this.isCollecting = false;
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
@@ -248,12 +240,9 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  if (Tracer.enabled) { Tracer.enter('computed', 'createGetterTraps', slice.call(arguments)); }
   const traps = {
     get: function(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
-      if (Tracer.enabled) { Tracer.enter('computed', 'get', slice.call(arguments)); }
       if (observer.doNotCollect(key)) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return Reflect.get(target, key, receiver);
       }
 
@@ -263,38 +252,33 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
         case '[object Array]':
           observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
           if (key === 'length') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Map]':
           observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Set]':
           observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         default:
           observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
       }
 
-      if (Tracer.enabled) { Tracer.leave(); }
       return proxyOrValue(flags, target, key, observerLocator, observer);
     }
   };
-  if (Tracer.enabled) { Tracer.leave(); }
   return traps;
 }
 
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
   if (typeof value === 'function') {
-    // tslint:disable-next-line: ban-types // We need Function's bind() method here
-    return (target as { [key: string]: Function })[key as string].bind(target);
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    return (target as { [key: string]: Function })[key as string].bind(target); // We need Function's bind() method here
   }
   if (typeof value !== 'object' || value === null) {
     return value;

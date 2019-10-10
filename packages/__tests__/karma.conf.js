@@ -47,6 +47,11 @@ module.exports = function (config) {
         'sourcemap',
       ],
     },
+    webpackMiddleware: {
+      // webpack-dev-middleware configuration
+      // i. e.
+      stats: 'errors-only',
+    },
     webpack: {
       mode: 'none',
       resolve: {

@@ -13,6 +13,7 @@ export {
   isLiteral,
   arePureLiterals,
   isPureLiteral,
+  CustomExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
   AssignExpression,
@@ -117,7 +118,9 @@ export {
 export {
   ArrayObserver,
   enableArrayObservation,
-  disableArrayObservation
+  disableArrayObservation,
+  applyMutationsToIndices,
+  synchronizeIndices,
 } from './observation/array-observer';
 export {
   MapObserver,
@@ -221,11 +224,15 @@ export {
   CustomAttributeConstructor,
   CustomAttributeDecorator,
   CustomAttribute,
-  dynamicOptions,
   ICustomAttributeResource,
   ICustomAttributeType,
   templateController
 } from './resources/custom-attribute';
+export {
+  FrequentMutations,
+  InfrequentMutations,
+  ObserveShallow,
+} from './resources/custom-attributes/flags';
 export {
   If,
   Else
@@ -265,6 +272,9 @@ export {
   ISanitizer,
   SanitizeValueConverter
 } from './resources/value-converters/sanitize';
+export {
+  ViewValueConverter
+} from './resources/value-converters/view';
 
 export {
   bindable,
@@ -272,12 +282,22 @@ export {
   WithBindables,
   Bindable,
 } from './templating/bindable';
+
+export {
+  children,
+  ChildrenDecorator,
+  HasChildrenObservers
+} from './templating/children';
+
 // These exports are temporary until we have a proper way to unit test them
 export {
   Controller,
 } from './templating/controller';
 export {
   ViewFactory,
+  IViewLocator,
+  ViewLocator,
+  view
 } from './templating/view';
 
 export {
@@ -319,7 +339,7 @@ export {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  RuntimeBasicConfiguration
+  RuntimeConfiguration
 } from './configuration';
 export {
   AttributeDefinition,
@@ -353,7 +373,9 @@ export {
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
+  alias,
+  registerAliases
 } from './definitions';
 export {
   DOM,
@@ -408,7 +430,12 @@ export {
   ContinuationTask,
   ILifecycleTask,
   LifecycleTask,
-  PromiseTask
+  PromiseTask,
+  TaskSlot,
+  StartTask,
+  IStartTask,
+  IStartTaskManager,
+  ProviderTask,
 } from './lifecycle-task';
 export {
   AccessorOrObserver,
@@ -458,8 +485,7 @@ export {
 } from './renderer';
 export {
   CompiledTemplate,
-  createRenderContext,
-  IChildrenObserver,
+  ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
   IRenderer,
@@ -469,3 +495,6 @@ export {
   ITemplateFactory,
   ViewCompileFlags,
 } from './rendering-engine';
+export {
+  RenderContext,
+} from './render-context';

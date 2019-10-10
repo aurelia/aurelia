@@ -1,15 +1,13 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "tslint.nodePath": "./node_modules/tslint/lib",
   "html.format.endWithNewline": true,
-  "tslint.exclude": [
-    "**/.vscode/**",
-    "**/allure-results/**",
-    "**/aurelia_project/**",
-    "**/coverage/**",
-    "**/node_modules/**",
-    "**/scripts/**"
+  "eslint.validate": [
+    "javascript",
+    {
+      "autoFix": true,
+      "language": "typescript"
+    }
   ],
   "emmet.triggerExpansionOnTab": true,
   "prettier.printWidth": 260,
@@ -57,5 +55,6 @@
     "statusBar.background": "#3f2e5e",
     "statusBarItem.hoverBackground": "#563f80",
     "statusBar.foreground": "#e7e7e7"
-  }
+  },
+  "workbench.tree.indent": 16
 }

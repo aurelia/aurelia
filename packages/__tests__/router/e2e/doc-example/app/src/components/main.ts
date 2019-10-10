@@ -1,12 +1,12 @@
 import { inject } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
 import { State } from '../state';
 import { About } from './about';
 import { Authors } from './authors/authors';
 import { Books } from './books/books';
 
-@inject(Router, State)
+@inject(IRouter, State)
 @customElement({
   name: 'main', template:
     `
@@ -34,23 +34,23 @@ import { Books } from './books/books';
         The background is in the --primary-color: <span data-test="info-background-color">\${color}</span>.
       </div>
     </div>
-    <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" default="about"></au-viewport>
-    <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
+    <au-viewport no-scope name="lists" used-by="authors,books" default="authors"></au-viewport>
+    <au-viewport no-scope name="content" default="about"></au-viewport>
+    <au-viewport no-scope name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 ` })
 export class Main {
-  constructor(private readonly router: Router, private readonly state: State) {
+  public constructor(private readonly router: IRouter, private readonly state: State) {
     this.router.setNav('main-menu', [
       {
         title: 'Authors',
         route: [Authors, About],
-        consideredActive: [Authors],
+        consideredActive: ['authors'],
       },
       {
         title: 'Books',
         route: [Books, About],
-        consideredActive: Books,
+        consideredActive: 'books',
       },
       {
         route: About,

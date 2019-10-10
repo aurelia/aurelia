@@ -1,32 +1,16 @@
 import {
-  IContainer,
-  Registration,
-} from '@aurelia/kernel';
-
-import {
   PropertyBinding,
 } from '../../binding/property-binding';
 import {
   Priority,
 } from '../../lifecycle';
 import {
-  BindingBehavior,
-  IBindingBehaviorDefinition,
-  IBindingBehaviorResource,
+  bindingBehavior,
 } from '../binding-behavior';
 
+@bindingBehavior('priority')
 export class PriorityBindingBehavior {
   [id: number]: number | undefined;
-
-  public static readonly kind: IBindingBehaviorResource = BindingBehavior;
-  public static readonly description: Required<IBindingBehaviorDefinition> = Object.freeze({
-    name: 'priority',
-  });
-
-  public static register(container: IContainer): void {
-    container.register(Registration.singleton(`binding-behavior:priority`, this));
-    container.register(Registration.singleton(this, this));
-  }
 
   public bind(binding: PropertyBinding, priority: number | keyof typeof Priority = Priority.low): void {
     const { targetObserver } = binding;

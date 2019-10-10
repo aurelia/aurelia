@@ -37,7 +37,6 @@ import {
 import {
   DOM,
 } from '@aurelia/runtime-html';
-
 import { Call } from './tracing';
 import {
   Boolean_valueOf,
@@ -110,16 +109,7 @@ import {
   TypedArrayConstructor,
 } from './util';
 
-// tslint:disable: no-commented-code
-// tslint:disable: no-big-function
-// tslint:disable: no-any
-// tslint:disable: completed-docs
-// tslint:disable: ban-types
-// tslint:disable: cognitive-complexity
-// tslint:disable: no-nested-template-literals
-// tslint:disable: strict-boolean-expressions
-// tslint:disable: no-non-null-assertion
-// tslint:disable: no-nested-switch
+/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
 
 let maxStack_ErrorName: string;
 let maxStack_ErrorMessage: string;
@@ -312,7 +302,7 @@ export class AssertionError extends Error {
   public operator: keyof IOperatorText;
   public generatedMessage: boolean;
 
-  constructor(options: IAssertionErrorOpts) {
+  public constructor(options: IAssertionErrorOpts) {
     const {
       actual,
       expected,
@@ -394,10 +384,10 @@ export class AssertionError extends Error {
     this.operator = operator;
     if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, stackStartFn);
-      // tslint:disable-next-line: no-unused-expression
+      // eslint-disable-next-line no-unused-expressions
       this.stack;
     } else {
-      // tslint:disable-next-line: no-unused-expression
+      // eslint-disable-next-line no-unused-expressions
       Error().stack;
     }
     this.name = 'AssertionError';
@@ -547,12 +537,12 @@ function createErrDiff(actual: any, expected: any, operator: keyof IOperatorText
       let actualLine = actualLines[i];
       let divergingLines = (
         actualLine !== expectedLine && (!actualLine.endsWith(',')
-        || actualLine.slice(0, -1) !== expectedLine)
+        || actualLine.slice(0, -1) !== expectedLine) // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
       );
       if (
         divergingLines
         && expectedLine.endsWith(',')
-        && expectedLine.slice(0, -1) === actualLine
+        && expectedLine.slice(0, -1) === actualLine // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
       ) {
         divergingLines = false;
         actualLine += ',';
@@ -948,7 +938,7 @@ function clazzWithNullPrototype(clazz: Constructable, name: string): Constructab
     }
   }
   class NullPrototype extends clazz {
-    get [Symbol.toStringTag](): string {
+    public get [Symbol.toStringTag](): string {
       return '';
     }
   }
@@ -991,9 +981,7 @@ function noPrototypeIterator(
 type InspectFn = (obj: any, opts: IInspectContext) => any;
 
 function getMessage(self: AssertionError): string {
-  return truncate(inspect(self.actual), 128) + ' ' +
-         self.operator + ' ' +
-         truncate(inspect(self.expected), 128);
+  return `${truncate(inspect(self.actual), 128)} ${self.operator} ${truncate(inspect(self.expected), 128)}`;
 }
 
 export function formatNumber(
@@ -1023,6 +1011,8 @@ export function formatPrimitive(
         if (readableRegExps[divisor] === void 0) {
           readableRegExps[divisor] = new RegExp(`(.|\\n){1,${divisor}}(\\s|$)|(\\n|.)+?(\\s|$)`, 'gm');
         }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
         const matches = value.match(readableRegExps[divisor])!;
         if (matches.length > 1) {
           const indent = ' '.repeat(ctx.indentationLvl);
@@ -1105,8 +1095,7 @@ export function formatArrayBuffer(
   const buffer = new Uint8Array(value);
   let str = join(
     (
-      buffer
-      .slice(0, Math.min(ctx.maxArrayLength, buffer.length)) as unknown as number[]
+      buffer.slice(0, Math.min(ctx.maxArrayLength, buffer.length)) as unknown as number[]
     ).map(val => val.toString(16)),
     ' ',
   );
@@ -1701,7 +1690,7 @@ export function formatRaw(
       if (typedArray === void 0) {
         formatter = formatArrayBuffer;
       } else if (keys.length === 0) {
-        return prefix + `{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
+        return `${prefix}{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
       }
       braces[0] = `${prefix}{`;
       keys.unshift('byteLength');

@@ -8,9 +8,11 @@ import {
   PLATFORM,
   ResourceDescription,
   ResourcePartDescription,
-  toArray
+  toArray,
+  IContainer,
+  IResourceKind,
+  Registration
 } from '@aurelia/kernel';
-
 import {
   IForOfStatement,
   IInterpolationExpression,
@@ -22,29 +24,9 @@ import {
   BindingStrategy,
   ensureValidStrategy
 } from './flags';
-import {
-  IController
-} from './lifecycle';
-import { CustomElementHost } from './resources/custom-element';
+import { IController, IViewModel } from './lifecycle';
+import { IElementProjector } from './resources/custom-element';
 import { Bindable } from './templating/bindable';
-
-/** @internal */
-export const customElementName = 'custom-element';
-/** @internal */
-export function customElementKey(name: string): string {
-  return `${customElementName}:${name}`;
-}
-/** @internal */
-export function customElementBehavior<T extends INode = INode>(node: T): IController<T> | undefined {
-  return (node as CustomElementHost<T>).$controller;
-}
-
-/** @internal */
-export const customAttributeName = 'custom-attribute';
-/** @internal */
-export function customAttributeKey(name: string): string {
-  return `${customAttributeName}:${name}`;
-}
 
 export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
@@ -55,7 +37,19 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
+  primary?: boolean;
 }
+
+export interface IChildrenObserverDescription<TNode extends INode = INode> {
+  callback?: string;
+  property?: string;
+  options?: MutationObserverInit;
+  query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
+  filter?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
+  map?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
+}
+
+export type ChildrenObserverSource = Omit<IChildrenObserverDescription, 'property'>;
 
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
@@ -93,7 +87,9 @@ export interface ITemplateDefinition extends IResourceDefinition {
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription> | string[];
+  childrenObservers?: Record<string, IChildrenObserverDescription>;
   containerless?: boolean;
+  isStrictBinding?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
   strategy?: BindingStrategy;
@@ -108,19 +104,17 @@ export type BindableDefinitions = Record<string, IBindableDescription>;
 
 export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
-  aliases?: string[];
   isTemplateController?: boolean;
-  hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription> | string[];
   strategy?: BindingStrategy;
   hooks?: Readonly<HooksDefinition>;
 }
 
-export type AttributeDefinition = Required<IAttributeDefinition> | null;
+export type AttributeDefinition = Required<IAttributeDefinition>;
 
 export type InstructionTypeName = string;
 
-export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('createInterface').noDefault();
+export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
 }
@@ -179,6 +173,7 @@ export interface ICallBindingInstruction extends ITargetedInstruction {
 export interface IRefBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.refBinding;
   from: string | IsBindingBehavior;
+  to: string;
 }
 
 export interface ISetPropertyInstruction extends ITargetedInstruction {
@@ -212,7 +207,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
-  toViewModel: boolean;
+  toBindingContext: boolean;
 }
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
@@ -251,7 +246,7 @@ export class HooksDefinition {
   public readonly hasDetached: boolean;
   public readonly hasCaching: boolean;
 
-  constructor(target: object) {
+  public constructor(target: object) {
     this.hasRender = 'render' in target;
     this.hasCreated = 'created' in target;
     this.hasBinding = 'binding' in target;
@@ -272,28 +267,34 @@ export class HooksDefinition {
 class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public name: string;
   public cache: '*' | number;
+  public aliases: string[];
   public template: unknown;
   public instructions: ITargetedInstruction[][];
   public dependencies: IRegistry[];
   public build: IBuildInstruction;
   public surrogates: ITargetedInstruction[];
   public bindables: Record<string, IBindableDescription> | string[];
+  public childrenObservers: Record<string, IChildrenObserverDescription>;
   public containerless: boolean;
   public shadowOptions: { mode: 'open' | 'closed' };
   public hasSlots: boolean;
   public strategy: BindingStrategy;
   public hooks: Readonly<HooksDefinition>;
   public scopeParts: readonly string[];
+  public isStrictBinding: boolean;
 
-  constructor() {
+  public constructor() {
     this.name = 'unnamed';
     this.template = null;
+    this.isStrictBinding = false;
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
+    this.childrenObservers = PLATFORM.emptyObject;
     this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
+    this.aliases = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['aliases'];
     this.containerless = false;
     this.shadowOptions = null!;
     this.hasSlots = false;
@@ -310,19 +311,24 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
+  'isStrictBinding',
   'hasSlots'
 ];
 
 const templateDefinitionArrays = [
   'instructions',
   'dependencies',
-  'surrogates'
+  'surrogates',
+  'aliases'
 ];
 
 export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  isStrictBinding?: TemplateDefinition['isStrictBinding'];
+  aliases?: string[];
+  childrenObservers?: TemplateDefinition['childrenObservers'];
 };
 
 export function buildTemplateDefinition(
@@ -334,7 +340,6 @@ export function buildTemplateDefinition(
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | ITemplateDefinition): TemplateDefinition;
-// tslint:disable-next-line:parameters-max-number
 // @ts-ignore
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -343,14 +348,17 @@ export function buildTemplateDefinition(
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
-  instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null,
-  dependencies?: ReadonlyArray<unknown> | null,
-  surrogates?: ReadonlyArray<ITargetedInstruction> | null,
+  instructions?: readonly (readonly ITargetedInstruction[])[] | null,
+  dependencies?: readonly unknown[] | null,
+  surrogates?: readonly ITargetedInstruction[] | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  strategy?: BindingStrategy | null): TemplateDefinition;
-// tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
+  strategy?: BindingStrategy | null,
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null,
+  aliases?: readonly string[] | null,
+  isStrictBinding?: boolean | null,
+): TemplateDefinition;
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | ITemplateDefinition | null,
@@ -358,40 +366,54 @@ export function buildTemplateDefinition(
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
-  instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null,
-  dependencies?: ReadonlyArray<IRegistry> | null,
-  surrogates?: ReadonlyArray<ITargetedInstruction> | null,
+  instructions?: readonly (readonly ITargetedInstruction[])[] | null,
+  dependencies?: readonly IRegistry[] | null,
+  surrogates?: readonly ITargetedInstruction[] | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  strategy?: BindingStrategy | null): TemplateDefinition {
+  strategy?: BindingStrategy | null,
+  childrenObservers?: Record<string, IChildrenObserverDescription> | null,
+  aliases?: readonly string[] | null,
+  isStrictBinding?: boolean | null,
+): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
+  /* deepscan-disable */
   const argLen = arguments.length;
   switch (argLen) {
+    case 16: if (isStrictBinding != null) def.isStrictBinding = isStrictBinding;
+    case 15: if (aliases != null) def.aliases = toArray(aliases);
+    case 14: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
-    case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
-    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions!;
-    case 10: if (containerless != null) def.containerless = containerless!;
-    case 9: if (surrogates != null) def.surrogates = toArray(surrogates!);
-    case 8: if (dependencies != null) def.dependencies = toArray(dependencies!);
-    case 7: if (instructions != null) def.instructions = toArray(instructions!) as ITargetedInstruction[][];
+    case 12: if (hasSlots != null) def.hasSlots = hasSlots;
+    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions;
+    case 10: if (containerless != null) def.containerless = containerless;
+    case 9: if (surrogates != null) def.surrogates = toArray(surrogates);
+    case 8: if (dependencies != null) def.dependencies = toArray(dependencies);
+    case 7: if (instructions != null) def.instructions = toArray(instructions) as ITargetedInstruction[][];
     case 6: if (bindables != null) def.bindables = { ...bindables };
-    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build! };
-    case 4: if (cache != null) def.cache = cache!;
+    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
+    case 4: if (cache != null) def.cache = cache;
     case 3: if (template != null) def.template = template;
     case 2:
       if (ctor != null) {
         if (ctor.bindables) {
           def.bindables = Bindable.for(ctor as unknown as {}).get();
         }
+        if (ctor.isStrictBinding) {
+          def.isStrictBinding = ctor.isStrictBinding;
+        }
         if (ctor.containerless) {
           def.containerless = ctor.containerless;
         }
         if (ctor.shadowOptions) {
           def.shadowOptions = ctor.shadowOptions as unknown as { mode: 'open' | 'closed' };
+        }
+        if (ctor.childrenObservers) {
+          def.childrenObservers = ctor.childrenObservers;
         }
         if (ctor.prototype) {
           def.hooks = new HooksDefinition(ctor.prototype);
@@ -405,13 +427,13 @@ export function buildTemplateDefinition(
         def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {
-            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
+            // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
             def[prop] = nameOrDef[prop as keyof typeof nameOrDef];
           }
         });
         templateDefinitionArrays.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {
-            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
+            // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
             def[prop] = toArray(nameOrDef[prop as keyof typeof nameOrDef] as unknown[]);
           }
         });
@@ -422,8 +444,16 @@ export function buildTemplateDefinition(
             Object.assign(def.bindables, nameOrDef.bindables);
           }
         }
+        if (nameOrDef['childrenObservers']) {
+          if (def.childrenObservers === PLATFORM.emptyObject) {
+            def.childrenObservers = { ...nameOrDef.childrenObservers };
+          } else {
+            Object.assign(def.childrenObservers, nameOrDef.childrenObservers);
+          }
+        }
       }
   }
+  /* deepscan-enable */
 
   // special handling for invocations that quack like a @customElement decorator
   if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef!))) {
@@ -431,4 +461,25 @@ export function buildTemplateDefinition(
   }
 
   return def;
+}
+
+type HasAliases = Pick<IResourceDefinition, 'aliases'>;
+function aliasDecorator<T extends Constructable<any>>(target: T & HasAliases, ...aliases: string[]): T {
+  if (target.aliases == null) {
+    target.aliases = aliases;
+    return target;
+  }
+  target.aliases.push(...aliases);
+  return target;
+}
+
+export function alias(...aliases: string[]) {
+  return (instance: Constructable<any>) => aliasDecorator(instance, ...aliases);
+}
+
+export function registerAliases<T, F>(aliases: string[], resource: IResourceKind<T, F>, key: string, container: IContainer) {
+  for (let i = 0, ii = aliases.length; i < ii; ++i) {
+    Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+  }
+
 }

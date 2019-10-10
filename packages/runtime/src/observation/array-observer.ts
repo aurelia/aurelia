@@ -1,4 +1,3 @@
-import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -57,7 +56,6 @@ function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to
   }
 }
 
-// tslint:disable-next-line:cognitive-complexity
 function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: unknown, b: unknown) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
@@ -67,14 +65,13 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
   let vpivot, ipivot, lowEnd, highStart;
   let velement, ielement, order, vtopElement;
 
-  // tslint:disable-next-line:no-constant-condition
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (to - from <= 10) {
       insertionSort(arr, indexMap, from, to, compareFn);
       return;
     }
 
-    // tslint:disable:no-statements-same-line
     thirdIndex = from + ((to - from) >> 1);
     v0 = arr[from];                i0 = indexMap[from];
     v1 = arr[to - 1];              i1 = indexMap[to - 1];
@@ -117,7 +114,7 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
       } else if (order > 0) {
         do {
           highStart--;
-          // tslint:disable-next-line:triple-equals
+          // eslint-disable-next-line eqeqeq
           if (highStart == i) {
             break partition;
           }
@@ -133,7 +130,6 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
         }
       }
     }
-    // tslint:enable:no-statements-same-line
 
     if (to - highStart < lowEnd - from) {
       quickSort(arr, indexMap, highStart, to, compareFn);
@@ -160,24 +156,24 @@ const methods: ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'] 
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  push: function(this: IObservedArray): ReturnType<typeof Array.prototype.push> {
+  push: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === void 0) {
-      return $push.apply($this, arguments as IArguments & unknown[]);
+      return $push.apply($this, args);
     }
     const len = $this.length;
-    const argCount = arguments.length;
+    const argCount = args.length;
     if (argCount === 0) {
       return len;
     }
     $this.length = o.indexMap.length = len + argCount;
     let i = len;
     while (i < $this.length) {
-      $this[i] = arguments[i - len];
+      $this[i] = args[i - len];
       o.indexMap[i] = - 2;
       i++;
     }
@@ -185,23 +181,23 @@ const observe = {
     return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  unshift: function(this: IObservedArray): ReturnType<typeof Array.prototype.unshift>  {
+  unshift: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === void 0) {
-      return $unshift.apply($this, arguments as IArguments & unknown[]);
+      return $unshift.apply($this, args);
     }
-    const argCount = arguments.length;
+    const argCount = args.length;
     const inserts = new Array(argCount);
     let i = 0;
     while (i < argCount) {
       inserts[i++] = - 2;
     }
     $unshift.apply(o.indexMap, inserts);
-    const len = $unshift.apply($this, arguments as IArguments & unknown[]);
+    const len = $unshift.apply($this, args);
     o.notify();
     return len;
   },
@@ -220,7 +216,7 @@ const observe = {
     // only mark indices as deleted if they actually existed in the original array
     const index = indexMap.length - 1;
     if (indexMap[index] > -1) {
-      indexMap.deletedItems!.push(indexMap[index]);
+      indexMap.deletedItems.push(indexMap[index]);
     }
     $pop.call(indexMap);
     o.notify();
@@ -240,34 +236,40 @@ const observe = {
     const element = $shift.call($this);
     // only mark indices as deleted if they actually existed in the original array
     if (indexMap[0] > -1) {
-      indexMap.deletedItems!.push(indexMap[0]);
+      indexMap.deletedItems.push(indexMap[0]);
     }
     $shift.call(indexMap);
     o.notify();
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  splice: function(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof Array.prototype.splice> {
+  splice: function(this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
+    const start: number = args[0];
+    const deleteCount: number|undefined = args[1];
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
     const o = $this.$observer;
     if (o === void 0) {
-      return $splice.apply($this, arguments as IArguments & [number, number, ...any[]]);
+      return $splice.apply($this, args);
     }
+    const len = this.length;
+    const relativeStart = start | 0;
+    const actualStart = relativeStart < 0 ? Math.max((len + relativeStart), 0) : Math.min(relativeStart, len);
     const indexMap = o.indexMap;
-    if (deleteCount! > 0) {
-      let i = isNaN(start) ? 0 : start;
-      const to = i + deleteCount!;
+    const argCount = args.length;
+    const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
+    if (actualDeleteCount > 0) {
+      let i = actualStart;
+      const to = i + actualDeleteCount;
       while (i < to) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
     }
-    const argCount = arguments.length;
     if (argCount > 2) {
       const itemCount = argCount - 2;
       const inserts = new Array(itemCount);
@@ -275,11 +277,11 @@ const observe = {
       while (i < itemCount) {
         inserts[i++] = - 2;
       }
-      $splice.call(indexMap, start, deleteCount!, ...inserts);
-    } else if (argCount === 2) {
-      $splice.call(indexMap, start, deleteCount!);
+      $splice.call(indexMap, start, deleteCount, ...inserts);
+    } else {
+      $splice.apply(indexMap, args);
     }
-    const deleted = $splice.apply($this, arguments as IArguments & [number, number, ...any[]]);
+    const deleted = $splice.apply($this, args);
     o.notify();
     return deleted;
   },
@@ -297,7 +299,6 @@ const observe = {
     const len = $this.length;
     const middle = (len / 2) | 0;
     let lower = 0;
-    // tslint:disable:no-statements-same-line
     while (lower !== middle) {
       const upper = len - lower - 1;
       const lowerValue = $this[lower];  const lowerIndex = o.indexMap[lower];
@@ -306,7 +307,6 @@ const observe = {
       $this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
       lower++;
     }
-    // tslint:enable:no-statements-same-line
     o.notify();
     return this;
   },
@@ -334,7 +334,7 @@ const observe = {
       }
       i++;
     }
-    if (compareFn === void 0 || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
+    if (compareFn === void 0 || typeof compareFn !== 'function'/* spec says throw a TypeError, should we do that too? */) {
       compareFn = sortCompare;
     }
     quickSort($this, o.indexMap, 0, i, compareFn);
@@ -381,8 +381,7 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
-    if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
 
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;
@@ -408,7 +407,6 @@ export class ArrayObserver {
       },
     );
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public notify(): void {
@@ -431,8 +429,8 @@ export class ArrayObserver {
 
   public flushBatch(flags: LifecycleFlags): void {
     this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { length } = collection;
+    const indexMap = this.indexMap;
+    const length = this.collection.length;
     this.indexMap = createIndexMap(length);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
@@ -446,4 +444,47 @@ export function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, a
     array.$observer = new ArrayObserver(flags, lifecycle, array);
   }
   return array.$observer;
+}
+
+/**
+ * Applies offsets to the non-negative indices in the IndexMap
+ * based on added and deleted items relative to those indices.
+ *
+ * e.g. turn `[-2, 0, 1]` into `[-2, 1, 2]`, allowing the values at the indices to be
+ * used for sorting/reordering items if needed
+ */
+export function applyMutationsToIndices(indexMap: IndexMap): void {
+  let offset = 0;
+  let j = 0;
+  const len = indexMap.length;
+  for (let i = 0; i < len; ++i) {
+    while (indexMap.deletedItems[j] <= i - offset) {
+      ++j;
+      --offset;
+    }
+    if (indexMap[i] === -2) {
+      ++offset;
+    } else {
+      indexMap[i] += offset;
+    }
+  }
+}
+
+/**
+ * After `applyMutationsToIndices`, this function can be used to reorder items in a derived
+ * array (e.g.  the items in the `views` in the repeater are derived from the `items` property)
+ */
+export function synchronizeIndices<T>(items: T[], indexMap: IndexMap): void {
+  const copy = items.slice();
+
+  const len = indexMap.length;
+  let to = 0;
+  let from = 0;
+  while (to < len) {
+    from = indexMap[to];
+    if (from !== -2) {
+      items[to] = copy[from];
+    }
+    ++to;
+  }
 }

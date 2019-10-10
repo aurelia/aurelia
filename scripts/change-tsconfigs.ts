@@ -2,13 +2,15 @@ import { File } from './files';
 import { createLogger } from './logger';
 import project from './project';
 
-(async function () {
-  const log = createLogger('change-tsconfigs');
+const log = createLogger('change-tsconfigs');
 
+(async function (): Promise<void> {
   const [, , operation, mod] = process.argv;
 
   const packages = project.packages;
-  const tsconfigFiles = packages.map(pkg => new File(pkg.tsconfig));
+  const tsconfigFiles = packages
+    .filter(pkg => pkg.name.kebab !== '__tests__' && pkg.name.kebab !== '__e2e__') // ignore @aurelia/__tests__ and __e2e__
+    .map(pkg => new File(pkg.tsconfig));
 
   for (const file of tsconfigFiles) {
     const backupPath = file.path.replace('.json', '.json.bak');
@@ -40,4 +42,8 @@ import project from './project';
     }
   }
 
-})();
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
+});

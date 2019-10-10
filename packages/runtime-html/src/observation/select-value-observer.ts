@@ -1,6 +1,5 @@
 import {
   CollectionKind,
-  collectionSubscriberCollection,
   IAccessor,
   ICollectionObserver,
   IDOM,
@@ -13,7 +12,6 @@ import {
   Priority,
   subscriberCollection,
 } from '@aurelia/runtime';
-
 import { IEventSubscriber } from './event-manager';
 
 const childObserverOptions = {
@@ -48,14 +46,17 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public currentValue: unknown;
   public oldValue: unknown;
 
+  public readonly persistentFlags: LifecycleFlags;
+
   public hasChanges: boolean;
   public priority: Priority;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public nodeObserver?: MutationObserver;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
+    flags: LifecycleFlags,
     observerLocator: IObserverLocator,
     dom: IDOM,
     handler: IEventSubscriber,
@@ -77,6 +78,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     this.nodeObserver = void 0;
 
     this.handleNodeChange = this.handleNodeChange.bind(this);
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
@@ -86,8 +88,10 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
 
@@ -115,27 +119,31 @@ export class SelectValueObserver implements IAccessor<unknown> {
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.synchronizeOptions();
     } else {
       this.hasChanges = true;
     }
-
+    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
     this.callSubscribers(this.currentValue, this.oldValue, flags);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.synchronizeOptions();
     } else {
       this.hasChanges = true;
     }
-
+    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
     this.callSubscribers(newValue, previousValue, flags);
   }
 
   public notify(flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       return;
     }
     const oldValue = this.oldValue;
@@ -163,7 +171,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
 
     while (i-- > 0) {
       const option = options[i];
-      const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
+      const optionValue = Object.prototype.hasOwnProperty.call(option, 'model') ? option.model : option.value;
       if (isArray) {
         option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
@@ -209,7 +217,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
       while (i < len) {
         option = options[i];
         if (option.selected) {
-          values.push(option.hasOwnProperty('model')
+          values.push(Object.prototype.hasOwnProperty.call(option, 'model')
             ? option.model
             : option.value
           );
@@ -246,7 +254,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     while (i < len) {
       const option = options[i];
       if (option.selected) {
-        value = option.hasOwnProperty('model')
+        value = Object.prototype.hasOwnProperty.call(option, 'model')
           ? option.model
           : option.value;
         break;
@@ -261,17 +269,21 @@ export class SelectValueObserver implements IAccessor<unknown> {
     return true;
   }
 
-  public bind(): void {
+  public bind(flags: LifecycleFlags): void {
     this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
 
-    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
   }
 
-  public unbind(): void {
+  public unbind(flags: LifecycleFlags): void {
     this.nodeObserver!.disconnect();
     this.nodeObserver = null!;
 
-    this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeFromCollection(this);

@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
   hasBind,
@@ -36,8 +36,7 @@ export class Listener implements IBinding {
   private readonly eventManager: IEventManager;
   private handler!: IDisposable;
 
-  // tslint:disable-next-line:parameters-max-number
-  constructor(
+  public constructor(
     dom: IDOM,
     targetEvent: string,
     delegationStrategy: DelegationStrategy,
@@ -61,7 +60,6 @@ export class Listener implements IBinding {
   }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
-    if (Tracer.enabled) { Tracer.enter('Listener', 'callSource', slice.call(arguments)); }
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
@@ -73,7 +71,6 @@ export class Listener implements IBinding {
       event.preventDefault();
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return result;
   }
 
@@ -82,10 +79,8 @@ export class Listener implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (Tracer.enabled) { Tracer.enter('Listener', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
 
@@ -113,13 +108,10 @@ export class Listener implements IBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Listener', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -136,7 +128,6 @@ export class Listener implements IBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {

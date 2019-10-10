@@ -3,7 +3,7 @@ import { customElement } from '@aurelia/runtime';
 
 class Todo {
   done = false;
-  constructor(public description: string) {}
+  public constructor(public description: string) {}
 }
 
 @customElement(appConfig) //added by the compiler

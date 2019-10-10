@@ -3,7 +3,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  BasicConfiguration as BasicBrowserConfiguration
+  JitHtmlBrowserConfiguration
 } from '@aurelia/jit-html-browser';
 import {
   Reporter,
@@ -14,7 +14,7 @@ Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    BasicBrowserConfiguration,
+    JitHtmlBrowserConfiguration,
     window,
     UIEvent,
     Event,
@@ -25,7 +25,9 @@ function createBrowserTestContext(): HTMLTestContext {
     HTMLDivElement,
     Text,
     Comment,
-    DOMParser
+    DOMParser,
+    CSSStyleSheet,
+    ShadowRoot
   );
 }
 
@@ -35,7 +37,6 @@ function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
-
 initializeBrowserTestContext();
 
 function importAll (r) {
@@ -44,6 +45,7 @@ function importAll (r) {
 
 // Explicitly add to browser test
 importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
+importAll(require.context('./i18n/', true, /\.spec\.js$/));
 importAll(require.context('./jit/', true, /\.spec\.js$/));
 importAll(require.context('./jit-html/', true, /\.spec\.js$/));
 importAll(require.context('./kernel/', true, /\.spec\.js$/));

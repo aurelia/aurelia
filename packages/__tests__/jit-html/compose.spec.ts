@@ -6,6 +6,8 @@ import {
   ILifecycle,
   IObserverLocator,
   IRenderingEngine,
+  view,
+  customElement,
 } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
@@ -140,6 +142,29 @@ describe(spec, function () {
       } else {
         assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #3`);
       }
+    });
+  });
+
+  describe('With the ViewLocator value converter', function () {
+    it('can render a vanilla JS class instance', async function () {
+      const { au, host } = setup();
+
+      @view({ name: 'default-view', template: `\${message}` })
+      class MyModel {
+        public message = 'Hello world!';
+      }
+
+      @customElement({ name: 'app', template: '<au-compose subject.bind="model | view"></au-compose>' })
+      class App {
+        public model = new MyModel();
+      }
+
+      au.app({ host, component: App });
+      await au.start().wait();
+
+      assert.visibleTextEqual(au.root, 'Hello world!');
+
+      await au.stop().wait();
     });
   });
 });

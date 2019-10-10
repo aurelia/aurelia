@@ -19,7 +19,9 @@ export {
   transient,
   Injectable,
   InterfaceSymbol,
-  InstanceProvider
+  InstanceProvider,
+  Resolved,
+  Transformer,
 } from './di';
 export {
   Class,
@@ -100,4 +102,6 @@ export {
   resetId,
   compareNumber,
   mergeDistinct,
+  isNumberOrBigInt,
+  isStringOrDate,
 } from './functions';

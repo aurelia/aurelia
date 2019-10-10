@@ -2,18 +2,6 @@
 
 We'd love for you to contribute to our source code and to make our projects even better than they are today! Here are the guidelines we'd like you to follow.
 
-## Code of Conduct
-
-As contributors and maintainers of Aurelia, we pledge to respect every contributor.
-
-Communication through any channels under the control of Aurelia must always be constructive and professional.
-
-We promise to extend courtesy and respect to everyone involved in this project. We expect anyone contributing to Aurelia to do the same.
-
-If any member of the community violates this code of conduct, the maintainers of Aurelia may take action as deemed appropriate.
-
-If you are subject to or witness unacceptable behavior, or have any other concerns, please email us at conduct@bluespire.com.
-
 ## Got a Question or Problem?
 
 If you have questions about how to use Aurelia, please direct these to Gitter, Discourse, or StackOverflow.
@@ -33,7 +21,7 @@ You can request a new feature by submitting an issue. If you would like to imple
 
 ## Developing
 
-Check out our [engineering-notes/README.md](engineering-notes/README.md) to get started with setting up the repo, building, testing and debugging.
+Check out [building and testing Aurelia](user-docs/community-contributions/building-and-testing-aurelia.md) to get started with setting up the repo, building, testing and debugging.
 
 ## Submission Guidelines
 
@@ -64,10 +52,10 @@ Before you submit your pull request consider the following guidelines:
 
   > Note: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
 
-* Build your changes locally to ensure all the tests pass
+* Build your changes locally and ensure all the tests in `__tests__` pass:
 
   ```shell
-  npm run test
+  npm run test-chrome
   ```
 
 * Push your branch to GitHub:
@@ -150,7 +138,7 @@ Please use one of the following:
 
 * **feat**: A new feature
 * **fix**: A bug fix
-* **doc**: Documentation only changes
+* **docs**: Documentation only changes
 * **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
 * **refactor**: A code change that neither fixes a bug or adds a feature
 * **perf**: A code change that improves performance

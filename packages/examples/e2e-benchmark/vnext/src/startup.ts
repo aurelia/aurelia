@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, ILifecycle } from '@aurelia/runtime';
 import { App } from './app';
 import { Instrumenter } from './instrumenter';
@@ -6,7 +6,7 @@ declare var instrumenter: Instrumenter;
 
 instrumenter.markLifecycle('module-loaded');
 
-const container = BasicConfiguration.createContainer();
+const container = JitHtmlBrowserConfiguration.createContainer();
 const lifecycle = container.get(ILifecycle);
 instrumenter.lifecycle = lifecycle;
 const au = window['au'] = new Aurelia(container);

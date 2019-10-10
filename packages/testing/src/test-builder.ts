@@ -1,5 +1,5 @@
 import { parseExpression } from '@aurelia/jit';
-import { BasicConfiguration } from '@aurelia/jit-html';
+import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import {
   Class,
   Constructable,
@@ -222,7 +222,7 @@ import {
 //   private instructions: HTMLTargetedInstruction[][];
 
 //   constructor(name?: string) {
-//     // tslint:disable-next-line:prefer-template
+//     // eslint-disable-next-line prefer-template
 //     this.name = name || ('$' + ++DefinitionBuilder.lastId);
 //     this.templateBuilder = new TemplateBuilder();
 //     this.instructionBuilder = new InstructionBuilder();
@@ -350,7 +350,7 @@ import {
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = BasicConfiguration.createContainer();
+//     this.container = JitHtmlConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }

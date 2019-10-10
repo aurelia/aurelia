@@ -40,11 +40,14 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public currentValue: unknown;
   public oldValue: unknown;
 
+  public readonly persistentFlags: LifecycleFlags;
+
   public hasChanges: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
+    flags: LifecycleFlags,
     observerLocator: IObserverLocator,
     element: Element,
     propertyKey: string,
@@ -61,6 +64,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
     this.hasChanges = false;
     this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
@@ -70,8 +74,10 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
 
@@ -161,11 +167,15 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
   }
 
   public unbind(flags: LifecycleFlags): void {
-    this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
   }
 }
 
@@ -176,8 +186,7 @@ const startObservation = (element: IHtmlElement, subscription: ElementMutationSu
   if (element.$mObserver === undefined) {
     element.$mObserver = DOM.createNodeObserver!(
       element,
-      // @ts-ignore
-      handleMutation,
+      handleMutation as (...args: unknown[]) => void,
       { attributes: true }
     ) as MutationObserver;
   }

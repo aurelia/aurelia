@@ -1,4 +1,4 @@
-import { read, readdir, promises, createReadStream, Dirent } from 'fs';
+import { existsSync, read, readdir, promises, createReadStream, Dirent } from 'fs';
 import { join } from 'path';
 
 const { readFile, writeFile, unlink } = promises;
@@ -27,9 +27,9 @@ export async function getFiles(
         }
 
         let dirent: Dirent;
-        const dirents_length = dirents.length;
+        const direntsLength = dirents.length;
 
-        for (let i = 0; i < dirents_length; ++i) {
+        for (let i = 0; i < direntsLength; ++i) {
           dirent = dirents[i];
           if (isMatch(dir, dirent)) {
             if (dirent.isDirectory()) {
@@ -62,7 +62,7 @@ export class File {
   public content: Buffer;
   private buffer: Buffer;
 
-  constructor(path: string) {
+  public constructor(path: string) {
     this.path = path;
     this.content = emptyBuffer;
     this.buffer = emptyBuffer;
@@ -70,11 +70,13 @@ export class File {
 
   public async restore(fromPath?: string, deleteFromPath: boolean = true) {
     if (typeof fromPath === 'string') {
-      const content = await readFile(fromPath);
-      await this.overwrite(content);
+      if (existsSync(fromPath)) {
+        const content = await readFile(fromPath);
+        await this.overwrite(content);
 
-      if (deleteFromPath) {
-        await unlink(fromPath);
+        if (deleteFromPath) {
+          await unlink(fromPath);
+        }
       }
     } else {
       await writeFile(this.path, this.buffer);

@@ -1,4 +1,4 @@
-import { Class, DI, IContainer, IRegistry, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { Class, DI, IContainer, IRegistry, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 
 export interface AttributePatternDefinition {
@@ -25,7 +25,7 @@ export class CharSpec implements ICharSpec {
 
   public has: (char: string) => boolean;
 
-  constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
+  public constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
     this.chars = chars;
     this.repeat = repeat;
     this.isSymbol = isSymbol;
@@ -63,7 +63,7 @@ export class CharSpec implements ICharSpec {
   }
 
   private hasOfMultiple(char: string): boolean {
-    return this.chars.indexOf(char) !== -1;
+    return this.chars.includes(char);
   }
 
   private hasOfSingle(char: string): boolean {
@@ -75,7 +75,7 @@ export class CharSpec implements ICharSpec {
   }
 
   private hasOfMultipleInverse(char: string): boolean {
-    return this.chars.indexOf(char) === -1;
+    return !this.chars.includes(char);
   }
 
   private hasOfSingleInverse(char: string): boolean {
@@ -88,7 +88,7 @@ export class CharSpec implements ICharSpec {
 }
 
 export class Interpretation {
-  public parts: ReadonlyArray<string>;
+  public parts: readonly string[];
   public get pattern(): string | null {
     const value = this._pattern;
     if (value === '') {
@@ -110,7 +110,7 @@ export class Interpretation {
   private readonly currentRecord: Record<string, string>;
   private readonly partsRecord: Record<string, string[]>;
 
-  constructor() {
+  public constructor() {
     this._pattern = '';
     this.parts = PLATFORM.emptyArray;
     this.currentRecord = {};
@@ -151,7 +151,7 @@ export class State {
     return this.isEndpoint ? this.patterns[0] : null;
   }
 
-  constructor(charSpec: ICharSpec, ...patterns: string[]) {
+  public constructor(charSpec: ICharSpec, ...patterns: string[]) {
     this.charSpec = charSpec;
     this.nextStates = [];
     this.types = null;
@@ -174,7 +174,7 @@ export class State {
 
   public append(charSpec: ICharSpec, pattern: string): State {
     const { patterns } = this;
-    if (patterns.indexOf(pattern) === -1) {
+    if (!patterns.includes(pattern)) {
       patterns.push(pattern);
     }
     let state = this.findChild(charSpec);
@@ -230,7 +230,7 @@ export class StaticSegment implements ISegment {
   private readonly len: number;
   private readonly specs: CharSpec[];
 
-  constructor(text: string) {
+  public constructor(text: string) {
     this.text = text;
     const len = this.len = text.length;
     const specs = this.specs = [] as CharSpec[];
@@ -252,7 +252,7 @@ export class DynamicSegment implements ISegment {
   public text: string;
   private readonly spec: CharSpec;
 
-  constructor(symbols: string) {
+  public constructor(symbols: string) {
     this.text = 'PART';
     this.spec = new CharSpec(symbols, true, false, true);
   }
@@ -267,7 +267,7 @@ export class SymbolSegment implements ISegment {
   public text: string;
   private readonly spec: CharSpec;
 
-  constructor(text: string) {
+  public constructor(text: string) {
     this.text = text;
     this.spec = new CharSpec(text, false, true, false);
   }
@@ -283,7 +283,7 @@ export class SegmentTypes {
   public dynamics: number;
   public symbols: number;
 
-  constructor() {
+  public constructor() {
     this.statics = 0;
     this.dynamics = 0;
     this.symbols = 0;
@@ -304,7 +304,7 @@ export class SyntaxInterpreter {
   public rootState: State;
   private readonly initialStates: State[];
 
-  constructor() {
+  public constructor() {
     this.rootState = new State(null!);
     this.initialStates = [this.rootState];
   }
@@ -404,7 +404,7 @@ export class SyntaxInterpreter {
 
     while (i < len) {
       c = pattern.charAt(i);
-      if (def.symbols.indexOf(c) === -1) {
+      if (!def.symbols.includes(c)) {
         if (i === start) {
           if (c === 'P' && pattern.slice(i, i + 4) === 'PART') {
             start = i = (i + 4);
@@ -451,7 +451,7 @@ export interface IAttributePattern {
 }
 
 export interface IAttributePatternHandler {
-  [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
+  [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
@@ -470,63 +470,9 @@ export function attributePattern(...patternDefs: AttributePatternDefinition[]): 
     validatePrototype(proto as IAttributePatternHandler, patternDefs);
     proto.$patternDefs = patternDefs;
 
-    target.register = function register(container: IContainer): IResolver {
-      return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
+    target.register = function register(container: IContainer): void {
+      Registration.singleton(IAttributePattern, target).register(container);
     };
     return target as DecoratedAttributePattern<TProto, TClass>;
   } as AttributePatternDecorator;
 }
-
-export interface DotSeparatedAttributePattern extends IAttributePattern {}
-export class DotSeparatedAttributePattern implements DotSeparatedAttributePattern {
-  public static register: IRegistry['register'];
-
-  public ['PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-  }
-
-  public ['PART.PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
-  }
-}
-attributePattern(
-  { pattern: 'PART.PART', symbols: '.' },
-  { pattern: 'PART.PART.PART', symbols: '.' }
-)(DotSeparatedAttributePattern);
-
-export interface RefAttributePattern extends IAttributePattern {}
-export class RefAttributePattern implements RefAttributePattern {
-  public static register: IRegistry['register'];
-
-  public ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, 'ref', null);
-  }
-
-  public ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
-  }
-}
-attributePattern(
-  { pattern: 'ref', symbols: '' },
-  { pattern: 'ref.PART', symbols: '.' }
-)(RefAttributePattern);
-
-export interface ColonPrefixedBindAttributePattern extends IAttributePattern {}
-export class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern  {
-  public static register: IRegistry['register'];
-
-  public [':PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
-  }
-}
-attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern);
-
-export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {}
-export class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern  {
-  public static register: IRegistry['register'];
-
-  public ['@PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-  }
-}
-attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern);

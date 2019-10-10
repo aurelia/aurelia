@@ -3,21 +3,21 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  BasicConfiguration as BasicJSDOMConfiguration
+  JitHtmlJsdomConfiguration
 } from '@aurelia/jit-html-jsdom';
 import {
   Reporter,
   LogLevel,
 } from '@aurelia/kernel';
+import { JSDOM } from 'jsdom';
 
 Reporter.level = LogLevel.error;
-import { JSDOM } from 'jsdom';
 
 function createJSDOMTestContext(): HTMLTestContext {
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 
   return HTMLTestContext.create(
-    BasicJSDOMConfiguration,
+    JitHtmlJsdomConfiguration,
     jsdom.window,
     jsdom.window.UIEvent,
     jsdom.window.Event,
@@ -28,7 +28,9 @@ function createJSDOMTestContext(): HTMLTestContext {
     jsdom.window.HTMLDivElement,
     jsdom.window.Text,
     jsdom.window.Comment,
-    jsdom.window.DOMParser
+    jsdom.window.DOMParser,
+    jsdom.window.CSSStyleSheet,
+    (jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
   );
 }
 

@@ -26,11 +26,9 @@
 import {
   IIndexable,
 } from '@aurelia/kernel';
-
 import {
-  CompositionRoot,
+  CompositionRoot, CustomElement, CustomAttribute,
 } from '@aurelia/runtime';
-
 import {
   isDeepEqual,
   isDeepStrictEqual,
@@ -55,12 +53,7 @@ import {
   Object_keys,
 } from './util';
 
-// tslint:disable: no-commented-code
-// tslint:disable: ban-types
-// tslint:disable: no-non-null-assertion
-// tslint:disable: no-any
-// tslint:disable: completed-docs
-// tslint:disable: strict-boolean-expressions
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
 type ErrorMatcher = string | Error | RegExp;
 
@@ -100,7 +93,7 @@ function innerOk(fn: Function, argLen: number, value: any, message: string | Err
 class Comparison {
   [key: string]: unknown;
 
-  constructor(
+  public constructor(
     obj: IIndexable,
     keys: string[],
     actual?: IIndexable,
@@ -200,7 +193,7 @@ function expectedException(
   if (expected.prototype !== void 0 && actual instanceof expected) {
     return true;
   }
-  if (Error.isPrototypeOf(expected)) {
+  if (Object.prototype.isPrototypeOf.call(Error, expected)) {
     return false;
   }
   return expected.call({}, actual) === true;
@@ -386,7 +379,7 @@ export function fail(message: string | Error = 'Failed'): never {
 }
 
 export function visibleTextEqual(root: CompositionRoot, expectedText: string, message?: string): void {
-  const actualText = getVisibleText(root.controller, root.host as Node);
+  const actualText = getVisibleText(root.controller!, root.host as Node);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,
@@ -406,6 +399,18 @@ export function equal(actual: any, expected: any, message?: string): void {
       message,
       operator: '==' as any,
       stackStartFn: equal
+    });
+  }
+}
+
+export function typeOf(actual: any, expected: any, message?: string): void {
+  if (typeof actual !== expected) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'typeof' as any,
+      stackStartFn: typeOf
     });
   }
 }
@@ -642,6 +647,30 @@ export function notMatch(actual: any, regex: RegExp, message?: string): void {
   }
 }
 
+export function isCustomElementType(actual: any, message?: string): void {
+  if (!CustomElement.isType(actual)) {
+    innerFail({
+      actual: false,
+      expected: true,
+      message,
+      operator: 'isCustomElementType' as any,
+      stackStartFn: isCustomElementType
+    });
+  }
+}
+
+export function isCustomAttributeType(actual: any, message?: string): void {
+  if (!CustomAttribute.isType(actual)) {
+    innerFail({
+      actual: false,
+      expected: true,
+      message,
+      operator: 'isCustomAttributeType' as any,
+      stackStartFn: isCustomElementType
+    });
+  }
+}
+
 const assert = Object_freeze({
   throws,
   doesNotThrow,
@@ -650,6 +679,7 @@ const assert = Object_freeze({
   ok,
   fail,
   equal,
+  typeOf,
   instanceOf,
   notInstanceOf,
   includes,
@@ -670,6 +700,8 @@ const assert = Object_freeze({
   match,
   notMatch,
   visibleTextEqual,
+  isCustomElementType,
+  isCustomAttributeType,
   strict: {
     deepEqual: deepStrictEqual,
     notDeepEqual: notDeepStrictEqual,

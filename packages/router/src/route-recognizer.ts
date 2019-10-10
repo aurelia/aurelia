@@ -13,74 +13,46 @@ export interface ConfigurableRoute {
 }
 
 export class HandlerEntry {
-  public handler: RouteHandler;
-  public names: string[];
-
-  constructor(handler: RouteHandler, names: string[]) {
-    this.handler = handler;
-    this.names = names;
-  }
+  public constructor(
+    public handler: RouteHandler,
+    public names: string[]
+  ) { }
 }
 
 /*
 * An object that is indexed and used for route generation, particularly for dynamic routes.
 */
 export class RouteGenerator {
-  public segments: Segment[];
-  public handlers: HandlerEntry[];
-
-  constructor(segments: Segment[], handlers: HandlerEntry[]) {
-    this.segments = segments;
-    this.handlers = handlers;
-  }
+  public constructor(
+    public segments: Segment[],
+    public handlers: HandlerEntry[]
+  ) { }
 }
 
 export class TypesRecord {
-  public statics: number;
-  public dynamics: number;
-  public stars: number;
-
-  constructor() {
-    this.statics = 0;
-    this.dynamics = 0;
-    this.stars = 0;
-  }
+  public statics: number = 0;
+  public dynamics: number = 0;
+  public stars: number = 0;
 }
 
 export class RecognizeResult {
-  public handler: RouteHandler;
-  public params: Record<string, string>;
-  public isDynamic: boolean;
-
-  constructor(
-    handler: RouteHandler,
-    params: Record<string, string>,
-    isDynamic: boolean
-  ) {
-    this.handler = handler;
-    this.params = params;
-    this.isDynamic = isDynamic;
-  }
+  public constructor(
+    public handler: RouteHandler,
+    public params: Record<string, string>,
+    public isDynamic: boolean
+  ) { }
 }
 
 export interface RecognizeResults extends Array<RecognizeResult> {
-  queryParams: IQueryParams;
+  queryParams?: IQueryParams;
 }
 
 export class CharSpec {
-  public invalidChars: string | null;
-  public validChars: string | null;
-  public repeat: boolean;
-
-  constructor(
-    invalidChars: string | null,
-    validChars: string | null,
-    repeat: boolean
-  ) {
-    this.invalidChars = invalidChars;
-    this.validChars = validChars;
-    this.repeat = repeat;
-  }
+  public constructor(
+    public invalidChars: string | null,
+    public validChars: string | null,
+    public repeat: boolean
+  ) { }
 
   public equals(other: CharSpec): boolean {
     return this.validChars === other.validChars && this.invalidChars === other.invalidChars;
@@ -88,19 +60,17 @@ export class CharSpec {
 }
 
 export class State {
-  public handlers: HandlerEntry[];
-  public regex: RegExp;
-  public types: TypesRecord;
-  public charSpec: CharSpec;
-  public nextStates: State[];
+  public handlers!: HandlerEntry[];
+  public regex!: RegExp;
+  public types!: TypesRecord;
+  public nextStates: State[] = [];
 
-  constructor(charSpec?: CharSpec) {
-    this.charSpec = charSpec;
-    this.nextStates = [];
-  }
+  public constructor(
+    public charSpec?: CharSpec
+  ) { }
 
   public put(charSpec: CharSpec): State {
-    let state = this.nextStates.find(s => s.charSpec.equals(charSpec));
+    let state = this.nextStates.find(s => (s.charSpec as CharSpec).equals(charSpec));
 
     if (state === undefined) {
       state = new State(charSpec);
@@ -141,14 +111,14 @@ const escapeRegex = new RegExp(`(\\${specials.join('|\\')})`, 'g');
 export class StaticSegment {
   public name: string;
   public string: string;
-  public optional: boolean;
-  public caseSensitive: boolean;
+  public optional: boolean = false;
 
-  constructor(str: string, caseSensitive: boolean) {
+  public constructor(
+    str: string,
+    public caseSensitive: boolean
+  ) {
     this.name = str;
     this.string = str;
-    this.caseSensitive = caseSensitive;
-    this.optional = false;
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
@@ -179,13 +149,10 @@ export class StaticSegment {
 }
 
 export class DynamicSegment {
-  public name: string;
-  public optional: boolean;
-
-  constructor(name: string, optional: boolean) {
-    this.name = name;
-    this.optional = optional;
-  }
+  public constructor(
+    public name: string,
+    public optional: boolean
+  ) { }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     callback(new CharSpec('/', null, true));
@@ -202,13 +169,11 @@ export class DynamicSegment {
 }
 
 export class StarSegment {
-  public name: string;
-  public optional: boolean;
+  public optional: boolean = false;
 
-  constructor(name: string) {
-    this.name = name;
-    this.optional = false;
-  }
+  public constructor(
+    public name: string
+  ) { }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     callback(new CharSpec('', null, true));
@@ -247,21 +212,19 @@ export type Segment = StaticSegment | DynamicSegment | StarSegment | EpsilonSegm
  */
 export class RouteRecognizer {
   public rootState: State;
-  public names: Record<string, RouteGenerator>;
-  public routes: Map<RouteHandler, RouteGenerator>;
+  public names: Record<string, RouteGenerator> = {};
+  public routes: Map<RouteHandler, RouteGenerator> = new Map();
 
-  constructor() {
+  public constructor() {
     this.rootState = new State();
-    this.names = {};
-    this.routes = new Map();
   }
 
   /**
    * Parse a route pattern and add it to the collection of recognized routes.
    *
-   * @param route The route to add.
+   * @param route - The route to add.
    */
-  public add(route: ConfigurableRoute|ConfigurableRoute[]): State | undefined {
+  public add(route: ConfigurableRoute | ConfigurableRoute[]): State | undefined {
     if (Array.isArray(route)) {
       route.forEach(r => {
         this.add(r);
@@ -278,7 +241,7 @@ export class RouteRecognizer {
     let isEmpty = true;
 
     let normalizedRoute = route.path;
-    if (normalizedRoute.charAt(0) === '/') {
+    if (normalizedRoute.startsWith('/')) {
       normalizedRoute = normalizedRoute.slice(1);
     }
 
@@ -291,10 +254,10 @@ export class RouteRecognizer {
       part = splitRoute[i];
 
       // Try to parse a parameter :param?
-      let match = part.match(/^:([^?]+)(\?)?$/);
+      let match = /^:([^?]+)(\?)?$/.exec(part);
       if (match) {
         const [, name, optional] = match;
-        if (name.indexOf('=') !== -1) {
+        if (name.includes('=')) {
           throw new Error(`Parameter ${name} in route ${route} has a default value, which is not supported.`);
         }
         segments.push(segment = new DynamicSegment(name, !!optional));
@@ -302,7 +265,7 @@ export class RouteRecognizer {
         types.dynamics++;
       } else {
         // Try to parse a star segment *whatever
-        match = part.match(/^\*(.+)$/);
+        match = /^\*(.+)$/.exec(part);
         if (match) {
           segments.push(segment = new StarSegment(match[1]));
           names.push(match[1]);
@@ -311,7 +274,7 @@ export class RouteRecognizer {
           segments.push(new EpsilonSegment());
           continue;
         } else {
-          segments.push(segment = new StaticSegment(part, route.caseSensitive));
+          segments.push(segment = new StaticSegment(part, route.caseSensitive === true));
           types.statics++;
         }
       }
@@ -336,8 +299,8 @@ export class RouteRecognizer {
         skippableStates.push(nextState);
         regex += `(?:/${segment.regex()})?`;
 
-      // Otherwise, we fast forward to the end of the segment and remove any
-      // references to skipped segments since we don't need them anymore.
+        // Otherwise, we fast forward to the end of the segment and remove any
+        // references to skipped segments since we don't need them anymore.
       } else {
         currentState = nextState;
         regex += `/${segment.regex()}`;
@@ -383,17 +346,17 @@ export class RouteRecognizer {
   /**
    * Retrieve a RouteGenerator for a route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns The RouteGenerator for that route.
    */
   public getRoute(nameOrRoute: string | RouteHandler): RouteGenerator {
-    return typeof(nameOrRoute) === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute);
+    return typeof nameOrRoute === 'string' ? this.names[nameOrRoute] : this.routes.get(nameOrRoute) as RouteGenerator;
   }
 
   /**
    * Retrieve the handlers registered for the route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns The handlers.
    */
   public handlersFor(nameOrRoute: string | RouteHandler): HandlerEntry[] {
@@ -408,7 +371,7 @@ export class RouteRecognizer {
   /**
    * Check if this RouteRecognizer recognizes a route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns True if the named route is recognized.
    */
   public hasRoute(nameOrRoute: string | RouteHandler): boolean {
@@ -418,9 +381,9 @@ export class RouteRecognizer {
   /**
    * Generate a path and query string from a route name or RouteConfig (RouteHandler) and params object.
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
-   * @param params The route params to use when populating the pattern.
-   *  Properties not required by the pattern will be appended to the query string.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
+   * @param params - The route params to use when populating the pattern.
+   * Properties not required by the pattern will be appended to the query string.
    * @returns The generated absolute path and query string.
    */
   public generate(nameOrRoute: string | RouteHandler, params?: object): string {
@@ -431,10 +394,10 @@ export class RouteRecognizer {
 
     const handler = route.handlers[0].handler;
     if (handler.generationUsesHref) {
-      return handler.href;
+      return handler.href as string;
     }
 
-    const routeParams = {...params};
+    const routeParams = { ...params };
     const segments = route.segments;
     const consumed = {};
     let output = '';
@@ -446,7 +409,7 @@ export class RouteRecognizer {
         continue;
       }
 
-      const segmentValue = segment.generate(routeParams, consumed);
+      const segmentValue = segment.generate(routeParams as Record<string, string>, consumed);
       if (segmentValue == null) {
         if (!segment.optional) {
           throw new Error(`A value is required for route parameter '${segment.name}' in route '${nameOrRoute}'.`);
@@ -457,7 +420,7 @@ export class RouteRecognizer {
       }
     }
 
-    if (output.charAt(0) !== '/') {
+    if (!output.startsWith('/')) {
       output = `/${output}`;
     }
 
@@ -466,7 +429,7 @@ export class RouteRecognizer {
       Reflect.deleteProperty(routeParams, param);
     }
 
-    const queryString = buildQueryString(routeParams);
+    const queryString = buildQueryString(routeParams as IQueryParams);
     output += queryString ? `?${queryString}` : '';
 
     return output;
@@ -475,10 +438,10 @@ export class RouteRecognizer {
   /**
    * Match a path string against registered route patterns.
    *
-   * @param path The path to attempt to match.
+   * @param path - The path to attempt to match.
    * @returns Array of objects containing `handler`, `params`, and
-   *  `isDynamic` values for the matched route(s), or undefined if no match
-   *  was found.
+   * `isDynamic` values for the matched route(s), or undefined if no match
+   * was found.
    */
   public recognize(path: string): RecognizeResults {
     let states = [this.rootState];
@@ -495,7 +458,7 @@ export class RouteRecognizer {
 
     normalizedPath = decodeURI(normalizedPath);
 
-    if (normalizedPath.charAt(0) !== '/') {
+    if (!normalizedPath.startsWith('/')) {
       normalizedPath = `/${normalizedPath}`;
     }
 
@@ -512,13 +475,13 @@ export class RouteRecognizer {
 
       states.forEach(state => {
         state.nextStates.forEach(nextState => {
-          if (nextState.charSpec.validChars !== null) {
-            if (nextState.charSpec.validChars.indexOf(ch) !== -1) {
+          if ((nextState.charSpec as CharSpec).validChars !== null) {
+            if (((nextState.charSpec as CharSpec).validChars as string).includes(ch)) {
               nextStates.push(nextState);
             }
-          } else if (nextState.charSpec.invalidChars !== null
-            && nextState.charSpec.invalidChars.indexOf(ch) === -1) {
-              nextStates.push(nextState);
+          } else if ((nextState.charSpec as CharSpec).invalidChars !== null
+            && !((nextState.charSpec as CharSpec).invalidChars as string).includes(ch)) {
+            nextStates.push(nextState);
           }
         });
       });
@@ -570,9 +533,11 @@ export class RouteRecognizer {
     if (solution && solution.handlers) {
       // if a trailing slash was dropped and a star segment is the last segment
       // specified, put the trailing slash back
-      if (isSlashDropped && solution.regex.source.slice(-5) === '(.+)$') {
+      if (isSlashDropped && solution.regex.source.endsWith('(.+)$')) {
         normalizedPath = `${normalizedPath}/`;
       }
+
+      // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
       const captures = normalizedPath.match(solution.regex);
       let currentCapture = 1;
       const result = [] as RecognizeResults;
@@ -581,12 +546,13 @@ export class RouteRecognizer {
       solution.handlers.forEach(handler => {
         const params: Record<string, string> = {};
         handler.names.forEach(name => {
-          params[name] = captures[currentCapture++];
+          params[name] = (captures as RegExpMatchArray)[currentCapture++];
         });
         result.push(new RecognizeResult(handler.handler, params, handler.names.length > 0));
       });
 
       return result;
     }
+    return void 0 as unknown as RecognizeResults;
   }
 }

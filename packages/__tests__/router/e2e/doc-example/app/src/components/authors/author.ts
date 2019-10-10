@@ -1,6 +1,6 @@
 import { inject } from '@aurelia//kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
 import { AuthorsRepository } from '../../repositories/authors';
 import { State } from '../../state';
 import { wait } from '../../utils';
@@ -20,12 +20,12 @@ import { Information } from './information';
 </div>
 <div if.bind="!hideTabs">
   <au-nav data-test="author-menu" name="author-menu"></au-nav>
-  <au-viewport name="author-tabs" default="author-details(\${author.id})" used-by="about-authors,author-details,information,login-special" no-history></au-viewport>
+  <au-viewport no-scope name="author-tabs" default="author-details(\${author.id})" used-by="about-authors,author-details,information,login-special" no-history></au-viewport>
 </div>
 </template>`,
   dependencies: [Information as any]
 })
-@inject(Router, AuthorsRepository, State)
+@inject(IRouter, AuthorsRepository, State)
 export class Author {
   public static parameters = ['id'];
 
@@ -33,7 +33,7 @@ export class Author {
 
   public hideTabs: boolean = false;
 
-  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
+  public constructor(private readonly router: IRouter, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   public created() {
     console.log('### created', this);
@@ -46,12 +46,12 @@ export class Author {
     console.log('### enter', this, parameters);
     this.author = this.authorsRepository.author(+parameters.id);
     this.router.setNav('author-menu', [
-      { title: 'Details', route: `author-details(${this.author.id})` },
+      { title: '<strong>Details</strong>', route: `author-details(${this.author.id})` },
       { title: 'About authors', route: 'about-authors' },
       { title: 'Author information', route: 'information' },
     ]);
     const vp = this.router.getViewport('author-tabs');
-    const component = vp && vp.content && vp.content.componentName();
+    const component = vp && vp.content && vp.content.toComponentName();
     if (component) {
       this.router.goto(component + (component === 'author-details' ? `(${this.author.id})` : ''));
     }

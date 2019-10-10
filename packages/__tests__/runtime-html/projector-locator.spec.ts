@@ -17,7 +17,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
     const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
@@ -41,7 +41,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
     const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
@@ -67,7 +67,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
     const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -100,7 +100,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
     const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -124,7 +124,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
     const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
     assert.strictEqual(host['$controller'], component, `host['$controller']`);
@@ -144,7 +144,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, Foo.description), /21/, `() => locator.getElementProjector(dom, component, host, Foo.description)`);
   });
@@ -160,7 +160,7 @@ describe.skip(`determineProjector`, function () {
       class {}
     );
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const controller = Controller.forCustomElement(component, ctx.container, host);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, Foo.description), /21/, `() => locator.getElementProjector(dom, component, host, Foo.description)`);
   });

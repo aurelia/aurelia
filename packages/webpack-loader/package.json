@@ -3,6 +3,7 @@
   "version": "0.3.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -26,27 +27,24 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "tslint --project tsconfig.json -t stylish",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system webpack-loader",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system webpack-loader",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0",
     "@aurelia/plugin-conventions": "0.3.0",
-    "loader-utils": "^1.2.3"
+    "loader-utils": "^1.2.3",
+    "webpack": "^4.41.0"
   },
   "devDependencies": {
-    "@types/node": "^10.12.27",
+    "@types/node": "^10.14.13",
     "@types/loader-utils": "^1.1.3",
+    "@types/webpack": "^4.39.2",
     "tslib": "^1.10.0",
-    "tslint": "^5.18.0",
-    "tslint-microsoft-contrib": "^6.2.0",
-    "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.3"
   }
 }

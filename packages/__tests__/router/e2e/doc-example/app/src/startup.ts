@@ -1,8 +1,10 @@
+// Promise polyfill for old browsers
+import 'promise-polyfill/lib/polyfill';
+
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
-import { registerComponent } from './utils';
+import { Aurelia } from '@aurelia/runtime';
 
 import { App } from './app';
 
@@ -24,34 +26,37 @@ import { LoginSpecial } from './components/login-special';
 import { Main } from './components/main';
 import { State } from './state';
 
-const container = BasicConfiguration.createContainer();
+const globalResources = [
+  State,
 
-container.register(
-  App as any,
-  State as any,
-);
-registerComponent(
-  container,
-  About as any,
-  AboutAuthors as any,
-  AboutBooks as any,
-  Author as any,
-  AuthorDetails as any,
-  Authors as any,
-  Book as any,
-  BookDetails as any,
-  Books as any,
+  About,
+  AboutAuthors,
+  AboutBooks,
+  Author,
+  AuthorDetails,
+  Authors,
+  Book,
+  BookDetails,
+  Books,
 
-  Chat as any,
-  ChatUser as any,
-  ChatUsers as any,
+  Chat,
+  ChatUser,
+  ChatUsers,
 
-  Login as any,
-  LoginSpecial as any,
-  Main as any,
-);
+  Login,
+  LoginSpecial,
+  Main,
+] as any;
 
-window['au'] = new Aurelia(container)
-  .register(DebugConfiguration, RouterConfiguration)
-  .app({ host: document.querySelector('app'), component: App })
+(global as any).au = new Aurelia()
+  .register(
+    JitHtmlBrowserConfiguration,
+    DebugConfiguration,
+    RouterConfiguration,
+    ...globalResources,
+  )
+  .app({
+    host: document.querySelector('app'),
+    component: App
+  })
   .start();

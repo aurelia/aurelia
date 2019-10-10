@@ -1,6 +1,9 @@
 import { CIEnv } from './ci-env';
+import { createLogger } from './logger';
 
-async function main(): Promise<void> {
+const log = createLogger('post-benchmark-result');
+
+(async function (): Promise<void> {
   let url;
   const rows = await CIEnv.circleGet(`project/github/aurelia/aurelia/${CIEnv.CIRCLE_BUILD_NUM}/artifacts`);
   for (const row of rows) {
@@ -13,8 +16,9 @@ async function main(): Promise<void> {
   await CIEnv.githubPost(`repos/aurelia/aurelia/issues/${CIEnv.CIRCLE_PULL_REQUEST.split('/').pop()}/comments`, {
     body: `JS Framework Benchmark: ${url}`
   });
-}
 
-try {
-  main();
-} catch (e) {}
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
+});

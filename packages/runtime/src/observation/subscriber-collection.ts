@@ -13,8 +13,8 @@ import {
 // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
 
 export function subscriberCollection(): ClassDecorator {
-  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
-  return function(target: Function): void {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return function(target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as ISubscriberCollection;
 
     proto._subscriberFlags = SF.None;
@@ -31,8 +31,8 @@ export function subscriberCollection(): ClassDecorator {
 }
 
 export function proxySubscriberCollection(): ClassDecorator {
-  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
-  return function(target: Function): void {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return function(target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as IProxySubscriberCollection;
 
     proto._proxySubscriberFlags = SF.None;
@@ -49,8 +49,8 @@ export function proxySubscriberCollection(): ClassDecorator {
 }
 
 export function collectionSubscriberCollection(): ClassDecorator {
-  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
-  return function(target: Function): void {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return function(target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as ICollectionSubscriberCollection;
 
     proto._collectionSubscriberFlags = SF.None;
@@ -84,8 +84,8 @@ function addSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): bo
     this._subscribersRest = [subscriber];
     this._subscriberFlags |= SF.SubscribersRest;
   } else {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-    this._subscribersRest!.push(subscriber);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this._subscribersRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
   }
   return true;
 }
@@ -108,8 +108,8 @@ function addProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxy
     this._proxySubscribersRest = [subscriber];
     this._proxySubscriberFlags |= SF.SubscribersRest;
   } else {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-    this._proxySubscribersRest!.push(subscriber);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this._proxySubscribersRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
   }
   return true;
 }
@@ -132,8 +132,8 @@ function addCollectionSubscriber(this: ICollectionSubscriberCollection, subscrib
     this._collectionSubscribersRest = [subscriber];
     this._collectionSubscriberFlags |= SF.SubscribersRest;
   } else {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-    this._collectionSubscribersRest!.push(subscriber);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this._collectionSubscribersRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
   }
   return true;
 }
@@ -153,8 +153,8 @@ function removeSubscriber(this: ISubscriberCollection, subscriber: ISubscriber):
     this._subscriberFlags = (this._subscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
     return true;
   } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._subscribersRest!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const subscribers = this._subscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         subscribers.splice(i, 1);
@@ -183,8 +183,8 @@ function removeProxySubscriber(this: IProxySubscriberCollection, subscriber: IPr
     this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
     return true;
   } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._proxySubscribersRest!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const subscribers = this._proxySubscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         subscribers.splice(i, 1);
@@ -213,8 +213,8 @@ function removeCollectionSubscriber(this: ICollectionSubscriberCollection, subsc
     this._collectionSubscriberFlags = (this._collectionSubscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
     return true;
   } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._collectionSubscribersRest!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const subscribers = this._collectionSubscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         subscribers.splice(i, 1);
@@ -255,8 +255,8 @@ function hasSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): bo
     return true;
   }
   if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._subscribersRest!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const subscribers = this._subscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         return true;
@@ -278,8 +278,8 @@ function hasProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxy
     return true;
   }
   if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._proxySubscribersRest!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const subscribers = this._proxySubscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         return true;
@@ -301,8 +301,8 @@ function hasCollectionSubscriber(this: ICollectionSubscriberCollection, subscrib
     return true;
   }
   if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._collectionSubscribersRest!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const subscribers = this._collectionSubscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         return true;

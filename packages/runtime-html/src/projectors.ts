@@ -4,10 +4,8 @@ import {
   PLATFORM,
   Registration,
   Reporter,
-  toArray,
-  Tracer
+  toArray
 } from '@aurelia/kernel';
-
 import {
   CustomElementHost,
   IController,
@@ -17,6 +15,7 @@ import {
   IProjectorLocator,
   TemplateDefinition
 } from '@aurelia/runtime';
+import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
 const slice = Array.prototype.slice;
 
@@ -53,10 +52,13 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
   public shadowRoot: CustomElementHost<ShadowRoot>;
   public dom: IDOM<Node>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller: IController<Node>;
 
-  constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  public constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
     this.dom = dom;
     this.host = host;
+    this.$controller = $controller;
 
     let shadowOptions: ShadowRootInit;
     if (
@@ -73,12 +75,12 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
-    return this.shadowRoot.childNodes;
+    return this.host.childNodes;
   }
 
-  public subscribeToChildrenChange(callback: () => void): void {
+  public subscribeToChildrenChange(callback: () => void, options = childObserverOptions): void {
     // TODO: add a way to dispose/disconnect
-    this.dom.createNodeObserver!(this.shadowRoot, callback, childObserverOptions);
+    this.dom.createNodeObserver!(this.host, callback, options);
   }
 
   public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {
@@ -86,16 +88,18 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector', 'project', slice.call(arguments)); }
+    const context = this.$controller.context!;
+    const styles = context.has(IShadowDOMStyles, false)
+      ? context.get(IShadowDOMStyles)
+      : context.get(IShadowDOMGlobalStyles);
+
+    styles.applyTo(this.shadowRoot);
     nodes.appendTo(this.shadowRoot);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     nodes.unlink();
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -103,9 +107,9 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 export class ContainerlessProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  private readonly childNodes: ReadonlyArray<CustomElementHost<Node>>;
+  private readonly childNodes: readonly CustomElementHost<Node>[];
 
-  constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
+  public constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
     if (host.childNodes.length) {
       this.childNodes = toArray(host.childNodes);
     } else {
@@ -121,9 +125,8 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
-    // TODO: add a way to dispose/disconnect
-    const observer = new MutationObserver(callback);
-    observer.observe(this.host, childObserverOptions);
+    // TODO: turn this into an error
+    // Containerless does not have a container node to observe children on.
   }
 
   public provideEncapsulationSource(): Node {
@@ -131,16 +134,12 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector', 'project', slice.call(arguments)); }
     nodes.insertBefore(this.host);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     nodes.unlink();
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -148,7 +147,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 export class HostProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  constructor($controller: IController<Node>, host: CustomElementHost<Node>) {
+  public constructor($controller: IController<Node>, host: CustomElementHost<Node>) {
     this.host = host;
     this.host.$controller = $controller;
   }
@@ -166,15 +165,11 @@ export class HostProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('HostProjector', 'project', slice.call(arguments)); }
     nodes.appendTo(this.host);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('HostProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     nodes.unlink();
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

@@ -3,18 +3,14 @@ import {
   DI,
   IContainer,
   IDisposable,
-  InstanceProvider,
-  IResolver,
+  IIndexable,
   IResourceDescriptions,
   Key,
   Reporter,
-  RuntimeCompilationResources,
   Writable,
 } from '@aurelia/kernel';
-
 import {
   buildTemplateDefinition,
-  customElementBehavior,
   InstructionTypeName,
   ITargetedInstruction,
   ITemplateDefinition,
@@ -25,7 +21,6 @@ import {
   IDOM,
   INode,
   INodeSequenceFactory,
-  IRenderLocation,
   NodeSequence,
 } from './dom';
 import { LifecycleFlags } from './flags';
@@ -35,16 +30,18 @@ import {
   IRenderContext,
   IViewFactory,
   IViewModel,
-  Priority,
 } from './lifecycle';
 import {
   IAccessor,
+  IPropertyObserver,
   ISubscribable,
   ISubscriber,
   ISubscriberCollection,
 } from './observation';
 import { subscriberCollection } from './observation/subscriber-collection';
+import { RenderContext } from './render-context';
 import {
+  CustomElement,
   ICustomElementType,
   IElementProjector,
 } from './resources/custom-element';
@@ -96,7 +93,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 
   public readonly definition: TemplateDefinition;
 
-  constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
+  public constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
     this.dom = dom;
     this.definition = definition;
     this.factory = factory;
@@ -115,6 +112,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     const nodes = (controller as Writable<IController>).nodes = this.factory.createNodeSequence();
     (controller as Writable<IController>).context = this.renderContext;
     (controller as Writable<IController>).scopeParts = this.definition.scopeParts;
+    (controller as Writable<IController>).isStrictBinding = this.definition.isStrictBinding;
     flags |= this.definition.strategy;
     this.renderContext.render(flags, controller, nodes.findTargets(), this.definition, host, parts);
   }
@@ -156,7 +154,7 @@ export interface IInstructionRenderer<
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
 
 export interface IRenderer {
-  instructionRenderers: Record<string, IInstructionRenderer>;
+  instructionRenderers: Record<string, IInstructionRenderer['render']>;
   render(
     flags: LifecycleFlags,
     dom: IDOM,
@@ -177,7 +175,7 @@ export interface IRenderingEngine {
     definition: TemplateDefinition,
     parentContext?: IContainer | IRenderContext<T>,
     componentType?: ICustomElementType,
-  ): ITemplate<T>;
+  ): ITemplate<T>|undefined;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
@@ -188,6 +186,8 @@ export interface IRenderingEngine {
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
 
+type ViewFactoryRecord = { [key: number]: IViewFactory | undefined };
+
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
   public static readonly inject: readonly Key[] = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
@@ -195,14 +195,16 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly compilers: Record<string, ITemplateCompiler>;
   private readonly container: IContainer;
   private readonly templateFactory: ITemplateFactory;
-  private readonly viewFactoryLookup: Map<ITemplateDefinition, IViewFactory>;
+  private readonly viewFactoryLookup: Map<ITemplateDefinition, ViewFactoryRecord>;
+  private readonly validSourceLookup: Map<ITemplateDefinition, TemplateDefinition>;
   private readonly lifecycle: ILifecycle;
   private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
-  constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
+  public constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.container = container;
     this.templateFactory = templateFactory;
     this.viewFactoryLookup = new Map();
+    this.validSourceLookup = new Map();
     this.lifecycle = lifecycle;
     this.templateLookup = new Map();
 
@@ -215,7 +217,6 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  // @ts-ignore
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
@@ -246,14 +247,25 @@ export class RenderingEngine implements IRenderingEngine {
       throw new Error(`No definition provided`); // TODO: create error code
     }
 
-    let factory = this.viewFactoryLookup.get(definition);
+    let validSource = this.validSourceLookup.get(definition);
+    if (validSource === void 0) {
+      validSource = buildTemplateDefinition(null, definition);
+      this.validSourceLookup.set(definition, validSource);
+    }
 
-    if (!factory) {
-      const validSource = buildTemplateDefinition(null, definition);
+    let factoryRecord = this.viewFactoryLookup.get(validSource);
+    if (factoryRecord === void 0) {
+      factoryRecord = Object.create(null) as ViewFactoryRecord;
+      this.viewFactoryLookup.set(validSource, factoryRecord);
+    }
+
+    const parentContextId = parentContext === void 0 ? 0 : parentContext.id;
+    let factory = factoryRecord[parentContextId];
+    if (factory === void 0) {
       const template = this.templateFromSource(dom, validSource, parentContext, void 0);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
-      this.viewFactoryLookup.set(definition, factory);
+      factoryRecord[parentContextId] = factory;
     }
 
     return factory as IViewFactory<T>;
@@ -270,7 +282,7 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     if (definition.template != void 0) {
-      const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType) as ExposedContext;
+      const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
 
       if (definition.build.required) {
         const compilerName = definition.build.compiler || defaultCompilerName;
@@ -280,7 +292,7 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(dom, definition as ITemplateDefinition, new RuntimeCompilationResources(renderContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(dom, definition as ITemplateDefinition, renderContext.createRuntimeCompilationResources(), ViewCompileFlags.surrogate);
       }
 
       return this.templateFactory.create(renderContext, definition);
@@ -290,210 +302,134 @@ export class RenderingEngine implements IRenderingEngine {
   }
 }
 
-export function createRenderContext(
-  dom: IDOM,
-  parent: IRenderContext | IContainer,
-  dependencies: Key[],
-  componentType?: ICustomElementType
-): IRenderContext {
-  const context = parent.createChild() as ExposedContext;
-  const renderableProvider = new InstanceProvider();
-  const elementProvider = new InstanceProvider();
-  const instructionProvider = new InstanceProvider<ITargetedInstruction>();
-  const factoryProvider = new ViewFactoryProvider();
-  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
-  const renderer = context.get(IRenderer);
-
-  dom.registerElementResolver(context, elementProvider);
-
-  context.registerResolver(IViewFactory, factoryProvider);
-  context.registerResolver(IController, renderableProvider);
-  context.registerResolver(ITargetedInstruction, instructionProvider);
-  context.registerResolver(IRenderLocation, renderLocationProvider);
-
-  if (dependencies != void 0) {
-    context.register(...dependencies);
-  }
-
-  //If the element has a view, support Recursive Components by adding self to own view template container.
-  if (componentType) {
-    componentType.register(context);
-  }
-
-  context.render = function(
-    this: IRenderContext,
-    flags: LifecycleFlags,
-    renderable: IController,
-    targets: ArrayLike<INode>,
-    templateDefinition: TemplateDefinition,
-    host?: INode,
-    parts?: TemplatePartDefinitions,
-  ): void {
-    renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
-  };
-
-  // @ts-ignore
-  context.beginComponentOperation = function(
-    renderable: IController,
-    target: INode,
-    instruction: ITargetedInstruction,
-    factory: IViewFactory | null,
-    parts?: TemplatePartDefinitions,
-    location?: IRenderLocation,
-  ): IDisposable {
-    renderableProvider.prepare(renderable);
-    elementProvider.prepare(target);
-    instructionProvider.prepare(instruction);
-
-    if (factory) {
-      factoryProvider.prepare(factory, parts!);
-    }
-
-    if (location) {
-      renderLocationProvider.prepare(location);
-    }
-
-    return context;
-  };
-
-  context.dispose = function (): void {
-    factoryProvider.dispose();
-    renderableProvider.dispose();
-    instructionProvider.dispose();
-    elementProvider.dispose();
-    renderLocationProvider.dispose();
-  };
-
-  return context;
-}
-
-/** @internal */
-export class ViewFactoryProvider implements IResolver {
-  private factory!: IViewFactory | null;
-
-  public prepare(factory: IViewFactory, parts: TemplatePartDefinitions): void {
-    this.factory = factory;
-    factory.addParts(parts);
-  }
-
-  public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
-    const factory = this.factory;
-    if (factory == null) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
-    }
-    if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
-      throw Reporter.error(51); // TODO: organize error codes
-    }
-    const found = factory.parts[factory.name];
-    if (found) {
-      const renderingEngine = handler.get(IRenderingEngine);
-      const dom = handler.get(IDOM);
-      return renderingEngine.getViewFactory(dom, found, requestor);
-    }
-
-    return factory;
-  }
-
-  public dispose(): void {
-    this.factory = null;
-  }
-}
-
-export interface IChildrenObserver extends
+export interface ChildrenObserver extends
   IAccessor,
   ISubscribable,
-  ISubscriberCollection { }
-
-type HasChildrenChanged = IViewModel & { $childrenChanged(): void };
-function hasChildrenChanged(viewModel: IViewModel | undefined): viewModel is HasChildrenChanged {
-  return viewModel != void 0 && '$childrenChanged' in viewModel;
-}
+  ISubscriberCollection,
+  IPropertyObserver<IIndexable, string>{ }
 
 /** @internal */
 @subscriberCollection()
-export class ChildrenObserver implements Partial<IChildrenObserver> {
-  [key: number]: LifecycleFlags;
-  public hasChanges: boolean;
+export class ChildrenObserver {
+  public readonly propertyKey: string;
+  public readonly obj: IIndexable;
+  public observing: boolean;
 
   private readonly controller: IController;
-  private readonly lifecycle: ILifecycle;
-  private readonly projector: IElementProjector;
-  private children: IController[];
-  private observing: boolean;
-  private ticking: boolean;
+  private readonly filter: typeof defaultChildFilter;
+  private readonly map: typeof defaultChildMap;
+  private readonly query: typeof defaultChildQuery;
+  private readonly options?: MutationObserverInit;
+  private readonly callback: () => void;
+  private children: any[];
 
-  constructor(lifecycle: ILifecycle, controller: IController) {
-    this.hasChanges = false;
-
+  public constructor(
+    controller: IController,
+    viewModel: any,
+    flags: LifecycleFlags,
+    propertyName: string,
+    cbName: string,
+    query = defaultChildQuery,
+    filter = defaultChildFilter,
+    map = defaultChildMap,
+    options?: MutationObserverInit
+  ) {
+    this.propertyKey = propertyName;
+    this.obj = viewModel;
+    this.callback = viewModel[cbName] as typeof ChildrenObserver.prototype.callback;
+    this.query = query;
+    this.filter = filter;
+    this.map = map;
+    this.options = options;
     this.children = (void 0)!;
     this.controller = controller;
-    this.lifecycle = lifecycle;
-    this.controller = Controller.forCustomElement(controller, (void 0)!, (void 0)!);
-    this.projector = this.controller.projector!;
     this.observing = false;
-    this.ticking = false;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.createGetterSetter();
   }
 
-  public getValue(): IController[] {
-    if (!this.observing) {
-      this.observing = true;
-      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = findElements(this.projector.children);
-    }
-
+  public getValue(): any[] {
+    this.tryStartObserving();
     return this.children;
   }
 
   public setValue(newValue: unknown): void { /* do nothing */ }
 
-  public flushRAF(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
-      this.hasChanges = false;
-    }
-  }
-
-  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
-    if (!this.ticking) {
-      this.ticking = true;
-      this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.bind);
-    }
+  public subscribe(subscriber: ISubscriber): void {
+    this.tryStartObserving();
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (this.ticking && !this.hasSubscribers()) {
-      this.ticking = false;
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+  private tryStartObserving() {
+    if (!this.observing) {
+      this.observing = true;
+      const projector = this.controller.projector!;
+      this.children = filterChildren(projector, this.query, this.filter, this.map);
+      projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
     }
   }
 
   private onChildrenChanged(): void {
-    this.children = findElements(this.projector.children);
+    this.children = filterChildren(this.controller.projector!, this.query, this.filter, this.map);
 
-    if (hasChildrenChanged(this.controller.viewModel)) {
-      this.controller.viewModel.$childrenChanged();
+    if (this.callback !== void 0) {
+      this.callback.call(this.obj);
     }
 
-    this.hasChanges = true;
+    this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTargetInstance);
+  }
+
+  private createGetterSetter(): void {
+    if (
+      !Reflect.defineProperty(
+        this.obj,
+        this.propertyKey,
+        {
+          enumerable: true,
+          configurable: true,
+          get: () => this.getValue(),
+          set: () => { },
+        }
+      )
+    ) {
+      Reporter.write(1, this.propertyKey, this.obj);
+    }
   }
 }
 
 /** @internal */
-export function findElements<T extends INode = INode>(nodes: ArrayLike<T>): IController<T>[] {
-  const components: IController<T>[] = [];
+export function filterChildren(
+  projector: IElementProjector,
+  query: typeof defaultChildQuery,
+  filter: typeof defaultChildFilter,
+  map: typeof defaultChildMap
+): any[] {
+  const nodes = query(projector);
+  const children = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
-    const current = nodes[i];
-    const component = customElementBehavior<T>(current);
+    const node = nodes[i];
+    const controller = CustomElement.behaviorFor(node);
+    const viewModel = controller ? controller.viewModel : null;
 
-    if (component != void 0) {
-      components.push(component);
+    if (filter(node, controller, viewModel)) {
+      children.push(map(node, controller, viewModel));
     }
   }
 
-  return components;
+  return children;
+}
+
+function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
+  return projector.children;
+}
+
+function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
+  return !!viewModel;
+}
+
+function defaultChildMap(node: INode, controller?: IController, viewModel?: any): any {
+  return viewModel;
 }
 
 /** @internal */

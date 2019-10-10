@@ -4,13 +4,16 @@ import {
   LifecycleFlags,
   Priority,
 } from '@aurelia/runtime';
+import { PLATFORM } from '@aurelia/kernel';
 
-export class ClassAttributeAccessor implements IAccessor<string> {
+export class ClassAttributeAccessor implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
 
   public readonly obj: HTMLElement;
-  public currentValue: string;
-  public oldValue: string;
+  public currentValue: unknown;
+  public oldValue: unknown;
+
+  public readonly persistentFlags: LifecycleFlags;
 
   public readonly doNotCache: true;
   public nameIndex: Record<string, number>;
@@ -20,8 +23,9 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   public isActive: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
+    flags: LifecycleFlags,
     obj: HTMLElement,
   ) {
     this.lifecycle = lifecycle;
@@ -37,46 +41,36 @@ export class ClassAttributeAccessor implements IAccessor<string> {
     this.isActive = false;
     this.hasChanges = false;
     this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
-  public getValue(): string {
+  public getValue(): unknown {
     return this.currentValue;
   }
 
-  public setValue(newValue: string, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
-
   public flushRAF(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue, nameIndex } = this;
       let { version } = this;
-
       this.oldValue = currentValue;
-      let names: string[];
-      let name: string;
 
-      // Add the classes, tracking the version at which they were added.
-      if (currentValue.length) {
-        const node = this.obj;
-        names = currentValue.split(/\s+/);
-        for (let i = 0, length = names.length; i < length; i++) {
-          name = names[i];
-          if (!name.length) {
-            continue;
-          }
-          nameIndex[name] = version;
-          node.classList.add(name);
-        }
+      const classesToAdd = this.getClassesToAdd(currentValue as any);
+
+      // Get strings split on a space not including empties
+      if (classesToAdd.length > 0) {
+        this.addClassesAndUpdateIndex(classesToAdd);
       }
 
-      // Update state variables.
-      this.nameIndex = nameIndex;
       this.version += 1;
 
       // First call to setValue?  We're done.
@@ -86,8 +80,8 @@ export class ClassAttributeAccessor implements IAccessor<string> {
 
       // Remove classes from previous version.
       version -= 1;
-      for (name in nameIndex) {
-        if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+      for (const name in nameIndex) {
+        if (!Object.prototype.hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
           continue;
         }
 
@@ -101,10 +95,69 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
   }
 
   public unbind(flags: LifecycleFlags): void {
-    this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
+  }
+
+  private splitClassString(classString: string): string[] {
+    const matches = classString.match(/\S+/g);
+    if (matches === null) {
+      return PLATFORM.emptyArray;
+    }
+    return matches;
+  }
+
+  private getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
+    if (typeof object === 'string') {
+      return this.splitClassString(object);
+    }
+
+    if (object instanceof Array) {
+      const len = object.length;
+      if (len > 0) {
+        const classes: string[] = [];
+        for (let i = 0; i < len; ++i) {
+          classes.push(...this.getClassesToAdd(object[i]));
+        }
+        return classes;
+      } else {
+        return PLATFORM.emptyArray;
+      }
+    } else if (object instanceof Object) {
+      const classes: string[] = [];
+      for (const property in object) {
+        // Let non typical values also evaluate true so disable bool check
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
+        if (!!object[property]) {
+          // We must do this in case object property has a space in the name which results in two classes
+          if (property.includes(' ')) {
+            classes.push(...this.splitClassString(property));
+          } else {
+            classes.push(property);
+          }
+        }
+      }
+      return classes;
+    }
+    return PLATFORM.emptyArray;
+  }
+
+  private addClassesAndUpdateIndex(classes: string[]) {
+    const node = this.obj;
+    for (let i = 0, length = classes.length; i < length; i++) {
+      const className = classes[i];
+      if (!className.length) {
+        continue;
+      }
+      this.nameIndex[className] = this.version;
+      node.classList.add(className);
+    }
   }
 }

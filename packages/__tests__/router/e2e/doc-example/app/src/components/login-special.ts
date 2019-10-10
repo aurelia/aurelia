@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement, ICustomElementType } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
 import { State } from '../state';
 
 @customElement({
@@ -9,9 +9,9 @@ import { State } from '../state';
   <p>You need to be logged in SPECIAL to continue.</p>
   <button data-test="login-button" click.trigger="login()">Okay, log me in SPECIAL</button>
 </div>` })
-@inject(State, Router)
+@inject(State, IRouter)
 export class LoginSpecial {
-  constructor(private readonly state: State, private readonly router: Router) { }
+  public constructor(private readonly state: State, private readonly router: IRouter) { }
 
   public login() {
     this.state.loggedIn = true;
@@ -22,7 +22,7 @@ export class LoginSpecial {
     const goto = this.router.instructionResolver.stringifyViewportInstructions(instructions);
     console.log('login-special', goto);
     this.state.loginReturnTo = [];
-    this.router.replace(goto);
+    this.router.goto(goto, { replace: true });
   }
 }
 export interface LoginSpecial extends ICustomElementType { }

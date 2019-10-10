@@ -7,16 +7,14 @@ import {
   IResourceType,
   Registration,
   Reporter,
-  Writable
+  Writable,
+  PLATFORM
 } from '@aurelia/kernel';
-
 import {
   buildTemplateDefinition,
-  customElementBehavior,
-  customElementKey,
-  customElementName,
   ITemplateDefinition,
-  TemplateDefinition
+  TemplateDefinition,
+  registerAliases
 } from '../definitions';
 import {
   IDOM,
@@ -47,7 +45,7 @@ export interface IElementProjector<T extends INode = INode> {
   project(nodes: INodeSequence<T>): void;
   take(nodes: INodeSequence<T>): void;
 
-  subscribeToChildrenChange(callback: () => void): void;
+  subscribeToChildrenChange(callback: () => void, options?: any): void;
 }
 
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
@@ -58,21 +56,16 @@ export interface IProjectorLocator<T extends INode = INode> {
 
 export interface ICustomElementStaticProperties {
   containerless?: TemplateDefinition['containerless'];
+  isStrictBinding?: TemplateDefinition['isStrictBinding'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
   strategy?: TemplateDefinition['strategy'];
+  aliases: TemplateDefinition['aliases'];
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends
   IResourceKind<ITemplateDefinition, IViewModel, Class<IViewModel> & ICustomElementStaticProperties> {
-  behaviorFor(node: T): IController<T> | undefined;
-}
-
-/** @internal */
-export function registerElement(this: ICustomElementType, container: IContainer): void {
-  const resourceKey = this.kind.keyFrom(this.description.name);
-  container.register(Registration.transient(resourceKey, this));
-  container.register(Registration.transient(this, this));
+  behaviorFor<N extends INode = T>(node: N): IController<N> | undefined;
 }
 
 /**
@@ -85,64 +78,44 @@ export function customElement(nameOrDefinition: string | ITemplateDefinition): I
   return (target => CustomElement.define(nameOrDefinition, target)) as ICustomElementDecorator;
 }
 
-function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
-  return Type.kind === this;
-}
+export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
+  name: 'custom-element',
+  keyFrom(name: string): string {
+    return `${CustomElement.name}:${name}`;
+  },
+  isType<T>(Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
+    return Type.kind === CustomElement;
+  },
+  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
+    return (node as CustomElementHost<T>).$controller;
+  },
+  define<T extends Constructable = Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<T> {
+    if (!nameOrDefinition) {
+      throw Reporter.error(70);
+    }
+    const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<T>;
+    const WritableType = Type as Writable<ICustomElementType<T>>;
+    const description = buildTemplateDefinition(Type, nameOrDefinition);
 
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<T> {
-  if (!nameOrDefinition) {
-    throw Reporter.error(70);
-  }
-  const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<T>;
-  const WritableType = Type as Writable<ICustomElementType<T>>;
-  const description = buildTemplateDefinition(Type, nameOrDefinition);
+    WritableType.kind = CustomElement;
+    WritableType.description = description;
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
+    Type.register = function register(container: IContainer): void {
+      const aliases = description.aliases;
+      const key = CustomElement.keyFrom(description.name);
+      Registration.transient(key, this).register(container);
+      Registration.alias(key, this).register(container);
+      registerAliases([...aliases, ...this.aliases], CustomElement, key, container);
 
-  WritableType.kind = CustomElement;
-  Type.description = description;
-  Type.register = registerElement;
+    };
 
-  return Type;
-}
-
-export const CustomElement: ICustomElementResource = {
-  name: customElementName,
-  keyFrom: customElementKey,
-  isType,
-  behaviorFor: customElementBehavior as ICustomElementResource['behaviorFor'],
-  define
-};
-
-// tslint:enable:align
-
-// TODO
-// ## DefaultSlotProjector
-// An implementation of IElementProjector that can handle a subset of default
-// slot projection scenarios without needing real Shadow DOM.
-// ### Conditions
-// We can do a one-time, static composition of the content and view,
-// to emulate shadow DOM, if the following constraints are met:
-// * There must be exactly one slot and it must be a default slot.
-// * The default slot must not have any fallback content.
-// * The default slot must not have a custom element as its immediate parent or
-//   a slot attribute (re-projection).
-// ### Projection
-// The projector copies all content nodes to the slot's location.
-// The copy process should inject a comment node before and after the slotted
-// content, so that the bounds of the content can be clearly determined,
-// even if the slotted content has template controllers or string interpolation.
-// ### Encapsulation Source
-// Uses the same strategy as HostProjector.
-// ### Children
-// The projector adds a mutation observer to the parent node of the
-// slot comment. When direct children of that node change, the projector
-// will gather up all nodes between the start and end slot comments.
+    return Type;
+  },
+});
 
 export interface ICustomElementDecorator {
   // Using a type breaks syntax highlighting: https://github.com/Microsoft/TypeScript-TmLanguage/issues/481
-  // tslint:disable-next-line:callable-types
+  // eslint-disable-next-line @typescript-eslint/prefer-function-type
   <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }
 
@@ -190,4 +163,22 @@ export function containerless(): typeof containerlessDecorator;
 export function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
 export function containerless<T extends Constructable>(target?: T & HasContainerless): T & Required<HasContainerless> | typeof containerlessDecorator {
   return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
+}
+
+type HasStrictBindOption = Required<Pick<ITemplateDefinition, 'isStrictBinding'>>;
+function strictBindingDecorator<T extends Constructable>(target: T & HasStrictBindOption): T & HasStrictBindOption {
+  target.isStrictBinding = true;
+  return target;
+}
+
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function strict(): typeof strictBindingDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function strict<T extends Constructable>(target: T & HasStrictBindOption): T & HasStrictBindOption;
+export function strict<T extends Constructable>(target?: T & HasStrictBindOption): T & HasStrictBindOption | typeof strictBindingDecorator {
+  return target === undefined ? strictBindingDecorator : strictBindingDecorator<T>(target);
 }

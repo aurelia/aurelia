@@ -1,6 +1,7 @@
 .idea
 .DS_STORE
 .rpt2_cache
+.eslintcache
 TESTS-*.xml
 
 **/node_modules
@@ -15,3 +16,4 @@ TESTS-*.xml
 **/lerna-debug.log
 
 test/cypress/integration/examples
+screenshots

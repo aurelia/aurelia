@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement, IViewModel } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { State } from '../state';
 import { wait } from '../utils';
 
@@ -35,22 +35,22 @@ In other words, I scroll you
 <br>
 <input data-test="about-inputbox">
 </template>` })
-@inject(State, Router)
+@inject(State, IRouter)
 export class About {
-  constructor(private readonly state: State, private readonly router: Router) { }
+  public constructor(private readonly state: State, private readonly router: IRouter) { }
 
   public enter() {
     return wait(this.state.noDelay ? 0 : 4000);
   }
   async goClick(suppress) {
     // await this.router.historyBrowser.history.pushState('books', null, '#books');
-    // // tslint:disable-next-line:no-console
+    // // eslint-disable-next-line no-console
     // console.log('books', this.router.historyBrowser.history.history.state);
     // await this.router.historyBrowser.history.pushState('two', null, '#two');
-    // // tslint:disable-next-line:no-console
+    // // eslint-disable-next-line no-console
     // console.log('two', this.router.historyBrowser.history.history.state);
     // await this.router.historyBrowser.history.go(-1, suppress);
-    // // tslint:disable-next-line:no-console
+    // // eslint-disable-next-line no-console
     // console.log('books', this.router.historyBrowser.history.history.state);
   }
 }

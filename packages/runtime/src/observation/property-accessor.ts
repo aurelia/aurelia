@@ -1,4 +1,3 @@
-import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetAccessor } from '../observation';
 
@@ -9,8 +8,7 @@ export class PropertyAccessor implements PropertyAccessor {
   public obj: Record<string, unknown>;
   public propertyKey: string;
 
-  constructor(obj: Record<string, unknown>, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('PropertyAccessor', 'constructor', slice.call(arguments)); }
+  public constructor(obj: Record<string, unknown>, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     if (
@@ -20,7 +18,6 @@ export class PropertyAccessor implements PropertyAccessor {
     ) {
       this.setValue = this.setValueDirect;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {

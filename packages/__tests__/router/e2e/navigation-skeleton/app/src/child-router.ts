@@ -1,17 +1,17 @@
+import { inject } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import * as html from './child-router.html';
-import { Router, ReentryBehavior } from '@aurelia/router';
-import { inject } from '@aurelia/kernel';
 
-@inject(Router)
+@inject(IRouter)
 @customElement({ name: 'child-router', template: html })
 export class ChildRouter {
   // public reentryBehavior: ReentryBehavior = ReentryBehavior.refresh;
 
   public heading = 'Child Router';
-  public router: Router;
+  public router: IRouter;
 
-  constructor(router: Router) {
+  public constructor(router: IRouter) {
     this.router = router;
   }
 

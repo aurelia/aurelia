@@ -29,14 +29,14 @@ import {
 } from '@aurelia/testing';
 
 class StubView {
-  constructor(public cached = false) {}
+  public constructor(public cached = false) {}
   public $cache() {
     this.cached = true;
   }
 }
 
 class StubTemplate {
-  constructor(public nodes = {}) {}
+  public constructor(public nodes = {}) {}
   public render(renderable: Partial<IController>) {
     (renderable as Writable<IController>).nodes = this.nodes as any;
   }
@@ -82,59 +82,59 @@ describe.skip(`ViewFactory`, function () {
       = [doNotOverrideVariations, sizeVariations, doNotOverrideVariations2, sizeVariations2];
 
     eachCartesianJoin(inputs, ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
-        it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function () {
-          const template = new StubTemplate();
-          const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle));
-          const view1 = new StubView();
-          const view2 = new StubView();
+      it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function () {
+        const template = new StubTemplate();
+        const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle));
+        const view1 = new StubView();
+        const view2 = new StubView();
 
-          sut.setCacheSize(size2, doNotOverride1);
+        sut.setCacheSize(size2, doNotOverride1);
 
-          let canCache = isPositive2;
-          assert.strictEqual(sut.tryReturnToCache(view1 as any), canCache, 'sut.tryReturnToCache(view1)');
-          assert.strictEqual(view1.cached, canCache, 'view1.cached');
-          if (canCache) {
-            const cached = sut.create();
-            assert.strictEqual(cached, view1, 'cached');
-            const created = sut.create();
-            assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
-            assert.strictEqual(sut.tryReturnToCache(view1 as any), true, 'sut.tryReturnToCache(<any>view1)');
+        let canCache = isPositive2;
+        assert.strictEqual(sut.tryReturnToCache(view1 as any), canCache, 'sut.tryReturnToCache(view1)');
+        assert.strictEqual(view1.cached, canCache, 'view1.cached');
+        if (canCache) {
+          const cached = sut.create();
+          assert.strictEqual(cached, view1, 'cached');
+          const created = sut.create();
+          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(sut.tryReturnToCache(view1 as any), true, 'sut.tryReturnToCache(<any>view1)');
 
-            if (size2 !== '*') {
-              assert.strictEqual(sut.tryReturnToCache(view1 as any), false, 'sut.tryReturnToCache(view1) 2');
-            }
-          } else {
-            const created = sut.create();
-            assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          if (size2 !== '*') {
+            assert.strictEqual(sut.tryReturnToCache(view1 as any), false, 'sut.tryReturnToCache(view1) 2');
           }
+        } else {
+          const created = sut.create();
+          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+        }
 
-          // note: the difference in behavior between 0 (number) and '0' (string),
-          // and the behavior of values lower than -1 are kind of quirky
-          // probably not important enough for the overhead of an extra check, but at least worth a note
-          if (size4 && ((size2 === -1 || size2 === '-1' || size2 === 0) || !doNotOverride3)) {
-            canCache = isPositive4;
+        // note: the difference in behavior between 0 (number) and '0' (string),
+        // and the behavior of values lower than -1 are kind of quirky
+        // probably not important enough for the overhead of an extra check, but at least worth a note
+        if (size4 && ((size2 === -1 || size2 === '-1' || size2 === 0) || !doNotOverride3)) {
+          canCache = isPositive4;
+        }
+        sut.setCacheSize(size4, doNotOverride3);
+
+        assert.strictEqual(sut.tryReturnToCache(view2 as any), canCache, 'sut.tryReturnToCache(view2)');
+        assert.strictEqual(view2.cached, canCache, 'view2.cached');
+        if (canCache) {
+          const cached = sut.create();
+          assert.strictEqual(cached, view2, 'cached');
+          const created = sut.create();
+          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(sut.tryReturnToCache(view2 as any), true, 'sut.tryReturnToCache(<any>view2)');
+
+          if (size2 !== '*' && size4 !== '*') {
+            assert.strictEqual(sut.tryReturnToCache(view2 as any), false, 'sut.tryReturnToCache(view2) 2');
           }
-          sut.setCacheSize(size4, doNotOverride3);
+        } else {
+          const created = sut.create();
+          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+        }
 
-          assert.strictEqual(sut.tryReturnToCache(view2 as any), canCache, 'sut.tryReturnToCache(view2)');
-          assert.strictEqual(view2.cached, canCache, 'view2.cached');
-          if (canCache) {
-            const cached = sut.create();
-            assert.strictEqual(cached, view2, 'cached');
-            const created = sut.create();
-            assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
-            assert.strictEqual(sut.tryReturnToCache(view2 as any), true, 'sut.tryReturnToCache(<any>view2)');
-
-            if (size2 !== '*' && size4 !== '*') {
-              assert.strictEqual(sut.tryReturnToCache(view2 as any), false, 'sut.tryReturnToCache(view2) 2');
-            }
-          } else {
-            const created = sut.create();
-            assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
-          }
-
-        });
-      }
+      });
+    }
     );
   });
 });

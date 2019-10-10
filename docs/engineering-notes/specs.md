@@ -1,5 +1,7 @@
 # Aurelia Specs
 
+Note: The contents in this document may no longer apply or be out of date.
+
 - [Application Startup](#application-startup)
 - Pages and Components
 - Routing
@@ -7,7 +9,42 @@
   - [Activation-Lifecycle](#activation-lifecycle)
   - Caching
 
-# Application Startup 
+# Application Startup
+
+## New Quick Startup (recommended)
+*Spec: https://github.com/aurelia/aurelia/issues/630* <br />
+*Status: 0/Discussion*
+
+```ts
+import Aurelia, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import { MyRootComponent } from './my-root-component';
+// By default host to element name (<my-root-component> for MyRootComponent),
+// or <body> if <my-root-component> is absent.
+Aurelia.app(MyRootComponent).start();
+
+// Or load additional aurelia features
+Aurelia
+  .register(
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  )
+  .app(MyRootComponent)
+  .start();
+
+// Or host to <my-start-tag>
+Aurelia
+  .register(
+    StyleConfiguration.shadowDOM(),
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  )
+  .app({
+    component: MyRootComponent,
+    host: document.querySelector('my-start-tag')
+  })
+  .start();
+```
+
+## Verbose Startup
 
 *Spec: https://github.com/aurelia/aurelia/issues/397* <br />
 *Status: 0/Discussion*
@@ -15,8 +52,7 @@
 To start an Aurelia application, create a `new Aurelia()` object with a target `host`, a root `component`, and an optional list of `plugins`, and call `start()`.
 
 ```ts
-import { Aurelia } from '@aurelia/jit-html-browser';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import Aurelia, { JitHtmlBrowserConfiguration } from 'aurelia';
 import { ThirdPartyPlugin } from 'third-party-plugin';
 
 // Object API.
@@ -24,7 +60,7 @@ const app = new Aurelia({
   host: 'my-host-element',
   component: MyRootComponent
   plugins: [
-    BasicCofiguration,
+    JitHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ]
 }).start();
@@ -34,7 +70,7 @@ const app = new Aurelia()
   .host('my-host-element')
   .component(MyRootComponent)
   .plugins([
-    BasicCofiguration,
+    JitHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ])
   .start();
@@ -42,7 +78,7 @@ const app = new Aurelia()
 
 # Pages and Components
 # Routing
-  
+
 ## Router Configuration
 
 *Spec: https://github.com/aurelia/aurelia/issues/164* <br />
@@ -61,9 +97,9 @@ interface IRouteConfig {
   // (Renamed from route in vCurrent)
   path: string | string[],
 
-  // A constructor function for the view-model to attach for this route. 
+  // A constructor function for the view-model to attach for this route.
   // For route decorator and static routes approaches, Aurelia will set this
-  // value under the hood. 
+  // value under the hood.
   // (Repurposed from moduleId in vCurrent)
   component?: IComponent,
 
@@ -79,12 +115,12 @@ interface IRouteConfig {
   // Optional, the name of the parent route or routes, matched by the `name` property.
   parent?: string | string[],
 
-  // Optional, flag to opt the route out of the navigation model. Defaults 
+  // Optional, flag to opt the route out of the navigation model. Defaults
   // to true.
   nav?: boolean,
 
-  // Optional, an object with additional information available to the 
-  // view-model throughout the activation lifecycle. 
+  // Optional, an object with additional information available to the
+  // view-model throughout the activation lifecycle.
   // (Renamed from settings in vCurrent)
   meta?: any
 }
@@ -98,7 +134,7 @@ Defining a basic route is dead simple.
 @route('home')
 export class MyViewModel {
   static routes = [
-    { 
+    {
       path: 'home',
       //, name: 'my'
       //, component: this
@@ -125,7 +161,7 @@ export class MyViewModel {
       path: '',
       redirect: 'home'
     }
-  ]  
+  ]
 }
 ```
 
@@ -148,7 +184,7 @@ export class MyViewModel {
 
 ## Custom viewports
 
-If a page has multiple viewports defined, each route should specify which viewport the route targets. Multiple route configurations can target the same paths. 
+If a page has multiple viewports defined, each route should specify which viewport the route targets. Multiple route configurations can target the same paths.
 
 ```html
 <template>
@@ -167,7 +203,7 @@ export class FirstViewModel {
       viewport: 'left',
       //, name: 'first'
       //, component: this
-    }, 
+    },
     {
       path: 'backwards',
       viewport: 'right'
@@ -186,7 +222,7 @@ export class LastViewModel {
       viewport: 'right',
       //, name: 'last'
       //, component: this
-    }, 
+    },
     {
       path: 'backwards',
       viewport: 'left'
@@ -216,7 +252,7 @@ A route can be defined as a child route by specifying its parent by name. This a
 
 ```javascript
 // 'parent' loads parent only into the default viewport
-@route({ path: 'parent' }) 
+@route({ path: 'parent' })
 export class ParentViewModel { }
 ```
 
@@ -337,4 +373,4 @@ export class MyViewModel {
 
 ## Activation Lifecycle
 ## Caching
- 
+

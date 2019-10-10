@@ -1,9 +1,41 @@
 import { PLATFORM, kebabCase, camelCase, toArray } from '@aurelia/kernel';
 import { _, assert } from '@aurelia/testing';
 
-// tslint:disable:no-typeof-undefined
-
 const toString = Object.prototype.toString;
+
+const stringCases = [
+  ['FooBarBaz', 'fooBarBaz', 'foo-bar-baz'],
+  ['FooB', 'fooB', 'foo-b'],
+  ['fooBar1Baz23', 'fooBar1Baz23', 'foo-bar1-baz23'],
+  ['foobarbaz', 'foobarbaz', 'foobarbaz'],
+  ['FOOBARBAZ', 'foobarbaz', 'foobarbaz'],
+  ['FOOBarBAZ', 'fooBarBaz', 'foo-bar-baz'],
+  ['FOOBarBaz', 'fooBarBaz', 'foo-bar-baz'],
+  ['fOObARbAZ', 'fOObARbAz', 'f-o-ob-a-rb-az'],
+  ['foo-bar-baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['foo-123-baz', 'foo123Baz', 'foo-123-baz'],
+  ['Foo-Bar-Baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['FOO-BAR-BAZ', 'fooBarBaz', 'foo-bar-baz'],
+  ['foo_bar_baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['Foo_Bar_Baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['FOO_BAR_BAZ', 'fooBarBaz', 'foo-bar-baz'],
+  ['foo.bar.baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['Foo.Bar.Baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['FOO.BAR.BAZ', 'fooBarBaz', 'foo-bar-baz'],
+  ['foo bar baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['Foo Bar Baz', 'fooBarBaz', 'foo-bar-baz'],
+  ['FOO BAR BAZ', 'fooBarBaz', 'foo-bar-baz'],
+  ['_foo_bar_', 'fooBar', 'foo-bar'],
+  ['__foo__bar__', 'fooBar', 'foo-bar'],
+  ['-foo-bar-', 'fooBar', 'foo-bar'],
+  ['--foo--bar--', 'fooBar', 'foo-bar'],
+  ['.foo.bar.', 'fooBar', 'foo-bar'],
+  ['..foo..bar..', 'fooBar', 'foo-bar'],
+  ['*foo*bar*', 'fooBar', 'foo-bar'],
+  ['**foo**bar**', 'fooBar', 'foo-bar'],
+  [' foo bar ', 'fooBar', 'foo-bar'],
+  ['\t\tfoo\t\tbar\t\t', 'fooBar', 'foo-bar']
+];
 
 describe(`The PLATFORM object`, function () {
   if (typeof global !== 'undefined') {
@@ -11,17 +43,13 @@ describe(`The PLATFORM object`, function () {
       assert.strictEqual(PLATFORM.global, global, `PLATFORM.global`);
     });
   }
-  // @ts-ignore
   if (typeof self !== 'undefined') {
     it(`global references self`, function () {
-      // @ts-ignore
       assert.strictEqual(PLATFORM.global, self, `PLATFORM.global`);
     });
   }
-  // @ts-ignore
   if (typeof window !== 'undefined') {
     it(`global references window`, function () {
-      // @ts-ignore
       assert.strictEqual(PLATFORM.global, window, `PLATFORM.global`);
     });
   }
@@ -46,7 +74,7 @@ describe(`The PLATFORM object`, function () {
     assert.greaterThanOrEqualTo($5, $4, `$5`);
   });
 
-  it(`requestAnimationFrame() resolves after microtasks`, done => {
+  it(`requestAnimationFrame() resolves after microtasks`, function(done) {
     let rafResolved = false;
     let promiseResolved = false;
     PLATFORM.requestAnimationFrame(() => {
@@ -65,42 +93,17 @@ describe(`The PLATFORM object`, function () {
   });
 
   describe(`camelCase()`, function () {
-    for (const sep of ['.', '_', '-']) {
-      for (const count of [1, 2]) {
-        for (const prepend of [true, false]) {
-          const f = prepend ? 'F' : 'f';
-          for (const append of [true, false]) {
-            for (const [[foo, bar, baz], expected] of [
-              [['foo', 'bar', 'baz'], `${f}ooBarBaz`],
-              [['Foo', 'Bar', 'Baz'], `${f}ooBarBaz`],
-              [['FOO', 'BAR', 'BAZ'], `${f}OOBARBAZ`],
-              [['fOO', 'bAR', 'bAZ'], `${f}OOBARBAZ`],
-              [['foo', 'bar42', '42baz'], `${f}ooBar4242baz`]
-            ]) {
-              const actualSep = count === 1 ? sep : sep + sep;
-              let input = [foo, bar, baz].join(actualSep);
-              if (prepend) input = actualSep + input;
-              if (append) input += actualSep;
-              it(`${input} -> ${expected}`, function () {
-                const actual = camelCase(input);
-                assert.strictEqual(actual, expected, `actual`);
-                assert.strictEqual(camelCase(input), actual, `camelCase(input)`); // verify via code coverage report that cache is being hit
-              });
-            }
-          }
-        }
-      }
+    for (const [input, expected] of stringCases) {
+      it(`${input} -> ${expected}`, function () {
+        const actual = camelCase(input);
+        assert.strictEqual(actual, expected, `actual`);
+        assert.strictEqual(camelCase(input), actual, `camelCase(input)`); // verify via code coverage report that cache is being hit
+      });
     }
   });
 
   describe(`kebabCase()`, function () {
-    for (const [input, expected] of [
-      ['FooBarBaz', 'foo-bar-baz'],
-      ['fooBarBaz', 'foo-bar-baz'],
-      ['foobarbaz', 'foobarbaz'],
-      ['FOOBARBAZ', 'f-o-o-b-a-r-b-a-z'],
-      ['fOObARbAZ', 'f-o-ob-a-rb-a-z']
-    ]) {
+    for (const [input, _ignore, expected] of stringCases) {
       it(`${input} -> ${expected}`, function () {
         const actual = kebabCase(input);
         assert.strictEqual(actual, expected, `actual`);

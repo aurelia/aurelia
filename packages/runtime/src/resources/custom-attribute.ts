@@ -8,13 +8,12 @@ import {
   PLATFORM,
   Registration,
   ResourceDescription,
-  Writable
+  Writable,
 } from '@aurelia/kernel';
 import {
-  customAttributeKey,
-  customAttributeName,
   HooksDefinition,
-  IAttributeDefinition
+  IAttributeDefinition,
+  registerAliases
 } from '../definitions';
 import {
   BindingMode,
@@ -25,7 +24,7 @@ import {
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
-type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables'>;
+type CustomAttributeStaticProperties = Required<Pick<IAttributeDefinition, 'bindables' | 'aliases'>>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
@@ -35,21 +34,6 @@ export interface ICustomAttributeType<C extends Constructable = Constructable> e
 
 export interface ICustomAttributeResource extends
   IResourceKind<IAttributeDefinition, IViewModel, Class<IViewModel> & CustomAttributeStaticProperties> {
-}
-
-/** @internal */
-export function registerAttribute(this: ICustomAttributeType, container: IContainer): void {
-  const description = this.description;
-  const resourceKey = this.kind.keyFrom(description.name);
-  const aliases = description.aliases;
-
-  container.register(Registration.transient(resourceKey, this));
-  container.register(Registration.transient(this, this));
-
-  for (let i = 0, ii = aliases.length; i < ii; ++i) {
-    const aliasKey = this.kind.keyFrom(aliases[i]);
-    container.register(Registration.alias(resourceKey, aliasKey));
-  }
 }
 
 /**
@@ -73,55 +57,38 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttribute.define(
     typeof nameOrDefinition === 'string'
-    ? { isTemplateController: true , name: nameOrDefinition }
-    : { isTemplateController: true, ...nameOrDefinition },
+      ? { isTemplateController: true, name: nameOrDefinition }
+      : { isTemplateController: true, ...nameOrDefinition },
     target) as any; // TODO: fix this at some point
 }
 
-type HasDynamicOptions = Pick<IAttributeDefinition, 'hasDynamicOptions'>;
+export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze({
+  name: 'custom-attribute',
+  keyFrom(name: string): string {
+    return `${CustomAttribute.name}:${name}`;
+  },
+  isType<T>(Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType {
+    return Type.kind === CustomAttribute;
+  },
+  define<T extends Constructable = Constructable>(nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T> {
+    const Type = ctor as T & ICustomAttributeType<T>;
+    const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
+    const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
 
-function dynamicOptionsDecorator<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions> {
-  target.hasDynamicOptions = true;
-  return target as T & Required<HasDynamicOptions>;
-}
+    WritableType.kind = CustomAttribute;
+    WritableType.description = description;
+    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
+    Type.register = function register(container: IContainer): void {
+      const aliases = description.aliases;
+      const key = CustomAttribute.keyFrom(description.name);
+      Registration.transient(key, this).register(container);
+      Registration.alias(key, this).register(container);
+      registerAliases([...aliases, ...this.aliases], CustomAttribute, key, container);
+    };
 
-/**
- * Decorator: Indicates that the custom attributes has dynamic options.
- */
-export function dynamicOptions(): typeof dynamicOptionsDecorator;
-/**
- * Decorator: Indicates that the custom attributes has dynamic options.
- */
-export function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
-export function dynamicOptions<T extends Constructable>(target?: T & HasDynamicOptions): T & Required<HasDynamicOptions> | typeof dynamicOptionsDecorator {
-  return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator<T>(target);
-}
-
-function isType<T>(this: ICustomAttributeResource, Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType {
-  return Type.kind === this;
-}
-
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T> {
-  const Type = ctor as T & ICustomAttributeType<T>;
-  const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
-  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-
-  WritableType.kind = CustomAttribute;
-  WritableType.description = description;
-  Type.register = registerAttribute;
-
-  return Type;
-}
-
-export const CustomAttribute: ICustomAttributeResource = {
-  name: customAttributeName,
-  keyFrom: customAttributeKey,
-  isType,
-  define
-};
+    return Type;
+  },
+});
 
 /** @internal */
 export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {
@@ -131,7 +98,6 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     name: def.name,
     aliases: aliases == null ? PLATFORM.emptyArray : aliases,
     defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
-    hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
     bindables: { ...Bindable.for(Type as unknown as {}).get(), ...Bindable.for(def).get() },
     strategy: ensureValidStrategy(def.strategy),

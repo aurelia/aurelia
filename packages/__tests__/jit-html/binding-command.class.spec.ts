@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia, BindingMode, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
-import { BasicConfiguration } from '@aurelia/jit-html';
+import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 
 // TemplateCompiler - Binding Commands integration
@@ -25,31 +25,31 @@ describe('template-compiler.binding-commands.class', function() {
     '🤷‍♂️', // double characters
     '🤯',
     ...[
-    '@',
-    '#',
-    '$',
-    '!',
-    '^',
-    '~',
-    '&',
-    '*',
-    '(',
-    ')',
-    '+',
-    // '=', // todo: better test for this scenario
-    '*',
-    // '/', // todo: better test for this scenario
-    '\\',
-    ':',
-    '[',
-    ']',
-    '{',
-    '}',
-    '|',
-    '<',
-    // '>', // todo: better test for this scenario
-    ',',
-    '%'].map(s => `${s}1`)
+      '@',
+      '#',
+      '$',
+      '!',
+      '^',
+      '~',
+      '&',
+      '*',
+      '(',
+      ')',
+      '+',
+      // '=', // todo: better test for this scenario
+      '*',
+      // '/', // todo: better test for this scenario
+      '\\',
+      ':',
+      '[',
+      ']',
+      '{',
+      '}',
+      '|',
+      '<',
+      // '>', // todo: better test for this scenario
+      ',',
+      '%'].map(s => `${s}1`)
   ];
 
   const testCases: ITestCase[] = [
@@ -71,7 +71,7 @@ describe('template-compiler.binding-commands.class', function() {
 
         await eachCartesianJoinAsync(
           [falsyValues, truthyValues],
-          async (falsyValue, truthyValue) => {
+          (falsyValue, truthyValue) => {
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
               assert.contains(
@@ -117,11 +117,13 @@ describe('template-compiler.binding-commands.class', function() {
    * Check the following:
    * 1. The element contains the class
    * 2. Each `value` of falsy values, set bound view model value to `value` and:
-   *  - wait for 1 promise tick
-   *  - the element does not contain the class
+   * - wait for 1 promise tick
+   * - the element does not contain the class
+   *
    * 3. Each `value` of truthy values, set bound view model value to `value` and:
-   *  - wait for 1 promise tick
-   *  - the element does contain the class
+   * - wait for 1 promise tick
+   * - the element does contain the class
+   *
    * 4. TODO: assert class binding command on root surrogate once root surrogate rendering is supported
    */
   eachCartesianJoin(
@@ -133,7 +135,7 @@ describe('template-compiler.binding-commands.class', function() {
           class App {
             public value: unknown = true;
           },
-          BasicConfiguration,
+          JitHtmlConfiguration,
           CustomElement.define(
             {
               name: 'child',
@@ -164,7 +166,7 @@ describe('template-compiler.binding-commands.class', function() {
 
           await eachCartesianJoinAsync(
             [falsyValues, truthyValues],
-            async (falsyValue, truthyValue) => {
+            (falsyValue, truthyValue) => {
               component.value = falsyValue;
 
               lifecycle.processRAFQueue(LifecycleFlags.none);

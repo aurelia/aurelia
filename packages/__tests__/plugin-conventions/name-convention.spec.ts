@@ -12,8 +12,13 @@ describe('nameConvention', function () {
       type: 'customElement'
     });
 
-    assert.deepEqual(nameConvention('FooBar123'), {
-      name: 'foo-bar123',
+    assert.deepEqual(nameConvention('UAFoo'), {
+      name: 'ua-foo',
+      type: 'customElement'
+    });
+
+    assert.deepEqual(nameConvention('PREFIXFooBar'), {
+      name: 'prefix-foo-bar',
       type: 'customElement'
     });
   });
@@ -24,8 +29,8 @@ describe('nameConvention', function () {
       type: 'customAttribute'
     });
 
-    assert.deepEqual(nameConvention('Foo1BarCustomAttribute'), {
-      name: 'foo1-bar',
+    assert.deepEqual(nameConvention('FOOBarCustomAttribute'), {
+      name: 'foo-bar',
       type: 'customAttribute'
     });
   });
@@ -36,8 +41,8 @@ describe('nameConvention', function () {
       type: 'valueConverter'
     });
 
-    assert.deepEqual(nameConvention('Foo1Bar23ValueConverter'), {
-      name: 'foo1Bar23',
+    assert.deepEqual(nameConvention('FOOBarValueConverter'), {
+      name: 'fooBar',
       type: 'valueConverter'
     });
   });
@@ -53,6 +58,18 @@ describe('nameConvention', function () {
     assert.deepEqual(nameConvention('FooBarBindingCommand'), {
       name: 'foo-bar',
       type: 'bindingCommand'
+    });
+  });
+
+  it('gets template controller like resource', function() {
+    assert.deepEqual(nameConvention('FooBarTemplateController'), {
+      name: 'foo-bar',
+      type: 'templateController'
+    });
+
+    assert.deepEqual(nameConvention('FOOBarTemplateController'), {
+      name: 'foo-bar',
+      type: 'templateController'
     });
   });
 });

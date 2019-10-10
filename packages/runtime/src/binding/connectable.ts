@@ -1,8 +1,6 @@
 import {
-  Class,
-  Tracer
+  Class
 } from '@aurelia/kernel';
-
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
@@ -80,7 +78,6 @@ export function addObserver(
 
 /** @internal */
 export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags, obj: object, propertyName: string): void {
-  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'observeProperty', slice.call(arguments)); }
   const observer = this.observerLocator.getObserver(flags, obj, propertyName) as IBindingTargetObserver;
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -90,7 +87,6 @@ export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags
    * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
    */
   this.addObserver(observer);
-  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
@@ -129,9 +125,9 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, 
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  if (!proto.hasOwnProperty('observeProperty')) proto.observeProperty = observeProperty;
-  if (!proto.hasOwnProperty('unobserve')) proto.unobserve = unobserve;
-  if (!proto.hasOwnProperty('addObserver')) proto.addObserver = addObserver;
+  if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty')) proto.observeProperty = observeProperty;
+  if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve')) proto.unobserve = unobserve;
+  if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver')) proto.addObserver = addObserver;
   return target as DecoratedConnectable<TProto, TClass>;
 }
 

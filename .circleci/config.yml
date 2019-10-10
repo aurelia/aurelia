@@ -62,7 +62,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "12.4.0"
+        default: "12.10.0"
     working_directory: *working_dir
     docker:
       - image: "circleci/node:<< parameters.node >>-stretch-browsers"
@@ -134,25 +134,25 @@ commands:
         type: boolean
         default: true
     steps:
-      - run: ./node_modules/.bin/lerna clean -y
-      - run: git add packages/*/dist --force && git status
-      - run: git stash && git status
+      - run: set -o pipefail && ./node_modules/.bin/lerna clean -y
+      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && git stash && git status
       - when:
           condition: << parameters.merge_topic >>
           steps:
-            - run: git checkout << parameters.from >> && git status
-            - run: git merge ${CIRCLE_BRANCH}
-      - run: git checkout << parameters.to >> && git status
-      - run: git reset --hard origin/<< parameters.to >> && git status
-      - run: git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
-      - run: rm -rf packages/*/dist && git status
-      - run: git add . && git status
-      - run: git checkout stash -- . && git status
-      - run: git add packages/*/dist --force && git status
-      - run: npm run change-package-refs:release
-      - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
-      - run: git add . && git status
-      - run: git commit --allow-empty -m "<< parameters.message >>" && git status
+            - run: set -o pipefail && git checkout << parameters.from >> && git status
+            - run: set -o pipefail && git merge ${CIRCLE_BRANCH}
+      - run: set -o pipefail && git checkout << parameters.to >> && git status
+      - run: set -o pipefail && git reset --hard origin/<< parameters.to >> && git status
+      - run: set -o pipefail && git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
+      - run: set -o pipefail && rm -rf packages/*/dist && git status
+      - run: set -o pipefail && git add . && git status
+      - run: set -o pipefail && git checkout stash -- . && git status
+      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && npm run change-package-refs:release
+      - run: set -o pipefail && npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
+      - run: set -o pipefail && git add . && git status
+      - run: set -o pipefail && git commit --allow-empty -m "<< parameters.message >>" && git status
 
 # # # # # # # # # # # # # # # #
 # - Jobs -
@@ -203,11 +203,14 @@ jobs:
   js_framework_benchmark:
     executor: docker-circleci
     steps:
-      - checkout_install_bootstrap_build_bundle_publish_verdaccio:
-          from: ${CIRCLE_BRANCH}
-          to: develop
-          channel: dev
-          suffix: "-${CIRCLE_BUILD_NUM}"
+      #- checkout_install_bootstrap_build_bundle_publish_verdaccio:
+      #    from: ${CIRCLE_BRANCH}
+      #    to: develop
+      #    channel: dev
+      #    suffix: "-${CIRCLE_BUILD_NUM}"
+      - common/configure_git
+      - checkout_install_bootstrap
+      - run: npm run build:release
       - run:
           name: "Install js-framework-benchmark"
           command: |
@@ -262,7 +265,9 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install_bootstrap
-      - run: npm run lint
+      # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
+      - run: npm run lint:packages -- -- -- --quiet
+      - run: npm run lint:other -- --quiet
 
   merge_and_dist:
     executor: docker-aurelia
@@ -281,10 +286,10 @@ jobs:
         default: true
     steps:
       - checkout_install_bootstrap
-      - run: npm run build:release
-      - run: npm run change-tsconfigs:overwrite:umd
-      - run: npm run build:release
-      - run: npm run change-tsconfigs:restore
+      - run: set -o pipefail && npm run build:release
+      - run: set -o pipefail && npm run change-tsconfigs:overwrite:umd
+      - run: set -o pipefail && npm run build:release
+      - run: set -o pipefail && npm run change-tsconfigs:restore
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -346,6 +351,23 @@ jobs:
             cd packages/__tests__/router/e2e/doc-example
             npm run test
 
+  e2e_cypress:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run:
+          name: "Install cypress"
+          command: |
+            cd packages/__e2e__
+            npm install
+      - run:
+          name: "Run e2e tests"
+          background: true
+          command: |
+            cd packages/__e2e__
+            npm run e2e
+
   publish_npm:
     executor: docker-aurelia
     parameters:
@@ -369,6 +391,12 @@ jobs:
     parameters:
       path:
         type: string
+      use_verdaccio:
+        type: boolean
+        default: true
+      registry:
+        type: string
+        default: "http://localhost:4873"
     steps:
       - checkout_install_bootstrap_build_bundle_publish_verdaccio:
           from: ${CIRCLE_BRANCH}
@@ -380,11 +408,26 @@ jobs:
           command: |
             cd test/wdio
             npm ci
+      - when:
+          condition: << parameters.use_verdaccio >>
+          steps:
+            - run:
+                name: "Install app via verdaccio"
+                command: |
+                  cd << parameters.path >>
+                  npm install --registry << parameters.registry >>
+      - unless:
+          condition: << parameters.use_verdaccio >>
+          steps:
+            - run:
+                name: "Install app via npm"
+                command: |
+                  cd << parameters.path >>
+                  npm install
       - run:
-          name: "Install & build test app"
+          name: "Build test app"
           command: |
             cd << parameters.path >>
-            npm install
             npm run build
       - run:
           name: "Serve wdio test app"
@@ -429,6 +472,8 @@ workflows:
           <<: *filter_ignore_develop_release
       - js_framework_benchmark:
           <<: *filter_ignore_develop_release
+      - e2e_cypress:
+         <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
       #- e2e_wdio:
@@ -470,6 +515,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
@@ -490,6 +536,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
@@ -514,6 +561,7 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
+          npm_command: "test-chrome"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox
@@ -530,6 +578,8 @@ workflows:
           <<: *filter_only_tag
       - e2e_browserstack:
           <<: *filter_only_tag
+      - e2e_cypress:
+         <<: *filter_only_tag
       #- e2e_cypress_doc_example:
       #    <<: *filter_only_tag
       - merge_and_dist:
@@ -540,6 +590,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
             #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release

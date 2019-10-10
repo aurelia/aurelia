@@ -225,16 +225,14 @@ describe('ObserverLocator', function () {
                       }
                       const descriptor: PropertyDescriptor = { configurable, enumerable };
                       if (hasGetter) {
-                        // tslint:disable-next-line:no-empty
-                        function getter() { }
+                        function getter() { return; }
                         if (hasGetObserver) {
                           getter['getObserver'] = () => dummyObserver;
                         }
                         descriptor.get = getter;
                       }
                       if (hasSetter) {
-                        // tslint:disable-next-line:no-empty
-                        function setter() { }
+                        function setter() { return; }
                         descriptor.set = setter;
                       }
                       if (hasOverrides) {

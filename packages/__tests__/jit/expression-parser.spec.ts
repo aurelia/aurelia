@@ -35,14 +35,14 @@ import {
   parse,
   ParserState
 } from '@aurelia/jit';
+import { assert } from '@aurelia/testing';
 import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
 } from './unicode';
-import { assert } from '@aurelia/testing';
 
-function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>): TaggedTemplateExpression {
+function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]): TaggedTemplateExpression {
   return new TaggedTemplateExpression(cooked, cooked, func, expressions);
 }
 
@@ -76,7 +76,7 @@ const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
 const codes = {
-  //SyntaxError
+  // SyntaxError
   InvalidExpressionStart: 'Code 100',
   UnconsumedToken: 'Code 101',
   DoubleDot: 'Code 102',
@@ -90,7 +90,7 @@ const codes = {
   MissingExpectedToken: 'Code 110',
   UnexpectedCharacter: 'Code 111',
 
-  //SemanticError
+  // SemanticError
   NotAssignable: 'Code 150',
   UnexpectedForOf: 'Code 151'
 };
@@ -783,15 +783,13 @@ describe('ExpressionParser', function () {
     [`\\t`,  `\t`],
     [`\\b`,  `\b`],
     [`\\v`,  `\v`]
-  ]
-  .map(([raw, cooked]) => [
+  ].map(([raw, cooked]) => [
     [raw,         cooked],
     [`${raw}`,   `${cooked}`],
     [`x${raw}`,  `x${cooked}`],
     [`${raw}x`,  `${cooked}x`],
     [`x${raw}x`, `x${cooked}x`]
-  ])
-  .reduce((acc, cur) => acc.concat(cur));
+  ]).reduce((acc, cur) => acc.concat(cur));
 
   // Verify all string escapes, unicode characters, double and single quotes
   const ComplexStringLiteralList: [string, any][] = [
@@ -799,12 +797,11 @@ describe('ExpressionParser', function () {
       ['foo',                new PrimitiveLiteralExpression('foo')],
       ['äöüÄÖÜß',            new PrimitiveLiteralExpression('äöüÄÖÜß')],
       ['ಠ_ಠ',               new PrimitiveLiteralExpression('ಠ_ಠ')],
-      ...stringEscapables.map(([raw, cooked]) => [raw, new PrimitiveLiteralExpression(cooked)])]
-    .map(([input, expr]) => [
+      ...stringEscapables.map(([raw, cooked]) => [raw, new PrimitiveLiteralExpression(cooked)])
+    ].map(([input, expr]): [string, any][] => [
       [`'${input}'`, expr],
       [`"${input}"`, expr]
-    ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur))
+    ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexStringLiteralList', function () {
     for (const [input, expected] of ComplexStringLiteralList) {
@@ -838,7 +835,7 @@ describe('ExpressionParser', function () {
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of arguments
   const ComplexTemplateLiteralList: [string, any][] = [
     [`\`a\``,                       new TemplateExpression(['a'], [])],
-    [`\`\\\${a}\``,                 new TemplateExpression(['${a}'], [])],
+    [`\`\\\${a}\``,                 new TemplateExpression([`\${a}`], [])],
     [`\`$a\``,                      new TemplateExpression(['$a'], [])],
     [`\`\${a}\${b}\``,              new TemplateExpression(['', '', ''],                       [$a, $b])],
     [`\`a\${a}\${b}\``,             new TemplateExpression(['a', '', ''],                      [$a, $b])],
@@ -852,14 +849,13 @@ describe('ExpressionParser', function () {
     [`\`\${\`\${a}a\`}\``,          new TemplateExpression(['', ''], [new TemplateExpression(['', 'a'],  [$a])])],
     [`\`\${\`a\${a}a\`}\``,         new TemplateExpression(['', ''], [new TemplateExpression(['a', 'a'], [$a])])],
     [`\`\${\`\${\`\${a}\`}\`}\``,   new TemplateExpression(['', ''], [new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])])],
-    ...stringEscapables.map(([raw, cooked]) => [
+    ...stringEscapables.map(([raw, cooked]): [string, any][] => [
       [`\`${raw}\``,                new TemplateExpression([cooked],              [])],
       [`\`\${a}${raw}\``,           new TemplateExpression(['', cooked],        [$a])],
       [`\`${raw}\${a}\``,           new TemplateExpression([cooked, ''],        [$a])],
       [`\`${raw}\${a}${raw}\``,     new TemplateExpression([cooked, cooked],    [$a])],
       [`\`\${a}${raw}\${a}\``,      new TemplateExpression(['', cooked, ''],    [$a, $a])],
-    ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur)),
+    ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
       .map(([input, expr]) => [`\`\${${input}}\``, new TemplateExpression(['', ''], [expr])] as [string, any]),
     ...SimpleIsAssignList
@@ -893,11 +889,10 @@ describe('ExpressionParser', function () {
     [`[,,a,]`,              new ArrayLiteralExpression([$undefined, $undefined, $a])],
     [`[,,,a]`,              new ArrayLiteralExpression([$undefined, $undefined, $undefined, $a])],
     [`[,,a,a]`,             new ArrayLiteralExpression([$undefined, $undefined, $a, $a])],
-    ...SimpleIsAssignList.map(([input, expr]) => [
+    ...SimpleIsAssignList.map(([input, expr]): [string, any][] => [
       [`[${input}]`,           new ArrayLiteralExpression([expr])],
       [`[${input},${input}]`,  new ArrayLiteralExpression([expr, expr])]
-    ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur))
+    ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexArrayLiteralList', function () {
     for (const [input, expected] of ComplexArrayLiteralList) {
@@ -936,11 +931,10 @@ describe('ExpressionParser', function () {
     [`{a:a,b:b,c}`,         new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
     [`{a:a,b,c:c}`,         new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
     [`{a,b:b,c:c}`,         new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
-    ...SimpleIsAssignList.map(([input, expr]) => [
+    ...SimpleIsAssignList.map(([input, expr]): [string, any][] => [
       [`{a:${input}}`,            new ObjectLiteralExpression(['a'], [expr])],
       [`{a:${input},b:${input}}`, new ObjectLiteralExpression(['a', 'b'], [expr, expr])]
-    ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur))
+    ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexObjectLiteralList', function () {
     for (const [input, expected] of ComplexObjectLiteralList) {
@@ -984,7 +978,7 @@ describe('ExpressionParser', function () {
 
   const ComplexTaggedTemplateList: [string, any][] = [
     [`a\`a\``,                       createTaggedTemplate(['a'],           $a, [])],
-    [`a\`\\\${a}\``,                 createTaggedTemplate(['${a}'],        $a, [])],
+    [`a\`\\\${a}\``,                 createTaggedTemplate([`\${a}`],       $a, [])],
     [`a\`$a\``,                      createTaggedTemplate(['$a'],          $a, [])],
     [`a\`\${b}\${c}\``,              createTaggedTemplate(['', '', ''],    $a, [$b, $c])],
     [`a\`a\${b}\${c}\``,             createTaggedTemplate(['a', '', ''],   $a, [$b, $c])],
@@ -998,14 +992,13 @@ describe('ExpressionParser', function () {
     [`a\`\${\`\${a}a\`}\``,          createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['', 'a'],  [$a])])],
     [`a\`\${\`a\${a}a\`}\``,         createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['a', 'a'], [$a])])],
     [`a\`\${\`\${\`\${a}\`}\`}\``,   createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])])],
-    ...stringEscapables.map(([raw, cooked]) => [
+    ...stringEscapables.map(([raw, cooked]): [string, any][] => [
       [`a\`${raw}\``,                createTaggedTemplate([cooked],         $a,     [])],
       [`a\`\${a}${raw}\``,           createTaggedTemplate(['', cooked],     $a,   [$a])],
       [`a\`${raw}\${a}\``,           createTaggedTemplate([cooked, ''],     $a,   [$a])],
       [`a\`${raw}\${a}${raw}\``,     createTaggedTemplate([cooked, cooked], $a,   [$a])],
       [`a\`\${a}${raw}\${a}\``,      createTaggedTemplate(['', cooked, ''], $a,   [$a, $a])],
-    ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur)),
+    ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
       .map(([input, expr]) => [`a\`\${${input}}\``, createTaggedTemplate(['', ''], $a, [expr])] as [string, any]),
     ...SimpleIsAssignList
@@ -1356,14 +1349,13 @@ describe('ExpressionParser', function () {
     [`\${\`\${a}a\`}`,          new Interpolation(['', ''], [new TemplateExpression(['', 'a'],  [$a])])],
     [`\${\`a\${a}a\`}`,         new Interpolation(['', ''], [new TemplateExpression(['a', 'a'], [$a])])],
     [`\${\`\${\`\${a}\`}\`}`,   new Interpolation(['', ''], [new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])])],
-    ...stringEscapables.map(([raw, cooked]) => [
+    ...stringEscapables.map(([raw, cooked]): [string, any][] => [
       [`${raw}`,                null],
       [`\${a}${raw}`,           new Interpolation(['', cooked],        [$a])],
       [`${raw}\${a}`,           new Interpolation([cooked, ''],        [$a])],
       [`${raw}\${a}${raw}`,     new Interpolation([cooked, cooked],    [$a])],
       [`\${a}${raw}\${a}`,      new Interpolation(['', cooked, ''],    [$a, $a])],
-    ] as [string, any][])
-    .reduce((acc, cur) => acc.concat(cur)),
+    ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
       .map(([input, expr]) => [`\${${input}}`, new Interpolation(['', ''], [expr])] as [string, any]),
     ...SimpleIsAssignList
@@ -1492,7 +1484,7 @@ describe('ExpressionParser', function () {
       });
     }
 
-    for (const input of ['`', '` ', '`${a}']) {
+    for (const input of ['`', '` ', `\`\${a}`]) {
       it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, function () {
         verifyResultOrError(input, null, 'Code 109');
       });

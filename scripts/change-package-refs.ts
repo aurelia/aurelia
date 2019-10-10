@@ -17,7 +17,7 @@ const refs = {
 
 const fields = ['main', 'module'];
 
-async function run(): Promise<void> {
+(async function (): Promise<void> {
   const ref = process.argv.slice(2)[0];
 
   for (const { name } of project.packages) {
@@ -28,8 +28,9 @@ async function run(): Promise<void> {
     }
     await savePackageJson(pkg, 'packages', name.kebab);
   }
-}
 
-run().then(() => {
-  log(`Done.`);
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
 });

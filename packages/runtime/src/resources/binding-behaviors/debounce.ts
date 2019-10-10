@@ -1,9 +1,9 @@
-import { IRegistry, PLATFORM } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-import { BindingBehavior } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 
 export type DebounceableBinding = IBinding & {
   debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };
@@ -49,9 +49,8 @@ export function debounceCall(this: DebounceableBinding, newValue: unknown, oldVa
 
 const fromView = BindingMode.fromView;
 
+@bindingBehavior('debounce')
 export class DebounceBindingBehavior {
-  public static register: IRegistry['register'];
-
   public bind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding, delay: number = 200): void {
     let methodToDebounce;
     let callContextToDebounce;
@@ -70,7 +69,7 @@ export class DebounceBindingBehavior {
     // stash the original method and it's name.
     // note: a generic name like "originalMethod" is not used to avoid collisions
     // with other binding behavior types.
-    binding.debouncedMethod = binding[methodToDebounce as keyof DebounceableBinding]! as DebounceableBinding['debouncedMethod'];
+    binding.debouncedMethod = binding[methodToDebounce as keyof DebounceableBinding] as DebounceableBinding['debouncedMethod'];
     binding.debouncedMethod.originalName = methodToDebounce;
 
     // replace the original method with the debouncing version.
@@ -94,4 +93,3 @@ export class DebounceBindingBehavior {
     binding.debounceState = null!;
   }
 }
-BindingBehavior.define('debounce', DebounceBindingBehavior);

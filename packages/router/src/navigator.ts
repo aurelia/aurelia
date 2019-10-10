@@ -1,10 +1,41 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigationState, INavigationStore, INavigationViewer } from './browser-navigation';
+import { INavigatorInstruction } from './interfaces';
 import { Queue, QueueItem } from './queue';
+import { IRouter } from './router';
+import { ViewportInstruction } from './viewport-instruction';
 
-export interface IStoredNavigationEntry {
+export interface INavigatorStore {
+  length: number;
+  state: Record<string, unknown>;
+  go(delta?: number, suppressPopstate?: boolean): Promise<void>;
+  pushNavigatorState(state: INavigatorState): Promise<void>;
+  replaceNavigatorState(state: INavigatorState): Promise<void>;
+  popNavigatorState(): Promise<void>;
+}
+
+export interface INavigatorViewer {
+  activate(options: INavigatorViewerOptions): void;
+  deactivate(): void;
+}
+export interface INavigatorViewerOptions {
+  callback(ev: INavigatorViewerEvent): void;
+}
+
+export interface INavigatorViewerState {
+  path: string;
+  query: string;
+  hash: string;
   instruction: string;
-  fullStateInstruction: string;
+}
+
+export interface INavigatorViewerEvent extends INavigatorViewerState {
+  event: PopStateEvent;
+  state?: INavigatorState;
+}
+
+export interface IStoredNavigatorEntry {
+  instruction: string | ViewportInstruction[];
+  fullStateInstruction: string | ViewportInstruction[];
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
   path?: string;
@@ -15,7 +46,7 @@ export interface IStoredNavigationEntry {
   data?: Record<string, unknown>;
 }
 
-export interface INavigationEntry extends IStoredNavigationEntry {
+export interface INavigatorEntry extends IStoredNavigatorEntry {
   fromBrowser?: boolean;
   replacing?: boolean;
   refreshing?: boolean;
@@ -27,12 +58,14 @@ export interface INavigationEntry extends IStoredNavigationEntry {
 }
 
 export interface INavigatorOptions {
-  viewer?: INavigationViewer;
-  store?: INavigationStore;
-  callback?(instruction: INavigationInstruction): void;
+  viewer?: INavigatorViewer;
+  store?: INavigatorStore;
+  statefulHistoryLength?: number;
+  callback?(instruction: INavigatorInstruction): void;
+  serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry>;
 }
 
-export interface INavigationFlags {
+export interface INavigatorFlags {
   first?: boolean;
   new?: boolean;
   refresh?: boolean;
@@ -41,46 +74,46 @@ export interface INavigationFlags {
   replace?: boolean;
 }
 
-export interface INavigationInstruction extends INavigationEntry {
-  navigation?: INavigationFlags;
-  previous?: IStoredNavigationEntry;
-  repeating?: boolean;
-}
-
-interface INavigatorState {
-  state: Record<string, unknown>;
-  entries: IStoredNavigationEntry[];
-  currentEntry: IStoredNavigationEntry;
+export interface INavigatorState {
+  state?: Record<string, unknown>;
+  entries: IStoredNavigatorEntry[];
+  currentEntry: IStoredNavigatorEntry;
 }
 
 export class Navigator {
-  public currentEntry: INavigationInstruction;
-  public entries: IStoredNavigationEntry[];
+  public currentEntry: INavigatorInstruction;
+  public entries: IStoredNavigatorEntry[] = [];
 
-  private readonly pendingNavigations: Queue<INavigationInstruction>;
+  private readonly pendingNavigations: Queue<INavigatorInstruction>;
 
-  private options: INavigatorOptions;
-  private isActive: boolean;
+  private options: INavigatorOptions = {
+    statefulHistoryLength: 0,
+  };
+  private isActive: boolean = false;
+  private router!: IRouter;
+  private readonly uninitializedEntry: INavigatorInstruction;
 
-  constructor() {
-    this.currentEntry = null;
-    this.entries = null;
-    this.pendingNavigations = new Queue<INavigationInstruction>(this.processNavigations);
+  public constructor() {
+    this.uninitializedEntry = {
+      instruction: 'NAVIGATOR UNINITIALIZED',
+      fullStateInstruction: '',
+    };
+    this.currentEntry = this.uninitializedEntry;
 
-    this.options = null;
-    this.isActive = false;
+    this.pendingNavigations = new Queue<INavigatorInstruction>(this.processNavigations);
   }
 
   public get queued(): number {
     return this.pendingNavigations.length;
   }
 
-  public activate(options?: INavigatorOptions): void {
+  public activate(router: IRouter, options?: INavigatorOptions): void {
     if (this.isActive) {
       throw new Error('Navigator has already been activated');
     }
 
     this.isActive = true;
+    this.router = router;
     this.options = { ...options };
   }
 
@@ -92,17 +125,17 @@ export class Navigator {
     this.isActive = false;
   }
 
-  public navigate(entry: INavigationEntry): Promise<void> {
+  public navigate(entry: INavigatorEntry): Promise<void> {
     return this.pendingNavigations.enqueue(entry);
   }
 
-  public processNavigations = (qEntry: QueueItem<INavigationInstruction>): void => {
-    const entry = qEntry as INavigationInstruction;
-    const navigationFlags: INavigationFlags = {};
+  public processNavigations = (qEntry: QueueItem<INavigatorInstruction>): void => {
+    const entry = qEntry as INavigatorInstruction;
+    const navigationFlags: INavigatorFlags = {};
 
-    if (!this.currentEntry) { // Refresh or first entry
+    if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
       this.loadState();
-      if (this.currentEntry) {
+      if (this.currentEntry !== this.uninitializedEntry) {
         navigationFlags.refresh = true;
       } else {
         navigationFlags.first = true;
@@ -110,33 +143,39 @@ export class Navigator {
         // TODO: Should this really be created here? Shouldn't it be in the viewer?
         this.currentEntry = {
           index: 0,
-          instruction: null,
-          fullStateInstruction: null,
+          instruction: '',
+          fullStateInstruction: '',
           // path: this.options.viewer.getPath(true),
           // fromBrowser: null,
         };
         this.entries = [];
       }
     }
-    if (entry.index !== undefined && !entry.replacing && !entry.refreshing) { // History navigation
-      entry.historyMovement = entry.index - this.currentEntry.index;
-      entry.instruction = entry.fullStateInstruction;
+    if (entry.index !== void 0 && !entry.replacing && !entry.refreshing) { // History navigation
+      entry.historyMovement = entry.index - (this.currentEntry.index !== void 0 ? this.currentEntry.index : 0);
+      entry.instruction = this.entries[entry.index] !== void 0 && this.entries[entry.index] !== null ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
       entry.replacing = true;
       if (entry.historyMovement > 0) {
         navigationFlags.forward = true;
       } else if (entry.historyMovement < 0) {
         navigationFlags.back = true;
       }
+    } else if (entry.refreshing || navigationFlags.refresh) { // Refreshing
+      entry.index = this.currentEntry.index;
+    } else if (entry.replacing) { // Replacing
+      navigationFlags.replace = true;
+      navigationFlags.new = true;
+      entry.index = this.currentEntry.index;
     } else { // New entry
       navigationFlags.new = true;
-      entry.index = (entry.replacing ? entry.index : this.entries.length);
+      entry.index = this.currentEntry.index !== void 0 ? this.currentEntry.index + 1 : this.entries.length;
     }
     this.invokeCallback(entry, navigationFlags, this.currentEntry);
-  }
+  };
 
   public refresh(): Promise<void> {
     const entry = this.currentEntry;
-    if (!entry) {
+    if (entry === this.uninitializedEntry) {
       return Promise.reject();
     }
     entry.replacing = true;
@@ -145,7 +184,7 @@ export class Navigator {
   }
 
   public go(movement: number): Promise<void> {
-    const newIndex = this.currentEntry.index + movement;
+    const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + movement;
     if (newIndex >= this.entries.length) {
       return Promise.reject();
     }
@@ -158,38 +197,63 @@ export class Navigator {
     return this.saveState();
   }
 
-  get titles(): string[] {
-    return (this.entries ? this.entries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
+  public get titles(): string[] {
+    if (this.currentEntry == this.uninitializedEntry) {
+      return [];
+    }
+    const index = this.currentEntry.index !== void 0 ? this.currentEntry.index : 0;
+    return this.entries.slice(0, index + 1).filter((value) => !!value.title).map((value) => value.title ? value.title : '');
   }
 
   public getState(): INavigatorState {
-    const state = { ...this.options.store.state };
-    const entries = (state.NavigationEntries || []) as IStoredNavigationEntry[];
-    const currentEntry = state.NavigationEntry as IStoredNavigationEntry;
+    const state = this.options.store ? { ...this.options.store.state } : {};
+    const entries = (state.entries || []) as IStoredNavigatorEntry[];
+    const currentEntry = (state.currentEntry || this.uninitializedEntry) as IStoredNavigatorEntry;
     return { state, entries, currentEntry };
   }
 
   public loadState(): void {
     const state = this.getState();
-    this.entries = state.entries || [];
+    this.entries = state.entries;
     this.currentEntry = state.currentEntry;
   }
 
-  public saveState(push: boolean = false): Promise<void> {
-    const storedEntry = this.toStorableEntry(this.currentEntry);
-    this.entries[storedEntry.index] = storedEntry;
-    const state: INavigationState = {
-      NavigationEntries: this.entries,
-      NavigationEntry: storedEntry,
+  public async saveState(push: boolean = false): Promise<void> {
+    if (this.currentEntry === this.uninitializedEntry) {
+      return Promise.resolve();
+    }
+    const storedEntry = this.toStoredEntry(this.currentEntry);
+    this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
+
+    if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength! > 0) {
+      const index = this.entries.length - this.options.statefulHistoryLength!;
+      for (let i = 0; i < index; i++) {
+        const entry = this.entries[i];
+        if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+          this.entries[i] = await this.options.serializeCallback(entry, this.entries.slice(index));
+        }
+      }
+    }
+
+    if (!this.options.store) {
+      return Promise.resolve();
+    }
+    const state: INavigatorState = {
+      entries: [],
+      currentEntry: { ...this.toStoreableEntry(storedEntry) },
     };
+    for (const entry of this.entries) {
+      state.entries.push(this.toStoreableEntry(entry));
+    }
+
     if (push) {
-      return this.options.store.pushNavigationState(state);
+      return this.options.store.pushNavigatorState(state);
     } else {
-      return this.options.store.replaceNavigationState(state);
+      return this.options.store.replaceNavigatorState(state);
     }
   }
 
-  public toStorableEntry(entry: INavigationInstruction): IStoredNavigationEntry {
+  public toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
     const {
       previous,
       fromBrowser,
@@ -206,44 +270,70 @@ export class Navigator {
     return storableEntry;
   }
 
-  public async finalize(instruction: INavigationInstruction): Promise<void> {
+  public async finalize(instruction: INavigatorInstruction): Promise<void> {
     this.currentEntry = instruction;
+    let index = this.currentEntry.index !== undefined ? this.currentEntry.index : 0;
     if (this.currentEntry.untracked) {
-      if (instruction.fromBrowser) {
-        await this.options.store.popNavigationState();
+      if (instruction.fromBrowser && this.options.store) {
+        await this.options.store.popNavigatorState();
       }
-      this.currentEntry.index--;
-      this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
+      index--;
+      this.currentEntry.index = index;
+      this.entries[index] = this.toStoredEntry(this.currentEntry);
       await this.saveState();
     } else if (this.currentEntry.replacing) {
-      this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
+      this.entries[index] = this.toStoredEntry(this.currentEntry);
       await this.saveState();
     } else { // New entry (add and discard later entries)
-      this.entries = this.entries.slice(0, this.currentEntry.index);
-      this.entries.push(this.toStorableEntry(this.currentEntry));
+      if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength! > 0) {
+        // Need to clear the instructions we discard!
+        const indexPreserve = this.entries.length - this.options.statefulHistoryLength!;
+        for (const entry of this.entries.slice(index)) {
+          if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+            await this.options.serializeCallback(entry, this.entries.slice(indexPreserve, index));
+          }
+        }
+      }
+      this.entries = this.entries.slice(0, index);
+      this.entries.push(this.toStoredEntry(this.currentEntry));
       await this.saveState(true);
     }
-    this.currentEntry.resolve();
+    if (this.currentEntry.resolve) {
+      this.currentEntry.resolve();
+    }
   }
 
-  public async cancel(instruction: INavigationInstruction): Promise<void> {
-    if (instruction.fromBrowser) {
-      if (instruction.navigation.new) {
-        await this.options.store.popNavigationState();
+  public async cancel(instruction: INavigatorInstruction): Promise<void> {
+    if (instruction.fromBrowser && this.options.store) {
+      if (instruction.navigation && instruction.navigation.new) {
+        await this.options.store.popNavigatorState();
       } else {
-        await this.options.store.go(-instruction.historyMovement, true);
+        await this.options.store.go(-(instruction.historyMovement || 0), true);
       }
     }
-    this.currentEntry.resolve();
+    if (this.currentEntry.resolve) {
+      this.currentEntry.resolve();
+    }
   }
 
-  private invokeCallback(entry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {
-    const instruction: INavigationInstruction = { ...entry };
+  private invokeCallback(entry: INavigatorEntry, navigationFlags: INavigatorFlags, previousEntry: INavigatorEntry): void {
+    const instruction: INavigatorInstruction = { ...entry };
     instruction.navigation = navigationFlags;
-    instruction.previous = this.toStorableEntry(previousEntry);
+    instruction.previous = this.toStoredEntry(previousEntry);
     Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
     if (this.options.callback) {
       this.options.callback(instruction);
     }
+  }
+
+  private toStoreableEntry(entry: IStoredNavigatorEntry): IStoredNavigatorEntry {
+    const storeable: IStoredNavigatorEntry = { ...entry };
+    if (storeable.instruction && typeof storeable.instruction !== 'string') {
+      storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
+    }
+    if (storeable.fullStateInstruction && typeof storeable.fullStateInstruction !== 'string') {
+      storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+    }
+    return storeable;
   }
 }

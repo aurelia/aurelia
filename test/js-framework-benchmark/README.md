@@ -76,19 +76,19 @@ javac 1.8.0_131
 As stated above building and running the benchmarks for all frameworks can be challenging, thus we start step by step...
 
 Install global dependencies
-This installs just a few top level dependencies for the building the frameworks and a http-server.
+This installs just a few top level dependencies for the building the frameworks and a local-web-server.
 ```
 npm install
 ```
-We start the http-server in the root directory
+We start the local-web-server in the root directory
 ```
 npm start
 ```
-Verify that the http-server works:
+Verify that the local-web-server works:
 Try to open [http://localhost:8080/index.html](http://localhost:8080/index.html). If you see something like that you're on the right track:
 ![Index.html](images/index.png?raw=true "Index.html")
 
-Now open a new terminal window and keep http-server running in background.
+Now open a new terminal window and keep local-web-server running in background.
 
 ### 3. Building and running a single framework
 
@@ -260,7 +260,7 @@ Contributions are very welcome. Please use the following rules:
 * Name your directory frameworks/[keyed|non-keyed]/[FrameworkName]
 * Each contribution must be buildable by `npm install` and `npm run build-prod` command in the directory. What build-prod does is up to you. Often there's an `npm run build-dev` that creates a development build
 * Every implementation must use bootstrap provided in the root css directory.
-* All npm dependencies should be installed locally (i.e. listed in your package.json). Http-server should not be a local dependency. It is installed from the root directory to allow access to bootstrap.
+* All npm dependencies should be installed locally (i.e. listed in your package.json). local-web-server should not be a local dependency. It is installed from the root directory to allow access to bootstrap.
 * Please use *fixed version* numbers, no ranges, in package.json. Otherwise the build will break sooner or later - believe me. Updating works IMO best with npm-check-updates, which keeps the version format.
 * Webdriver-ts must be able to run the perf tests for the contribution. This means that all buttons (like "Create 1,000 rows") must have the correct id e.g. like in vanillajs. Using shadow DOM is a real pain for webdriver. The closer you can get to polymer the higher the chances I can make that contribution work.
 * Don't change the ids in the index.html, since the automated benchmarking relies on those ids.

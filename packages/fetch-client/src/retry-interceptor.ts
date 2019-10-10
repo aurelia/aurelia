@@ -29,7 +29,7 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Creates an instance of RetryInterceptor.
    */
-  constructor(retryConfig?: RetryConfiguration) {
+  public constructor(retryConfig?: RetryConfiguration) {
     this.retryConfig = {...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {})};
 
     if (this.retryConfig.strategy === retryStrategy.exponential &&
@@ -41,7 +41,7 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Called with the request before it is sent. It remembers the request so it can be retried on error.
    *
-   * @param request The request to be sent.
+   * @param request - The request to be sent.
    * @returns The existing request, a new request or a response; or a Promise for any of these.
    */
   public request(request: RetryableRequest): RetryableRequest {
@@ -59,7 +59,7 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Called with the response after it is received. Clears the remembered request, as it was succesfull.
    *
-   * @param response The response.
+   * @param response - The response.
    * @returns The response; or a Promise for one.
    */
   public response(response: Response, request: RetryableRequest): Response {
@@ -73,7 +73,7 @@ export class RetryInterceptor implements Interceptor {
    * function acts as a Promise rejection handler. It wil retry the remembered request based on the
    * configured RetryConfiguration.
    *
-   * @param error The rejection value from the fetch request or from a
+   * @param error - The rejection value from the fetch request or from a
    * previous interceptor.
    * @returns The response of the retry; or a Promise for one.
    */
@@ -89,7 +89,6 @@ export class RetryInterceptor implements Interceptor {
           if (doRetry) {
             retryConfig.counter++;
             const delay = calculateDelay(retryConfig);
-            // tslint:disable-next-line:no-string-based-set-timeout
             return new Promise((resolve: ITimerHandler) => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
               .then(() => {
                 const newRequest = requestClone.clone();
@@ -149,12 +148,11 @@ const retryStrategies = [
 
   // random
   (retryCount, interval, minRandomInterval = 0, maxRandomInterval = 60000) => {
-    // tslint:disable-next-line:insecure-random
     return Math.random() * (maxRandomInterval - minRandomInterval) + minRandomInterval;
   }
 ] as [
-    (interval: number) => number,
-    (retryCount: number, interval: number) => number,
-    (retryCount: number, interval: number) => number,
-    (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
-  ];
+  (interval: number) => number,
+  (retryCount: number, interval: number) => number,
+  (retryCount: number, interval: number) => number,
+  (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
+];

@@ -32,6 +32,6 @@ The Aurelia core framework can be broken down into 4 parts:
 
 | Package | Version | Dependencies |
 |--------|-------|------------|
-| [`@aurelia/plugin-requirejs`](/packages/plugin-requirejs) | [![npm](https://img.shields.io/npm/v/@aurelia/plugin-requirejs.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/plugin-requirejs) | [![Dependency Status](https://david-dm.org/aurelia/aurelia.svg?path=packages/plugin-requirejs)](https://david-dm.org/aurelia/aurelia?path=packages/plugin-requirejs) |
+| [`@aurelia/plugin-gulp`](/packages/plugin-gulp) | [![npm](https://img.shields.io/npm/v/@aurelia/plugin-gulp.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/plugin-gulp) | [![Dependency Status](https://david-dm.org/aurelia/aurelia.svg?path=packages/plugin-gulp)](https://david-dm.org/aurelia/aurelia?path=packages/plugin-gulp) |
 | [`@aurelia/plugin-svg`](/packages/plugin-svg) | [![npm](https://img.shields.io/npm/v/@aurelia/plugin-svg.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/plugin-svg) | [![Dependency Status](https://david-dm.org/aurelia/aurelia.svg?path=packages/plugin-svg)](https://david-dm.org/aurelia/aurelia?path=packages/plugin-svg) |
 

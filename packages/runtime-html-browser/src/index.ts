@@ -1,13 +1,13 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
-import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
+import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 
 class BrowserDOMInitializer implements IDOMInitializer {
   public static readonly inject: readonly Key[] = [IContainer];
 
   private readonly container: IContainer;
 
-  constructor(container: IContainer) {
+  public constructor(container: IContainer) {
     this.container = container;
   }
 
@@ -30,7 +30,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
           Node,
           Element,
           HTMLElement,
-          CustomEvent
+          CustomEvent,
+          CSSStyleSheet,
+          ShadowRoot
         );
       } else {
         dom = new HTMLDOM(
@@ -39,7 +41,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
           Node,
           Element,
           HTMLElement,
-          CustomEvent
+          CustomEvent,
+          CSSStyleSheet,
+          ShadowRoot
         );
       }
     } else {
@@ -49,7 +53,9 @@ class BrowserDOMInitializer implements IDOMInitializer {
         Node,
         Element,
         HTMLElement,
-        CustomEvent
+        CustomEvent,
+        CSSStyleSheet,
+        ShadowRoot
       );
     }
     Registration.instance(IDOM, dom).register(this.container);
@@ -69,10 +75,10 @@ export const DefaultComponents = [
 
 /**
  * A DI configuration object containing html-specific, browser-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export const BasicConfiguration = {
+export const RuntimeHtmlBrowserConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */

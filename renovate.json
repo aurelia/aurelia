@@ -33,6 +33,18 @@
       "allowedVersions": "^3.3.6"
     },
     {
+      "packageNames": ["chromedriver"],
+      "allowedVersions": "^74.0.0"
+    },
+    {
+      "packageNames": ["karma"],
+      "allowedVersions": "~4.1.0"
+    },
+    {
+      "packageNames": ["mocha"],
+      "allowedVersions": "~6.1.4"
+    },
+    {
       "packageNames": ["pixi.js", "@types/pixi.js"],
       "allowedVersions": "~4.8.8"
     }

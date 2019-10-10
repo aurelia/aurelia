@@ -31,14 +31,14 @@ describe('SelectValueObserver', function () {
 
             assert.strictEqual(el.value, initial, `el.value`);
 
-            sut.bind();
+            sut.bind(LF.none);
 
             el.options.item(values.indexOf(next)).selected = true;
 
             lifecycle.processRAFQueue(LF.none);
             assert.strictEqual(el.value, next, `el.value`);
 
-            sut.unbind();
+            sut.unbind(LF.none);
           });
         }
       }
@@ -54,7 +54,7 @@ describe('SelectValueObserver', function () {
 
           const callbackSpy = createSpy(sut, 'handleNodeChange', true);
 
-          sut.bind();
+          sut.bind(LF.none);
 
           el.appendChild(ctx.createElement('option'));
 
@@ -62,7 +62,7 @@ describe('SelectValueObserver', function () {
 
           assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
 
-          sut.unbind();
+          sut.unbind(LF.none);
         }
       });
     }
@@ -79,7 +79,7 @@ describe('SelectValueObserver', function () {
         } };
         sut['nodeObserver'] = nodeObserver;
 
-        sut.unbind();
+        sut.unbind(LF.none);
 
         assert.strictEqual(count, 1, `count`);
         assert.strictEqual(sut['nodeObserver'], null, `sut['nodeObserver']`);
@@ -101,7 +101,7 @@ describe('SelectValueObserver', function () {
         sut['nodeObserver'] = nodeObserver;
         sut['arrayObserver'] = arrayObserver;
 
-        sut.unbind();
+        sut.unbind(LF.none);
 
         assert.strictEqual(count, 1, `count`);
         assert.strictEqual(sut['arrayObserver'], null, `sut['arrayObserver']`);
@@ -110,12 +110,12 @@ describe('SelectValueObserver', function () {
   });
 
   describe('synchronizeOptions', function () {
-
+    return;
   });
 
   describe('synchronizeValue()', function () {
     describe('<select />', function () {
-
+      return;
     });
     // There is subtle difference in behavior of synchronization for SelectObserver
     // When synchronzing value without synchronizing Options prior
@@ -130,7 +130,7 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        sut.bind();
+        sut.bind(LF.none);
 
         const currentValue = sut.currentValue as any[];
         assert.instanceOf(currentValue, Array);
@@ -141,7 +141,7 @@ describe('SelectValueObserver', function () {
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
 
-        sut.unbind();
+        sut.unbind(LF.none);
       });
 
       it('synchronizes with null', function () {
@@ -151,7 +151,7 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        sut.bind();
+        sut.bind(LF.none);
 
         const currentValue = sut.currentValue as any;
         assert.strictEqual(currentValue, null, `currentValue`);
@@ -160,7 +160,7 @@ describe('SelectValueObserver', function () {
 
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
 
-        sut.unbind();
+        sut.unbind(LF.none);
       });
 
       it('synchronizes with undefined', function () {
@@ -170,7 +170,7 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        sut.bind();
+        sut.bind(LF.none);
 
         const currentValue = sut.currentValue as any;
         assert.strictEqual(currentValue, undefined, `currentValue`);
@@ -179,7 +179,7 @@ describe('SelectValueObserver', function () {
 
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
 
-        sut.unbind();
+        sut.unbind(LF.none);
       });
 
       it('synchronizes with array (2)', function () {
@@ -189,7 +189,7 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
 
-        sut.bind();
+        sut.bind(LF.none);
 
         const currentValue = sut.currentValue as any[];
 
@@ -206,7 +206,7 @@ describe('SelectValueObserver', function () {
           ]
         );
 
-        sut.unbind();
+        sut.unbind(LF.none);
       });
 
       it('synchronizes with array (3): disregard "value" when there is model', function () {
@@ -216,7 +216,7 @@ describe('SelectValueObserver', function () {
           option({ text: 'C', value: 'CC' })
         ]);
 
-        sut.bind();
+        sut.bind(LF.none);
 
         const currentValue = sut.currentValue as any[];
 
@@ -233,7 +233,7 @@ describe('SelectValueObserver', function () {
           ]
         );
 
-        sut.unbind();
+        sut.unbind(LF.none);
       });
 
       it('synchronize regardless disabled state of <option/>', function () {
@@ -243,7 +243,7 @@ describe('SelectValueObserver', function () {
           option({ text: 'C', value: 'CC', disabled: true, selected: true })
         ]);
 
-        sut.bind();
+        sut.bind(LF.none);
 
         const currentValue = sut.currentValue as any[];
 
@@ -260,20 +260,21 @@ describe('SelectValueObserver', function () {
           ]
         );
 
-        sut.unbind();
+        sut.unbind(LF.none);
       });
 
       describe('with <optgroup>', function () {
         it('synchronizes with array', function () {
           const { sut } = createMutiSelectSut([], [
-            optgroup({},
-                     option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
-                     option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
+            optgroup(
+              {},
+              option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
+              option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
             ),
             option({ text: 'C', value: 'CC' })
           ]);
 
-          sut.bind();
+          sut.bind(LF.none);
 
           const currentValue = sut.currentValue as any[];
 
@@ -290,7 +291,7 @@ describe('SelectValueObserver', function () {
             ]
           );
 
-          sut.unbind();
+          sut.unbind(LF.none);
         });
 
       });
@@ -310,9 +311,10 @@ describe('SelectValueObserver', function () {
 
       function select(...options: SelectValidChild[]): (ctx: HTMLTestContext) => HTMLSelectElement {
         return function(ctx: HTMLTestContext) {
-          return h('select',
-                   { multiple: true },
-                   ...options
+          return h(
+            'select',
+            { multiple: true },
+            ...options
           );
         };
       }

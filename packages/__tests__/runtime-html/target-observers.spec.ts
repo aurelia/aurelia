@@ -5,7 +5,7 @@ import {
   DataAttributeAccessor,
   StyleAttributeAccessor
 } from '@aurelia/runtime-html';
-import { CSS_PROPERTIES, globalAttributeNames, HTMLTestContext, TestContext, assert, createSpy } from '@aurelia/testing';
+import { assert, createSpy, CSS_PROPERTIES, globalAttributeNames, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) {
   return ctx.createElementFromMarkup(`<svg>
@@ -48,7 +48,7 @@ describe('AttributeNSAccessor', function () {
         const { ctx, lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         let actual = sut.getValue();
         assert.strictEqual(actual, null, `actual`);
@@ -69,7 +69,7 @@ describe('AttributeNSAccessor', function () {
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.none);
@@ -91,7 +91,7 @@ describe('AttributeNSAccessor', function () {
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.fromBind);
@@ -119,7 +119,7 @@ describe('DataAttributeAccessor', function () {
           el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
 
           let actual = sut.getValue();
           assert.strictEqual(actual, null, `actual`);
@@ -143,7 +143,7 @@ describe('DataAttributeAccessor', function () {
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.none);
@@ -168,7 +168,7 @@ describe('DataAttributeAccessor', function () {
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.fromBind);
@@ -181,6 +181,13 @@ describe('DataAttributeAccessor', function () {
     }
   });
 });
+
+interface IStyleSpec {
+  title: string;
+  staticStyle: string;
+  input: unknown;
+  expected: string;
+}
 
 describe('StyleAccessor', function () {
   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
@@ -199,7 +206,7 @@ describe('StyleAccessor', function () {
       el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
-      sut = new StyleAttributeAccessor(lifecycle, el);
+      sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -232,7 +239,7 @@ describe('StyleAccessor', function () {
       el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
-      sut = new StyleAttributeAccessor(lifecycle, el);
+      sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -249,27 +256,188 @@ describe('StyleAccessor', function () {
     });
   }
 
-  it(`getValue - style="display: block;"`, function () {
-    const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
-    const { lifecycle: $lifecycle } = setup();
-    lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, el);
+  const specs: Partial<IStyleSpec>[] = [
+    {
+      title: 'getValue - style="display: block;"',
+      staticStyle: 'display:block',
+      input: '',
+      expected: 'display: block;'
+    },
+    {
+      title: `style binding array string/object returns correct with static style`,
+      staticStyle: `display: block;`,
+      input: ['background-color:red', { borderColor: 'black' }],
+      expected: 'display: block; background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object (kebab) returns correct with static style`,
+      staticStyle: `display: block;`,
+      input: ['background-color:red', { ['border-color']: 'black' }],
+      expected: 'display: block; background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object (kebab) returns correct with no static style`,
+      input: ['background-color:red', { ['border-color']: 'black' }],
+      expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object returns correct without static style`,
+      input: ['background-color:red', { borderColor: 'black' }],
+      expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/string returns correct with static style`,
+      input: ['background-color:red', 'height:32px'],
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style binding array string/string returns correct with no static style`,
+      input: ['background-color:red', 'height:32px'],
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style string returns correct with static style`,
+      input: 'background-color:red;height:32px;',
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style string returns correct with no static style`,
+      input: 'background-color:red;height:32px;',
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non kebab) returns correct with static style`,
+      input: { backgroundColor: 'red', height: '32px' },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non kebab) returns correct without static style`,
+      input: { backgroundColor: 'red', height: '32px' },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) returns correct with static style`,
+      input: { ['background-color']: 'red', height: '32px' },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) returns correct without static style`,
+      input: { ['background-color']: 'red', height: '32px' },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non-kebab) string/object returns correct with static style`,
+      input: { backgroundColor: 'red', test: { height: '32px' } },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (non-kebab) string/object returns correct with no static style`,
+      input: { backgroundColor: 'red', test: { height: '32px' } },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) string/object returns correct with static style`,
+      input: { ['background-color']: 'red', test: { height: '32px' } },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) string/object returns correct with no static style`,
+      input: { ['background-color']: 'red', test: { height: '32px' } },
+      expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) string/object (kebab) returns correct with static style`,
+      input: { ['background-color']: 'red', test: { ['border-color']: 'black' } },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; border-color: black;',
+    },
+    {
+      title: `style object (kebab) string/object (kebab) returns correct no with static style`,
+      input: { ['background-color']: 'red', test: { ['border-color']: 'black' } },
+      expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/array (kebab) returns correct with static style`,
+      input: ['background-color:red', ['height:32px', { ['border-color']: 'black' }]],
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; height: 32px; border-color: black;',
+    },
+    {
+      title: `style binding array string/array (kebab) returns correct with no static style`,
+      input: ['background-color:red', ['height:32px', { ['border-color']: 'black' }]],
+      expected: 'background-color: red; height: 32px; border-color: black;',
+    },
+  ];
 
-    const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block;', `actual`);
-  });
+  for (const { title, staticStyle, input, expected } of specs) {
+    it(title, function () {
+      const ctx = TestContext.createHTMLTestContext();
+      const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
+      const sut = new StyleAttributeAccessor(ctx.lifecycle, LifecycleFlags.none, el);
+      sut.setValue(input, LifecycleFlags.fromBind);
+
+      const actual = sut.getValue();
+      assert.strictEqual(actual, expected);
+    });
+  }
 });
 
 describe('ClassAccessor', function () {
+
+  const assertClassChanges = (initialClassList: string, classList: string, secondClassList: string | object, secondUpdatedClassList: string) => {
+    const initialClasses = initialClassList.split(' ').filter(x => x);
+
+    for (const cls of initialClasses) {
+      if (!classList.includes(cls)) {
+        assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+      }
+    }
+
+    if (typeof secondClassList === 'string') {
+      for (const cls of secondClassList.split(' ').filter(x => x)) {
+        assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
+      }
+    }
+
+    if (secondClassList instanceof Array) {
+      for (const cls of secondClassList) {
+        assertClassChanges(initialClassList, classList, cls, secondUpdatedClassList);
+      }
+      return;
+    }
+
+    if (secondClassList instanceof Object) {
+      for (const cls in secondClassList) {
+        if (!!secondClassList[cls]) {
+          assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${JSON.stringify(secondClassList)}"`);
+          continue;
+        }
+        if (!initialClasses.includes(cls)) {
+          assert.notIncludes(secondUpdatedClassList, cls, `secondUpdatedClassList ${JSON.stringify(secondUpdatedClassList)} does not exclude class ${cls} from initial class prop but does if not secondClassList "${JSON.stringify(secondClassList)}"`);
+        }
+      }
+    }
+  };
+
   const markupArr = [
     '<div></div>',
     '<div class=""></div>',
     '<div class="foo"></div>',
-    '<div class="foo bar baz"></div>'
+    '<div class="foo bar baz"></div>',
+    '<div class="foo bar baz qux"></div>'
   ];
-  const classListArr = ['', 'foo', 'foo bar', 'bar baz', 'qux', 'bar qux', 'qux quux'];
-  const secondClassListArr = ['', 'fooo'];
+  const classListArr = ['', 'foo', 'foo bar   ', '    bar baz', 'qux', 'bar qux', 'qux quux'];
+  const secondClassListArr = ['', 'fooo  ', { fooo: true }, { fooo: 'true' }, { fooo: true, baaar: false },
+    { fooo: 'true', baaar: 'false' }, { foo: true, bar: false, fooo: true }, { foo: false, bar: false },
+    { 'fooo baaar': true, 'baar': true, 'fono': false },
+    ['fooo', ['bar', { baz: true }], 'bazz'],
+    ['fooo', { baar: true }, 'bazz'], []]; // empty array test
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 
@@ -278,7 +446,7 @@ describe('ClassAccessor', function () {
         const el = ctx.createElementFromMarkup(markup);
         const initialClassList = el.classList.toString();
         const { lifecycle } = ctx;
-        const sut = new ClassAttributeAccessor(lifecycle, el);
+        const sut = new ClassAttributeAccessor(lifecycle, LifecycleFlags.none, el);
         sut.bind(LifecycleFlags.none);
 
         function tearDown() {
@@ -301,10 +469,10 @@ describe('ClassAccessor', function () {
           lifecycle.processRAFQueue(LifecycleFlags.none);
 
           const updatedClassList = el.classList.toString();
-          for (const cls of initialClassList.split(' ')) {
+          for (const cls of initialClassList.split(' ').filter(x => x)) {
             assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
           }
-          for (const cls of classList.split(' ')) {
+          for (const cls of classList.split(' ').filter(x => x)) {
             assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
           }
 
@@ -327,15 +495,7 @@ describe('ClassAccessor', function () {
             lifecycle.processRAFQueue(LifecycleFlags.none);
 
             const secondUpdatedClassList = el.classList.toString();
-            for (const cls of initialClassList.split(' ')) {
-              if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
-              }
-            }
-            for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
-            }
-
+            assertClassChanges(initialClassList, classList, secondClassList, secondUpdatedClassList);
             tearDown();
           });
         }
@@ -343,15 +503,15 @@ describe('ClassAccessor', function () {
 
       describe('with flags.fromBind', function () {
         it(`setValue("${classList}") updates ${markup} flags.fromBind`, function () {
-          const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+          const { sut, el, initialClassList, tearDown } = setup();
 
           sut.setValue(classList, LifecycleFlags.fromBind);
 
           const updatedClassList = el.classList.toString();
-          for (const cls of initialClassList.split(' ')) {
+          for (const cls of initialClassList.split(' ').filter(x => x)) {
             assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
           }
-          for (const cls of classList.split(' ')) {
+          for (const cls of classList.split(' ').filter(x => x)) {
             assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
           }
 
@@ -360,22 +520,15 @@ describe('ClassAccessor', function () {
 
         for (const secondClassList of secondClassListArr) {
           it(`setValue("${secondClassList}") updates already-updated ${markup} flags.fromBind`, function () {
-            const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+            const { sut, el, initialClassList, tearDown } = setup();
 
             sut.setValue(classList, LifecycleFlags.fromBind);
 
             sut.setValue(secondClassList, LifecycleFlags.fromBind);
 
             const secondUpdatedClassList = el.classList.toString();
-            for (const cls of initialClassList.split(' ')) {
-              if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
-              }
-            }
-            for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
-            }
 
+            assertClassChanges(initialClassList, classList, secondClassList, secondUpdatedClassList);
             tearDown();
           });
         }

@@ -4,7 +4,7 @@ let id = 0;
 class Todo {
   public done: boolean = false;
   public id: number = id++;
-  constructor(public description: string, public app: App) {}
+  public constructor(public description: string, public app: App) {}
 }
 
 type ObservedTodos = Todo[] & { $observer: ArrayObserver };
@@ -41,13 +41,12 @@ const template = `
 </template>
 `;
 
-
 @customElement({ name: 'app', template })
 export class App {
   public log: boolean = false;
   public count: number = 1;
   public description: string = 'Hello World';
-  public todos: ObservedTodos = <any>[];
+  public todos: ObservedTodos = [] as any;
 
   public addTodo(): void {
     for (let i = 0; i < this.count; ++i) {

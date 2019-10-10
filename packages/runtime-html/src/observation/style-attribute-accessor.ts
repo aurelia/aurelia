@@ -21,7 +21,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public hasChanges: boolean;
   public priority: Priority;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     obj: HTMLElement,
@@ -56,9 +56,9 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
   private getStyleTuplesFromString(currentValue: string): [string, string][] {
     const styleTuples: [string, string][] = [];
-    const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+    const rx = /\s*([\w-]+)\s*:\s*((?:(?:[\w-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^)]*)\),?|[^)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
     let pair: RegExpExecArray;
-    let name:string;
+    let name: string;
     while ((pair = rx.exec(currentValue)!) !== null) {
       name = pair[1];
       if (name.length === 0) {
@@ -146,7 +146,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
       version -= 1;
       for (style in styles) {
-        if (!styles.hasOwnProperty(style) || styles[style] !== version) {
+        if (!Object.prototype.hasOwnProperty.call(styles, style) || styles[style] !== version) {
           continue;
         }
         this.obj.style.removeProperty(style);
@@ -157,7 +157,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public setProperty(style: string, value: string): void {
     let priority = '';
 
-    if (value != null && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+    if (value != null && typeof value.indexOf === 'function' && value.includes('!important')) {
       priority = 'important';
       value = value.replace('!important', '');
     }

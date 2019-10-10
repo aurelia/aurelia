@@ -82,9 +82,7 @@ async function getChangeLogContent(fromRevision: string, toRevision: string, pat
       newVersion = getNewVersion(major, minor, parseInt(patch, 10) + 1, 'latest');
     }
   } else if (pkgName === undefined) {
-    if (pkgName === undefined) {
-      throw new Error('if newVersion is specified, pkgName must be too');
-    }
+    throw new Error('if newVersion is specified, pkgName must be too');
   }
 
   let content = `<a name="${newVersion}"></a>\n# ${newVersion} (${getDate('-')})`;

@@ -96,6 +96,7 @@ export interface IController<
   readonly vmKind: ViewModelKind;
 
   readonly scopeParts?: readonly string[];
+  readonly isStrictBinding?: boolean;
 
   scope?: IScope;
   part?: string;
@@ -243,7 +244,7 @@ class LinkedCallback {
     return cur;
   }
 
-  constructor(
+  public constructor(
     cb?: (() => void) | ((flags: LifecycleFlags) => void),
     context: unknown = void 0,
     priority: Priority = Priority.normal,
@@ -382,7 +383,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
   public head?: IController;
   public tail?: IController;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.depth = 0;
@@ -466,7 +467,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
   public head?: IController;
   public tail?: IController;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.depth = 0;
@@ -550,7 +551,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
   public head?: IController;
   public tail?: IController;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.depth = 0;
@@ -636,7 +637,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
   public head?: IController;
   public tail?: IController;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.depth = 0;
@@ -720,7 +721,7 @@ export class MountQueue implements IProcessingQueue<IController> {
   public head?: IController;
   public tail?: IController;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.head = void 0;
@@ -788,7 +789,7 @@ export class UnmountQueue implements IProcessingQueue<IController> {
   public head?: IController;
   public tail?: IController;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.head = void 0;
@@ -855,7 +856,7 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
   public queue: IBatchable[];
   public depth: number;
 
-  constructor(lifecycle: ILifecycle) {
+  public constructor(lifecycle: ILifecycle) {
     this.lifecycle = lifecycle;
 
     this.queue = [];
@@ -967,7 +968,7 @@ export class Lifecycle {
 
   private readonly tick: (timestamp: number) => void;
 
-  constructor() {
+  public constructor() {
     this.rafHead = new LinkedCallback(void 0, void 0, Infinity);
     this.rafTail = (void 0)!;
 

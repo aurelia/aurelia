@@ -1,9 +1,9 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, CustomElement, customElement, CustomElementConstructor, CustomElementHost } from '@aurelia/runtime';
+import { Aurelia, CustomElement, CustomElementConstructor, CustomElementHost } from '@aurelia/runtime';
 import { Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
-describe('blur.integration.spec.ts', () => {
+describe('blur.integration.spec.ts', function() {
 
   if (!PLATFORM.isBrowserLike) {
     return;
@@ -260,8 +260,8 @@ describe('blur.integration.spec.ts', () => {
         },
         assertFn: async (ctx, testHost, component: IApp & { aHasFocus: boolean; bHasFocus: boolean }, host) => {
 
-          const $ceA = host.querySelector('ce-a') as CustomElementHost & HTMLElement;
-          const $ceB = host.querySelector('ce-b') as CustomElementHost & HTMLElement;
+          const $ceA: CustomElementHost & HTMLElement = host.querySelector('ce-a');
+          const $ceB: CustomElementHost & HTMLElement = host.querySelector('ce-b');
           const ceA = $ceA.$controller.viewModel as IApp;
           const ceB = $ceB.$controller.viewModel as IApp;
 

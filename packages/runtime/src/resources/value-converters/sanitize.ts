@@ -6,7 +6,8 @@ const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 export interface ISanitizer {
   /**
    * Sanitizes the provided input.
-   * @param input The input to be sanitized.
+   *
+   * @param input - The input to be sanitized.
    */
   sanitize(input: string): string;
 }
@@ -22,13 +23,14 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefau
  */
 @valueConverter('sanitize')
 export class SanitizeValueConverter {
-  constructor(
+  public constructor(
     @ISanitizer private readonly sanitizer: ISanitizer,
   ) {}
 
   /**
    * Process the provided markup that flows to the view.
-   * @param untrustedMarkup The untrusted markup to be sanitized.
+   *
+   * @param untrustedMarkup - The untrusted markup to be sanitized.
    */
   public toView(untrustedMarkup: string): string|null {
     if (untrustedMarkup == null) {

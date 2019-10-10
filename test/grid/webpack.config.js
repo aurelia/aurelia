@@ -46,5 +46,5 @@ module.exports = function(env, { mode }) {
         { test: /\.ts$/, use: [load.ts] }
       ]
     }
-  }
-}
+  };
+};

@@ -1,4 +1,4 @@
-import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { AccessorOrObserver, BindingMode, connectable, ExpressionKind, hasBind, hasUnbind, IBindingTargetObserver, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
 import { AttributeObserver } from '../observation/element-attribute-observer';
 
@@ -38,7 +38,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior | IForOfStatement,
     target: Element,
     // some attributes may have inner structure

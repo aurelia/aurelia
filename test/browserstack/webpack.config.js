@@ -18,5 +18,5 @@ module.exports = function(env, { app }) {
         { test: /\.html$/i, loader: 'html-loader' }
       ]
     }
-  }
-}
+  };
+};

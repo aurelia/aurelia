@@ -1,30 +1,30 @@
 'use strict';
-var path = require('path')
+var path = require('path');
 
 module.exports = [{
-	module: {
-		rules: [{
-			test: /\.jsx?$/,
-			exclude: /node_modules/,
-			use: [
-				{
-					loader: 'babel-loader',
-					options: {
-						presets: ['@babel/preset-env'],
-						plugins: [],
-					}
-				}
-			]
-		}]
-	},
-	entry: {
-		main: './src/Main.js',
-	},
-	output: {
-		path: path.resolve(__dirname, "dist"),
-		filename: '[name].js'
-	},
-	resolve: {
-		extensions: ['.js']
-	}
+  module: {
+    rules: [{
+      test: /\.jsx?$/,
+      exclude: /node_modules/,
+      use: [
+        {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+            plugins: [],
+          }
+        }
+      ]
+    }]
+  },
+  entry: {
+    main: './src/Main.js',
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: '[name].js'
+  },
+  resolve: {
+    extensions: ['.js']
+  }
 }];

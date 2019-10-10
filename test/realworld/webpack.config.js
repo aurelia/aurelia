@@ -24,5 +24,5 @@ module.exports = function(env, { mode }) {
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
-  }
-}
+  };
+};

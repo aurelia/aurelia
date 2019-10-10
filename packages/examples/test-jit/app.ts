@@ -3,7 +3,7 @@ import view from 'view!./app.html';
 
 class Todo {
   done = false;
-  constructor(public description: string) {}
+  public constructor(public description: string) {}
 }
 
 @customElement(view)

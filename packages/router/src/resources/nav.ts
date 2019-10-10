@@ -38,16 +38,16 @@ export class NavCustomElement {
   @bindable public level: number = 0;
   @bindable public classes: INavClasses = {};
 
-  constructor(private readonly router: IRouter) { }
+  public constructor(private readonly router: IRouter) { }
 
-  get navRoutes(): NavRoute[] {
+  public get navRoutes(): NavRoute[] {
     const nav = this.router.navs[this.name as string];
-    return (nav ? nav.routes : []);
+    return (nav !== void 0 && nav !== null ? nav.routes : []);
   }
 
-  get navClasses(): INavClasses {
+  public get navClasses(): INavClasses {
     const nav = this.router.navs[this.name as string];
-    const navClasses = (nav ? nav.classes : {});
+    const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
     return {
       ... {
         nav: '',

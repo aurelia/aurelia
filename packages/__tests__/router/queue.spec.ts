@@ -2,7 +2,7 @@ import { Queue, QueueItem } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 
 class Animal {
-  constructor(public type: string, public name: string) { }
+  public constructor(public type: string, public name: string) { }
 }
 
 describe('Queue', function () {
@@ -31,7 +31,7 @@ describe('Queue', function () {
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
   });
 
-  it('adds to queue with right costs', async function () {
+  it('adds to queue with right costs', function () {
     this.timeout(5000);
     const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
       const animal = qAnimal as Animal;

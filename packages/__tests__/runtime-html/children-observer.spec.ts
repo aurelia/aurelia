@@ -3,9 +3,9 @@ import { TestContext, assert } from '@aurelia/testing';
 import { IContainer, PLATFORM } from '@aurelia/kernel';
 import { ChildrenObserverSource } from '@aurelia/runtime/dist/definitions';
 
-describe('ChildrenObserver', () => {
-  describe('populates', () => {
-    it('children array with child view models', () => {
+describe('ChildrenObserver', function() {
+  describe('populates', function() {
+    it('children array with child view models', function() {
       const { au, viewModel, ChildOne, ChildTwo } = createAppAndStart();
       assert.equal(viewModel.children.length, 2);
       assert.instanceOf(viewModel.children[0], ChildOne);
@@ -14,7 +14,7 @@ describe('ChildrenObserver', () => {
       au.stop();
     });
 
-    it('children array with by custom query', () => {
+    it('children array with by custom query', function() {
       const { au, viewModel, ChildOne } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-one')
       });
@@ -25,7 +25,7 @@ describe('ChildrenObserver', () => {
       au.stop();
     });
 
-    it('children array with by custom query, filter, and map', () => {
+    it('children array with by custom query, filter, and map', function() {
       const { au, viewModel, ChildOne } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-one'),
         filter: (node) => !!node,
@@ -39,12 +39,12 @@ describe('ChildrenObserver', () => {
     });
   });
 
-  describe('updates', () => {
+  describe('updates', function() {
     if (!PLATFORM.isBrowserLike) {
       return;
     }
 
-    it('children array with child view models', (done) => {
+    it('children array with child view models', function(done) {
       const { au, viewModel, ChildOne, ChildTwo, hostViewModel } = createAppAndStart();
 
       assert.equal(viewModel.children.length, 2);
@@ -65,7 +65,7 @@ describe('ChildrenObserver', () => {
       });
     });
 
-    it('children array with by custom query', (done) => {
+    it('children array with by custom query', function(done) {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-two')
       });
@@ -87,7 +87,7 @@ describe('ChildrenObserver', () => {
       });
     });
 
-    it('children array with by custom query, filter, and map', (done) => {
+    it('children array with by custom query, filter, and map', function(done) {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-two'),
         filter: (node) => !!node,
@@ -114,7 +114,7 @@ describe('ChildrenObserver', () => {
     });
   });
 
-  function waitForUpdate(callback: Function) {
+  function waitForUpdate(callback: () => void) {
     Promise.resolve().then(() => callback());
   }
 
@@ -174,8 +174,8 @@ describe('ChildrenObserver', () => {
 
   function defineAndRegisterHost(template: string, container: IContainer) {
     class HostElement {
-      oneCount = 1;
-      twoCount = 1;
+      public oneCount = 1;
+      public twoCount = 1;
     }
 
     const element = CustomElement.define({

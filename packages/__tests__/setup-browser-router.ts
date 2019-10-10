@@ -37,7 +37,6 @@ function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
-
 initializeBrowserTestContext();
 
 const testContext = require.context('.', true, /router.*?\.spec\.js$/i);

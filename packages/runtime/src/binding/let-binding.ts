@@ -2,7 +2,6 @@ import {
   IIndexable,
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
 import { IExpression } from '../ast';
 import {
@@ -41,14 +40,14 @@ export class LetBinding implements IPartialConnectableBinding {
   public target: (IObservable & IIndexable) | null;
   public targetProperty: string;
 
-  private readonly toViewModel: boolean;
+  private readonly toBindingContext: boolean;
 
-  constructor(
+  public constructor(
     sourceExpression: IExpression,
     targetProperty: string,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,
-    toViewModel: boolean = false,
+    toBindingContext: boolean = false,
   ) {
     connectable.assignIdTo(this);
     this.$state = State.none;
@@ -61,7 +60,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.target = null;
     this.targetProperty = targetProperty;
 
-    this.toViewModel = toViewModel;
+    this.toBindingContext = toBindingContext;
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -94,14 +93,14 @@ export class LetBinding implements IPartialConnectableBinding {
 
     this.$scope = scope;
     this.part = part;
-    this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator, part);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
     this.sourceExpression.connect(flags, scope, this, part);
 
     // add isBound flag and remove isBinding flag

@@ -6,7 +6,7 @@ let id = 0;
 class Todo {
   public done: boolean = false;
   public id: number = id++;
-  constructor(public description: string, public app: App) {}
+  public constructor(public description: string, public app: App) {}
 }
 
 @customElement({
@@ -47,7 +47,7 @@ export class App {
   public description: string = 'Hello World';
   public todos: Todo[] = [];
 
-  constructor(public lifecycle: ILifecycle) {
+  public constructor(public lifecycle: ILifecycle) {
     instrumenter.markLifecycle(`app-constructor`);
   }
 

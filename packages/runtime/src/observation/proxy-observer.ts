@@ -1,4 +1,4 @@
-import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import {
   IPropertyObserver,
@@ -23,7 +23,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   public readonly proxy: IProxy<TObj>;
   public readonly raw: TObj;
   public readonly key: string | number;
-  constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number) {
+  public constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number) {
 
     this.inBatch = false;
 
@@ -49,7 +49,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   }
 
   public flushBatch(flags: LifecycleFlags): void {
-
+    return;
   }
 }
 
@@ -61,7 +61,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   public readonly raw: TObj;
   private readonly subscribers: Record<string | number, ProxySubscriberCollection<TObj>>;
 
-  constructor(obj: TObj) {
+  public constructor(obj: TObj) {
     this.raw = obj;
     this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
     lookup.set(obj, this.proxy);

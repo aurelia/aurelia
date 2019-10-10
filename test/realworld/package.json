@@ -10,21 +10,22 @@
   "dependencies": {
     "@aurelia/debug": "file:../../packages/debug",
     "@aurelia/fetch-client": "file:../../packages/fetch-client",
+    "@aurelia/jit": "file:../../packages/jit",
     "@aurelia/jit-html": "file:../../packages/jit-html",
     "@aurelia/jit-html-browser": "file:../../packages/jit-html-browser",
-    "@aurelia/jit": "file:../../packages/jit",
     "@aurelia/kernel": "file:../../packages/kernel",
     "@aurelia/router": "file:../../packages/router",
     "@aurelia/runtime": "file:../../packages/runtime",
     "@aurelia/runtime-html": "file:../../packages/runtime-html",
     "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser",
-    "promise-polyfill": "^8.1.3",
+    "date-fns": "^1.30.1 || ^2.0.0",
     "marked": "^0.6.3 || ^0.7.0",
-    "querystringify": "^2.1.1",
-    "date-fns": "^1.30.1 || ^2.0.0"
+    "promise-polyfill": "^8.1.3",
+    "querystringify": "^2.1.1"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "dev",
+    "@aurelia/webpack-loader": "file:../../packages/webpack-loader",
+    "@aurelia/plugin-conventions": "file:../../packages/plugin-conventions",
     "@types/marked": "^0.6.5",
     "@types/node": "^12.7.8",
     "@types/querystringify": "^2.0.0",
@@ -36,10 +37,10 @@
     "ts-loader": "^6.2.0",
     "tslint": "^5.20.0",
     "typescript": "^3.6.3",
+    "typescript-tslint-plugin": "^0.5.4",
     "webpack": "^4.41.0",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.1",
-    "typescript-tslint-plugin": "^0.5.4"
+    "webpack-dev-server": "^3.8.1"
   },
   "scripts": {
     "lint:html": "htmlhint -c .htmlhintrc src",

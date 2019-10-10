@@ -62,6 +62,7 @@ export class Compose<T extends INode = Node> {
     surrogates: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[],
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     containerless: true,
+    isStrictBinding: true,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     shadowOptions: null!,
     hasSlots: false,
@@ -88,7 +89,7 @@ export class Compose<T extends INode = Node> {
   // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  constructor(
+  public constructor(
     dom: IDOM<T>,
     renderable: IController<T>,
     instruction: IHydrateElementInstruction,
@@ -107,7 +108,7 @@ export class Compose<T extends INode = Node> {
       .reduce<Record<string, TargetedInstruction>>(
       (acc, item: ITargetedInstruction & { to?: string }) => {
         if (item.to) {
-          acc[item.to!] = item! as TargetedInstruction;
+          acc[item.to] = item as TargetedInstruction;
         }
 
         return acc;

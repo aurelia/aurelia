@@ -46,7 +46,7 @@
 //       assert.strictEqual(sut.target, target, 'It should have not recreated target');
 //     });
 
-//     it('creates right target with toViewModel === true', function () {
+//     it('creates right target with toBindingContext === true', function () {
 //       const vm = { vm: 5 };
 //       const sourceExpression = new MockExpression();
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
@@ -54,7 +54,7 @@
 //       assert.strictEqual(sut.target, vm, 'It should have used bindingContext to create target.');
 //     });
 
-//     it('creates right target with toViewModel === false', function () {
+//     it('creates right target with toBindingContext === false', function () {
 //       const vm = { vm: 5 };
 //       const view = { view: 6 };
 //       const sourceExpression = new MockExpression();

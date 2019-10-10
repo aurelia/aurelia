@@ -2,8 +2,14 @@
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
     "rootDir": "src",
+    "lib": ["esnext", "dom"],
     "declarationDir": "dist",
-    "outDir": "dist/build"
+    "outDir": "dist/esnext",
+
+    "types": [
+      "node",
+      "mocha"
+    ]
   },
   "include": ["src"]
 }

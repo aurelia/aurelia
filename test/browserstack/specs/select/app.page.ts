@@ -1,24 +1,23 @@
 import { logAction } from "../logger";
 
-// tslint:disable:typedef
-// tslint:disable:function-name
-
 export class AppPage {
+  public static waitForElement(selector: string, timeout: number = 1000) {
+    const el = $(selector);
+    el.waitForDisplayed(timeout);
+    return el;
+  }
+  public static waitForElements(selector: string, timeout: number = 1000) {
+    const el = $$(selector);
+    el.forEach(el => el.waitForDisplayed(timeout));
+    return el;
+  }
+
   public static get select() {
-    return $('#select');
+    return this.waitForElement('#select');
   }
 
-  public static getSelectedValue() {
-    return (this.select.getValue()).trim();
-  }
-
-  public static getSelectedText() {
-    return (this.select.getText('option:checked')).trim();
-  }
-
-  public static setSelectByValue(value: string) {
-    logAction(`setSelectByValue: ${value}`);
-    this.select.selectByValue(value);
+  public static get selectedValue() {
+    return this.select.getAttribute('value').trim();
   }
 
   public static setSelectByVisibleText(text: string) {
@@ -32,23 +31,23 @@ export class AppPage {
   }
 
   public static get checkbox() {
-    return $('#checkbox');
+    return this.waitForElement('#checkbox');
   }
 
-  public static checkboxChecked() {
+  public static get checkboxChecked() {
     return this.checkbox.isSelected();
   }
 
   public static checkCheckbox() {
     logAction(`checkCheckbox`);
-    if (!(this.checkboxChecked())) {
+    if (!this.checkboxChecked) {
       this.clickCheckbox();
     }
   }
 
   public static uncheckCheckbox() {
     logAction(`uncheckCheckbox`);
-    if ((this.checkboxChecked())) {
+    if (this.checkboxChecked) {
       this.clickCheckbox();
     }
   }
@@ -59,10 +58,10 @@ export class AppPage {
   }
 
   public static get options() {
-    return $$('.option');
+    return this.waitForElements('.option');
   }
 
   public static option(index: number) {
-    return $(`#option-${index}`);
+    return this.waitForElement(`#option-${index}`);
   }
 }

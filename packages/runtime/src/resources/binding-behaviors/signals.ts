@@ -1,24 +1,19 @@
-import { InterfaceSymbol, IRegistry, Reporter } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { Reporter } from '@aurelia/kernel';
+import { PropertyBinding } from '../../binding/property-binding';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 
-export type SignalableBinding = Binding & {
+export type SignalableBinding = PropertyBinding & {
   signal: string | string[];
 };
 
+@bindingBehavior('signal')
 export class SignalBindingBehavior {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ISignaler];
-
-  public static register: IRegistry['register'];
-
-  private readonly signaler: ISignaler;
-
-  constructor(signaler: ISignaler) {
-    this.signaler = signaler;
-  }
+  public constructor(
+    @ISignaler private readonly signaler: ISignaler,
+  ) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void {
     if (!binding.updateTarget) {
@@ -30,7 +25,7 @@ export class SignalBindingBehavior {
       this.signaler.addSignalListener(name, binding);
       binding.signal = name;
     } else if (arguments.length > 4) {
-      const names = Array.prototype.slice.call(arguments, 3);
+      const names = Array.prototype.slice.call(args.length + 3, 3);
       let i = names.length;
 
       while (i--) {
@@ -46,7 +41,7 @@ export class SignalBindingBehavior {
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void {
     const name = binding.signal;
-    binding.signal = null;
+    binding.signal = null! as string | string[];
 
     if (Array.isArray(name)) {
       const names = name;
@@ -60,4 +55,3 @@ export class SignalBindingBehavior {
     }
   }
 }
-BindingBehaviorResource.define('signal', SignalBindingBehavior);

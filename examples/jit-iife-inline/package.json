@@ -2,8 +2,8 @@
   "name": "jit-iife-inline",
   "license": "MIT",
   "engines": {
-    "node": ">=8.11.4 <11.0.0",
-    "npm": ">=6.1.0 <7.0.0"
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
   },
   "version": "0.3.0",
   "scripts": {
@@ -11,7 +11,9 @@
     "build": "echo \"Nothing to build!\"",
     "serve": "http-server -c-1 -p 9000 ."
   },
-  "dependencies": {},
+  "dependencies": {
+    "aurelia": "dev"
+  },
   "devDependencies": {
     "http-server": "latest"
   }

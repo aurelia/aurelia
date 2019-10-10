@@ -1,0 +1,7 @@
+{
+  "baseUrl": "http://localhost:9000",
+  "ignoreTestFiles": "*.po.ts",
+  "testFiles": "**/*.spec.ts",
+  "video": false,
+  "chromeWebSecurity": false
+}

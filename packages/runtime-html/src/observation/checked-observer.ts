@@ -1,22 +1,20 @@
 import {
   CollectionKind,
-  IBatchedCollectionSubscriber,
-  IBindingTargetObserver,
+  IAccessor,
   ICollectionObserver,
   ILifecycle,
+  IndexMap,
   IObserverLocator,
-  IPropertySubscriber,
+  ISubscriber,
+  ISubscriberCollection,
   LifecycleFlags,
   ObserversLookup,
+  Priority,
   SetterObserver,
-  targetObserver
+  subscriberCollection,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
-
-const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
-
-const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
@@ -27,160 +25,206 @@ export interface IInputElement extends HTMLInputElement {
   matcher?: typeof defaultMatcher;
 }
 
-const defaultMatcher = (a: unknown, b: unknown): boolean => {
+function defaultMatcher(a: unknown, b: unknown): boolean {
   return a === b;
-};
+}
 
 export interface CheckedObserver extends
-  IBindingTargetObserver<IInputElement, string>,
-  IBatchedCollectionSubscriber,
-  IPropertySubscriber { }
+  ISubscriberCollection {}
 
-@targetObserver()
-export class CheckedObserver implements CheckedObserver {
-  public readonly isDOMObserver: true;
-  public readonly persistentFlags: LifecycleFlags;
-  public currentFlags: LifecycleFlags;
+@subscriberCollection()
+export class CheckedObserver implements IAccessor<unknown> {
+  public readonly lifecycle: ILifecycle;
+  public readonly observerLocator: IObserverLocator;
+  public readonly handler: IEventSubscriber;
+
+  public readonly obj: IInputElement;
   public currentValue: unknown;
-  public defaultValue: unknown;
-  public flush: () => void;
-  public handler: IEventSubscriber;
-  public lifecycle: ILifecycle;
-  public obj: IInputElement;
-  public observerLocator: IObserverLocator;
   public oldValue: unknown;
 
-  private arrayObserver: ICollectionObserver<CollectionKind.array>;
-  private valueObserver: ValueAttributeObserver | SetterObserver;
+  public readonly persistentFlags: LifecycleFlags;
 
-  constructor(
-    flags: LifecycleFlags,
+  public hasChanges: boolean;
+  public priority: Priority;
+
+  public arrayObserver?: ICollectionObserver<CollectionKind.array>;
+  public valueObserver?: ValueAttributeObserver | SetterObserver;
+
+  public constructor(
     lifecycle: ILifecycle,
-    obj: IInputElement,
+    flags: LifecycleFlags,
+    observerLocator: IObserverLocator,
     handler: IEventSubscriber,
-    observerLocator: IObserverLocator
+    obj: IInputElement,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    this.isDOMObserver = true;
-    this.handler = handler;
     this.lifecycle = lifecycle;
-    this.obj = obj;
     this.observerLocator = observerLocator;
+    this.handler = handler;
+
+    this.obj = obj;
+    this.currentValue = void 0;
+    this.oldValue = void 0;
+
+    this.hasChanges = false;
+    this.priority = Priority.propagate;
+
+    this.arrayObserver = void 0;
+    this.valueObserver = void 0;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
     return this.currentValue;
   }
 
-  public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
-    if (!this.valueObserver) {
-      this.valueObserver = this.obj['$observers'] && (this.obj['$observers'].model || this.obj['$observers'].value);
-      if (this.valueObserver) {
-        this.valueObserver.subscribe(this);
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+  }
+
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue } = this;
+      this.oldValue = currentValue;
+
+      if (this.valueObserver === void 0) {
+        if (this.obj.$observers !== void 0) {
+          if (this.obj.$observers.model !== void 0) {
+            this.valueObserver = this.obj.$observers.model;
+          } else if (this.obj.$observers.value !== void 0) {
+            this.valueObserver = this.obj.$observers.value;
+          }
+        }
+        if (this.valueObserver !== void 0) {
+          this.valueObserver.subscribe(this);
+        }
       }
+
+      if (this.arrayObserver !== void 0) {
+        this.arrayObserver.unsubscribeFromCollection(this);
+        this.arrayObserver = void 0;
+      }
+
+      if (this.obj.type === 'checkbox' && Array.isArray(currentValue)) {
+        this.arrayObserver = this.observerLocator.getArrayObserver(flags, currentValue);
+        this.arrayObserver.subscribeToCollection(this);
+      }
+
+      this.synchronizeElement();
     }
-    if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this);
-      this.arrayObserver = null;
-    }
-    if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
-      this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
-      this.arrayObserver.subscribeBatched(this);
-    }
-    this.synchronizeElement();
   }
 
-  // handleBatchedCollectionChange (todo: rename to make this explicit?)
-  public handleBatchedChange(): void {
-    this.synchronizeElement();
-    this.notify(defaultHandleBatchedChangeFlags);
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    const { currentValue, oldValue } = this;
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.oldValue = currentValue;
+      this.synchronizeElement();
+    } else {
+      this.hasChanges = true;
+    }
+    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+    this.callSubscribers(currentValue, oldValue, flags);
   }
 
-  // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.synchronizeElement();
-    this.notify(flags);
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.synchronizeElement();
+    } else {
+      this.hasChanges = true;
+    }
+    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+    this.callSubscribers(newValue, previousValue, flags);
   }
 
   public synchronizeElement(): void {
-    const value = this.currentValue;
-    const element = this.obj;
-    const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
-    const isRadio = element.type === 'radio';
-    const matcher = element['matcher'] || defaultMatcher;
+    const { currentValue, obj } = this;
+    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
+    const isRadio = obj.type === 'radio';
+    const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
     if (isRadio) {
-      element.checked = !!matcher(value, elementValue);
-    } else if (value === true) {
-      element.checked = true;
-    } else if (Array.isArray(value)) {
-      element.checked = value.findIndex(item => !!matcher(item, elementValue)) !== -1;
+      obj.checked = !!matcher(currentValue, elementValue);
+    } else if (currentValue === true) {
+      obj.checked = true;
+    } else if (Array.isArray(currentValue)) {
+      obj.checked = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
     } else {
-      element.checked = false;
+      obj.checked = false;
     }
-  }
-
-  public notify(flags: LifecycleFlags): void {
-    if (flags & LifecycleFlags.fromBind) {
-      return;
-    }
-    const oldValue = this.oldValue;
-    const newValue = this.currentValue;
-    if (newValue === oldValue) {
-      return;
-    }
-    this.callSubscribers(this.currentValue, this.oldValue, this.persistentFlags | flags);
   }
 
   public handleEvent(): void {
-    let value = this.currentValue;
-    const element = this.obj;
-    const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+    this.oldValue = this.currentValue;
+    let { currentValue } = this;
+    const { obj } = this;
+    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     let index: number;
-    const matcher = element['matcher'] || defaultMatcher;
+    const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
-    if (element.type === 'checkbox') {
-      if (Array.isArray(value)) {
-        index = value.findIndex(item => !!matcher(item, elementValue));
-        if (element.checked && index === -1) {
-          value.push(elementValue);
-        } else if (!element.checked && index !== -1) {
-          value.splice(index, 1);
+    if (obj.type === 'checkbox') {
+      if (Array.isArray(currentValue)) {
+        index = currentValue.findIndex(item => !!matcher(item, elementValue));
+        if (obj.checked && index === -1) {
+          currentValue.push(elementValue);
+        } else if (!obj.checked && index !== -1) {
+          currentValue.splice(index, 1);
         }
-        // when existing value is array, do not invoke callback as only the array element has changed
+        // when existing currentValue is array, do not invoke callback as only the array obj has changed
         return;
       }
-      value = element.checked;
-    } else if (element.checked) {
-      value = elementValue;
+      currentValue = obj.checked;
+    } else if (obj.checked) {
+      currentValue = elementValue;
     } else {
       return;
     }
-    this.oldValue = this.currentValue;
-    this.currentValue = value;
-    this.notify(handleEventFlags);
+    this.currentValue = currentValue;
+    this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public bind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
+    this.currentValue = this.obj.checked;
+  }
+
+  public unbind(flags: LifecycleFlags): void {
+    if (this.arrayObserver !== void 0) {
+      this.arrayObserver.unsubscribeFromCollection(this);
+      this.arrayObserver = void 0;
+    }
+
+    if (this.valueObserver !== void 0) {
+      this.valueObserver.unsubscribe(this);
+    }
+
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
+  }
+
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
-    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: ISubscriber): void {
+    this.removeSubscriber(subscriber);
+    if (!this.hasSubscribers()) {
       this.handler.dispose();
-    }
-  }
-
-  public unbind(): void {
-    if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this);
-      this.arrayObserver = null;
-    }
-    if (this.valueObserver) {
-      this.valueObserver.unsubscribe(this);
     }
   }
 }

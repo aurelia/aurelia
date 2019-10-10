@@ -1,26 +1,75 @@
-import { IBindingTargetAccessor, ILifecycle, targetObserver } from '@aurelia/runtime';
+import { IIndexable } from '@aurelia/kernel';
+import {
+  IAccessor,
+  ILifecycle,
+  LifecycleFlags,
+  Priority,
+} from '@aurelia/runtime';
 
-export interface ElementPropertyAccessor extends IBindingTargetAccessor<object, string> {}
+export class ElementPropertyAccessor implements IAccessor<unknown> {
+  public readonly lifecycle: ILifecycle;
 
-@targetObserver('')
-export class ElementPropertyAccessor implements ElementPropertyAccessor {
-  public readonly isDOMObserver: true;
-  public lifecycle: ILifecycle;
-  public obj: object;
-  public propertyKey: string;
+  public readonly obj: Node & IIndexable;
+  public readonly propertyKey: string;
+  public currentValue: unknown;
+  public oldValue: unknown;
 
-  constructor(lifecycle: ILifecycle, obj: object, propertyKey: string) {
-    this.isDOMObserver = true;
+  public readonly persistentFlags: LifecycleFlags;
+
+  public hasChanges: boolean;
+  public priority: Priority;
+
+  public constructor(
+    lifecycle: ILifecycle,
+    flags: LifecycleFlags,
+    obj: Node,
+    propertyKey: string,
+  ) {
     this.lifecycle = lifecycle;
-    this.obj = obj;
+
+    this.obj = obj as Node & IIndexable;
     this.propertyKey = propertyKey;
+    this.currentValue = void 0;
+    this.oldValue = void 0;
+
+    this.hasChanges = false;
+    this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
-    return this.obj[this.propertyKey];
+    return this.currentValue;
   }
 
-  public setValueCore(value: unknown): void {
-    this.obj[this.propertyKey] = value;
+  public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+  }
+
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue } = this;
+      this.oldValue = currentValue;
+      this.obj[this.propertyKey] = currentValue;
+    }
+  }
+
+  public bind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
+    this.currentValue = this.oldValue = this.obj[this.propertyKey];
+  }
+
+  public unbind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
   }
 }

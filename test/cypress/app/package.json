@@ -1,0 +1,41 @@
+{
+  "name": "cypress-test-app",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "watch": "webpack-dev-server --no-inline",
+    "build": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9001 dist"
+  },
+  "dependencies": {
+    "@aurelia/debug": "dev",
+    "@aurelia/fetch-client": "dev",
+    "@aurelia/jit-html": "dev",
+    "@aurelia/jit-html-browser": "dev",
+    "@aurelia/jit": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/router": "dev",
+    "@aurelia/runtime-html": "dev",
+    "@aurelia/runtime-html-browser": "dev",
+    "@aurelia/runtime": "dev",
+    "@aurelia/store": "dev"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "css-loader": "latest",
+    "html-loader": "latest",
+    "html-webpack-plugin": "latest",
+    "http-server": "latest",
+    "rimraf": "latest",
+    "style-loader": "latest",
+    "ts-loader": "latest",
+    "typescript": "latest",
+    "webpack": "latest",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest"
+  }
+}

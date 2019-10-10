@@ -1,17 +1,13 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "tslint.nodePath": "node_modules/tslint/lib",
-  "html.suggest.angular1": false,
-  "html.suggest.ionic": false,
+  "typescript.tsdk": "./node_modules/typescript/lib",
   "html.format.endWithNewline": true,
-  "tslint.exclude": [
-    "**/.vscode/**",
-    "**/allure-results/**",
-    "**/aurelia_project/**",
-    "**/coverage/**",
-    "**/node_modules/**",
-    "**/scripts/**"
+  "eslint.validate": [
+    "javascript",
+    {
+      "autoFix": true,
+      "language": "typescript"
+    }
   ],
   "emmet.triggerExpansionOnTab": true,
   "prettier.printWidth": 260,
@@ -45,5 +41,20 @@
     "containerless",
     "renderables",
     "requestor's"
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#563f80",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#ab7354",
+    "activityBarBadge.foreground": "#15202b",
+    "titleBar.activeBackground": "#3f2e5e",
+    "titleBar.inactiveBackground": "#3f2e5e99",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveForeground": "#e7e7e799",
+    "statusBar.background": "#3f2e5e",
+    "statusBarItem.hoverBackground": "#563f80",
+    "statusBar.foreground": "#e7e7e7"
+  },
+  "workbench.tree.indent": 16
 }

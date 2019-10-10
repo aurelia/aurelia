@@ -1,230 +1,265 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia, CustomElementResource, ValueConverterResource } from '@aurelia/runtime';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
-import { PLATFORM } from "@aurelia/kernel";
 
 startFPSMonitor();
 startMemMonitor();
 
-const Layout = {
-  PHYLLOTAXIS: 0,
-  GRID: 1,
-  WAVE: 2,
-  SPIRAL: 3
-};
+const { sqrt, PI, cos, sin, min, max } = Math;
 
-const LAYOUT_ORDER = [
-  Layout.PHYLLOTAXIS,
-  Layout.SPIRAL,
-  Layout.PHYLLOTAXIS,
-  Layout.GRID,
-  Layout.WAVE
-];
+const LAYOUT_ORDER = [0, 3, 0, 1, 2];
+const xForLayout = ['px', 'gx', 'wx', 'sx'];
+const yForLayout = ['py', 'gy', 'wy', 'sy'];
 
-const theta = Math.PI * (3 - Math.sqrt(5));
+const theta = PI * (3 - sqrt(5));
+class Phyllotaxis {
+  static set count(value) {
+    this.n = value;
+  }
 
-function xForLayout(layout) {
-  switch (layout) {
-    case Layout.PHYLLOTAXIS:
-      return 'px';
-    case Layout.GRID:
-      return 'gx';
-    case Layout.WAVE:
-      return 'wx';
-    case Layout.SPIRAL:
-      return 'sx';
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+  }
+
+  update(i) {
+    const r = sqrt(i / Phyllotaxis.n);
+    const th = i * theta;
+    this.x = r * cos(th);
+    this.y = r * sin(th);
   }
 }
 
-function yForLayout(layout) {
-  switch (layout) {
-    case Layout.PHYLLOTAXIS:
-      return 'py';
-    case Layout.GRID:
-      return 'gy';
-    case Layout.WAVE:
-      return 'wy';
-    case Layout.SPIRAL:
-      return 'sy';
+class Grid {
+  static set count(value) {
+    this.n = value;
+    this.rowLength = ~~(sqrt(value) + 0.5);
+  }
+
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+  }
+
+  update(i) {
+    const { rowLength } = Grid;
+    this.x = -0.8 + 1.6 / rowLength * (i % rowLength);
+    this.y = -0.8 + 1.6 / rowLength * ~~(i / rowLength);
   }
 }
 
-function lerp(obj, percent, startProp, endProp) {
-  let px = obj[startProp];
-  return px + (obj[endProp] - px) * percent;
+class Wave {
+  static set count(value) {
+    this.n = value;
+    this.xScale = 2 / (value - 1);
+  }
+
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+  }
+
+  update(i) {
+    this.x = -1 + i * Wave.xScale;
+    this.y = sin(this.x * PI * 3) * 0.3;
+  }
 }
 
-function genPhyllotaxis(n) {
-  return i => {
-    let r = Math.sqrt(i / n);
-    let th = i * theta;
-    return [r * Math.cos(th), r * Math.sin(th)];
-  };
+class Spiral {
+  static set count(value) {
+    this.n = value;
+  }
+
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+  }
+
+  update(i) {
+    const t = sqrt(i / (Spiral.n - 1));
+    const phi = t * PI * 10;
+    this.x = t * cos(phi);
+    this.y = t * sin(phi);
+  }
 }
 
-function genGrid(n) {
-  let rowLength = Math.round(Math.sqrt(n));
-  return i => [
-    -0.8 + 1.6 / rowLength * (i % rowLength),
-    -0.8 + 1.6 / rowLength * Math.floor(i / rowLength),
-  ];
+const wh = window.innerHeight / 2;
+const ww = window.innerWidth / 2;
+const magnitude = min(wh, ww);
+
+class Point {
+  constructor(i, count) {
+    this.x = 0;
+    this.y = 0;
+    this.i = i;
+    this.count = count;
+    this.g = new Grid();
+    this.w = new Wave();
+    this.s = new Spiral();
+    this.p = new Phyllotaxis();
+    this.update(i, count);
+  }
+
+  static update() {
+    this.step = (this.step + 1) % 120;
+
+    if (this.step === 0) {
+      this.layout = (this.layout + 1) % 5;
+    }
+
+    this.pct = min(1, this.step / (120 * 0.8));
+
+    this.currentLayout = LAYOUT_ORDER[this.layout];
+    this.nextLayout = LAYOUT_ORDER[(this.layout + 1) % 5];
+
+    this.pxProp = xForLayout[this.currentLayout];
+    this.nxProp = xForLayout[this.nextLayout];
+    this.pyProp = yForLayout[this.currentLayout];
+    this.nyProp = yForLayout[this.nextLayout];
+  }
+
+  update(i, count) {
+    this.color = interpolateViridis(i / count);
+
+    this.g.update(i);
+    this.w.update(i);
+    this.s.update(i);
+    this.p.update(i);
+
+    this.gx = this.g.x * magnitude + ww;
+    this.gy = this.g.y * magnitude + wh;
+    this.wx = this.w.x * magnitude + ww;
+    this.wy = this.w.y * magnitude + wh;
+    this.sx = this.s.x * magnitude + ww;
+    this.sy = this.s.y * magnitude + wh;
+    this.px = this.p.x * magnitude + ww;
+    this.py = this.p.y * magnitude + wh;
+  }
+
+  flushRAF() {
+    if (this.transform === void 0) {
+      this.transform = this.$controller.getTargetAccessor('transform');
+    }
+    this.x = this[Point.pxProp] + (this[Point.nxProp] - this[Point.pxProp]) * Point.pct;
+    this.y = this[Point.pyProp] + (this[Point.nyProp] - this[Point.pyProp]) * Point.pct;
+    this.transform.setValue(`translate(${~~this.x}, ${~~this.y})`, LifecycleFlags.fromBind);
+  }
 }
 
-function genWave(n) {
-  let xScale = 2 / (n - 1);
-  return i => {
-    let x = -1 + i * xScale;
-    return [x, Math.sin(x * Math.PI * 3) * 0.3];
-  };
-}
+Point.layout = 0;
+Point.step = 0;
+Point.pct = 0;
+Point.currentLayout = 0;
+Point.nextLayout = 0;
+Point.pxProp = '';
+Point.nxProp = '';
+Point.pyProp = '';
+Point.nyProp = '';
 
-function genSpiral(n) {
-  return i => {
-    let t = Math.sqrt(i / (n - 1)),
-      phi = t * Math.PI * 10;
-    return [t * Math.cos(phi), t * Math.sin(phi)];
-  };
-}
+const App = CustomElementResource.define(
+  {
+    name: 'app',
+    template: `
+      <div class="app-wrapper">
+        <svg class="demo">
+          <g>
+            <rect
+              repeat.for="point of points"
+              class="point"
+              transform.bind="point.transform"
+              fill.bind="point.color"
+              view.one-time="point.$controller = $view"
+            />
+          </g>
+        </svg>
 
-function scale(magnitude, vector) {
-  return vector.map(p => p * magnitude);
-}
+        <div class="controls">
+          # Target FPS
+          <input style="width: 20%" type="range" min.bind="1" max.bind="60" value.two-way="fps | num" />
+          \${fps}
 
-function translate(translation, vector) {
-  return vector.map((p, i) => p + translation[i]);
-}
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-new Aurelia().register(BasicConfiguration, { register }).app(
+          # Points
+          <input type="range" min.bind="10" max.bind="10000" value.two-way="count | num" />
+          \${count}
+        </div>
+
+        <div className="about">
+          Aurelia 1k Components Demo
+          based on <a href="https://infernojs.github.io/inferno/1kcomponents/" target="_blank">InfernoJS 1k Components Demo</a>.
+        </div>
+      </div>
+    `,
+    bindables: ['count', 'fps'],
+    dependencies: [
+      ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } })
+    ]
+  },
+  class {
+    static get inject() { return [ILifecycle]; }
+
+    constructor(lifecycle) {
+      this.lifecycle = lifecycle;
+      this.points = [];
+      this.count = 0;
+      this.fps = 30;
+    }
+
+    attached() {
+      this.count = 1000;
+      this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
+    }
+
+    fpsChanged(fps) {
+      this.$controller.lifecycle.minFPS = fps;
+    }
+
+    countChanged(count) {
+      Phyllotaxis.count = count;
+      Grid.count = count;
+      Wave.count = count;
+      Spiral.count = count;
+
+      const { points } = this;
+      const { length } = points;
+      if (count > length) {
+        for (let i = 0; i < length; ++i) {
+          points[i].update(i, count);
+        }
+        const newPoints = [];
+        for (let i = length; i < count; ++i) {
+          newPoints.push(this.createPoint(count, i));
+        }
+        points.push(...newPoints);
+      } else if (length > count) {
+        for (let i = 0; i < count; ++i) {
+          points[i].update(i, count);
+        }
+        let point;
+        for (let i = count; i < length; ++i) {
+          point = points[i];
+          this.lifecycle.dequeueRAF(point.flushRAF, point);
+        }
+        points.splice(count, length - count);
+      }
+    }
+
+    createPoint(count, i) {
+      const point = new Point(i, count);
+      this.lifecycle.enqueueRAF(point.flushRAF, point, Priority.low);
+      return point;
+    }
+  }
+);
+
+new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app'),
-    component: CustomElementResource.define(
-      {
-        name: 'app',
-        template: `
-          <div class="app-wrapper">
-            <viz-demo count.bind="numPoints"></viz-demo>
-            <div class="controls">
-              # Points
-              <input type="range" min.bind="10" max.bind="10000" value.two-way="numPoints | num" />
-              \${numPoints}
-            </div>
-            <div className="about">
-              Aurelia 1k Components Demo
-              based on <a href="https://infernojs.github.io/inferno/1kcomponents/" target="_blank">InfernoJS 1k Components Demo</a>.
-            </div>
-          </div>
-        `,
-        dependencies: [
-          ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } }),
-          CustomElementResource.define(
-            {
-              name: 'viz-demo',
-              template: `
-                <svg class="demo">
-                  <g>
-                    <rect
-                      repeat.for="point of points"
-                      class="point"
-                      transform="translate(\${floor(point.x)}, \${floor(point.y)})"
-                      fill.bind="point.color"
-                    />
-                  </g>
-                </svg>
-              `,
-              //strategy: BindingStrategy.patch,
-              bindables: { count: { property: 'count', attribute: 'count', callback: 'update' } }
-            },
-            class {
-              constructor() {
-                this.count = 0;
-                this.layout = 0;
-                this.phyllotaxis = genPhyllotaxis(100);
-                this.grid = genGrid(100);
-                this.wave = genWave(100);
-                this.spiral = genSpiral(100);
-                this.points = [];
-                this.step = 0;
-                this.numSteps = 60 * 2;
-              }
-
-              floor(num) {
-                return ~~num;
-              }
-
-              update(count) {
-                this.phyllotaxis = genPhyllotaxis(count);
-                this.grid = genGrid(count);
-                this.wave = genWave(count);
-                this.spiral = genSpiral(count);
-
-                const wh = window.innerHeight / 2;
-                const ww = window.innerWidth / 2;
-
-                const points = [];
-                for (let i = 0; i < count; i++) {
-                  const [ gx, gy ] = translate([ ww, wh ], scale(Math.min(wh, ww), this.grid(i)));
-                  const [ wx, wy ] = translate([ ww, wh ], scale(Math.min(wh, ww), this.wave(i)));
-                  const [ sx, sy ] = translate([ ww, wh ], scale(Math.min(wh, ww), this.spiral(i)));
-                  const [ px, py ] = translate([ ww, wh ], scale(Math.min(wh, ww), this.phyllotaxis(i)));
-
-                  points.push({
-                    x: 0, y: 0,
-                    color: interpolateViridis(i / count),
-                    gx, gy, wx, wy, sx, sy, px, py
-                  });
-                }
-
-                this.points = points;
-              }
-
-              attached() {
-                PLATFORM.ticker.add(this.next, this);
-              }
-              detached() {
-                PLATFORM.ticker.remove(this.next, this);
-              }
-
-              next() {
-                this.step = (this.step + 1) % this.numSteps;
-
-                if (this.step === 0) {
-                  this.layout = (this.layout + 1) % LAYOUT_ORDER.length;
-                }
-
-                // Clamp the linear interpolation at 80% for a pause at each finished layout state
-                const pct = Math.min(1, this.step / (this.numSteps * 0.8));
-
-                const currentLayout = LAYOUT_ORDER[this.layout];
-                const nextLayout = LAYOUT_ORDER[(this.layout + 1) % LAYOUT_ORDER.length];
-
-                // Keep these redundant computations out of the loop
-                const pxProp = xForLayout(currentLayout);
-                const nxProp = xForLayout(nextLayout);
-                const pyProp = yForLayout(currentLayout);
-                const nyProp = yForLayout(nextLayout);
-
-                this.points.forEach(point => {
-                  point.x = lerp(point, pct, pxProp, nxProp);
-                  point.y = lerp(point, pct, pyProp, nyProp);
-                });
-                //this.$patch(0);
-              }
-            }
-          )
-        ]
-      },
-      class {
-        constructor() {
-          this.numPoints = 0;
-        }
-        attached() {
-          this.numPoints = 1000;
-        }
-      }
-    )
+    component: App,
+    enableTimeSlicing: true,
+    adaptiveTimeSlicing: true
   }
 ).start();
-
-

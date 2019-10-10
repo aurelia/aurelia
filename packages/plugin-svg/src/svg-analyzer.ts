@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { INode } from '@aurelia/runtime';
 import { ISVGAnalyzer } from '@aurelia/runtime-html';
 
-const svgElements = {
+const svgElements: Record<string, string[]> = {
   'a': ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
   'altGlyph': ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
   'altGlyphDef': ['id', 'xml:base', 'xml:lang', 'xml:space'],
@@ -85,7 +85,7 @@ const svgElements = {
   'vkern': ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
 };
 
-const svgPresentationElements = {
+const svgPresentationElements: Record<string, boolean> = {
   'a': true,
   'altGlyph': true,
   'animate': true,
@@ -139,7 +139,7 @@ const svgPresentationElements = {
   'use': true
 };
 
-const svgPresentationAttributes = {
+const svgPresentationAttributes: Record<string, boolean> = {
   'alignment-baseline': true,
   'baseline-shift': true,
   'clip-path': true,
@@ -208,10 +208,10 @@ function createElement(html: string): Element {
   // and dealing with browser inconsistencies.
   const div = document.createElement('div');
   div.innerHTML = html;
-  return div.firstElementChild;
+  return div.firstElementChild as Element;
 }
 
-if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+if ((createElement('<svg><altGlyph /></svg>').firstElementChild as Element).nodeName === 'altglyph' && svgElements.altGlyph !== undefined) {
   // handle chrome casing inconsistencies.
   (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
   Reflect.deleteProperty(svgElements, 'altGlyph');
@@ -238,8 +238,8 @@ export function register(container: IContainer): void {
 
         const nodeName = node.nodeName;
 
-        return svgPresentationElements[nodeName] && svgPresentationAttributes[attributeName]
-          || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+        return svgPresentationElements[nodeName] !== undefined && svgPresentationAttributes[attributeName] !== undefined
+          || svgElements[nodeName] !== undefined && svgElements[nodeName].includes(attributeName);
       }
     };
   });

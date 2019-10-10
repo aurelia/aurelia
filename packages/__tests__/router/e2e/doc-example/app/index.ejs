@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Aurelia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/">
+
+  <style>
+    a {
+      margin: 2px;
+      padding: 2px;
+      min-width: 150px;
+      display: inline-block;
+    }
+
+    ul {
+      padding-inline-start: 0;
+      margin: 0;
+    }
+
+    li {
+      list-style-type: none;
+      margin: 2px;
+      padding-left: 2px;
+    }
+
+    pre {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 120%;
+    }
+
+    app>div>div {
+      margin: 10px;
+    }
+
+    app>div.routing {
+      cursor: wait;
+    }
+
+    span.loader {
+      display: none;
+
+      border: 4px solid #fafafa;
+      border-top: 4px solid #777;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1.25s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    span.loader.routing {
+      display: inline-block;
+    }
+
+    .info {
+      padding: 10px;
+      border: 1px solid #999;
+    }
+
+    au-viewport[name="lists"] {
+      display: inline-block;
+      width: 20%;
+      min-width: 200px;
+      border-right: 1px solid #777;
+      vertical-align: top;
+    }
+
+    au-viewport[name="content"] {
+      display: inline-block;
+      width: 60%;
+    }
+
+    au-viewport {
+      padding: 10px;
+    }
+
+    .viewport-header {
+      /* display: none; */
+    }
+
+    au-nav {
+      display: inline-block;
+    }
+
+    nav ul {
+      margin-bottom: 10px;
+    }
+
+    nav li {
+      display: inline-block;
+      background-color: #eee;
+      text-align: center;
+    }
+
+    au-viewport nav {
+      margin-top: 20px;
+    }
+
+    nav li.nav-active>a {
+      background-color: #ee0;
+    }
+
+    nav li:not(.nav-active):not(.nav-active-child) ul {
+      background-color: red;
+      display: none;
+    }
+
+    au-viewport[name="lists"]>ul>li {
+      border-bottom: 1px solid #777;
+      padding: 10px;
+    }
+
+    au-viewport[name="chat"] {
+      position: absolute;
+      width: 50%;
+      right: 20px;
+      bottom: 20px;
+      background-color: #ccf;
+      border: 1px solid #777;
+    }
+
+    au-viewport[name="chat"] h3 {
+      border-bottom: 1px solid #777;
+      padding-bottom: 10px;
+      margin-bottom: 0;
+    }
+
+    au-viewport[name="chat"] au-viewport {
+      display: inline-block;
+      width: 40%;
+      vertical-align: top;
+    }
+
+    au-viewport[name="chat-main"] {
+      border-right: 1px solid #777;
+    }
+
+    au-viewport[name="chat-details"] input {
+      width: 100%;
+    }
+
+    au-viewport[name="author-tabs"]>div {
+      max-height: 130px;
+      overflow: auto;
+    }
+
+    div.scrollbox {
+      height: 75px;
+      background-color: var(--primary-color);
+    }
+
+    .close {
+      float: right;
+      text-align: right;
+    }
+
+    .login {
+      border: 1px solid #777;
+      background-color: #ff000055;
+      padding: 25px;
+      margin: 0;
+      position: absolute;
+      left: 50%;
+      transform: translate(-50%, 0%);
+    }
+  </style>
+</head>
+
+<body>
+  <app></app>
+</body>
+
+</html>

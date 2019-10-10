@@ -1,10 +1,26 @@
-import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import {
+  IIndexable,
+  IServiceLocator,
+  Reporter,
+} from '@aurelia/kernel';
 import { IExpression } from '../ast';
-import { LifecycleFlags, State } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import { IObservable, IScope } from '../observation';
+import {
+  LifecycleFlags,
+  State,
+} from '../flags';
+import {
+  ILifecycle,
+} from '../lifecycle';
+import {
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import {
+  connectable,
+  IConnectableBinding,
+  IPartialConnectableBinding,
+} from './connectable';
 
 const slice = Array.prototype.slice;
 
@@ -12,26 +28,31 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
+  public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;
-  public $scope: IScope;
+  public $scope?: IScope;
+  public part?: string;
 
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
-  public target: IObservable | null;
+  public target: (IObservable & IIndexable) | null;
   public targetProperty: string;
 
-  private readonly toViewModel: boolean;
+  private readonly toBindingContext: boolean;
 
-  constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
-    this.$nextBinding = null;
-    this.$prevBinding = null;
+  public constructor(
+    sourceExpression: IExpression,
+    targetProperty: string,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+    toBindingContext: boolean = false,
+  ) {
+    connectable.assignIdTo(this);
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = null;
+    this.$scope = void 0;
 
     this.locator = locator;
     this.observerLocator = observerLocator;
@@ -39,35 +60,30 @@ export class LetBinding implements IPartialConnectableBinding {
     this.target = null;
     this.targetProperty = targetProperty;
 
-    this.toViewModel = toViewModel;
+    this.toBindingContext = toBindingContext;
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('LetBinding', 'handleChange', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('LetBinding', '$bind', slice.call(arguments)); }
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
       this.$unbind(flags | LifecycleFlags.fromBind);
@@ -76,26 +92,24 @@ export class LetBinding implements IPartialConnectableBinding {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
-    this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.part = part;
+    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator);
-    this.sourceExpression.connect(flags, scope, this);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
+    this.sourceExpression.connect(flags, scope, this, part);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('LetBinding', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -103,13 +117,12 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope, this);
+      sourceExpression.unbind(flags, this.$scope!, this);
     }
-    this.$scope = null;
+    this.$scope = void 0;
     this.unobserve(true);
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

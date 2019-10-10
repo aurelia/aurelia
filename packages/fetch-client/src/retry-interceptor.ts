@@ -1,4 +1,4 @@
-import { PLATFORM } from '@aurelia/kernel';
+import { ITimerHandler, PLATFORM } from '@aurelia/kernel';
 import { HttpClient } from './http-client';
 import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
 
@@ -29,11 +29,11 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Creates an instance of RetryInterceptor.
    */
-  constructor(retryConfig?: RetryConfiguration) {
-    this.retryConfig = {...defaultRetryConfig, ...(retryConfig || {})};
+  public constructor(retryConfig?: RetryConfiguration) {
+    this.retryConfig = {...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {})};
 
     if (this.retryConfig.strategy === retryStrategy.exponential &&
-      this.retryConfig.interval <= 1000) {
+      (this.retryConfig.interval as number) <= 1000) {
       throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
     }
   }
@@ -41,7 +41,7 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Called with the request before it is sent. It remembers the request so it can be retried on error.
    *
-   * @param request The request to be sent.
+   * @param request - The request to be sent.
    * @returns The existing request, a new request or a response; or a Promise for any of these.
    */
   public request(request: RetryableRequest): RetryableRequest {
@@ -59,7 +59,7 @@ export class RetryInterceptor implements Interceptor {
   /**
    * Called with the response after it is received. Clears the remembered request, as it was succesfull.
    *
-   * @param response The response.
+   * @param response - The response.
    * @returns The response; or a Promise for one.
    */
   public response(response: Response, request: RetryableRequest): Response {
@@ -73,23 +73,23 @@ export class RetryInterceptor implements Interceptor {
    * function acts as a Promise rejection handler. It wil retry the remembered request based on the
    * configured RetryConfiguration.
    *
-   * @param error The rejection value from the fetch request or from a
+   * @param error - The rejection value from the fetch request or from a
    * previous interceptor.
    * @returns The response of the retry; or a Promise for one.
    */
 
   public responseError(error: Response, request: RetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
-    const { retryConfig } = request;
+    const { retryConfig } = request as { retryConfig: Required<RetryConfiguration> };
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
       if (retryConfig.counter < retryConfig.maxRetries) {
-        const result = retryConfig.doRetry ? retryConfig.doRetry(error, request) : true;
+        const result = retryConfig.doRetry !== undefined ? retryConfig.doRetry(error, request) : true;
 
         return Promise.resolve(result).then(doRetry => {
           if (doRetry) {
             retryConfig.counter++;
             const delay = calculateDelay(retryConfig);
-            return new Promise(resolve => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+            return new Promise((resolve: ITimerHandler) => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
               .then(() => {
                 const newRequest = requestClone.clone();
                 if (typeof (retryConfig.beforeRetry) === 'function') {
@@ -116,7 +116,7 @@ export class RetryInterceptor implements Interceptor {
 }
 
 function calculateDelay(retryConfig: RetryConfiguration): number {
-  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig;
+  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig as Required<RetryConfiguration>;
 
   if (typeof (strategy) === 'function') {
     return (retryConfig.strategy as (retryCount: number) => number)(counter);
@@ -148,12 +148,11 @@ const retryStrategies = [
 
   // random
   (retryCount, interval, minRandomInterval = 0, maxRandomInterval = 60000) => {
-    // tslint:disable-next-line:insecure-random
     return Math.random() * (maxRandomInterval - minRandomInterval) + minRandomInterval;
   }
 ] as [
-    (interval: number) => number,
-    (retryCount: number, interval: number) => number,
-    (retryCount: number, interval: number) => number,
-    (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
-  ];
+  (interval: number) => number,
+  (retryCount: number, interval: number) => number,
+  (retryCount: number, interval: number) => number,
+  (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
+];

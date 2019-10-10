@@ -6,6 +6,7 @@
     "module": "umd",
     "moduleResolution": "node",
     "outDir": "dist",
+    "skipLibCheck": true,
     "target": "es2018"
   },
   "include": ["src"]

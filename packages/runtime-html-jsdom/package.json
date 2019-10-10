@@ -1,10 +1,9 @@
 {
   "name": "@aurelia/runtime-html-jsdom",
   "version": "0.3.0",
-  "main": "dist/build/index.js",
-  "module": "dist/build/index.js",
-  "jsnext:main": "dist/build/index.js",
-  "browser": "dist/build/index.js",
+  "main": "dist/esnext/index.js",
+  "module": "dist/esnext/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -28,15 +27,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "npm run lint:src && npm run lint:test",
-    "lint:src": "tslint --project tsconfig.json -t stylish",
-    "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
-    "test-node": "cross-env TS_NODE_PROJECT=\"test/tsconfig.json\" mocha test/setup-node.ts ../runtime-html/test/**/*.spec.ts -c -R progress -r source-map-support/register -r ts-node/register -r esm --recursive --globals expect",
-    "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html-jsdom",
-    "dev": "tsc -b -w",
-    "publish:local": "npm pack"
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html-jsdom",
+    "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
@@ -45,27 +39,11 @@
     "@aurelia/kernel": "0.3.0",
     "@aurelia/runtime": "0.3.0",
     "@aurelia/runtime-html": "0.3.0",
-    "jsdom": "^13.2.0"
+    "jsdom": "^15.1.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/jsdom": "^12.2.1",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.19",
-    "@types/sinon-chai": "^3.2.2",
-    "@types/sinon": "^7.0.5",
-    "chai": "^4.2.0",
-    "cross-env": "^5.2.0",
-    "mocha": "^5.2.0",
-    "path": "^0.12.7",
-    "sinon": "^7.2.3",
-    "sinon-chai": "^3.3.0",
-    "ts-node": "^8.0.2",
-    "tsconfig-paths": "^3.7.0",
-    "tslib": "^1.9.3",
-    "tslint": "^5.12.1",
-    "tslint-microsoft-contrib": "^6.0.0",
-    "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.2.4"
+    "@types/node": "^10.14.13",
+    "tslib": "^1.10.0",
+    "typescript": "^3.6.3"
   }
 }

@@ -1,21 +1,31 @@
 export {
+  IAttrSyntaxTransformer
+} from './attribute-syntax-transformer';
+export {
   TriggerBindingCommand,
   DelegateBindingCommand,
-  CaptureBindingCommand
-} from './binding-command';
+  CaptureBindingCommand,
+  AttrBindingCommand,
+  ClassBindingCommand,
+  StyleBindingCommand
+} from './binding-commands';
 export {
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
 
   DefaultComponents,
 
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
+  AttrBindingCommandRegistration,
+  ClassBindingCommandRegistration,
+  StyleBindingCommandRegistration,
 
   DefaultBindingLanguage,
 
-  BasicConfiguration
+  JitHtmlConfiguration
 } from './configuration';
 export {
   stringifyDOM,
@@ -23,7 +33,7 @@ export {
   stringifyTemplateDefinition
 } from './debugging';
 export {
-  TemplateBinder
+  TemplateBinder,
 } from './template-binder';
 export {
   ITemplateElementFactory

@@ -1,64 +1,118 @@
-import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
-import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
-import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags, State } from '../../flags';
-import { IBinding, IView, IViewFactory } from '../../lifecycle';
-import { IBindingContext } from '../../observation';
+import {
+  IContainer,
+  Key,
+  nextId,
+  PLATFORM,
+  Registration
+} from '@aurelia/kernel';
+import {
+  HooksDefinition,
+  IAttributeDefinition
+} from '../../definitions';
+import {
+  INode,
+  IRenderLocation
+} from '../../dom';
+import {
+  BindingMode,
+  BindingStrategy,
+  LifecycleFlags,
+  State
+} from '../../flags';
+import {
+  IController,
+  IViewFactory
+} from '../../lifecycle';
+import { InlineObserversLookup } from '../../observation';
 import { Scope } from '../../observation/binding-context';
-import { bindable } from '../../templating/bindable';
-import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
+import { Bindable } from '../../templating/bindable';
+import {
+  CustomAttribute,
+  ICustomAttributeResource
+} from '../custom-attribute';
 
-export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
-export class With<T extends INode = INode> implements With<T>  {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IViewFactory, IRenderLocation];
+export class With<T extends INode = INode> {
+  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
-  public static readonly register: IRegistry['register'];
-  public static readonly bindables: IAttributeDefinition['bindables'];
-  public static readonly kind: ICustomAttributeResource;
-  public static readonly description: AttributeDefinition;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
+  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
+    name: 'with',
+    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
+    defaultBindingMode: BindingMode.toView,
+    isTemplateController: true,
+    bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
+    strategy: BindingStrategy.getterSetter,
+    hooks: Object.freeze(new HooksDefinition(With.prototype)),
+  });
 
-  // TODO: this type is incorrect (it can be any user-provided object), need to fix and double check Scope.
-  @bindable public value: IBinding | IBindingContext;
+  public readonly id: number;
 
-  private readonly currentView: IView<T>;
+  public get value(): object | undefined {
+    return this._value;
+  }
+  public set value(newValue: object | undefined) {
+    const oldValue = this._value;
+    if (oldValue !== newValue) {
+      this._value = newValue;
+      this.valueChanged(newValue, oldValue, LifecycleFlags.none);
+    }
+  }
+
+  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
+    value: this,
+  });
+
+  public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  constructor(
+  private _value: object | undefined;
+
+  public constructor(
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {
-    this.value = null;
+    this.id = nextId('au$component');
 
     this.factory = factory;
-    this.currentView = this.factory.create();
-    this.currentView.hold(location);
+    this.view = this.factory.create();
+    this.view.hold(location);
+
+    this._value = void 0;
   }
 
-  public valueChanged(this: With): void {
-    if (this.$state & (State.isBound | State.isBinding)) {
-      this.bindChild(LifecycleFlags.fromBindableHandler);
+  public static register(container: IContainer): void {
+    container.register(Registration.transient('custom-attribute:with', this));
+    container.register(Registration.transient(this, this));
+  }
+
+  public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
+    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      this.bindChild(LifecycleFlags.fromBind);
     }
   }
 
   public binding(flags: LifecycleFlags): void {
+    this.view.parent = this.$controller;
     this.bindChild(flags);
   }
 
   public attaching(flags: LifecycleFlags): void {
-    this.currentView.$attach(flags);
+    this.view.attach(flags);
   }
 
   public detaching(flags: LifecycleFlags): void {
-    this.currentView.$detach(flags);
+    this.view.detach(flags);
   }
 
   public unbinding(flags: LifecycleFlags): void {
-    this.currentView.$unbind(flags);
+    this.view.unbind(flags);
+    this.view.parent = void 0;
   }
 
   private bindChild(flags: LifecycleFlags): void {
-    const scope = Scope.fromParent(flags, this.$scope, this.value);
-    this.currentView.$bind(flags, scope);
+    const scope = Scope.fromParent(flags, this.$controller.scope!, this.value === void 0 ? {} : this.value);
+    this.view.bind(flags, scope, this.$controller.part);
   }
 }
-CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);

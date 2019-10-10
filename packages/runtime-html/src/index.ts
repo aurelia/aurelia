@@ -1,6 +1,9 @@
 export {
   Listener
 } from './binding/listener';
+export {
+  AttributeBinding
+} from './binding/attribute';
 
 export {
   AttributeNSAccessor
@@ -28,7 +31,8 @@ export {
   IEventSubscriber,
   IEventTargetWithLookups,
   EventSubscriber,
-  EventSubscription
+  EventSubscription,
+  EventManager
 } from './observation/event-manager';
 export {
   TargetAccessorLocator,
@@ -63,6 +67,15 @@ export {
 } from './resources/binding-behaviors/update-trigger';
 
 export {
+  Blur,
+  BlurManager
+} from './resources/custom-attributes/blur';
+
+export {
+  Focus
+} from './resources/custom-attributes/focus';
+
+export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';
@@ -82,6 +95,7 @@ export {
 
   DefaultResources,
 
+  AttributeBindingRendererRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
@@ -89,7 +103,7 @@ export {
 
   DefaultRenderers,
 
-  BasicConfiguration
+  RuntimeHtmlConfiguration
 } from './configuration';
 export {
   createElement,
@@ -101,6 +115,7 @@ export {
   HTMLNodeInstruction,
   HTMLTargetedInstruction,
   HTMLTargetedInstructionType,
+  IAttributeBindingInstruction,
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   isHTMLTargetedInstruction,
@@ -110,9 +125,12 @@ export {
 export {
   NodeType,
   HTMLDOM,
-  DOM
+  DOM,
+  NodeSequenceFactory,
+  FragmentNodeSequence
 } from './dom';
 export {
+  AttributeBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   SetAttributeInstruction,
@@ -120,3 +138,27 @@ export {
   TextBindingInstruction,
   TriggerBindingInstruction
 } from './instructions';
+export {
+  ContainerlessProjector,
+  HostProjector,
+  HTMLProjectorLocator,
+  ShadowDOMProjector
+} from './projectors';
+
+export {
+  StyleConfiguration,
+  styles,
+  IShadowDOMConfiguration
+} from './styles/style-configuration';
+export {
+  CSSModulesProcessorRegistry
+} from './styles/css-modules-registry';
+export {
+  ShadowDOMRegistry
+} from './styles/shadow-dom-registry';
+export {
+  AdoptedStyleSheetsStyles,
+  StyleElementStyles,
+  IShadowDOMStyles,
+  IShadowDOMGlobalStyles
+} from './styles/shadow-dom-styles';

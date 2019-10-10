@@ -1,4 +1,3 @@
-/** @internal */
 export function unescapeCode(code: number): number {
   switch (code) {
     case Char.LowerB: return Char.Backspace;
@@ -14,7 +13,6 @@ export function unescapeCode(code: number): number {
   }
 }
 
-/** @internal */
 export const enum Access {
   Reset                   = 0b0000000000000,
   Ancestor                = 0b0000111111111,
@@ -23,7 +21,7 @@ export const enum Access {
   Member                  = 0b0100000000000,
   Keyed                   = 0b1000000000000
 }
-/** @internal */
+
 export const enum Precedence {
   Variadic                = 0b000111101,
   Assign                  = 0b000111110,
@@ -102,7 +100,6 @@ export const enum Token {
   OfKeyword               = 0b100000000101_000_101011
 }
 
-/** @internal */
 export const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,

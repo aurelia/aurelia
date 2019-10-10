@@ -10,14 +10,14 @@ export interface IManagedEvent extends Event {
   deepPath?(): EventTarget[];
 }
 
-//Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
+// Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 /** @internal */
 export function findOriginalEventTarget(event: IManagedEvent): EventTarget {
   return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
 }
 
 function stopPropagation(this: IManagedEvent): void {
-  this.standardStopPropagation();
+  this.standardStopPropagation!();
   this.propagationStopped = true;
 }
 
@@ -39,7 +39,7 @@ function handleCapturedEvent(event: IManagedEvent): void {
         orderedCallbacks.push(callback);
       }
     }
-    target = target.parentNode;
+    target = target.parentNode!;
   }
 
   for (let i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
@@ -70,7 +70,7 @@ function handleDelegatedEvent(event: IManagedEvent): void {
         }
       }
     }
-    target = target.parentNode;
+    target = target.parentNode!;
   }
 }
 
@@ -81,7 +81,7 @@ export class ListenerTracker {
   private readonly listener: EventListenerOrEventListenerObject;
   private count: number;
 
-  constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
+  public constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
     this.dom = dom;
     this.capture = capture;
     this.count = 0;
@@ -103,7 +103,7 @@ export class ListenerTracker {
     }
   }
 
-  /*@internal*/
+  /* @internal */
   public dispose(): void {
     if (this.count > 0) {
       this.count = 0;
@@ -116,12 +116,12 @@ export class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 export class DelegateOrCaptureSubscription implements IDisposable {
-  public entry: ListenerTracker;
+  public entry: { decrement(): void };
   public lookup: Record<string, EventListenerOrEventListenerObject>;
   public targetEvent: string;
 
-  constructor(
-    entry: ListenerTracker,
+  public constructor(
+    entry: { decrement(): void },
     lookup: Record<string, EventListenerOrEventListenerObject>,
     targetEvent: string,
     callback: EventListenerOrEventListenerObject
@@ -134,7 +134,7 @@ export class DelegateOrCaptureSubscription implements IDisposable {
 
   public dispose(): void {
     this.entry.decrement();
-    this.lookup[this.targetEvent] = null;
+    this.lookup[this.targetEvent] = null!;
   }
 }
 
@@ -147,7 +147,7 @@ export class TriggerSubscription implements IDisposable {
   public callback: EventListenerOrEventListenerObject;
   private readonly dom: IDOM;
 
-  constructor(
+  public constructor(
     dom: IDOM,
     target: Node,
     targetEvent: string,
@@ -185,11 +185,11 @@ export class EventSubscriber implements IEventSubscriber {
   private target: Node;
   private handler: EventListenerOrEventListenerObject;
 
-  constructor(dom: IDOM, events: string[]) {
+  public constructor(dom: IDOM, events: string[]) {
     this.dom = dom;
     this.events = events;
-    this.target = null;
-    this.handler = null;
+    this.target = null!;
+    this.handler = null!;
   }
 
   public subscribe(node: Node, callbackOrListener: EventListenerOrEventListenerObject): void {
@@ -208,13 +208,13 @@ export class EventSubscriber implements IEventSubscriber {
     const node = this.target;
     const callbackOrListener = this.handler;
     const events = this.events;
-    const remove = this.dom.removeEventListener;
+    const dom = this.dom;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
-      remove(events[i], callbackOrListener, node);
+      dom.removeEventListener(events[i], callbackOrListener, node);
     }
 
-    this.target = this.handler = null;
+    this.target = this.handler = null!;
   }
 }
 
@@ -231,7 +231,7 @@ export class EventManager implements IEventManager {
   public readonly delegatedHandlers: Record<string, ListenerTracker> = {};
   public readonly capturedHandlers: Record<string, ListenerTracker> = {};
 
-  constructor() {
+  public constructor() {
     this.delegatedHandlers = {};
     this.capturedHandlers = {};
   }

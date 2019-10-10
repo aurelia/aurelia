@@ -1,0 +1,63 @@
+{
+  "name": "aurelia",
+  "description": "An Aurelia client application.",
+  "version": "0.1.0",
+  "js-framework-benchmark": {
+    "frameworkVersion": "",
+    "customURL": "/dist/"
+  },
+  "repository": {
+    "type": "???",
+    "url": "???"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "aurelia-bootstrapper": "latest",
+    "aurelia-animator-css": "latest"
+  },
+  "devDependencies": {
+    "aurelia-cli": "latest",
+    "aurelia-testing": "latest",
+    "aurelia-tools": "latest",
+    "gulp": "^4.0.2",
+    "minimatch": "^3.0.4",
+    "through2": "^3.0.1",
+    "vinyl-fs": "^3.0.3",
+    "promise-polyfill": "^8.1.3",
+    "ts-loader": "^6.2.0",
+    "ts-node": "^8.4.1",
+    "@types/node": "^10.11.6",
+    "@types/lodash": "^4.14.141",
+    "@types/webpack": "^4.39.2",
+    "typescript": "^3.6.3",
+    "html-webpack-plugin": "^3.2.0",
+    "copy-webpack-plugin": "^5.0.4",
+    "mini-css-extract-plugin": "^0.8.0",
+    "aurelia-webpack-plugin": "^4.0.0",
+    "duplicate-package-checker-webpack-plugin": "^3.0.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1",
+    "expose-loader": "^0.7.5",
+    "style-loader": "^1.0.0",
+    "url-loader": "^2.1.0",
+    "css-loader": "^3.2.0",
+    "file-loader": "^4.2.0",
+    "app-settings-loader": "^1.0.2",
+    "json-loader": "^0.5.7",
+    "html-loader": "^0.5.5",
+    "istanbul-instrumenter-loader": "^3.0.1",
+    "webpack-bundle-analyzer": "^3.5.2",
+    "tree-kill": "^1.2.1"
+  },
+  "scripts": {
+    "build-prod": "webpack --env.production --env.extractCss",
+    "start": "webpack-dev-server --env.extractCss",
+    "build-dev": "webpack --env.extractCss",
+    "analyze": "webpack --env.production --env.analyze"
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  }
+}

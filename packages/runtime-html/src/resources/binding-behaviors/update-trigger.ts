@@ -1,5 +1,5 @@
-import { InterfaceSymbol, IRegistry, Reporter } from '@aurelia/kernel';
-import { Binding, BindingBehaviorResource, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { IRegistry, Key, Reporter, Writable } from '@aurelia/kernel';
+import { BindingBehavior, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags, PropertyBinding } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
 import { SelectValueObserver } from '../../observation/select-value-observer';
@@ -9,23 +9,23 @@ export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |
   (CheckedObserver & Required<CheckedObserver>) |
   (SelectValueObserver & Required<SelectValueObserver>)
-  ) & {
+) & {
   originalHandler?: IEventSubscriber;
 };
 
-export type UpdateTriggerableBinding = Binding & {
+export type UpdateTriggerableBinding = PropertyBinding & {
   targetObserver: UpdateTriggerableObserver;
 };
 
 export class UpdateTriggerBindingBehavior {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IObserverLocator];
+  public static readonly inject: readonly Key[] = [IObserverLocator];
 
   public static register: IRegistry['register'];
 
-  public persistentFlags: LifecycleFlags;
+  public persistentFlags!: LifecycleFlags;
   private readonly observerLocator: IObserverLocator;
 
-  constructor(observerLocator: IObserverLocator) {
+  public constructor(observerLocator: IObserverLocator) {
     this.observerLocator = observerLocator;
   }
 
@@ -52,14 +52,14 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.originalHandler = binding.targetObserver.handler;
 
     // replace the element subscribe function with one that uses the correct events.
-    targetObserver.handler = new EventSubscriber(binding.locator.get(IDOM), events);
+    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(binding.locator.get(IDOM), events);
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
-    binding.targetObserver.handler = binding.targetObserver.originalHandler;
-    binding.targetObserver.originalHandler = null;
+    (binding.targetObserver as Writable<typeof binding.targetObserver>).handler = binding.targetObserver.originalHandler!;
+    binding.targetObserver.originalHandler = null!;
   }
 }
-BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
+BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);

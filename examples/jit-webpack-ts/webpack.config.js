@@ -5,10 +5,11 @@ module.exports = function(env, { mode }) {
   return {
     mode: production ? 'production' : 'development',
     entry: './src/startup.ts',
-    devtool: production ? 'source-map' : 'eval-source-map',
+    devtool: false,
     resolve: {
-      extensions: ['.ts'],
-      modules: ['src', 'node_modules']
+      extensions: ['.ts', '.js'],
+      modules: ['src', 'node_modules'],
+      mainFields: ['module']
     },
     devServer: {
       port: 9000,
@@ -23,5 +24,5 @@ module.exports = function(env, { mode }) {
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
-  }
-}
+  };
+};

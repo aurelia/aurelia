@@ -1,28 +1,37 @@
 {
-  "lerna": "3.10.7",
+  "command": {
+    "bootstrap": {
+      "hoist": "**"
+    }
+  },
   "packages": [
+    "packages/__e2e__",
+    "packages/__tests__",
     "packages/aot",
+    "packages/aurelia",
     "packages/debug",
+    "packages/dialog",
     "packages/fetch-client",
+    "packages/i18n",
     "packages/jit",
     "packages/jit-html",
     "packages/jit-html-browser",
     "packages/jit-html-jsdom",
-    "packages/jit-pixi",
     "packages/kernel",
+    "packages/plugin-conventions",
+    "packages/plugin-gulp",
     "packages/plugin-parcel",
-    "packages/plugin-requirejs",
+    "packages/plugin-pixi",
     "packages/plugin-svg",
-    "packages/plugin-webpack",
     "packages/router",
     "packages/runtime",
     "packages/runtime-html",
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
-    "packages/runtime-pixi",
     "packages/store",
     "packages/testing",
-    "packages/validation"
+    "packages/validation",
+    "packages/webpack-loader"
   ],
   "version": "0.3.0"
 }

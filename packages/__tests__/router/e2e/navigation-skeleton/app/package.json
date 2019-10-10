@@ -1,0 +1,39 @@
+{
+  "name": "jit-webpack-ts",
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "webpack-dev-server --no-inline",
+    "build": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 dist",
+    "build-serve": "rimraf dist && webpack --config webpack.config.js && http-server -c-1 -p 9000 dist",
+    "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
+  },
+  "dependencies": {
+    "@aurelia/debug": "file:../../../../../debug",
+    "@aurelia/jit": "file:../../../../../jit",
+    "@aurelia/jit-html": "file:../../../../../jit-html",
+    "@aurelia/jit-html-browser": "file:../../../../../jit-html-browser",
+    "@aurelia/kernel": "file:../../../../../kernel",
+    "@aurelia/router": "file:../../../../../router",
+    "@aurelia/runtime": "file:../../../../../runtime",
+    "@aurelia/runtime-html": "file:../../../../../runtime-html",
+    "bootstrap": "^3.3.6",
+    "font-awesome": "^4.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "css-loader": "^3.2.0",
+    "file-loader": "^4.2.0",
+    "html-loader": "latest",
+    "html-webpack-plugin": "latest",
+    "http-server": "^0.11.1",
+    "rimraf": "latest",
+    "style-loader": "^1.0.0",
+    "ts-loader": "latest",
+    "typescript": "latest",
+    "url-loader": "^2.1.0",
+    "webpack": "latest",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest"
+  }
+}

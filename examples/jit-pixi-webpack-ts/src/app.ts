@@ -1,7 +1,6 @@
-import { customElement, ICustomElement, PromiseTask } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
 import template from './app.html';
 import { loader } from 'pixi.js';
-import { PLATFORM } from '@aurelia/kernel';
 
 interface ISprite {
   src: string;
@@ -13,25 +12,19 @@ interface ISprite {
   width?: number;
 }
 
-export interface App extends ICustomElement<Node> {}
-
 @customElement({ name: 'app', template })
 export class App {
   public sprites: ISprite[];
   public timestamp: number;
-  constructor() {
+  public constructor() {
     this.timestamp = 0;
     this.sprites = [];
   }
 
-  public created(): void {
+  public binding(): void {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     loader.add('logo', require('img/aurelia-icon-256x256.png'));
-    this.$lifecycle.registerTask(
-      new PromiseTask(
-        new Promise(loader.load.bind(loader)),
-        PLATFORM.noop
-      )
-    );
+    loader.load();
 
     for (let i = 0; i < 50; ++i) {
       this.addSprite();
@@ -40,7 +33,7 @@ export class App {
 
   public update({delta}: {delta: number}): void {
     this.timestamp += delta;
-    let sprite: App['sprites'] extends Array<infer S> ? S : never;
+    let sprite: App['sprites'] extends (infer S)[] ? S : never;
     const sprites = this.sprites;
     const len = sprites.length;
     let entropy: number;

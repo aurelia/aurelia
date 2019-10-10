@@ -6,6 +6,7 @@ import {
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstructionType,
+  IAttributeBindingInstruction,
   IListenerBindingInstruction,
   IStylePropertyBindingInstruction,
   ITextBindingInstruction
@@ -16,7 +17,7 @@ export class TextBindingInstruction implements ITextBindingInstruction {
 
   public from: string | IInterpolationExpression;
 
-  constructor(from: string | IInterpolationExpression) {
+  public constructor(from: string | IInterpolationExpression) {
     this.type = HTMLTargetedInstructionType.textBinding;
 
     this.from = from;
@@ -31,7 +32,7 @@ export class TriggerBindingInstruction implements IListenerBindingInstruction {
   public strategy: DelegationStrategy.none;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = HTMLTargetedInstructionType.listenerBinding;
 
     this.from = from;
@@ -49,7 +50,7 @@ export class DelegateBindingInstruction implements IListenerBindingInstruction {
   public strategy: DelegationStrategy.bubbling;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = HTMLTargetedInstructionType.listenerBinding;
 
     this.from = from;
@@ -67,7 +68,7 @@ export class CaptureBindingInstruction implements IListenerBindingInstruction {
   public strategy: DelegationStrategy.capturing;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = HTMLTargetedInstructionType.listenerBinding;
 
     this.from = from;
@@ -83,7 +84,7 @@ export class StylePropertyBindingInstruction implements IStylePropertyBindingIns
   public from: string | IsBindingBehavior;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = HTMLTargetedInstructionType.stylePropertyBinding;
 
     this.from = from;
@@ -97,10 +98,32 @@ export class SetAttributeInstruction implements ITargetedInstruction {
   public to: string;
   public value: string;
 
-  constructor(value: string, to: string) {
+  public constructor(value: string, to: string) {
     this.type = HTMLTargetedInstructionType.setAttribute;
 
     this.to = to;
     this.value = value;
+  }
+}
+
+export class AttributeBindingInstruction implements IAttributeBindingInstruction {
+  public type: HTMLTargetedInstructionType.attributeBinding;
+
+  public from: string | IsBindingBehavior;
+  /**
+   * `attr` and `to` have the same value on a normal attribute
+   * Will be different on `class` and `style`
+   * on `class`: attr = `class` (from binding command), to = attribute name
+   * on `style`: attr = `style` (from binding command), to = attribute name
+   */
+  public attr: string;
+  public to: string;
+
+  public constructor(attr: string, from: string | IsBindingBehavior, to: string) {
+    this.type = HTMLTargetedInstructionType.attributeBinding;
+
+    this.from = from;
+    this.attr = attr;
+    this.to = to;
   }
 }

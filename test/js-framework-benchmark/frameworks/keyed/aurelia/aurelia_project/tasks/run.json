@@ -1,0 +1,4 @@
+{
+  "name": "run",
+  "description": "Builds the application and serves up the assets via a local web server, watching files for changes as you work. It is an alias of the `npm start`, you may use either of those; see README for more details."
+}

@@ -3,7 +3,7 @@
     <pixi-app width="640" height="480" background-color="0xFFFFFF" tick.call="update({delta})">
         <pixi-sprite
           repeat.for="sprite of sprites"
-          replace-part="children"
+          replace="children"
           src.bind="sprite.src"
           x.bind="sprite.x"
           y.bind="sprite.y"

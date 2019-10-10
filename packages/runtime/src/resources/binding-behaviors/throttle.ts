@@ -1,9 +1,9 @@
-import { IRegistry, PLATFORM } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PLATFORM } from '@aurelia/kernel';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 
 export type ThrottleableBinding = IBinding & {
   throttledMethod: ((value: unknown) => unknown) & { originalName: string };
@@ -43,13 +43,12 @@ export function throttle(this: ThrottleableBinding, newValue: unknown): void {
   }
 }
 
+@bindingBehavior('throttle')
 export class ThrottleBindingBehavior {
-  public static register: IRegistry['register'];
-
   public bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay: number = 200): void {
     let methodToThrottle: string;
 
-    if (binding instanceof Binding) {
+    if (binding instanceof PropertyBinding) {
       if (binding.mode === BindingMode.twoWay) {
         methodToThrottle = 'updateSource';
       } else {
@@ -62,11 +61,11 @@ export class ThrottleBindingBehavior {
     // stash the original method and it's name.
     // note: a generic name like "originalMethod" is not used to avoid collisions
     // with other binding behavior types.
-    binding.throttledMethod = binding[methodToThrottle];
+    binding.throttledMethod = binding[methodToThrottle as keyof ThrottleableBinding] as ThrottleableBinding['throttledMethod'];
     binding.throttledMethod.originalName = methodToThrottle;
 
     // replace the original method with the throttling version.
-    binding[methodToThrottle] = throttle;
+    (binding as typeof binding & { [key: string]: typeof throttle})[methodToThrottle] = throttle as ThrottleableBinding['throttledMethod'];
 
     // create the throttle state.
     binding.throttleState = {
@@ -79,10 +78,9 @@ export class ThrottleBindingBehavior {
   public unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void {
     // restore the state of the binding.
     const methodToRestore = binding.throttledMethod.originalName;
-    binding[methodToRestore] = binding.throttledMethod;
-    binding.throttledMethod = null;
+    (binding as typeof binding & { [key: string]: ThrottleableBinding['throttledMethod'] })[methodToRestore] = binding.throttledMethod;
+    binding.throttledMethod = null!;
     PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
-    binding.throttleState = null;
+    binding.throttleState = null!;
   }
 }
-BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);

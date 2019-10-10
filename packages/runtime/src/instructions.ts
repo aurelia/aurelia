@@ -1,4 +1,8 @@
-import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
+import {
+  IForOfStatement,
+  IInterpolationExpression,
+  IsBindingBehavior,
+} from './ast';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -23,7 +27,7 @@ export class InterpolationInstruction implements IInterpolationInstruction {
   public from: string | IInterpolationExpression;
   public to: string;
 
-  constructor(from: string | IInterpolationExpression, to: string) {
+  public constructor(from: string | IInterpolationExpression, to: string) {
     this.type = TargetedInstructionType.interpolation;
 
     this.from = from;
@@ -39,7 +43,7 @@ export class OneTimeBindingInstruction implements IPropertyBindingInstruction {
   public oneTime: true;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = TargetedInstructionType.propertyBinding;
 
     this.from = from;
@@ -57,7 +61,7 @@ export class ToViewBindingInstruction implements IPropertyBindingInstruction {
   public oneTime: false;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = TargetedInstructionType.propertyBinding;
 
     this.from = from;
@@ -75,7 +79,7 @@ export class FromViewBindingInstruction implements IPropertyBindingInstruction {
   public oneTime: false;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = TargetedInstructionType.propertyBinding;
 
     this.from = from;
@@ -86,14 +90,14 @@ export class FromViewBindingInstruction implements IPropertyBindingInstruction {
 }
 
 export class TwoWayBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: TargetedInstructionType.propertyBinding;
 
   public from: string | IsBindingBehavior;
   public mode: BindingMode.twoWay;
   public oneTime: false;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = TargetedInstructionType.propertyBinding;
 
     this.from = from;
@@ -109,7 +113,7 @@ export class IteratorBindingInstruction implements IIteratorBindingInstruction {
   public from: string | IForOfStatement;
   public to: string;
 
-  constructor(from: string | IForOfStatement, to: string) {
+  public constructor(from: string | IForOfStatement, to: string) {
     this.type = TargetedInstructionType.iteratorBinding;
 
     this.from = from;
@@ -123,7 +127,7 @@ export class CallBindingInstruction implements ICallBindingInstruction {
   public from: string | IsBindingBehavior;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
+  public constructor(from: string | IsBindingBehavior, to: string) {
     this.type = TargetedInstructionType.callBinding;
 
     this.from = from;
@@ -134,12 +138,11 @@ export class CallBindingInstruction implements ICallBindingInstruction {
 export class RefBindingInstruction implements IRefBindingInstruction {
   public type: TargetedInstructionType.refBinding;
 
-  public from: string | IsBindingBehavior;
-
-  constructor(from: string | IsBindingBehavior) {
+  public constructor(
+    public readonly from: string | IsBindingBehavior,
+    public readonly to: string
+  ) {
     this.type = TargetedInstructionType.refBinding;
-
-    this.from = from;
   }
 }
 
@@ -149,7 +152,7 @@ export class SetPropertyInstruction implements ISetPropertyInstruction {
   public to: string;
   public value: unknown;
 
-  constructor(value: unknown, to: string) {
+  public constructor(value: unknown, to: string) {
     this.type = TargetedInstructionType.setProperty;
 
     this.to = to;
@@ -164,7 +167,7 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public parts?: Record<string, ITemplateDefinition>;
   public res: string;
 
-  constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>) {
+  public constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>) {
     this.type = TargetedInstructionType.hydrateElement;
 
     this.instructions = instructions;
@@ -179,7 +182,7 @@ export class HydrateAttributeInstruction implements IHydrateAttributeInstruction
   public instructions: ITargetedInstruction[];
   public res: string;
 
-  constructor(res: string, instructions: ITargetedInstruction[]) {
+  public constructor(res: string, instructions: ITargetedInstruction[]) {
     this.type = TargetedInstructionType.hydrateAttribute;
 
     this.instructions = instructions;
@@ -193,14 +196,22 @@ export class HydrateTemplateController implements IHydrateTemplateController {
   public def: ITemplateDefinition;
   public instructions: ITargetedInstruction[];
   public link?: boolean;
+  public parts?: Record<string, ITemplateDefinition>;
   public res: string;
 
-  constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean) {
+  public constructor(
+    def: ITemplateDefinition,
+    res: string,
+    instructions: ITargetedInstruction[],
+    link?: boolean,
+    parts?: Record<string, ITemplateDefinition>,
+  ) {
     this.type = TargetedInstructionType.hydrateTemplateController;
 
     this.def = def;
     this.instructions = instructions;
     this.link = link;
+    this.parts = parts;
     this.res = res;
   }
 }
@@ -209,13 +220,13 @@ export class LetElementInstruction implements IHydrateLetElementInstruction {
   public type: TargetedInstructionType.hydrateLetElement;
 
   public instructions: ILetBindingInstruction[];
-  public toViewModel: boolean;
+  public toBindingContext: boolean;
 
-  constructor(instructions: ILetBindingInstruction[], toViewModel: boolean) {
+  public constructor(instructions: ILetBindingInstruction[], toBindingContext: boolean) {
     this.type = TargetedInstructionType.hydrateLetElement;
 
     this.instructions = instructions;
-    this.toViewModel = toViewModel;
+    this.toBindingContext = toBindingContext;
   }
 }
 
@@ -225,7 +236,7 @@ export class LetBindingInstruction implements ILetBindingInstruction {
   public from: string | IsBindingBehavior | IInterpolationExpression;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior | IInterpolationExpression, to: string) {
+  public constructor(from: string | IsBindingBehavior | IInterpolationExpression, to: string) {
     this.type = TargetedInstructionType.letBinding;
 
     this.from = from;

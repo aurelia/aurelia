@@ -1,109 +1,116 @@
 import { logAction } from "../logger";
 
-// tslint:disable:typedef
-// tslint:disable:function-name
-
 export class AppPage {
-  public static get descriptionInput() {
-    return $('#description');
+  private static waitForElement(selector: string, timeout: number = 1000) {
+    const el = $(selector);
+    el.waitForDisplayed(timeout);
+    return el;
+  }
+  private static waitForElements(selector: string, timeout: number = 1000) {
+    const el = $$(selector);
+    el.forEach(el => el.waitForDisplayed(timeout));
+    return el;
+  }
+
+  private static getDescriptionInput() {
+    const input = this.waitForElement('#description');
+    return input;
   }
 
   public static setDescriptionInputValue(value: string) {
     logAction(`set description input value to ${value}`);
-    this.descriptionInput.clearElement();
-    this.descriptionInput.setValue(value);
+    const input = this.getDescriptionInput();
+    input.clearValue();
+    input.setValue(value.toString());
   }
 
   public static getDescriptionInputValue() {
-    return (this.descriptionInput.getValue()).trim();
+    const input = this.getDescriptionInput();
+    const value = input.getAttribute('value');
+    return value.trim();
   }
 
-  public static get countInput() {
-    return $('#count');
+  private static getCountInput() {
+    const input = this.waitForElement('#count');
+    return input;
   }
 
   public static setCountInputValue(value: number) {
     logAction(`set count value to ${value}`);
-    this.countInput.clearElement();
-    this.countInput.setValue(value);
+    const input = this.getCountInput();
+    input.clearValue();
+    input.setValue(value.toString());
   }
 
   public static getCountInputValue() {
-    return parseInt((this.countInput.getAttribute('value')), 10);
+    const input = this.getCountInput();
+    const value = input.getAttribute('value');
+    return parseInt(value.trim(), 10);
   }
 
-  public static get logInput() {
-    return $('#log');
-  }
-
-  public static setLogInputValue(value: boolean) {
-    this.logInput.click();
-  }
-
-  public static getLogInputValue() {
-    return (this.descriptionInput.getAttribute('checked')) === 'true';
-  }
-
-  public static get addTodoButton() {
-    return $('#addTodo');
+  private static getAddTodoButton() {
+    return this.waitForElement('#addTodo');
   }
 
   public static addTodo() {
     logAction(`click Add todo`);
-    this.addTodoButton.click();
+    const button = this.getAddTodoButton();
+    button.click();
   }
 
-  public static get clearTodosButton() {
-    return $('#clearTodos');
+  private static getClearTodosButton() {
+    const button = this.waitForElement('#clearTodos');
+    return button;
   }
 
   public static clearTodos() {
     logAction(`click Clear todos`);
-    this.clearTodosButton.click();
+    const button = this.getClearTodosButton();
+    button.click();
   }
 
-  public static get toggleTodosButton() {
+  private static getToggleTodosButton() {
     logAction(`click Toggle todos`);
-    return $('#toggleTodos');
+    const button = this.waitForElement('#toggleTodos');
+    return button;
   }
 
   public static toggleTodos() {
     logAction(`toggle todos`);
-    this.toggleTodosButton.click();
+    const button = this.getToggleTodosButton();
+    button.click();
   }
 
-  public static get descriptionInterpolation() {
-    return $('#descriptionText');
+  private static getDescriptionInterpolation() {
+    const text = this.waitForElement('#descriptionText');
+    return text;
   }
 
   public static getDescriptionInterpolationText() {
     // the replace + trim is a workaround for safari which renders lots of spaces and newlines
-    return (this.descriptionInterpolation.getText()).replace(/\n/g, '').replace(/ +/g, ' ').trim();
+    const el = this.getDescriptionInterpolation();
+    const text = el.getText();
+    return text.replace(/\n/g, '').replace(/ +/g, ' ').trim();
   }
   public static getTodosCount() {
-    const results = $$('.todo');
+    const results = this.waitForElements('.todo');
     return results.length;
   }
 
   public static getTodos() {
-    return $$('.todo');
+    const todos = this.waitForElements('.todo');
+    return todos;
   }
 
-  public static getTodoElement(id: number, timeout: number = 100) {
-    const el = $(`#todo-${id}`);
-    el.waitForVisible(timeout);
-    return el;
+  public static getTodoElement(id: number) {
+    const todo = this.waitForElement(`#todo-${id}`);
+    return todo;
   }
 
-  public static clickTodoDoneCheckbox(id: number, timeout: number = 100) {
+  public static clickTodoDoneCheckbox(id: number) {
     logAction(`click Todo done checkbox`);
-    const el = $(`#todo-${id}-done`);
-    el.waitForVisible(timeout);
+    const el = this.waitForElement(`#todo-${id}-done`);
     el.click();
-    if (browser.desiredCapabilities.browserName === 'Edge') {
-      // because Edge is slow :)
-      browser.pause(1000);
-    }
   }
 
 }

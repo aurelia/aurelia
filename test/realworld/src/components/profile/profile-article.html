@@ -1,0 +1,9 @@
+<import from="../../resources/elements/article-list"></import>
+
+<import from="../settings/settings"></import>
+<import from="../editor/editor"></import>
+
+<article-list articles.bind="articles" total-pages.bind="totalPages" page-number.bind="pageNumber"
+  current-page.bind="currentPage" set-page-cb.call="setPageTo(pageNumber)"></article-list>
+
+<au-viewport name="profile-article-viewport" default="editor(type=new)"></au-viewport>

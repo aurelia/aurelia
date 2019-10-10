@@ -1,6 +1,4 @@
-// tslint:disable:typedef
-// tslint:disable:function-name
-// tslint:disable:no-import-side-effect
+/* eslint-disable import/no-unassigned-import */
 import 'chromedriver';
 import { Builder, By, until, logging } from 'selenium-webdriver';
 import * as chrome from 'selenium-webdriver/chrome';

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Aurelia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    button {
+      margin: 5px;
+      padding: 10px;
+      width: 140px;
+      display: inline-block;
+    }
+
+    a {
+      margin: 5px;
+      padding: 10px;
+      width: 140px;
+      display: inline-block;
+      border: 1px solid darkgray;
+      text-align: center;
+    }
+
+    ul {
+      padding-inline-start: 0;
+      margin: 0;
+    }
+
+    li {
+      list-style-type: none;
+      margin: 2px;
+      padding-left: 2px;
+    }
+
+    pre {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 120%;
+    }
+
+    app>div>div {
+      margin: 10px;
+    }
+
+    app>div.routing {
+      cursor: wait;
+    }
+
+    span.loader {
+      display: none;
+
+      border: 4px solid #fafafa;
+      border-top: 4px solid #777;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1.25s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    span.loader.routing {
+      display: inline-block;
+    }
+
+    .info {
+      padding: 10px;
+      border: 1px solid #999;
+    }
+
+    au-viewport {
+      padding: 10px;
+      margin: 10px;
+      display: block;
+      border: 1px solid gray;
+      background-color: #55f;
+    }
+    au-viewport au-viewport {
+      background-color: #88f;
+    }
+    au-viewport au-viewport au-viewport {
+      background-color: #aaf;
+    }
+    au-viewport au-viewport au-viewport au-viewport {
+      background-color: #ccf;
+    }
+    au-viewport au-viewport au-viewport au-viewport au-viewport {
+      background-color: #eef;
+    }
+
+    .viewport-header {
+      /* display: none; */
+    }
+
+    au-nav {
+      display: inline-block;
+    }
+
+    nav ul {
+      margin-bottom: 10px;
+    }
+
+    nav li {
+      display: inline-block;
+      background-color: #eee;
+      text-align: center;
+    }
+
+    au-viewport nav {
+      margin-top: 20px;
+    }
+
+    nav li.nav-active>a {
+      background-color: #ee0;
+    }
+
+    nav li:not(.nav-active):not(.nav-active-child) ul {
+      background-color: red;
+      display: none;
+    }
+  </style>
+
+  <style>
+    viewport.split {
+      display: inline-block;
+      width: 40%;
+      border: 1px solid #777;
+    }
+    .block-navigation {
+      margin: 10px;
+      padding: 10px;
+    }
+
+    .viewport {
+      display: block;
+      padding: 10px;
+      border: 1px solid black;
+    }
+
+    .viewport-header {
+      border-bottom: 1px solid #777;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+
+    .dialog {
+      position: fixed;
+      background-color: red;
+      margin: auto;
+      left: 50%;
+      top: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      box-shadow: 10px 10px 5px grey;
+      border-radius: 5px;
+    }
+    .dialog::before {
+      content: '';
+      display: block;
+      background-color: blue;
+      position: fixed;
+      z-index: -1;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <app></app>
+</body>
+
+</html>

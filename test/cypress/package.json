@@ -1,0 +1,15 @@
+{
+  "name": "cypress-e2e",
+  "version": "1.0.0",
+  "description": "The Cypress integration tests.",
+  "main": "index.js",
+  "scripts": {
+    "e2e": "npm install && cypress open",
+    "e2eci": "node node_modules/cypress/bin/cypress run --reporter xunit --reporter-options output=testresult.xml"
+  },
+  "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "cypress": "^3.4.1"
+  }
+}

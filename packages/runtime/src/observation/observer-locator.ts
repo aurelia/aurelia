@@ -1,4 +1,12 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  IResolver,
+  Key,
+  Primitive,
+  Registration,
+  Reporter,
+} from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -12,7 +20,9 @@ import {
   IObservable,
   IObservedArray,
   IObservedMap,
-  IObservedSet
+  IObservedSet,
+  ObserversLookup,
+  PropertyObserver,
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -31,8 +41,8 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator {
-  getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver;
-  getAccessor(flags: LifecycleFlags, obj: IObservable, propertyName: string): IBindingTargetAccessor;
+  getObserver(flags: LifecycleFlags, obj: object, propertyName: string): AccessorOrObserver;
+  getAccessor(flags: LifecycleFlags, obj: object, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
   getArrayObserver(flags: LifecycleFlags, observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
   getMapObserver(flags: LifecycleFlags, observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
@@ -58,17 +68,17 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   let pd = Object.getOwnPropertyDescriptor(subject, name);
   let proto = Object.getPrototypeOf(subject);
 
-  while (pd === undefined && proto !== null) {
+  while (pd == null && proto != null) {
     pd = Object.getOwnPropertyDescriptor(proto, name);
     proto = Object.getPrototypeOf(proto);
   }
 
-  return pd;
+  return pd!;
 }
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+  public static readonly inject: readonly Key[] = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
 
   private readonly adapters: IObjectObservationAdapter[];
   private readonly dirtyChecker: IDirtyChecker;
@@ -76,7 +86,7 @@ export class ObserverLocator implements IObserverLocator {
   private readonly targetObserverLocator: ITargetObserverLocator;
   private readonly targetAccessorLocator: ITargetAccessorLocator;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     dirtyChecker: IDirtyChecker,
     targetObserverLocator: ITargetObserverLocator,
@@ -98,9 +108,9 @@ export class ObserverLocator implements IObserverLocator {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
-      return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
+      return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
     }
-    let observersLookup = obj.$observers;
+    let observersLookup = obj.$observers as ObserversLookup;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
 
     if (observersLookup && propertyName in observersLookup) {
@@ -110,11 +120,11 @@ export class ObserverLocator implements IObserverLocator {
     observer = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
-      if (observersLookup === undefined) {
-        observersLookup = this.getOrCreateObserversLookup(obj);
+      if (observersLookup === void 0) {
+        observersLookup = this.getOrCreateObserversLookup(obj) as ObserversLookup;
       }
 
-      observersLookup[propertyName] = observer;
+      observersLookup[propertyName] = observer as PropertyObserver;
     }
 
     return observer;
@@ -151,7 +161,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
-    return obj.$observers || this.createObserversLookup(obj);
+    return obj.$observers as ObserversLookup || this.createObserversLookup(obj);
   }
 
   private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
@@ -171,7 +181,7 @@ export class ObserverLocator implements IObserverLocator {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       const adapter = this.adapters[i];
       const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
-      if (observer) {
+      if (observer != null) {
         return observer;
       }
     }
@@ -186,10 +196,7 @@ export class ObserverLocator implements IObserverLocator {
     let isNode = false;
     if (this.targetObserverLocator.handles(flags, obj)) {
       const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
-      if (observer !== null) {
-        return observer;
-      }
-      if (observer !== null) {
+      if (observer != null) {
         return observer;
       }
       isNode = true;
@@ -199,17 +206,17 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver(flags);
+          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver(flags);
+          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver(flags);
+          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }
@@ -235,13 +242,13 @@ export class ObserverLocator implements IObserverLocator {
 
       return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
     }
-    return new SetterObserver(flags, obj, propertyName);
+    return new SetterObserver(this.lifecycle, flags, obj, propertyName);
   }
 }
 
-type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver {
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
   // when we ask for getCollectionObserver
   const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
@@ -253,7 +260,7 @@ export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecyc
     case '[object Set]':
       return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
   }
-  return null;
+  return void 0;
 }
 
 function isBindingContext(obj: unknown): obj is IBindingContext {

@@ -1,10 +1,6 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "experimentalDecorators": true,
-    "lib": ["esnext", "dom"],
-    "module": "umd",
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "target": "es2015"
+    "module": "umd"
   }
 }

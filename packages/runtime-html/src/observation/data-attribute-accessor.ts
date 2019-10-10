@@ -1,34 +1,78 @@
-import { IBindingTargetAccessor, ILifecycle, targetObserver } from '@aurelia/runtime';
+import {
+  IAccessor,
+  ILifecycle,
+  LifecycleFlags,
+  Priority,
+} from '@aurelia/runtime';
 
-export interface DataAttributeAccessor extends IBindingTargetAccessor<Node, string, string> {}
+export class DataAttributeAccessor implements IAccessor<string | null> {
+  public readonly lifecycle: ILifecycle;
 
-@targetObserver()
-export class DataAttributeAccessor implements DataAttributeAccessor {
-  public readonly isDOMObserver: true;
-  public currentValue: string;
-  public defaultValue: string;
-  public lifecycle: ILifecycle;
-  public obj: HTMLElement;
-  public oldValue: string;
-  public propertyKey: string;
+  public readonly obj: HTMLElement;
+  public readonly propertyKey: string;
+  public currentValue: string | null;
+  public oldValue: string | null;
 
-  constructor(lifecycle: ILifecycle, obj: HTMLElement, propertyKey: string) {
-    this.isDOMObserver = true;
+  public readonly persistentFlags: LifecycleFlags;
+
+  public hasChanges: boolean;
+  public priority: Priority;
+
+  public constructor(
+    lifecycle: ILifecycle,
+    flags: LifecycleFlags,
+    obj: HTMLElement,
+    propertyKey: string,
+  ) {
     this.lifecycle = lifecycle;
+
     this.obj = obj;
-    this.oldValue = this.currentValue = this.getValue();
     this.propertyKey = propertyKey;
+    this.currentValue = null;
+    this.oldValue = null;
+
+    this.hasChanges = false;
+    this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): string | null {
-    return this.obj.getAttribute(this.propertyKey);
+    return this.currentValue;
   }
 
-  public setValueCore(newValue: string): void {
-    if (newValue === null) {
-      this.obj.removeAttribute(this.propertyKey);
-    } else {
-      this.obj.setAttribute(this.propertyKey, newValue);
+  public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+  }
+
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue } = this;
+      this.oldValue = currentValue;
+      if (currentValue == void 0) {
+        this.obj.removeAttribute(this.propertyKey);
+      } else {
+        this.obj.setAttribute(this.propertyKey, currentValue);
+      }
+    }
+  }
+
+  public bind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
+    this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
+  }
+
+  public unbind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
     }
   }
 }

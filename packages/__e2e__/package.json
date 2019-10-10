@@ -1,0 +1,50 @@
+{
+  "name": "@aurelia/__e2e__",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "prestart": "rimraf dist",
+    "start": "webpack-dev-server --no-inline",
+    "preserve": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 dist",
+    "cypress:run": "cypress run",
+    "cypress:debug": "cypress open --config watchForFileChanges=true",
+    "e2e": "start-server-and-test :9500 cypress:run",
+    "e2e:debug": "start-server-and-test :9500 cypress:debug"
+  },
+  "dependencies": {
+    "@aurelia/debug": "^0.3.0",
+    "@aurelia/i18n": "^0.3.0",
+    "@aurelia/jit": "^0.3.0",
+    "@aurelia/jit-html": "^0.3.0",
+    "@aurelia/jit-html-browser": "^0.3.0",
+    "@aurelia/kernel": "^0.3.0",
+    "@aurelia/runtime": "^0.3.0",
+    "@aurelia/runtime-html": "^0.3.0",
+    "@aurelia/runtime-html-browser": "^0.3.0",
+    "i18next-intervalplural-postprocessor": "^1.0.0",
+    "relative-time-format": "^1.0.0",
+    "i18next-fetch-backend": "^2.2.0"
+  },
+  "devDependencies": {
+    "@cypress/webpack-preprocessor": "^4.1.0",
+    "@types/node": "^10.14.13",
+    "cypress": "^3.4.1",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "http-server": "0.9.0",
+    "rimraf": "^3.0.0",
+    "start-server-and-test": "^1.10.2",
+    "ts-loader": "^6.2.0",
+    "typescript": "^3.6.3",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2",
+    "copy-webpack-plugin": "^5.0.4"
+  }
+}

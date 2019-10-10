@@ -1,46 +1,45 @@
-import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
-import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IView, IViewFactory } from '../../lifecycle';
-import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
+import { IController, IViewFactory } from '../../lifecycle';
+import { ILifecycleTask } from '../../lifecycle-task';
+import { templateController } from '../custom-attribute';
 
-export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}
-export class Replaceable<T extends INode = INode> implements Replaceable<T> {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IViewFactory, IRenderLocation];
+@templateController('replaceable')
+export class Replaceable<T extends INode = INode> {
+  public readonly id: number;
 
-  public static readonly register: IRegistry['register'];
-  public static readonly bindables: IAttributeDefinition['bindables'];
-  public static readonly kind: ICustomAttributeResource;
-  public static readonly description: AttributeDefinition;
+  public readonly view: IController<T>;
 
-  private readonly currentView: IView<T>;
-  private readonly factory: IViewFactory<T>;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  constructor(
-    factory: IViewFactory<T>,
-    location: IRenderLocation<T>
+  public constructor(
+    @IViewFactory private readonly factory: IViewFactory<T>,
+    @IRenderLocation private readonly location: IRenderLocation<T>
   ) {
-    this.factory = factory;
+    this.id = nextId('au$component');
 
-    this.currentView = this.factory.create();
-    this.currentView.hold(location);
+    this.view = this.factory.create();
+    this.view.hold(location);
   }
 
-  public binding(flags: LifecycleFlags): void {
-    this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
+  public binding(flags: LifecycleFlags): ILifecycleTask {
+    this.view.parent = this.$controller;
+    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, this.factory.name);
   }
 
   public attaching(flags: LifecycleFlags): void {
-    this.currentView.$attach(flags);
+    this.view.attach(flags);
   }
 
   public detaching(flags: LifecycleFlags): void {
-    this.currentView.$detach(flags);
+    this.view.detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
-    this.currentView.$unbind(flags);
+  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+    const task = this.view.unbind(flags);
+    this.view.parent = void 0;
+    return task;
   }
 }
-CustomAttributeResource.define({ name: 'replaceable', isTemplateController: true }, Replaceable);

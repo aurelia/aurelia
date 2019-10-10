@@ -1,10 +1,9 @@
 {
   "name": "@aurelia/runtime-html",
   "version": "0.3.0",
-  "main": "dist/build/index.js",
-  "module": "dist/build/index.js",
-  "jsnext:main": "dist/build/index.js",
-  "browser": "dist/build/index.js",
+  "main": "dist/esnext/index.js",
+  "module": "dist/esnext/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -28,13 +27,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "npm run lint:src && npm run lint:test",
-    "lint:src": "tslint --project tsconfig.json -t stylish",
-    "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html",
-    "dev": "tsc -b -w",
-    "publish:local": "npm pack"
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html",
+    "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
@@ -44,13 +40,8 @@
     "@aurelia/runtime": "0.3.0"
   },
   "devDependencies": {
-    "@types/node": "^10.12.19",
-    "cross-env": "^5.2.0",
-    "ts-node": "^8.0.2",
-    "tslib": "^1.9.3",
-    "tslint": "^5.12.1",
-    "tslint-microsoft-contrib": "^6.0.0",
-    "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.2.4"
+    "@types/node": "^10.14.13",
+    "tslib": "^1.10.0",
+    "typescript": "^3.6.3"
   }
 }

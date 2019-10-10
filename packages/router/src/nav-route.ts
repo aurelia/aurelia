@@ -1,76 +1,95 @@
-import { ICustomElementType, IObserverLocator, IPropertyObserver, LifecycleFlags } from '@aurelia/runtime';
-import { INavRoute, IViewportComponent, Nav, NavComponent } from './nav';
-import { Router } from './router';
+import { Constructable } from '@aurelia/kernel';
+import { IRouteableComponentType, NavigationInstruction } from './interfaces';
+import { INavRoute, Nav } from './nav';
+import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
+import { ViewportInstruction } from './viewport-instruction';
 
 export class NavRoute {
-  public nav: Nav;
-  public components: NavComponent | NavComponent[];
+  public instructions: ViewportInstruction[] = [];
   public title: string;
-  public link?: string;
-  public linkActive?: string;
-  public children?: NavRoute[];
+  public link: string | null = null;
+  public execute?: ((route: NavRoute) => void);
+  public linkVisible: boolean | ((route: NavRoute) => boolean) | null = null;
+  public linkActive: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean) | null = null;
+  public compareParameters: boolean = false;
+  public children: NavRoute[] | null = null;
   public meta?: Record<string, unknown>;
 
+  public visible: boolean = true;
   public active: string = '';
 
-  private readonly observerLocator: IObserverLocator;
-  private readonly observer: IPropertyObserver<Router, 'activeComponents'>;
+  public constructor(
+    public nav: Nav,
+    route: INavRoute
+  ) {
+    this.title = route.title;
+    this.meta = route.meta;
 
-  constructor(nav: Nav, route?: INavRoute) {
-    this.nav = nav;
-    Object.assign(this, {
-      components: route.components,
-      title: route.title,
-      children: null,
-      meta: route.meta,
-      active: '',
-    });
-    this.link = this._link(this.components);
-    this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
-    this.observerLocator = this.nav.router.container.get(IObserverLocator);
-    this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
-    this.observer.subscribe(this);
+    if (route.route) {
+      this.instructions = this.parseRoute(route.route);
+      this.link = this.computeLink(this.instructions);
+    }
+    this.linkActive = route.consideredActive ? route.consideredActive : this.link;
+    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as IRouteableComponentType)) {
+      this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction | NavigationInstruction[]);
+    }
+    this.execute = route.execute;
+    this.compareParameters = !!route.compareParameters;
+    this.linkVisible = route.condition === undefined ? true : route.condition;
+    this.update();
   }
 
   public get hasChildren(): string {
     return (this.children && this.children.length ? 'nav-has-children' : '');
   }
 
-  public handleChange(): void {
-    if (this.link && this.link.length) {
-      this.active = this._active();
+  public update(): void {
+    this.visible = this.computeVisible();
+    if ((this.link && this.link.length) || this.execute) {
+      this.active = this.computeActive();
     } else {
       this.active = (this.active === 'nav-active' ? 'nav-active' : (this.activeChild() ? 'nav-active-child' : ''));
     }
   }
 
-  public _active(): string {
-    const components: string[] = this.linkActive.split(this.nav.router.separators.add);
-    const activeComponents: string[] = this.nav.router.activeComponents;
-    for (const component of components) {
-      if (component.indexOf(this.nav.router.separators.viewport) >= 0) {
-        if (activeComponents.indexOf(component) < 0) {
-          return '';
-        }
-      } else {
-        if (activeComponents.findIndex((value) => value.replace(/\@[^=]*/, '') === component) < 0) {
-          return '';
-        }
-      }
+  public executeAction(event: Event): void {
+    if (this.execute) {
+      this.execute(this);
     }
-    return 'nav-active';
+    event.stopPropagation();
   }
 
   public toggleActive(): void {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
   }
 
-  public _link(components: NavComponent | NavComponent[]): string {
-    if (Array.isArray(components)) {
-      return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
-    } else {
-      return this.linkName(components);
+  private parseRoute<C extends Constructable>(routes: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
+    return NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
+  }
+
+  private computeVisible(): boolean {
+    if (this.linkVisible instanceof Function) {
+      return this.linkVisible(this);
     }
+    return !!this.linkVisible;
+  }
+
+  private computeActive(): string {
+    if (!Array.isArray(this.linkActive)) {
+      return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
+    }
+    const components = this.linkActive as ViewportInstruction[];
+    const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
+    for (const component of components) {
+      if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
+        return '';
+      }
+    }
+    return 'nav-active';
+  }
+
+  private computeLink(instructions: ViewportInstruction[]): string {
+    return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
   }
 
   private activeChild(): boolean {
@@ -82,17 +101,5 @@ export class NavRoute {
       }
     }
     return false;
-  }
-
-  private linkName(component: NavComponent): string {
-    if (!component) {
-      return '';
-    } else if (typeof component === 'string') {
-      return component;
-    } else if ((component as ICustomElementType).description) {
-      return (component as ICustomElementType).description.name;
-    } else if ((component as IViewportComponent).component) {
-      return this.linkName((component as IViewportComponent).component) + ((component as IViewportComponent).viewport ? `@${(component as IViewportComponent).viewport}` : '');
-    }
   }
 }

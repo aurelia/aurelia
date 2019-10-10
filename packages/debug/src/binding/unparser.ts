@@ -2,30 +2,30 @@ import { Unwrap } from '@aurelia/kernel';
 import * as AST from '@aurelia/runtime';
 
 const astTypeMap = [
-  { type: AST.AccessKeyed, name: 'AccessKeyed' },
-  { type: AST.AccessMember, name: 'AccessMember' },
-  { type: AST.AccessScope, name: 'AccessScope' },
-  { type: AST.AccessThis, name: 'AccessThis' },
+  { type: AST.AccessKeyedExpression, name: 'AccessKeyedExpression' },
+  { type: AST.AccessMemberExpression, name: 'AccessMemberExpression' },
+  { type: AST.AccessScopeExpression, name: 'AccessScopeExpression' },
+  { type: AST.AccessThisExpression, name: 'AccessThisExpression' },
   { type: AST.ArrayBindingPattern, name: 'ArrayBindingPattern' },
-  { type: AST.ArrayLiteral, name: 'ArrayLiteral' },
-  { type: AST.Assign, name: 'Assign' },
-  { type: AST.Binary, name: 'Binary' },
-  { type: AST.BindingBehavior, name: 'BindingBehavior' },
+  { type: AST.ArrayLiteralExpression, name: 'ArrayLiteralExpression' },
+  { type: AST.AssignExpression, name: 'AssignExpression' },
+  { type: AST.BinaryExpression, name: 'BinaryExpression' },
+  { type: AST.BindingBehaviorExpression, name: 'BindingBehaviorExpression' },
   { type: AST.BindingIdentifier, name: 'BindingIdentifier' },
-  { type: AST.CallFunction, name: 'CallFunction' },
-  { type: AST.CallMember, name: 'CallMember' },
-  { type: AST.CallScope, name: 'CallScope' },
-  { type: AST.Conditional, name: 'Conditional' },
+  { type: AST.CallFunctionExpression, name: 'CallFunctionExpression' },
+  { type: AST.CallMemberExpression, name: 'CallMemberExpression' },
+  { type: AST.CallScopeExpression, name: 'CallScopeExpression' },
+  { type: AST.ConditionalExpression, name: 'ConditionalExpression' },
   { type: AST.ForOfStatement, name: 'ForOfStatement' },
-  { type: AST.HtmlLiteral, name: 'HtmlLiteral' },
+  { type: AST.HtmlLiteralExpression, name: 'HtmlLiteralExpression' },
   { type: AST.Interpolation, name: 'Interpolation' },
   { type: AST.ObjectBindingPattern, name: 'ObjectBindingPattern' },
-  { type: AST.ObjectLiteral, name: 'ObjectLiteral' },
-  { type: AST.PrimitiveLiteral, name: 'PrimitiveLiteral' },
-  { type: AST.TaggedTemplate, name: 'TaggedTemplate' },
-  { type: AST.Template, name: 'Template' },
-  { type: AST.Unary, name: 'Unary' },
-  { type: AST.ValueConverter, name: 'ValueConverter' }
+  { type: AST.ObjectLiteralExpression, name: 'ObjectLiteralExpression' },
+  { type: AST.PrimitiveLiteralExpression, name: 'PrimitiveLiteralExpression' },
+  { type: AST.TaggedTemplateExpression, name: 'TaggedTemplateExpression' },
+  { type: AST.TemplateExpression, name: 'TemplateExpression' },
+  { type: AST.UnaryExpression, name: 'UnaryExpression' },
+  { type: AST.ValueConverterExpression, name: 'ValueConverterExpression' }
 ];
 
 export function enableImprovedExpressionDebugging(): void {
@@ -34,10 +34,9 @@ export function enableImprovedExpressionDebugging(): void {
 
 /** @internal */
 export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name: string): void {
-  $type.prototype.toString = function(): string { return Unparser.unparse(this); };
+  $type.prototype.toString = function (): string { return Unparser.unparse(this); };
 }
 
-/** @internal */
 export class Unparser implements AST.IVisitor<void> {
   public text: string = '';
 
@@ -47,19 +46,19 @@ export class Unparser implements AST.IVisitor<void> {
     return visitor.text;
   }
 
-  public visitAccessMember(expr: AST.AccessMember): void {
+  public visitAccessMember(expr: AST.AccessMemberExpression): void {
     expr.object.accept(this);
     this.text += `.${expr.name}`;
   }
 
-  public visitAccessKeyed(expr: AST.AccessKeyed): void {
+  public visitAccessKeyed(expr: AST.AccessKeyedExpression): void {
     expr.object.accept(this);
     this.text += '[';
     expr.key.accept(this);
     this.text += ']';
   }
 
-  public visitAccessThis(expr: AST.AccessThis): void {
+  public visitAccessThis(expr: AST.AccessThisExpression): void {
     if (expr.ancestor === 0) {
       this.text += '$this';
       return;
@@ -71,7 +70,7 @@ export class Unparser implements AST.IVisitor<void> {
     }
   }
 
-  public visitAccessScope(expr: AST.AccessScope): void {
+  public visitAccessScope(expr: AST.AccessScopeExpression): void {
     let i = expr.ancestor;
     while (i--) {
       this.text += '$parent.';
@@ -79,7 +78,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += expr.name;
   }
 
-  public visitArrayLiteral(expr: AST.ArrayLiteral): void {
+  public visitArrayLiteral(expr: AST.ArrayLiteralExpression): void {
     const elements = expr.elements;
     this.text += '[';
     for (let i = 0, length = elements.length; i < length; ++i) {
@@ -91,7 +90,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ']';
   }
 
-  public visitObjectLiteral(expr: AST.ObjectLiteral): void {
+  public visitObjectLiteral(expr: AST.ObjectLiteralExpression): void {
     const keys = expr.keys;
     const values = expr.values;
     this.text += '{';
@@ -105,7 +104,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '}';
   }
 
-  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): void {
+  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteralExpression): void {
     this.text += '(';
     if (typeof expr.value === 'string') {
       const escaped = expr.value.replace(/'/g, '\\\'');
@@ -116,14 +115,14 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ')';
   }
 
-  public visitCallFunction(expr: AST.CallFunction): void {
+  public visitCallFunction(expr: AST.CallFunctionExpression): void {
     this.text += '(';
     expr.func.accept(this);
     this.writeArgs(expr.args);
     this.text += ')';
   }
 
-  public visitCallMember(expr: AST.CallMember): void {
+  public visitCallMember(expr: AST.CallMemberExpression): void {
     this.text += '(';
     expr.object.accept(this);
     this.text += `.${expr.name}`;
@@ -131,7 +130,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ')';
   }
 
-  public visitCallScope(expr: AST.CallScope): void {
+  public visitCallScope(expr: AST.CallScopeExpression): void {
     this.text += '(';
     let i = expr.ancestor;
     while (i--) {
@@ -142,7 +141,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ')';
   }
 
-  public visitTemplate(expr: AST.Template): void {
+  public visitTemplate(expr: AST.TemplateExpression): void {
     const { cooked, expressions } = expr;
     const length = expressions.length;
     this.text += '`';
@@ -154,7 +153,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '`';
   }
 
-  public visitTaggedTemplate(expr: AST.TaggedTemplate): void {
+  public visitTaggedTemplate(expr: AST.TaggedTemplateExpression): void {
     const { cooked, expressions } = expr;
     const length = expressions.length;
     expr.func.accept(this);
@@ -167,19 +166,19 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '`';
   }
 
-  public visitUnary(expr: AST.Unary): void {
+  public visitUnary(expr: AST.UnaryExpression): void {
     this.text += `(${expr.operation}`;
-    if (expr.operation.charCodeAt(0) >= /*a*/97) {
+    if (expr.operation.charCodeAt(0) >= /* a */97) {
       this.text += ' ';
     }
     expr.expression.accept(this);
     this.text += ')';
   }
 
-  public visitBinary(expr: AST.Binary): void {
+  public visitBinary(expr: AST.BinaryExpression): void {
     this.text += '(';
     expr.left.accept(this);
-    if (expr.operation.charCodeAt(0) === /*i*/105) {
+    if (expr.operation.charCodeAt(0) === /* i */105) {
       this.text += ` ${expr.operation} `;
     } else {
       this.text += expr.operation;
@@ -188,7 +187,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ')';
   }
 
-  public visitConditional(expr: AST.Conditional): void {
+  public visitConditional(expr: AST.ConditionalExpression): void {
     this.text += '(';
     expr.condition.accept(this);
     this.text += '?';
@@ -198,7 +197,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ')';
   }
 
-  public visitAssign(expr: AST.Assign): void {
+  public visitAssign(expr: AST.AssignExpression): void {
     this.text += '(';
     expr.target.accept(this);
     this.text += '=';
@@ -206,7 +205,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += ')';
   }
 
-  public visitValueConverter(expr: AST.ValueConverter): void {
+  public visitValueConverter(expr: AST.ValueConverterExpression): void {
     const args = expr.args;
     expr.expression.accept(this);
     this.text += `|${expr.name}`;
@@ -216,7 +215,7 @@ export class Unparser implements AST.IVisitor<void> {
     }
   }
 
-  public visitBindingBehavior(expr: AST.BindingBehavior): void {
+  public visitBindingBehavior(expr: AST.BindingBehaviorExpression): void {
     const args = expr.args;
     expr.expression.accept(this);
     this.text += `&${expr.name}`;
@@ -256,7 +255,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += expr.name;
   }
 
-  public visitHtmlLiteral(expr: AST.HtmlLiteral): void { throw new Error('visitHtmlLiteral'); }
+  public visitHtmlLiteral(expr: AST.HtmlLiteralExpression): void { throw new Error('visitHtmlLiteral'); }
 
   public visitForOfStatement(expr: AST.ForOfStatement): void {
     expr.declaration.accept(this);
@@ -267,7 +266,6 @@ export class Unparser implements AST.IVisitor<void> {
   public visitInterpolation(expr: AST.Interpolation): void {
     const { parts, expressions } = expr;
     const length = expressions.length;
-    // tslint:disable-next-line:no-invalid-template-strings
     this.text += '${';
     this.text += parts[0];
     for (let i = 0; i < length; i++) {
@@ -277,7 +275,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '}';
   }
 
-  private writeArgs(args: ReadonlyArray<AST.IExpression>): void {
+  private writeArgs(args: readonly AST.IExpression[]): void {
     this.text += '(';
     for (let i = 0, length = args.length; i < length; ++i) {
       if (i !== 0) {
@@ -289,86 +287,85 @@ export class Unparser implements AST.IVisitor<void> {
   }
 }
 
-/** @internal */
 export class Serializer implements AST.IVisitor<string> {
   public static serialize(expr: AST.IExpression): string {
     const visitor = new Serializer();
-    if (expr === null || expr === undefined || typeof expr.accept !== 'function') {
+    if (expr == null || typeof expr.accept !== 'function') {
       return `${expr}`;
     }
     return expr.accept(visitor);
   }
 
-  public visitAccessMember(expr: AST.AccessMember): string {
-    return `{"type":"AccessMember","name":${expr.name},"object":${expr.object.accept(this)}}`;
+  public visitAccessMember(expr: AST.AccessMemberExpression): string {
+    return `{"type":"AccessMemberExpression","name":${expr.name},"object":${expr.object.accept(this)}}`;
   }
 
-  public visitAccessKeyed(expr: AST.AccessKeyed): string {
-    return `{"type":"AccessKeyed","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+  public visitAccessKeyed(expr: AST.AccessKeyedExpression): string {
+    return `{"type":"AccessKeyedExpression","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
   }
 
-  public visitAccessThis(expr: AST.AccessThis): string {
-    return `{"type":"AccessThis","ancestor":${expr.ancestor}}`;
+  public visitAccessThis(expr: AST.AccessThisExpression): string {
+    return `{"type":"AccessThisExpression","ancestor":${expr.ancestor}}`;
   }
 
-  public visitAccessScope(expr: AST.AccessScope): string {
-    return `{"type":"AccessScope","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+  public visitAccessScope(expr: AST.AccessScopeExpression): string {
+    return `{"type":"AccessScopeExpression","name":"${expr.name}","ancestor":${expr.ancestor}}`;
   }
 
-  public visitArrayLiteral(expr: AST.ArrayLiteral): string {
-    return `{"type":"ArrayLiteral","elements":${this.serializeExpressions(expr.elements)}}`;
+  public visitArrayLiteral(expr: AST.ArrayLiteralExpression): string {
+    return `{"type":"ArrayLiteralExpression","elements":${this.serializeExpressions(expr.elements)}}`;
   }
 
-  public visitObjectLiteral(expr: AST.ObjectLiteral): string {
-    return `{"type":"ObjectLiteral","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+  public visitObjectLiteral(expr: AST.ObjectLiteralExpression): string {
+    return `{"type":"ObjectLiteralExpression","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
   }
 
-  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): string {
-    return `{"type":"PrimitiveLiteral","value":${serializePrimitive(expr.value)}}`;
+  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteralExpression): string {
+    return `{"type":"PrimitiveLiteralExpression","value":${serializePrimitive(expr.value)}}`;
   }
 
-  public visitCallFunction(expr: AST.CallFunction): string {
-    return `{"type":"CallFunction","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  public visitCallFunction(expr: AST.CallFunctionExpression): string {
+    return `{"type":"CallFunctionExpression","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
-  public visitCallMember(expr: AST.CallMember): string {
-    return `{"type":"CallMember","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  public visitCallMember(expr: AST.CallMemberExpression): string {
+    return `{"type":"CallMemberExpression","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
-  public visitCallScope(expr: AST.CallScope): string {
-    return `{"type":"CallScope","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+  public visitCallScope(expr: AST.CallScopeExpression): string {
+    return `{"type":"CallScopeExpression","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
-  public visitTemplate(expr: AST.Template): string {
-    return `{"type":"Template","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+  public visitTemplate(expr: AST.TemplateExpression): string {
+    return `{"type":"TemplateExpression","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
-  public visitTaggedTemplate(expr: AST.TaggedTemplate): string {
-    return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+  public visitTaggedTemplate(expr: AST.TaggedTemplateExpression): string {
+    return `{"type":"TaggedTemplateExpression","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
-  public visitUnary(expr: AST.Unary): string {
-    return `{"type":"Unary","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+  public visitUnary(expr: AST.UnaryExpression): string {
+    return `{"type":"UnaryExpression","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
   }
 
-  public visitBinary(expr: AST.Binary): string {
-    return `{"type":"Binary","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+  public visitBinary(expr: AST.BinaryExpression): string {
+    return `{"type":"BinaryExpression","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
   }
 
-  public visitConditional(expr: AST.Conditional): string {
-    return `{"type":"Conditional","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+  public visitConditional(expr: AST.ConditionalExpression): string {
+    return `{"type":"ConditionalExpression","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
   }
 
-  public visitAssign(expr: AST.Assign): string {
-    return `{"type":"Assign","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+  public visitAssign(expr: AST.AssignExpression): string {
+    return `{"type":"AssignExpression","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
   }
 
-  public visitValueConverter(expr: AST.ValueConverter): string {
-    return `{"type":"ValueConverter","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  public visitValueConverter(expr: AST.ValueConverterExpression): string {
+    return `{"type":"ValueConverterExpression","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
-  public visitBindingBehavior(expr: AST.BindingBehavior): string {
-    return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  public visitBindingBehavior(expr: AST.BindingBehaviorExpression): string {
+    return `{"type":"BindingBehaviorExpression","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string {
@@ -383,7 +380,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"type":"BindingIdentifier","name":"${expr.name}"}`;
   }
 
-  public visitHtmlLiteral(expr: AST.HtmlLiteral): string { throw new Error('visitHtmlLiteral'); }
+  public visitHtmlLiteral(expr: AST.HtmlLiteralExpression): string { throw new Error('visitHtmlLiteral'); }
 
   public visitForOfStatement(expr: AST.ForOfStatement): string {
     return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
@@ -393,7 +390,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
-  private serializeExpressions(args: ReadonlyArray<AST.IExpression>): string {
+  private serializeExpressions(args: readonly AST.IExpression[]): string {
     let text = '[';
     for (let i = 0, ii = args.length; i < ii; ++i) {
       if (i !== 0) {
@@ -406,7 +403,7 @@ export class Serializer implements AST.IVisitor<string> {
   }
 }
 
-function serializePrimitives(values: ReadonlyArray<unknown>): string {
+function serializePrimitives(values: readonly unknown[]): string {
   let text = '[';
   for (let i = 0, ii = values.length; i < ii; ++i) {
     if (i !== 0) {
@@ -421,7 +418,7 @@ function serializePrimitives(values: ReadonlyArray<unknown>): string {
 function serializePrimitive(value: unknown): string {
   if (typeof value === 'string') {
     return `"\\"${escapeString(value)}\\""`;
-  } else if (value === null || value === undefined) {
+  } else if (value == null) {
     return `"${value}"`;
   } else {
     return `${value}`;
@@ -444,7 +441,7 @@ function escape(ch: string): string {
     case '\v': return '\\v';
     case '\f': return '\\f';
     case '\r': return '\\r';
-    case '\"': return '\\"';
+    case '"': return '\\"';
     case '\'': return '\\\'';
     case '\\': return '\\\\';
     default: return ch;

@@ -7,20 +7,15 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "@aurelia/jit-html": "file:../../packages/jit-html",
-    "@aurelia/jit-pixi": "file:../../packages/jit-pixi",
-    "@aurelia/jit": "file:../../packages/jit",
-    "@aurelia/kernel": "file:../../packages/kernel",
-    "@aurelia/runtime-html": "file:../../packages/runtime-html",
-    "@aurelia/runtime-pixi": "file:../../packages/runtime-pixi",
-    "@aurelia/runtime": "file:../../packages/runtime",
-    "pixi.js": "^4.8.5"
+    "aurelia": "dev",
+    "@aurelia/plugin-pixi": "dev",
+    "pixi.js": "^4.8.8"
   },
   "devDependencies": {
     "@types/node": "latest",
-    "@types/pixi.js": "^4.8.6",
-    "copy-webpack-plugin": "^4.6.0",
-    "file-loader": "^3.0.1",
+    "@types/pixi.js": "^4.8.9",
+    "copy-webpack-plugin": "^5.0.4",
+    "file-loader": "^4.2.0",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",

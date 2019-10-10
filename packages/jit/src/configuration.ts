@@ -1,11 +1,11 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { IExpressionParser, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { IExpressionParser, RuntimeConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern
-} from './attribute-pattern';
+} from './attribute-patterns';
 import {
   CallBindingCommand,
   DefaultBindingCommand,
@@ -14,13 +14,13 @@ import {
   OneTimeBindingCommand,
   ToViewBindingCommand,
   TwoWayBindingCommand
-} from './binding-command';
+} from './binding-commands';
 import { parseExpression } from './expression-parser';
 
 export const IExpressionParserRegistration: IRegistry = {
   register(container: IContainer): void {
     container.registerTransformer(IExpressionParser, parser => {
-      parser['parseCore'] = parseExpression;
+      Reflect.set(parser, 'parseCore', parseExpression);
       return parser;
     });
   }
@@ -34,10 +34,10 @@ export const DefaultComponents = [
   IExpressionParserRegistration
 ];
 
-export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as IRegistry;
-export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as IRegistry;
-export const RefAttributePatternRegistration = RefAttributePattern as IRegistry;
-export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as IRegistry;
+export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
+export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
+export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
+export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -59,13 +59,13 @@ export const ShortHandBindingSyntax = [
   ColonPrefixedBindAttributePatternRegistration
 ];
 
-export const CallBindingCommandRegistration = CallBindingCommand as IRegistry;
-export const DefaultBindingCommandRegistration = DefaultBindingCommand as IRegistry;
-export const ForBindingCommandRegistration = ForBindingCommand as IRegistry;
-export const FromViewBindingCommandRegistration = FromViewBindingCommand as IRegistry;
-export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as IRegistry;
-export const ToViewBindingCommandRegistration = ToViewBindingCommand as IRegistry;
-export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as IRegistry;
+export const CallBindingCommandRegistration = CallBindingCommand as unknown as IRegistry;
+export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
+export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
+export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
+export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as unknown as IRegistry;
+export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown as IRegistry;
+export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic binding commands:
@@ -85,17 +85,17 @@ export const DefaultBindingLanguage = [
 
 /**
  * A DI configuration object containing runtime/environment-agnostic registrations:
- * - `BasicConfiguration` from `@aurelia/runtime`
+ * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultBindingSyntax`
  * - `DefaultBindingLanguage`
  */
-export const BasicConfiguration = {
+export const JitConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeBasicConfiguration
+    return RuntimeConfiguration
       .register(container)
       .register(
         ...DefaultComponents,

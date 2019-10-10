@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
   hasBind,
@@ -16,13 +16,15 @@ import { IEventManager } from '../observation/event-manager';
 const slice = Array.prototype.slice;
 
 export interface Listener extends IConnectableBinding {}
+/**
+ * Listener binding. Handle event binding between view and view model
+ */
 export class Listener implements IBinding {
   public dom: IDOM;
 
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
   public $state: State;
-  public $scope: IScope;
+  public $scope!: IScope;
+  public part?: string;
 
   public delegationStrategy: DelegationStrategy;
   public locator: IServiceLocator;
@@ -32,10 +34,9 @@ export class Listener implements IBinding {
   public targetEvent: string;
 
   private readonly eventManager: IEventManager;
-  private handler: IDisposable;
+  private handler!: IDisposable;
 
-  // tslint:disable-next-line:parameters-max-number
-  constructor(
+  public constructor(
     dom: IDOM,
     targetEvent: string,
     delegationStrategy: DelegationStrategy,
@@ -46,8 +47,6 @@ export class Listener implements IBinding {
     locator: IServiceLocator
   ) {
     this.dom = dom;
-    this.$nextBinding = null;
-    this.$prevBinding = null;
     this.$state = State.none;
 
     this.delegationStrategy = delegationStrategy;
@@ -61,11 +60,10 @@ export class Listener implements IBinding {
   }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
-    if (Tracer.enabled) { Tracer.enter('Listener', 'callSource', slice.call(arguments)); }
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.part);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -73,7 +71,6 @@ export class Listener implements IBinding {
       event.preventDefault();
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return result;
   }
 
@@ -81,11 +78,9 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('Listener', '$bind', slice.call(arguments)); }
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
 
@@ -95,6 +90,7 @@ export class Listener implements IBinding {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
+    this.part = part;
 
     const sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
@@ -112,13 +108,10 @@ export class Listener implements IBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Listener', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -129,13 +122,12 @@ export class Listener implements IBinding {
       sourceExpression.unbind(flags, this.$scope, this);
     }
 
-    this.$scope = null;
+    this.$scope = null!;
     this.handler.dispose();
-    this.handler = null;
+    this.handler = null!;
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {

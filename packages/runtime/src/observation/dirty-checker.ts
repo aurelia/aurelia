@@ -1,10 +1,11 @@
-import { DI, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { DI, IIndexable, Key, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
-import { propertyObserver } from './property-observer';
+import { ILifecycle, Priority } from '../lifecycle';
+import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
+import { subscriberCollection } from './subscriber-collection';
 
 export interface IDirtyChecker {
-  createProperty(obj: IObservable, propertyName: string): IBindingTargetObserver;
+  createProperty(obj: object, propertyName: string): IBindingTargetObserver;
   addProperty(property: DirtyCheckProperty): void;
   removeProperty(property: DirtyCheckProperty): void;
 }
@@ -53,21 +54,25 @@ export const DirtyCheckSettings = {
 
 /** @internal */
 export class DirtyChecker {
+  public static readonly inject: readonly Key[] = [ILifecycle];
+
   private readonly tracked: DirtyCheckProperty[];
+  private readonly lifecycle: ILifecycle;
 
   private elapsedFrames: number;
 
-  public constructor() {
+  public constructor(lifecycle: ILifecycle) {
     this.elapsedFrames = 0;
     this.tracked = [];
+    this.lifecycle = lifecycle;
   }
 
-  public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
+  public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      throw Reporter.error(800); // TODO: create/organize error code
+      throw Reporter.error(800, propertyName); // TODO: create/organize error code
     }
     if (DirtyCheckSettings.warn) {
-      Reporter.write(801);
+      Reporter.write(801, propertyName);
     }
     return new DirtyCheckProperty(this, obj, propertyName);
   }
@@ -76,18 +81,18 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      PLATFORM.ticker.add(this.check, this);
+      this.lifecycle.enqueueRAF(this.check, this, Priority.low);
     }
   }
 
   public removeProperty(property: DirtyCheckProperty): void {
     this.tracked.splice(this.tracked.indexOf(property), 1);
     if (this.tracked.length === 0) {
-      PLATFORM.ticker.remove(this.check, this);
+      this.lifecycle.dequeueRAF(this.check, this);
     }
   }
 
-  public check(delta: number): void {
+  public check(delta?: number): void {
     if (DirtyCheckSettings.disabled) {
       return;
     }
@@ -112,21 +117,19 @@ const slice = Array.prototype.slice;
 
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
-@propertyObserver()
+@subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public obj: IObservable;
+  public obj: IObservable & IIndexable;
   public oldValue: unknown;
   public propertyKey: string;
 
   private readonly dirtyChecker: IDirtyChecker;
 
-  constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('DirtyCheckProperty', 'constructor', slice.call(arguments)); }
-    this.obj = obj;
+  public constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
+    this.obj = obj as IObservable & IIndexable;
     this.propertyKey = propertyKey;
 
     this.dirtyChecker = dirtyChecker;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public isDirty(): boolean {
@@ -142,7 +145,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.oldValue = newValue;
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
@@ -150,7 +153,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }

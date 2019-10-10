@@ -16,21 +16,22 @@ export {
   Registration,
   ResolveCallback,
   singleton,
-  transient
+  transient,
+  Injectable,
+  InterfaceSymbol,
+  InstanceProvider,
+  Resolved,
+  Transformer,
 } from './di';
 export {
   Class,
   Constructable,
+  ConstructableClass,
   Diff,
   ICallable,
   IDisposable,
   IFrameRequestCallback,
   IIndexable,
-  Immutable,
-  ImmutableArray,
-  ImmutableObject,
-  Injectable,
-  InterfaceSymbol,
   IPerformance,
   ITimerHandler,
   IWindowOrWorkerGlobalScope,
@@ -54,15 +55,26 @@ export {
   StrictPrimitive,
   Unwrap,
   ValuesOf,
-  Writable
+  Writable,
+  IfEquals,
+  ReadonlyKeys,
+  WritableKeys,
 } from './interfaces';
+export {
+  relativeToFile,
+  join,
+  buildQueryString,
+  parseQueryString,
+  IQueryParams
+} from './path';
 export { PLATFORM } from './platform';
 export {
   ITraceInfo,
   ITraceWriter,
   ILiveLoggingOptions,
   Reporter,
-  Tracer
+  Tracer,
+  LogLevel,
 } from './reporter';
 export {
   Profiler
@@ -78,5 +90,18 @@ export {
 } from './resource';
 export {
   EventAggregator,
-  EventAggregatorCallback
+  EventAggregatorCallback,
+  IEventAggregator,
 } from './eventaggregator';
+export {
+  isNumeric,
+  camelCase,
+  kebabCase,
+  toArray,
+  nextId,
+  resetId,
+  compareNumber,
+  mergeDistinct,
+  isNumberOrBigInt,
+  isStringOrDate,
+} from './functions';

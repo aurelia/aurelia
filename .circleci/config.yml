@@ -1,5 +1,7 @@
 version: 2.1
 
+orbs:
+  common: aurelia/common@volatile
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -41,6 +43,16 @@ map-5: &filter_only_tag
     tags:
       only: /^v[0-9]+(\.[0-9]+)*$/
 
+map-6: &filter_only_topic
+  filters:
+    branches:
+      ignore:
+        - master
+        - develop
+        - release
+    tags:
+      ignore: /.*/
+
 # # # # # # # # # # # # # # # #
 # - Executors -
 # # # # # # # # # # # # # # # #
@@ -50,7 +62,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "10.12"
+        default: "12.10.0"
     working_directory: *working_dir
     docker:
       - image: "circleci/node:<< parameters.node >>-stretch-browsers"
@@ -75,6 +87,73 @@ commands:
       - run: npm ci --ignore-scripts
       - run: npm run bootstrap
 
+  checkout_install_bootstrap_build_bundle_publish_verdaccio:
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+      channel:
+        type: string
+      suffix:
+        type: string
+        default: ""
+      registry:
+        type: string
+        default: "http://localhost:4873"
+    steps:
+      - common/configure_git
+      - checkout_install_bootstrap
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:overwrite:umd
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:restore
+      - clean_merge_commit_dist:
+          from: << parameters.from >>
+          to: << parameters.to >>
+          channel: << parameters.channel >>
+          suffix: << parameters.suffix >>
+      - common/setup_verdaccio
+      - run: npm run publish:<< parameters.channel >> -- << parameters.suffix >> << parameters.registry >>
+
+  clean_merge_commit_dist:
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+      channel:
+        type: string
+      suffix:
+        type: string
+        default: ""
+      message:
+        type: string
+        default: "chore(all): add latest build artifacts"
+      merge_topic:
+        type: boolean
+        default: true
+    steps:
+      - run: set -o pipefail && ./node_modules/.bin/lerna clean -y
+      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && git stash && git status
+      - when:
+          condition: << parameters.merge_topic >>
+          steps:
+            - run: set -o pipefail && git checkout << parameters.from >> && git status
+            - run: set -o pipefail && git merge ${CIRCLE_BRANCH}
+      - run: set -o pipefail && git checkout << parameters.to >> && git status
+      - run: set -o pipefail && git reset --hard origin/<< parameters.to >> && git status
+      - run: set -o pipefail && git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
+      - run: set -o pipefail && rm -rf packages/*/dist && git status
+      - run: set -o pipefail && git add . && git status
+      - run: set -o pipefail && git checkout stash -- . && git status
+      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && npm run change-package-refs:release
+      - run: set -o pipefail && npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
+      - run: set -o pipefail && git add . && git status
+      - run: set -o pipefail && git commit --allow-empty -m "<< parameters.message >>" && git status
+
 # # # # # # # # # # # # # # # #
 # - Jobs -
 # # # # # # # # # # # # # # # #
@@ -94,33 +173,101 @@ jobs:
     steps:
       - checkout_install_bootstrap
       - run: npm run build
-      - run: npm run << parameters.npm_command >>
+      - run:
+          name: "Run unit tests"
+          command: |
+            cd packages/__tests__
+            npm run << parameters.npm_command >>
       - when:
           condition: << parameters.coverage >>
           steps:
             - run:
                 name: "Process coverage results for Code Climate"
                 command: |
-                  ~/cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/cc-final.json
-                  ~/cc-test-reporter upload-coverage -i coverage/cc-final.json
+                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ~/cc-test-reporter && chmod +x ~/cc-test-reporter
+                  ~/cc-test-reporter format-coverage packages/__tests__/coverage/lcov.info -t lcov -o packages/__tests__/coverage/cc-final.json
+                  ~/cc-test-reporter upload-coverage -i packages/__tests__/coverage/cc-final.json
                 environment:
                   CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
                 when: always
             - run:
                 name: "Process coverage for Codecov"
                 command: |
-                  codecov -f coverage/coverage-final.json
+                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
+            - store_test_results:
+                path: packages/__tests__/coverage
+            - store_artifacts:
+                path: packages/__tests__/coverage
+
+  js_framework_benchmark:
+    executor: docker-circleci
+    steps:
+      #- checkout_install_bootstrap_build_bundle_publish_verdaccio:
+      #    from: ${CIRCLE_BRANCH}
+      #    to: develop
+      #    channel: dev
+      #    suffix: "-${CIRCLE_BUILD_NUM}"
+      - common/configure_git
+      - checkout_install_bootstrap
+      - run: npm run build:release
+      - run:
+          name: "Install js-framework-benchmark"
+          command: |
+            cd test/js-framework-benchmark
+            npm install
+      - run:
+          name: "Serve test app"
+          background: true
+          command: |
+            cd test/js-framework-benchmark
+            npm run start
+      - run:
+          name: "Install & build webdriver-ts"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            npm install
+            npm run build-prod
+      - run:
+          name: "Install webdriver-ts-results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts-results
+            npm install
+      - run:
+          name: "Run the benchmark"
+          command: |
+            cd test/js-framework-benchmark
+            npm run build -- --check
+      - run:
+          name: "Create the results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            node dist/createResultJS.js
+      - run:
+          name: "Build webdriver-ts-results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts-results
+            npm run build-prod
+      - run:
+          name: "Run webdriver-ts index"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            node dist/createIndex.js
       - store_test_results:
-          path: coverage
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
       - store_artifacts:
-          path: coverage
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - run:
+          name: "Post benchmark result to comment"
+          command: npm run post-benchmark-result
 
   lint_packages:
     executor: docker-circleci
     steps:
       - checkout_install_bootstrap
-      - run: npm run lint
+      # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
+      - run: npm run lint:packages -- -- -- --quiet
+      - run: npm run lint:other -- --quiet
 
   merge_and_dist:
     executor: docker-aurelia
@@ -131,28 +278,27 @@ jobs:
         type: string
       channel:
         type: string
-      message:
-        type: string
-        default: "chore(all): add latest build artifacts"
+      push:
+        type: boolean
+        default: false
+      merge_topic:
+        type: boolean
+        default: true
     steps:
       - checkout_install_bootstrap
-      - run: npm run build
-      - run: npm run bundle:release
-      - run: ./node_modules/.bin/lerna clean -y
-      - run: rm -rf packages/*/dist/build/**
-      - run: git add packages/\*/dist/* --force
-      - run: git stash
-      - run: git checkout << parameters.to >>
-      - run: git merge << parameters.from >> --no-ff --no-edit -Xtheirs
-      - run: rm -rf packages/*/dist
-      - run: git add .
-      - run: git stash pop
-      - run: git add packages/\*/dist/* --force
-      - run: npm run change-package-refs:rollup
-      - run: npm run bump-version:<< parameters.channel >>
-      - run: git add .
-      - run: git commit --allow-empty -m "<< parameters.message >>"
-      - run: git push origin << parameters.to >>
+      - run: set -o pipefail && npm run build:release
+      - run: set -o pipefail && npm run change-tsconfigs:overwrite:umd
+      - run: set -o pipefail && npm run build:release
+      - run: set -o pipefail && npm run change-tsconfigs:restore
+      - clean_merge_commit_dist:
+          from: << parameters.from >>
+          to: << parameters.to >>
+          channel: << parameters.channel >>
+          merge_topic: << parameters.merge_topic >>
+      - when:
+          condition: << parameters.push >>
+          steps:
+            - run: git push origin << parameters.to >>
 
   e2e_browserstack:
     executor: docker-circleci
@@ -163,7 +309,7 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm ci
+            npm install
             npm run build
       - run:
           name: "Serve e2e app in the background"
@@ -175,6 +321,51 @@ jobs:
           name: "Run e2e tests"
           command: |
             cd test/browserstack
+            npm run e2e
+
+  e2e_cypress_doc_example:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run:
+          name: "Install cypress"
+          command: |
+            cd packages/__tests__/router/e2e/doc-example
+            npm install
+      - run:
+          name: "Install and build test app"
+          command: |
+            cd packages/__tests__/router/e2e/doc-example/app
+            npm install
+            npm run build
+      - run:
+          name: "Serve test app in the background"
+          background: true
+          command: |
+            cd packages/__tests__/router/e2e/doc-example/app
+            npm run serve
+      - run:
+          name: "Run e2e tests"
+          command: |
+            cd packages/__tests__/router/e2e/doc-example
+            npm run test
+
+  e2e_cypress:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run:
+          name: "Install cypress"
+          command: |
+            cd packages/__e2e__
+            npm install
+      - run:
+          name: "Run e2e tests"
+          background: true
+          command: |
+            cd packages/__e2e__
             npm run e2e
 
   publish_npm:
@@ -200,46 +391,49 @@ jobs:
     parameters:
       path:
         type: string
-      build:
+      use_verdaccio:
         type: boolean
-        default: false
-      iife:
-        type: boolean
-        default: false
-      publish_local:
-        type: boolean
-        default: false
+        default: true
+      registry:
+        type: string
+        default: "http://localhost:4873"
     steps:
-      - checkout_install
-      - when:
-          condition: << parameters.build >>
-          steps:
-            - run: npm run bootstrap
-            - run: npm run build
-      - when:
-          condition: << parameters.iife >>
-          steps:
-            - run: ./node_modules/.bin/ts-node -P scripts/tsconfig.json scripts/bundle.ts iife jit-html-browser
-      - when:
-          condition: << parameters.publish_local >>
-          steps:
-            - run: npm run publish:local
+      - checkout_install_bootstrap_build_bundle_publish_verdaccio:
+          from: ${CIRCLE_BRANCH}
+          to: develop
+          channel: dev
+          suffix: "-${CIRCLE_BUILD_NUM}"
       - run:
           name: "Install wdio"
           command: |
             cd test/wdio
             npm ci
+      - when:
+          condition: << parameters.use_verdaccio >>
+          steps:
+            - run:
+                name: "Install app via verdaccio"
+                command: |
+                  cd << parameters.path >>
+                  npm install --registry << parameters.registry >>
+      - unless:
+          condition: << parameters.use_verdaccio >>
+          steps:
+            - run:
+                name: "Install app via npm"
+                command: |
+                  cd << parameters.path >>
+                  npm install
       - run:
-          name: "Install & build test app"
+          name: "Build test app"
           command: |
-            cd test/wdio/cases/<< parameters.path >>
-            npm install
+            cd << parameters.path >>
             npm run build
       - run:
           name: "Serve wdio test app"
           background: true
           command: |
-            cd test/wdio/cases/<< parameters.path >>
+            cd << parameters.path >>
             npm run serve
       - run:
           name: "Run wdio test"
@@ -258,74 +452,106 @@ workflows:
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_chrome
-          e: docker-aurelia
-      - unit_test:
-          <<: *filter_ignore_develop_release
-          name: unit_test_firefox
-          e: docker-aurelia
-          npm_command: "test-firefox"
-          coverage: false
-      - unit_test:
-          <<: *filter_ignore_develop_release
-          name: unit_test_node
           e: docker-circleci
-          npm_command: "test-node"
-          coverage: false
+          npm_command: "test-chrome"
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: unit_test_firefox
+         e: docker-circleci
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: unit_test_node
+         e: docker-circleci
+         npm_command: "test-node"
+         coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
-          <<: *filter_only_master
-      - e2e_wdio:
           <<: *filter_ignore_develop_release
-          name: jit-aurelia-cli-ts
-          path: "local/jit-aurelia-cli-ts"
-          build: true
-          requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
+      - js_framework_benchmark:
           <<: *filter_ignore_develop_release
-          name: jit-fuse-box-ts
-          path: "local/jit-fuse-box-ts"
-          build: true
-          requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
+      - e2e_cypress:
+         <<: *filter_ignore_develop_release
+      #- e2e_cypress_doc_example:
+      #    <<: *filter_ignore_develop_release
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-fuse-box-ts
+      #    path: "examples/jit-fuse-box-ts"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
-          path: "local/jit-webpack-ts"
-          build: true
+          path: "examples/jit-webpack-ts"
           requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
-          path: "local/jit-parcel-ts"
-          build: true
-          publish_local: true
+          path: "examples/jit-parcel-ts"
           requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-iife-inline
-          path: "local/jit-iife-inline"
-          build: true
-          iife: true
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      # - e2e_wdio:
+      #     <<: *filter_ignore_develop_release
+      #     name: jit-browserify-ts
+      #     path: "examples/jit-browserify-ts"
+      #     requires:
+      #       - lint_packages # not a real requirement but forces long-running jobs to go first
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-iife-inline
+      #    path: "examples/jit-iife-inline"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
+          name: merge_and_dist_master
           requires:
             - unit_test_chrome
             - unit_test_firefox
             - unit_test_node
             - lint_packages
             - e2e_browserstack
-            - jit-aurelia-cli-ts
-            - jit-fuse-box-ts
+            - e2e_cypress
+            #- e2e_cypress_doc_example
+            #- jit-fuse-box-ts
             - jit-webpack-ts
-            - jit-parcel-ts
-            - jit-iife-inline
+            #- jit-parcel-ts
+            #- jit-browserify-ts
+            #- jit-iife-inline
           from: master
           to: develop
           channel: dev
+          push: true
+          merge_topic: false
+      - merge_and_dist:
+          <<: *filter_only_topic
+          name: merge_and_dist_topic
+          requires:
+            - unit_test_chrome
+            - unit_test_firefox
+            - unit_test_node
+            - lint_packages
+            - e2e_browserstack
+            - e2e_cypress
+            #- e2e_cypress_doc_example
+            #- jit-fuse-box-ts
+            - jit-webpack-ts
+            #- jit-parcel-ts
+            # -jit-browserify-ts
+            #- jit-iife-inline
+          from: master
+          to: develop
+          channel: dev
+      - publish_npm:
+          <<: *filter_only_master
+          channel: dev
+          branch: develop
+          requires:
+            - merge_and_dist_master
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
@@ -334,23 +560,28 @@ workflows:
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_chrome
-          e: docker-aurelia
-      - unit_test:
-          <<: *filter_only_tag
-          name: unit_test_firefox
-          e: docker-aurelia
-          npm_command: "test-firefox"
-          coverage: false
-      - unit_test:
-          <<: *filter_only_tag
-          name: unit_test_node
           e: docker-circleci
-          npm_command: "test-node"
-          coverage: false
+          npm_command: "test-chrome"
+      - unit_test:
+         <<: *filter_only_tag
+         name: unit_test_firefox
+         e: docker-circleci
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test:
+         <<: *filter_only_tag
+         name: unit_test_node
+         e: docker-circleci
+         npm_command: "test-node"
+         coverage: false
       - lint_packages:
           <<: *filter_only_tag
       - e2e_browserstack:
           <<: *filter_only_tag
+      - e2e_cypress:
+         <<: *filter_only_tag
+      #- e2e_cypress_doc_example:
+      #    <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
@@ -359,6 +590,8 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
+            #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release
           channel: latest
@@ -377,90 +610,3 @@ workflows:
             - request_publish_latest
           channel: latest
           branch: release
-      # verify the latest packages after publishing them
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-aurelia-cli-ts
-          path: "latest/jit-aurelia-cli-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-browserify-ts
-          path: "latest/jit-browserify-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-fuse-box-ts
-          path: "latest/jit-fuse-box-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-parcel-ts
-          path: "latest/jit-parcel-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-webpack-ts
-          path: "latest/jit-webpack-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-iife-inline
-          path: "latest/jit-iife-inline"
-          requires:
-            - publish_npm
-
-  # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
-  # Triggered by schedule once per day on 0:00 UTC on the master branch
-  build_test_push_dev:
-    triggers:
-      - schedule:
-          <<: *filter_only_master
-          cron: "0 5 * * *"
-    jobs:
-      # this merge_and_dist is only to ensure the correct version in develop branch
-      - merge_and_dist:
-          from: master
-          to: develop
-          channel: dev
-      - publish_npm:
-          channel: dev
-          branch: develop
-          requires:
-            - merge_and_dist
-      # verify the dev packages after publishing them
-      - e2e_wdio:
-          name: jit-aurelia-cli-ts
-          path: "dev/jit-aurelia-cli-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-browserify-ts
-          path: "dev/jit-browserify-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-fuse-box-ts
-          path: "dev/jit-fuse-box-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-parcel-ts
-          path: "dev/jit-parcel-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-webpack-ts
-          path: "dev/jit-webpack-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-iife-inline
-          path: "dev/jit-iife-inline"
-          requires:
-            - publish_npm

@@ -1,72 +1,163 @@
-import { IBindingTargetAccessor, ILifecycle, INode, targetObserver } from '@aurelia/runtime';
+import {
+  IAccessor,
+  ILifecycle,
+  LifecycleFlags,
+  Priority,
+} from '@aurelia/runtime';
+import { PLATFORM } from '@aurelia/kernel';
 
-export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
+export class ClassAttributeAccessor implements IAccessor<unknown> {
+  public readonly lifecycle: ILifecycle;
 
-@targetObserver('')
-export class ClassAttributeAccessor implements ClassAttributeAccessor {
-  public readonly isDOMObserver: true;
-  public currentValue: string;
-  public doNotCache: true;
-  public lifecycle: ILifecycle;
-  public nameIndex: object;
-  public obj: HTMLElement;
-  public oldValue: string;
+  public readonly obj: HTMLElement;
+  public currentValue: unknown;
+  public oldValue: unknown;
+
+  public readonly persistentFlags: LifecycleFlags;
+
+  public readonly doNotCache: true;
+  public nameIndex: Record<string, number>;
   public version: number;
 
-  constructor(lifecycle: ILifecycle, obj: HTMLElement) {
-    this.isDOMObserver = true;
-    this.doNotCache = true;
+  public hasChanges: boolean;
+  public isActive: boolean;
+  public priority: Priority;
+
+  public constructor(
+    lifecycle: ILifecycle,
+    flags: LifecycleFlags,
+    obj: HTMLElement,
+  ) {
     this.lifecycle = lifecycle;
-    this.nameIndex = null;
+
     this.obj = obj;
+    this.currentValue = '';
+    this.oldValue = '';
+
+    this.doNotCache = true;
+    this.nameIndex = {};
     this.version = 0;
+
+    this.isActive = false;
+    this.hasChanges = false;
+    this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
-  public getValue(): string {
+  public getValue(): unknown {
     return this.currentValue;
   }
 
-  public setValueCore(newValue: string): void {
-    const nameIndex = this.nameIndex || {};
-    let version = this.version;
-    let names: string[];
-    let name: string;
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+      this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    }
+  }
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue, nameIndex } = this;
+      let { version } = this;
+      this.oldValue = currentValue;
 
-    // Add the classes, tracking the version at which they were added.
-    if (newValue.length) {
-      const node = this.obj;
-      names = newValue.split(/\s+/);
-      for (let i = 0, length = names.length; i < length; i++) {
-        name = names[i];
-        if (!name.length) {
+      const classesToAdd = this.getClassesToAdd(currentValue as any);
+
+      // Get strings split on a space not including empties
+      if (classesToAdd.length > 0) {
+        this.addClassesAndUpdateIndex(classesToAdd);
+      }
+
+      this.version += 1;
+
+      // First call to setValue?  We're done.
+      if (version === 0) {
+        return;
+      }
+
+      // Remove classes from previous version.
+      version -= 1;
+      for (const name in nameIndex) {
+        if (!Object.prototype.hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
           continue;
         }
-        nameIndex[name] = version;
-        node.classList.add(name);
+
+        // TODO: this has the side-effect that classes already present which are added again,
+        // will be removed if they're not present in the next update.
+        // Better would be do have some configurability for this behavior, allowing the user to
+        // decide whether initial classes always need to be kept, always removed, or something in between
+        this.obj.classList.remove(name);
       }
     }
+  }
 
-    // Update state variables.
-    this.nameIndex = nameIndex;
-    this.version += 1;
+  public bind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
+  }
 
-    // First call to setValue?  We're done.
-    if (version === 0) {
-      return;
+  public unbind(flags: LifecycleFlags): void {
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
+  }
+
+  private splitClassString(classString: string): string[] {
+    const matches = classString.match(/\S+/g);
+    if (matches === null) {
+      return PLATFORM.emptyArray;
+    }
+    return matches;
+  }
+
+  private getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
+    if (typeof object === 'string') {
+      return this.splitClassString(object);
     }
 
-    // Remove classes from previous version.
-    version -= 1;
-    for (name in nameIndex) {
-      if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+    if (object instanceof Array) {
+      const len = object.length;
+      if (len > 0) {
+        const classes: string[] = [];
+        for (let i = 0; i < len; ++i) {
+          classes.push(...this.getClassesToAdd(object[i]));
+        }
+        return classes;
+      } else {
+        return PLATFORM.emptyArray;
+      }
+    } else if (object instanceof Object) {
+      const classes: string[] = [];
+      for (const property in object) {
+        // Let non typical values also evaluate true so disable bool check
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
+        if (!!object[property]) {
+          // We must do this in case object property has a space in the name which results in two classes
+          if (property.includes(' ')) {
+            classes.push(...this.splitClassString(property));
+          } else {
+            classes.push(property);
+          }
+        }
+      }
+      return classes;
+    }
+    return PLATFORM.emptyArray;
+  }
+
+  private addClassesAndUpdateIndex(classes: string[]) {
+    const node = this.obj;
+    for (let i = 0, length = classes.length; i < length; i++) {
+      const className = classes[i];
+      if (!className.length) {
         continue;
       }
-
-      // TODO: this has the side-effect that classes already present which are added again,
-      // will be removed if they're not present in the next update.
-      // Better would be do have some configurability for this behavior, allowing the user to
-      // decide whether initial classes always need to be kept, always removed, or something in between
-      this.obj.classList.remove(name);
+      this.nameIndex[className] = this.version;
+      node.classList.add(className);
     }
   }
 }

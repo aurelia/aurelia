@@ -2,9 +2,10 @@
   "name": "examples-e2e",
   "version": "0.3.0",
   "devDependencies": {
-    "chromedriver": "^2.45.0",
-    "mocha": "^5.2.0",
-    "wdio": "^3.0.0",
+    "chromedriver": "^76.0.1",
+    "fibers": "^4.0.1",
+    "mocha": "~6.1.4",
+    "wdio": "^3.0.3",
     "wdio-mocha-framework": "^0.6.4"
   },
   "scripts": {

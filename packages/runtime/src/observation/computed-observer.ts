@@ -1,13 +1,13 @@
-import { Constructable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, IIndexable, PLATFORM, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
-  IBatchedSubscribable,
+  IBindingContext,
   IBindingTargetObserver,
+  ICollectionSubscribable,
   IObservable,
-  IPropertySubscriber,
   ISubscribable,
-  MutationKind
+  ISubscriber
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
@@ -26,9 +26,9 @@ export interface ComputedOverrides {
 export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
-  return function(target: Constructable & ComputedLookup, key: string): void {
+  return function (target: Constructable & ComputedLookup, key: string): void {
     (target.computed || (target.computed = {}))[key] = config;
-  };
+  } as PropertyDecorator;
 }
 
 const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
@@ -39,7 +39,7 @@ export function createComputedObserver(
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
   lifecycle: ILifecycle,
-  instance: IObservable & { constructor: IObservable & ComputedLookup },
+  instance: IObservable,
   propertyName: string,
   descriptor: PropertyDescriptor): IBindingTargetObserver {
 
@@ -48,7 +48,11 @@ export function createComputedObserver(
   }
 
   if (descriptor.get) {
-    const overrides = instance.constructor.computed && instance.constructor.computed[propertyName] || computedOverrideDefaults;
+    const overrides = (
+      (instance as IObservable & { constructor: ComputedLookup }).constructor.computed
+      && (instance as IObservable & { constructor: ComputedLookup }).constructor.computed![propertyName]
+      || computedOverrideDefaults
+    );
 
     if (descriptor.set) {
       if (overrides.volatile) {
@@ -64,9 +68,9 @@ export function createComputedObserver(
 export interface CustomSetterObserver extends IBindingTargetObserver { }
 
 // Used when the getter is dependent solely on changes that happen within the setter.
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 export class CustomSetterObserver implements CustomSetterObserver {
-  public readonly obj: IObservable;
+  public readonly obj: IObservable & IIndexable;
   public readonly propertyKey: string;
   public currentValue: unknown;
   public oldValue: unknown;
@@ -74,7 +78,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   private readonly descriptor: PropertyDescriptor;
   private observing: boolean;
 
-  constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
+  public constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.currentValue = this.oldValue = undefined;
@@ -83,35 +87,32 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public setValue(newValue: unknown): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments)); }
-    this.descriptor.set.call(this.obj, newValue);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.descriptor.set!.call(this.obj, newValue); // Non-null is implied because descriptors without setters won't end up here
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
       this.currentValue = newValue;
       this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTargetInstance);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.observing) {
       this.convertProperty();
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
   }
 
   public convertProperty(): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'convertProperty', slice.call(arguments)); }
     this.observing = true;
     this.currentValue = this.obj[this.propertyKey];
 
     const set = (newValue: unknown): void => { this.setValue(newValue); };
     Reflect.defineProperty(this.obj, this.propertyKey, { set });
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -120,7 +121,7 @@ export interface GetterObserver extends IBindingTargetObserver { }
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
 /** @internal */
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 export class GetterObserver implements GetterObserver {
   public readonly obj: IObservable;
   public readonly propertyKey: string;
@@ -128,14 +129,14 @@ export class GetterObserver implements GetterObserver {
   public oldValue: unknown;
 
   private readonly proxy: ProxyHandler<object>;
-  private readonly propertyDeps: ISubscribable<MutationKind.instance>[];
-  private readonly collectionDeps: IBatchedSubscribable<MutationKind.collection>[];
+  private readonly propertyDeps: ISubscribable[];
+  private readonly collectionDeps: ICollectionSubscribable[];
   private readonly overrides: ComputedOverrides;
   private readonly descriptor: PropertyDescriptor;
   private subscriberCount: number;
   private isCollecting: boolean;
 
-  constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+  public constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;
@@ -152,37 +153,37 @@ export class GetterObserver implements GetterObserver {
     Reflect.defineProperty(obj, propertyKey, { get });
   }
 
-  public addPropertyDep(subscribable: ISubscribable<MutationKind.instance>): void {
-    if (this.propertyDeps.indexOf(subscribable) === -1) {
+  public addPropertyDep(subscribable: ISubscribable): void {
+    if (!this.propertyDeps.includes(subscribable)) {
       this.propertyDeps.push(subscribable);
     }
   }
 
-  public addCollectionDep(subscribable: IBatchedSubscribable<MutationKind.collection>): void {
-    if (this.collectionDeps.indexOf(subscribable) === -1) {
+  public addCollectionDep(subscribable: ICollectionSubscribable): void {
+    if (!this.collectionDeps.includes(subscribable)) {
       this.collectionDeps.push(subscribable);
     }
   }
 
   public getValue(): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValue', slice.call(arguments)); }
     if (this.subscriberCount === 0 || this.isCollecting) {
-      this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     } else {
-      this.currentValue = Reflect.apply(this.descriptor.get, this.obj, PLATFORM.emptyArray);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     this.addSubscriber(subscriber);
     if (++this.subscriberCount === 1) {
       this.getValueAndCollectDependencies(true);
     }
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
     if (--this.subscriberCount === 0) {
       this.unsubscribeAllDependencies();
@@ -197,16 +198,15 @@ export class GetterObserver implements GetterObserver {
     }
   }
 
-  public handleBatchedChange(): void {
+  public handleCollectionChange(): void {
     const oldValue = this.currentValue;
     const newValue = this.getValueAndCollectDependencies(false);
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
     }
   }
 
   public getValueAndCollectDependencies(requireCollect: boolean): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValueAndCollectDependencies', slice.call(arguments)); }
     const dynamicDependencies = !this.overrides.static || requireCollect;
 
     if (dynamicDependencies) {
@@ -218,11 +218,10 @@ export class GetterObserver implements GetterObserver {
 
     if (dynamicDependencies) {
       this.propertyDeps.forEach(x => { x.subscribe(this); });
-      this.collectionDeps.forEach(x => { x.subscribeBatched(this); });
+      this.collectionDeps.forEach(x => { x.subscribeToCollection(this); });
       this.isCollecting = false;
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
@@ -233,7 +232,7 @@ export class GetterObserver implements GetterObserver {
   private unsubscribeAllDependencies(): void {
     this.propertyDeps.forEach(x => { x.unsubscribe(this); });
     this.propertyDeps.length = 0;
-    this.collectionDeps.forEach(x => { x.unsubscribeBatched(this); });
+    this.collectionDeps.forEach(x => { x.unsubscribeFromCollection(this); });
     this.collectionDeps.length = 0;
   }
 }
@@ -241,12 +240,9 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  if (Tracer.enabled) { Tracer.enter('computed', 'createGetterTraps', slice.call(arguments)); }
   const traps = {
-    get: function(target: object, key: PropertyKey, receiver?: unknown): unknown {
-      if (Tracer.enabled) { Tracer.enter('computed', 'get', slice.call(arguments)); }
+    get: function(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
       if (observer.doNotCollect(key)) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return Reflect.get(target, key, receiver);
       }
 
@@ -256,37 +252,33 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
         case '[object Array]':
           observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
           if (key === 'length') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Map]':
           observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Set]':
           observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         default:
           observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
       }
 
-      if (Tracer.enabled) { Tracer.leave(); }
       return proxyOrValue(flags, target, key, observerLocator, observer);
     }
   };
-  if (Tracer.enabled) { Tracer.leave(); }
   return traps;
 }
 
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
   if (typeof value === 'function') {
-    return target[key].bind(target);
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    return (target as { [key: string]: Function })[key as string].bind(target); // We need Function's bind() method here
   }
   if (typeof value !== 'object' || value === null) {
     return value;

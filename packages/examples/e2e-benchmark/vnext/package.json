@@ -16,23 +16,23 @@
     "@aurelia/runtime-html-browser": "file:../../../runtime-html-browser"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.19",
-    "@types/selenium-webdriver": "^3.0.14",
+    "@types/chai": "^4.2.3",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^10.14.13",
+    "@types/selenium-webdriver": "^4.0.3",
     "chai": "^4.2.0",
-    "chromedriver": "^2.45.0",
-    "cross-env": "^5.2.0",
+    "chromedriver": "^76.0.1",
+    "cross-env": "^6.0.2",
     "http-server": "^0.11.1",
-    "mocha": "^5.2.0",
+    "mocha": "~6.1.4",
     "path": "^0.12.7",
-    "rimraf": "^2.6.3",
-    "selenium-webdriver": "^4.0.0-alpha.1",
-    "ts-loader": "^5.3.3",
-    "ts-node": "^8.0.2",
-    "tsconfig-paths": "^3.7.0",
-    "typescript": "^3.2.4",
-    "webpack": "^4.29.0",
-    "webpack-cli": "^3.2.1"
+    "rimraf": "^3.0.0",
+    "selenium-webdriver": "^4.0.0-alpha.5",
+    "ts-loader": "^6.2.0",
+    "ts-node": "^8.4.1",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.6.3",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
   }
 }

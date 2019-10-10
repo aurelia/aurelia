@@ -5,34 +5,37 @@ export {
   IAttributeParser
 } from './attribute-parser';
 export {
-  AtPrefixedTriggerAttributePattern,
   attributePattern,
   AttributePatternDefinition,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
   IAttributePattern,
   IAttributePatternHandler,
   Interpretation,
   ISyntaxInterpreter,
-  RefAttributePattern,
 } from './attribute-pattern';
+export {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern,
+} from './attribute-patterns';
 export {
   bindingCommand,
   BindingCommandResource,
-  CallBindingCommand,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  getMode,
-  getTarget,
   IBindingCommand,
   IBindingCommandDefinition,
   IBindingCommandResource,
   IBindingCommandType,
+  getTarget,
+} from './binding-command';
+export {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
   OneTimeBindingCommand,
   ToViewBindingCommand,
   TwoWayBindingCommand
-} from './binding-command';
+} from './binding-commands';
 export {
   IExpressionParserRegistration,
 
@@ -58,9 +61,19 @@ export {
 
   DefaultBindingLanguage,
 
-  BasicConfiguration
+  JitConfiguration
 } from './configuration';
-export { parseExpression } from './expression-parser';
+export {
+  Access,
+  Precedence,
+  Char,
+  // These exports are temporary until we have a proper way to unit test them
+} from './common';
+export {
+  parseExpression,
+  parse,
+  ParserState,
+} from './expression-parser';
 export {
   ResourceModel,
   BindableInfo,
@@ -68,23 +81,22 @@ export {
   AttrInfo
 } from './resource-model';
 export {
+  AnySymbol,
   BindingSymbol,
   CustomAttributeSymbol,
   CustomElementSymbol,
-  IAttributeSymbol,
-  IElementSymbol,
-  INodeSymbol,
-  IParentNodeSymbol,
-  IResourceAttributeSymbol,
-  ISymbol,
-  ISymbolWithBindings,
-  ISymbolWithMarker,
-  ISymbolWithTemplate,
+  ElementSymbol,
   LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
   ReplacePartSymbol,
+  ResourceAttributeSymbol,
   SymbolFlags,
+  SymbolWithBindings,
+  SymbolWithMarker,
+  SymbolWithTemplate,
   TemplateControllerSymbol,
-  TextSymbol
+  TextSymbol,
 } from './semantic-model';

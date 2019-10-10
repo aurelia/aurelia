@@ -453,7 +453,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
   function defaultExpectation(items: any[] | Map<any, any> | Set<any>): string {
     if (Array.isArray(items)) {
-      return items.map((item, idx) => `[\${item.name}] -- ${idx} -- ${idx % 2 === 0}`).join(``);
+      return items.map((item, idx) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`).join(``);
     }
     if (items instanceof Map) {
       return Array
@@ -464,7 +464,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
     if (items instanceof Set) {
       return Array
         .from(items)
-        .map((item: ITestModel, idx: number) => `[\${item.name}] -- ${idx} -- ${idx % 2 === 0}`)
+        .map((item: ITestModel, idx: number) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`)
         .join(``);
     }
     if (items == null) {

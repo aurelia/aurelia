@@ -14,7 +14,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe('[repeat.contextual-prop.spec.ts]', function () {
+describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
   interface ISimpleRepeatContextualPropsTestCase {
     title: string;
@@ -32,31 +32,31 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
   const simpleRepeatPropsTestCases: ISimpleRepeatContextualPropsTestCase[] = [
     ...[
       {
-        title: 'Basic - no mutation',
+        title: `Basic - no mutation`,
         mutate() {/* nothing */}
       },
       {
-        title: 'Basic - set to [null]',
+        title: `Basic - set to [null]`,
         mutate(comp: ITestViewModel) {
           comp.items = null;
         }
       },
       {
-        title: 'Basic - set to [undefined]',
+        title: `Basic - set to [undefined]`,
         mutate(comp: ITestViewModel) {
           comp.items = undefined;
         }
       },
       {
-        title: 'Basic - with reverse()',
+        title: `Basic - with reverse()`,
         mutate: (items: ITestModel[]) => items.reverse()
       },
       {
-        title: 'Basic - with sort()',
+        title: `Basic - with sort()`,
         mutate: (items: ITestModel[]) => items.sort(sortDesc)
       },
       {
-        title: 'Basic - with push()',
+        title: `Basic - with push()`,
         mutate(items: any[]) {
           for (let i = 0; 5 > i; ++i) {
             items.push({ name: `item - ${i}`, value: i });
@@ -64,7 +64,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         }
       },
       {
-        title: 'Basic - with splice()',
+        title: `Basic - with splice()`,
         mutate(items: any[]) {
           // todo: fix fail tests when doing multiple consecutive splices
           // for (let i = 0; 5 > i; ++i) {
@@ -77,21 +77,21 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         }
       },
       {
-        title: 'Basic - with pop()',
+        title: `Basic - with pop()`,
         mutate(items: any[]) {
           items.pop();
         }
       },
       {
-        title: 'Basic - with shift()',
+        title: `Basic - with shift()`,
         mutate(items: any[]) {
           items.shift();
         }
       },
       {
-        title: 'Basic - with unshift()',
+        title: `Basic - with unshift()`,
         mutate(items: any[]) {
-          items.unshift({ name: 'item - abcd', value: 100 });
+          items.unshift({ name: `item - abcd`, value: 100 });
         }
       },
     ].reduce(
@@ -101,12 +101,12 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
           {
             ...arrayCaseConfig,
             title: `${arrayCaseConfig.title} - with [Identity] value converter`,
-            repeatExpression: 'item of items | identity'
+            repeatExpression: `item of items | identity`
           },
           // {
           //   ...arrayCaseConfig,
           //   title: `${arrayCaseConfig.title} - with [Clone] value converter`,
-          //   repeatExpression: 'item of items | clone'
+          //   repeatExpression: `item of items | clone`
           // }
         ]);
       },
@@ -114,34 +114,34 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     ),
     ...[
       {
-        title: 'Map basic - no mutation',
-        repeatExpression: 'entry of items',
-        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        title: `Map basic - no mutation`,
+        repeatExpression: `entry of items`,
+        textExpression: `[\${entry[1].name}] -- \${$index} -- \${$even}`,
         getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
         mutate() {/*  */}
       },
       {
-        title: 'Map basic - set to [null]',
-        repeatExpression: 'entry of items',
-        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        title: `Map basic - set to [null]`,
+        repeatExpression: `entry of items`,
+        textExpression: `[\${entry[1].name}] -- \${$index} -- \${$even}`,
         getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
         mutate(comp: ITestViewModel) {
           comp.items = null;
         }
       },
       {
-        title: 'Map basic - set to [undefined]',
-        repeatExpression: 'entry of items',
-        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        title: `Map basic - set to [undefined]`,
+        repeatExpression: `entry of items`,
+        textExpression: `[\${entry[1].name}] -- \${$index} -- \${$even}`,
         getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
         mutate(comp: ITestViewModel) {
           comp.items = undefined;
         }
       },
       {
-        title: 'Map basic - with set()',
-        repeatExpression: 'entry of items',
-        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        title: `Map basic - with set()`,
+        repeatExpression: `entry of items`,
+        textExpression: `[\${entry[1].name}] -- \${$index} -- \${$even}`,
         getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
         mutate(items: Map<string, ITestModel>) {
           for (let i = 10; 15 > i; ++i) {
@@ -150,9 +150,9 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         }
       },
       {
-        title: 'Map basic - with delete()',
-        repeatExpression: 'entry of items',
-        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        title: `Map basic - with delete()`,
+        repeatExpression: `entry of items`,
+        textExpression: `[\${entry[1].name}] -- \${$index} -- \${$even}`,
         getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
         mutate(items: Map<string, ITestModel>) {
           for (let i = 0; 5 > i; ++i) {
@@ -161,9 +161,9 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         }
       },
       {
-        title: 'Map basic - with clear()',
-        repeatExpression: 'entry of items',
-        textExpression: '[${entry[1].name}] -- ${$index} -- ${$even}',
+        title: `Map basic - with clear()`,
+        repeatExpression: `entry of items`,
+        textExpression: `[\${entry[1].name}] -- \${$index} -- \${$even}`,
         getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
         mutate(items: Map<string, ITestModel>) {
           items.clear();
@@ -189,34 +189,34 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     ),
     ...[
       {
-        title: 'Set basic - no mutation',
-        repeatExpression: 'item of items',
-        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        title: `Set basic - no mutation`,
+        repeatExpression: `item of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
         getItems: () => new Set(createItems(10)),
         mutate() {/*  */}
       },
       {
-        title: 'Set basic - set to [null]',
-        repeatExpression: 'item of items',
-        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        title: `Set basic - set to [null]`,
+        repeatExpression: `item of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
         getItems: () => new Set(createItems(10)),
         mutate(comp: ITestViewModel) {
           comp.items = null;
         }
       },
       {
-        title: 'Set basic - set to [undefined]',
-        repeatExpression: 'item of items',
-        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        title: `Set basic - set to [undefined]`,
+        repeatExpression: `item of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
         getItems: () => new Set(createItems(10)),
         mutate(comp: ITestViewModel) {
           comp.items = undefined;
         }
       },
       {
-        title: 'Set basic - with add()',
-        repeatExpression: 'item of items',
-        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        title: `Set basic - with add()`,
+        repeatExpression: `item of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
         getItems: () => new Set(createItems(10)),
         mutate(items: Set<ITestModel>) {
           for (let i = 0; 5 > i; ++i) {
@@ -225,9 +225,9 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         }
       },
       {
-        title: 'Set basic - with delete()',
-        repeatExpression: 'item of items',
-        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        title: `Set basic - with delete()`,
+        repeatExpression: `item of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
         getItems: () => new Set(createItems(10)),
         mutate(items: Set<ITestModel>) {
           const firstFive: ITestModel[] = [];
@@ -243,9 +243,9 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         }
       },
       {
-        title: 'Set basic - with clear()',
-        repeatExpression: 'item of items',
-        textExpression: '[${item.name}] -- ${$index} -- ${$even}',
+        title: `Set basic - with clear()`,
+        repeatExpression: `item of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
         getItems: () => new Set(createItems(10)),
         mutate(items: Set<ITestModel>) {
           items.clear();
@@ -271,38 +271,38 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     ),
     ...[
       {
-        title: 'Number basic - no mutation',
-        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        title: `Number basic - no mutation`,
+        textExpression: `[number:\${item}] -- \${$index} -- \${$even}`,
         getItems: () => 10,
         mutate() {/*  */}
       },
       {
-        title: 'Number basic - set to [null]',
-        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        title: `Number basic - set to [null]`,
+        textExpression: `[number:\${item}] -- \${$index} -- \${$even}`,
         getItems: () => 10,
         mutate(items: any, comp: ITestViewModel) {
           comp.items = null;
         }
       },
       {
-        title: 'Number basic - set to [undefined]',
-        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        title: `Number basic - set to [undefined]`,
+        textExpression: `[number:\${item}] -- \${$index} -- \${$even}`,
         getItems: () => 10,
         mutate(items: any, comp: ITestViewModel) {
           comp.items = undefined;
         }
       },
       {
-        title: 'Number basic - set to [0]',
-        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        title: `Number basic - set to [0]`,
+        textExpression: `[number:\${item}] -- \${$index} -- \${$even}`,
         getItems: () => 10,
         mutate(items: any, comp: ITestViewModel) {
           comp.items = 0;
         }
       },
       {
-        title: 'Number basic - set to [-10]',
-        textExpression: '[number:${item}] -- ${$index} -- ${$even}',
+        title: `Number basic - set to [-10]`,
+        textExpression: `[number:\${item}] -- \${$index} -- \${$even}`,
         mutationWillThrow: true,
         getItems: () => 10,
         mutate(items: any, comp: ITestViewModel) {
@@ -331,12 +331,12 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
 
   // Some tests are using, some aren't
   // but always register these
-  const IdentityValueConverter = ValueConverter.define('identity', class {
+  const IdentityValueConverter = ValueConverter.define(`identity`, class {
     public toView(val: any): any {
       return val;
     }
   });
-  const CloneValueConverter = ValueConverter.define('clone', class {
+  const CloneValueConverter = ValueConverter.define(`clone`, class {
     public toView(val: any): any {
       return Array.isArray(val)
         ? val.slice(0)
@@ -352,8 +352,8 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
     const {
       title,
       getItems = () => createItems(10),
-      repeatExpression = 'item of items',
-      textExpression = '[${item.name}] -- ${$index} -- ${$even}',
+      repeatExpression = `item of items`,
+      textExpression = `[\${item.name}] -- \${$index} -- \${$even}`,
       only,
       mutate = PLATFORM.noop,
       expectation = defaultExpectation,
@@ -376,12 +376,12 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
         try {
           const ctx = TestContext.createHTMLTestContext();
 
-          const App = CustomElement.define({ name: 'app', template, strategy: bindingStrategy }, Root);
+          const App = CustomElement.define({ name: `app`, template, strategy: bindingStrategy }, Root);
           const au = new Aurelia(ctx.container);
           const lifeCycle = ctx.container.get(ILifecycle);
 
           body = ctx.doc.body;
-          host = body.appendChild(ctx.createElement('app'));
+          host = body.appendChild(ctx.createElement(`app`));
           ctx.container.register(
             IdentityValueConverter,
             CloneValueConverter
@@ -392,7 +392,7 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
             au.app({ host, component: App });
             await au.start().wait();
             component = au.root.viewModel as unknown as Root;
-            assert.strictEqual(host.textContent, expectation(component.items, component), '#before mutation');
+            assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
           } catch (ex) {
             if (testWillThrow) {
               // dont try to assert anything on throw
@@ -406,14 +406,14 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
           }
 
           if (testWillThrow) {
-            throw new Error('Expected test to throw, but did NOT');
+            throw new Error(`Expected test to throw, but did NOT`);
           }
 
           try {
-            await mutate(component.items, component);
+            mutate(component.items, component);
             lifeCycle.processRAFQueue(LifecycleFlags.none);
 
-            assert.strictEqual(host.textContent, expectation(component.items, component), '#after mutation');
+            assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 
             await au.stop().wait();
           } catch (ex) {
@@ -453,31 +453,31 @@ describe('[repeat.contextual-prop.spec.ts]', function () {
 
   function defaultExpectation(items: any[] | Map<any, any> | Set<any>): string {
     if (Array.isArray(items)) {
-      return items.map((item, idx) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`).join('');
+      return items.map((item, idx) => `[\${item.name}] -- ${idx} -- ${idx % 2 === 0}`).join(``);
     }
     if (items instanceof Map) {
       return Array
         .from(items.entries())
         .map(([itemName], idx) => `[${itemName}] -- ${idx} -- ${idx % 2 === 0}`)
-        .join('');
+        .join(``);
     }
     if (items instanceof Set) {
       return Array
         .from(items)
-        .map((item: ITestModel, idx: number) => `[${item.name}] -- ${idx} -- ${idx % 2 === 0}`)
-        .join('');
+        .map((item: ITestModel, idx: number) => `[\${item.name}] -- ${idx} -- ${idx % 2 === 0}`)
+        .join(``);
     }
     if (items == null) {
-      return '';
+      return ``;
     }
-    if (typeof items === 'number') {
-      let text = '';
+    if (typeof items === `number`) {
+      let text = ``;
       for (let i = 0; items > i; ++i) {
         text += `[number:${i}] -- ${i} -- ${i % 2 === 0}`;
       }
       return text;
     }
-    throw new Error('Invalid item types');
+    throw new Error(`Invalid item types`);
   }
 
   function sortDesc(item1: ITestModel, item2: ITestModel): -1 | 1 {

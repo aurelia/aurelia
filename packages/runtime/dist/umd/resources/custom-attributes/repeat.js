@@ -38,6 +38,7 @@
             this.views = [];
             this.key = void 0;
             this.noProxy = true;
+            this.normalizedItems = void 0;
             this.task = lifecycle_task_1.LifecycleTask.done;
         }
         get items() {
@@ -67,6 +68,7 @@
                 }
             }
             this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null);
+            this.normalizeToArray(flags);
             this.processViewsKeyed(void 0, flags);
             return this.task;
         }
@@ -101,18 +103,20 @@
             flags |= this.$controller.flags;
             this.checkCollectionObserver(flags);
             flags |= 16 /* updateTargetInstance */;
+            this.normalizeToArray(flags);
             this.processViewsKeyed(void 0, flags);
         }
         // called by a CollectionObserver
         handleCollectionChange(indexMap, flags) {
             flags |= this.$controller.flags;
             flags |= (960 /* fromFlush */ | 16 /* updateTargetInstance */);
+            this.normalizeToArray(flags);
             this.processViewsKeyed(indexMap, flags);
         }
         processViewsKeyed(indexMap, flags) {
+            const oldLength = this.views.length;
             if (indexMap === void 0) {
                 if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
-                    const oldLength = this.views.length;
                     this.detachViewsByRange(0, oldLength, flags);
                     if (this.task.done) {
                         this.task = this.unbindAndRemoveViewsByRange(0, oldLength, flags, false);
@@ -165,14 +169,15 @@
                 }
                 if ((this.$controller.state & 40 /* isAttachedOrAttaching */) > 0) {
                     if (this.task.done) {
-                        this.sortViewsByKey(indexMap, flags);
+                        this.sortViewsByKey(oldLength, indexMap, flags);
                     }
                     else {
-                        this.task = new lifecycle_task_1.ContinuationTask(this.task, this.sortViewsByKey, this, indexMap, flags);
+                        this.task = new lifecycle_task_1.ContinuationTask(this.task, this.sortViewsByKey, this, oldLength, indexMap, flags);
                     }
                 }
             }
         }
+        // todo: subscribe to collection from inner expression
         checkCollectionObserver(flags) {
             const oldObserver = this.observer;
             if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
@@ -184,9 +189,27 @@
                     newObserver.subscribeToCollection(this);
                 }
             }
-            else if (oldObserver) {
-                oldObserver.unsubscribeFromCollection(this);
+            else {
+                if (oldObserver !== void 0) {
+                    oldObserver.unsubscribeFromCollection(this);
+                }
             }
+        }
+        normalizeToArray(flags) {
+            const items = this._items;
+            if (items instanceof Array) {
+                this.normalizedItems = items;
+                return;
+            }
+            const forOf = this.forOf;
+            if (forOf === void 0) {
+                return;
+            }
+            const normalizedItems = [];
+            this.forOf.iterate(flags, items, (arr, index, item) => {
+                normalizedItems[index] = item;
+            });
+            this.normalizedItems = normalizedItems;
         }
         detachViewsByRange(iStart, iEnd, flags) {
             const views = this.views;
@@ -274,8 +297,12 @@
             let tasks = void 0;
             let task;
             let view;
-            this.$controller.lifecycle.bound.begin();
-            const part = this.$controller.part;
+            let viewScope;
+            const $controller = this.$controller;
+            const lifecycle = $controller.lifecycle;
+            const parentScope = $controller.scope;
+            lifecycle.bound.begin();
+            const part = $controller.part;
             const factory = this.factory;
             const local = this.local;
             const items = this.items;
@@ -283,8 +310,10 @@
             const views = this.views = Array(newLen);
             this.forOf.iterate(flags, items, (arr, i, item) => {
                 view = views[i] = factory.create(flags);
-                view.parent = this.$controller;
-                task = view.bind(flags, binding_context_1.Scope.fromParent(flags, this.$controller.scope, binding_context_1.BindingContext.create(flags, local, item)), part);
+                view.parent = $controller;
+                viewScope = binding_context_1.Scope.fromParent(flags, parentScope, binding_context_1.BindingContext.create(flags, local, item));
+                setContextualProperties(viewScope.overrideContext, i, newLen);
+                task = view.bind(flags, viewScope, part);
                 if (!task.done) {
                     if (tasks === undefined) {
                         tasks = [];
@@ -293,28 +322,35 @@
                 }
             });
             if (tasks === undefined) {
-                this.$controller.lifecycle.bound.end(flags);
+                lifecycle.bound.end(flags);
                 return lifecycle_task_1.LifecycleTask.done;
             }
-            return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.bound.end, this.$controller.lifecycle.bound, flags);
+            return new lifecycle_task_1.AggregateContinuationTask(tasks, lifecycle.bound.end, lifecycle.bound, flags);
         }
         createAndBindNewViewsByKey(indexMap, flags) {
             let tasks = void 0;
             let task;
             let view;
+            let viewScope;
             const factory = this.factory;
             const views = this.views;
             const local = this.local;
-            const items = this.items;
-            this.$controller.lifecycle.bound.begin();
-            const part = this.$controller.part;
+            const normalizedItems = this.normalizedItems;
+            const $controller = this.$controller;
+            const lifecycle = $controller.lifecycle;
+            const parentScope = $controller.scope;
+            lifecycle.bound.begin();
+            const part = $controller.part;
             const mapLen = indexMap.length;
             for (let i = 0; i < mapLen; ++i) {
                 if (indexMap[i] === -2) {
                     view = factory.create(flags);
                     // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-                    view.parent = this.$controller;
-                    task = view.bind(flags, binding_context_1.Scope.fromParent(flags, this.$controller.scope, binding_context_1.BindingContext.create(flags, local, items[i])), part);
+                    view.parent = $controller;
+                    viewScope = binding_context_1.Scope.fromParent(flags, parentScope, binding_context_1.BindingContext.create(flags, local, normalizedItems[i]));
+                    setContextualProperties(viewScope.overrideContext, i, mapLen);
+                    // update all the rest oc
+                    task = view.bind(flags, viewScope, part);
                     views.splice(i, 0, view);
                     if (!task.done) {
                         if (tasks === undefined) {
@@ -329,15 +365,17 @@
                 throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
             }
             if (tasks === undefined) {
-                this.$controller.lifecycle.bound.end(flags);
+                lifecycle.bound.end(flags);
                 return lifecycle_task_1.LifecycleTask.done;
             }
-            return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.bound.end, this.$controller.lifecycle.bound, flags);
+            return new lifecycle_task_1.AggregateContinuationTask(tasks, lifecycle.bound.end, lifecycle.bound, flags);
         }
         attachViews(indexMap, flags) {
             let view;
-            const { views, location } = this;
-            this.$controller.lifecycle.attached.begin();
+            const views = this.views;
+            const location = this.location;
+            const lifecycle = this.$controller.lifecycle;
+            lifecycle.attached.begin();
             if (indexMap === void 0) {
                 for (let i = 0, ii = views.length; i < ii; ++i) {
                     view = views[i];
@@ -356,7 +394,7 @@
                     }
                 }
             }
-            this.$controller.lifecycle.attached.end(flags);
+            lifecycle.attached.end(flags);
         }
         attachViewsKeyed(flags) {
             let view;
@@ -370,10 +408,11 @@
             }
             this.$controller.lifecycle.attached.end(flags);
         }
-        sortViewsByKey(indexMap, flags) {
+        sortViewsByKey(oldLength, indexMap, flags) {
             // TODO: integrate with tasks
             const location = this.location;
             const views = this.views;
+            const newLen = indexMap.length;
             array_observer_1.synchronizeIndices(views, indexMap);
             // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
             // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
@@ -383,24 +422,31 @@
             flags |= 33554432 /* reorderNodes */;
             let next;
             let j = seqLen - 1;
-            let i = indexMap.length - 1;
+            let i = newLen - 1;
+            let view;
             for (; i >= 0; --i) {
+                view = views[i];
                 if (indexMap[i] === -2) {
-                    views[i].hold(location);
-                    views[i].attach(flags);
+                    setContextualProperties(view.scope.overrideContext, i, newLen);
+                    view.hold(location);
+                    view.attach(flags);
                 }
                 else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-                    views[i].attach(flags);
+                    setContextualProperties(view.scope.overrideContext, i, newLen);
+                    view.attach(flags);
                 }
                 else {
+                    if (oldLength !== newLen) {
+                        setContextualProperties(view.scope.overrideContext, i, newLen);
+                    }
                     --j;
                 }
                 next = views[i + 1];
                 if (next !== void 0) {
-                    views[i].nodes.link(next.nodes);
+                    view.nodes.link(next.nodes);
                 }
                 else {
-                    views[i].nodes.link(location);
+                    view.nodes.link(location);
                 }
             }
             this.$controller.lifecycle.attached.end(flags);
@@ -482,5 +528,17 @@
         return result;
     }
     exports.longestIncreasingSubsequence = longestIncreasingSubsequence;
+    function setContextualProperties(oc, index, length) {
+        const isFirst = index === 0;
+        const isLast = index === length - 1;
+        const isEven = index % 2 === 0;
+        oc.$index = index;
+        oc.$first = isFirst;
+        oc.$last = isLast;
+        oc.$middle = !isFirst && !isLast;
+        oc.$even = isEven;
+        oc.$odd = !isEven;
+        oc.$length = length;
+    }
 });
 //# sourceMappingURL=repeat.js.map

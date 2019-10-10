@@ -28,6 +28,7 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     $controller: IController<T>;
     private task;
     private _items;
+    private normalizedItems?;
     constructor(location: IRenderLocation<T>, renderable: IController<T>, factory: IViewFactory<T>);
     static register(container: IContainer): void;
     binding(flags: LF): ILifecycleTask;
@@ -38,6 +39,7 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void;
     private processViewsKeyed;
     private checkCollectionObserver;
+    private normalizeToArray;
     private detachViewsByRange;
     private unbindAndRemoveViewsByRange;
     private detachViewsByKey;

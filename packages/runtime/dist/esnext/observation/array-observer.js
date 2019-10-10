@@ -423,8 +423,8 @@ let ArrayObserver = class ArrayObserver {
     }
     flushBatch(flags) {
         this.inBatch = false;
-        const { indexMap, collection } = this;
-        const { length } = collection;
+        const indexMap = this.indexMap;
+        const length = this.collection.length;
         this.indexMap = createIndexMap(length);
         this.callCollectionSubscribers(indexMap, 16 /* updateTargetInstance */ | this.persistentFlags);
         if (this.lengthObserver !== void 0) {

@@ -38,7 +38,7 @@ export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  constructor(public from: IsBindingBehavior, public to: string) {
+  public constructor(public from: IsBindingBehavior, public to: string) {
   }
 }
 
@@ -53,7 +53,7 @@ export class TranslationParametersBindingCommand implements IBindingCommand {
 
 @instructionRenderer(TranslationParametersInstructionType)
 export class TranslationParametersBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }

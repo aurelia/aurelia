@@ -1,4 +1,4 @@
-import { IEventAggregator, IServiceLocator, PLATFORM, toArray } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
 import {
   addBinding,
   BindingType,
@@ -59,7 +59,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
-  constructor(
+  public constructor(
     public readonly target: HTMLElement,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator

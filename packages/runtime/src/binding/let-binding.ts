@@ -2,7 +2,6 @@ import {
   IIndexable,
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
 import { IExpression } from '../ast';
 import {
@@ -43,7 +42,7 @@ export class LetBinding implements IPartialConnectableBinding {
 
   private readonly toBindingContext: boolean;
 
-  constructor(
+  public constructor(
     sourceExpression: IExpression,
     targetProperty: string,
     observerLocator: IObserverLocator,
@@ -101,7 +100,7 @@ export class LetBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator, part);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
     this.sourceExpression.connect(flags, scope, this, part);
 
     // add isBound flag and remove isBinding flag

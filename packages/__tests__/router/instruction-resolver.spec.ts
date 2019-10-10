@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -26,9 +26,9 @@ describe('InstructionResolver', function () {
     await au.start().wait();
 
     async function tearDown() {
+      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-      router.deactivate();
     }
 
     return { au, container, host, router, tearDown, ctx };

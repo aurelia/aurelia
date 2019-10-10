@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
@@ -19,7 +18,7 @@ export class ViewportInstruction {
   public scope: Viewport | null = null;
   public needsViewportDescribed: boolean = false;
 
-  constructor(
+  public constructor(
     component: ComponentAppellation,
     viewport?: ViewportHandle,
     parameters?: ComponentParameters,

@@ -1,31 +1,14 @@
 import {
-  BindingSymbol,
-  CustomAttributeSymbol,
-  CustomElementSymbol,
   IAttributeParser,
-  ICustomAttributeSymbol,
-  IElementSymbol,
-  INodeSymbol,
-  IParentNodeSymbol,
-  IPlainAttributeSymbol,
-  ISymbolWithBindings,
-  LetElementSymbol,
-  PlainAttributeSymbol,
-  PlainElementSymbol,
-  ReplacePartSymbol,
   ResourceModel,
   SymbolFlags,
-  TemplateControllerSymbol,
-  TextSymbol
 } from '@aurelia/jit';
 import {
   IContainer,
   IResolver,
   IResourceDescriptions,
-  Key,
   mergeDistinct,
   PLATFORM,
-  Profiler,
   Registration,
 } from '@aurelia/kernel';
 import {
@@ -44,7 +27,6 @@ import {
   ITemplateDefinition,
   LetBindingInstruction,
   LetElementInstruction,
-  RefBindingInstruction,
   SetPropertyInstruction,
   TemplateDefinition
 } from '@aurelia/runtime';
@@ -57,13 +39,26 @@ import {
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
+import {
+  BindingSymbol,
+  CustomElementSymbol,
+  CustomAttributeSymbol,
+  ElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
+  SymbolWithBindings,
+  LetElementSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ReplacePartSymbol,
+  TemplateControllerSymbol,
+  TextSymbol
+} from './semantic-model';
 
 const buildNotRequired: IBuildInstruction = Object.freeze({
   required: false,
   compiler: 'default'
 });
-
-const { enter, leave } = Profiler.createTimer('TemplateCompiler');
 
 /**
  * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
@@ -84,7 +79,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return 'default';
   }
 
-  constructor(
+  public constructor(
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
@@ -155,16 +150,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     return definition as TemplateDefinition;
   }
 
-  private compileChildNodes(parent: IElementSymbol): void {
-    if (parent.flags & SymbolFlags.hasChildNodes) {
+  private compileChildNodes(parent: ElementSymbol): void {
+    if ((parent.flags & SymbolFlags.hasChildNodes) > 0) {
       const { childNodes } = parent;
-      let childNode: INodeSymbol;
+      let childNode: NodeSymbol;
       const ii = childNodes.length;
       for (let i = 0; i < ii; ++i) {
         childNode = childNodes[i];
-        if (childNode.flags & SymbolFlags.isText) {
+        if ((childNode.flags & SymbolFlags.isText) > 0) {
           this.instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
-        } else if (childNode.flags & SymbolFlags.isLetElement) {
+        } else if ((childNode.flags & SymbolFlags.isLetElement) > 0) {
           const bindings = (childNode as LetElementSymbol).bindings;
           const instructions: ILetBindingInstruction[] = [];
           let binding: BindingSymbol;
@@ -175,7 +170,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toBindingContext)]);
         } else {
-          this.compileParentNode(childNode as IParentNodeSymbol);
+          this.compileParentNode(childNode as ParentNodeSymbol);
         }
       }
     }
@@ -204,7 +199,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.compileChildNodes(symbol);
   }
 
-  private compileParentNode(symbol: IParentNodeSymbol): void {
+  private compileParentNode(symbol: ParentNodeSymbol): void {
     switch (symbol.flags & SymbolFlags.type) {
       case SymbolFlags.isCustomElement:
         this.compileCustomElement(symbol as CustomElementSymbol);
@@ -223,13 +218,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     const scopePartsSave = this.scopeParts;
     const controllerInstructions = this.instructionRows = [];
     const scopeParts = this.scopeParts = [];
-    this.compileParentNode(symbol.template);
+    this.compileParentNode(symbol.template!);
     this.instructionRows = instructionRowsSave;
     this.scopeParts = mergeDistinct(scopePartsSave, scopeParts, false);
 
     const def: ITemplateDefinition = {
       scopeParts,
-      name: symbol.partName == null ? symbol.res : symbol.partName,
+      name: symbol.partName === null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions,
       build: buildNotRequired
@@ -246,9 +241,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else', parts)]);
   }
 
-  private compileBindings(symbol: ISymbolWithBindings): HTMLAttributeInstruction[] {
+  private compileBindings(symbol: SymbolWithBindings): HTMLAttributeInstruction[] {
     let bindingInstructions: HTMLAttributeInstruction[];
-    if (symbol.flags & SymbolFlags.hasBindings) {
+    if ((symbol.flags & SymbolFlags.hasBindings) > 0) {
       // either a custom element with bindings, a custom attribute / template controller with dynamic options,
       // or a single value custom attribute binding
       const { bindings } = symbol;
@@ -265,9 +260,9 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileBinding(symbol: BindingSymbol): HTMLAttributeInstruction {
-    if (symbol.command == null) {
+    if (symbol.command === null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
-      if (symbol.expression == null) {
+      if (symbol.expression === null) {
         // the template binder already filtered out non-bindables, so we know we need a setProperty here
         return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
@@ -281,9 +276,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  private compileAttributes(symbol: IElementSymbol, offset: number): HTMLAttributeInstruction[] {
+  private compileAttributes(symbol: ElementSymbol, offset: number): HTMLAttributeInstruction[] {
     let attributeInstructions: HTMLAttributeInstruction[];
-    if (symbol.flags & SymbolFlags.hasAttributes) {
+    if ((symbol.flags & SymbolFlags.hasAttributes) > 0) {
       // any attributes on a custom element (which are not bindables) or a plain element
       const customAttributes = symbol.customAttributes;
       const plainAttributes = symbol.plainAttributes;
@@ -313,8 +308,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
-    if (symbol.command == null) {
-      if (symbol.expression == null) {
+    if (symbol.command === null) {
+      if (symbol.expression === null) {
         // a plain attribute on a surrogate
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
       } else {
@@ -338,7 +333,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileParts(symbol: CustomElementSymbol): Record<string, ITemplateDefinition> {
     let parts: Record<string, ITemplateDefinition>;
-    if (symbol.flags & SymbolFlags.hasParts) {
+    if ((symbol.flags & SymbolFlags.hasParts) > 0) {
       parts = {};
       const replaceParts = symbol.parts;
       const ii = replaceParts.length;
@@ -351,12 +346,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         replacePart = replaceParts[i];
         instructionRowsSave = this.instructionRows;
         partScopesSave = this.scopeParts;
-        if (partScopesSave.indexOf(replacePart.name) === -1) {
+        if (!partScopesSave.includes(replacePart.name)) {
           partScopesSave.push(replacePart.name);
         }
         scopeParts = this.scopeParts = [];
         partInstructions = this.instructionRows = [];
-        this.compileParentNode(replacePart.template);
+        this.compileParentNode(replacePart.template!);
         this.parts[replacePart.name] = parts[replacePart.name] = {
           scopeParts,
           name: replacePart.name,

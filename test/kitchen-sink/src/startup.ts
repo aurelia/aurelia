@@ -1,5 +1,4 @@
 import * as faker from 'faker';
-
 import { TraceConfiguration, DebugConfiguration } from '@aurelia/debug';
 import {
   Aurelia,

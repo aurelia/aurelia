@@ -3,17 +3,14 @@ import { INavRoute, IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import { UserService } from './shared/services/user-service';
 import { SharedState } from './shared/state/shared-state';
-
 import { FooterLayout } from './shared/layouts/footer-layout';
 import { HeaderLayout } from './shared/layouts/header-layout';
-
 import { Article } from './components/article/article';
 import { Auth } from './components/auth/auth';
 import { Editor } from './components/editor/editor';
 import { Home } from './components/home/home';
 import { Profile } from './components/profile/profile';
 import { Settings } from './components/settings/settings';
-
 import template from './app.html';
 
 @inject(IRouter, UserService, SharedState)
@@ -33,9 +30,9 @@ import template from './app.html';
   template,
 })
 export class App implements IViewModel {
-  private message: string;
+  private readonly message: string;
 
-  constructor(
+  public constructor(
     private readonly router: IRouter,
     private readonly userService: UserService,
     private readonly state: SharedState,
@@ -109,10 +106,10 @@ export class App implements IViewModel {
     ];
   }
 
-  public authenticated = (): boolean => {
+  public authenticated(): boolean {
     return this.state.currentUser && this.state.isAuthenticated;
   }
-  public notAuthenticated = (): boolean => {
+  public notAuthenticated(): boolean {
     return !this.authenticated();
   }
 }

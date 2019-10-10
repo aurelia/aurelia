@@ -1,5 +1,4 @@
 import { customElement } from '@aurelia/runtime';
-
 import template from './home.html';
 
 @customElement({

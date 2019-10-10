@@ -8,7 +8,7 @@ export type WithMode = { mode: BindingMode };
 export abstract class BindingModeBehavior {
   private readonly originalModes: WeakMap<PropertyBinding, BindingMode> = new WeakMap();
 
-  constructor(
+  public constructor(
     private readonly mode: BindingMode,
   ) {}
 
@@ -24,28 +24,28 @@ export abstract class BindingModeBehavior {
 
 @bindingBehavior('oneTime')
 export class OneTimeBindingBehavior extends BindingModeBehavior {
-  constructor() {
+  public constructor() {
     super(BindingMode.oneTime);
   }
 }
 
 @bindingBehavior('toView')
 export class ToViewBindingBehavior extends BindingModeBehavior {
-  constructor() {
+  public constructor() {
     super(BindingMode.toView);
   }
 }
 
 @bindingBehavior('fromView')
 export class FromViewBindingBehavior extends BindingModeBehavior {
-  constructor() {
+  public constructor() {
     super(BindingMode.fromView);
   }
 }
 
 @bindingBehavior('twoWay')
 export class TwoWayBindingBehavior extends BindingModeBehavior {
-  constructor() {
+  public constructor() {
     super(BindingMode.twoWay);
   }
 }

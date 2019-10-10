@@ -22,7 +22,7 @@ export class SelfObserver {
 
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     obj: object,

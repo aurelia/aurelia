@@ -14,7 +14,7 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+import './commands'; // eslint-disable-line import/no-unassigned-import
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')

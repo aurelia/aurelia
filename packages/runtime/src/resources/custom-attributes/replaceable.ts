@@ -14,7 +14,7 @@ export class Replaceable<T extends INode = INode> {
   // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  constructor(
+  public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>
   ) {

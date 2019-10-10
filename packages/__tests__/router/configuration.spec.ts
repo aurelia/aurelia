@@ -1,7 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
-import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Configuration', function () {
@@ -34,22 +33,13 @@ describe('Configuration', function () {
     await au.start().wait();
 
     async function tearDown() {
+      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-      router.deactivate();
     }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
   }
-
-  it('can be activated with defaults', async function () {
-    this.timeout(5000);
-
-    const { router, tearDown } = await setup();
-    assert.strictEqual(router['isActive'], true, `router.isActive`);
-
-    await tearDown();
-  });
 
   it('can be activated with defaults', async function () {
     this.timeout(5000);
@@ -92,7 +82,7 @@ describe('Configuration', function () {
     const { container } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="foo"></au-viewport>' });
-    const Foo = CustomElement.define({ name: 'foo', template: '<div>foo: ${message}</div>' }, class {
+    const Foo = CustomElement.define({ name: 'foo', template: `<div>foo: \${message}</div>` }, class {
       public message: string = '';
       public async enter() {
         await new Promise(resolve => setTimeout(resolve, 250));

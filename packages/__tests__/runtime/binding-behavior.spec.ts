@@ -9,7 +9,6 @@ describe(`@bindingBehavior('foo')`, function () {
     container = DI.createContainer();
   });
 
-  // @ts-ignore
   @bindingBehavior('foo')
   class FooBindingBehavior { }
 

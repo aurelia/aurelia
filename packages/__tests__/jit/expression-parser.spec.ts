@@ -76,7 +76,7 @@ const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
 const codes = {
-  //SyntaxError
+  // SyntaxError
   InvalidExpressionStart: 'Code 100',
   UnconsumedToken: 'Code 101',
   DoubleDot: 'Code 102',
@@ -90,7 +90,7 @@ const codes = {
   MissingExpectedToken: 'Code 110',
   UnexpectedCharacter: 'Code 111',
 
-  //SemanticError
+  // SemanticError
   NotAssignable: 'Code 150',
   UnexpectedForOf: 'Code 151'
 };
@@ -835,7 +835,7 @@ describe('ExpressionParser', function () {
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of arguments
   const ComplexTemplateLiteralList: [string, any][] = [
     [`\`a\``,                       new TemplateExpression(['a'], [])],
-    [`\`\\\${a}\``,                 new TemplateExpression(['${a}'], [])],
+    [`\`\\\${a}\``,                 new TemplateExpression([`\${a}`], [])],
     [`\`$a\``,                      new TemplateExpression(['$a'], [])],
     [`\`\${a}\${b}\``,              new TemplateExpression(['', '', ''],                       [$a, $b])],
     [`\`a\${a}\${b}\``,             new TemplateExpression(['a', '', ''],                      [$a, $b])],
@@ -978,7 +978,7 @@ describe('ExpressionParser', function () {
 
   const ComplexTaggedTemplateList: [string, any][] = [
     [`a\`a\``,                       createTaggedTemplate(['a'],           $a, [])],
-    [`a\`\\\${a}\``,                 createTaggedTemplate(['${a}'],        $a, [])],
+    [`a\`\\\${a}\``,                 createTaggedTemplate([`\${a}`],       $a, [])],
     [`a\`$a\``,                      createTaggedTemplate(['$a'],          $a, [])],
     [`a\`\${b}\${c}\``,              createTaggedTemplate(['', '', ''],    $a, [$b, $c])],
     [`a\`a\${b}\${c}\``,             createTaggedTemplate(['a', '', ''],   $a, [$b, $c])],
@@ -1484,7 +1484,7 @@ describe('ExpressionParser', function () {
       });
     }
 
-    for (const input of ['`', '` ', '`${a}']) {
+    for (const input of ['`', '` ', `\`\${a}`]) {
       it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, function () {
         verifyResultOrError(input, null, 'Code 109');
       });

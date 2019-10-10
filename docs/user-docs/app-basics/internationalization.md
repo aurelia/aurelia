@@ -79,7 +79,7 @@ Aurelia
 
 The above example shows how to initialize the i18n plugin and thereby i18next with translation resources. There are alternatives of doing that, which is discussed [later](internationalization.md#managing-translation-resources). Once registered, the plugin can be used in your view using the translation attribute \(the default attribute name is `t`, though an [alias can be configured](internationalization.md#configuring-translation-attribute-aliases)\), and the translation keys configured.
 
-```html
+```markup
 <span t="key"></span>
 ```
 
@@ -136,7 +136,7 @@ As told earlier, the plugin uses `i18next` under the hood. During registration, 
 
 As you may have already noticed that in view translated resources can be accessed using the following syntax.
 
-```html
+```markup
 <element t="key"></element>
 ```
 
@@ -153,7 +153,7 @@ new Aurelia()
 
 The registered aliases can then be used in your view in place of `t`, as shown below.
 
-```html
+```markup
 <element i18n="key1"></element>
 <element tr="key2"></element>
 ```
@@ -164,7 +164,7 @@ The registered aliases can then be used in your view in place of `t`, as shown b
 
 Typically, the translation resources used in `i18next` are plain JSON. To give you an idea what they look like lets take a look at the following sample.
 
-```json
+```javascript
 {
   "key": "value of key",
   "complex": {
@@ -276,25 +276,21 @@ export class MyDemoVm {
 }
 ```
 
-Note that when the active locale is changed, the `I18nService` publishes the `i18n:locale:changed` event, and dispatches the `aurelia-translation-signal` signal.
-The i18n value-converters and binding-behaviors subscribe to these events, and update translations automatically.
-This event and signal are very useful tools if you want to perform your own custom locale-sensitive logic when the locale is changed.
+Note that when the active locale is changed, the `I18nService` publishes the `i18n:locale:changed` event, and dispatches the `aurelia-translation-signal` signal. The i18n value-converters and binding-behaviors subscribe to these events, and update translations automatically. This event and signal are very useful tools if you want to perform your own custom locale-sensitive logic when the locale is changed.
 
-> Note
-> Unlike the previous version of Aurelia, in vNext all translatable resources (marked by the out of the box attributes, value converters, and binding behaviors) are updated automatically on change of locale, without the need of any additional component or service.
+> Note Unlike the previous version of Aurelia, in vNext all translatable resources \(marked by the out of the box attributes, value converters, and binding behaviors\) are updated automatically on change of locale, without the need of any additional component or service.
 
 ### Translation
 
-The translation service provided by this plugin can be used both in view (HTML), and view-model.
+The translation service provided by this plugin can be used both in view \(HTML\), and view-model.
 
 #### Translation in view
-Aurelia uses an attribute pattern in view to replace the content or attribute values.
-The default pattern is `t`, which can be customized by [registering aliases](#customize-translation-attribute-alias).
-For the purpose this discussion though the default attribute name is assumed.
 
-##### Syntax
+Aurelia uses an attribute pattern in view to replace the content or attribute values. The default pattern is `t`, which can be customized by [registering aliases](internationalization.md#customize-translation-attribute-alias). For the purpose this discussion though the default attribute name is assumed.
 
-```html
+**Syntax**
+
+```markup
 <element t="[optional-attribute-list1]translation-key;[optional-attribute-list2]optional-translation-key"></element>
 <element t="[title,alt]translation-key;[placeholder]another-translation-key"></element>
 ```
@@ -305,13 +301,13 @@ At minimum, a `translation-key` needs to be used as the value for `t` attribute.
 
 This is the most common use-case, as well as the default behavior.
 
-```json
+```javascript
 {
   "key": "Hello World"
 }
 ```
 
-```html
+```markup
 <span t="key"></span>
 ```
 
@@ -325,7 +321,7 @@ class MyView {
 }
 ```
 
-```html
+```markup
 <span t.bind="i18nKey"></span>
 ```
 
@@ -333,13 +329,13 @@ class MyView {
 
 The aforementioned `t="key"` syntax behaves a bit differently for `img` elements. In this case, the `src` attribute of the `img` is replaced instead.
 
-```json
+```javascript
 {
   "key": "/path/to/image.jpg"
 }
 ```
 
-```html
+```markup
 <img t="key">
 ```
 
@@ -349,19 +345,19 @@ The `i18n` plugin transforms the `img` element to `<img src="/path/to/image.jpg"
 
 As told before, by default the plugin will set the `textContent` property of an element.
 
-```json
+```javascript
 {
   "title": "Title <b>bold</b>"
 }
 ```
 
-```html
+```markup
 <span t="title">Title</span>
 ```
 
 Therefore, in above example the html tags will be escaped and the output will be `&lt;b&gt;bold&lt;/b&gt;`. To allow html-markup to be used, the `[html]` attribute needs to be added before the translation key.
 
-```html
+```markup
 <span t="[html]title">Title</span>
 ```
 
@@ -371,14 +367,14 @@ This will set the `innerHTML` of the element instead of the `textContent` proper
 
 So far we have seen that contents are replaced. There are two special attributes `[append]`, and `[prepend]` which can be used to append or prepend content to the existing content of the element. These also support HTML content.
 
-```json
+```javascript
 {
   "pre": "tic ",
   "post": " toe",
 }
 ```
 
-```html
+```markup
 <span t="[prepend]pre;[append]post">tac</span>
 ```
 
@@ -388,13 +384,13 @@ The example above produces `<span>tic tac toe</span>`.
 
 The plugin can be used to translate attributes of HTML elements.
 
-```json
+```javascript
 {
   "title": "some text"
 }
 ```
 
-```html
+```markup
 <span t="[title]title"></span>
 ```
 
@@ -412,7 +408,7 @@ export class CustomMessage {
 }
 ```
 
-```html
+```markup
 <template>
   <span>${message}</span>
 </template>
@@ -420,12 +416,13 @@ export class CustomMessage {
 
 Use the custom element as follows.
 
-```html
+```markup
 <custom-message t="[message]bar"></custom-message>
 ```
 
 Which produces the following result.
-```html
+
+```markup
 <custom-message>
   <span>[TRANSLATED VALUE OF BAR KEY]</span>
 </custom-message>
@@ -439,11 +436,11 @@ With `@aurelia/i18n`, the `t-params` attribute pattern along with `t` can be use
 
 **Interpolation**
 
-```json
+```javascript
 { "key": "{{what}} is {{how}}" }
 ```
 
-```html
+```markup
 <span t="key" t-params.bind="{ what: 'i18next', how: 'great' }"></span>
 ```
 
@@ -451,7 +448,7 @@ The above results in `<span>i18next is great</span>`.
 
 **Contextual translation**
 
-```json
+```javascript
 {
   "status": "unknown'",
   "status_dispatched": "Your order has been dispatched",
@@ -459,7 +456,7 @@ The above results in `<span>i18next is great</span>`.
 }
 ```
 
-```html
+```markup
 <span t="status" t-params.bind="{ context: 'dispatched' }"></span>
 ```
 
@@ -467,14 +464,14 @@ The above results in `<span>Your order has been dispatched</span>`.
 
 **Pluralization**
 
-```json
+```javascript
 {
   "itemWithCount": "{{count}} item",
   "itemWithCount_plural": "{{count}} items"
 }
 ```
 
-```html
+```markup
 <span t="itemWithCount" t-params.bind="{ count: 0 }"></span>
 <span t="itemWithCount" t-params.bind="{ count: 1 }"></span>
 <span t="itemWithCount" t-params.bind="{ count: 10 }"></span>
@@ -482,7 +479,7 @@ The above results in `<span>Your order has been dispatched</span>`.
 
 The above results in the following.
 
-```html
+```markup
 <span>0 items</span>
 <span>1 item</span>
 <span>10 items</span>
@@ -494,7 +491,7 @@ Sometimes, simple plural contexts are not enough, and another translation is req
 
 Then define the interval translation resource as follows. Note that the example uses [nesting](https://www.i18next.com/translation-function/nesting).
 
-```json
+```javascript
 {
   "itemWithCount": "{{count}} item",
   "itemWithCount_plural": "{{count}} items",
@@ -502,7 +499,7 @@ Then define the interval translation resource as follows. Note that the example 
 }
 ```
 
-```html
+```markup
 <span t="itemWithCount_interval"  t-params.bind="{postProcess: 'interval', count: 0}"></span>
 <span t="itemWithCount_interval"  t-params.bind="{postProcess: 'interval', count: 1}"></span>
 <span t="itemWithCount_interval"  t-params.bind="{postProcess: 'interval', count: 2}"></span>
@@ -514,7 +511,7 @@ Then define the interval translation resource as follows. Note that the example 
 
 This results in the following.
 
-```html
+```markup
 <span>0 items</span>
 <span>1 item</span>
 <span>2 items</span>
@@ -528,20 +525,16 @@ This results in the following.
 
 In order to do translations in a more declarative way from within your HTML markup you can use the `t` ValueConverter and BindingBehavior.
 
-```html
+```markup
 <span> ${'itemWithCount' | t : {count: 10}} </span>
 <span> ${'itemWithCount' & t : {count: 10}} </span>
 ```
 
-Combined with appropriate translation resource, the correct value will be rendered.
-Note that the options object that follows `t` is the same options object as discussed [earlier](#manipulate-translations-with-t-params-attribute).
-Naturally, this value is optional.
-Both the ValueConverter and BindingBehavior also update translations out of the box when the active locale is changed.
+Combined with appropriate translation resource, the correct value will be rendered. Note that the options object that follows `t` is the same options object as discussed [earlier](internationalization.md#manipulate-translations-with-t-params-attribute). Naturally, this value is optional. Both the ValueConverter and BindingBehavior also update translations out of the box when the active locale is changed.
 
 #### Translation via code
 
-Translations via code are done by using the method `I18nService#tr`.
-You can pass in the `key` as the first parameter, followed by the optional second parameter `options`.
+Translations via code are done by using the method `I18nService#tr`. You can pass in the `key` as the first parameter, followed by the optional second parameter `options`.
 
 ```typescript
 import { I18N, I18nService } from '@aurelia/i18n';
@@ -576,29 +569,22 @@ The `@aurelia/i18n` plugin provides number formatting using [`Intl` API](https:/
 
 #### Format number in view using ValueConverter and/or BindingBehavior
 
-```html
+```markup
 <span> ${ 123456789.12 | nf } </span>
 <span> ${ 123456789.12 & nf : undefined : 'de'} </span>
 <span> ${ 123456789.12 | nf: {style:'currency', currency: 'EUR' } : 'de' } </span>
 <span> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' }} </span>
 ```
 
-The `nf` ValueConverter and BindingBehavior can be used to format numbers in a declarative way from the view.
-Both take two optional arguments, apart from the number being formatted which are options, and locale respectively.
-If these are omitted, the number is formatted using the default number formatting options and the currently active locale.
-A specific locale can be passed on to format the number as per that locale.
-If the input is not a number, then the original value is returned from these as-is.
+The `nf` ValueConverter and BindingBehavior can be used to format numbers in a declarative way from the view. Both take two optional arguments, apart from the number being formatted which are options, and locale respectively. If these are omitted, the number is formatted using the default number formatting options and the currently active locale. A specific locale can be passed on to format the number as per that locale. If the input is not a number, then the original value is returned from these as-is.
 
-The formatting options are used to affect how the number is formatted.
-A prominent use-case for that is to format the number as currency.
-For a full list of options look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat#Parameters).
+The formatting options are used to affect how the number is formatted. A prominent use-case for that is to format the number as currency. For a full list of options look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat#Parameters).
 
 > Note that both ValueConverter and BindingBehavior update the formatted value when the active locale is changed.
 
 #### Format number via code
 
-Formatting numbers via code works by using the method `I18nService#nf`.
-You can pass in the number as its first parameter, followed by the optional parameters `options`, and `locales`.
+Formatting numbers via code works by using the method `I18nService#nf`. You can pass in the number as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
 import { I18N, I18nService } from '@aurelia/i18n';
@@ -628,13 +614,11 @@ export class MyDemoVm {
 
 This can be useful if you want to cache the `Intl.NumberFormat` instance and reuse that later.
 
-> Note
-> The `I18N#nf` in the previous version of Aurelia matches the `I18nService#createNumberFormat`, whereas `I18nService#nf` provides the formatted number instead.
+> Note The `I18N#nf` in the previous version of Aurelia matches the `I18nService#createNumberFormat`, whereas `I18nService#nf` provides the formatted number instead.
 
 ### Unformat number via code
 
-Numeric strings can be converted back to a number using the `I18nService#uf` method.
-The method takes the numeric string as first argument, followed by an optional second argument for locale, as shown in the following example.
+Numeric strings can be converted back to a number using the `I18nService#uf` method. The method takes the numeric string as first argument, followed by an optional second argument for locale, as shown in the following example.
 
 ```typescript
 import { I18N, I18nService } from '@aurelia/i18n';
@@ -666,7 +650,7 @@ export class MyDemoVm {
 }
 ```
 
-```html
+```markup
 <span> ${ date | df } </span> <!-- 8/20/2019 -->
 <span> ${ '2019-08-10T13:42:35.209Z' | df } </span> <!-- 8/20/2019 -->
 <span> ${ 0 | df } </span> <!-- 1/1/1970 -->
@@ -698,7 +682,6 @@ export class MyDemoVm {
     const df3 = this.i18n.df(0); // '1/1/1970'
   }
 }
-
 ```
 
 Additionally, if needed an instance of `Intl.DateTimeFormat` can be created using the `I18nService#createDateTimeFormat` method.
@@ -726,7 +709,6 @@ The `@aurelia/i18n` plugin provides relative time formatting using [`Intl` API](
 > Note The `Intl.RelativeTimeFormat` API is [relatively new at the time of writing](https://github.com/tc39/proposal-intl-relative-time), and [not yet widely supported](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RelativeTimeFormat#Browser_compatibility). In case your target browser does not support it yet, there are polyfills available which can be used for the time being instead. Below is an example of how a polyfill can be setup
 
 ```typescript
-
 import RelativeTimeFormat from 'relative-time-format'; // https://www.npmjs.com/package/relative-time-format
 
 import * as deRt from 'relative-time-format/locale/de.json';
@@ -735,7 +717,6 @@ RelativeTimeFormat.addLocale(enRt['default']);
 RelativeTimeFormat.addLocale(deRt['default']);
 
 Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
-
 ```
 
 #### Relative time format in view using ValueConverter and/or BindingBehavior
@@ -750,26 +731,20 @@ export class MyDemoVm {
 }
 ```
 
-```html
+```markup
 <span> ${ date | rt } </span>                             <!-- 5 seconds ago -->
 <span> ${ date & rt : { style: 'short' } : 'de' } </span> <!-- vor 5 Sek. -->
 ```
 
-The `rt` ValueConverter and BindingBehavior can be used to relatively format dates in a declarative way from the view.
-Both take two optional arguments, apart from the date being formatted which are options, and locale respectively.
-If these are omitted, the date is formatted using the default formatting options and the currently active locale.
-A specific locale can be passed on to format the date as per that locale.
+The `rt` ValueConverter and BindingBehavior can be used to relatively format dates in a declarative way from the view. Both take two optional arguments, apart from the date being formatted which are options, and locale respectively. If these are omitted, the date is formatted using the default formatting options and the currently active locale. A specific locale can be passed on to format the date as per that locale.
 
-The formatting options are used to affect how the date is formatted.
-For a full list of options look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RelativeTimeFormat#Syntax).
-The value being formatted need to be an instance of `Date`, otherwise the original value is returned as-is.
+The formatting options are used to affect how the date is formatted. For a full list of options look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RelativeTimeFormat#Syntax). The value being formatted need to be an instance of `Date`, otherwise the original value is returned as-is.
 
 > Note that both ValueConverter and BindingBehavior updates the formatted value when the active locale is changed.
 
 **Relative time format signal**
 
-The formatted value can be updated on demand by dispatching the signal `'aurelia-relativetime-signal'`.
-See the example below.
+The formatted value can be updated on demand by dispatching the signal `'aurelia-relativetime-signal'`. See the example below.
 
 ```typescript
 import { Signals } from '@aurelia/i18n';

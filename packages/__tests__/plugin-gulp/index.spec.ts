@@ -10,9 +10,10 @@ type Vinyl = typeof Vinyl.prototype;
 function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
   if (unit.path.endsWith('.css')) return;
   const { defaultShadowOptions, stringModuleWrap } = options;
+  const shadowOptionsString = defaultShadowOptions ? (`${JSON.stringify(defaultShadowOptions)} `) : '';
+  const stringModuleWrapString = defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path;
   return {
-    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
-          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
+    code: `processed ${shadowOptionsString}${stringModuleWrapString} ${unit.contents}`,
     map: { version: 3 }
   };
 }

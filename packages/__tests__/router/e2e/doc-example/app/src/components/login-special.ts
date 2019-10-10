@@ -11,7 +11,7 @@ import { State } from '../state';
 </div>` })
 @inject(State, IRouter)
 export class LoginSpecial {
-  constructor(private readonly state: State, private readonly router: IRouter) { }
+  public constructor(private readonly state: State, private readonly router: IRouter) { }
 
   public login() {
     this.state.loggedIn = true;

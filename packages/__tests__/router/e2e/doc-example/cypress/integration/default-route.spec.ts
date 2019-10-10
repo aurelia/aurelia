@@ -1,18 +1,18 @@
 import { AuthorsComponent, Shared, AuthorComponent } from './selectors.po';
 
-describe('doc-example / default route', () => {
-  it('navigates to default route', () => {
+describe('doc-example / default route', function() {
+  it('navigates to default route', function() {
     cy.visit('/')
       .url()
       .should('contain', 'authors+about');
   });
 
-  it('redirects to the default route', () => {
+  it('redirects to the default route', function() {
     cy.url()
       .should('contain', 'authors+about');
   });
 
-  it('sets the correct nav items as active', () => {
+  it('sets the correct nav items as active', function() {
 
     // retrieve all active elements and 'save' into a variable within Cypress
     cy.get(Shared.appMenuNavItemsActive)
@@ -36,7 +36,7 @@ describe('doc-example / default route', () => {
     });
   });
 
-  it('displays the correct viewports', () => {
+  it('displays the correct viewports', function() {
     cy.get(Shared.listsViewportHeader)
       .should('exist');
     cy.get(Shared.listsViewportHeader)
@@ -53,8 +53,8 @@ describe('doc-example / default route', () => {
       .should('contain', 'Viewport: chat  : null');
   });
 
-  describe('authors component', () => {
-    it('displays the correct author and books', () => {
+  describe('authors component', function() {
+    it('displays the correct author and books', function() {
       const authors = [
         {
           name: 'Terry Pratchett',
@@ -115,12 +115,12 @@ describe('doc-example / default route', () => {
     });
   });
 
-  describe('author details component', () => {
+  describe('author details component', function() {
     before(() => {
       cy.visit("/#/author(1)");
     });
 
-    it('displays the correct viewport', () => {
+    it('displays the correct viewport', function() {
       cy.get(Shared.contentViewport)
         .should('exist');
       cy.get(Shared.contentViewportHeader)
@@ -132,7 +132,7 @@ describe('doc-example / default route', () => {
         .should('contain', 'Viewport: author-tabs  : author-details');
     });
 
-    it('display the correct author details', () => {
+    it('display the correct author details', function() {
       cy.get(AuthorComponent.authorName)
         .should('contain', 'Terry Pratchett');
 
@@ -156,7 +156,7 @@ describe('doc-example / default route', () => {
       });
     });
 
-    it('displays the correct author tabs', () => {
+    it('displays the correct author tabs', function() {
       const tabs = [
         'Details',
         'About authors',
@@ -173,7 +173,7 @@ describe('doc-example / default route', () => {
       });
     });
 
-    it('toggles author tabs', () => {
+    it('toggles author tabs', function() {
       cy.get(AuthorComponent.authorTabsViewport)
         .should('exist');
 

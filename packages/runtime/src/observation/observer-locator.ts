@@ -86,7 +86,7 @@ export class ObserverLocator implements IObserverLocator {
   private readonly targetObserverLocator: ITargetObserverLocator;
   private readonly targetAccessorLocator: ITargetAccessorLocator;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     dirtyChecker: IDirtyChecker,
     targetObserverLocator: ITargetObserverLocator,

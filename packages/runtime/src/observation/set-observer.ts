@@ -1,4 +1,3 @@
-import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet } from '../observation';
@@ -55,7 +54,7 @@ const observe = {
       let i = 0;
       for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
@@ -84,7 +83,7 @@ const observe = {
     for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
         const deleteResult = $delete.call($this, value);
@@ -137,7 +136,7 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 export class SetObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
     if (!enableSetObservationCalled) {
       enableSetObservationCalled = true;

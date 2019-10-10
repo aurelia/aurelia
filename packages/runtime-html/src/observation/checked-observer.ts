@@ -50,7 +50,7 @@ export class CheckedObserver implements IAccessor<unknown> {
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public valueObserver?: ValueAttributeObserver | SetterObserver;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
     observerLocator: IObserverLocator,
@@ -148,7 +148,7 @@ export class CheckedObserver implements IAccessor<unknown> {
 
   public synchronizeElement(): void {
     const { currentValue, obj } = this;
-    const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
@@ -167,7 +167,7 @@ export class CheckedObserver implements IAccessor<unknown> {
     this.oldValue = this.currentValue;
     let { currentValue } = this;
     const { obj } = this;
-    const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     let index: number;
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 

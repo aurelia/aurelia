@@ -87,7 +87,7 @@ Non-expression syntax \(statements, declarations, function and class definitions
 
 In addition to string interpolation, Aurelia supports binding HTML and SVG attributes to JavaScript expressions. Attribute binding declarations have three parts and take the following form:
 
- `attribute.command="expression"`
+`attribute.command="expression"`
 
 Here's a brief explanation of each of these parts:
 
@@ -141,7 +141,7 @@ The best way to understand how interpolation works is with an example. Below are
 
 The first span uses the `bind` command. The second uses string interpolation. The interpolated version is much easier to read and easy to remember because the syntax matches the [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax standardized in ES2015.
 
-String interpolation can also be used within HTML attributes as an alternative to the `to-view` binding. 
+String interpolation can also be used within HTML attributes as an alternative to the `to-view` binding.
 
 {% code-tabs %}
 {% code-tabs-item title="String Interpolation Binding in Attributes" %}
@@ -323,8 +323,4 @@ Your custom element or attribute can invoke the function that was passed to the 
 ```
 {% endcode-tabs-item %}
 {% endcode-tabs %}
-
-## 
-
-
 

@@ -12,7 +12,7 @@ import { UsersRepository } from '../../repositories/users';
 </template>` })
 @inject(UsersRepository)
 export class ChatUsers {
-  constructor(private readonly usersRepository: UsersRepository) { }
+  public constructor(private readonly usersRepository: UsersRepository) { }
 
   get users() { return this.usersRepository.users(); }
 }

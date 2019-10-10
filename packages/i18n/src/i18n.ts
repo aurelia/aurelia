@@ -20,7 +20,7 @@ export class I18nKeyEvaluationResult {
   public value: string = (void 0)!;
   public attributes: string[];
 
-  constructor(keyExpr: string) {
+  public constructor(keyExpr: string) {
     const re = /\[([a-z\-, ]*)\]/ig;
     this.attributes = [];
 
@@ -37,7 +37,6 @@ export class I18nKeyEvaluationResult {
 export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
 /**
  * Translation service class.
- * @export
  */
 export class I18nService {
 
@@ -50,7 +49,7 @@ export class I18nService {
   private options!: I18nInitOptions;
   private readonly intl: typeof Intl;
 
-  constructor(
+  public constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
     @I18nInitOptions options: I18nInitOptions,
     @IEventAggregator private readonly ea: IEventAggregator,
@@ -115,6 +114,7 @@ export class I18nService {
   /**
    * Formats the given `input` number according to the given `[options]`, and `[locales]`.
    * If the `locales` is skipped, then the number is formatted using the currently active locale.
+   *
    * @returns Formatted number.
    */
   public nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string {
@@ -132,6 +132,7 @@ export class I18nService {
   /**
    * Formats the given `input` date according to the given `[options]` and `[locales]`.
    * If the `locales` is skipped, then the date is formatted using the currently active locale.
+   *
    * @returns Formatted date.
    */
   public df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {

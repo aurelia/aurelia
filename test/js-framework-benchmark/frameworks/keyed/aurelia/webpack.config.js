@@ -24,7 +24,6 @@ const cssRules = [
   { loader: 'css-loader' },
 ];
 
-
 module.exports = ({ production, extractCss, analyze, tests, hmr, port, host } = {}) => ({
   resolve: {
     extensions: ['.ts', '.js'],

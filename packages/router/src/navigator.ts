@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { Reporter } from '@aurelia/kernel';
 import { INavigatorInstruction } from './interfaces';
 import { Queue, QueueItem } from './queue';
@@ -94,7 +93,7 @@ export class Navigator {
   private router!: IRouter;
   private readonly uninitializedEntry: INavigatorInstruction;
 
-  constructor() {
+  public constructor() {
     this.uninitializedEntry = {
       instruction: 'NAVIGATOR UNINITIALIZED',
       fullStateInstruction: '',
@@ -198,7 +197,7 @@ export class Navigator {
     return this.saveState();
   }
 
-  get titles(): string[] {
+  public get titles(): string[] {
     if (this.currentEntry == this.uninitializedEntry) {
       return [];
     }

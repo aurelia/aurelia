@@ -37,7 +37,6 @@ function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
-
 initializeBrowserTestContext();
 
 function importAll (r) {

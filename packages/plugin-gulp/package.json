@@ -36,7 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/plugin-conventions": "0.3.0"
+    "@aurelia/plugin-conventions": "0.3.0",
+    "vinyl": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

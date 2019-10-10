@@ -51,7 +51,7 @@ export default {
       'path': join(rootPath, 'examples', app)
     };
     return acc;
-  }, {} as Record<typeof testApps extends Array<infer K> ? K : never, { path: string }>),
+  }, {}),
   'node_modules': {
     'path': join(rootPath, 'node_modules')
   },
@@ -60,7 +60,7 @@ export default {
     const camelName = camelCase(kebabName);
 
     const path = join(packagesPath, kebabName);
-    const node_modules = join(path, 'node_modules');
+    const nodeModules = join(path, 'node_modules');
     const coverage = join(rootPath, 'coverage', kebabName);
     const tsconfig = join(path, 'tsconfig.json');
     const changelog = join(path, 'CHANGELOG.md');
@@ -97,8 +97,8 @@ export default {
       npm: kebabName === 'aurelia' ? 'aurelia' : `@aurelia/${kebabName}`,
       namespace: 'au',
       iife: `au.${camelName}`,
-    }
-    return { path, node_modules, coverage, tsconfig, changelog, src, test, dist, name };
+    };
+    return { path, nodeModules, coverage, tsconfig, changelog, src, test, dist, name };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts'),

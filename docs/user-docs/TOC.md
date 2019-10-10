@@ -16,6 +16,7 @@
 * [Building a Contact Manager App](app-basics/building-a-contact-manager-app.md)
 * [Working with Form Elements](app-basics/working-with-form-elements.md)
 * [Dependency Injection](app-basics/dependency-injection.md)
+* [Components Revisited](app-basics/more-components.md)
 * [Styling Components](app-basics/styling-components.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)

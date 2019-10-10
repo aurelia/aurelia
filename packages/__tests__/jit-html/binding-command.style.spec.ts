@@ -17,7 +17,7 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 }
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands.style', () => {
+describe('template-compiler.binding-commands.style', function() {
 
   /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
   const rulesTests: [string, string, string, boolean?, string?][] = [
@@ -55,9 +55,9 @@ describe('template-compiler.binding-commands.style', () => {
         <child value.bind="value"></child>
         <child repeat.for="i of 5" value.bind="value"></child>`;
       },
-      assert: async (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
+      assert: (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
         const childEls = host.querySelectorAll('child') as ArrayLike<HTMLElement>;
-        const hasImportant = ruleValue.indexOf('!important') > -1;
+        const hasImportant = ruleValue.includes('!important');
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
 
         assert.strictEqual(childEls.length, 6, `childEls.length`);
@@ -125,16 +125,15 @@ describe('template-compiler.binding-commands.style', () => {
    * Test the following:
    * ----
    * 1. on init, select all elements specified by `testCase.selector`
-   *  - verify it has inline style matching `ruleValue` (2nd var in destructed 1st tuple param)
-   *  - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
+   * - verify it has inline style matching `ruleValue` (2nd var in destructed 1st tuple param)
+   * - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
    *
    * 2. set `value` of bound view model to empty string. For each of all elements queried by `testCase.selector`
-   *  - verify each element has inline style value equal empty string,
-   *    or default value (3rd var in destructed 1st tuple param)
+   * - verify each element has inline style value equal empty string, or default value (3rd var in destructed 1st tuple param)
    *
    * 3. set `value` of bound view model to `ruleValue` (2nd var in destructed 1st tuple param)
-   *  - verify each element has inline style value equal `ruleValue`
-   *  - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
+   * - verify each element has inline style value equal `ruleValue`
+   * - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
    *
    * 4. repeat step 2
    * 5. Call custom `assert` of each test case with necessary parameters
@@ -142,7 +141,7 @@ describe('template-compiler.binding-commands.style', () => {
   eachCartesianJoin(
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
-      it(testCase.title(ruleName, ruleValue, callIndex), async () => {
+      it(testCase.title(ruleName, ruleValue, callIndex), async function() {
         const { ctx, au, lifecycle, host, component, tearDown } = setup(
           testCase.template(ruleName),
           class App {
@@ -168,7 +167,7 @@ describe('template-compiler.binding-commands.style', () => {
             ? host.querySelectorAll(testCase.selector)
             : testCase.selector(ctx.doc);
           const ii = els.length;
-          const hasImportant = ruleValue.indexOf('!important') > -1;
+          const hasImportant = ruleValue.includes('!important');
           const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
 
           for (let i = 0; ii > i; ++i) {

@@ -1,4 +1,3 @@
-// tslint:disable:no-non-null-assertion
 import { ILifecycle, Priority } from '@aurelia/runtime';
 
 export interface QueueItem<T> {
@@ -29,7 +28,7 @@ export class Queue<T> {
   public currentExecutionCostInCurrentTick: number = 0;
   private lifecycle: ILifecycle | null = null;
 
-  constructor(
+  public constructor(
     private readonly callback: (item: QueueItem<T>) => void
   ) { }
 

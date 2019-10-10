@@ -9,14 +9,14 @@ import { ArticleService } from "shared/services/article-service";
 export class ProfileFavorites {
   public static parameters: string[] = ['name'];
 
-  private articles: Article[] = [];
-  private pageNumber?: number;
+  private readonly articles: Article[] = [];
+  private readonly pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
-  private limit = 10;
+  private readonly limit = 10;
   private username: any;
 
-  constructor(private readonly articleService: ArticleService) {
+  public constructor(private readonly articleService: ArticleService) {
   }
 
   public canEnter() { console.log(`profile-favorites canEnter`); return true; }

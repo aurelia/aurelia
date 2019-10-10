@@ -1,8 +1,7 @@
 import {
   Constructable,
   IContainer,
-  IRegistry,
-  Tracer
+  IRegistry
 } from '@aurelia/kernel';
 import {
   buildTemplateDefinition,
@@ -55,7 +54,7 @@ export class RenderPlan<T extends INode = Node> {
 
   private lazyDefinition?: TemplateDefinition;
 
-  constructor(
+  public constructor(
     dom: IDOM<T>,
     node: T,
     instructions: HTMLTargetedInstruction[][],
@@ -75,7 +74,7 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T> {
+  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T>|undefined {
     return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
   }
 

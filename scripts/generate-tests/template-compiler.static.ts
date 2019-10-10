@@ -69,6 +69,7 @@ const tags: Tag[] = [
   { id: 'tag$10', name: 'template', elName: 'MyFoo', isCustom: true, hasReplaceable: true , shadowMode: 'closed' }
 ];
 
+/* eslint-disable @typescript-eslint/camelcase */
 const text$01_1: TextBinding = {
   id: 'text$01',
   markup: 'a',
@@ -96,7 +97,7 @@ const text$02_1: TextBinding = {
 };
 const text$02_2: TextBinding = {
   id: 'text$02',
-  markup: '\${not}',
+  markup: `\${not}`,
   variable: 'not',
   value: 'b',
   properties: [$property('not', 'b')]
@@ -106,14 +107,14 @@ text$02_2.opposite = text$02_1;
 
 const text$03_1: TextBinding = {
   id: 'text$03',
-  markup: '\${msg}',
+  markup: `\${msg}`,
   variable: 'msg',
   value: 'a',
   properties: [$property('msg', 'a')]
 };
 const text$03_2: TextBinding = {
   id: 'text$03',
-  markup: '\${not}',
+  markup: `\${not}`,
   variable: 'not',
   value: 'b',
   properties: [$property('not', 'b')]
@@ -123,7 +124,7 @@ text$03_2.opposite = text$03_1;
 
 const text$04_1: TextBinding = {
   id: 'text$04',
-  markup: '\${msg}',
+  markup: `\${msg}`,
   variable: 'msg',
   value: 'a',
   properties: [$property('msg', 'a')],
@@ -131,7 +132,7 @@ const text$04_1: TextBinding = {
 };
 const text$04_2: TextBinding = {
   id: 'text$04',
-  markup: '\${not}',
+  markup: `\${not}`,
   variable: 'not',
   value: 'b',
   properties: [$property('not', 'b')]
@@ -221,7 +222,9 @@ repeat$13_1.opposite = repeat$13_2;
 repeat$13_2.opposite = repeat$13_1;
 
 const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
+/* eslint-enable @typescript-eslint/camelcase */
 
+// eslint-disable-next-line max-lines-per-function
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
   const tests: Record<string, Statement[]> = {};
   const staticTests: Statement[] = tests['static'] = [];
@@ -243,7 +246,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
       function registerCustomElement(markup: string, containerless: boolean | null, shadowMode: 'open' | 'closed' | null): Statement[] {
         if (tag.hasReplaceable) {
-          markup = `<${tag.name} replaceable part="part1"></${tag.name}><${tag.name} replaceable part="part2"></${tag.name}>`
+          markup = `<${tag.name} replaceable="part1"></${tag.name}><${tag.name} replaceable="part2"></${tag.name}>`;
         }
         return [
           $$const(tag.elName, $call('CustomElement.define', [
@@ -253,7 +256,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             }),
             $class([
               $property(
-                'bindables', [ifText.variable, elseText.variable, 'item'],
+                'bindables',
+                [ifText.variable, elseText.variable, 'item'],
                 true
               ),
               ...containerless !== null ? [$property('containerless', true, true)] : [],
@@ -266,6 +270,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           $$call('au.register', [tag.elName])
         ];
       }
+      // eslint-disable-next-line sonarjs/no-collapsible-if
       if (tag.isCustom) {
         if (ifText.static || elseText.static) {
           continue;
@@ -277,27 +282,39 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           // non-wrapped interpolation
           staticTests.push($$test(
             ifText.markup,
-            ifText.value, ifText.properties, [tag, ifText], [])
+            ifText.value,
+            ifText.properties,
+            [tag, ifText],
+            [])
           );
         } else if (tag.isCustom) {
           // binding with custom element
           const $tag = kebabCase(tag.elName);
           if (tag.hasReplaceable) {
             staticTests.push($$test(
-              `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace-part="part1">${ifText.markup}</${tag.name}></${$tag}>`,
-              ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
+              `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace="part1">${ifText.markup}</${tag.name}></${$tag}>`,
+              ifText.value,
+              ifText.properties,
+              [tag, ifText],
+              registerCustomElement(ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
             );
           } else {
             staticTests.push($$test(
               `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`,
-              ifText.value, ifText.properties, [tag, ifText], registerCustomElement(ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
+              ifText.value,
+              ifText.properties,
+              [tag, ifText],
+              registerCustomElement(ifText.markup, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode))
             );
           }
         } else {
           // interpolation wrapped in div
           staticTests.push($$test(
             $(tag, [], ifText.markup),
-            ifText.value, ifText.properties, [tag, ifText], [])
+            ifText.value,
+            ifText.properties,
+            [tag, ifText],
+            [])
           );
         }
       }
@@ -305,8 +322,8 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         const $tag = kebabCase(tag.elName);
         resources.push(...registerCustomElement(`${ifText.markup}${elseText.markup}\${item}`, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode));
         if (tag.hasReplaceable) {
-          ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace-part="part1">${ifText.markup}</${tag.name}></${$tag}>`;
-          elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"><${tag.name} replace-part="part2">${elseText.markup}</${tag.name}></${$tag}>`;
+          ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace="part1">${ifText.markup}</${tag.name}></${$tag}>`;
+          elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"><${tag.name} replace="part2">${elseText.markup}</${tag.name}></${$tag}>`;
         } else {
           ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"></${$tag}>`;
           elseText.markup = `<${$tag} ${elseText.variable}.bind="${elseText.variable}"></${$tag}>`;
@@ -329,58 +346,88 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         if (!tag.isCustom || $if.value === true) {
           ifElseTests.push($$test(
             $(tag, [$if], ifText.markup),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], ifText.markup) +
               $(tag, [$if], ''),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$01'}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$01'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$if], ifText.markup),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$02'}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$02'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], ifText.markup) +
               $(tag, [$if], ifText.markup),
-            ifMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$03'}], resources)
+            ifMarkupExpected.repeat(2),
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: 'double$03'}],
+            resources)
           );
-          //}
+          // }
 
           // only if branch (nested)
           ifElseTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
               $(tag, [$if], ''),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$01'}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$01'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
               $(tag, [$if], $(tag, [$if], '')),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$02'}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$02'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$if], $(tag, [$if], ifText.markup)),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$03'}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$03'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], '')) +
               $(tag, [$if], $(tag, [$if], ifText.markup)),
-            ifMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$04'}], resources)
+            ifMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$04'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$if], ifText.markup)) +
               $(tag, [$if], $(tag, [$if], ifText.markup)),
-            ifMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$05'}], resources)
+            ifMarkupExpected.repeat(2),
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$01`}, {id: `nested$01`}, {id: 'double$05'}],
+            resources)
           );
-          //}
+          // }
         }
 
         if (!tag.isCustom || $else.value === true) {
@@ -388,90 +435,109 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           ifElseTests.push($$test(
             $(tag, [$if], '') +
             $(tag, [$else], elseText.markup),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$02`}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$02`}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$else], elseText.markup) +
               $(tag, [$if], '') +
               $(tag, [$else], ''),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$01'}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$01'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$else], '') +
               $(tag, [$if], '') +
               $(tag, [$else], elseText.markup),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$02'}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$02'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
               $(tag, [$else], elseText.markup) +
               $(tag, [$if], '') +
               $(tag, [$else], elseText.markup),
-            elseMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$03'}], resources)
+            elseMarkupExpected.repeat(2),
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$02`}, {id: 'double$03'}],
+            resources)
           );
-          //}
+          // }
 
           // only else branch (nested)
           ifElseTests.push($$test(
             $(tag, [$if], '') +
-            $(tag, [$else],
-              $(tag, [$if], '') +
+            $(tag, [$else], $(tag, [$if], '') +
               $(tag, [$else], elseText.markup)
             ),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], elseText.markup)
               ) +
               $(tag, [$if], '') +
               $(tag, [$else], ''),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$01'}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$01'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], elseText.markup)
               ) +
               $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], '')
               ),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$01'}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$02'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], '')
               ) +
               $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], elseText.markup)
               ),
-            elseMarkupExpected, properties, [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$02'}], resources)
+            elseMarkupExpected,
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$03'}],
+            resources)
           );
           ifElseDoubleTests.push($$test(
             $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], elseText.markup)
               ) +
               $(tag, [$if], '') +
-              $(tag, [$else],
-                $(tag, [$if], '') +
+              $(tag, [$else], $(tag, [$if], '') +
                 $(tag, [$else], elseText.markup)
               ),
-            elseMarkupExpected.repeat(2), properties, [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$03'}], resources)
+            elseMarkupExpected.repeat(2),
+            properties,
+            [tag, ifText, $if, {id: `${branchId}$03`}, {id: `nested$01`}, {id: 'double$04'}],
+            resources)
           );
           // }
         }
@@ -480,108 +546,121 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         ifElseTests.push($$test(
           $(tag, [$if], ifText.markup) +
           $(tag, [$else], elseText.markup),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$04`}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$04`}],
+          resources)
         );
-        //if (!tag.hasReplaceable) {
+        // if (!tag.hasReplaceable) {
         ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup) +
             $(tag, [$if], '') +
             $(tag, [$else], ''),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$01'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$01'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
             $(tag, [$else], '') +
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$02'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$02'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
           $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup) +
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup),
-          expected.repeat(2), properties, [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$03'}], resources)
+          expected.repeat(2),
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$04`}, {id: 'double$03'}],
+          resources)
         );
-        //}
+        // }
 
         // if + else branch (nested)
         ifElseTests.push($$test(
-          $(tag, [$if],
-            $(tag, [$if], ifText.markup) +
+          $(tag, [$if], $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup)
           ) +
-          $(tag, [$else],
-            $(tag, [$if], ifText.markup) +
+          $(tag, [$else], $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup)
           ),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}],
+          resources)
         );
-        //if (!tag.hasReplaceable) {
+        // if (!tag.hasReplaceable) {
         ifElseDoubleTests.push($$test(
-          $(tag, [$if],
-            $(tag, [$if], ifText.markup) +
+          $(tag, [$if], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
           ) +
-            $(tag, [$else],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$else], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ) +
             $(tag, [$if], '') +
             $(tag, [$else], ''),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$01'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$01'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
-          $(tag, [$if],
-            $(tag, [$if], ifText.markup) +
+          $(tag, [$if], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
           ) +
-            $(tag, [$else],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$else], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ) +
             $(tag, [$if], '') +
-            $(tag, [$else],
-              $(tag, [$if], '') +
+            $(tag, [$else], $(tag, [$if], '') +
               $(tag, [$else], '')
             ),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$01'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$02'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
-            $(tag, [$else],
-              $(tag, [$if], '') +
+            $(tag, [$else], $(tag, [$if], '') +
               $(tag, [$else], '')
             ) +
-            $(tag, [$if],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$if], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ) +
-            $(tag, [$else],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$else], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$02'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$03'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
-          $(tag, [$if],
-            $(tag, [$if], ifText.markup) +
+          $(tag, [$if], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
           ) +
-            $(tag, [$else],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$else], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ) +
-            $(tag, [$if],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$if], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ) +
-            $(tag, [$else],
-              $(tag, [$if], ifText.markup) +
+            $(tag, [$else], $(tag, [$if], ifText.markup) +
               $(tag, [$else], elseText.markup)
             ),
-          expected.repeat(2), properties, [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$03'}], resources)
+          expected.repeat(2),
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$05`}, {id: `nested$01`}, {id: 'double$04'}],
+          resources)
         );
 
         // if + else branch (same element)
@@ -590,21 +669,30 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             $(tag, [$else, $if], elseText.markup) + // never renders
             $(tag, [$if], '') +
             $(tag, [$else], elseText.markup),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$01'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$01'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
             $(tag, [$else, $if], '') + // never renders
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$02'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$02'}],
+          resources)
         );
         ifElseDoubleTests.push($$test(
           $(tag, [$if], '') +
             $(tag, [$else, $if], elseText.markup) + // never renders
             $(tag, [$if], ifText.markup) +
             $(tag, [$else], elseText.markup),
-          expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$03'}], resources)
+          expected,
+          properties,
+          [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$03'}],
+          resources)
         );
         // ifElseDoubleTests.push($$test(
         //   $(tag, [$if], ifText.markup) +
@@ -614,7 +702,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         //   $(tag, [$else], elseText.markup),
         //   expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$04'}], resources)
         // );
-        //}
+        // }
 
         for (const $repeat of repeaters) {
           // skip repeated templates with replaceable since the generated tests don't make sense
@@ -641,194 +729,269 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           }
           // identical to the if/else tests one level up, but wrapped in the repeater
           ifElseRepeatTests.push($$test(
-            $(tag, [$repeat],
-              $(tag, [$if], fixup(ifText)) +
+            $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], fixup(elseText))
             ),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$01'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$01'}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
-            $(tag, [$repeat],
-              $(tag, [$if], fixup(ifText)) +
+            $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $if], fixup(elseText)) +
                 $(tag, [$if], '') +
                 $(tag, [$else], fixup(elseText))
             ),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$01$double'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$01$double'}],
+            resources)
           );
-          //}
+          // }
 
           // the inverse of the fullIfElse wrapped by repeater (repeater wrapped by if/else)
           ifElseRepeatTests.push($$test(
             $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
             $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$02'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$02'}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else, $if], $(tag, [$repeat], fixup(elseText))) +
               $(tag, [$if], '') +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$02$double'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$02$double'}],
+            resources)
           );
-          //}
+          // }
           // same as the test above but with the template controllers on the same element
           ifElseRepeatTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
             $(tag, [$else, $repeat], fixup(elseText)),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$03'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$03'}],
+            resources)
           );
-          //if (!tag.hasReplaceable) {
+          // if (!tag.hasReplaceable) {
           ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
               $(tag, [$else, $if, $repeat], fixup(elseText)) +
               $(tag, [$if, $repeat], '') +
               $(tag, [$else, $repeat], fixup(elseText)),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$03$double$01'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$03$double$01'}],
+            resources)
           );
           ifElseRepeatDoubleTests.push($$test(
             $(tag, [$if, $repeat], fixup(ifText)) +
               $(tag, [$else, $repeat, $if], fixup(elseText)) +
               $(tag, [$if, $repeat], '') +
               $(tag, [$else, $repeat], fixup(elseText)),
-            $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$03$double$02'}], resources)
+            $expected,
+            properties,
+            [tag, ifText, $if, $repeat, {id: 'variant$03$double$02'}],
+            resources)
           );
-          //}
+          // }
 
           if (!$else.value) {
             ifElseRepeatTests.push($$test(
               $(tag, [$repeat], $(tag, [$if], fixup(ifText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$04'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$04'}],
+              resources)
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
               $(tag, [$repeat, $if], fixup(ifText)),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$05'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$05'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$06'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$06'}],
+              resources)
             );
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
               $(tag, [$if, $repeat], fixup(ifText)),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$07'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$07'}],
+              resources)
             );
 
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat],
-                $(tag, [$if], fixup(ifText)) +
+              $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], fixup(elseText))
               ),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$08'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$08'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat],
-                $(tag, [$if], fixup(ifText)) +
+              $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], '')
               ),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$08$empty'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$08$empty'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else], $(tag, [$repeat], fixup(ifText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$09'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$09'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
               $(tag, [$else], ''),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$09$empty'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$09$empty'}],
+              resources)
             );
-            //if (!tag.hasReplaceable) {
+            // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
                 $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
                 $(tag, [$if], '') +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$09$double$01'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$09$double$01'}],
+              resources)
             );
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
                 $(tag, [$else, $if], $(tag, [$repeat], fixup(ifText))) +
                 $(tag, [$if], $(tag, [$repeat], fixup(ifText))) +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-              $expected.repeat(2), properties, [tag, ifText, $if, $repeat, {id: 'variant$09$double$02'}], resources)
+              $expected.repeat(2),
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$09$double$02'}],
+              resources)
             );
-            //}
+            // }
           }
 
           if (!$if.value) {
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat],
-                $(tag, [$if], fixup(ifText)) +
+              $(tag, [$repeat], $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], fixup(elseText))
               ),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$10'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$10'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
-              $(tag, [$repeat],
-                $(tag, [$if], '') +
+              $(tag, [$repeat], $(tag, [$if], '') +
                 $(tag, [$else], fixup(elseText))
               ),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$10$empty'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$10$empty'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$11'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$11'}],
+              resources)
             );
             ifElseRepeatTests.push($$test(
               $(tag, [$if], '') +
               $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$11$empty'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$11$empty'}],
+              resources)
             );
-            //if (!tag.hasReplaceable) {
+            // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
                 $(tag, [$if, $else], fixup(elseText)) +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-              $expected.repeat(2), properties, [tag, ifText, $if, $repeat, {id: 'variant$11$double$01'}], resources)
+              $expected.repeat(2),
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$11$double$01'}],
+              resources)
             );
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))) +
                 $(tag, [$if, $else], fixup(elseText)) +
                 $(tag, [$else], ''),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$11$double$02'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$11$double$02'}],
+              resources)
             );
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else], '') +
                 $(tag, [$if, $else], fixup(elseText)) +
                 $(tag, [$else], $(tag, [$repeat], fixup(elseText))),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$11$double$03'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$11$double$03'}],
+              resources)
             );
-            //}
+            // }
             // same as test above, but template controllers on same element
             ifElseRepeatTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
               $(tag, [$else, $repeat], fixup(elseText)),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$12'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$12'}],
+              resources)
             );
-            //if (!tag.hasReplaceable) {
+            // if (!tag.hasReplaceable) {
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $repeat, $if], fixup(elseText)) +
                 $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $repeat], fixup(elseText)),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$12$double$01'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$12$double$01'}],
+              resources)
             );
             ifElseRepeatDoubleTests.push($$test(
               $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $if, $repeat], fixup(elseText)) +
                 $(tag, [$if], fixup(ifText)) +
                 $(tag, [$else, $repeat], fixup(elseText)),
-              $expected, properties, [tag, ifText, $if, $repeat, {id: 'variant$12$double$02'}], resources)
+              $expected,
+              properties,
+              [tag, ifText, $if, $repeat, {id: 'variant$12$double$02'}],
+              resources)
             );
-            //}
+            // }
           }
         }
       }

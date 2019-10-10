@@ -11,7 +11,7 @@ export class AbcComponent {
 
   public counter = 0;
 
-  constructor(private readonly appState: AppState) { }
+  public constructor(private readonly appState: AppState) { }
 
   public bound(...rest) {
     console.log(this.name, 'bound', this.appState, rest);

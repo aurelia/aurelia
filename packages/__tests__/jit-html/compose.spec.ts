@@ -149,7 +149,7 @@ describe(spec, function () {
     it('can render a vanilla JS class instance', async function () {
       const { au, host } = setup();
 
-      @view({ name: 'default-view', template: '${message}' })
+      @view({ name: 'default-view', template: `\${message}` })
       class MyModel {
         public message = 'Hello world!';
       }

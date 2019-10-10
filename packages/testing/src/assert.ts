@@ -93,7 +93,7 @@ function innerOk(fn: Function, argLen: number, value: any, message: string | Err
 class Comparison {
   [key: string]: unknown;
 
-  constructor(
+  public constructor(
     obj: IIndexable,
     keys: string[],
     actual?: IIndexable,
@@ -193,7 +193,7 @@ function expectedException(
   if (expected.prototype !== void 0 && actual instanceof expected) {
     return true;
   }
-  if (Error.isPrototypeOf(expected)) {
+  if (Object.prototype.isPrototypeOf.call(Error, expected)) {
     return false;
   }
   return expected.call({}, actual) === true;

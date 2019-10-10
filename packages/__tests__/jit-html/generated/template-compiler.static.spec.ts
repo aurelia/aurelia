@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/quotes, @typescript-eslint/explicit-member-accessibility, @typescript-eslint/indent */
+/* eslint-disable @typescript-eslint/quotes, @typescript-eslint/explicit-member-accessibility, @typescript-eslint/indent, no-template-curly-in-string */
 import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";
@@ -86,14 +86,14 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$04 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -119,7 +119,7 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$06 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
@@ -127,7 +127,7 @@ describe("generated.template-compiler.static", function () {
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -153,7 +153,7 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$08 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
@@ -161,7 +161,7 @@ describe("generated.template-compiler.static", function () {
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();
@@ -187,7 +187,7 @@ describe("generated.template-compiler.static", function () {
     });
     it("tag$10 text$03 _", function () {
         const { au, host } = setup();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
@@ -195,7 +195,7 @@ describe("generated.template-compiler.static", function () {
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace-part=\"part1\">${msg}</template></my-foo></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template>" }, class {
             msg = "a";
         });
         const component = new App();

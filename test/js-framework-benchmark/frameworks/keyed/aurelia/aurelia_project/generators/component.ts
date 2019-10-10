@@ -1,13 +1,12 @@
 import { inject } from 'aurelia-dependency-injection';
 import { Project, ProjectItem, CLIOptions, UI } from 'aurelia-cli';
-
 var path = require('path');
 
 @inject(Project, CLIOptions, UI)
 export default class ElementGenerator {
-  constructor(private project: Project, private options: CLIOptions, private ui: UI) { }
+  public constructor(private readonly project: Project, private readonly options: CLIOptions, private readonly ui: UI) { }
 
-  async execute() {
+  public async execute() {
     const name = await this.ui.ensureAnswer(
       this.options.args[0],
       'What would you like to call the component?'
@@ -15,22 +14,23 @@ export default class ElementGenerator {
 
     const subFolders = await this.ui.ensureAnswer(
       this.options.args[1],
-      'What sub-folder would you like to add it to?\nIf it doesn\'t exist it will be created for you.\n\nDefault folder is the source folder (src).', "."
+      'What sub-folder would you like to add it to?\nIf it doesn\'t exist it will be created for you.\n\nDefault folder is the source folder (src).',
+      "."
     );
 
     let fileName = this.project.makeFileName(name);
     let className = this.project.makeClassName(name);
 
     this.project.root.add(
-      ProjectItem.text(path.join(subFolders, fileName + '.ts'), this.generateJSSource(className)),
-      ProjectItem.text(path.join(subFolders, fileName + '.html'), this.generateHTMLSource(className))
+      ProjectItem.text(path.join(subFolders, `${fileName  }.ts`), this.generateJSSource(className)),
+      ProjectItem.text(path.join(subFolders, `${fileName  }.html`), this.generateHTMLSource(className))
     );
 
     await this.project.commitChanges();
     await this.ui.log(`Created ${name} in the '${path.join(this.project.root.name, subFolders)}' folder`);
   }
 
-  generateJSSource(className) {
+  public generateJSSource(className) {
     return `export class ${className} {
   message: string;
 
@@ -38,13 +38,13 @@ export default class ElementGenerator {
     this.message = 'Hello world';
   }
 }
-`
+`;
   }
 
-  generateHTMLSource(className) {
+  public generateHTMLSource(className) {
     return `<template>
   <h1>\${message}</h1>
 </template>
-`
+`;
   }
 }

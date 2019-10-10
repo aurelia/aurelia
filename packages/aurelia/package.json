@@ -26,9 +26,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "tslint --project tsconfig.json -t stylish",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "tsc -b -w"
   },
   "publishConfig": {

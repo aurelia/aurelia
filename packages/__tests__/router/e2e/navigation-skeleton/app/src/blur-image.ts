@@ -2,7 +2,7 @@ import { inject } from '@aurelia/kernel';
 
 @inject(Element)
 export class BlurImageCustomAttribute {
-  constructor(private element: Element) {
+  public constructor(private element: Element) {
   }
 
   public valueChanged(newImage: HTMLImageElement) {

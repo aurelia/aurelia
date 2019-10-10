@@ -4,16 +4,21 @@ import {
 import {
   Aurelia,
   bindable,
+  bindingBehavior,
   customAttribute,
   CustomElement,
-  ICustomAttributeResource,
-  INode
+  INode,
+  valueConverter,
+  CustomAttribute,
+  IDOM,
+  ValueConverter
 } from '@aurelia/runtime';
 import {
   assert,
   HTMLTestContext,
   TestContext
 } from '@aurelia/testing';
+import { HTMLDOM } from '../../runtime-html/dist';
 
 describe('template-compiler.primary-bindable.spec.ts', function() {
 
@@ -39,7 +44,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -64,7 +69,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: number;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -90,7 +95,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -109,14 +114,13 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -134,8 +138,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable({ primary: true })
@@ -144,7 +147,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -163,8 +166,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -173,7 +175,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -188,11 +190,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     },
     {
       title: '(7) works with interpolation',
-      template: '<div square="color: ${`red`}; diameter: ${5}"></div>',
+      template: `<div square="color: \${\`red\`}; diameter: \${5}"></div>`,
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -201,7 +202,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -216,15 +217,74 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         assert.equal(host.querySelector('div').style.width, '5px');
       }
     },
+    {
+      title: '(8) default to "value" as primary bindable',
+      template: '<div square.bind="color || `red`">',
+      attrResources: () => {
+        @customAttribute({ name: 'square' })
+        class Square {
+          public value: string;
+          public constructor(@INode private readonly el: HTMLElement) {}
+          public binding() {
+            this.el.style.background = this.value;
+          }
+        }
+        return [Square];
+      },
+      assertFn: (ctx, host, comp) => {
+        assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
+      }
+    },
+    ...[
+      'color | identity: value',
+      '`literal:literal`',
+      'color & bb:value',
+    ].map((expression, idx) => {
+      return {
+        title: `(${8 + idx + 1}) does not get interpreted as multi bindings when there is a binding command with colon in value: ${expression}`,
+        template: `<div square.bind="${expression}">`,
+        attrResources: () => {
+          @customAttribute({ name: 'square' })
+          class Square {
+            public value: string;
+            public constructor(@INode private readonly el: HTMLElement) {}
+            public binding() {
+              const value = this.value === 'literal:literal' ? 'red' : this.value;
+              this.el.style.background = value;
+            }
+          }
+
+          @valueConverter('identity')
+          class Identity {
+            public toView(val: any, alternativeValue: any) {
+              return alternativeValue || val;
+            }
+          }
+
+          @bindingBehavior('bb')
+          class BB {
+            public bind() {/*  */}
+            public unbind() {/*  */}
+          }
+
+          return [Square, Identity, BB];
+        },
+        root: class App {
+          public color = 'red';
+        },
+        assertFn: (ctx, host, comp) => {
+          assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
+        }
+      };
+    }) as IPrimaryBindableTestCase[],
     // unhappy usage
     {
       title: 'throws when combining binding commnd with interpolation',
-      template: '<div square="color.bind: ${`red`}; diameter: ${5}"></div>',
+      template: `<div square="color.bind: \${\`red\`}; diameter: \${5}"></div>`,
       testWillThrow: true,
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable()
@@ -233,7 +293,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
         }
         return [Square];
       },
@@ -247,8 +307,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       testWillThrow: true,
       attrResources: () => {
         @customAttribute({
-          name: 'square',
-          hasDynamicOptions: true
+          name: 'square'
         })
         class Square {
           @bindable({ primary: true })
@@ -257,7 +316,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
         }
         return [Square];
       },
@@ -336,6 +395,140 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       }
     });
   }
+
+  describe('mimic vCurrent route-href', function() {
+    class $RouteHref$ {
+
+      public static readonly inject = [INode, IDOM];
+
+      @bindable()
+      public params: any;
+
+      @bindable()
+      public href: string;
+
+      @bindable({ primary: true })
+      public route: string;
+
+      public constructor(
+        private readonly el: HTMLAnchorElement,
+        private readonly dom: HTMLDOM
+      ) {
+        /*  */
+      }
+
+      public binding(): void {
+        this.updateAnchor('route');
+      }
+
+      public routeChanged(): void {
+        this.updateAnchor('route');
+      }
+
+      public paramsChanged(): void {
+        this.updateAnchor('params');
+      }
+
+      private updateAnchor(property: 'route' | 'params'): void {
+        this.href = `/?${property}=${JSON.stringify(this[property] || '')}`;
+      }
+    }
+
+    const RouteHref = CustomAttribute.define('route-href', $RouteHref$);
+
+    const DotConverter = ValueConverter.define(
+      {
+        name: 'dot-converter'
+      },
+      class $$DotConverter {
+        public toView(val: string, replaceWith: string): string {
+          return typeof val === 'string' && typeof replaceWith === 'string'
+            ? val.replace(/\./g, replaceWith)
+            : val;
+        }
+      }
+    );
+
+    it.skip('works correctly when binding only route name', async function() {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: `<a route-href="home.main">Home page</a>`
+      });
+      const au = new Aurelia(ctx.container);
+
+      const body = ctx.doc.body;
+      const host = body.appendChild(ctx.createElement('app'));
+      ctx.container.register(RouteHref);
+
+      au.app({ component: App, host });
+      await au.start().wait();
+
+      assert.strictEqual(host.querySelector('a').search, '/?route=home.main');
+
+      await au.stop().wait();
+      host.remove();
+    });
+
+    it.skip('works correctly when using with value converter and a colon', async function() {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: `<a route-href="\${routeName | dotConverter:'--'}">Home page</a>`
+      });
+      const au = new Aurelia(ctx.container);
+
+      const body = ctx.doc.body;
+      const host = body.appendChild(ctx.createElement('app'));
+      ctx.container.register(RouteHref, DotConverter);
+
+      au.app({ component: App, host });
+      await au.start().wait();
+
+      assert.strictEqual(host.querySelector('a').search, '/?route=home--main');
+
+      await au.stop().wait();
+      host.remove();
+    });
+
+    it.skip('works correctly when using multi binding syntax', async function() {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const App = CustomElement.define(
+        {
+          name: 'app',
+          template: `<a route-href="route: home.main; params: { id: appId }">Home page</a>`
+        },
+        class App {
+          public appId: string;
+        }
+      );
+      const au = new Aurelia(ctx.container);
+
+      const body = ctx.doc.body;
+      const host = body.appendChild(ctx.createElement('app'));
+      ctx.container.register(RouteHref);
+
+      au.app({ component: App, host });
+      await au.start().wait();
+
+      assert.strictEqual(
+        host.querySelector('a').search,
+        '/?route=home.main'
+      );
+
+      ctx.container.get(App).appId = 'appId-appId';
+      assert.strictEqual(
+        host.querySelector('a').search,
+        `/?params=${JSON.stringify({ id: 'appId-appId' })}`
+      );
+
+      await au.stop().wait();
+      host.remove();
+    });
+  });
 });
 
 async function waitForFrames(frameCount: number): Promise<void> {

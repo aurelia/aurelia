@@ -38,5 +38,5 @@ module.exports = function() {
       modules: ['.', 'node_modules'],
       mainFields: ['module']
     }
-  }
-}
+  };
+};

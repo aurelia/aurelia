@@ -9,9 +9,9 @@ import {
   Reporter,
   LogLevel,
 } from '@aurelia/kernel';
+import { JSDOM } from 'jsdom';
 
 Reporter.level = LogLevel.error;
-import { JSDOM } from 'jsdom';
 
 function createJSDOMTestContext(): HTMLTestContext {
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);

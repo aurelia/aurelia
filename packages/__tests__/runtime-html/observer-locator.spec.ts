@@ -236,7 +236,7 @@ describe('ObserverLocator', function () {
                         descriptor.set = setter;
                       }
                       if (hasOverrides) {
-                        obj.constructor['computed'] = { isVolatile };
+                        obj.constructor.prototype['computed'] = { isVolatile };
                       }
                       Reflect.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {

@@ -213,7 +213,7 @@ describe('app', function () {
     }
   );
 
-  $it.only('uses a user preference control that \'computes\' the organization of the user correctly - volatile',
+  $it('uses a user preference control that \'computes\' the organization of the user correctly - volatile',
     function ({ host, ctx, callCollection: { calls } }) {
 
       const { user } = getViewModel<App>(host);

@@ -86,7 +86,7 @@ export class ObserverLocator implements IObserverLocator {
   private readonly targetObserverLocator: ITargetObserverLocator;
   private readonly targetAccessorLocator: ITargetAccessorLocator;
 
-  constructor(
+  public constructor(
     lifecycle: ILifecycle,
     dirtyChecker: IDirtyChecker,
     targetObserverLocator: ITargetObserverLocator,
@@ -246,7 +246,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 }
 
-type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
 export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want

@@ -62,25 +62,6 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
     target) as any; // TODO: fix this at some point
 }
 
-type HasDynamicOptions = Pick<IAttributeDefinition, 'hasDynamicOptions'>;
-
-function dynamicOptionsDecorator<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions> {
-  target.hasDynamicOptions = true;
-  return target as T & Required<HasDynamicOptions>;
-}
-
-/**
- * Decorator: Indicates that the custom attributes has dynamic options.
- */
-export function dynamicOptions(): typeof dynamicOptionsDecorator;
-/**
- * Decorator: Indicates that the custom attributes has dynamic options.
- */
-export function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
-export function dynamicOptions<T extends Constructable>(target?: T & HasDynamicOptions): T & Required<HasDynamicOptions> | typeof dynamicOptionsDecorator {
-  return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator<T>(target);
-}
-
 export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze({
   name: 'custom-attribute',
   keyFrom(name: string): string {
@@ -117,7 +98,6 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     name: def.name,
     aliases: aliases == null ? PLATFORM.emptyArray : aliases,
     defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
-    hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
     bindables: { ...Bindable.for(Type as unknown as {}).get(), ...Bindable.for(def).get() },
     strategy: ensureValidStrategy(def.strategy),

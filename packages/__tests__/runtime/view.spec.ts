@@ -29,14 +29,14 @@ import {
 } from '@aurelia/testing';
 
 class StubView {
-  constructor(public cached = false) {}
+  public constructor(public cached = false) {}
   public $cache() {
     this.cached = true;
   }
 }
 
 class StubTemplate {
-  constructor(public nodes = {}) {}
+  public constructor(public nodes = {}) {}
   public render(renderable: Partial<IController>) {
     (renderable as Writable<IController>).nodes = this.nodes as any;
   }

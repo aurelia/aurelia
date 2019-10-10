@@ -56,6 +56,7 @@ export interface IProjectorLocator<T extends INode = INode> {
 
 export interface ICustomElementStaticProperties {
   containerless?: TemplateDefinition['containerless'];
+  isStrictBinding?: TemplateDefinition['isStrictBinding'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
   strategy?: TemplateDefinition['strategy'];
@@ -97,7 +98,7 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     const description = buildTemplateDefinition(Type, nameOrDefinition);
 
     WritableType.kind = CustomElement;
-    Type.description = description;
+    WritableType.description = description;
     WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
     Type.register = function register(container: IContainer): void {
       const aliases = description.aliases;
@@ -162,4 +163,22 @@ export function containerless(): typeof containerlessDecorator;
 export function containerless<T extends Constructable>(target: T & HasContainerless): T & Required<HasContainerless>;
 export function containerless<T extends Constructable>(target?: T & HasContainerless): T & Required<HasContainerless> | typeof containerlessDecorator {
   return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
+}
+
+type HasStrictBindOption = Required<Pick<ITemplateDefinition, 'isStrictBinding'>>;
+function strictBindingDecorator<T extends Constructable>(target: T & HasStrictBindOption): T & HasStrictBindOption {
+  target.isStrictBinding = true;
+  return target;
+}
+
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function strict(): typeof strictBindingDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function strict<T extends Constructable>(target: T & HasStrictBindOption): T & HasStrictBindOption;
+export function strict<T extends Constructable>(target?: T & HasStrictBindOption): T & HasStrictBindOption | typeof strictBindingDecorator {
+  return target === undefined ? strictBindingDecorator : strictBindingDecorator<T>(target);
 }

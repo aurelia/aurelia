@@ -1,7 +1,6 @@
 import {
   IIndexable,
   IServiceLocator,
-  Tracer,
 } from '@aurelia/kernel';
 import { IsBindingBehavior } from '../ast';
 import {
@@ -31,7 +30,7 @@ export class RefBinding implements IBinding {
   public sourceExpression: IsBindingBehavior;
   public target: IObservable;
 
-  constructor(
+  public constructor(
     sourceExpression: IsBindingBehavior,
     target: object,
     locator: IServiceLocator,

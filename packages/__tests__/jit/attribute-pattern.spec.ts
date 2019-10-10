@@ -145,7 +145,6 @@ describe('@attributePattern', function () {
           let receivedRawValue: string;
           let receivedParts: string[];
           @attributePattern(...defs)
-          // @ts-ignore
           class ThePattern {}
           for (const { pattern } of defs) {
             ThePattern.prototype[pattern] = (rawName, rawValue, parts) => {
@@ -163,7 +162,7 @@ describe('@attributePattern', function () {
           const result = interpreter.interpret(value);
           if (match != null) {
             assert.strictEqual(
-              attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0,
+              attrPattern.$patternDefs.map(d => d.pattern).includes(result.pattern),
               true,
               `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0`
             );
@@ -173,7 +172,7 @@ describe('@attributePattern', function () {
             assert.deepStrictEqual(receivedParts, result.parts, `receivedParts`);
           } else {
             assert.strictEqual(
-              attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1,
+              !attrPattern.$patternDefs.map(d => d.pattern).includes(result.pattern),
               true,
               `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1`
             );

@@ -1,8 +1,8 @@
 import { view, ViewLocator, ViewValueConverter } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
-describe('the view value converter', () => {
-  it('delegates view location to the view locator service', () => {
+describe('the view value converter', function() {
+  it('delegates view location to the view locator service', function() {
     const fakeResult = class Component {};
     const fakeViewLocator = {
       object: null,
@@ -26,8 +26,8 @@ describe('the view value converter', () => {
   });
 });
 
-describe('the view decorator', () => {
-  it('can associate a view with a class', () => {
+describe('the view decorator', function() {
+  it('can associate a view with a class', function() {
     const template = { name: 'name' };
     @view(template)
     class MyModel {}
@@ -36,7 +36,7 @@ describe('the view decorator', () => {
     assert.equal(associated, template);
   });
 
-  it('can associate multiple views with a class', () => {
+  it('can associate multiple views with a class', function() {
     const template1 = { name: 'view-1' };
     const template2 = { name: 'view-2' };
 
@@ -49,8 +49,8 @@ describe('the view decorator', () => {
   });
 });
 
-describe('the view locator', () => {
-  it('returns a component class bound to the requested model', () => {
+describe('the view locator', function() {
+  it('returns a component class bound to the requested model', function() {
     const template = { name: 'name' };
     @view(template)
     class MyModel {}
@@ -65,7 +65,7 @@ describe('the view locator', () => {
     assert.equal(instance.viewModel, model);
   });
 
-  it('returns the same component class for the same model instance', () => {
+  it('returns the same component class for the same model instance', function() {
     const template = { name: 'name' };
     @view(template)
     class MyModel {}
@@ -81,7 +81,7 @@ describe('the view locator', () => {
     assert.equal(Component1, Component2);
   });
 
-  it('returns the same component base for two different instance of the same model', () => {
+  it('returns the same component base for two different instance of the same model', function() {
     const template = { name: 'name' };
     @view(template)
     class MyModel {}
@@ -102,7 +102,7 @@ describe('the view locator', () => {
     assert.instanceOf(Component2, BaseComponent);
   });
 
-  it('returns a component with the only view', () => {
+  it('returns a component with the only view', function() {
     const template1 = { name: 'view-1' };
 
     @view(template1)
@@ -118,7 +118,7 @@ describe('the view locator', () => {
     assert.equal('view-1', template.name);
   });
 
-  it('returns a component with the specified view', () => {
+  it('returns a component with the specified view', function() {
     const template1 = { name: 'view-1' };
     const template2 = { name: 'view-2' };
 
@@ -136,7 +136,7 @@ describe('the view locator', () => {
     assert.equal('view-2', template.name);
   });
 
-  it('returns a component with the view named "default-view" if no name specified', () => {
+  it('returns a component with the view named "default-view" if no name specified', function() {
     const template1 = { name: 'view-1' };
     const template2 = { name: 'default-view' };
 
@@ -154,7 +154,7 @@ describe('the view locator', () => {
     assert.equal('default-view', template.name);
   });
 
-  it('returns a component with the view based on a selector function', () => {
+  it('returns a component with the view based on a selector function', function() {
     const template1 = { name: 'view-1' };
     const template2 = { name: 'view-2' };
 
@@ -183,7 +183,7 @@ describe('the view locator', () => {
     assert.equal(receivedViews, (MyModel as any).$views);
   });
 
-  it('can return a component based on a dynamic view when selector used with model without associated views', () => {
+  it('can return a component based on a dynamic view when selector used with model without associated views', function() {
     const template1 = { name: 'view-1' };
     class MyModel {}
 
@@ -202,7 +202,7 @@ describe('the view locator', () => {
     assert.equal(template1.name, template.name);
   });
 
-  it('locates views that are defined statically, without a decorator', () => {
+  it('locates views that are defined statically, without a decorator', function() {
     class MyModel {
       public static readonly $views = [{
         name: 'view-1'
@@ -231,7 +231,7 @@ describe('the view locator', () => {
     'unbinding',
     'unbound'
   ].forEach(lifecycleHook => {
-    it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, () => {
+    it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, function() {
       const template = { name: 'name' };
       @view(template)
       class MyModel {

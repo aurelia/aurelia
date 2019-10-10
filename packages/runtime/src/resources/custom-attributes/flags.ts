@@ -10,9 +10,10 @@ abstract class FlagsTemplateController<T extends INode = INode> {
 
   public readonly view: IController<T>;
 
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller!: IController<T>;
 
-  constructor(
+  public constructor(
     private readonly factory: IViewFactory<T>,
     location: IRenderLocation<T>,
     private readonly flags: LifecycleFlags,
@@ -45,7 +46,7 @@ abstract class FlagsTemplateController<T extends INode = INode> {
 
 @templateController('infrequent-mutations')
 export class InfrequentMutations<T extends INode = INode> extends FlagsTemplateController<T> {
-  constructor(
+  public constructor(
     @IViewFactory factory: IViewFactory<T>,
     @IRenderLocation location: IRenderLocation<T>,
   ) {
@@ -55,7 +56,7 @@ export class InfrequentMutations<T extends INode = INode> extends FlagsTemplateC
 
 @templateController('frequent-mutations')
 export class FrequentMutations<T extends INode = INode> extends FlagsTemplateController<T> {
-  constructor(
+  public constructor(
     @IViewFactory factory: IViewFactory<T>,
     @IRenderLocation location: IRenderLocation<T>,
   ) {
@@ -65,7 +66,7 @@ export class FrequentMutations<T extends INode = INode> extends FlagsTemplateCon
 
 @templateController('observe-shallow')
 export class ObserveShallow<T extends INode = INode> extends FlagsTemplateController<T> {
-  constructor(
+  public constructor(
     @IViewFactory factory: IViewFactory<T>,
     @IRenderLocation location: IRenderLocation<T>,
   ) {

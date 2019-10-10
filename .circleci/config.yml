@@ -265,7 +265,9 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install_bootstrap
-      - run: npm run lint
+      # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
+      - run: npm run lint:packages -- -- -- --quiet
+      - run: npm run lint:other -- --quiet
 
   merge_and_dist:
     executor: docker-aurelia
@@ -357,13 +359,13 @@ jobs:
       - run:
           name: "Install cypress"
           command: |
-            cd packages/__tests__/e2e
+            cd packages/__e2e__
             npm install
       - run:
           name: "Run e2e tests"
           background: true
           command: |
-            cd packages/__tests__/e2e
+            cd packages/__e2e__
             npm run e2e
 
   publish_npm:

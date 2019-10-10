@@ -542,7 +542,6 @@ export {
   // CustomAttributeConstructor,
   // CustomAttributeDecorator,
   CustomAttribute,
-  dynamicOptions,
   // ICustomAttributeResource,
   // ICustomAttributeType,
   templateController,
@@ -592,7 +591,7 @@ export {
   // ChildrenDecorator,
   // HasChildrenObservers,
 
-// These exports are temporary until we have a proper way to unit test them
+  // These exports are temporary until we have a proper way to unit test them
   Controller,
 
   ViewFactory,
@@ -916,7 +915,6 @@ export {
   // IShadowDOMGlobalStyles
 } from '@aurelia/runtime-html';
 
-// tslint:disable-next-line:no-commented-code
 // export {
 //   IDOMInitializerRegistration,
 //   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,

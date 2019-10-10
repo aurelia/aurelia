@@ -1,4 +1,4 @@
-import { DI, IIndexable, Key, Reporter, Tracer } from '@aurelia/kernel';
+import { DI, IIndexable, Key, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle, Priority } from '../lifecycle';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
@@ -125,7 +125,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
 
   private readonly dirtyChecker: IDirtyChecker;
 
-  constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
+  public constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
     this.obj = obj as IObservable & IIndexable;
     this.propertyKey = propertyKey;
 

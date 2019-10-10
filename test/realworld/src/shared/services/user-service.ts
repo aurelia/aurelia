@@ -7,9 +7,9 @@ import { JwtService } from './jwt-service';
 @inject(ApiService, JwtService, SharedState)
 export class UserService {
 
-  constructor(private readonly apiService: ApiService,
-              private readonly jwtService: JwtService,
-              private readonly sharedState: SharedState) {
+  public constructor(private readonly apiService: ApiService,
+    private readonly jwtService: JwtService,
+    private readonly sharedState: SharedState) {
   }
 
   // Verify JWT in localstorage with server & load user's info.
@@ -40,7 +40,7 @@ export class UserService {
 
   public async attemptAuth(type: string, credentials: Partial<User>) {
     const route = (type === 'login') ? '/login' : '';
-    const data = await this.apiService.post('/users' + route, { user: credentials });
+    const data = await this.apiService.post(`/users${route}`, { user: credentials });
     this.setAuth(data.user);
     return data;
   }

@@ -17,7 +17,7 @@ export interface INavRoute {
 
 export class Nav {
 
-  constructor(
+  public constructor(
     public router: IRouter,
     public name: string,
     public routes: NavRoute[] = [],

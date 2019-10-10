@@ -5,7 +5,7 @@ import { ApiService } from './api-service';
 @inject(ApiService)
 export class CommentService {
 
-  constructor(private readonly apiService: ApiService) {
+  public constructor(private readonly apiService: ApiService) {
   }
 
   public async add(slug: string, payload: string): Promise<Comment> {

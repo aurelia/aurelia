@@ -14,7 +14,6 @@ import { IBinding } from '../lifecycle';
 import { IScope } from '../observation';
 import { registerAliases } from '../definitions';
 
-
 export interface IBindingBehavior<T = any[]> {
   bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
@@ -64,7 +63,6 @@ export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze
     return Type;
   },
 });
-
 
 /** @internal */
 export function createBindingBehaviorDescription(def: IBindingBehaviorDefinition, Type: IBindingBehaviorType): Required<IBindingBehaviorDefinition> {

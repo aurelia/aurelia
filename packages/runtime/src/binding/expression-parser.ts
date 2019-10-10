@@ -36,7 +36,7 @@ export class ExpressionParser implements IExpressionParser {
   private readonly forOfLookup: Record<string, IForOfStatement>;
   private readonly interpolationLookup: Record<string, IInterpolationExpression>;
 
-  constructor() {
+  public constructor() {
     this.expressionLookup = Object.create(null);
     this.forOfLookup = Object.create(null);
     this.interpolationLookup = Object.create(null);

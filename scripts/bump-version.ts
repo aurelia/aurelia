@@ -8,7 +8,6 @@ import { getCurrentVersion, getNewVersion } from './get-version-info';
 const log = createLogger('bump-version');
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
-  const aureliaRegExp = /^@aurelia/;
   for (const { name } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson('packages', name.kebab);
@@ -16,7 +15,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
-        if (aureliaRegExp.test(depName)) {
+        if (depName.startsWith("@aurelia")) {
           log(`  dep ${name.npm} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);
           deps[depName] = newVersion;
         }
@@ -32,7 +31,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
 export async function getRecommendedVersionBump(): Promise<'minor' | 'patch'> {
   const gitLog = await getGitLog(`v${project.lerna.version}`, 'HEAD', project.path);
   const lines = gitLog.split('\n');
-  if (lines.some(line => /feat(\([^\)]+\))?:/.test(line))) {
+  if (lines.some(line => /feat(\([^)]+\))?:/.test(line))) {
     return 'minor';
   } else {
     return 'patch';

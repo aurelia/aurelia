@@ -24,6 +24,7 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
     return new Function('return this')();
   } catch {
     // If all fails, give up and create an object.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return {} as IWindowOrWorkerGlobalScope;
   }
 })();

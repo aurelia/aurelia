@@ -2,7 +2,7 @@ import { CustomElementResource } from '@aurelia/runtime';
 import { State } from './state';
 
 const MAX_LEVEL = 10;
-const TEMPLATE = 
+const TEMPLATE =
 `<template>
   <svg remove>
     <rect
@@ -23,7 +23,6 @@ const TEMPLATE =
       transform.bind='state.rightTransform'></g>
   </svg>
 </template>`;
-
 
 export class Pythagoras {
 

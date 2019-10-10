@@ -180,12 +180,12 @@ const emptySequence: INodeSequence = {
   firstChild: null!,
   lastChild: null!,
   findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
-  insertBefore(refNode: INode): void { /*do nothing*/ },
-  appendTo(parent: INode): void { /*do nothing*/ },
-  remove(): void { /*do nothing*/ },
-  addToLinked(): void { /*do nothing*/ },
-  unlink(): void { /*do nothing*/ },
-  link(next: INodeSequence | IRenderLocation | undefined): void { /*do nothing*/ },
+  insertBefore(refNode: INode): void { /* do nothing */ },
+  appendTo(parent: INode): void { /* do nothing */ },
+  remove(): void { /* do nothing */ },
+  addToLinked(): void { /* do nothing */ },
+  unlink(): void { /* do nothing */ },
+  link(next: INodeSequence | IRenderLocation | undefined): void { /* do nothing */ },
 };
 
 export const NodeSequence = {

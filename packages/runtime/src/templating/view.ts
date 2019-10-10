@@ -8,7 +8,6 @@ import {
   IViewFactory,
   IViewModel
 } from '../lifecycle';
-import { IScope } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ITemplate } from '../rendering-engine';
 import { CustomElement } from '../resources/custom-element';
@@ -30,7 +29,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   private readonly lifecycle: ILifecycle;
   private readonly template: ITemplate<T>;
 
-  constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
+  public constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
 
     this.cacheSize = -1;
@@ -130,6 +129,7 @@ export interface IViewLocator {
 }
 
 export type ClassInstance<T> = T & {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly constructor: Function;
 };
 
@@ -203,7 +203,7 @@ export class ViewLocator implements IViewLocator {
       );
 
       BoundComponent = class extends UnboundComponent {
-        constructor() {
+        public constructor() {
           super(object);
         }
       };
@@ -235,7 +235,7 @@ export class ViewLocator implements IViewLocator {
         class {
           protected $controller!: IController;
 
-          constructor(public viewModel: T) {}
+          public constructor(public viewModel: T) {}
 
           public created(flags: LifecycleFlags) {
             this.$controller.scope = Scope.fromParent(

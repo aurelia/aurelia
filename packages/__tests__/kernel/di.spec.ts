@@ -71,7 +71,6 @@ describe(`The DI object`, function () {
 
   //   it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, function () {
   //     class Bar {}
-  //     // @ts-ignore
   //     @decorator()
   //     const FooInline = class { constructor(public bar: Bar) {} };
   //     const actual = DI.getDesignParamTypes(FooInline);
@@ -80,7 +79,6 @@ describe(`The DI object`, function () {
 
   //   it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, function () {
   //     class Bar {}
-  //     // @ts-ignore
   //     @decorator()
   //     const FooInline = class Foo { constructor(public bar: Bar) {} };
   //     const actual = DI.getDesignParamTypes(FooInline);
@@ -99,7 +97,6 @@ describe(`The DI object`, function () {
   //     it(_`${class {}}`, function () {
   //       let cls;
   //       function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
-  //       // @ts-ignore
   //       @anonDecorator()
   //       class { constructor() { return; } }
   //       const actual = DI.getDesignParamTypes(cls);
@@ -280,7 +277,6 @@ describe(`The DI object`, function () {
   //       });
 
   //       @decorator()
-  //       // @ts-ignore
   //       class FooAnonClass { constructor(public arg: AnonClass) {} }
 
   //       it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
@@ -290,7 +286,6 @@ describe(`The DI object`, function () {
   //       });
 
   //       @decorator()
-  //       // @ts-ignore
   //       class FooVarFunc { constructor(public arg: VarFunc) {} }
 
   //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
@@ -300,7 +295,6 @@ describe(`The DI object`, function () {
   //       });
 
   //       @decorator()
-  //       // @ts-ignore
   //       class FooFunc { constructor(public arg: Func) {} }
 
   //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
@@ -310,7 +304,6 @@ describe(`The DI object`, function () {
   //       });
 
   //       @decorator()
-  //       // @ts-ignore
   //       class FooArrow { constructor(public arg: Arrow) {} }
 
   //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
@@ -335,7 +328,7 @@ describe(`The DI object`, function () {
     it(`uses getDesignParamTypes() if the static inject property does not exist`, function () {
       class Bar {}
       @decorator()
-      class Foo { constructor(bar: Bar) { return; } }
+      class Foo { public constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
@@ -350,7 +343,7 @@ describe(`The DI object`, function () {
     it(`uses getDesignParamTypes() if the static inject property is undefined`, function () {
       class Bar {}
       @decorator()
-      class Foo { public static inject; constructor(bar: Bar) { return; } }
+      class Foo { public static inject; public constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
@@ -591,7 +584,7 @@ describe(`The inject decorator`, function () {
   // });
 
   it(`can decorate constructor parameters explicitly`, function () {
-    class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
+    class Foo { public constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
 
     assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
   });
@@ -1088,11 +1081,11 @@ describe(`The Container class`, function () {
     }
 
     it(`registers the transformer if it does not exist yet`, function () {
-
+      return;
     });
 
     it(`reuses the existing transformer if it exists`, function () {
-
+      return;
     });
   });
 
@@ -1474,7 +1467,7 @@ describe(`The Container class`, function () {
   });
 
   describe(`jitRegister()`, function () {
-
+    return;
   });
 });
 

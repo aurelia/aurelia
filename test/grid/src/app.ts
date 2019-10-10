@@ -1,8 +1,6 @@
 import * as faker from 'faker';
-import './app.scss';
-
+import './app.scss'; // eslint-disable-line import/no-unassigned-import
 import { customElement, IController } from '@aurelia/runtime';
-
 import template from './app.html';
 
 function createItem() {
@@ -35,7 +33,7 @@ export class App {
 
   private sortCol?: string;
 
-  constructor() {
+  public constructor() {
     this.rows = [];
     this.cols = [
       {

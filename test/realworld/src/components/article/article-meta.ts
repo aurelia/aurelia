@@ -9,13 +9,13 @@ import { SharedState } from "shared/state/shared-state";
 export class ArticleMeta {
   @bindable public article?: Article;
 
-  constructor(private readonly articleService: ArticleService,
-              private readonly sharedState: SharedState,
-              private readonly router: IRouter) {
+  public constructor(private readonly articleService: ArticleService,
+    private readonly sharedState: SharedState,
+    private readonly router: IRouter) {
   }
 
-  get canModify() {
-    if (!this.article || !this.article.author) { return; }
+  public get canModify() {
+    if (!this.article || !this.article.author) { return false; }
     return this.article.author.username === this.sharedState.currentUser.username;
   }
 

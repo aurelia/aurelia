@@ -15,17 +15,17 @@ describe('app', function () {
       } finally {
         await ctx.tearDown();
       }
+    };
     }
-  }
   function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    return it(title, createTestFunction(testFunction));
+    it(title, createTestFunction(testFunction));
   }
   $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    return it.skip(title, createTestFunction(testFunction));
-  }
+    it.skip(title, createTestFunction(testFunction));
+  };
   $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    return it.only(title, createTestFunction(testFunction));
-  }
+    it.only(title, createTestFunction(testFunction));
+  };
 
   function getViewModel<T>(element: Element) {
     const { viewModel } = CustomElement.behaviorFor(element) as unknown as { viewModel: T };
@@ -47,7 +47,7 @@ describe('app', function () {
     }
   }
 
-  $it('has some readonly texts with different binding modes', async function ({ host }) {
+  $it('has some readonly texts with different binding modes', function ({ host }) {
     for (let i = 0; i < 4; i++) {
       const selector = `read-only-text#text${i}`;
       assert.html.textContent(selector, `text${i}`, `incorrect text for ${selector}`, host);
@@ -64,7 +64,7 @@ describe('app', function () {
     assert.html.textContent('read-only-text#text3', 'newText3', 'incorrect text for read-only-text#text3', host);
   });
 
-  $it('has some textual inputs with different binding modes', async function ({ host }) {
+  $it('has some textual inputs with different binding modes', function ({ host }) {
     const _static: HTMLInputElement = host.querySelector('#input-static input');
     const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
     const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
@@ -84,7 +84,7 @@ describe('app', function () {
     assert.html.value(blurredInputFv, '');
   });
 
-  $it('changes in the text-input are reflected correctly as per binding mode', async function ({ host, ctx }) {
+  $it('changes in the text-input are reflected correctly as per binding mode', function ({ host, ctx }) {
     const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
     const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
     const toView: HTMLInputElement = host.querySelector('#input-to-view input');
@@ -113,7 +113,7 @@ describe('app', function () {
     assert.equal(vm.inputFromView, newInputs[3]);
   });
 
-  $it('changes in the vm property are reflected in text-inputs correctly as per binding mode', async function ({ host, ctx }) {
+  $it('changes in the vm property are reflected in text-inputs correctly as per binding mode', function ({ host, ctx }) {
     const newInputs = new Array(4).fill(0).map((_, i) => `new input ${i + 1}`);
     const vm = getViewModel<App>(host);
     vm.inputOneTime = newInputs[0];
@@ -134,7 +134,7 @@ describe('app', function () {
     assert.html.value(fromView, '');
   });
 
-  $it('changes in the text-input are reflected correctly according to update-trigger event', async function ({ host, ctx }) {
+  $it('changes in the text-input are reflected correctly according to update-trigger event', function ({ host, ctx }) {
     const twoWay: HTMLInputElement = host.querySelector('#blurred-input-two-way input');
     const fromView: HTMLInputElement = host.querySelector('#blurred-input-from-view input');
 
@@ -160,7 +160,7 @@ describe('app', function () {
     assert.equal(vm.inputBlrFv, newInputFv);
   });
 
-  $it.skip('uses specs-viewer to \'compose\' display for heterogenous collection of things', async function ({ host }) {
+  $it.skip('uses specs-viewer to \'compose\' display for heterogenous collection of things', function ({ host }) {
     const specsViewer = host.querySelector('specs-viewer');
     assert.notEqual(specsViewer, null);
     console.log(specsViewer.outerHTML);
@@ -171,7 +171,7 @@ describe('app', function () {
   });
 
   $it('uses a user preference control that \'computes\' the full name of the user correctly - static',
-    async function ({ host, ctx, callCollection: { calls } }) {
+    function ({ host, ctx, callCollection: { calls } }) {
       const { user } = getViewModel<App>(host);
 
       const userPref = host.querySelector('user-preference');
@@ -213,8 +213,8 @@ describe('app', function () {
     }
   );
 
-  $it('uses a user preference control that \'computes\' the organization of the user correctly - volatile',
-    async function ({ host, ctx, callCollection: { calls } }) {
+  $it.only('uses a user preference control that \'computes\' the organization of the user correctly - volatile',
+    function ({ host, ctx, callCollection: { calls } }) {
 
       const { user } = getViewModel<App>(host);
 
@@ -236,7 +236,7 @@ describe('app', function () {
       assertCalls(calls, index, user, ['get roleNonVolatile', 'get locationVolatile'], []);
 
       index = calls.length;
-      user.organization = 'Org2'
+      user.organization = 'Org2';
       user.city = 'City2';
       ctx.lifecycle.processRAFQueue(undefined);
       assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');

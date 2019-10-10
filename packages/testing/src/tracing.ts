@@ -167,16 +167,16 @@ export function recordCalls<TProto extends object>(
       let newGet, newSet;
       if (get) {
         newGet = function (this: any) {
-          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray)
+          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
           return Reflect_apply(get, this, PLATFORM.emptyArray);
-        }
+        };
         Reflect.defineProperty(newGet, 'original', { value: get });
       }
       if (set) {
         newSet = function (this: any, valueToSet: any) {
-          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray)
+          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
           Reflect_apply(set, this, [valueToSet]);
-        }
+        };
         Reflect.defineProperty(newSet, 'original', { value: set });
       }
       if (get || set) {
@@ -233,5 +233,5 @@ export function stopRecordingCalls<TProto extends object>(
 export function trace(calls: CallCollection) {
   return function (ctor: Class<any>) {
     recordCalls(ctor, calls);
-  }
+  };
 }

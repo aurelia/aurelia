@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, FrequentMutations } from '@aurelia/runtime';
 import { HTMLTestContext, TestContext, CallCollection } from '@aurelia/testing';
@@ -7,7 +8,7 @@ import { molecules } from './molecules';
 import { callCollection } from './debug';
 
 export class TestExecutionContext {
-  constructor(
+  public constructor(
     public au: Aurelia,
     public host: HTMLElement,
     public ctx: HTMLTestContext,
@@ -26,8 +27,7 @@ export async function startup() {
   au
     .register(FrequentMutations as unknown as IRegistration)
     .register(atoms)
-    .register(molecules)
-    ;
+    .register(molecules);
   au.app({ host, component });
 
   await au.start().wait();

@@ -11,7 +11,7 @@ export class UserPreference {
 @trace(callCollection)
 export class User {
 
-  constructor(
+  public constructor(
     public firstName: string,
     public lastName: string,
     public age: number,

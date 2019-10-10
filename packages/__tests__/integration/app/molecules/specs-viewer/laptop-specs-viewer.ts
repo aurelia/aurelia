@@ -3,14 +3,14 @@ import template from './camera-specs-viewer.html';
 import { Thing } from './thing-viewer';
 
 export class Storage {
-  constructor(
+  public constructor(
     public type: "HDD" | "SSD",
     public size: number,
     public unit: "GB" | "TB"
   ) { }
 }
 export class Laptop extends Thing {
-  constructor(
+  public constructor(
     public cpu: string,
     public ram: string,
     public storage: Storage,

@@ -1,15 +1,15 @@
 import { bindable, customElement } from '@aurelia/runtime';
-import template from './camera-specs-viewer.html'
+import template from './camera-specs-viewer.html';
 import { Thing } from './thing-viewer';
 
 export class Zoom {
-  constructor(
+  public constructor(
     public optical: number,
     public digital?: number
   ) { }
 }
 export class Camera extends Thing {
-  constructor(
+  public constructor(
     public zoom: Zoom,
     public iso: number[],
     public focalLengthRange: [number, number],

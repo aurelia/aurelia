@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import { bindable, customElement } from '@aurelia/runtime';
 import template from './text-input.html';
 
@@ -13,7 +14,6 @@ import template from './text-input.html';
  *     - `value-attribute-observer`
  *   - binding behavior
  *     - `update-trigger`
- * @export
  */
 @customElement({ name: 'text-input', template })
 export class TextInput {

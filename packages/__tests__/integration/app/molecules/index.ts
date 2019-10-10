@@ -18,4 +18,4 @@ export const molecules = {
         UserPreference
       );
   }
-}
+};

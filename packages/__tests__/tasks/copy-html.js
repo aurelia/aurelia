@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable import/no-extraneous-dependencies */
 /**
  * A minimalist implementation to watch and copy html files to dist.
  * Existing packages like cpx does not copy new files.
@@ -35,7 +36,6 @@ function copyFile(src, dest) {
   }
   fs.copyFileSync(src, dest, fs.constants.COPYFILE_FICLONE);
 }
-
 
 /**
  * @param {string} dest

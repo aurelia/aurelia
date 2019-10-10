@@ -8,7 +8,6 @@ import {
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
- * @export
  */
 export class AttributeNSAccessor implements IAccessor<string | null> {
   public readonly lifecycle: ILifecycle;

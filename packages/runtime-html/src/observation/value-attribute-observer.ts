@@ -17,7 +17,6 @@ export interface ValueAttributeObserver
 
 /**
  * Observer for non-radio, non-checkbox input.
- * @export
  */
 @subscriberCollection()
 export class ValueAttributeObserver implements IAccessor<unknown> {

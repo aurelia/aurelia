@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import { bindable, customElement } from '@aurelia/runtime';
 import template from './read-only-text.html';
 
@@ -9,7 +10,6 @@ import template from './read-only-text.html';
  * - `@aurelia/runtime-html`
  *   - `setter-observer`
  *   - `element-property-accessor`
- * @export
  */
 @customElement({ name: 'read-only-text', template })
 export class ReadOnlyText {

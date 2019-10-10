@@ -1,7 +1,7 @@
 /// <reference types="reflect-metadata" />
 import { Class, Constructable, IIndexable } from './interfaces';
 import { PLATFORM } from './platform';
-import { Reporter, Tracer } from './reporter';
+import { Reporter } from './reporter';
 import { IResourceType } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

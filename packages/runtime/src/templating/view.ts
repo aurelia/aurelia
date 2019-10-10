@@ -8,7 +8,6 @@ import {
   IViewFactory,
   IViewModel
 } from '../lifecycle';
-import { IScope } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ITemplate } from '../rendering-engine';
 import { CustomElement } from '../resources/custom-element';

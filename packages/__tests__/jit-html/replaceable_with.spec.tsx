@@ -17,10 +17,10 @@ describe('replaceable', function () {
               '  [replaceable #0] << replace #0'
             ].join('\n'),
             <div with$="{ item: items[0] }">
-              <div replaceable part="p0">{'${item.name}'}</div>
+              <div replaceable="p0">{'${item.name}'}</div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             `replacement of 0-item-0.`
@@ -30,9 +30,9 @@ describe('replaceable', function () {
             [
               '[with] [replaceable #0] << replace #0'
             ].join('\n'),
-            <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>,
+            <div with$="{ item: items[0] }" replaceable="p0">{'${item.name}'}</div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             `replacement of 0-item-0.`
@@ -44,13 +44,13 @@ describe('replaceable', function () {
               '    [replaceable #1]'
             ].join('\n'),
             <div with$="{ item: items[0] }">
-              <div replaceable part="p0">
+              <div replaceable="p0">
                 {'${item.name}'}
-                <div replaceable part="p1">{'${item.name}'}</div>
+                <div replaceable="p1">{'${item.name}'}</div>
               </div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             `replacement of 0-item-0.`
@@ -61,12 +61,12 @@ describe('replaceable', function () {
               '[with] [replaceable #0] << replace #0',
               '  [replaceable #1]'
             ].join('\n'),
-            <div with$="{ item: items[0] }" replaceable part="p0">
+            <div with$="{ item: items[0] }" replaceable="p0">
               {'${item.name}'}
-              <div replaceable part="p1">{'${item.name}'}</div>
+              <div replaceable="p1">{'${item.name}'}</div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             `replacement of 0-item-0.`
@@ -78,13 +78,13 @@ describe('replaceable', function () {
               '    [replaceable #1] << replace #1'
             ].join('\n'),
             <div with$="{ item: items[0] }">
-              <div replaceable part="p0">
+              <div replaceable="p0">
                 {'${item.name}.'}
-                <div replaceable part="p1">{'${item.name}'}</div>
+                <div replaceable="p1">{'${item.name}'}</div>
               </div>
             </div>,
             <foo>
-              <template replace-part="p1">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p1">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             'item-0.replacement of 0-item-0.'
@@ -95,14 +95,14 @@ describe('replaceable', function () {
               '  [with]',
               '    [replaceable #1] << replace #1'
             ].join('\n'),
-            <div replaceable part="p0">
+            <div replaceable="p0">
               item-0.
               <div with$="{ item: items[0] }">
-                <div replaceable part="p1">{'${item.name}'}</div>
+                <div replaceable="p1">{'${item.name}'}</div>
               </div>
             </div>,
             <foo>
-              <template replace-part="p1">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p1">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             'item-0.replacement of 0-item-0.'
@@ -113,12 +113,12 @@ describe('replaceable', function () {
               '  [with]',
               '    [replaceable #1] << replace #1'
             ].join('\n'),
-            <div replaceable part="p0">
+            <div replaceable="p0">
               item-0.
-              <div with$="{ item: items[0] }" replaceable part="p1">{'${item.name}'}</div>
+              <div with$="{ item: items[0] }" replaceable="p1">{'${item.name}'}</div>
             </div>,
             <foo>
-              <template replace-part="p1">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p1">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             'item-0.replacement of 0-item-0.'
@@ -132,14 +132,14 @@ describe('replaceable', function () {
             ].join('\n'),
             <div>
               <div with$="{ item: items[0] }">
-                <div replaceable part="p0">{'${item.name}'}</div>
+                <div replaceable="p0">{'${item.name}'}</div>
               </div>
               <div with$="{ item: items[0] }">
-                <div replaceable part="p0">{'${item.name}'}</div>
+                <div replaceable="p0">{'${item.name}'}</div>
               </div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             'replacement of 0-item-0.replacement of 0-item-0.'
@@ -151,11 +151,11 @@ describe('replaceable', function () {
               '[with] [replaceable #0] << replace #0'
             ].join('\n'),
             <div>
-              <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>
-              <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>
+              <div with$="{ item: items[0] }" replaceable="p0">{'${item.name}'}</div>
+              <div with$="{ item: items[0] }" replaceable="p0">{'${item.name}'}</div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             'replacement of 0-item-0.replacement of 0-item-0.'
@@ -169,17 +169,17 @@ describe('replaceable', function () {
               '    [replaceable #1] << replace #1'
             ].join('\n'),
             <div with$="{ item: items[0] }">
-              <div replaceable part="p0">
+              <div replaceable="p0">
                 {'${item.name}.'}
-                <div replaceable part="p1">{'${item.name}.'}</div>
+                <div replaceable="p1">{'${item.name}.'}</div>
               </div>
-              <div replaceable part="p0">
+              <div replaceable="p0">
                 {'${item.name}.'}
-                <div replaceable part="p1">{'${item.name}.'}</div>
+                <div replaceable="p1">{'${item.name}.'}</div>
               </div>
             </div>,
             <foo>
-              <template replace-part="p1">replacement of {'${item.idx}-${item.name}.'}</template>
+              <template replace="p1">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             'item-0.replacement of 0-item-0.item-0.replacement of 0-item-0.'
@@ -193,10 +193,10 @@ describe('replaceable', function () {
               '  [${}] <-- by interpolation binding from consumer'
             ].join('\n'),
             <div with$="{ item: items[0] }">
-              <div replaceable part="p0">{'${item.name}'}</div>
+              <div replaceable="p0">{'${item.name}'}</div>
             </div>,
             <foo>
-              <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
+              <template replace="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
             </foo>,
             createItems(2),
             `0-item-0. Message: Aurelia.`,
@@ -218,9 +218,9 @@ describe('replaceable', function () {
               '[foo]',
               '  [${}] <-- by interpolation binding from consumer'
             ].join('\n'),
-            <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>,
+            <div with$="{ item: items[0] }" replaceable="p0">{'${item.name}'}</div>,
             <foo>
-              <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
+              <template replace="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
             </foo>,
             createItems(2),
             `0-item-0. Message: Aurelia.`,
@@ -244,10 +244,10 @@ describe('replaceable', function () {
           //     '    [with] <-- by a with'
           //   ].join('\n'),
           //   <div with$="{ item: items[0] }">
-          //     <div replaceable part="p0">{'${item.name}'}</div>
+          //     <div replaceable="p0">{'${item.name}'}</div>
           //   </div>,
           //   <foo>
-          //     <template replace-part="p0">
+          //     <template replace="p0">
           //       <template with$="{ item: items[0] }">{'${item.idx}-${item.name}.'}</template>
           //     </template>
           //   </foo>,
@@ -280,9 +280,9 @@ describe('replaceable', function () {
           //     '  [template r#0]',
           //     '    [with] <-- by a with'
           //   ].join('\n'),
-          //   <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>,
+          //   <div with$="{ item: items[0] }" replaceable="p0">{'${item.name}'}</div>,
           //   <foo>
-          //     <template replace-part="p0">
+          //     <template replace="p0">
           //       <template with$="{ item: items[0] }">{'${item.idx}-${item.name}.'}</template>
           //     </template>
           //   </foo>,

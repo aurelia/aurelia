@@ -1,4 +1,4 @@
-import { DI, IIndexable, Key, Reporter, Tracer } from '@aurelia/kernel';
+import { DI, IIndexable, Key, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle, Priority } from '../lifecycle';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';

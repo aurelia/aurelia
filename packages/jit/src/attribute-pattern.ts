@@ -1,4 +1,4 @@
-import { Class, DI, IContainer, IRegistry, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { Class, DI, IContainer, IRegistry, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 
 export interface AttributePatternDefinition {

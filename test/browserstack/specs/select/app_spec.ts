@@ -57,7 +57,6 @@
 //         AppPage.checkCheckbox();
 //       });
 
-
 //       it(`select each item simultaneously`, function () {
 //         AppPage.setSelectByIndex(0); // deselect first element before starting loop
 //         for (let i = 0; i < 10; ++i) {

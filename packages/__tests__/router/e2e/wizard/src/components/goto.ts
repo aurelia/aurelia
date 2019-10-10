@@ -10,7 +10,7 @@ export class GotoCustomElement {
   @bindable public title: string;
   @bindable public parameters: Record<string, unknown>;
 
-  constructor(private readonly router: Router, private readonly element: Element) { }
+  public constructor(private readonly router: Router, private readonly element: Element) { }
 
   public click() {
     this.router.goto(this.views, this.title, this.parameters);

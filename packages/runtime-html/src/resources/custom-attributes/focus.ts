@@ -26,7 +26,7 @@ export class Focus {
   // This is set by the controller after this instance is constructed
   private readonly $controller!: IController;
 
-  constructor(
+  public constructor(
     @INode private readonly element: HTMLElement,
     @IDOM private readonly dom: HTMLDOM
   ) {
@@ -41,7 +41,8 @@ export class Focus {
 
   /**
    * Invoked everytime the bound value changes.
-   * @param newValue The new value.
+   *
+   * @param newValue - The new value.
    */
   public valueChanged(): void {
     // In theory, we could/should react immediately

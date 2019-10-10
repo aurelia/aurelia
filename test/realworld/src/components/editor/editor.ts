@@ -11,19 +11,19 @@ export class Editor {
   private article?: Article;
   private slug?: string;
 
-  constructor(private readonly articleService: ArticleService, private readonly router: IRouter) { }
+  public constructor(private readonly articleService: ArticleService, private readonly router: IRouter) { }
 
-  public created() { }
-  public binding() { }
-  public bound() { }
-  public attaching() { }
-  public attached() { }
-  public detaching() { }
-  public detached() { }
-  public unbinding() { }
-  public unbound() { }
+  public created() { return; }
+  public binding() { return; }
+  public bound() { return; }
+  public attaching() { return; }
+  public attached() { return; }
+  public detaching() { return; }
+  public detached() { return; }
+  public unbinding() { return; }
+  public unbound() { return; }
 
-  public enter(params: { slug: any; }) {
+  public enter(params: { slug: any }) {
     this.slug = params.slug;
 
     if (this.slug) {
@@ -58,7 +58,7 @@ export class Editor {
   }
 
   public removeTag(tag: string) {
-    this.article!.tagList!.splice(this.article!.tagList!.indexOf(tag), 1);
+    this.article.tagList!.splice(this.article.tagList!.indexOf(tag), 1);
   }
 
   public publishArticle() {

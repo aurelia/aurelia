@@ -9,7 +9,7 @@ export class Users {
   public heading: string = 'Github Users';
   public users: any[] = [];
 
-  constructor(private http: HttpClient) {
+  public constructor(private http: HttpClient) {
     (http as any).configure(config => {
       config
         .useStandardConfiguration()

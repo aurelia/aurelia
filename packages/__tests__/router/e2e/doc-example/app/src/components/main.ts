@@ -40,7 +40,7 @@ import { Books } from './books/books';
   </div>
 ` })
 export class Main {
-  constructor(private readonly router: IRouter, private readonly state: State) {
+  public constructor(private readonly router: IRouter, private readonly state: State) {
     this.router.setNav('main-menu', [
       {
         title: 'Authors',

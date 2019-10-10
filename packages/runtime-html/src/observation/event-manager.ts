@@ -10,7 +10,7 @@ export interface IManagedEvent extends Event {
   deepPath?(): EventTarget[];
 }
 
-//Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
+// Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 /** @internal */
 export function findOriginalEventTarget(event: IManagedEvent): EventTarget {
   return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
@@ -81,7 +81,7 @@ export class ListenerTracker {
   private readonly listener: EventListenerOrEventListenerObject;
   private count: number;
 
-  constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
+  public constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean) {
     this.dom = dom;
     this.capture = capture;
     this.count = 0;
@@ -103,7 +103,7 @@ export class ListenerTracker {
     }
   }
 
-  /*@internal*/
+  /* @internal */
   public dispose(): void {
     if (this.count > 0) {
       this.count = 0;
@@ -120,7 +120,7 @@ export class DelegateOrCaptureSubscription implements IDisposable {
   public lookup: Record<string, EventListenerOrEventListenerObject>;
   public targetEvent: string;
 
-  constructor(
+  public constructor(
     entry: { decrement(): void },
     lookup: Record<string, EventListenerOrEventListenerObject>,
     targetEvent: string,
@@ -147,7 +147,7 @@ export class TriggerSubscription implements IDisposable {
   public callback: EventListenerOrEventListenerObject;
   private readonly dom: IDOM;
 
-  constructor(
+  public constructor(
     dom: IDOM,
     target: Node,
     targetEvent: string,
@@ -185,7 +185,7 @@ export class EventSubscriber implements IEventSubscriber {
   private target: Node;
   private handler: EventListenerOrEventListenerObject;
 
-  constructor(dom: IDOM, events: string[]) {
+  public constructor(dom: IDOM, events: string[]) {
     this.dom = dom;
     this.events = events;
     this.target = null!;
@@ -231,7 +231,7 @@ export class EventManager implements IEventManager {
   public readonly delegatedHandlers: Record<string, ListenerTracker> = {};
   public readonly capturedHandlers: Record<string, ListenerTracker> = {};
 
-  constructor() {
+  public constructor() {
     this.delegatedHandlers = {};
     this.capturedHandlers = {};
   }

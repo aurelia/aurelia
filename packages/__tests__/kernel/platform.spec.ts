@@ -43,17 +43,13 @@ describe(`The PLATFORM object`, function () {
       assert.strictEqual(PLATFORM.global, global, `PLATFORM.global`);
     });
   }
-  // @ts-ignore
   if (typeof self !== 'undefined') {
     it(`global references self`, function () {
-      // @ts-ignore
       assert.strictEqual(PLATFORM.global, self, `PLATFORM.global`);
     });
   }
-  // @ts-ignore
   if (typeof window !== 'undefined') {
     it(`global references window`, function () {
-      // @ts-ignore
       assert.strictEqual(PLATFORM.global, window, `PLATFORM.global`);
     });
   }
@@ -78,7 +74,7 @@ describe(`The PLATFORM object`, function () {
     assert.greaterThanOrEqualTo($5, $4, `$5`);
   });
 
-  it(`requestAnimationFrame() resolves after microtasks`, done => {
+  it(`requestAnimationFrame() resolves after microtasks`, function(done) {
     let rafResolved = false;
     let promiseResolved = false;
     PLATFORM.requestAnimationFrame(() => {

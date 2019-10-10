@@ -16,5 +16,5 @@ module.exports = function() {
       extensions: ['.js'],
       modules: ['.', 'node_modules']
     }
-  }
-}
+  };
+};

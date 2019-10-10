@@ -71,7 +71,7 @@ describe('template-compiler.binding-commands.class', function() {
 
         await eachCartesianJoinAsync(
           [falsyValues, truthyValues],
-          async (falsyValue, truthyValue) => {
+          (falsyValue, truthyValue) => {
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
               assert.contains(
@@ -117,11 +117,13 @@ describe('template-compiler.binding-commands.class', function() {
    * Check the following:
    * 1. The element contains the class
    * 2. Each `value` of falsy values, set bound view model value to `value` and:
-   *  - wait for 1 promise tick
-   *  - the element does not contain the class
+   * - wait for 1 promise tick
+   * - the element does not contain the class
+   *
    * 3. Each `value` of truthy values, set bound view model value to `value` and:
-   *  - wait for 1 promise tick
-   *  - the element does contain the class
+   * - wait for 1 promise tick
+   * - the element does contain the class
+   *
    * 4. TODO: assert class binding command on root surrogate once root surrogate rendering is supported
    */
   eachCartesianJoin(
@@ -164,7 +166,7 @@ describe('template-compiler.binding-commands.class', function() {
 
           await eachCartesianJoinAsync(
             [falsyValues, truthyValues],
-            async (falsyValue, truthyValue) => {
+            (falsyValue, truthyValue) => {
               component.value = falsyValue;
 
               lifecycle.processRAFQueue(LifecycleFlags.none);

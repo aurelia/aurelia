@@ -69,7 +69,7 @@ export class With<T extends INode = INode> {
 
   private _value: object | undefined;
 
-  constructor(
+  public constructor(
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {

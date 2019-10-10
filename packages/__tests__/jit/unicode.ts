@@ -3,12 +3,12 @@ const latin1IdentifierStartCodes = [0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0x
 const latin1IdentifierPartCodes = latin1IdentifierStartCodes.concat(0x30, 0x3A);
 
 const otherBMPIdentifierPartCodes = [
-  65493 /*ￕ*/,
-  65494 /*ￖ*/,
-  65495 /*ￗ*/,
-  65498 /*ￚ*/,
-  65499 /*ￛ*/,
-  65500 /*ￜ*/
+  65493 /* ￕ */,
+  65494 /* ￖ */,
+  65495 /* ￗ */,
+  65498 /* ￚ */,
+  65499 /* ￛ */,
+  65500 /* ￜ */
 ];
 
 function toChars(compressed: number[]): string[] {

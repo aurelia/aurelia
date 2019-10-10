@@ -33,7 +33,7 @@ export class Author {
 
   public hideTabs: boolean = false;
 
-  constructor(private readonly router: IRouter, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
+  public constructor(private readonly router: IRouter, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   public created() {
     console.log('### created', this);

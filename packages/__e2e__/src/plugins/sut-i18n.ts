@@ -12,7 +12,7 @@ export class SutI18N {
   public translations: { [key: string]: string | number };
   private readonly myDate: Date;
   private locale: Locale;
-  constructor(
+  public constructor(
     @I18N private readonly i18n: I18nService,
     @ISignaler private readonly signaler: ISignaler
   ) {

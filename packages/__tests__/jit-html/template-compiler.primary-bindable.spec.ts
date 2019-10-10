@@ -7,7 +7,6 @@ import {
   bindingBehavior,
   customAttribute,
   CustomElement,
-  ICustomAttributeResource,
   INode,
   valueConverter,
   CustomAttribute,
@@ -45,7 +44,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -70,7 +69,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: number;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -96,7 +95,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -121,7 +120,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -148,7 +147,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -176,7 +175,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -191,7 +190,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     },
     {
       title: '(7) works with interpolation',
-      template: '<div square="color: ${`red`}; diameter: ${5}"></div>',
+      template: `<div square="color: \${\`red\`}; diameter: \${5}"></div>`,
       attrResources: () => {
         @customAttribute({
           name: 'square'
@@ -203,7 +202,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
 
           public binding() {
             this.el.style.background = this.color;
@@ -225,7 +224,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         @customAttribute({ name: 'square' })
         class Square {
           public value: string;
-          constructor(@INode private el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
           public binding() {
             this.el.style.background = this.value;
           }
@@ -248,7 +247,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @customAttribute({ name: 'square' })
           class Square {
             public value: string;
-            constructor(@INode private el: HTMLElement) {}
+            public constructor(@INode private readonly el: HTMLElement) {}
             public binding() {
               const value = this.value === 'literal:literal' ? 'red' : this.value;
               this.el.style.background = value;
@@ -281,7 +280,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     // unhappy usage
     {
       title: 'throws when combining binding commnd with interpolation',
-      template: '<div square="color.bind: ${`red`}; diameter: ${5}"></div>',
+      template: `<div square="color.bind: \${\`red\`}; diameter: \${5}"></div>`,
       testWillThrow: true,
       attrResources: () => {
         @customAttribute({
@@ -294,7 +293,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
         }
         return [Square];
       },
@@ -317,7 +316,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          constructor(@INode private readonly el: HTMLElement) {}
+          public constructor(@INode private readonly el: HTMLElement) {}
         }
         return [Square];
       },
@@ -360,14 +359,12 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         host = body.appendChild(ctx.createElement('app'));
         ctx.container.register(...resources, ...attrs);
 
-        let didThrow = false;
         let component: any;
         try {
           au.app({ host, component: App });
           await au.start().wait();
           component = au.root.viewModel;
         } catch (ex) {
-          didThrow = true;
           if (testWillThrow) {
             // dont try to assert anything on throw
             // just bails
@@ -379,7 +376,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           throw ex;
         }
 
-        if (testWillThrow && !didThrow) {
+        if (testWillThrow) {
           throw new Error('Expected test to throw, but did NOT');
         }
 
@@ -413,7 +410,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       @bindable({ primary: true })
       public route: string;
 
-      constructor(
+      public constructor(
         private readonly el: HTMLAnchorElement,
         private readonly dom: HTMLDOM
       ) {

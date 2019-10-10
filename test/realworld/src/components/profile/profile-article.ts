@@ -10,13 +10,13 @@ export class ProfileArticle {
   public static parameters: string[] = ['name'];
 
   private articles: Article[] = [];
-  private pageNumber?: number;
+  private readonly pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
-  private limit = 10;
+  private readonly limit = 10;
   private username?: string;
 
-  constructor(private readonly articleService: ArticleService) {
+  public constructor(private readonly articleService: ArticleService) {
   }
 
   public canEnter() { console.log(`profile-article canEnter`); return true; }

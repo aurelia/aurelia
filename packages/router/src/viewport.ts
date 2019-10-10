@@ -1,11 +1,9 @@
-// tslint:disable:no-non-null-assertion
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
-import { IViewportOptions } from './viewport';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -44,7 +42,7 @@ export class Viewport {
   private cache: ViewportContent[] = [];
   private historyCache: ViewportContent[] = [];
 
-  constructor(
+  public constructor(
     public readonly router: IRouter,
     public name: string,
     public element: Element | null,
@@ -185,7 +183,7 @@ export class Viewport {
           (this.nextContent ? this.nextContent.instruction : null),
           this.historyCache,
           this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
-        ); //.catch(error => { throw error; });
+        ); // .catch(error => { throw error; });
       }
       if (this.doForceRemove) {
         await Promise.all(this.historyCache.map(content => content.freeContent(
@@ -305,7 +303,7 @@ export class Viewport {
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
     }
-    return usedBy.indexOf(component as string) >= 0;
+    return usedBy.includes(component as string);
   }
   // TODO: Deal with non-string components
   public acceptComponent(component: ComponentAppellation): boolean {
@@ -319,10 +317,10 @@ export class Viewport {
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
     }
-    if (usedBy.indexOf(component as string) >= 0) {
+    if (usedBy.includes(component as string)) {
       return true;
     }
-    if (usedBy.filter((value) => value.indexOf('*') >= 0).length) {
+    if (usedBy.filter((value) => value.includes('*')).length) {
       return true;
     }
     return false;

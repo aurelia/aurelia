@@ -36,7 +36,7 @@ export class MultiInterpolationBinding implements IBinding {
   public target: IObservable;
   public targetProperty: string;
 
-  constructor(
+  public constructor(
     observerLocator: IObserverLocator,
     interpolation: IInterpolationExpression,
     target: object,
@@ -115,7 +115,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   public targetObserver: IBindingTargetAccessor;
 
-  constructor(
+  public constructor(
     sourceExpression: IExpression,
     interpolation: IInterpolationExpression,
     target: object,

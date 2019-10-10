@@ -1,11 +1,11 @@
 import { AboutComponent, ChatComponent, ChatDetailsComponent, ChatUsersComponent, Shared } from './selectors.po';
 
-describe('doc-example / common elements', () => {
+describe('doc-example / common elements', function() {
   before(() => {
     cy.visit('/');
   });
 
-  it('sets the default checkboxes values', () => {
+  it('sets the default checkboxes values', function() {
     cy.get(Shared.noDelayCheckbox)
       .should('be.checked');
 
@@ -13,13 +13,13 @@ describe('doc-example / common elements', () => {
       .should('be.checked');
   });
 
-  it('sets the default info background color', () => {
+  it('sets the default info background color', function() {
     cy.get(Shared.infoBackgroundColor)
       .should('have.text', 'lightgreen');
   });
 
-  describe('about component', () => {
-    it('allows entry to the input box', () => {
+  describe('about component', function() {
+    it('allows entry to the input box', function() {
       cy.get(AboutComponent.aboutInput)
         .should('be.enabled')
         .and('be.empty')
@@ -29,7 +29,7 @@ describe('doc-example / common elements', () => {
     });
   });
 
-  describe('chat component', () => {
+  describe('chat component', function() {
     before(() => {
       cy.visit('/#/chat');
     });
@@ -39,7 +39,7 @@ describe('doc-example / common elements', () => {
         .click();
     });
 
-    it('sets the correct nav items as active', () => {
+    it('sets the correct nav items as active', function() {
       const labels = [
         'Authors',
         'About',
@@ -59,7 +59,7 @@ describe('doc-example / common elements', () => {
       });
     });
 
-    it('displays the default viewports', () => {
+    it('displays the default viewports', function() {
       cy.get(ChatComponent.chatMainViewport)
         .should('exist');
       cy.get(ChatComponent.chatMainViewportHeader)
@@ -71,7 +71,7 @@ describe('doc-example / common elements', () => {
         .should('contain', 'Viewport: chat-details  : null');
     });
 
-    it('displays the correct chat users', () => {
+    it('displays the correct chat users', function() {
       const users = [
         {
           id: 'eisenbergeffect',
@@ -104,7 +104,7 @@ describe('doc-example / common elements', () => {
       });
     });
 
-    it('displays the correct user', () => {
+    it('displays the correct user', function() {
       cy.get(ChatUsersComponent.userLinks)
         .as('chatUsers');
 

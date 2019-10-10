@@ -29,7 +29,7 @@ export const IActivator = DI.createInterface<IActivator>('IActivator').withDefau
 export class Activator implements IActivator {
   public static readonly inject: readonly Key[] = [IStartTaskManager];
 
-  constructor(
+  public constructor(
     private readonly taskManager: IStartTaskManager,
   ) {}
 

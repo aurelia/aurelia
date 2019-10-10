@@ -7,10 +7,10 @@ export class Comment {
   @bindable public comment: any;
   @bindable public deleteCb: any;
 
-  constructor(private readonly sharedState: SharedState) {
+  public constructor(private readonly sharedState: SharedState) {
   }
 
-  get canModify() {
+  public get canModify() {
     return this.comment.author.username === this.sharedState.currentUser.username;
   }
 }

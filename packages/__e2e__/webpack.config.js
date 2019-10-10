@@ -31,5 +31,5 @@ module.exports = function(env, { mode }) {
         { from: 'src/locales', to: 'locales' }
       ])
     ]
-  }
-}
+  };
+};

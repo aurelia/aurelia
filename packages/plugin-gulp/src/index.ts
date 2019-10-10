@@ -50,5 +50,5 @@ export function plugin(
 }
 
 function stringModuleWrap(id: string) {
-  return 'text!' + id;
+  return `text!${id}`;
 }

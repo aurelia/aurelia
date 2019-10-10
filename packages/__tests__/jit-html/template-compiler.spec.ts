@@ -11,6 +11,7 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
+  AttributeFilter,
   bindable,
   BindingIdentifier,
   BindingMode,
@@ -539,7 +540,8 @@ function createCustomElement({
   nestedElInstructions,
   childOutput,
   childInput,
-  capturedAttrs
+  capturedAttrs,
+  customOutputAttributeMarkup
 }: {
   ctx: HTMLTestContext;
   tagName: string;
@@ -551,6 +553,11 @@ function createCustomElement({
   childOutput?: any;
   childInput?: any;
   capturedAttrs?: { name: string; value: string }[];
+  /**
+   * When output template attributes will be in different shape with common scenarios
+   * this helps specify the output
+   */
+  customOutputAttributeMarkup?: string;
 }) {
   const instruction = {
     type: TT.hydrateElement,
@@ -565,7 +572,8 @@ function createCustomElement({
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
+  const outputMarkup = ctx.createElementFromMarkup(
+    `<${tagName} ${typeof customOutputAttributeMarkup === 'string' ? customOutputAttributeMarkup : attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
@@ -1157,7 +1165,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('custom elements', function () {
+  describe.only('custom elements with capture attrs', function () {
     eachCartesianJoinFactory([
       [
         TestContext.createHTMLTestContext
@@ -1167,29 +1175,33 @@ describe(`TemplateCompiler - combinations`, function () {
           ctx,
           tagName: `foo`,
           finalize: true,
-          attributes: [],
+          attributes: Array.from({ length: 5 }).map((_, idx) => [`attr-${idx}`, `attr-v-${idx}`]),
           childInstructions: [],
           siblingInstructions: [],
-          nestedElInstructions: []
+          nestedElInstructions: [],
+          capturedAttrs: Array.from({ length: 5 }).map((_, idx) => {
+            return { name: `attr-${idx}`, value: `attr-v-${idx}` };
+          }),
+          customOutputAttributeMarkup: ''
         }),
-        (ctx) => createCustomElement({
-          ctx,
-          tagName: `bar`,
-          finalize: true,
-          attributes: [],
-          childInstructions: [],
-          siblingInstructions: [],
-          nestedElInstructions: []
-        }),
-        (ctx) => createCustomElement({
-          ctx,
-          tagName: `baz`,
-          finalize: true,
-          attributes: [],
-          childInstructions: [],
-          siblingInstructions: [],
-          nestedElInstructions: []
-        })
+        // (ctx) => createCustomElement({
+        //   ctx,
+        //   tagName: `bar`,
+        //   finalize: true,
+        //   attributes: Array.from({ length: 5 }).map((_, idx) => [`attr-${idx}`, `attr-v-${idx}`]),
+        //   childInstructions: [],
+        //   siblingInstructions: [],
+        //   nestedElInstructions: []
+        // }),
+        // (ctx) => createCustomElement({
+        //   ctx,
+        //   tagName: `baz`,
+        //   finalize: true,
+        //   attributes: Array.from({ length: 5 }).map((_, idx) => [`attr-${idx}`, `attr-v-${idx}`]),
+        //   childInstructions: [],
+        //   siblingInstructions: [],
+        //   nestedElInstructions: []
+        // })
       ] as ((ctx: HTMLTestContext) => CTCResult)[]
       // <(($1: CTCResult) => CTCResult)[]>[
       //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
@@ -1207,9 +1219,9 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
-          CustomElement.define({ name: 'foo' }, class Foo {}),
-          CustomElement.define({ name: 'bar' }, class Bar {}),
-          CustomElement.define({ name: 'baz' }, class Baz {})
+          CustomElement.define({ name: 'foo', captureAttrs: AttributeFilter.all }, class Foo {}),
+          // CustomElement.define({ name: 'bar' }, class Bar {}),
+          // CustomElement.define({ name: 'baz' }, class Baz {})
         );
 
         // enableTracing();

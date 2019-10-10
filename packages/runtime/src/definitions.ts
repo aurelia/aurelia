@@ -79,10 +79,17 @@ export interface IBuildInstruction {
   compiler?: string;
 }
 
+export enum AttributeFilter {
+  none            = 0b0_000,
+  bindingCommands = 0b0_001,
+  plain           = 0b0_010,
+  all             = 0b0_011,
+}
+
 export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: unknown;
-  captureAttrs?: boolean | string[];
+  captureAttrs?: AttributeFilter | string[];
   instructions?: ITargetedInstruction[][];
   dependencies?: Key[];
   build?: IBuildInstruction;
@@ -269,7 +276,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public cache: '*' | number;
   public aliases: string[];
   public template: unknown;
-  public captureAttrs: boolean | string[];
+  public captureAttrs: AttributeFilter | string[];
   public instructions: ITargetedInstruction[][];
   public dependencies: IRegistry[];
   public build: IBuildInstruction;
@@ -286,7 +293,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public constructor() {
     this.name = 'unnamed';
     this.template = null;
-    this.captureAttrs = false;
+    this.captureAttrs = AttributeFilter.none;
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
@@ -344,7 +351,7 @@ export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   name: string | null,
   template: unknown,
-  captureAttrs?: boolean | string[],
+  captureAttrs?: AttributeFilter | string[],
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,
@@ -362,7 +369,7 @@ export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | ITemplateDefinition | null,
   template?: unknown | null,
-  captureAttrs?: boolean | string[],
+  captureAttrs?: AttributeFilter | string[],
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,
   bindables?: Record<string, IBindableDescription> | null,

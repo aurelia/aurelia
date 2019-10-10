@@ -4,6 +4,7 @@ import {
 } from '@aurelia/kernel';
 import {
   AttributeDefinition,
+  AttributeFilter,
   BindingMode,
   CustomAttribute,
   CustomElement,
@@ -52,7 +53,7 @@ export class ElementInfo {
   public constructor(
     public name: string,
     public containerless: boolean,
-    public readonly captureAttrs: boolean | string[]
+    public readonly captureAttrs: AttributeFilter | string[]
   ) {}
 
   public static from(def: TemplateDefinition): ElementInfo {

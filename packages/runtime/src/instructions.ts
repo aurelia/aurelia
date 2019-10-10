@@ -172,11 +172,6 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
     capturedAttrs: { name: string; value: string }[] | undefined
   ) {
     this.type = TargetedInstructionType.hydrateElement;
-
-    this.instructions = instructions;
-    this.parts = parts;
-    this.res = res;
-
     this.capturedAttrs = capturedAttrs === void 0 ? PLATFORM.emptyArray : capturedAttrs;
   }
 }

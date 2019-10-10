@@ -395,14 +395,12 @@ describe('templating-compiler.ref.spec.ts', function() {
         host = body.appendChild(ctx.createElement('app'));
         ctx.container.register(...resources);
 
-        let didThrow = false;
         let component: any;
         try {
           au.app({ host, component: App });
           await au.start().wait();
           component = au.root.viewModel;
         } catch (ex) {
-          didThrow = true;
           if (testWillThrow) {
             // dont try to assert anything on throw
             // just bails
@@ -414,7 +412,7 @@ describe('templating-compiler.ref.spec.ts', function() {
           throw ex;
         }
 
-        if (testWillThrow && !didThrow) {
+        if (testWillThrow) {
           throw new Error('Expected test to throw, but did NOT');
         }
 

@@ -112,3 +112,9 @@ With the `capture` binding command, you may ask "Which is best command for event
 
 Well, the short answer above remains true, **Use `delegate` except when you cannot use `delegate`.** `capture` is not normally needed. It's provided in order to assist in handling edge cases, primarily around 3rd party code.
 
+## Contextual Properties
+
+Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context. Below is a brief summary of the available contextual properties within event expressions.
+
+* `$event` - The DOM Event in `delegate`, `trigger`, and `capture` bindings.
+

@@ -331,8 +331,8 @@ export class BrowserScheduler implements IScheduler {
     [TaskQueuePriority.microTask]: TaskQueue;
     [TaskQueuePriority.eventLoop]: TaskQueue;
     [TaskQueuePriority.render]: TaskQueue;
-    [TaskQueuePriority.postRender]: TaskQueue;
     [TaskQueuePriority.macroTask]: TaskQueue;
+    [TaskQueuePriority.postRender]: TaskQueue;
     [TaskQueuePriority.idle]: TaskQueue;
   };
 
@@ -343,11 +343,11 @@ export class BrowserScheduler implements IScheduler {
       request: () => void;
       cancel: () => void;
     };
-    [TaskQueuePriority.postRender]: {
+    [TaskQueuePriority.macroTask]: {
       request: () => void;
       cancel: () => void;
     };
-    [TaskQueuePriority.macroTask]: {
+    [TaskQueuePriority.postRender]: {
       request: () => void;
       cancel: () => void;
     };
@@ -361,16 +361,16 @@ export class BrowserScheduler implements IScheduler {
     const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
     const eventLoopTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.eventLoop });
     const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });
-    const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
     const macroTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask });
+    const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
     const idleTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.idle });
 
     this.taskQueue = [
       microTaskTaskQueue,
       eventLoopTaskQueue,
       renderTaskQueue,
-      postRenderTaskQueue,
       macroTaskTaskQueue,
+      postRenderTaskQueue,
       idleTaskQueue,
     ];
 
@@ -379,8 +379,8 @@ export class BrowserScheduler implements IScheduler {
       createMicrotaskFlushRequestor(wnd, microTaskTaskQueue.flush.bind(microTaskTaskQueue)),
       createPostMessageFlushRequestor(wnd, eventLoopTaskQueue.flush.bind(eventLoopTaskQueue)),
       createRequestAnimationFrameFlushRequestor(wnd, renderTaskQueue.flush.bind(renderTaskQueue)),
-      createPostRequestAnimationFrameFlushRequestor(wnd, postRenderTaskQueue.flush.bind(postRenderTaskQueue)),
       createSetTimeoutFlushRequestor(wnd, macroTaskTaskQueue.flush.bind(macroTaskTaskQueue)),
+      createPostRequestAnimationFrameFlushRequestor(wnd, postRenderTaskQueue.flush.bind(postRenderTaskQueue)),
       createRequestIdleCallbackFlushRequestor(wnd, idleTaskQueue.flush.bind(idleTaskQueue)),
     ];
   }
@@ -423,8 +423,8 @@ export class BrowserScheduler implements IScheduler {
       case TaskQueuePriority.eventLoop:
         return this.flush[taskQueue.priority]();
       case TaskQueuePriority.render:
-      case TaskQueuePriority.postRender:
       case TaskQueuePriority.macroTask:
+      case TaskQueuePriority.postRender:
       case TaskQueuePriority.idle:
         return this.flush[taskQueue.priority].request();
     }
@@ -436,8 +436,8 @@ export class BrowserScheduler implements IScheduler {
       case TaskQueuePriority.eventLoop:
         return;
       case TaskQueuePriority.render:
-      case TaskQueuePriority.postRender:
       case TaskQueuePriority.macroTask:
+      case TaskQueuePriority.postRender:
       case TaskQueuePriority.idle:
         return this.flush[taskQueue.priority].cancel();
     }

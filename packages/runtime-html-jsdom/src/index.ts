@@ -189,8 +189,11 @@ const createPostRequestAnimationFrameFlushRequestor = (function () {
       }.bind(void 0);
 
       const queueFlush = function () {
-        if (timeoutHandle === -1) {
-          timeoutHandle = $window.setTimeout(callFlush, 0);
+        if (rafHandle > -1) {
+          rafHandle = -1;
+          if (timeoutHandle === -1) {
+            timeoutHandle = $window.setTimeout(callFlush, 0);
+          }
         }
         // eslint-disable-next-line no-extra-bind
       }.bind(void 0);
@@ -242,20 +245,26 @@ const createRequestIdleCallbackFlushRequestor = (function () {
       let handle = -1;
 
       const callFlush = function () {
-        handle = -1;
-        $flush();
+        if (handle > -1) {
+          handle = -1;
+          $flush();
+        }
         // eslint-disable-next-line no-extra-bind
       }.bind(void 0);
 
       const cancel = hasNative
         ? function () {
-          $window.cancelIdleCallback!(handle);
-          handle = -1;
+          if (handle > -1) {
+            $window.cancelIdleCallback!(handle);
+            handle = -1;
+          }
           // eslint-disable-next-line no-extra-bind
         }.bind(void 0)
         : function () {
-          $window.clearTimeout(handle);
-          handle = -1;
+          if (handle > -1) {
+            $window.clearTimeout(handle);
+            handle = -1;
+          }
           // eslint-disable-next-line no-extra-bind
         }.bind(void 0);
 
@@ -295,8 +304,8 @@ export class JSDOMScheduler implements IScheduler {
     [TaskQueuePriority.microTask]: TaskQueue;
     [TaskQueuePriority.eventLoop]: TaskQueue;
     [TaskQueuePriority.render]: TaskQueue;
-    [TaskQueuePriority.postRender]: TaskQueue;
     [TaskQueuePriority.macroTask]: TaskQueue;
+    [TaskQueuePriority.postRender]: TaskQueue;
     [TaskQueuePriority.idle]: TaskQueue;
   };
 
@@ -307,11 +316,11 @@ export class JSDOMScheduler implements IScheduler {
       request: () => void;
       cancel: () => void;
     };
-    [TaskQueuePriority.postRender]: {
+    [TaskQueuePriority.macroTask]: {
       request: () => void;
       cancel: () => void;
     };
-    [TaskQueuePriority.macroTask]: {
+    [TaskQueuePriority.postRender]: {
       request: () => void;
       cancel: () => void;
     };
@@ -325,16 +334,16 @@ export class JSDOMScheduler implements IScheduler {
     const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
     const eventLoopTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.eventLoop });
     const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });
-    const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
     const macroTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask });
+    const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
     const idleTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.idle });
 
     this.taskQueue = [
       microTaskTaskQueue,
       eventLoopTaskQueue,
       renderTaskQueue,
-      postRenderTaskQueue,
       macroTaskTaskQueue,
+      postRenderTaskQueue,
       idleTaskQueue,
     ];
 
@@ -387,8 +396,8 @@ export class JSDOMScheduler implements IScheduler {
       case TaskQueuePriority.eventLoop:
         return this.flush[taskQueue.priority]();
       case TaskQueuePriority.render:
-      case TaskQueuePriority.postRender:
       case TaskQueuePriority.macroTask:
+      case TaskQueuePriority.postRender:
       case TaskQueuePriority.idle:
         return this.flush[taskQueue.priority].request();
     }
@@ -400,8 +409,8 @@ export class JSDOMScheduler implements IScheduler {
       case TaskQueuePriority.eventLoop:
         return;
       case TaskQueuePriority.render:
-      case TaskQueuePriority.postRender:
       case TaskQueuePriority.macroTask:
+      case TaskQueuePriority.postRender:
       case TaskQueuePriority.idle:
         return this.flush[taskQueue.priority].cancel();
     }

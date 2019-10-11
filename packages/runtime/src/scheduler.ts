@@ -44,8 +44,8 @@ export const enum TaskQueuePriority {
   microTask  = 0,
   eventLoop  = 1,
   render     = 2,
-  postRender = 3,
-  macroTask  = 4,
+  macroTask  = 3,
+  postRender = 4,
   idle       = 5,
 }
 

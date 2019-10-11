@@ -36,12 +36,12 @@ describe.only('Scheduler', function () {
       name: 'render',
     },
     {
-      priority: TaskQueuePriority.postRender,
-      name: 'postRender',
-    },
-    {
       priority: TaskQueuePriority.macroTask,
       name: 'macroTask',
+    },
+    {
+      priority: TaskQueuePriority.postRender,
+      name: 'postRender',
     },
     {
       priority: TaskQueuePriority.idle,

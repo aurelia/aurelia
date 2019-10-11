@@ -324,3 +324,25 @@ Your custom element or attribute can invoke the function that was passed to the 
 {% endcode-tabs-item %}
 {% endcode-tabs %}
 
+## Contextual Properties
+
+Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context, such as within a repeat block or an event handler. Below is a brief summary of all the available contextual properties that you have access to. We'll call out several of these again later in [Rendering Collections](rendering-collections.md#contextual-properties) and [Handling Events](handling-events.md#contextual-properties).
+
+### General
+
+* `$this` - The the view-model that your binding expressions are being evaluated against.
+
+### Event
+
+* `$event` - The DOM Event in `delegate`, `trigger`, and `capture` bindings.
+
+### Repeater
+
+* `$index` - In a repeat template, the index of the item in the collection.
+* `$first` - In a repeat template, is `true` if the item is the first item in the array.
+* `$last` - In a repeat template, is `true` if the item is the last item in the array.
+* `$even` - In a repeat template, is `true` if the item has an even numbered index.
+* `$odd` - In a repeat template, is `true` if the item has an odd numbered index.
+* `$length` - In a repeat template, this indicates the length of the collection.
+* `$parent` - Explicitly accesses the outer scope from within a `repeat` template. You may need this when a property on the current scope masks a property on the outer scope. Note that this property is chainable, e.g. `$parent.$parent.foo` is supported.
+

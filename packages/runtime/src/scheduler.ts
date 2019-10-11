@@ -57,7 +57,29 @@ export const IScheduler = DI.createInterface<IScheduler>('IScheduler').noDefault
 export interface IScheduler {
   getTaskQueue(priority: TaskQueuePriority): ITaskQueue;
   yield(priority: TaskQueuePriority): Promise<void>;
-  queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): ITask<T>;
+
+  getMicroTaskQueue(): ITaskQueue;
+  getEventLoopTaskQueue(): ITaskQueue;
+  getRenderTaskQueue(): ITaskQueue;
+  getMacroTaskQueue(): ITaskQueue;
+  getPostRenderTaskQueue(): ITaskQueue;
+  getIdleTaskQueue(): ITaskQueue;
+
+  yieldMicroTask(): Promise<void>;
+  yieldEventLoopTask(): Promise<void>;
+  yieldRenderTask(): Promise<void>;
+  yieldMacroTask(): Promise<void>;
+  yieldPostRenderTask(): Promise<void>;
+  yieldIdleTask(): Promise<void>;
+
+  queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  queueEventLoopTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+  queueIdleTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
+
   /* @internal */cancelFlush(taskQueue: ITaskQueue): void;
   /* @internal */requestFlush(taskQueue: ITaskQueue): void;
 }
@@ -108,10 +130,13 @@ export type QueueTaskOptions = {
    * `TaskQueue` that is currently flushing. Otherwise, it will be run on the next tick.
    */
   preempt?: boolean;
+};
+
+export type QueueTaskTargetOptions = QueueTaskOptions & {
   priority?: TaskQueuePriority;
 };
 
-const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
+const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   delay: 0,
   preempt: false,
   priority: TaskQueuePriority.render,

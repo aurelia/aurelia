@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration, PLATFORM } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
@@ -388,6 +388,63 @@ export class JSDOMScheduler implements IScheduler {
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
     const { delay, preempt, priority } = { ...defaultQueueTaskOptions, ...opts };
     return this.taskQueue[priority].queueTask(callback, { delay, preempt });
+  }
+
+  public getMicroTaskQueue(): ITaskQueue {
+    return this.taskQueue[TaskQueuePriority.microTask];
+  }
+  public getEventLoopTaskQueue(): ITaskQueue {
+    return this.taskQueue[TaskQueuePriority.eventLoop];
+  }
+  public getRenderTaskQueue(): ITaskQueue {
+    return this.taskQueue[TaskQueuePriority.render];
+  }
+  public getMacroTaskQueue(): ITaskQueue {
+    return this.taskQueue[TaskQueuePriority.macroTask];
+  }
+  public getPostRenderTaskQueue(): ITaskQueue {
+    return this.taskQueue[TaskQueuePriority.postRender];
+  }
+  public getIdleTaskQueue(): ITaskQueue {
+    return this.taskQueue[TaskQueuePriority.idle];
+  }
+
+  public yieldMicroTask(): Promise<void> {
+    return this.taskQueue[TaskQueuePriority.microTask].yield();
+  }
+  public yieldEventLoopTask(): Promise<void> {
+    return this.taskQueue[TaskQueuePriority.eventLoop].yield();
+  }
+  public yieldRenderTask(): Promise<void> {
+    return this.taskQueue[TaskQueuePriority.render].yield();
+  }
+  public yieldMacroTask(): Promise<void> {
+    return this.taskQueue[TaskQueuePriority.macroTask].yield();
+  }
+  public yieldPostRenderTask(): Promise<void> {
+    return this.taskQueue[TaskQueuePriority.postRender].yield();
+  }
+  public yieldIdleTask(): Promise<void> {
+    return this.taskQueue[TaskQueuePriority.idle].yield();
+  }
+
+  public queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
+    return this.taskQueue[TaskQueuePriority.microTask].queueTask(callback, opts);
+  }
+  public queueEventLoopTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
+    return this.taskQueue[TaskQueuePriority.eventLoop].queueTask(callback, opts);
+  }
+  public queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
+    return this.taskQueue[TaskQueuePriority.render].queueTask(callback, opts);
+  }
+  public queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
+    return this.taskQueue[TaskQueuePriority.macroTask].queueTask(callback, opts);
+  }
+  public queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
+    return this.taskQueue[TaskQueuePriority.postRender].queueTask(callback, opts);
+  }
+  public queueIdleTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
+    return this.taskQueue[TaskQueuePriority.idle].queueTask(callback, opts);
   }
 
   public requestFlush(taskQueue: TaskQueue): void {

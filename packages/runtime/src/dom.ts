@@ -8,6 +8,7 @@ import {
 import {
   IController
 } from './lifecycle';
+import { IScheduler } from './scheduler';
 
 export interface INode extends Object {
   $au?: Record<string, IController<this>>;
@@ -121,10 +122,12 @@ const niDOM: IDOM = {
 
 export const DOM: IDOM & {
   readonly isInitialized: boolean;
+  readonly scheduler: IScheduler;
   initialize(dom: IDOM): void;
   destroy(): void;
 } = {
   ...niDOM,
+  scheduler: (void 0)!,
   get isInitialized(): boolean {
     return Reflect.get(this, '$initialized') === true;
   },

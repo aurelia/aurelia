@@ -1,113 +1,445 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, INativeSchedulers } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, TaskQueuePriority, TaskQueue, IClock, TaskCallback, QueueTaskOptions, Task, DOM } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 
-function createPromiseMicrotaskQueue() {
-  return (function () {
-    const p = Promise.resolve();
-    return function (cb: () => void) {
-      p.then(cb);
-    };
-  })();
+// Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
+// Just want to start off with something as robust as possible, add many tests first so that we're sure it all works, etc.
+// Once all the proper tests are in place, we can then start simplifying and rely on those tests to tell us precisely which things are necessary and which aren't.
+// Besides looking at test results, we also need to look at benchmark results, memory usage, memory leaks, etc.
+
+function createQueueMicrotaskFlushRequestor(window: Window, flush: () => void) {
+  return (function ($window: Window, $flush: () => void) {
+    const callFlush = function () {
+      $flush();
+      // eslint-disable-next-line no-extra-bind
+    }.bind(void 0);
+
+    return function () {
+      $window.queueMicrotask(callFlush);
+      // eslint-disable-next-line no-extra-bind
+    }.bind(void 0);
+  })(window, flush);
 }
 
-function createMutationObserverMicrotaskQueue(window: Window) {
-  return (function () {
-    const queue: (() => void)[] = [];
-    function invokeOne(cb: () => void): void { cb(); }
-    function invokeAll(): void { queue.splice(0).forEach(invokeOne); }
-    const observer = new (window as unknown as { MutationObserver: typeof MutationObserver }).MutationObserver(invokeAll);
-    const node = window.document.createTextNode('a');
+function createPromiseFlushRequestor(flush: () => void) {
+  return (function ($flush: () => void) {
+    const callFlush = function () {
+      $flush();
+      // eslint-disable-next-line no-extra-bind
+    }.bind(void 0);
+
+    // eslint-disable-next-line compat/compat
+    const p = Promise.resolve();
+    return function () {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      p.then(callFlush);
+      // eslint-disable-next-line no-extra-bind
+    }.bind(void 0);
+  })(flush);
+}
+
+function createMutationObserverFlushRequestor(window: Window, flush: () => void) {
+  return (function ($window: Window, $flush: () => void) {
+    const callFlush = function () {
+      $flush();
+      // eslint-disable-next-line no-extra-bind
+    }.bind(void 0);
+
+    const observer = new ($window as unknown as { MutationObserver: typeof MutationObserver }).MutationObserver(callFlush);
+    const node = $window.document.createTextNode('a');
+    // eslint-disable-next-line compat/compat
     const flip = Object.assign(Object.create(null), { a: 'b', b: 'a' });
 
     let val = 'a';
     observer.observe(node, { characterData: true });
 
-    return function (cb: () => void) {
-      queue.push(cb);
+    return function () {
       node.data = val = flip[val];
-    };
-  })();
+      // eslint-disable-next-line no-extra-bind
+    }.bind(void 0);
+  })(window, flush);
 }
 
 // Create a microtask queue, trying the available options starting with the most performant
-const createMicrotaskQueue = (function () {
-  // Cache the created queue based on window instance to ensure we have at most one queue per window
-  const cache = new WeakMap<Window, (cb: () => void) => void>();
+const createMicrotaskFlushRequestor = (function () {
+  // Ensure we only ever create one requestor (at least, per loaded bundle..).
+  let called = false;
 
-  return function (wnd: Window) {
-    let microtaskQueue = cache.get(wnd);
-    if (microtaskQueue === void 0) {
-      if (Promise.toString().includes('[native code]')) {
-        microtaskQueue = createPromiseMicrotaskQueue();
-      } else {
-        microtaskQueue = createMutationObserverMicrotaskQueue(wnd);
-      }
-
-      cache.set(wnd, microtaskQueue);
+  return function (wnd: Window, flush: () => void) {
+    if (called) {
+      throw new Error('Cannot have more than one global MicrotaskFlushRequestor');
     }
+    called = true;
 
-    return microtaskQueue;
-  };
-})();
-
-const createPostMessageQueue = (function () {
-  const cache = new WeakMap<Window, (cb: () => void) => void>();
-
-  return function (wnd: Window) {
-    let postMessageQueue = cache.get(wnd);
-    if (postMessageQueue === void 0) {
-      postMessageQueue = (function () {
-        const queue: (() => void)[] = [];
-        function invokeOne(cb: () => void): void { cb(); }
-        function invokeAll(): void { queue.splice(0).forEach(invokeOne); }
-
-        wnd.addEventListener('message', invokeAll);
-
-        return function (cb: () => void) {
-          queue.push(cb);
-          wnd.postMessage('', '*');
-        };
-      })();
-
-      cache.set(wnd, postMessageQueue);
-    }
-
-    return postMessageQueue;
-  };
-})();
-
-class BrowserSchedulers implements INativeSchedulers {
-  public readonly queueMicroTask: (cb: () => void) => void;
-  public readonly postMessage: (cb: () => void) => void;
-  public readonly setTimeout: (cb: () => void, timeout?: number) => number;
-  public readonly clearTimeout: (handle: number) => void;
-  public readonly setInterval: (cb: () => void, timeout?: number) => number;
-  public readonly clearInterval: (handle: number) => void;
-  public readonly requestAnimationFrame: (cb: () => void) => number;
-  public readonly cancelAnimationFrame: (handle: number) => void;
-  public readonly requestIdleCallback: (cb: () => void) => number;
-  public readonly cancelIdleCallback: (handle: number) => void;
-
-  public constructor(wnd: Window) {
     if (wnd.queueMicrotask !== void 0 && wnd.queueMicrotask.toString().includes('[native code]')) {
-      this.queueMicroTask = wnd.queueMicrotask;
+      return createQueueMicrotaskFlushRequestor(wnd, flush);
+    } else if (Promise.toString().includes('[native code]')) {
+      return createPromiseFlushRequestor(flush);
     } else {
-      this.queueMicroTask = createMicrotaskQueue(wnd);
+      return createMutationObserverFlushRequestor(wnd, flush);
     }
-    this.postMessage = createPostMessageQueue(wnd);
-    this.setTimeout = wnd.setTimeout;
-    this.clearTimeout = wnd.clearTimeout;
-    this.setInterval = wnd.setInterval;
-    this.clearInterval = wnd.clearInterval;
-    this.requestAnimationFrame = wnd.requestAnimationFrame;
-    this.cancelAnimationFrame = wnd.cancelAnimationFrame;
-    if (!('requestIdleCallback' in wnd)) {
-      this.requestIdleCallback = wnd.setTimeout;
-      this.cancelIdleCallback = wnd.clearTimeout;
-    } else {
-      this.requestIdleCallback = (wnd as unknown as { requestIdleCallback: INativeSchedulers['requestIdleCallback'] }).requestIdleCallback;
-      this.cancelIdleCallback = (wnd as unknown as { cancelIdleCallback: INativeSchedulers['cancelIdleCallback'] }).cancelIdleCallback;
+  };
+})();
+
+const createPostMessageFlushRequestor = (function () {
+  let called = false;
+
+  return function (window: Window, flush: () => void) {
+    if (called) {
+      throw new Error('Cannot have more than one global PostMessageFlushRequestor');
+    }
+    called = true;
+
+    return (function ($window: Window, $flush: () => void) {
+      const handleMessage = function (event: MessageEvent) {
+        if (event.data === 'au-message' && event.source === $window) {
+          $flush();
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      $window.addEventListener('message', handleMessage);
+
+      return function () {
+        $window.postMessage('au-message', $window.origin);
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+    })(window, flush);
+  };
+})();
+
+const createSetTimeoutFlushRequestor = (function () {
+  let called = false;
+
+  return function (window: Window, flush: () => void) {
+    if (called) {
+      throw new Error('Cannot have more than one global SetTimeoutFlushRequestor');
+    }
+    called = true;
+
+    return (function ($window: Window, $flush: () => void) {
+      let handle = -1;
+
+      const callFlush = function () {
+        if (handle > -1) {
+          handle = -1;
+          $flush();
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const cancel = function () {
+        if (handle > -1) {
+          $window.clearTimeout(handle);
+          handle = -1;
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const request = function () {
+        if (handle === -1) {
+          handle = $window.setTimeout(callFlush, 0);
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      return {
+        cancel,
+        request,
+      };
+    })(window, flush);
+  };
+})();
+
+const createRequestAnimationFrameFlushRequestor = (function () {
+  let called = false;
+
+  return function (window: Window, flush: () => void) {
+    if (called) {
+      throw new Error('Cannot have more than one global RequestAnimationFrameFlushRequestor');
+    }
+    called = true;
+
+    return (function ($window: Window, $flush: () => void) {
+      let handle = -1;
+
+      const callFlush = function () {
+        if (handle > -1) {
+          handle = -1;
+          $flush();
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const cancel = function () {
+        if (handle > -1) {
+          $window.cancelAnimationFrame(handle);
+          handle = -1;
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const request = function () {
+        if (handle === -1) {
+          handle = $window.requestAnimationFrame(callFlush);
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      return {
+        cancel,
+        request,
+      };
+    })(window, flush);
+  };
+})();
+
+const createPostRequestAnimationFrameFlushRequestor = (function () {
+  let called = false;
+
+  return function (window: Window, flush: () => void) {
+    if (called) {
+      throw new Error('Cannot have more than one global PostRequestAnimationFrameFlushRequestor');
+    }
+    called = true;
+
+    return (function ($window: Window, $flush: () => void) {
+      let rafHandle = -1;
+      let timeoutHandle = -1;
+
+      const callFlush = function () {
+        if (timeoutHandle > -1) {
+          timeoutHandle = -1;
+          $flush();
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const queueFlush = function () {
+        if (timeoutHandle === -1) {
+          timeoutHandle = $window.setTimeout(callFlush, 0);
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const cancel = function () {
+        if (rafHandle > -1) {
+          $window.cancelAnimationFrame(rafHandle);
+          rafHandle = -1;
+        }
+        if (timeoutHandle > -1) {
+          $window.clearTimeout(timeoutHandle);
+          timeoutHandle = -1;
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const request = function () {
+        if (rafHandle === -1) {
+          rafHandle = $window.requestAnimationFrame(queueFlush);
+        }
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      return {
+        cancel,
+        request,
+      };
+    })(window, flush);
+  };
+})();
+
+type WindowWithIdleCallback = Window & {
+  requestIdleCallback?(cb: () => void): number;
+  cancelIdleCallback?(handle: number): void;
+};
+
+const createRequestIdleCallbackFlushRequestor = (function () {
+  let called = false;
+
+  return function (window: WindowWithIdleCallback, flush: () => void) {
+    if (called) {
+      throw new Error('Cannot have more than one global RequestIdleCallbackFlushRequestor');
+    }
+    called = true;
+
+    const hasNative = window.requestIdleCallback !== void 0 && window.requestIdleCallback.toString().includes('[native code]');
+
+    return (function ($window: WindowWithIdleCallback, $flush: () => void) {
+      let handle = -1;
+
+      const callFlush = function () {
+        handle = -1;
+        $flush();
+        // eslint-disable-next-line no-extra-bind
+      }.bind(void 0);
+
+      const cancel = hasNative
+        ? function () {
+          $window.cancelIdleCallback!(handle);
+          handle = -1;
+          // eslint-disable-next-line no-extra-bind
+        }.bind(void 0)
+        : function () {
+          $window.clearTimeout(handle);
+          handle = -1;
+          // eslint-disable-next-line no-extra-bind
+        }.bind(void 0);
+
+      const request = hasNative
+        ? function () {
+          if (handle === -1) {
+            handle = $window.requestIdleCallback!(callFlush);
+          }
+          // eslint-disable-next-line no-extra-bind
+        }.bind(void 0)
+        : function () {
+          if (handle === -1) {
+            // Instead of trying anything fancy with event handler debouncers (we could do that if there was a request for it),
+            // we just wait 45ms which is approximately the interval in a native idleCallback loop in chrome, to at least make it look
+            // the same from a timing perspective
+            handle = $window.setTimeout(callFlush, 45);
+          }
+          // eslint-disable-next-line no-extra-bind
+        }.bind(void 0);
+
+      return {
+        cancel,
+        request,
+      };
+    })(window, flush);
+  };
+})();
+
+const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
+  delay: 0,
+  preempt: true,
+  priority: TaskQueuePriority.render,
+};
+
+export class BrowserScheduler implements IScheduler {
+  private readonly taskQueue: {
+    [TaskQueuePriority.microTask]: TaskQueue;
+    [TaskQueuePriority.eventLoop]: TaskQueue;
+    [TaskQueuePriority.render]: TaskQueue;
+    [TaskQueuePriority.postRender]: TaskQueue;
+    [TaskQueuePriority.macroTask]: TaskQueue;
+    [TaskQueuePriority.idle]: TaskQueue;
+  };
+
+  private readonly flush: {
+    [TaskQueuePriority.microTask]: () => void;
+    [TaskQueuePriority.eventLoop]: () => void;
+    [TaskQueuePriority.render]: {
+      request: () => void;
+      cancel: () => void;
+    };
+    [TaskQueuePriority.postRender]: {
+      request: () => void;
+      cancel: () => void;
+    };
+    [TaskQueuePriority.macroTask]: {
+      request: () => void;
+      cancel: () => void;
+    };
+    [TaskQueuePriority.idle]: {
+      request: () => void;
+      cancel: () => void;
+    };
+  };
+
+  public constructor(@IClock clock: IClock, @IDOM dom: HTMLDOM) {
+    if (!Reflect.defineProperty(DOM, 'scheduler', {
+      value: this,
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    })) {
+      throw new Error('Global scheduler already created.');
+    }
+
+    const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
+    const eventLoopTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.eventLoop });
+    const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });
+    const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
+    const macroTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask });
+    const idleTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.idle });
+
+    this.taskQueue = [
+      microTaskTaskQueue,
+      eventLoopTaskQueue,
+      renderTaskQueue,
+      postRenderTaskQueue,
+      macroTaskTaskQueue,
+      idleTaskQueue,
+    ];
+
+    const wnd = dom.window;
+    this.flush = [
+      createMicrotaskFlushRequestor(wnd, microTaskTaskQueue.flush.bind(microTaskTaskQueue)),
+      createPostMessageFlushRequestor(wnd, eventLoopTaskQueue.flush.bind(eventLoopTaskQueue)),
+      createRequestAnimationFrameFlushRequestor(wnd, renderTaskQueue.flush.bind(renderTaskQueue)),
+      createPostRequestAnimationFrameFlushRequestor(wnd, postRenderTaskQueue.flush.bind(postRenderTaskQueue)),
+      createSetTimeoutFlushRequestor(wnd, macroTaskTaskQueue.flush.bind(macroTaskTaskQueue)),
+      createRequestIdleCallbackFlushRequestor(wnd, idleTaskQueue.flush.bind(idleTaskQueue)),
+    ];
+  }
+
+  public static register(container: IContainer): void {
+    container.registerResolver(IScheduler, {
+      resolve(): IScheduler {
+        if (DOM.scheduler === void 0) {
+          const clock = container.get(IClock);
+          const dom = container.get(IDOM) as HTMLDOM;
+          const scheduler = new BrowserScheduler(clock, dom);
+          Reflect.defineProperty(DOM, 'scheduler', {
+            value: scheduler,
+            writable: false,
+            enumerable: false,
+            configurable: false,
+          });
+        }
+        return DOM.scheduler;
+      }
+    });
+  }
+
+  public getTaskQueue(priority: TaskQueuePriority): TaskQueue {
+    return this.taskQueue[priority];
+  }
+
+  public yield(priority: TaskQueuePriority): Promise<void> {
+    return this.taskQueue[priority].yield();
+  }
+
+  public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
+    const { delay, preempt, priority } = { ...defaultQueueTaskOptions, ...opts };
+    return this.taskQueue[priority].queueTask(callback, { delay, preempt });
+  }
+
+  public requestFlush(taskQueue: TaskQueue): void {
+    switch (taskQueue.priority) {
+      case TaskQueuePriority.microTask:
+      case TaskQueuePriority.eventLoop:
+        return this.flush[taskQueue.priority]();
+      case TaskQueuePriority.render:
+      case TaskQueuePriority.postRender:
+      case TaskQueuePriority.macroTask:
+      case TaskQueuePriority.idle:
+        return this.flush[taskQueue.priority].request();
+    }
+  }
+
+  public cancelFlush(taskQueue: TaskQueue): void {
+    switch (taskQueue.priority) {
+      case TaskQueuePriority.microTask:
+      case TaskQueuePriority.eventLoop:
+        return;
+      case TaskQueuePriority.render:
+      case TaskQueuePriority.postRender:
+      case TaskQueuePriority.macroTask:
+      case TaskQueuePriority.idle:
+        return this.flush[taskQueue.priority].cancel();
     }
   }
 }
@@ -169,6 +501,19 @@ class BrowserDOMInitializer implements IDOMInitializer {
       );
     }
     Registration.instance(IDOM, dom).register(this.container);
+
+    if (DOM.scheduler === void 0) {
+      this.container.register(BrowserScheduler);
+      Reflect.defineProperty(DOM, 'scheduler', {
+        value: this.container.get(IScheduler),
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      });
+    } else {
+      Registration.instance(IScheduler, DOM.scheduler).register(this.container);
+    }
+
     return dom;
   }
 }

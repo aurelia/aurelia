@@ -1,19 +1,5 @@
 import { IDisposable, PLATFORM, DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
 
-export const INativeSchedulers = DI.createInterface<INativeSchedulers>('INativeSchedulers').noDefault();
-export interface INativeSchedulers {
-  queueMicroTask(cb: () => void): void;
-  postMessage(cb: () => void): void;
-  setTimeout(cb: () => void, timeout?: number): number;
-  clearTimeout(handle: number): void;
-  setInterval(cb: () => void, timeout?: number): number;
-  clearInterval(handle: number): void;
-  requestAnimationFrame(cb: () => void): number;
-  cancelAnimationFrame(handle: number): void;
-  requestIdleCallback(cb: () => void): number;
-  cancelIdleCallback(handle: number): void;
-}
-
 export interface IClockSettings {
   refreshInterval?: number;
   forceUpdateInterval?: number;
@@ -66,11 +52,12 @@ export class Clock implements IClock {
 export const globalClock = new Clock();
 
 export const enum TaskQueuePriority {
-  microTask = 0,
-  eventLoop = 1,
-  render    = 2,
-  macroTask = 3,
-  idle      = 4,
+  microTask  = 0,
+  eventLoop  = 1,
+  render     = 2,
+  postRender = 3,
+  macroTask  = 4,
+  idle       = 5,
 }
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
@@ -84,109 +71,6 @@ export interface IScheduler {
   queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   /* @internal */cancelFlush(taskQueue: ITaskQueue): void;
   /* @internal */requestFlush(taskQueue: ITaskQueue): void;
-}
-
-export class Scheduler implements IScheduler {
-  private readonly [TaskQueuePriority.microTask]: TaskQueue[];
-  private readonly [TaskQueuePriority.eventLoop]: TaskQueue[];
-  private readonly [TaskQueuePriority.render]: TaskQueue[];
-  private readonly [TaskQueuePriority.macroTask]: TaskQueue[];
-  private readonly [TaskQueuePriority.idle]: TaskQueue[];
-
-  private readonly flush: (priority: TaskQueuePriority) => void;
-
-  public constructor(
-    @IClock
-    private readonly clock: IClock,
-    @INativeSchedulers
-    private readonly native: INativeSchedulers,
-  ) {
-    // Note: these aren't necessarily supposed to be arrays, it's just a WIP structure for virtual queues
-    // (not really needed yet)
-    this[TaskQueuePriority.microTask] = [
-      new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask })
-    ];
-    this[TaskQueuePriority.eventLoop] = [
-      new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.eventLoop })
-    ];
-    this[TaskQueuePriority.render] = [
-      new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render })
-    ];
-    this[TaskQueuePriority.macroTask] = [
-      new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask })
-    ];
-    this[TaskQueuePriority.idle] = [
-      new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.idle })
-    ];
-    this.flush = priority => {
-      this[priority].forEach(queue => {
-        queue.flush();
-      });
-    };
-  }
-
-  public static register(container: IContainer): IResolver<IScheduler> {
-    return Registration.singleton(IScheduler, this).register(container);
-  }
-
-  public getTaskQueue(priority: TaskQueuePriority): TaskQueue {
-    return this[priority][0];
-  }
-
-  public yield(priority: TaskQueuePriority): Promise<void> {
-    return this[priority][0].yield();
-  }
-
-  public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
-    const { delay, preempt, priority } = { ...defaultQueueTaskOptions, ...opts };
-    return this[priority][0].queueTask(callback, { delay, preempt });
-  }
-
-  public requestFlush(taskQueue: TaskQueue): void {
-    const flush = () => {
-      this.flush(taskQueue.priority);
-    };
-
-    switch (taskQueue.priority) {
-      case TaskQueuePriority.microTask:
-        return void this.native.queueMicroTask(flush);
-      case TaskQueuePriority.eventLoop:
-        return void this.native.postMessage(flush);
-      case TaskQueuePriority.render:
-        return void this.native.requestAnimationFrame(flush);
-      case TaskQueuePriority.macroTask:
-        return void this.native.setTimeout(flush);
-      case TaskQueuePriority.idle:
-        return void this.native.requestIdleCallback(flush);
-    }
-  }
-
-  public cancelFlush(taskQueue: TaskQueue): void {
-    const handle = taskQueue.handle;
-    switch (taskQueue.priority) {
-      case TaskQueuePriority.microTask:
-      case TaskQueuePriority.eventLoop:
-        return;
-      case TaskQueuePriority.render:
-        if (handle > -1) {
-          taskQueue.handle = -1;
-          this.native.cancelAnimationFrame(handle);
-        }
-        break;
-      case TaskQueuePriority.macroTask:
-        if (handle > -1) {
-          taskQueue.handle = -1;
-          this.native.clearTimeout(handle);
-        }
-        break;
-      case TaskQueuePriority.idle:
-        if (handle > -1) {
-          taskQueue.handle = -1;
-          this.native.cancelIdleCallback(handle);
-        }
-        break;
-    }
-  }
 }
 
 type ExposedPromise<T> = Promise<T> & {
@@ -256,7 +140,6 @@ export interface ITaskQueue {
 
 export class TaskQueue {
   public readonly priority: TaskQueuePriority;
-  public handle: number = -1;
 
   private processingSize: number = 0;
   private processingHead: Task | undefined = void 0;
@@ -287,7 +170,6 @@ export class TaskQueue {
 
   public flush(): void {
     this.flushRequested = false;
-    this.handle = -1;
 
     if (this.pendingSize > 0) {
       this.movePendingToProcessing();

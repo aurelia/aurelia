@@ -37,7 +37,7 @@ import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
-import { Clock, Scheduler } from './scheduler';
+import { Clock } from './scheduler';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -45,7 +45,6 @@ export const IRendererRegistration = Renderer as IRegistry;
 export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
 export const IViewLocatorRegistration = ViewLocator as IRegistry;
 export const IClockRegistration = Clock as IRegistry;
-export const ISchedulerRegistration = Scheduler as IRegistry;
 
 /**
  * Default implementations for the following interfaces:
@@ -64,7 +63,6 @@ export const DefaultComponents = [
   IStartTaskManagerRegistration,
   IViewLocatorRegistration,
   IClockRegistration,
-  ISchedulerRegistration,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;

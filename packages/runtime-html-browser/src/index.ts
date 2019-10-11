@@ -216,8 +216,11 @@ const createPostRequestAnimationFrameFlushRequestor = (function () {
       }.bind(void 0);
 
       const queueFlush = function () {
-        if (timeoutHandle === -1) {
-          timeoutHandle = $window.setTimeout(callFlush, 0);
+        if (rafHandle > -1) {
+          rafHandle = -1;
+          if (timeoutHandle === -1) {
+            timeoutHandle = $window.setTimeout(callFlush, 0);
+          }
         }
         // eslint-disable-next-line no-extra-bind
       }.bind(void 0);
@@ -269,20 +272,26 @@ const createRequestIdleCallbackFlushRequestor = (function () {
       let handle = -1;
 
       const callFlush = function () {
-        handle = -1;
-        $flush();
+        if (handle > -1) {
+          handle = -1;
+          $flush();
+        }
         // eslint-disable-next-line no-extra-bind
       }.bind(void 0);
 
       const cancel = hasNative
         ? function () {
-          $window.cancelIdleCallback!(handle);
-          handle = -1;
+          if (handle > -1) {
+            $window.cancelIdleCallback!(handle);
+            handle = -1;
+          }
           // eslint-disable-next-line no-extra-bind
         }.bind(void 0)
         : function () {
-          $window.clearTimeout(handle);
-          handle = -1;
+          if (handle > -1) {
+            $window.clearTimeout(handle);
+            handle = -1;
+          }
           // eslint-disable-next-line no-extra-bind
         }.bind(void 0);
 
@@ -349,15 +358,6 @@ export class BrowserScheduler implements IScheduler {
   };
 
   public constructor(@IClock clock: IClock, @IDOM dom: HTMLDOM) {
-    if (!Reflect.defineProperty(DOM, 'scheduler', {
-      value: this,
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    })) {
-      throw new Error('Global scheduler already created.');
-    }
-
     const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
     const eventLoopTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.eventLoop });
     const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });

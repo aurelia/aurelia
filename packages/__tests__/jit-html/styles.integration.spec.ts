@@ -4,58 +4,41 @@ import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {
   function setup() {
-      const ctx = TestContext.createHTMLTestContext();
-      const au = new Aurelia(ctx.container);
-      const host = ctx.createElement('div');
+    const ctx = TestContext.createHTMLTestContext();
+    const au = new Aurelia(ctx.container);
+    const host = ctx.createElement('div');
 
-      ctx.container.register(
-        StyleConfiguration.cssModulesProcessor()
-      );
+    ctx.container.register(
+      StyleConfiguration.cssModulesProcessor()
+    );
 
-      return { ctx, au, host };
+    return { ctx, au, host };
   }
 
   it(`CSS Modules don't inherit from parent`, async function () {
     const { au, host } = setup();
     const cssClasses = { test: 'something-else' };
 
-    const WithStyles = CustomElement.define(
-      {
-        name: 'with-styles',
-        template: `<div id="target" class="test"><slot></slot></div>`,
-        dependencies: [styles(cssClasses)]
-      },
-      class {
-        static get inject() { return [INode]; }
-        constructor(private readonly element: HTMLElement) {}
+    const WithStyles = CustomElement.define({
+      name: 'with-styles',
+      template: `<div id="target" class="test"><slot></slot></div>`,
+      dependencies: [styles(cssClasses)],
+      shadowOptions: { mode: 'open' }
+    });
 
-        public attached() {
-          // verify that the div has an updated class
-        }
-      },
-    );
-
-    const WithoutStyles = CustomElement.define(
-      {
-        name: 'without-styles',
-        template: `<div id="target" class="test"><slot></slot></div>`
-      },
-      class {
-        static get inject() { return [INode]; }
-        constructor(private readonly element: HTMLElement) {}
-
-        public attached() {
-          // verify that the div has a class of "test"
-        }
-      },
-    );
+    const WithoutStyles = CustomElement.define({
+      name: 'without-styles',
+      template: `<div id="target" class="test"><slot></slot></div>`,
+      shadowOptions: { mode: 'open' }
+    });
 
     const component = CustomElement.define(
       {
         name: 'app',
         template: `<with-styles ref="withStyles"><without-styles ref="withoutStyles"></without-styles></with-styles>`,
         dependencies: [WithStyles, WithoutStyles]
-      }, class {
+      },
+      class {
         withStyles: any;
         withoutStyles: any;
       }

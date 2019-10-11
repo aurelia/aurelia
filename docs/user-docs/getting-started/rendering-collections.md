@@ -206,10 +206,6 @@ Aurelia's binding engine makes several special properties available to you in yo
 
 ### Repeater
 
-{% hint style="danger" %}
-**Not Yet Implemented in Aurelia 2**
-{% endhint %}
-
 * `$index` - In a repeat template, the index of the item in the collection.
 * `$first` - In a repeat template, is `true` if the item is the first item in the array.
 * `$last` - In a repeat template, is `true` if the item is the last item in the array.

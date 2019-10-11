@@ -313,3 +313,26 @@ export function mergeDistinct<T>(
 
   return arr3;
 }
+
+/**
+ * Decorator. (lazily) bind the method to the class instance on first call.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function bound<T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> {
+  return (function () {
+    let fn = descriptor.value;
+    let boundFn: T;
+
+    return {
+      configurable: descriptor.configurable,
+      enumerable: descriptor.enumerable,
+      get(): T {
+        if (boundFn === void 0) {
+          boundFn = fn!.bind(this);
+          fn = void 0;
+        }
+        return boundFn;
+      },
+    };
+  })();
+}

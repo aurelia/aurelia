@@ -104,4 +104,5 @@ export {
   mergeDistinct,
   isNumberOrBigInt,
   isStringOrDate,
+  bound,
 } from './functions';

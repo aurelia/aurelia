@@ -305,6 +305,7 @@ export function mergeDistinct<T>(
   let item;
   while (len2-- > 0) {
     item = arr2[len2];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (lookup[item as unknown as string] === void 0) {
       arr3.push(item);
       lookup[item as unknown as string] = true;
@@ -319,20 +320,19 @@ export function mergeDistinct<T>(
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function bound<T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> {
-  return (function () {
-    let fn = descriptor.value;
-    let boundFn: T;
-
-    return {
-      configurable: descriptor.configurable,
-      enumerable: descriptor.enumerable,
-      get(): T {
-        if (boundFn === void 0) {
-          boundFn = fn!.bind(this);
-          fn = void 0;
-        }
-        return boundFn;
-      },
-    };
-  })();
+  return {
+    configurable: true,
+    enumerable: descriptor.enumerable,
+    get(): T {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      const boundFn = descriptor.value!.bind(this);
+      Reflect.defineProperty(this, key, {
+        value: boundFn,
+        writable: true,
+        configurable: true,
+        enumerable: descriptor.enumerable,
+      });
+      return boundFn;
+    },
+  };
 }

@@ -1,46 +1,35 @@
-import { IDisposable, PLATFORM, DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
+import { PLATFORM, DI, bound, IContainer, IResolver, Registration } from '@aurelia/kernel';
 
 export interface IClockSettings {
-  refreshInterval?: number;
   forceUpdateInterval?: number;
   now?(): number;
-  setInterval?(cb: () => void, timeout?: number): number;
-  clearInterval?(handle: number): void;
 }
 
 const defaultClockSettings: Required<IClockSettings> = {
-  refreshInterval: 0,
-  forceUpdateInterval: 100,
-  setInterval: PLATFORM.setInterval,
-  clearInterval: PLATFORM.clearInterval,
+  forceUpdateInterval: 10,
   now: PLATFORM.now,
 };
 
 export const IClock = DI.createInterface<IClock>('IClock').noDefault();
-export interface IClock extends IDisposable {
-  now(force?: boolean): number;
+export interface IClock {
+  now(highRes?: boolean): number;
 }
 
 export class Clock implements IClock {
   public readonly now: () => number;
-  public readonly dispose: () => void;
 
   public constructor(opts?: IClockSettings) {
-    const { refreshInterval, forceUpdateInterval, setInterval, clearInterval, now } = { ...defaultClockSettings, ...opts };
+    const { now, forceUpdateInterval } = { ...defaultClockSettings, ...opts };
 
     let requests = 0;
     let timestamp = now();
-    const $now = this.now = function (force: boolean = false): number {
-      if (++requests === forceUpdateInterval || force) {
-        requests = 0;
-        timestamp = now();
-      }
-      return timestamp;
-    };
-
-    const handle = setInterval($now, refreshInterval);
-    this.dispose = function (): void {
-      clearInterval(handle);
+    this.now = function (highRes: boolean = false): number {
+      // if (++requests === forceUpdateInterval || highRes) {
+      //   requests = 0;
+      //   timestamp = now();
+      // }
+      // return timestamp;
+      return now();
     };
   }
 
@@ -73,7 +62,7 @@ export interface IScheduler {
   /* @internal */requestFlush(taskQueue: ITaskQueue): void;
 }
 
-type ExposedPromise<T> = Promise<T> & {
+type ExposedPromise<T = void> = Promise<T> & {
   resolve: (value?: T | PromiseLike<T>) => void;
   reject: (reason?: any) => void;
 };
@@ -124,7 +113,7 @@ export type QueueTaskOptions = {
 
 const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   delay: 0,
-  preempt: true,
+  preempt: false,
   priority: TaskQueuePriority.render,
 };
 
@@ -154,6 +143,7 @@ export class TaskQueue {
   private delayedTail: Task | undefined = void 0;
 
   private flushRequested: boolean = false;
+  private yieldPromise: ExposedPromise | undefined = void 0;
 
   private readonly scheduler: IScheduler;
   private readonly clock: IClock;
@@ -169,6 +159,7 @@ export class TaskQueue {
   }
 
   public flush(): void {
+    this.clock.now(true);
     this.flushRequested = false;
 
     if (this.pendingSize > 0) {
@@ -198,6 +189,18 @@ export class TaskQueue {
     }
     if (this.processingSize > 0) {
       this.requestFlush();
+    } else if (this.delayedSize > 0) {
+      if (this.priority <= TaskQueuePriority.eventLoop) {
+        // MicroTasks and EventLoop tasks are not clamped so we have to clamp them with setTimeout or they'll block forever
+        this.scheduler.getTaskQueue(TaskQueuePriority.macroTask).queueTask(this.requestFlush);
+      } else {
+        // Otherwise just let this queue handle itself
+        this.requestFlush();
+      }
+    } else if (this.yieldPromise !== void 0) {
+      const p = this.yieldPromise;
+      this.yieldPromise = void 0;
+      p.resolve();
     }
   }
 
@@ -206,14 +209,21 @@ export class TaskQueue {
   }
 
   public yield(): Promise<void> {
-    if (this.processingSize === 0) {
+    if (this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0) {
       return Promise.resolve();
     }
-    return this.processingTail!.result;
+    if (this.yieldPromise === void 0) {
+      this.yieldPromise = createPromise();
+    }
+    return this.yieldPromise;
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
     const { delay, preempt } = { ...defaultQueueTaskOptions, ...opts };
+
+    if (preempt && delay > 0) {
+      throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
+    }
 
     if (this.processingSize === 0) {
       this.requestFlush();
@@ -321,20 +331,17 @@ export class TaskQueue {
     if (this.processingTail === task) {
       this.processingTail = task.prev;
     }
-
-    --this.processingSize;
   }
 
   private removeFromPending(task: Task): void {
-    const tq = task.taskQueue;
-    --tq.pendingSize;
+    if (this.pendingHead === task) {
+      this.pendingHead = task.next;
+    }
+    if (this.pendingTail === task) {
+      this.pendingTail = task.prev;
+    }
 
-    if (tq.pendingHead === task) {
-      tq.pendingHead = task.next;
-    }
-    if (tq.pendingTail === task) {
-      tq.pendingTail = task.prev;
-    }
+    --this.pendingSize;
   }
 
   private removeFromDelayed(task: Task): void {
@@ -422,6 +429,7 @@ export class TaskQueue {
     }
   }
 
+  @bound
   private requestFlush(): void {
     if (!this.flushRequested) {
       this.flushRequested = true;

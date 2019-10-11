@@ -286,7 +286,7 @@ const createRequestIdleCallbackFlushRequestor = (function () {
 
 const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   delay: 0,
-  preempt: true,
+  preempt: false,
   priority: TaskQueuePriority.render,
 };
 

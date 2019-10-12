@@ -22,6 +22,9 @@ export class RenderContext implements IRenderContext {
   public get id(): number {
     return this.container.id;
   }
+  public get path(): string {
+    return this.container.path;
+  }
   public get parentId(): number {
     return this.parentContainer.id;
   }

@@ -134,7 +134,6 @@ export interface GetterObserver extends IBindingTargetObserver { }
 
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-/** @internal */
 @subscriberCollection()
 export class GetterObserver implements GetterObserver {
   public readonly obj: IObservable;

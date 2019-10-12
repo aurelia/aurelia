@@ -263,7 +263,7 @@ describe('ObserverLocator', function () {
                             } else {
                               if (hasSetter) {
                                 if(isVolatile){
-                                  assert.strictEqual(actual.constructor.name, 'GetterObserver', `actual.constructor.name`);
+                                  assert.strictEqual(actual.constructor.name, GetterObserver.name, `actual.constructor.name`);
                                 } else {
                                   assert.strictEqual(actual.constructor.name, CustomSetterObserver.name, `actual.constructor.name`);
                                 }

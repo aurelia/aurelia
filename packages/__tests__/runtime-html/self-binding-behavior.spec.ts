@@ -9,6 +9,7 @@ describe('SelfBindingBehavior', function () {
   let binding: PropertyBinding;
   let originalCallSource: () => void;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     sut = new SelfBindingBehavior();
     binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any);

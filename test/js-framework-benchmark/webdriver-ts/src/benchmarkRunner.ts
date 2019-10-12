@@ -1,11 +1,9 @@
-import { BenchmarkType, Benchmark, benchmarks, fileName, LighthouseData } from './benchmarks';
+import { Benchmark, benchmarks } from './benchmarks';
 import * as fs from 'fs';
 import * as yargs from 'yargs';
-import { JSONResult, config, FrameworkData, initializeFrameworks, BenchmarkError, ErrorsAndWarning, BenchmarkOptions } from './common';
-import * as R from 'ramda';
+import { config, FrameworkData, initializeFrameworks, BenchmarkError, ErrorsAndWarning, BenchmarkOptions } from './common';
 import { fork } from 'child_process';
 import { executeBenchmark } from './forkedBenchmarkRunner';
-import mapObjIndexed from 'ramda/es/mapObjIndexed';
 
 function forkedRun(frameworks: FrameworkData[], frameworkName: string, keyed: boolean, benchmarkName: string, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   if (config.FORK_CHROMEDRIVER) {

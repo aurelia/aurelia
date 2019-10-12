@@ -9,7 +9,7 @@ import { TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
 interface Person { firstName?: string; lastName?: string; fullName?: string }
-const app = class { public value = 'wOOt'; };
+const app = class { public value: string = 'wOOt'; };
 
 describe('custom-elements', function () {
 
@@ -45,9 +45,10 @@ describe('custom-elements', function () {
     });
   });
 
-  // //<let/>
+  // <let/>
   it('03.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class { public firstName = undefined; public lastName = undefined; });
+    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
+      class { public static isStrictBinding: boolean = true; public firstName?: string = undefined; public lastName?: string = undefined; });
     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
     component.firstName = 'bi';
@@ -64,7 +65,8 @@ describe('custom-elements', function () {
 
   // //<let [to-binding-context] />
   it('04.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`, class implements Person { });
+    const { tearDown, lifecycle, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
+      class implements Person { public static isStrictBinding: boolean = true; });
     component.firstName = 'bi';
     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
     component.lastName = 'go';
@@ -172,7 +174,7 @@ describe('custom-elements', function () {
     }
 
     const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
-    const { lifecycle, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value = 'w00t'; }, [...resources, TestConfiguration]);
+    const { lifecycle, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value: string = 'w00t'; }, [...resources, TestConfiguration]);
 
     assert.strictEqual(boundCalls, 5, `boundCalls`);
 

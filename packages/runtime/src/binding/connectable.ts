@@ -1,6 +1,5 @@
 import {
-  Class,
-  Tracer
+  Class
 } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';

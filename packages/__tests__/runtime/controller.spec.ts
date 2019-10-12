@@ -146,6 +146,7 @@ describe.skip('controller', function () {
       surrogates: noSurrogates,
       aliases: noAliases,
       containerless: false,
+      isStrictBinding: true,
       shadowOptions: noShadowOptions,
       hasSlots: false,
       strategy: BindingStrategy.getterSetter,
@@ -1214,7 +1215,7 @@ describe.skip('controller', function () {
  * - ce -> repeat -> ce
  * - ce -> with -> ce
  * - ce -> compose -> ce
- * - ce -> replace-part -> ce -> replaceable
+ * - ce -> replace -> ce -> replaceable
  * - ce -> if -> ce
  * - custom-element -> repeat -> view
  *```

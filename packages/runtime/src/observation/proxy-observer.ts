@@ -1,4 +1,4 @@
-import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import {
   IPropertyObserver,

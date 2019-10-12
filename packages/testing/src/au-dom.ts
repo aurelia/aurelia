@@ -8,8 +8,7 @@ import {
   IRegistry,
   IResolver,
   Key,
-  Registration,
-  Tracer
+  Registration
 } from '@aurelia/kernel';
 import {
   addBinding,

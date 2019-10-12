@@ -97,6 +97,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   bindables?: Record<string, IBindableDescription> | string[];
   childrenObservers?: Record<string, IChildrenObserverDescription>;
   containerless?: boolean;
+  isStrictBinding?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
   strategy?: BindingStrategy;
@@ -289,11 +290,13 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public strategy: BindingStrategy;
   public hooks: Readonly<HooksDefinition>;
   public scopeParts: readonly string[];
+  public isStrictBinding: boolean;
 
   public constructor() {
     this.name = 'unnamed';
     this.template = null;
     this.captureAttrs = AttributeFilter.none;
+    this.isStrictBinding = false;
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
@@ -319,7 +322,8 @@ const templateDefinitionAssignables = [
   'containerless',
   'shadowOptions',
   'hasSlots',
-  'captureAttrs'
+  'captureAttrs',
+  'isStrictBinding',
 ];
 
 const templateDefinitionArrays = [
@@ -333,6 +337,7 @@ export type CustomElementConstructor = Constructable & {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
+  isStrictBinding?: TemplateDefinition['isStrictBinding'];
   aliases?: string[];
   childrenObservers?: TemplateDefinition['childrenObservers'];
 };
@@ -364,6 +369,7 @@ export function buildTemplateDefinition(
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
   aliases?: readonly string[] | null,
+  isStrictBinding?: boolean | null,
 ): TemplateDefinition;
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -382,6 +388,7 @@ export function buildTemplateDefinition(
   strategy?: BindingStrategy | null,
   childrenObservers?: Record<string, IChildrenObserverDescription> | null,
   aliases?: readonly string[] | null,
+  isStrictBinding?: boolean | null,
 ): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
@@ -390,6 +397,7 @@ export function buildTemplateDefinition(
   /* deepscan-disable */
   const argLen = arguments.length;
   switch (argLen) {
+    case 17: if (isStrictBinding != null) def.isStrictBinding = isStrictBinding;
     case 16: if (aliases != null) def.aliases = toArray(aliases);
     case 15: if (childrenObservers !== null) def.childrenObservers = { ...childrenObservers };
     case 14: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
@@ -408,6 +416,9 @@ export function buildTemplateDefinition(
       if (ctor != null) {
         if (ctor.bindables) {
           def.bindables = Bindable.for(ctor as unknown as {}).get();
+        }
+        if (ctor.isStrictBinding) {
+          def.isStrictBinding = ctor.isStrictBinding;
         }
         if (ctor.containerless) {
           def.containerless = ctor.containerless;

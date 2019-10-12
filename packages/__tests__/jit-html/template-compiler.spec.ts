@@ -119,7 +119,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         });
 
         it('throws on attributes that require to be unique', function () {
-          const attrs = ['id', 'part', 'replace-part'];
+          const attrs = ['id', 'replace'];
           attrs.forEach(attr => {
             assert.throws(
               () => compileWith(`<template ${attr}="${attr}"></template>`, []),

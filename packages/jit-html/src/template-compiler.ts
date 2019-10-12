@@ -23,7 +23,6 @@ import {
   ILetBindingInstruction,
   InterpolationInstruction,
   IsBindingBehavior,
-  ITargetedInstruction,
   ITemplateCompiler,
   ITemplateDefinition,
   LetBindingInstruction,

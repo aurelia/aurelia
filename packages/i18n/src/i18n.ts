@@ -34,11 +34,26 @@ export class I18nKeyEvaluationResult {
   }
 }
 
-export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
+export interface I18N {
+  i18next: i18nextCore.i18n;
+  readonly task: ILifecycleTask;
+  evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[];
+  tr(key: string | string[], options?: i18nextCore.TOptions): string;
+  getLocale(): string;
+  setLocale(newLocale: string): Promise<void>;
+  createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat;
+  nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string;
+  uf(numberLike: string, locale?: string): number;
+  createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat;
+  df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string;
+  createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat;
+  rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
+}
+export const I18N = DI.createInterface<I18N>('I18N').noDefault();
 /**
  * Translation service class.
  */
-export class I18nService {
+export class I18nService implements I18N {
 
   public i18next: i18nextCore.i18n;
   /**
@@ -90,14 +105,14 @@ export class I18nService {
     return results;
   }
 
-  public tr(key: string | string[], options?: i18nextCore.TOptions) {
+  public tr(key: string | string[], options?: i18nextCore.TOptions): string {
     return this.i18next.t(key, options);
   }
 
   public getLocale(): string {
     return this.i18next.language;
   }
-  public async setLocale(newLocale: string) {
+  public async setLocale(newLocale: string): Promise<void> {
     const oldLocale = this.getLocale();
     await this.i18next.changeLanguage(newLocale);
     this.ea.publish(Signals.I18N_EA_CHANNEL, { oldLocale, newLocale });

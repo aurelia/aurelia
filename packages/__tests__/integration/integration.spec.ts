@@ -54,7 +54,7 @@ describe('app', function () {
     }
   });
 
-  $it('changes in bound VM properties are correctly reflected in the read-only-texts', async function ({ host, ctx }) {
+  $it('changes in bound VM properties are correctly reflected in the read-only-texts', function ({ host, ctx }) {
     (host.querySelector('button#staticTextChanger') as unknown as HTMLButtonElement).click();
     ctx.lifecycle.processRAFQueue(undefined);
 

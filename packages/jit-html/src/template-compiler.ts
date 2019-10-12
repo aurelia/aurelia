@@ -29,7 +29,8 @@ import {
   LetBindingInstruction,
   LetElementInstruction,
   SetPropertyInstruction,
-  TemplateDefinition
+  TemplateDefinition,
+  ViewCompileFlags
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -95,7 +96,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
 
-  public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+  public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions, viewCompileFlags: ViewCompileFlags): TemplateDefinition {
     const binder = new TemplateBinder(
       dom,
       new ResourceModel(descriptions),
@@ -382,23 +383,38 @@ function captureElementSymbolAttrs(attrParser: IAttributeParser, symbol: CustomE
     return result;
   }
 
+  const bindables = symbol.bindables;
   const el = symbol.physicalNode;
   const allAttributes = el.attributes;
+  const isPredefinedFilter = typeof captureAttrConfig === 'number';
+
   for (let i = 0, ii = allAttributes.length; ii > i; ++i) {
     const attr = allAttributes[i];
     const attrRawName = attr.name;
     const attrRawValue = attr.value;
+
+    const isTargetMarker = attrRawName === 'class' && attrRawValue === 'au';
+    if (isTargetMarker) {
+      continue;
+    }
     // attrParser should cache the parse result
     // so execive/duplicate parsing won't hurt perf
     const attrSyntax = attrParser.parse(attrRawName, attrRawValue);
-    const isPlainAttr = attrRawName === attrSyntax.target && attrSyntax.command == null; /* what about interpolation */
+    const isPlainAttr = attrSyntax.command == null; /* what about interpolation */
     // only deal with plain attr here
     // deal with binding commands separately
     if (!isPlainAttr) {
       continue;
     }
 
-    const shouldCapture = (captureAttrConfig as AttributeFilter & AttributeFilter.plain) > 0 && attrRawName !== 'class' && attrRawValue !== 'au';
+    const isBindableAttr = bindables[attrSyntax.target] !== void 0;
+    if (isBindableAttr) {
+      continue;
+    }
+
+    const shouldCapture = isPredefinedFilter
+      ? (captureAttrConfig as AttributeFilter & AttributeFilter.plain) > 0
+      : (captureAttrConfig as string[]).includes(attrSyntax.target);
     if (!shouldCapture) {
       continue;
     }
@@ -419,8 +435,9 @@ function captureElementSymbolAttrs(attrParser: IAttributeParser, symbol: CustomE
   const plainAttrs = symbol.plainAttributes;
   for (let i = 0, ii = plainAttrs.length; ii > i; ++i) {
     const attrSyntax = plainAttrs[i].syntax;
-    const shouldCapture =
-      ((captureAttrConfig as AttributeFilter & AttributeFilter.bindingCommands) > 0) || (captureAttrConfig as string[]).includes(attrSyntax.target);
+    const shouldCapture = isPredefinedFilter
+      ? (captureAttrConfig as AttributeFilter & AttributeFilter.bindingCommands) > 0
+      : (captureAttrConfig as string[]).includes(attrSyntax.target);
 
     if (!shouldCapture) {
       continue;
@@ -443,8 +460,9 @@ function captureElementSymbolAttrs(attrParser: IAttributeParser, symbol: CustomE
   const customAttrs = symbol.customAttributes;
   for (let i = 0, ii = customAttrs.length; ii > i; ++i) {
     const attrSyntax = customAttrs[i].syntax;
-    const shouldCapture =
-      ((captureAttrConfig as AttributeFilter) & AttributeFilter.bindingCommands) > 0 || (captureAttrConfig as string[]).includes(attrSyntax.target);
+    const shouldCapture = isPredefinedFilter
+      ? (captureAttrConfig as AttributeFilter & AttributeFilter.bindingCommands) > 0
+      : (captureAttrConfig as string[]).includes(attrSyntax.target);
 
     if (!shouldCapture) {
       continue;

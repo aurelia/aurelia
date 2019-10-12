@@ -1,4 +1,5 @@
 import {
+  AttributeFilter,
   Controller,
   LifecycleFlags as LF,
   ITemplateFactory,
@@ -123,7 +124,7 @@ describe.skip('controller', function () {
     return Object.freeze<Required<ITemplateDefinition>>({
       name,
       template,
-      captureAttrs: false,
+      captureAttrs: AttributeFilter.none,
       cache: 0,
       build: buildNotRequired,
       bindables: Object.freeze(

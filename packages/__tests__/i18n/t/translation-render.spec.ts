@@ -8,6 +8,7 @@ import { assert } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {
   let originalAliases: string[];
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     TranslationAttributePattern.aliases = originalAliases;
   });
@@ -61,6 +62,7 @@ describe('TranslationAttributePattern', function () {
 
 describe('TranslationBindingCommand', function () {
   let originalAliases: string[];
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     TranslationBindingCommand.aliases = originalAliases;
   });
@@ -171,6 +173,7 @@ describe('TranslationBindingRenderer', function () {
 
 describe('TranslationBindAttributePattern', function () {
   let originalAliases: string[];
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     TranslationBindAttributePattern.aliases = originalAliases;
   });
@@ -228,6 +231,7 @@ describe('TranslationBindAttributePattern', function () {
 
 describe('TranslationBindBindingCommand', function () {
   let originalAliases: string[];
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     TranslationBindBindingCommand.aliases = originalAliases;
   });

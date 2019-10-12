@@ -58,6 +58,7 @@ describe('PropertyBinding', function () {
     return { sut, lifecycle, container, observerLocator };
   }
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     dummySourceExpression = {} as any;
     dummyTarget = {foo: 'bar'};

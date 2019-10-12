@@ -15,6 +15,7 @@ describe('ThrottleBindingBehavior', function () {
   let binding: PropertyBinding;
   let originalFn: (value: unknown, flags: LifecycleFlags) => void;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     sut = new ThrottleBindingBehavior();
     binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container);

@@ -318,9 +318,11 @@ describe(`The DI object`, function () {
   describe(`getDependencies()`, function () {
     let getDesignParamTypes: ISpy<typeof DI.getDesignParamTypes>;
 
+    // eslint-disable-next-line mocha/no-hooks
     beforeEach(function () {
       getDesignParamTypes = createSpy(DI, 'getDesignParamTypes', true);
     });
+    // eslint-disable-next-line mocha/no-hooks
     afterEach(function () {
       getDesignParamTypes.restore();
     });
@@ -479,12 +481,14 @@ describe(`The DI object`, function () {
 
       let registerResolver: ISpy<IContainer['registerResolver']>;
 
+      // eslint-disable-next-line mocha/no-hooks
       beforeEach(function () {
         sut = DI.createInterface();
         container = DI.createContainer();
         registerResolver = createSpy(container, 'registerResolver', true);
       });
 
+      // eslint-disable-next-line mocha/no-hooks
       afterEach(function () {
         registerResolver.restore();
       });

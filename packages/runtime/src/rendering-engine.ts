@@ -8,6 +8,8 @@ import {
   Key,
   Reporter,
   Writable,
+  Metadata,
+  Protocol,
 } from '@aurelia/kernel';
 import {
   buildTemplateDefinition,
@@ -195,18 +197,12 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly compilers: Record<string, ITemplateCompiler>;
   private readonly container: IContainer;
   private readonly templateFactory: ITemplateFactory;
-  private readonly viewFactoryLookup: Map<ITemplateDefinition, ViewFactoryRecord>;
-  private readonly validSourceLookup: Map<ITemplateDefinition, TemplateDefinition>;
   private readonly lifecycle: ILifecycle;
-  private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
   public constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
     this.container = container;
     this.templateFactory = templateFactory;
-    this.viewFactoryLookup = new Map();
-    this.validSourceLookup = new Map();
     this.lifecycle = lifecycle;
-    this.templateLookup = new Map();
 
     this.compilers = templateCompilers.reduce(
       (acc, item) => {
@@ -227,15 +223,7 @@ export class RenderingEngine implements IRenderingEngine {
       return void 0;
     }
 
-    let found = this.templateLookup.get(definition);
-
-    if (!found) {
-      found = this.templateFromSource(dom, definition, parentContext, componentType);
-
-      this.templateLookup.set(definition, found);
-    }
-
-    return found as ITemplate<T>;
+    return this.templateFromSource(dom, definition, parentContext, componentType);
   }
 
   public getViewFactory<T extends INode = INode>(
@@ -247,40 +235,53 @@ export class RenderingEngine implements IRenderingEngine {
       throw new Error(`No definition provided`); // TODO: create error code
     }
 
-    let validSource = this.validSourceLookup.get(definition);
+    const path = parentContext != null ? parentContext.path : '#';
+    const metadataKey = Protocol.metadataKeyFor(CustomElement, path);
+
+    let validSource = Metadata.getOwn(metadataKey, definition);
     if (validSource === void 0) {
       validSource = buildTemplateDefinition(null, definition);
-      this.validSourceLookup.set(definition, validSource);
+      Metadata.define(metadataKey, validSource, definition);
     }
 
-    let factoryRecord = this.viewFactoryLookup.get(validSource);
-    if (factoryRecord === void 0) {
-      factoryRecord = Object.create(null) as ViewFactoryRecord;
-      this.viewFactoryLookup.set(validSource, factoryRecord);
-    }
-
-    const parentContextId = parentContext === void 0 ? 0 : parentContext.id;
-    let factory = factoryRecord[parentContextId];
+    let factory = Metadata.getOwn(metadataKey, validSource);
     if (factory === void 0) {
       const template = this.templateFromSource(dom, validSource, parentContext, void 0);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
-      factoryRecord[parentContextId] = factory;
+      Metadata.define(metadataKey, factory, validSource);
     }
 
     return factory as IViewFactory<T>;
   }
 
-  private templateFromSource(
+  private templateFromSource<T extends INode = INode>(
     dom: IDOM,
     definition: TemplateDefinition,
     parentContext?: IContainer | IRenderContext,
     componentType?: ICustomElementType
-  ): ITemplate {
+  ): ITemplate<T> {
     if (parentContext == void 0) {
       parentContext = this.container as ExposedContext;
     }
 
+    const path = parentContext.path;
+    const metadataKey = Protocol.metadataKeyFor(CustomElement, path);
+    let found = Metadata.getOwn(metadataKey, definition);
+    if (found === void 0) {
+      found = this.templateFromSourceCore(dom, definition, parentContext, componentType);
+      Metadata.define(metadataKey, found, definition);
+    }
+
+    return found;
+  }
+
+  private templateFromSourceCore(
+    dom: IDOM,
+    definition: TemplateDefinition,
+    parentContext: IContainer | IRenderContext,
+    componentType?: ICustomElementType
+  ): ITemplate {
     if (definition.template != void 0) {
       const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
 

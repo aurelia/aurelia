@@ -897,4 +897,3 @@ if (!hasDeleteMetadata) {
 }
 
 export { Metadata, metadata };
-

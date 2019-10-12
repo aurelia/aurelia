@@ -75,3 +75,19 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     return null;
   }
 }
+
+function metadataKeyFor<TDef, TProto>(resourceKind: IResourceKind<TDef, TProto>, context?: string): string;
+function metadataKeyFor(annotationName: string): string;
+function metadataKeyFor<TDef, TProto>(resourceKindOrAnnotationName: string | IResourceKind<TDef, TProto>, context?: string): string {
+  if (typeof resourceKindOrAnnotationName === 'string') {
+    return `au:annotation:${resourceKindOrAnnotationName}`;
+  }
+  if (typeof context === 'string') {
+    return `au:resource:${resourceKindOrAnnotationName.name}:${context}`;
+  }
+  return `au:resource:${resourceKindOrAnnotationName.name}`;
+}
+
+export const Protocol = {
+  metadataKeyFor: metadataKeyFor
+};

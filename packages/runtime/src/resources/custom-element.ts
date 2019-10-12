@@ -7,8 +7,9 @@ import {
   IResourceType,
   Registration,
   Reporter,
-  Writable,
-  PLATFORM
+  Metadata,
+  PLATFORM,
+  Protocol
 } from '@aurelia/kernel';
 import {
   buildTemplateDefinition,
@@ -84,7 +85,7 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     return `${CustomElement.name}:${name}`;
   },
   isType<T>(Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
-    return Type.kind === CustomElement;
+    return Metadata.hasOwn(Protocol.metadataKeyFor(CustomElement), Type);
   },
   behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
     return (node as CustomElementHost<T>).$controller;
@@ -94,20 +95,32 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
       throw Reporter.error(70);
     }
     const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<T>;
-    const WritableType = Type as Writable<ICustomElementType<T>>;
     const description = buildTemplateDefinition(Type, nameOrDefinition);
 
-    WritableType.kind = CustomElement;
-    WritableType.description = description;
-    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-    Type.register = function register(container: IContainer): void {
-      const aliases = description.aliases;
+    // au:annotation:aliases
+    const aliasesKey = Protocol.metadataKeyFor('aliases');
+
+    function register(this: typeof Type, container: IContainer): void {
       const key = CustomElement.keyFrom(description.name);
+
       Registration.transient(key, this).register(container);
       Registration.alias(key, this).register(container);
-      registerAliases([...aliases, ...this.aliases], CustomElement, key, container);
 
-    };
+      const aliases = Metadata.hasOwn(aliasesKey, this)
+        ? [...description.aliases, ...Metadata.getOwn(aliasesKey, this)]
+        : description.aliases;
+
+      registerAliases(aliases, CustomElement, key, container);
+    }
+    // au:resource:custom-element
+    Metadata.define(Protocol.metadataKeyFor(CustomElement), description, Type);
+    if (Type.aliases != null) {
+      // au:resource:custom-element
+      Metadata.define(aliasesKey, Type.aliases, Type);
+    }
+
+    // au:resource:custom-element:register
+    Metadata.define(Protocol.metadataKeyFor(CustomElement, 'register'), register, Type);
 
     return Type;
   },

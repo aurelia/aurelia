@@ -90,7 +90,8 @@ export {
   IResourceType,
   ResourceDescription,
   ResourcePartDescription,
-  RuntimeCompilationResources
+  RuntimeCompilationResources,
+  Protocol,
 } from './resource';
 export {
   EventAggregator,

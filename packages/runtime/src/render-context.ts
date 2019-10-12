@@ -167,6 +167,7 @@ export class RenderContext implements IRenderContext {
           instruction as IHydrateElementInstruction
         )
       );
+      this.container.registerResolver(IHydrateElementInstructionContext, this.hydrationContextProvider);
     }
 
     if (factory != null) {

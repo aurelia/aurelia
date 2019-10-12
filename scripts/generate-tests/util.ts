@@ -1,5 +1,6 @@
 import { writeFileSync } from 'fs';
 import {
+  addSyntheticLeadingComment,
   ArrayLiteralExpression,
   ClassElement,
   ClassExpression,
@@ -200,6 +201,10 @@ export function $$new(variable: string, path: [string | Expression | Identifier,
 export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
 export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Statement {
   return $$const(variable, $new(nameOrPath, variablesOrExpressions));
+}
+
+export function $$comment(comment: string, arg: Statement): Statement {
+  return addSyntheticLeadingComment(arg, SyntaxKind.SingleLineCommentTrivia, ` ${comment}`, true);
 }
 
 export function $$const(name: string, initializer: Expression): VariableStatement;

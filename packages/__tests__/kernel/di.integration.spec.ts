@@ -30,6 +30,7 @@ describe('DI.createInterface() -> container.get()', function () {
   let callback: ISpy<() => ICallback>;
   let get: ISpy<IContainer['get']>;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
     ITransient = DI.createInterface<ITransient>('ITransient').withDefault(x => x.transient(Transient));
@@ -41,6 +42,7 @@ describe('DI.createInterface() -> container.get()', function () {
     get = createSpy(container, 'get', true);
   });
 
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     get.restore();
   });

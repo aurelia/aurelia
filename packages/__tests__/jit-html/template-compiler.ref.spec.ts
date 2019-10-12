@@ -18,13 +18,6 @@ import {
 
 describe('templating-compiler.ref.spec.ts', function() {
 
-  before(async function() {
-    await waitForFrames(2);
-  });
-  after(async function() {
-    await waitForFrames(2);
-  });
-
   interface IRefIntegrationTestCase {
     title: string;
     template: string | HTMLElement;

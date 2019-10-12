@@ -1,5 +1,6 @@
 export {
   assert,
+  fail
 } from './assert';
 
 export {
@@ -101,6 +102,7 @@ export {
   CallCollection,
   recordCalls,
   stopRecordingCalls,
+  trace
 } from './tracing';
 export {
   trimFull,

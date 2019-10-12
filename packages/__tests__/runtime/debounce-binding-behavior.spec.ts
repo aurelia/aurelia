@@ -15,6 +15,7 @@ describe('DebounceBindingBehavior', function () {
   let binding: PropertyBinding;
   let originalFn: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     sut = new DebounceBindingBehavior();
     binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container);

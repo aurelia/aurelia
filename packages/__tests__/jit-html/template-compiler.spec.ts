@@ -56,6 +56,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let container: IContainer;
   let dom: IDOM;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     container = ctx.container;

@@ -27,7 +27,24 @@ export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
   return function (target: Constructable & ComputedLookup, key: string): void {
-    (target.computed || (target.computed = {}))[key] = config;
+    /**
+     * The 'computed' property defined on prototype needs to be non-enumerable to prevent getting this in loops,
+     * iterating over object properties, such as for..in.
+     *
+     * The 'value' of the property should not have any prototype. Otherwise if by mistake the target passed
+     * here is `Object`, then we are in soup. Because then every instance of `Object` will have the `computed`
+     * property, including the `value` (in the descriptor of the property), when assigned `{}`. This might
+     * lead to infinite recursion for the cases as mentioned above.
+     */
+    if (!target.computed) {
+      Reflect.defineProperty(target, 'computed', {
+        writable: true,
+        configurable: true,
+        enumerable: false,
+        value: Object.create(null)
+      });
+    }
+    target.computed![key] = config;
   } as PropertyDecorator;
 }
 
@@ -48,8 +65,8 @@ export function createComputedObserver(
   }
 
   if (descriptor.get) {
-    const { constructor: { prototype: { computed } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
-    const overrides = computed![propertyName] || computedOverrideDefaults;
+    const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
+    const overrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
 
     if (descriptor.set) {
       if (overrides.volatile) {
@@ -238,7 +255,7 @@ const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const traps = {
-    get: function(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
+    get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
       if (observer.doNotCollect(key)) {
         return Reflect.get(target, key, receiver);
       }

@@ -56,7 +56,7 @@ describe('app', function () {
 
   $it('changes in bound VM properties are correctly reflected in the read-only-texts', async function ({ host, ctx }) {
     (host.querySelector('button#staticTextChanger') as unknown as HTMLButtonElement).click();
-    await ctx.lifecycle.nextFrame;
+    ctx.lifecycle.processRAFQueue(undefined);
 
     assert.html.textContent('read-only-text#text0', 'text0', 'incorrect text for read-only-text#text0', host);
     assert.html.textContent('read-only-text#text1', 'text1', 'incorrect text for read-only-text#text1', host);

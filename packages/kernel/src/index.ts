@@ -61,6 +61,10 @@ export {
   WritableKeys,
 } from './interfaces';
 export {
+  metadata,
+  Metadata,
+} from './metadata';
+export {
   relativeToFile,
   join,
   buildQueryString,

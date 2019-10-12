@@ -1,12 +1,10 @@
 /// <reference types="reflect-metadata" />
-import { Class, Constructable, IIndexable } from './interfaces';
+import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { IResourceType } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-const slice = Array.prototype.slice;
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
@@ -89,26 +87,6 @@ export type Resolved<K> = (
 );
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
-
-// Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
-// https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
-// https://rbuckton.github.io/reflect-metadata/
-// As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
-if (!('getOwnMetadata' in Reflect)) {
-  /* eslint-disable @typescript-eslint/ban-types */
-  Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return (target as IIndexable<Object>)[metadataKey];
-  };
-
-  Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
-    return function(target: Function): void {
-      (target as IIndexable<Function>)[metadataKey] = metadataValue;
-    };
-  } as (metadataKey: any, metadataValue: any) => {
-    (target: Function): void;
-    (target: Object, propertyKey: string | symbol): void;
-  };
-}
 
 type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Partial<IRegistration<K> & {friendlyName: string}>;
 

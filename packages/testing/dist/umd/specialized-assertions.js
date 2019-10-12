@@ -71,10 +71,11 @@
         }
     }
     exports.verifyEqual = verifyEqual;
-    function getVisibleText(root, host) {
+    function getVisibleText(root, host, removeWhiteSpace) {
         const context = { text: host.textContent };
         $getVisibleText(root, context);
-        return context.text;
+        const text = context.text;
+        return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
     }
     exports.getVisibleText = getVisibleText;
     function isShadowDOMProjector(projector) {

@@ -9,6 +9,13 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Attribute accessor for HTML elements.
+     * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
+     * Unless the property falls into a special set, then it will use attribute for it.
+     *
+     * @see ElementPropertyAccessor
+     */
     class DataAttributeAccessor {
         constructor(lifecycle, flags, obj, propertyKey) {
             this.lifecycle = lifecycle;

@@ -19,4 +19,8 @@ export declare class CallCollection {
 }
 export declare function recordCalls<TProto extends object>(ctor: Class<TProto>, calls: CallCollection): void;
 export declare function stopRecordingCalls<TProto extends object>(ctor: Class<TProto>): void;
+export declare function trace(calls: CallCollection): (ctor: {
+    new (...args: any[]): any;
+    readonly prototype: any;
+}) => void;
 //# sourceMappingURL=tracing.d.ts.map

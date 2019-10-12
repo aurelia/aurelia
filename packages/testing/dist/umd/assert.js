@@ -6,7 +6,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -16,6 +16,7 @@
     const inspect_1 = require("./inspect");
     const specialized_assertions_1 = require("./specialized-assertions");
     const util_1 = require("./util");
+    const runtime_html_1 = require("@aurelia/runtime-html");
     const noException = Symbol('noException');
     function innerFail(obj) {
         if (util_1.isError(obj.message)) {
@@ -559,6 +560,37 @@
         }
     }
     exports.isCustomAttributeType = isCustomAttributeType;
+    function getNode(elementOrSelector, root = runtime_html_1.DOM.document) {
+        return typeof elementOrSelector === "string"
+            ? root.querySelector(elementOrSelector)
+            : elementOrSelector;
+    }
+    function isTextContentEqual(elementOrSelector, expectedText, message, root) {
+        const host = getNode(elementOrSelector, root);
+        const actualText = host && specialized_assertions_1.getVisibleText((void 0), host, true);
+        if (actualText !== expectedText) {
+            innerFail({
+                actual: actualText,
+                expected: expectedText,
+                message,
+                operator: '==',
+                stackStartFn: isTextContentEqual
+            });
+        }
+    }
+    function isValueEqual(inputElementOrSelector, expected, message, root) {
+        const input = getNode(inputElementOrSelector, root);
+        const actual = input instanceof HTMLInputElement && input.value;
+        if (actual !== expected) {
+            innerFail({
+                actual: actual,
+                expected: expected,
+                message,
+                operator: '==',
+                stackStartFn: isValueEqual
+            });
+        }
+    }
     const assert = util_1.Object_freeze({
         throws,
         doesNotThrow,
@@ -595,6 +627,10 @@
             notDeepEqual: notDeepStrictEqual,
             equal: strictEqual,
             notEqual: notStrictEqual,
+        },
+        html: {
+            textContent: isTextContentEqual,
+            value: isValueEqual
         }
     });
     exports.assert = assert;

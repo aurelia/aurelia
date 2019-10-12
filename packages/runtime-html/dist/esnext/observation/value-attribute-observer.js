@@ -1,6 +1,9 @@
 import { __decorate } from "tslib";
 import { subscriberCollection, } from '@aurelia/runtime';
 // TODO: handle file attribute properly again, etc
+/**
+ * Observer for non-radio, non-checkbox input.
+ */
 let ValueAttributeObserver = class ValueAttributeObserver {
     constructor(lifecycle, flags, handler, obj, propertyKey) {
         this.lifecycle = lifecycle;

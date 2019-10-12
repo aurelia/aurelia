@@ -12,6 +12,9 @@
     const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
     // TODO: handle file attribute properly again, etc
+    /**
+     * Observer for non-radio, non-checkbox input.
+     */
     let ValueAttributeObserver = class ValueAttributeObserver {
         constructor(lifecycle, flags, handler, obj, propertyKey) {
             this.lifecycle = lifecycle;

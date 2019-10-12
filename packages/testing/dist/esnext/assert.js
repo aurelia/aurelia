@@ -5,6 +5,7 @@ import { isDeepEqual, isDeepStrictEqual, } from './comparison';
 import { AssertionError, inspect, } from './inspect';
 import { getVisibleText } from './specialized-assertions';
 import { isError, isFunction, isNullOrUndefined, isObject, isPrimitive, isRegExp, isString, isUndefined, Object_freeze, Object_is, Object_keys, } from './util';
+import { DOM } from '@aurelia/runtime-html';
 const noException = Symbol('noException');
 function innerFail(obj) {
     if (isError(obj.message)) {
@@ -517,6 +518,37 @@ export function isCustomAttributeType(actual, message) {
         });
     }
 }
+function getNode(elementOrSelector, root = DOM.document) {
+    return typeof elementOrSelector === "string"
+        ? root.querySelector(elementOrSelector)
+        : elementOrSelector;
+}
+function isTextContentEqual(elementOrSelector, expectedText, message, root) {
+    const host = getNode(elementOrSelector, root);
+    const actualText = host && getVisibleText((void 0), host, true);
+    if (actualText !== expectedText) {
+        innerFail({
+            actual: actualText,
+            expected: expectedText,
+            message,
+            operator: '==',
+            stackStartFn: isTextContentEqual
+        });
+    }
+}
+function isValueEqual(inputElementOrSelector, expected, message, root) {
+    const input = getNode(inputElementOrSelector, root);
+    const actual = input instanceof HTMLInputElement && input.value;
+    if (actual !== expected) {
+        innerFail({
+            actual: actual,
+            expected: expected,
+            message,
+            operator: '==',
+            stackStartFn: isValueEqual
+        });
+    }
+}
 const assert = Object_freeze({
     throws,
     doesNotThrow,
@@ -553,6 +585,10 @@ const assert = Object_freeze({
         notDeepEqual: notDeepStrictEqual,
         equal: strictEqual,
         notEqual: notStrictEqual,
+    },
+    html: {
+        textContent: isTextContentEqual,
+        value: isValueEqual
     }
 });
 export { assert };

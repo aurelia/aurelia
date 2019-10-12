@@ -33,6 +33,8 @@ export declare function match(actual: any, regex: RegExp, message?: string): voi
 export declare function notMatch(actual: any, regex: RegExp, message?: string): void;
 export declare function isCustomElementType(actual: any, message?: string): void;
 export declare function isCustomAttributeType(actual: any, message?: string): void;
+declare function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node): void;
+declare function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, message?: string, root?: Node): void;
 declare const assert: Readonly<{
     throws: typeof throws;
     doesNotThrow: typeof doesNotThrow;
@@ -69,6 +71,10 @@ declare const assert: Readonly<{
         notDeepEqual: typeof notDeepStrictEqual;
         equal: typeof strictEqual;
         notEqual: typeof notStrictEqual;
+    };
+    html: {
+        textContent: typeof isTextContentEqual;
+        value: typeof isValueEqual;
     };
 }>;
 export { assert };

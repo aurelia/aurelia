@@ -22,7 +22,7 @@ export declare class Blur {
     value: boolean | typeof unset;
     onBlur: () => void;
     /**
-     * Used to determine which elemens this attribute will be linked with
+     * Used to determine which elements this attribute will be linked with
      * Interacting with a linked element will not trigger blur for this attribute
      */
     linkedWith: string | HasContains | (string | HasContains)[];

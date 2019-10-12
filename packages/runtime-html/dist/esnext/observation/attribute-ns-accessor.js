@@ -1,3 +1,7 @@
+/**
+ * Attribute accessor in a XML document/element that can be accessed via a namespace.
+ * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
+ */
 export class AttributeNSAccessor {
     constructor(lifecycle, flags, obj, propertyKey, namespace) {
         this.lifecycle = lifecycle;

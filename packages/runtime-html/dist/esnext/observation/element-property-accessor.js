@@ -1,3 +1,10 @@
+/**
+ * Property accessor for HTML Elements.
+ * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
+ * Unless the property falls into a special set, then it will use attribute for it.
+ *
+ * @see DataAttributeAccessor
+ */
 export class ElementPropertyAccessor {
     constructor(lifecycle, flags, obj, propertyKey) {
         this.lifecycle = lifecycle;

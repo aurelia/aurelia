@@ -1,5 +1,5 @@
 import { stringifyLifecycleFlags, DebugTracer } from '@aurelia/debug';
-import { Registration, Tracer, } from '@aurelia/kernel';
+import { Registration, Tracer, PLATFORM, } from '@aurelia/kernel';
 import { getOwnPropertyDescriptors, Reflect_apply } from './util';
 const RuntimeTracer = { ...Tracer };
 export function enableTracing() {
@@ -98,7 +98,7 @@ export function recordCalls(ctor, calls) {
             && property.writable === true) {
             const original = property.value;
             const wrapper = function (...args) {
-                calls.addCall(this.id, key, ...args);
+                calls.addCall(this, key, ...args);
                 return Reflect_apply(original, this, args);
             };
             Reflect.defineProperty(wrapper, 'original', {
@@ -113,6 +113,27 @@ export function recordCalls(ctor, calls) {
                 configurable: property.configurable,
                 enumerable: property.enumerable,
             });
+        }
+        else {
+            const { get, set } = property;
+            let newGet, newSet;
+            if (get) {
+                newGet = function () {
+                    calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+                    return Reflect_apply(get, this, PLATFORM.emptyArray);
+                };
+                Reflect.defineProperty(newGet, 'original', { value: get });
+            }
+            if (set) {
+                newSet = function (valueToSet) {
+                    calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+                    Reflect_apply(set, this, [valueToSet]);
+                };
+                Reflect.defineProperty(newSet, 'original', { value: set });
+            }
+            if (get || set) {
+                Reflect.defineProperty(proto, key, { ...property, get: newGet, set: newSet });
+            }
         }
     }
 }
@@ -132,6 +153,21 @@ export function stopRecordingCalls(ctor) {
                 enumerable: property.enumerable,
             });
         }
+        else {
+            const { get, set } = property;
+            if (get || set) {
+                Reflect.defineProperty(proto, key, {
+                    ...property,
+                    get: get && Reflect.get(get, 'original'),
+                    set: set && Reflect.get(set, 'original')
+                });
+            }
+        }
     }
+}
+export function trace(calls) {
+    return function (ctor) {
+        recordCalls(ctor, calls);
+    };
 }
 //# sourceMappingURL=tracing.js.map

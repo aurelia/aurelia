@@ -12,6 +12,10 @@
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const subscriber_collection_1 = require("./subscriber-collection");
+    /**
+     * Observer for the mutation of object property value employing getter-setter strategy.
+     * This is used for observing object properties that has no decorator.
+     */
     let SetterObserver = class SetterObserver {
         constructor(lifecycle, flags, obj, propertyKey) {
             this.lifecycle = lifecycle;

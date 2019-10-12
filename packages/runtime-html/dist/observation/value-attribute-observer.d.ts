@@ -3,6 +3,9 @@ import { IAccessor, ILifecycle, ISubscriber, ISubscriberCollection, LifecycleFla
 import { IEventSubscriber } from './event-manager';
 export interface ValueAttributeObserver extends ISubscriberCollection {
 }
+/**
+ * Observer for non-radio, non-checkbox input.
+ */
 export declare class ValueAttributeObserver implements IAccessor<unknown> {
     readonly lifecycle: ILifecycle;
     readonly handler: IEventSubscriber;

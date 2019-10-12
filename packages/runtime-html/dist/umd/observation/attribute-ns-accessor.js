@@ -9,6 +9,10 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Attribute accessor in a XML document/element that can be accessed via a namespace.
+     * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
+     */
     class AttributeNSAccessor {
         constructor(lifecycle, flags, obj, propertyKey, namespace) {
             this.lifecycle = lifecycle;

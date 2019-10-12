@@ -58,10 +58,11 @@ export function verifyEqual(actual, expected, depth, property, index) {
         }
     }
 }
-export function getVisibleText(root, host) {
+export function getVisibleText(root, host, removeWhiteSpace) {
     const context = { text: host.textContent };
     $getVisibleText(root, context);
-    return context.text;
+    const text = context.text;
+    return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 function isShadowDOMProjector(projector) {
     return projector != void 0 && 'shadowRoot' in projector;

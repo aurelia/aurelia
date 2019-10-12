@@ -1,6 +1,10 @@
 import { __decorate } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
+/**
+ * Observer for the mutation of object property value employing getter-setter strategy.
+ * This is used for observing object properties that has no decorator.
+ */
 let SetterObserver = class SetterObserver {
     constructor(lifecycle, flags, obj, propertyKey) {
         this.lifecycle = lifecycle;

@@ -113,7 +113,7 @@
                 && property.writable === true) {
                 const original = property.value;
                 const wrapper = function (...args) {
-                    calls.addCall(this.id, key, ...args);
+                    calls.addCall(this, key, ...args);
                     return util_1.Reflect_apply(original, this, args);
                 };
                 Reflect.defineProperty(wrapper, 'original', {
@@ -128,6 +128,27 @@
                     configurable: property.configurable,
                     enumerable: property.enumerable,
                 });
+            }
+            else {
+                const { get, set } = property;
+                let newGet, newSet;
+                if (get) {
+                    newGet = function () {
+                        calls.addCall(this, `get ${key}`, kernel_1.PLATFORM.emptyArray);
+                        return util_1.Reflect_apply(get, this, kernel_1.PLATFORM.emptyArray);
+                    };
+                    Reflect.defineProperty(newGet, 'original', { value: get });
+                }
+                if (set) {
+                    newSet = function (valueToSet) {
+                        calls.addCall(this, `get ${key}`, kernel_1.PLATFORM.emptyArray);
+                        util_1.Reflect_apply(set, this, [valueToSet]);
+                    };
+                    Reflect.defineProperty(newSet, 'original', { value: set });
+                }
+                if (get || set) {
+                    Reflect.defineProperty(proto, key, { ...property, get: newGet, set: newSet });
+                }
             }
         }
     }
@@ -148,8 +169,24 @@
                     enumerable: property.enumerable,
                 });
             }
+            else {
+                const { get, set } = property;
+                if (get || set) {
+                    Reflect.defineProperty(proto, key, {
+                        ...property,
+                        get: get && Reflect.get(get, 'original'),
+                        set: set && Reflect.get(set, 'original')
+                    });
+                }
+            }
         }
     }
     exports.stopRecordingCalls = stopRecordingCalls;
+    function trace(calls) {
+        return function (ctor) {
+            recordCalls(ctor, calls);
+        };
+    }
+    exports.trace = trace;
 });
 //# sourceMappingURL=tracing.js.map

@@ -11,6 +11,7 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     var assert_1 = require("./assert");
     exports.assert = assert_1.assert;
+    exports.fail = assert_1.fail;
     var au_dom_1 = require("./au-dom");
     exports.AuNode = au_dom_1.AuNode;
     exports.AuDOM = au_dom_1.AuDOM;
@@ -93,6 +94,7 @@
     exports.CallCollection = tracing_1.CallCollection;
     exports.recordCalls = tracing_1.recordCalls;
     exports.stopRecordingCalls = tracing_1.stopRecordingCalls;
+    exports.trace = tracing_1.trace;
     var util_1 = require("./util");
     exports.trimFull = util_1.trimFull;
     exports.createSpy = util_1.createSpy;

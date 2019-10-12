@@ -24,13 +24,6 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
-  before(async function() {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  });
-  after(async function() {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  });
-
   const testCases: IHarmoniousCompilationTestCase[] = [
     {
       title: 'basic surrogate working example with 1 pair of custom attr + event same name',

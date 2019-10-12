@@ -104,7 +104,7 @@ export class Blur {
   public onBlur!: () => void;
 
   /**
-   * Used to determine which elemens this attribute will be linked with
+   * Used to determine which elements this attribute will be linked with
    * Interacting with a linked element will not trigger blur for this attribute
    */
   @bindable()

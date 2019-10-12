@@ -15,6 +15,7 @@ import {
   ITraceInfo,
   Registration,
   Tracer,
+  PLATFORM,
 } from '@aurelia/kernel';
 import { getOwnPropertyDescriptors, Reflect_apply } from './util';
 
@@ -136,8 +137,8 @@ export function recordCalls<TProto extends object>(
 
       const original = property.value;
 
-      const wrapper = function(this: any, ...args: any[]): any {
-        calls.addCall(this.id, key, ...args);
+      const wrapper = function (this: any, ...args: any[]): any {
+        calls.addCall(this, key, ...args);
         return Reflect_apply(original, this, args);
       };
 
@@ -161,6 +162,29 @@ export function recordCalls<TProto extends object>(
           enumerable: property.enumerable,
         },
       );
+    } else {
+      const { get, set } = property;
+      let newGet, newSet;
+      if (get) {
+        newGet = function (this: any) {
+          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+          return Reflect_apply(get, this, PLATFORM.emptyArray);
+        };
+        Reflect.defineProperty(newGet, 'original', { value: get });
+      }
+      if (set) {
+        newSet = function (this: any, valueToSet: any) {
+          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+          Reflect_apply(set, this, [valueToSet]);
+        };
+        Reflect.defineProperty(newSet, 'original', { value: set });
+      }
+      if (get || set) {
+        Reflect.defineProperty(
+          proto,
+          key,
+          { ...property, get: newGet, set: newSet });
+      }
     }
   }
 }
@@ -190,6 +214,24 @@ export function stopRecordingCalls<TProto extends object>(
           enumerable: property.enumerable,
         },
       );
+    } else {
+      const { get, set } = property;
+      if (get || set) {
+        Reflect.defineProperty(
+          proto,
+          key,
+          {
+            ...property,
+            get: get && Reflect.get(get, 'original'),
+            set: set && Reflect.get(set, 'original')
+          });
+      }
     }
   }
+}
+
+export function trace(calls: CallCollection) {
+  return function (ctor: Class<any>) {
+    recordCalls(ctor, calls);
+  };
 }

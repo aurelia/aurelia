@@ -104,6 +104,10 @@ module.exports = function (config) {
               },
             ],
           },
+          {
+            test: /\.html$/i,
+            loader: 'html-loader'
+          }
         ]
       }
     },

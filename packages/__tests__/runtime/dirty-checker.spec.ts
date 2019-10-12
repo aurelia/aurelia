@@ -8,6 +8,7 @@ import {
 import { assert } from '@aurelia/testing';
 
 describe.skip('DirtyChecker', function () {
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     DirtyCheckSettings.resetToDefault();
   });

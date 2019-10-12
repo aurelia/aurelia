@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/quotes, @typescript-eslint/explicit-member-accessibility, @typescript-eslint/indent, no-template-curly-in-string */
 import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";

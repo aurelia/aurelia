@@ -52,6 +52,7 @@ export interface IRegistry {
 
 export interface IContainer extends IServiceLocator {
   readonly id: number;
+  readonly path: string;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -524,6 +525,7 @@ function isResourceKey(key: Key): key is string {
 /** @internal */
 export class Container implements IContainer {
   public readonly id: number = nextContainerId();
+  public readonly path: string;
 
   private registerDepth: number = 0;
 
@@ -537,6 +539,7 @@ export class Container implements IContainer {
   public constructor(private readonly parent: Container | null) {
 
     if (parent === null) {
+      this.path = this.id.toString();
       this.root = this;
 
       this.factories = new Map();
@@ -544,6 +547,7 @@ export class Container implements IContainer {
 
       this.resourceResolvers = Object.create(null);
     } else {
+      this.path = `${parent.path}.${this.id}`;
       this.root = parent.root;
 
       this.factories = new Map(parent.factories);

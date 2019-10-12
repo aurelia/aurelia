@@ -160,15 +160,15 @@ class Main {
       }
       else if (e.target.matches('.remove')) {
         e.preventDefault();
-        let id = getParentId(e.target);
-        let idx = this.findIdx(id);
+        const id = getParentId(e.target);
+        const idx = this.findIdx(id);
         // console.log("delete",idx);
         this.delete(idx);
       }
       else if (e.target.matches('.lbl')) {
         e.preventDefault();
-        let id = getParentId(e.target);
-        let idx = this.findIdx(id);
+        const id = getParentId(e.target);
+        const idx = this.findIdx(id);
         // console.log("select",idx);
         this.select(idx);
       }
@@ -224,8 +224,8 @@ class Main {
     stopMeasure();
   }
   recreateSelection() {
-    let oldSelection = this.store.selected;
-    let selIdx = this.store.data.findIndex(d => d.id === oldSelection);
+    const oldSelection = this.store.selected;
+    const selIdx = this.store.data.findIndex(d => d.id === oldSelection);
     if (selIdx >= 0) {
       this.store.select(this.data[selIdx].id);
       this.selectedRow = this.rows[selIdx];
@@ -299,7 +299,7 @@ class Main {
       this.tbody.insertBefore(this.rows[998], this.rows[2]);
       this.tbody.insertBefore(this.rows[1], this.rows[999]);
 
-      let tmp = this.rows[998];
+      const tmp = this.rows[998];
       this.rows[998] = this.rows[1];
       this.rows[1] = tmp;
     }
@@ -332,7 +332,7 @@ class Main {
     // ... than adding directly
     var rows = this.rows, sData = this.store.data, data = this.data, tbody = this.tbody;
     for(let i=rows.length;i<sData.length; i++) {
-      let tr = this.createRow(sData[i]);
+      const tr = this.createRow(sData[i]);
       rows[i] = tr;
       data[i] = sData[i];
       tbody.appendChild(tr);

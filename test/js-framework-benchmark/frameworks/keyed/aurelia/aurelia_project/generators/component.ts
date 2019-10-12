@@ -18,8 +18,8 @@ export default class ElementGenerator {
       "."
     );
 
-    let fileName = this.project.makeFileName(name);
-    let className = this.project.makeClassName(name);
+    const fileName = this.project.makeFileName(name);
+    const className = this.project.makeClassName(name);
 
     this.project.root.add(
       ProjectItem.text(path.join(subFolders, `${fileName  }.ts`), this.generateJSSource(className)),

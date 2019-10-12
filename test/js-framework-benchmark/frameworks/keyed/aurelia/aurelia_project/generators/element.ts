@@ -11,8 +11,8 @@ export default class ElementGenerator {
       'What would you like to call the custom element?'
     );
 
-    let fileName = this.project.makeFileName(name);
-    let className = this.project.makeClassName(name);
+    const fileName = this.project.makeFileName(name);
+    const className = this.project.makeClassName(name);
 
     this.project.elements.add(
       ProjectItem.text(`${fileName}.ts`, this.generateJSSource(className)),

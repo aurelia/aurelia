@@ -14,11 +14,11 @@ export function setUseShadowRoot(val: boolean) {
 }
 
 function convertPath(path: string): PathPart[] {
-  let parts = path.split(/\//).filter(v => !!v);
-  let res: PathPart[] = [];
-  for (let part of parts) {
-    let components = part.split(/\[|]/).filter(v => !!v);
-    let tagName = components[0];
+  const parts = path.split(/\//).filter(v => !!v);
+  const res: PathPart[] = [];
+  for (const part of parts) {
+    const components = part.split(/\[|]/).filter(v => !!v);
+    const tagName = components[0];
     let index: number = 0;
     if (components.length==2) {
       index = Number(components[1]);
@@ -36,12 +36,12 @@ function convertPath(path: string): PathPart[] {
 
 // Fake findByXPath for simple XPath expressions to allow usage with shadow dom
 export async function findByXPath(node: WebElement, path: string): Promise<WebElement> {
-  let paths = convertPath(path);
+  const paths = convertPath(path);
   let n = node;
   try {
-    for (let p of paths) {
+    for (const p of paths) {
       // n = n.then(nd => nd.findElements(By.tagName(p.tagName))).then(elems => { // costly since it fetches all elements
-      let elems = await n.findElements(By.css(`${p.tagName}:nth-child(${p.index})`));
+      const elems = await n.findElements(By.css(`${p.tagName}:nth-child(${p.index})`));
       if (elems==null || elems.length==0) { return null; }
       n = elems[0];
     }
@@ -73,7 +73,7 @@ export async function testTextContains(driver: WebDriver, xpath: string, text: s
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
-        let v = await elem.getText();
+        const v = await elem.getText();
         return v && v.includes(text);
       } catch(err) {
         console.log(`ignoring error in testTextContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
@@ -88,7 +88,7 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
-        let v = await elem.getText();
+        const v = await elem.getText();
         return v && !v.includes(text);
       } catch(err) {
         console.log(`ignoring error in testTextNotContained for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
@@ -103,7 +103,7 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
         if (elem==null) return false;
-        let v = await elem.getAttribute("class");
+        const v = await elem.getAttribute("class");
         return v && v.includes(text);
       } catch(err) {
         console.log(`ignoring error in testClassContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
@@ -199,7 +199,7 @@ export function shadowRoot(driver: WebDriver): Promise<WebElement> {
 // SELENIUM_REMOTE_URL=http://localhost:9998
 export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver {
 
-  let args = [
+  const args = [
     "--js-flags=--expose-gc",
     "--enable-precise-memory-info",
     "--no-first-run",
@@ -223,7 +223,7 @@ export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver
   }
 
   console.time("chromedriver");
-  let caps = new Capabilities({
+  const caps = new Capabilities({
     "browserName": 'chrome',
     "platform": 'ANY',
     "version": 'stable',
@@ -241,7 +241,7 @@ export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver
     }
   });
     // port probing fails sometimes on windows, the following driver construction avoids probing:
-  let service = new chrome.ServiceBuilder().setPort(benchmarkOptions.chromePort).build();
+  const service = new chrome.ServiceBuilder().setPort(benchmarkOptions.chromePort).build();
   var driver = chrome.Driver.createSession(caps, service);
 
   return driver;

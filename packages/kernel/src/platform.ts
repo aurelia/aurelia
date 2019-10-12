@@ -65,8 +65,7 @@ const $now = (function (): () => number {
     };
     hrtime = $global.process.hrtime;
     getNanoSeconds = function (): number {
-      let hr: [number, number];
-      hr = hrtime();
+      const hr: [number, number] = hrtime();
       return hr[0] * 1e9 + hr[1];
     };
     moduleLoadTime = getNanoSeconds();

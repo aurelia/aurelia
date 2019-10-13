@@ -327,6 +327,34 @@ describe('templating-compiler.ref.spec.ts', function() {
         ] as IRefIntegrationTestCase[];
       })
       .reduce((arr, cases) => arr.concat(cases), []),
+    // #region ref-binding order
+    {
+      title: 'works regardless of declaration order',
+      template: '<input value.to-view="div.toString()"><div ref="div"></div>',
+      assertFn: (ctx, host) => {
+        assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    {
+      title: 'works regardless of declaration order, and template controller in path',
+      template: '<input value.to-view="div.toString()"><div if.bind="true" ref="div"></div>',
+      assertFn: (ctx, host) => {
+        assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    {
+      title: 'works regardless of declaration order, and template controller in path',
+      template: '<input value.to-view="div.toString()"><div if.bind="renderDiv" ref="div"></div>',
+      assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
+        assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
+        comp.renderDiv = true;
+        ctx.lifecycle.processRAFQueue(0);
+        assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    // #endregion ref-binding order
+
+    // #region wrong usage
     // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[
@@ -354,6 +382,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       template: `<div repeat.for="i of 1" repeat.ref=hello>`,
       assertFn: PLATFORM.noop
     },
+    // #endregion wrong usage
   ];
 
   for (const testCase of testCases) {

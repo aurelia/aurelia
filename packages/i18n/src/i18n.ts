@@ -37,16 +37,58 @@ export class I18nKeyEvaluationResult {
 export interface I18N {
   i18next: i18nextCore.i18n;
   readonly task: ILifecycleTask;
+  /**
+   * Evaluates the `keyExpr` to translated values.
+   * For a single key, `I18nService#tr` method can also be easily used.
+   *
+   * @example
+   *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
+   *    {key: 'key1', attributes:[], value: 'translated_value_of_key1'}
+   *    {key: 'key2', attributes:['attr'], value: 'translated_value_of_key2'}
+   *    {key: 'key3', attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
+   *  ]
+   */
   evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[];
   tr(key: string | string[], options?: i18nextCore.TOptions): string;
   getLocale(): string;
   setLocale(newLocale: string): Promise<void>;
+  /**
+   * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.
+   * If the `locales` is skipped, then the `Intl.NumberFormat` instance is created using the currently active locale.
+   */
   createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat;
+  /**
+   * Formats the given `input` number according to the given `[options]`, and `[locales]`.
+   * If the `locales` is skipped, then the number is formatted using the currently active locale.
+   *
+   * @returns Formatted number.
+   */
   nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string;
+  /**
+   * Unformats a given numeric string to a number.
+   */
   uf(numberLike: string, locale?: string): number;
+  /**
+   * Returns `Intl.DateTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a date.
+   * If the `locales` is skipped, then the `Intl.DateTimeFormat` instance is created using the currently active locale.
+   */
   createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat;
+  /**
+   * Formats the given `input` date according to the given `[options]` and `[locales]`.
+   * If the `locales` is skipped, then the date is formatted using the currently active locale.
+   *
+   * @returns Formatted date.
+   */
   df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string;
+  /**
+   * Returns `Intl.RelativeTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a value with associated time unit.
+   * If the `locales` is skipped, then the `Intl.RelativeTimeFormat` instance is created using the currently active locale.
+   */
   createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat;
+  /**
+   * Returns a relative time format of the given `input` date as per the given `[options]`, and `[locales]`.
+   * If the `locales` is skipped, then the currently active locale is used for formatting.
+   */
   rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
 }
 export const I18N = DI.createInterface<I18N>('I18N').noDefault();
@@ -75,18 +117,6 @@ export class I18nService implements I18N {
     this.intl = PLATFORM.global.Intl;
   }
 
-  /**
-   * Evaluates the `keyExpr` to translated values.
-   * Example:
-   * ```typescript
-   *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
-   *    {key: 'key1', attributes:[], value: 'translated_value_of_key1'}
-   *    {key: 'key2', attributes:['attr'], value: 'translated_value_of_key2'}
-   *    {key: 'key3', attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
-   *  ]
-   * ```
-   * For a single key, `I18nService#tr` method can also be easily used.
-   */
   public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
     const parts = keyExpr.split(';');
     const results: I18nKeyEvaluationResult[] = [];
@@ -118,45 +148,23 @@ export class I18nService implements I18N {
     this.ea.publish(Signals.I18N_EA_CHANNEL, { oldLocale, newLocale });
     this.signaler.dispatchSignal(Signals.I18N_SIGNAL);
   }
-  /**
-   * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.
-   * If the `locales` is skipped, then the `Intl.NumberFormat` instance is created using the currently active locale.
-   */
+
   public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
     return this.intl.NumberFormat(locales || this.getLocale(), options);
   }
 
-  /**
-   * Formats the given `input` number according to the given `[options]`, and `[locales]`.
-   * If the `locales` is skipped, then the number is formatted using the currently active locale.
-   *
-   * @returns Formatted number.
-   */
   public nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string {
     return this.createNumberFormat(options, locales).format(input);
   }
 
-  /**
-   * Returns `Intl.DateTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a date.
-   * If the `locales` is skipped, then the `Intl.DateTimeFormat` instance is created using the currently active locale.
-   */
   public createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat {
     return this.intl.DateTimeFormat(locales || this.getLocale(), options);
   }
 
-  /**
-   * Formats the given `input` date according to the given `[options]` and `[locales]`.
-   * If the `locales` is skipped, then the date is formatted using the currently active locale.
-   *
-   * @returns Formatted date.
-   */
   public df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
     return this.createDateTimeFormat(options, locales).format(input);
   }
 
-  /**
-   * Unformats a given numeric string to a number.
-   */
   public uf(numberLike: string, locale?: string): number {
     // Unfortunately the Intl specs does not specify a way to get the thousand and decimal separators for a given locale.
     // Only straightforward way would be to include the CLDR data and query for the separators, which certainly is a overkill.
@@ -180,18 +188,10 @@ export class I18nService implements I18N {
     return Number(result);
   }
 
-  /**
-   * Returns `Intl.RelativeTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a value with associated time unit.
-   * If the `locales` is skipped, then the `Intl.RelativeTimeFormat` instance is created using the currently active locale.
-   */
   public createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat {
     return new this.intl.RelativeTimeFormat(locales || this.getLocale(), options);
   }
 
-  /**
-   * Returns a relative time format of the given `input` date as per the given `[options]`, and `[locales]`.
-   * If the `locales` is skipped, then the currently active locale is used for formatting.
-   */
   public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {
     let difference = input.getTime() - new Date().getTime();
     const epsilon = this.options.rtEpsilon! * (difference > 0 ? 1 : 0);

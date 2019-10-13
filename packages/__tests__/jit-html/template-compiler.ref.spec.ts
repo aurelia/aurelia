@@ -343,13 +343,42 @@ describe('templating-compiler.ref.spec.ts', function() {
       }
     },
     {
-      title: 'works regardless of declaration order, and template controller in path',
+      title: 'works regardless of declaration order, and template controller in path with delayed rendering',
       template: '<input value.to-view="div.toString()"><div if.bind="renderDiv" ref="div"></div>',
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
         comp.renderDiv = true;
         ctx.lifecycle.processRAFQueue(0);
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    {
+      title: 'works with setter',
+      root: class App {
+        public divSetterCount: number = 0;
+        public divGetterCount: number = 0;
+        public _div: HTMLDivElement;
+        public set div(val: HTMLDivElement) {
+          this.divSetterCount++;
+          this._div = val;
+        }
+        public get div(): HTMLDivElement {
+          this.divGetterCount++;
+          return this._div;
+        }
+      },
+      template: '<div repeat.for="i of 10" ref=div></div>',
+      assertFn: (ctx, host, comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }) => {
+        assert.strictEqual(comp.divGetterCount, 0, 'shoulda called getter 0 times');
+        assert.strictEqual(comp.divSetterCount, 10, 'shoulda called setter 10 times');
+      },
+      assertFnAfterDestroy: (
+        ctx,
+        host,
+        comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }
+      ) => {
+        assert.strictEqual(comp.divGetterCount, 10, 'shoulda called getter 10 times');
+        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
       }
     },
     // #endregion ref-binding order

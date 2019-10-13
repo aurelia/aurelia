@@ -15,6 +15,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/class-name-casing': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
     'mocha/no-async-describe': 'error',
@@ -34,5 +35,14 @@ module.exports = {
     'mocha/max-top-level-suites': 'off',
     'mocha/no-setup-in-describe': 'off',
     'mocha/no-synchronous-tests': 'off'
-  }
+  },
+  overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
+    files: ['jit-html/generated/**'],
+    rules: {
+      '@typescript-eslint/quotes': 'off',
+      '@typescript-eslint/explicit-member-accessibility': 'off',
+      '@typescript-eslint/indent': 'off',
+      'no-template-curly-in-string': 'off'
+    }
+  }]
 };

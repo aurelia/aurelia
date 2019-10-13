@@ -1,20 +1,20 @@
 ### `@aurelia/runtime`
 
 #### Bindings
-- `call-binding`
+- [ ]`call-binding`
 
   Assigns the result of the method call to the attribute.
 
   ```html
   <el attr="func()"></el>
   ```
-- `interpolation-binding`
+- [x] `interpolation-binding`
 
   Evaluates interpolation expression.
 - `let-binding`
 
   Local variable evaluated on runtime (new property added to VM).
-- `property-binding`
+- [x] `property-binding`
 
   Binds evaluated source expression to the VM properties or DOM attributes.
 
@@ -23,20 +23,20 @@
   - to view
   - from view
   - two way
-- `ref-binding`
+- [ ] `ref-binding`
 
   Captures the reference to DOM elements, CE, and CE VMs.
 
 #### Observers
-- `array-observer`: Observer for mutation in array
-- `collection-length-observer`: Observer for array length
-- `collection-size-observer`: Observer for set or map size
-- `computed-observer`: Observer for computed properties
-- `map-observer`: Observer for mutation in Map
-- `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
-- `self-observer`: utilized for `@bindable`s with change handler
-- `set-observer`: Observer for mutation in Set
-- `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
+- [ ] `array-observer`: Observer for mutation in array
+- [ ] `collection-length-observer`: Observer for array length
+- [ ] `collection-size-observer`: Observer for set or map size
+- [x] `computed-observer`: Observer for computed properties
+- [ ] `map-observer`: Observer for mutation in Map
+- [ ] `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
+- [ ] `self-observer`: utilized for `@bindable`s with change handler
+- [ ] `set-observer`: Observer for mutation in Set
+- [ ] `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
 
 #### Binding behaviors
 - `debounce`: delays change

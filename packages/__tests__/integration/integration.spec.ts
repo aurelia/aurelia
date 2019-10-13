@@ -1,5 +1,5 @@
-import { CustomElement } from '@aurelia/runtime';
-import { assert, fail, Call } from '@aurelia/testing';
+import { CustomElement, DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
+import { assert, Call, createSpy, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
@@ -184,6 +184,12 @@ describe('app', function () {
       assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic');
       assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic');
 
+      const dirtyChecker = ctx.container.get(IDirtyChecker);
+      const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[])
+        .filter((prop) => Object.is(user, prop.obj) &&
+          ['fullNameStatic', 'fullNameNonStatic', 'fullNameWrongStatic'].includes(prop.propertyKey));
+      assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
+
       let index = calls.length;
       user.firstName = 'Jane';
       ctx.lifecycle.processRAFQueue(undefined);
@@ -226,6 +232,12 @@ describe('app', function () {
       assert.html.textContent(nonVolatile, 'Role1, Org1', 'incorrect text nonVolatile');
       assert.html.textContent(volatile, 'City1, Country1', 'incorrect text volatile');
 
+      const dirtyChecker = ctx.container.get(IDirtyChecker);
+      const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[])
+        .filter((prop) => Object.is(user, prop.obj) &&
+          ['roleNonVolatile', 'locationVolatile'].includes(prop.propertyKey));
+      assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
+
       let index = calls.length;
       user.roleNonVolatile = 'Role2';
       user.locationVolatile = 'Country2';
@@ -243,6 +255,25 @@ describe('app', function () {
       assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
       assert.greaterThan(calls.length, index);
       assertCalls(calls, index, user, ['get locationVolatile'], ['get roleNonVolatile']);
+    }
+  );
+
+  $it('uses a user preference control gets dirty checked for non-configurable property',
+    async function ({ host, ctx }) {
+
+      const { user } = getViewModel<App>(host);
+      const userPref = host.querySelector('user-preference');
+      const indeterminate = userPref.querySelector('#indeterminate');
+      assert.html.textContent(indeterminate, 'test', 'incorrect text indeterminate');
+
+      const dirtyChecker = ctx.container.get(IDirtyChecker);
+      const dirtyCheckProperty = (dirtyChecker['tracked'] as DirtyCheckProperty[])
+        .find((prop) => Object.is(user.arr, prop.obj) && prop.propertyKey === 'indeterminate');
+      assert.notEqual(dirtyCheckProperty, undefined);
+      const spy = createSpy(dirtyCheckProperty, 'isDirty', true);
+
+      await new Promise((resolve) => { setTimeout(resolve, 300); });
+      assert.greaterThan(spy.calls.length, 0);
     }
   );
 });

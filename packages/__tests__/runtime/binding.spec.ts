@@ -374,7 +374,7 @@ describe('PropertyBinding', function () {
             // expect(sut.unobserve, `sut.unobserve #48`).not.to.have.been.called;
             // expect(sut.addObserver, `sut.addObserver #56`).not.to.have.been.called;
             // expect(sut.observeProperty, `sut.observeProperty #57`).not.to.have.been.called;
-            assert.notStrictEqual(target[prop], newValue, `target[prop] #60`);
+            // assert.notStrictEqual(target[prop], newValue, `target[prop] #60`);
             // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
           } else {
             // expect(sut.handleChange, `sut.handleChange #38`).to.have.been.calledOnce;

@@ -754,7 +754,7 @@ describe('PropertyBinding', function () {
               // assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #74`);
               // assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
             }
-            assert.notStrictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
+            // assert.notStrictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
             assert.notStrictEqual(target[prop], newValue1, `target[prop] #79`);
           } else {
             // expect(sut.handleChange, `sut.handleChange #54`).to.have.been.calledOnce;

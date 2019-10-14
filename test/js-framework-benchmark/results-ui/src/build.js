@@ -33,7 +33,7 @@ function encodeBench(obj) {
   ];
 }
 
-let libs = {
+const libs = {
   keyed: {},
   unkeyed: {},
 };

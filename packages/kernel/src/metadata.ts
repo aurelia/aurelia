@@ -833,6 +833,17 @@ const Metadata = {
   delete: $delete,
 };
 
+function def(obj: object, key: string, value: unknown): void {
+  Reflect.defineProperty(obj, key, {
+    writable: true,
+    enumerable: false,
+    configurable: true,
+    value,
+  });
+}
+
+def(Metadata, '$Internal', metadataInternalSlot);
+
 const hasDefineMetadata = 'defineMetadata' in Reflect;
 const hasHasMetadata = 'hasMetadata' in Reflect;
 const hasHasOwnMetadata = 'hasOwnMetadata' in Reflect;
@@ -872,28 +883,28 @@ if (hasSome && !hasAll) {
 }
 
 if (!hasDefineMetadata) {
-  Reflect.defineMetadata = $define;
+  def(Reflect, 'defineMetadata', $define);
 }
 if (!hasHasMetadata) {
-  Reflect.hasMetadata = $has;
+  def(Reflect, 'hasMetadata', $has);
 }
 if (!hasHasOwnMetadata) {
-  Reflect.hasOwnMetadata = $hasOwn;
+  def(Reflect, 'hasOwnMetadata', $hasOwn);
 }
 if (!hasGetMetadata) {
-  Reflect.getMetadata = $get;
+  def(Reflect, 'getMetadata', $get);
 }
 if (!hasGetOwnMetadata) {
-  Reflect.getOwnMetadata = $getOwn;
+  def(Reflect, 'getOwnMetadata', $getOwn);
 }
 if (!hasGetMetadataKeys) {
-  Reflect.getMetadataKeys = $getKeys;
+  def(Reflect, 'getMetadataKeys', $getKeys);
 }
 if (!hasGetOwnMetadataKeys) {
-  Reflect.getOwnMetadataKeys = $getOwnKeys;
+  def(Reflect, 'getOwnMetadataKeys', $getOwnKeys);
 }
 if (!hasDeleteMetadata) {
-  Reflect.deleteMetadata = $delete;
+  def(Reflect, 'deleteMetadata', $delete);
 }
 
 export { Metadata, metadata };

@@ -413,6 +413,7 @@ export {
 export {
   ViewModelKind,
   IBinding,
+  IControllerHoldOptions,
   ILifecycle,
   IViewModel,
   IController,

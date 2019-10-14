@@ -9,7 +9,7 @@ function wrap(inner: string, tag: string): string {
   return `<${tag}>${inner}</${tag}>`;
 }
 
-function verifyThrows(call: () => void): void {
+function verifyThrows(call: () => targetChanged): targetChanged {
   let err;
   try {
     call();
@@ -19,7 +19,7 @@ function verifyThrows(call: () => void): void {
   assert.strictEqual(err instanceof Error, true, `err instanceof Error`);
 }
 
-function verifyDoesNotThrow(call: () => void): void {
+function verifyDoesNotThrow(call: () => targetChanged): targetChanged {
   let err;
   try {
     call();
@@ -111,7 +111,7 @@ describe('dom', function () {
   // reset doc after each test to clear any spies
   const DocumentBackup = Object.create(null);
 
-  function restoreBackups(): void {
+  function restoreBackups(): targetChanged {
     Object.assign(ctx.dom, DOMBackup);
     Object.assign(ctx.doc, DocumentBackup);
   }
@@ -494,6 +494,27 @@ describe('FragmentNodeSequence', function () {
     }
   });
 
+  describe('prependTo', function() {
+    for (const width of widthArr) {
+      for (const depth of depthArr.filter(d => d > 0)) {
+        it(`should append the view to the parent (depth=${depth},width=${width})`, function() {
+          const node = ctx.dom.createElement('div');
+          const fragment = createFragment(ctx, node, 0, depth, width);
+          sut = new FragmentNodeSequence(ctx.dom, fragment);
+          const parent = ctx.dom.createElement('div');
+          sut.prependTo(parent);
+          assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
+          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
+          let i = 0;
+          while (i < width) {
+            assert.strictEqual(parent.childNodes.item(i) === sut.childNodes[i], true, `parent.childNodes.item(i) === sut.childNodes[i]`);
+            i++;
+          }
+        });
+      }
+    }
+  });
+
   describe.skip('remove', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
@@ -522,7 +543,7 @@ function createFragment(ctx: HTMLTestContext, node: HTMLElement, level: number, 
   return root;
 }
 
-function appendTree(root: HTMLElement, node: HTMLElement, level: number, depth: number, width: number): void {
+function appendTree(root: HTMLElement, node: HTMLElement, level: number, depth: number, width: number): targetChanged {
   if (level < depth) {
     const children = appendChildren(root, node, width);
     for (const child of children) {

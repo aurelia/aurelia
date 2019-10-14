@@ -107,7 +107,7 @@ export interface IController<
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;
-  hold(location: IRenderLocation<T>): void;
+  hold(location: IRenderLocation<T>, options?: IControllerHoldOptions): void;
   release(flags: LifecycleFlags): boolean;
   bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
@@ -124,6 +124,14 @@ export interface IController<
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
+
+/**
+ * Describing characteristics of a render location a controller holds
+ */
+export interface IControllerHoldOptions {
+  isContainer?: boolean;
+  strategy?: 'append' | 'prepend';
+}
 
 export interface IRenderContext<T extends INode = INode> extends IContainer {
   readonly parentId: number;

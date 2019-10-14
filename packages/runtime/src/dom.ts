@@ -55,6 +55,11 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   appendTo(parent: T): void;
 
   /**
+   * Append this sequence as a child to the start of child list of the parent
+   */
+  prependTo(parent: T): void;
+
+  /**
    * Remove this sequence from the DOM.
    */
   remove(): void;
@@ -182,6 +187,7 @@ const emptySequence: INodeSequence = {
   findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
   insertBefore(refNode: INode): void { /* do nothing */ },
   appendTo(parent: INode): void { /* do nothing */ },
+  prependTo(parent: INode): void { /* do nothing */ },
   remove(): void { /* do nothing */ },
   addToLinked(): void { /* do nothing */ },
   unlink(): void { /* do nothing */ },

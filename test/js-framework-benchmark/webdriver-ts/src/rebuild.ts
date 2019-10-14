@@ -4,13 +4,13 @@ import * as _ from 'lodash';
 var exec = require('child_process').execSync;
 
 function main() {
-  let frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
+  const frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
 
   if (frameworks.length === 0) {
     console.log("usage: rebuild.js [directory1, directory2, ...]");
   } else {
-    for (let framework of frameworks) {
-      let dir = path.resolve(path.join('..','frameworks',framework));
+    for (const framework of frameworks) {
+      const dir = path.resolve(path.join('..','frameworks',framework));
       console.log(`rebuilding ${framework} in directory `, dir);
       if (!fs.existsSync(dir)) throw new Error(`ERROR: directory ${dir} not found`);
       else {
@@ -32,7 +32,7 @@ function main() {
       stdio: 'inherit'
     });
 
-    let frameworkNames = frameworks.join(" ");
+    const frameworkNames = frameworks.join(" ");
     console.log(`npm run bench -- --headless --noResults --count 1  ${frameworkNames}`);
     exec(`npm run bench -- --headless --noResults --count 1 ${frameworkNames}`, {
       stdio: 'inherit'

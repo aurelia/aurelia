@@ -145,10 +145,10 @@ function loadFrameworkInfo(pathInFrameworksDir: string): FrameworkVersionInforma
   } else {
     throw new Error(`pathInFrameworksDir must start with keyed or non-keyed, but is ${pathInFrameworksDir}`);
   }
-  let frameworksPath = path.resolve('..','frameworks');
-  let packageJSONPath = path.resolve(frameworksPath, pathInFrameworksDir, 'package.json');
+  const frameworksPath = path.resolve('..','frameworks');
+  const packageJSONPath = path.resolve(frameworksPath, pathInFrameworksDir, 'package.json');
   if (fs.existsSync(packageJSONPath)) {
-    let packageJSON = JSON.parse(fs.readFileSync(packageJSONPath, 'utf8'));
+    const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath, 'utf8'));
     if (packageJSON['js-framework-benchmark']) {
       if (packageJSON['js-framework-benchmark']['frameworkVersionFromPackage']) {
         return new FrameworkVersionInformationDynamic(
@@ -178,15 +178,15 @@ function loadFrameworkInfo(pathInFrameworksDir: string): FrameworkVersionInforma
 }
 
 export function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): FrameworkVersionInformation[] {
-  let results: FrameworkVersionInformation[] = [];
-  let frameworksPath = path.resolve('..','frameworks');
+  const results: FrameworkVersionInformation[] = [];
+  const frameworksPath = path.resolve('..','frameworks');
   ['keyed'/* ,'non-keyed' */].forEach((keyedType: KeyedType) => {
-    let directories = fs.readdirSync(path.resolve(frameworksPath, keyedType));
+    const directories = fs.readdirSync(path.resolve(frameworksPath, keyedType));
 
-    for (let directory of directories) {
-      let pathInFrameworksDir = path.join(keyedType, directory);
+    for (const directory of directories) {
+      const pathInFrameworksDir = path.join(keyedType, directory);
       if (matchPredicate(pathInFrameworksDir)) {
-        let fi = loadFrameworkInfo(pathInFrameworksDir);
+        const fi = loadFrameworkInfo(pathInFrameworksDir);
         if (fi!=null) results.push(fi);
       }
     }
@@ -218,11 +218,11 @@ export class PackageVersionInformationResult {
 
 export async function determineInstalledVersions(framework: FrameworkVersionInformationDynamic): Promise<PackageVersionInformationResult> {
 
-  let versions = new PackageVersionInformationResult(framework);
+  const versions = new PackageVersionInformationResult(framework);
   try {
     console.log(`http://localhost:${config.PORT}/frameworks/${framework.keyedType}/${framework.directory}/package-lock.json`);
-    let packageLock: any = (await axios.get(`http://localhost:${config.PORT}/frameworks/${framework.keyedType}/${framework.directory}/package-lock.json`)).data;
-    for (let packageName of framework.packageNames) {
+    const packageLock: any = (await axios.get(`http://localhost:${config.PORT}/frameworks/${framework.keyedType}/${framework.directory}/package-lock.json`)).data;
+    for (const packageName of framework.packageNames) {
       if (packageLock.dependencies[packageName]) {
         versions.add(new PackageVersionInformationValid(packageName, packageLock.dependencies[packageName].version));
       } else {
@@ -245,10 +245,10 @@ export async function determineInstalledVersions(framework: FrameworkVersionInfo
 }
 
 export async function initializeFrameworks(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkData[]> {
-  let frameworkVersionInformations = loadFrameworkVersionInformation(matchPredicate);
+  const frameworkVersionInformations = loadFrameworkVersionInformation(matchPredicate);
 
   let frameworks: FrameworkData[] = [];
-  for (let frameworkVersionInformation of frameworkVersionInformations) {
+  for (const frameworkVersionInformation of frameworkVersionInformations) {
     if (frameworkVersionInformation instanceof FrameworkVersionInformationDynamic) {
       frameworks.push((await determineInstalledVersions(frameworkVersionInformation)).getFrameworkData());
     } else if (frameworkVersionInformation instanceof FrameworkVersionInformationStatic) {

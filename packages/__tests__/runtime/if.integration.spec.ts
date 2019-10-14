@@ -216,16 +216,12 @@ describe(`If/Else`, function () {
         elseSut.link(sut);
         sut.$controller = Controller.forCustomAttribute(sut, container);
 
-        let firstBindInitialNodesText: string;
         let firstBindFinalNodesText: string;
-        let secondBindInitialNodesText: string;
         let secondBindFinalNodesText: string;
         let firstAttachInitialHostText: string;
-        let firstAttachFinalHostText: string;
         let secondAttachInitialHostText: string;
-        let secondAttachFinalHostText: string;
 
-        firstBindInitialNodesText = value1 ? ifText : elseText;
+        const firstBindInitialNodesText: string = value1 ? ifText : elseText;
         if (bindTwice) {
           firstAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
           firstBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
@@ -233,9 +229,9 @@ describe(`If/Else`, function () {
           firstBindFinalNodesText = firstBindInitialNodesText;
           firstAttachInitialHostText = value1 ? ifText : elseText;
         }
-        firstAttachFinalHostText = newValue1 ? ifText : elseText;
+        const firstAttachFinalHostText: string = newValue1 ? ifText : elseText;
 
-        secondBindInitialNodesText = value2 ? ifText : elseText;
+        const secondBindInitialNodesText: string = value2 ? ifText : elseText;
         if (bindTwice) {
           secondAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
           secondBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
@@ -243,7 +239,7 @@ describe(`If/Else`, function () {
           secondBindFinalNodesText = secondBindInitialNodesText;
           secondAttachInitialHostText = value2 ? ifText : elseText;
         }
-        secondAttachFinalHostText = newValue2 ? ifText : elseText;
+        const secondAttachFinalHostText: string = newValue2 ? ifText : elseText;
 
         // -- Round 1 --
 

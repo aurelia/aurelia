@@ -138,6 +138,10 @@ describe('custom-attributes', function () {
         constructor(@INode private readonly element: Element) {
           this.element.innerHTML = 'Created';
         }
+        bound() {
+          this.aChanged();
+          this.bChanged();
+        }
         aChanged() {
           this.aResult = this.a;
           this.updateContent();
@@ -147,7 +151,7 @@ describe('custom-attributes', function () {
           this.updateContent();
         }
         updateContent() {
-          this.element.innerHTML = `a: ${this.aResult}, b:${this.bResult}`;
+          this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
         }
     }
     @customAttribute('multi2')
@@ -159,6 +163,10 @@ describe('custom-attributes', function () {
         constructor(@INode private readonly element: Element) {
           this.element.innerHTML = 'Created';
         }
+        bound() {
+          this.aChanged();
+          this.bChanged();
+        }
         aChanged() {
           this.aResult = this.a;
           this.updateContent();
@@ -168,7 +176,7 @@ describe('custom-attributes', function () {
           this.updateContent();
         }
         updateContent() {
-          this.element.innerHTML = `a: ${this.aResult}, b:${this.bResult}`;
+          this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
         }
     }
 

@@ -62,10 +62,11 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
 }
 
-export function getVisibleText(root: IController, host: Node): string | null {
+export function getVisibleText(root: IController, host: Node, removeWhiteSpace?: boolean): string | null {
   const context = { text: host.textContent };
   $getVisibleText(root, context);
-  return context.text;
+  const text = context.text;
+  return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
 function isShadowDOMProjector(projector: IElementProjector | undefined): projector is IElementProjector & { shadowRoot: ShadowRoot } {

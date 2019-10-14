@@ -61,7 +61,7 @@ export class App {
 
 This example shows you some of the powerful features of the aurelia binding syntax. To learn further, please [see our documentation](docs/user-docs).
 
-Feeling excited? Check out how to how to use `makes` to get started in the next section.
+Feeling excited? Check out how to use `makes` to get started in the next section.
 
 ## Getting Started
 

@@ -27,7 +27,24 @@ export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
   return function (target: Constructable & ComputedLookup, key: string): void {
-    (target.computed || (target.computed = {}))[key] = config;
+    /**
+     * The 'computed' property defined on prototype needs to be non-enumerable to prevent getting this in loops,
+     * iterating over object properties, such as for..in.
+     *
+     * The 'value' of the property should not have any prototype. Otherwise if by mistake the target passed
+     * here is `Object`, then we are in soup. Because then every instance of `Object` will have the `computed`
+     * property, including the `value` (in the descriptor of the property), when assigned `{}`. This might
+     * lead to infinite recursion for the cases as mentioned above.
+     */
+    if (!target.computed) {
+      Reflect.defineProperty(target, 'computed', {
+        writable: true,
+        configurable: true,
+        enumerable: false,
+        value: Object.create(null)
+      });
+    }
+    target.computed![key] = config;
   } as PropertyDecorator;
 }
 
@@ -48,11 +65,8 @@ export function createComputedObserver(
   }
 
   if (descriptor.get) {
-    const overrides = (
-      (instance as IObservable & { constructor: ComputedLookup }).constructor.computed
-      && (instance as IObservable & { constructor: ComputedLookup }).constructor.computed![propertyName]
-      || computedOverrideDefaults
-    );
+    const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
+    const overrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
 
     if (descriptor.set) {
       if (overrides.volatile) {
@@ -112,7 +126,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     this.currentValue = this.obj[this.propertyKey];
 
     const set = (newValue: unknown): void => { this.setValue(newValue); };
-    Reflect.defineProperty(this.obj, this.propertyKey, { set });
+    Reflect.defineProperty(this.obj, this.propertyKey, { set, get: this.descriptor.get });
   }
 }
 
@@ -120,7 +134,6 @@ export interface GetterObserver extends IBindingTargetObserver { }
 
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-/** @internal */
 @subscriberCollection()
 export class GetterObserver implements GetterObserver {
   public readonly obj: IObservable;
@@ -150,7 +163,7 @@ export class GetterObserver implements GetterObserver {
     this.proxy = new Proxy(obj, createGetterTraps(flags, observerLocator, this));
 
     const get = (): unknown => this.getValue();
-    Reflect.defineProperty(obj, propertyKey, { get });
+    Reflect.defineProperty(obj, propertyKey, { get, set: descriptor.set });
   }
 
   public addPropertyDep(subscribable: ISubscribable): void {
@@ -241,7 +254,7 @@ const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const traps = {
-    get: function(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
+    get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
       if (observer.doNotCollect(key)) {
         return Reflect.get(target, key, receiver);
       }

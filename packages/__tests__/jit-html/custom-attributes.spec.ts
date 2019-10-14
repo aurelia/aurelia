@@ -127,55 +127,55 @@ describe('custom-attributes', function () {
 
   });
 
-  describe('with multiple bindings', () => {
+  describe('with multiple bindings', function () {
 
     @customAttribute('multi')
     class Multi {
-        @bindable a: boolean;
-        @bindable b: string;
-        aResult: boolean;
-        bResult: string;
-        constructor(@INode private readonly element: Element) {
+        @bindable public a: boolean;
+        @bindable public b: string;
+        public aResult: boolean;
+        public bResult: string;
+        public constructor(@INode private readonly element: Element) {
           this.element.innerHTML = 'Created';
         }
-        bound() {
+        public bound() {
           this.aChanged();
           this.bChanged();
         }
-        aChanged() {
+        public aChanged() {
           this.aResult = this.a;
           this.updateContent();
         }
-        bChanged() {
+        public bChanged() {
           this.bResult = this.b;
           this.updateContent();
         }
-        updateContent() {
+        public updateContent() {
           this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
         }
     }
     @customAttribute('multi2')
     class Multi2 {
-        @bindable a: boolean;
-        @bindable({ primary: true }) b: string;
-        aResult: boolean;
-        bResult: string;
-        constructor(@INode private readonly element: Element) {
+        @bindable public a: boolean;
+        @bindable({ primary: true }) public b: string;
+        public aResult: boolean;
+        public bResult: string;
+        public constructor(@INode private readonly element: Element) {
           this.element.innerHTML = 'Created';
         }
-        bound() {
+        public bound() {
           this.aChanged();
           this.bChanged();
         }
-        aChanged() {
+        public aChanged() {
           this.aResult = this.a;
           this.updateContent();
         }
-        bChanged() {
+        public bChanged() {
           this.bResult = this.b;
           this.updateContent();
         }
-        updateContent() {
+        public updateContent() {
           this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
         }
     }

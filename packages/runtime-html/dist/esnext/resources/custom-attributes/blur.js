@@ -105,11 +105,9 @@ let Blur = class Blur {
             return false;
         }
         let els;
-        let i, ii;
+        let i;
         let j, jj;
-        let links;
         let link;
-        let contextNode;
         const element = this.element;
         if (containsElementOrShadowRoot(element, target)) {
             return true;
@@ -122,13 +120,12 @@ let Blur = class Blur {
         const linkingContext = this.linkingContext;
         const searchSubTree = this.searchSubTree;
         const linkedMultiple = this.linkedMultiple;
-        links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
-        contextNode =
-            (typeof linkingContext === 'string'
-                ? doc.querySelector(linkingContext)
-                : linkingContext)
-                || doc.body;
-        ii = links.length;
+        const links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
+        const contextNode = (typeof linkingContext === 'string'
+            ? doc.querySelector(linkingContext)
+            : linkingContext)
+            || doc.body;
+        const ii = links.length;
         for (i = 0; ii > i; ++i) {
             link = links[i];
             // When user specify to link with something by a string, it acts as a CSS selector

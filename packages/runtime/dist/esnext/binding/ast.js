@@ -322,7 +322,7 @@ export class AccessScopeExpression {
     }
     evaluate(flags, scope, locator, part) {
         const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part);
-        let evaluatedValue = obj[this.name];
+        const evaluatedValue = obj[this.name];
         if (flags & 4 /* isStrictBindingStrategy */) {
             return evaluatedValue;
         }

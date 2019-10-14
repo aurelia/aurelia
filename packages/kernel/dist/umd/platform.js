@@ -58,8 +58,7 @@
             };
             hrtime = $global.process.hrtime;
             getNanoSeconds = function () {
-                let hr;
-                hr = hrtime();
+                const hr = hrtime();
                 return hr[0] * 1e9 + hr[1];
             };
             moduleLoadTime = getNanoSeconds();

@@ -52,11 +52,10 @@ let TemplateCompiler = class TemplateCompiler {
         const customAttributeLength = customAttributes.length;
         const plainAttributeLength = plainAttributes.length;
         if (customAttributeLength + plainAttributeLength > 0) {
-            let surrogates;
             if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
                 definition.surrogates = Array(customAttributeLength + plainAttributeLength);
             }
-            surrogates = definition.surrogates;
+            const surrogates = definition.surrogates;
             let offset = 0;
             for (let i = 0; customAttributeLength > i; ++i) {
                 surrogates[offset] = this.compileCustomAttribute(customAttributes[i]);

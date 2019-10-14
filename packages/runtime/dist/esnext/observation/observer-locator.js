@@ -42,11 +42,10 @@ export class ObserverLocator {
             return obj.getObservers(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
         }
         let observersLookup = obj.$observers;
-        let observer;
         if (observersLookup && propertyName in observersLookup) {
             return observersLookup[propertyName];
         }
-        observer = this.createPropertyObserver(flags, obj, propertyName);
+        const observer = this.createPropertyObserver(flags, obj, propertyName);
         if (!observer.doNotCache) {
             if (observersLookup === void 0) {
                 observersLookup = this.getOrCreateObserversLookup(obj);

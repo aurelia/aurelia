@@ -352,7 +352,7 @@
         }
         evaluate(flags, scope, locator, part) {
             const obj = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
-            let evaluatedValue = obj[this.name];
+            const evaluatedValue = obj[this.name];
             if (flags & 4 /* isStrictBindingStrategy */) {
                 return evaluatedValue;
             }

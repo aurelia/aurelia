@@ -190,7 +190,7 @@ describe.skip('controller', function () {
       }
 
       public static register(container: IContainer): void {
-        container.register(Registration.transient('custom-element:view-model', this));
+        container.register(Registration.transient('au:custom-element:view-model', this));
         container.register(Registration.transient(this, this));
       }
     });

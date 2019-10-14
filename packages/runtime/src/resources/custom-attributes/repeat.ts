@@ -135,7 +135,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:repeat', this));
+    container.register(Registration.transient('au:custom-attribute:repeat', this));
     container.register(Registration.transient(this, this));
   }
 

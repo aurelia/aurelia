@@ -45,7 +45,7 @@ export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinit
 }
 
 export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.freeze({
-  name: 'binding-command',
+  name: 'au:binding-command',
   keyFrom(name: string): string {
     return `${BindingCommandResource.name}:${name}`;
   },

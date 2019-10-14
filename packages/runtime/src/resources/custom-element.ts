@@ -79,7 +79,7 @@ export function customElement(nameOrDefinition: string | ITemplateDefinition): I
 }
 
 export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
-  name: 'custom-element',
+  name: 'au:custom-element',
   keyFrom(name: string): string {
     return `${CustomElement.name}:${name}`;
   },

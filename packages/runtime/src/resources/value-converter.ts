@@ -34,7 +34,7 @@ export function valueConverter(nameOrDefinition: string | IValueConverterDefinit
 }
 
 export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
-  name: 'value-converter',
+  name: 'au:value-converter',
   keyFrom(name: string): string {
     return `${ValueConverter.name}:${name}`;
   },

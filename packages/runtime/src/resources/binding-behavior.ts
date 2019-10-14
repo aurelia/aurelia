@@ -37,7 +37,7 @@ export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefin
 }
 
 export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze({
-  name: 'binding-behavior',
+  name: 'au:binding-behavior',
   keyFrom(name: string): string {
     return `${BindingBehavior.name}:${name}`;
   },

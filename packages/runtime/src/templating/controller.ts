@@ -246,7 +246,7 @@ export class Controller<
       let renderingEngine: IRenderingEngine;
       let template: ITemplate<INode>|undefined = void 0;
       switch (Type.kind.name) {
-        case 'custom-element':
+        case 'au:custom-element':
           if (host == void 0) {
             // TODO: create error code
             throw new Error(`No host element was provided when rendering a custom element.`);
@@ -309,7 +309,7 @@ export class Controller<
 
           this.location = void 0;
           break;
-        case 'custom-attribute':
+        case 'au:custom-attribute':
           this.vmKind = ViewModelKind.customAttribute;
 
           this.scope = void 0;

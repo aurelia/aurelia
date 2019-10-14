@@ -83,7 +83,7 @@ export class With<T extends INode = INode> {
   }
 
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:with', this));
+    container.register(Registration.transient('au:custom-attribute:with', this));
     container.register(Registration.transient(this, this));
   }
 

@@ -63,7 +63,7 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
 }
 
 export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze({
-  name: 'custom-attribute',
+  name: 'au:custom-attribute',
   keyFrom(name: string): string {
     return `${CustomAttribute.name}:${name}`;
   },

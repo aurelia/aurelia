@@ -41,7 +41,7 @@ export class Aurelia extends $Aurelia<HTMLElement> {
 
   public app(config: ISinglePageApp<HTMLElement> | unknown): this {
     const comp = config as ICustomElementType;
-    if (comp && comp.kind && comp.kind.name === 'custom-element') {
+    if (comp && comp.kind && comp.kind.name === 'au:custom-element') {
       // Default to custom element element name
       const elementName = comp.description && comp.description.name;
       let host = document.querySelector(elementName);

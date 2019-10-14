@@ -102,7 +102,7 @@ export class If<T extends INode = INode> {
   }
 
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:if', this));
+    container.register(Registration.transient('au:custom-attribute:if', this));
     container.register(Registration.transient(this, this));
   }
 
@@ -290,7 +290,7 @@ export class Else<T extends INode = INode> {
   }
 
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:else', this));
+    container.register(Registration.transient('au:custom-attribute:else', this));
   }
 
   public link(ifBehavior: If<T> | IController<T>): void {

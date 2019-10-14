@@ -6,7 +6,8 @@ import {
   PLATFORM,
   Registration,
   singleton,
-  transient
+  transient,
+  Metadata
 } from '@aurelia/kernel';
 import { _, assert, createSpy, ISpy } from '@aurelia/testing';
 
@@ -35,29 +36,29 @@ describe(`The DI object`, function () {
     });
   });
 
-  // describe(`getDesignParamTypes()`, function () {
+  // describe(`getDesignParamtypes()`, function () {
   //   it(`returns PLATFORM.emptyArray if the class has no constructor or decorators`, function () {
   //     class Foo {}
-  //     const actual = DI.getDesignParamTypes(Foo);
+  //     const actual = DI.getDesignParamtypes(Foo);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
   //   it(`returns PLATFORM.emptyArray if the class has a decorator but no constructor`, function () {
   //     @decorator()
   //     class Foo {}
-  //     const actual = DI.getDesignParamTypes(Foo);
+  //     const actual = DI.getDesignParamtypes(Foo);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, function () {
   //     class Foo { constructor() { return; } }
-  //     const actual = DI.getDesignParamTypes(Foo);
+  //     const actual = DI.getDesignParamtypes(Foo);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class has constructor args but no decorators`, function () {
   //     class Bar {}
   //     class Foo { constructor(public bar: Bar) {} }
-  //     const actual = DI.getDesignParamTypes(Foo);
+  //     const actual = DI.getDesignParamtypes(Foo);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
@@ -65,7 +66,7 @@ describe(`The DI object`, function () {
   //     class Bar {}
   //     class Foo { constructor(public bar: Bar) {} }
   //     decorator()(Foo);
-  //     const actual = DI.getDesignParamTypes(Foo);
+  //     const actual = DI.getDesignParamtypes(Foo);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
@@ -73,7 +74,7 @@ describe(`The DI object`, function () {
   //     class Bar {}
   //     @decorator()
   //     const FooInline = class { constructor(public bar: Bar) {} };
-  //     const actual = DI.getDesignParamTypes(FooInline);
+  //     const actual = DI.getDesignParamtypes(FooInline);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
@@ -81,7 +82,7 @@ describe(`The DI object`, function () {
   //     class Bar {}
   //     @decorator()
   //     const FooInline = class Foo { constructor(public bar: Bar) {} };
-  //     const actual = DI.getDesignParamTypes(FooInline);
+  //     const actual = DI.getDesignParamtypes(FooInline);
   //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
@@ -90,7 +91,7 @@ describe(`The DI object`, function () {
   //     class Foo { constructor() { return; } }
 
   //     it(_`${Foo}`, function () {
-  //       const actual = DI.getDesignParamTypes(Foo);
+  //       const actual = DI.getDesignParamtypes(Foo);
   //       assertIsMutableArray(actual, 0);
   //     });
 
@@ -99,7 +100,7 @@ describe(`The DI object`, function () {
   //       function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
   //       @anonDecorator()
   //       class { constructor() { return; } }
-  //       const actual = DI.getDesignParamTypes(cls);
+  //       const actual = DI.getDesignParamtypes(cls);
   //       assertIsMutableArray(actual, 0);
   //     });
   //   });
@@ -121,7 +122,7 @@ describe(`The DI object`, function () {
   //       class FooDecoratorInvocation { constructor(public arg: ArgCtor) {} }
 
   //       it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
+  //         const actual = DI.getDesignParamtypes(FooDecoratorInvocation);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -130,7 +131,7 @@ describe(`The DI object`, function () {
   //       class FooDecoratorNonInvocation { constructor(public arg: ArgCtor) {} }
 
   //       it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
+  //         const actual = DI.getDesignParamtypes(FooDecoratorInvocation);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -182,7 +183,7 @@ describe(`The DI object`, function () {
 
   //       // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
   //       it(_`NOT ${FooBar} { constructor(public ${Bar}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooBar);
+  //         const actual = DI.getDesignParamtypes(FooBar);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Bar, `actual[0]`);
   //       });
@@ -192,7 +193,7 @@ describe(`The DI object`, function () {
 
   //       // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
   //       it(_`NOT ${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooAnonClass);
+  //         const actual = DI.getDesignParamtypes(FooAnonClass);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], AnonClass, `actual[0]`);
   //       });
@@ -202,7 +203,7 @@ describe(`The DI object`, function () {
 
   //       // this one is particularly interesting..
   //       it(_`${FooAnonClassInterface} { constructor(public ${AnonClassInterface}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooAnonClassInterface);
+  //         const actual = DI.getDesignParamtypes(FooAnonClassInterface);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -211,7 +212,7 @@ describe(`The DI object`, function () {
   //       class FooVarFunc { constructor(public arg: VarFunc) {} }
 
   //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooVarFunc);
+  //         const actual = DI.getDesignParamtypes(FooVarFunc);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -220,7 +221,7 @@ describe(`The DI object`, function () {
   //       class FooVarFuncInterface { constructor(public arg: VarFuncInterface) {} }
 
   //       it(_`${FooVarFuncInterface} { constructor(public ${VarFuncInterface}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooVarFuncInterface);
+  //         const actual = DI.getDesignParamtypes(FooVarFuncInterface);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -229,7 +230,7 @@ describe(`The DI object`, function () {
   //       class FooFunc { constructor(public arg: Func) {} }
 
   //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooFunc);
+  //         const actual = DI.getDesignParamtypes(FooFunc);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -238,7 +239,7 @@ describe(`The DI object`, function () {
   //       class FooArrow { constructor(public arg: Arrow) {} }
 
   //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooArrow);
+  //         const actual = DI.getDesignParamtypes(FooArrow);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -247,7 +248,7 @@ describe(`The DI object`, function () {
   //       class FooArrowInterface { constructor(public arg: ArrowInterface) {} }
 
   //       it(_`${FooArrowInterface} { constructor(public ${ArrowInterface}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooArrowInterface);
+  //         const actual = DI.getDesignParamtypes(FooArrowInterface);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
@@ -271,7 +272,7 @@ describe(`The DI object`, function () {
   //       class FooBar { constructor(public arg: Bar) {} }
 
   //       it(_`${FooBar} { constructor(public ${Bar}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooBar);
+  //         const actual = DI.getDesignParamtypes(FooBar);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Bar, `actual[0]`);
   //       });
@@ -280,7 +281,7 @@ describe(`The DI object`, function () {
   //       class FooAnonClass { constructor(public arg: AnonClass) {} }
 
   //       it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooAnonClass);
+  //         const actual = DI.getDesignParamtypes(FooAnonClass);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], AnonClass, `actual[0]`);
   //       });
@@ -289,7 +290,7 @@ describe(`The DI object`, function () {
   //       class FooVarFunc { constructor(public arg: VarFunc) {} }
 
   //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooVarFunc);
+  //         const actual = DI.getDesignParamtypes(FooVarFunc);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], VarFunc, `actual[0]`);
   //       });
@@ -298,7 +299,7 @@ describe(`The DI object`, function () {
   //       class FooFunc { constructor(public arg: Func) {} }
 
   //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooFunc);
+  //         const actual = DI.getDesignParamtypes(FooFunc);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Func, `actual[0]`);
   //       });
@@ -307,7 +308,7 @@ describe(`The DI object`, function () {
   //       class FooArrow { constructor(public arg: Arrow) {} }
 
   //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
-  //         const actual = DI.getDesignParamTypes(FooArrow);
+  //         const actual = DI.getDesignParamtypes(FooArrow);
   //         assertIsMutableArray(actual, 1);
   //         assert.strictEqual(actual[0], Arrow, `actual[0]`);
   //       });
@@ -316,42 +317,42 @@ describe(`The DI object`, function () {
   // });
 
   describe(`getDependencies()`, function () {
-    let getDesignParamTypes: ISpy<typeof DI.getDesignParamTypes>;
+    let getDesignParamtypes: ISpy<typeof DI.getDesignParamtypes>;
 
     beforeEach(function () {
-      getDesignParamTypes = createSpy(DI, 'getDesignParamTypes', true);
+      getDesignParamtypes = createSpy(DI, 'getDesignParamtypes', true);
     });
     afterEach(function () {
-      getDesignParamTypes.restore();
+      getDesignParamtypes.restore();
     });
 
-    it(`uses getDesignParamTypes() if the static inject property does not exist`, function () {
+    it(`uses getDesignParamtypes() if the static inject property does not exist`, function () {
       class Bar {}
       @decorator()
       class Foo { public constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
-        getDesignParamTypes.calls,
+        getDesignParamtypes.calls,
         [
           [Foo],
         ],
-        `getDesignParamTypes.calls`,
+        `getDesignParamtypes.calls`,
       );
     });
 
-    it(`uses getDesignParamTypes() if the static inject property is undefined`, function () {
+    it(`uses getDesignParamtypes() if the static inject property is undefined`, function () {
       class Bar {}
       @decorator()
       class Foo { public static inject; public constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
 
       assert.deepStrictEqual(
-        getDesignParamTypes.calls,
+        getDesignParamtypes.calls,
         [
           [Foo],
         ],
-        `getDesignParamTypes.calls`,
+        `getDesignParamtypes.calls`,
       );
     });
 
@@ -362,9 +363,9 @@ describe(`The DI object`, function () {
       assert.throws(() => DI.getDependencies(Foo), void 0, `() => DI.getDependencies(Foo)`);
 
       assert.deepStrictEqual(
-        getDesignParamTypes.calls,
+        getDesignParamtypes.calls,
         [],
-        `getDesignParamTypes.calls`,
+        `getDesignParamtypes.calls`,
       );
     });
 
@@ -383,9 +384,9 @@ describe(`The DI object`, function () {
         assert.notStrictEqual(actual, Foo.inject, `actual`);
 
         assert.deepStrictEqual(
-          getDesignParamTypes.calls,
+          getDesignParamtypes.calls,
           [],
-          `getDesignParamTypes.calls`,
+          `getDesignParamtypes.calls`,
         );
       });
     }
@@ -397,56 +398,48 @@ describe(`The DI object`, function () {
       [null],
       [42]
     ]) {
-      it(_`traverses the 2-layer prototype chain for inject array ${deps}`, function () {
+      it(_`does not traverse the 2-layer prototype chain for inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Bar);
 
-        assert.deepStrictEqual(actual, [...deps, ...deps], `actual`);
-        assert.notStrictEqual(actual, Foo.inject, `actual`);
-        assert.notStrictEqual(actual, Bar.inject, `actual`);
+        assert.deepStrictEqual(actual, deps, `actual`);
 
         assert.deepStrictEqual(
-          getDesignParamTypes.calls,
+          getDesignParamtypes.calls,
           [],
-          `getDesignParamTypes.calls`,
+          `getDesignParamtypes.calls`,
         );
       });
 
-      it(_`traverses the 3-layer prototype chain for inject array ${deps}`, function () {
+      it(_`does not traverse the 3-layer prototype chain for inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { public static inject = deps.slice(); }
         class Baz extends Bar { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Baz);
 
-        assert.deepStrictEqual(actual, [...deps, ...deps, ...deps], `actual`);
-        assert.notStrictEqual(actual, Foo.inject, `actual`);
-        assert.notStrictEqual(actual, Bar.inject, `actual`);
-        assert.notStrictEqual(actual, Baz.inject, `actual`);
+        assert.deepStrictEqual(actual, deps, `actual`);
 
         assert.deepStrictEqual(
-          getDesignParamTypes.calls,
+          getDesignParamtypes.calls,
           [],
-          `getDesignParamTypes.calls`,
+          `getDesignParamtypes.calls`,
         );
       });
 
-      it(_`traverses the 1-layer + 2-layer prototype chain (with gap) for inject array ${deps}`, function () {
+      it(_`does not traverse the 1-layer + 2-layer prototype chain (with gap) for inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { }
         class Baz extends Bar { public static inject = deps.slice(); }
         class Qux extends Baz { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Qux);
 
-        assert.deepStrictEqual(actual, [...deps, ...deps, ...deps], `actual`);
-        assert.notStrictEqual(actual, Foo.inject, `actual`);
-        assert.notStrictEqual(actual, Baz.inject, `actual`);
-        assert.notStrictEqual(actual, Qux.inject, `actual`);
+        assert.deepStrictEqual(actual, deps, `actual`);
 
         assert.deepStrictEqual(
-          getDesignParamTypes.calls,
+          getDesignParamtypes.calls,
           [],
-          `getDesignParamTypes.calls`,
+          `getDesignParamtypes.calls`,
         );
       });
     }
@@ -573,7 +566,7 @@ describe(`The inject decorator`, function () {
     @inject(Dep1, Dep2, Dep3)
     class Foo {}
 
-    assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
+    assert.deepStrictEqual(DI.getDependencies(Foo), [Dep1, Dep2, Dep3], `Foo['inject']`);
   });
 
   // it(`can decorate classes with implicit dependencies`, function () {
@@ -586,7 +579,7 @@ describe(`The inject decorator`, function () {
   it(`can decorate constructor parameters explicitly`, function () {
     class Foo { public constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
 
-    assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
+    assert.deepStrictEqual(DI.getDependencies(Foo), [Dep1, Dep2, Dep3], `Foo['inject']`);
   });
 
   // it(`can decorate constructor parameters implicitly`, function () {
@@ -599,18 +592,18 @@ describe(`The inject decorator`, function () {
     // @ts-ignore
     class Foo { @inject(Dep1)public dep1; @inject(Dep2)public dep2; @inject(Dep3)public dep3; }
 
-    assert.strictEqual(Foo['inject'].dep1, Dep1, `Foo['inject'].dep1`);
-    assert.strictEqual(Foo['inject'].dep2, Dep2, `Foo['inject'].dep2`);
-    assert.strictEqual(Foo['inject'].dep3, Dep3, `Foo['inject'].dep3`);
+    assert.strictEqual(DI.getDependencies(Foo)['dep1'], Dep1, `Foo['inject'].dep1`);
+    assert.strictEqual(DI.getDependencies(Foo)['dep2'], Dep2, `Foo['inject'].dep2`);
+    assert.strictEqual(DI.getDependencies(Foo)['dep3'], Dep3, `Foo['inject'].dep3`);
   });
 
   it(`cannot decorate properties implicitly`, function () {
     // @ts-ignore
     class Foo { @inject()public dep1: Dep1; @inject()public dep2: Dep2; @inject()public dep3: Dep3; }
 
-    assert.strictEqual(Foo['inject'].dep1, undefined, `Foo['inject'].dep1`);
-    assert.strictEqual(Foo['inject'].dep2, undefined, `Foo['inject'].dep2`);
-    assert.strictEqual(Foo['inject'].dep3, undefined, `Foo['inject'].dep3`);
+    assert.strictEqual(DI.getDependencies(Foo)['dep1'], undefined, `Foo['inject'].dep1`);
+    assert.strictEqual(DI.getDependencies(Foo)['dep2'], undefined, `Foo['inject'].dep2`);
+    assert.strictEqual(DI.getDependencies(Foo)['dep3'], undefined, `Foo['inject'].dep3`);
   });
 });
 
@@ -1182,39 +1175,41 @@ describe(`The Container class`, function () {
       assert.strictEqual(factoryFromParent, factoryFromChild);
     });
 
-    it(`inherits non-resource string keyed factories from root`, function () {
-      const type = class {};
-      const key = 'foo' as any;
+    // Irrelevant due to metadata
+    // it(`inherits non-resource string keyed factories from root`, function () {
+    //   const type = class {};
+    //   const key = 'foo' as any;
 
-      const parent = DI.createContainer();
+    //   const parent = DI.createContainer();
 
-      parent.register(Registration.singleton(key, type));
+    //   parent.register(Registration.singleton(key, type));
 
-      const factoryFromParent = parent.getFactory(key);
+    //   const factoryFromParent = parent.getFactory(key);
 
-      const child = parent.createChild();
+    //   const child = parent.createChild();
 
-      const factoryFromChild = child.getFactory(key);
+    //   const factoryFromChild = child.getFactory(key);
 
-      assert.strictEqual(factoryFromParent, factoryFromChild);
-    });
+    //   assert.strictEqual(factoryFromParent, factoryFromChild);
+    // });
 
-    it(`inherits resource factories from root`, function () {
-      const type = class {};
-      const key = 'foo:bar' as any;
+    // Irrelevant due to metadata
+    // it(`inherits resource factories from root`, function () {
+    //   const type = class {};
+    //   const key = 'foo:bar' as any;
 
-      const parent = DI.createContainer();
+    //   const parent = DI.createContainer();
 
-      parent.register(Registration.singleton(key, type));
+    //   parent.register(Registration.singleton(key, type));
 
-      const factoryFromParent = parent.getFactory(key);
+    //   const factoryFromParent = parent.getFactory(key);
 
-      const child = parent.createChild();
+    //   const child = parent.createChild();
 
-      const factoryFromChild = child.getFactory(key);
+    //   const factoryFromChild = child.getFactory(key);
 
-      assert.strictEqual(factoryFromParent, factoryFromChild);
-    });
+    //   assert.strictEqual(factoryFromParent, factoryFromChild);
+    // });
 
     it(`does NOT store non-resource obj keyed resolvers in resourceResolvers`, function () {
       const type = class {};
@@ -1234,41 +1229,43 @@ describe(`The Container class`, function () {
       assert.strictEqual(childHasKey, false, `has@child`);
     });
 
-    it(`does NOT store non-resource string keyed resolvers in resourceResolvers`, function () {
-      const type = class {};
-      const key = 'foo' as any;
+    // Irrelevant due to metadata
+    // it(`does NOT store non-resource string keyed resolvers in resourceResolvers`, function () {
+    //   const type = class {};
+    //   const key = 'foo' as any;
 
-      const parent = DI.createContainer();
+    //   const parent = DI.createContainer();
 
-      parent.register(Registration.singleton(key, type));
+    //   parent.register(Registration.singleton(key, type));
 
-      const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+    //   const parentHasKey = parent['resourceResolvers'][key] !== void 0;
 
-      const child = parent.createChild();
+    //   const child = parent.createChild();
 
-      const childHasKey = child['resourceResolvers'][key] !== void 0;
+    //   const childHasKey = child['resourceResolvers'][key] !== void 0;
 
-      assert.strictEqual(parentHasKey, false, `has@root`);
-      assert.strictEqual(childHasKey, false, `has@child`);
-    });
+    //   assert.strictEqual(parentHasKey, false, `has@root`);
+    //   assert.strictEqual(childHasKey, false, `has@child`);
+    // });
 
-    it(`stores resource resolvers in resourceResolvers and inherits them from root`, function () {
-      const type = class {};
-      const key = 'foo:bar' as any;
+    // Irrelevant due to metadata
+    // it(`stores resource resolvers in resourceResolvers and inherits them from root`, function () {
+    //   const type = class {};
+    //   const key = 'foo:bar' as any;
 
-      const parent = DI.createContainer();
+    //   const parent = DI.createContainer();
 
-      parent.register(Registration.singleton(key, type));
+    //   parent.register(Registration.singleton(key, type));
 
-      const parentHasKey = parent['resourceResolvers'][key] !== void 0;
+    //   const parentHasKey = parent['resourceResolvers'][key] !== void 0;
 
-      const child = parent.createChild();
+    //   const child = parent.createChild();
 
-      const childHasKey = child['resourceResolvers'][key] !== void 0;
+    //   const childHasKey = child['resourceResolvers'][key] !== void 0;
 
-      assert.strictEqual(parentHasKey, true, `has@root`);
-      assert.strictEqual(childHasKey, true, `has@child`);
-    });
+    //   assert.strictEqual(parentHasKey, true, `has@root`);
+    //   assert.strictEqual(childHasKey, true, `has@child`);
+    // });
 
     describe(`followed by another createChild()`, function () {
       it(`inherits non-resource obj keyed factories from root`, function () {
@@ -1289,41 +1286,43 @@ describe(`The Container class`, function () {
         assert.strictEqual(factoryFromRoot, factoryFromChild);
       });
 
-      it(`inherits non-resource string keyed factories from root`, function () {
-        const type = class {};
-        const key = 'foo' as any;
+      // Irrelevant due to metadata
+      // it(`inherits non-resource string keyed factories from root`, function () {
+      //   const type = class {};
+      //   const key = 'foo' as any;
 
-        const root = DI.createContainer();
+      //   const root = DI.createContainer();
 
-        root.register(Registration.singleton(key, type));
+      //   root.register(Registration.singleton(key, type));
 
-        const factoryFromRoot = root.getFactory(key);
+      //   const factoryFromRoot = root.getFactory(key);
 
-        const parent = root.createChild();
-        const child = parent.createChild();
+      //   const parent = root.createChild();
+      //   const child = parent.createChild();
 
-        const factoryFromChild = child.getFactory(key);
+      //   const factoryFromChild = child.getFactory(key);
 
-        assert.strictEqual(factoryFromRoot, factoryFromChild);
-      });
+      //   assert.strictEqual(factoryFromRoot, factoryFromChild);
+      // });
 
-      it(`inherits resource factories from root`, function () {
-        const type = class {};
-        const key = 'foo:bar' as any;
+      // Irrelevant due to metadata
+      // it(`inherits resource factories from root`, function () {
+      //   const type = class {};
+      //   const key = 'foo:bar' as any;
 
-        const root = DI.createContainer();
+      //   const root = DI.createContainer();
 
-        root.register(Registration.singleton(key, type));
+      //   root.register(Registration.singleton(key, type));
 
-        const factoryFromRoot = root.getFactory(key);
+      //   const factoryFromRoot = root.getFactory(key);
 
-        const parent = root.createChild();
-        const child = parent.createChild();
+      //   const parent = root.createChild();
+      //   const child = parent.createChild();
 
-        const factoryFromChild = child.getFactory(key);
+      //   const factoryFromChild = child.getFactory(key);
 
-        assert.strictEqual(factoryFromRoot, factoryFromChild);
-      });
+      //   assert.strictEqual(factoryFromRoot, factoryFromChild);
+      // });
 
       it(`inherits non-resource obj keyed factories from parent`, function () {
         const type = class {};
@@ -1343,41 +1342,43 @@ describe(`The Container class`, function () {
         assert.strictEqual(factoryFromParent, factoryFromChild);
       });
 
-      it(`inherits non-resource string keyed factories from parent`, function () {
-        const type = class {};
-        const key = 'foo' as any;
+      // Irrelevant due to metadata
+      // it(`inherits non-resource string keyed factories from parent`, function () {
+      //   const type = class {};
+      //   const key = 'foo' as any;
 
-        const root = DI.createContainer();
-        const parent = root.createChild();
+      //   const root = DI.createContainer();
+      //   const parent = root.createChild();
 
-        parent.register(Registration.singleton(key, type));
+      //   parent.register(Registration.singleton(key, type));
 
-        const factoryFromParent = parent.getFactory(key);
+      //   const factoryFromParent = parent.getFactory(key);
 
-        const child = parent.createChild();
+      //   const child = parent.createChild();
 
-        const factoryFromChild = child.getFactory(key);
+      //   const factoryFromChild = child.getFactory(key);
 
-        assert.strictEqual(factoryFromParent, factoryFromChild);
-      });
+      //   assert.strictEqual(factoryFromParent, factoryFromChild);
+      // });
 
-      it(`inherits resource factories from parent`, function () {
-        const type = class {};
-        const key = 'foo:bar' as any;
+      // Irrelevant due to metadata
+      // it(`inherits resource factories from parent`, function () {
+      //   const type = class {};
+      //   const key = 'foo:bar' as any;
 
-        const root = DI.createContainer();
-        const parent = root.createChild();
+      //   const root = DI.createContainer();
+      //   const parent = root.createChild();
 
-        parent.register(Registration.singleton(key, type));
+      //   parent.register(Registration.singleton(key, type));
 
-        const factoryFromParent = parent.getFactory(key);
+      //   const factoryFromParent = parent.getFactory(key);
 
-        const child = parent.createChild();
+      //   const child = parent.createChild();
 
-        const factoryFromChild = child.getFactory(key);
+      //   const factoryFromChild = child.getFactory(key);
 
-        assert.strictEqual(factoryFromParent, factoryFromChild);
-      });
+      //   assert.strictEqual(factoryFromParent, factoryFromChild);
+      // });
 
       it(`does NOT store non-resource obj keyed resolvers in resourceResolvers`, function () {
         const type = class {};

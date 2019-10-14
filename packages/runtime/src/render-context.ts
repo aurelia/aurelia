@@ -112,7 +112,7 @@ export class RenderContext implements IRenderContext {
     return this.container.getResolver(key, autoRegister);
   }
 
-  public getFactory<T extends Constructable>(key: T): IFactory<T> {
+  public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
     return this.container.getFactory(key);
   }
 

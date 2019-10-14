@@ -76,6 +76,12 @@ export {
 } from './resources/custom-attributes/focus';
 
 export {
+  Portal,
+  PortalTarget,
+  PortalLifecycleCallback
+} from './resources/custom-attributes/portal';
+
+export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';

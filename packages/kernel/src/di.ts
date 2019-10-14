@@ -2,7 +2,9 @@
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
-import { IResourceType } from './resource';
+import { IResourceType, Protocol } from './resource';
+import { Metadata } from './metadata';
+import { isNumeric } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -57,7 +59,7 @@ export interface IContainer extends IServiceLocator {
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
-  getFactory<T extends Constructable>(key: T): IFactory<T>;
+  getFactory<T extends Constructable>(key: T): IFactory<T> | null;
   createChild(): IContainer;
 }
 
@@ -91,7 +93,19 @@ export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
 
 type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Partial<IRegistration<K> & {friendlyName: string}>;
 
-const hasOwnProperty = PLATFORM.hasOwnProperty;
+function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
+  const clone = source.slice();
+  const keys = Object.keys(source);
+  const len = keys.length;
+  let key: string;
+  for (let i = 0; i < len; ++i) {
+    key = keys[i];
+    if (!isNumeric(key)) {
+      clone[key] = source[key];
+    }
+  }
+  return clone;
+}
 
 export class DI {
   private constructor() { return; }
@@ -104,33 +118,89 @@ export class DI {
     }
   }
 
-  public static getDesignParamTypes(target: Constructable): Key[] {
-    const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target);
-    if (paramTypes == null) {
-      return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & Key[];
+  public static getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+    return Metadata.getOwn('design:paramtypes', Type);
+  }
+
+  public static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+    return Metadata.getOwn('au:annotation:paramtypes', Type);
+  }
+
+  public static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
+    let annotationParamtypes = Metadata.getOwn('au:annotation:paramtypes', Type);
+    if (annotationParamtypes === void 0) {
+      Metadata.define('au:annotation:paramtypes', annotationParamtypes = [], Type);
     }
-    return paramTypes;
+    return annotationParamtypes;
   }
 
   public static getDependencies(Type: Constructable | Injectable): Key[] {
-    let dependencies: Key[];
+    // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
+    // so be careful with making changes here as it can have a huge impact on complex end user apps.
+    // Preferably, only make changes to the dependency resolution process via a RFC.
 
-    if ((Type as Injectable).inject == null) {
-      dependencies = DI.getDesignParamTypes(Type);
-    } else {
-      dependencies = [];
-      let ctor = Type as Injectable;
+    let dependencies = Metadata.getOwn('au:annotation:dependencies', Type) as Key[] | undefined;
+    if (dependencies === void 0) {
+      // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
+      // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
 
-      while (typeof ctor === 'function') {
-        if (hasOwnProperty.call(ctor, 'inject')) {
-          dependencies.push(...ctor.inject!);
+      // Non-zero constructor length + no paramtypes means emitDecoratorMetadata is off, or the class has no decorator.
+      // We're not doing anything with the above right now, but it's good to keep in mind for any future issues.
+
+      const inject = (Type as Injectable).inject;
+      if (inject === void 0) {
+        // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
+        const designParamtypes = DI.getDesignParamtypes(Type);
+        // au:annotation:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
+        const annotationParamtypes = DI.getAnnotationParamtypes(Type);
+        if (designParamtypes === void 0) {
+          if (annotationParamtypes === void 0) {
+            // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
+            // there is no sound way to merge a type's deps with its prototype's deps
+            const Proto = Object.getPrototypeOf(Type);
+            if (typeof Proto === 'function' && Proto !== Function.prototype) {
+              dependencies = cloneArrayWithPossibleProps(DI.getDependencies(Proto));
+            } else {
+              dependencies = [];
+            }
+          } else {
+            // No design:paramtypes so just use the au:annotation:paramtypes
+            dependencies = cloneArrayWithPossibleProps(annotationParamtypes);
+          }
+        } else if (annotationParamtypes === void 0) {
+          // No au:annotation:paramtypes so just use the design:paramtypes
+          dependencies = cloneArrayWithPossibleProps(designParamtypes);
+        } else {
+          // We've got both, so merge them (in case of conflict on same index, au:annotation:paramtypes take precedence)
+          dependencies = cloneArrayWithPossibleProps(designParamtypes);
+          let len = annotationParamtypes.length;
+          let auAnnotationParamtype: Key;
+          for (let i = 0; i < len; ++i) {
+            auAnnotationParamtype = annotationParamtypes[i];
+            if (auAnnotationParamtype !== void 0) {
+              dependencies![i] = auAnnotationParamtype;
+            }
+          }
+
+          const keys = Object.keys(annotationParamtypes);
+          len = keys.length;
+          let key: string;
+          for (let i = 0; i < len; ++i) {
+            key = keys[i];
+            if (!isNumeric(key)) {
+              dependencies[key] = annotationParamtypes[key];
+            }
+          }
         }
-
-        ctor = Object.getPrototypeOf(ctor);
+      } else {
+        // Ignore paramtypes if we have static inject
+        dependencies = cloneArrayWithPossibleProps(inject);
       }
+
+      Metadata.define('au:annotation:dependencies', dependencies, Type);
     }
 
-    return dependencies;
+    return dependencies!;
   }
 
   public static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
@@ -138,10 +208,8 @@ export class DI {
       if (target == null) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
-      if (target.inject == null) {
-        target.inject = [];
-      }
-      target.inject[index] = Interface;
+      const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+      annotationParamtypes[index] = Interface;
       return target;
     };
     Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
@@ -185,31 +253,35 @@ export class DI {
   public static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
     return function(target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
-        if (!hasOwnProperty.call(target, 'inject')) {
-          const types = DI.getDesignParamTypes(target);
-          target.inject = types.slice() as Constructable[];
-        }
-
-        if (dependencies.length === 1) {
-          // We know for sure that it's not void 0 due to the above check.
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          target.inject![descriptor] = dependencies[0] as Constructable;
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+        const dep = dependencies[0];
+        if (dep !== void 0) {
+          annotationParamtypes[descriptor] = dep;
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-        const actualTarget = target.constructor as Injectable;
-        if (actualTarget.inject == null) {
-          actualTarget.inject = [];
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
+        const dep = dependencies[0];
+        if (dep !== void 0) {
+          annotationParamtypes[key as number] = dep;
         }
-        actualTarget.inject[key as number] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
-        fn.inject = dependencies;
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(fn);
+        let dep: Key;
+        for (let i = 0; i < dependencies.length; ++i) {
+          dep = dependencies[i];
+          if (dep !== void 0) {
+            annotationParamtypes[i] = dep;
+          }
+        }
       } else { // It's a class decorator.
-        if (dependencies.length === 0) {
-          const types = DI.getDesignParamTypes(target);
-          target.inject = types.slice() as Constructable[];
-        } else {
-          target.inject = dependencies as Constructable[];
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+        let dep: Key;
+        for (let i = 0; i < dependencies.length; ++i) {
+          dep = dependencies[i];
+          if (dep !== void 0) {
+            annotationParamtypes[i] = dep;
+          }
         }
       }
     };
@@ -397,11 +469,17 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.singleton: {
         this.strategy = ResolverStrategy.instance;
         const factory = handler.getFactory(this.state as Constructable);
+        if (factory === null) {
+          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+        }
         return this.state = factory.construct(handler);
       }
       case ResolverStrategy.transient: {
         // Always create transients from the requesting container
         const factory = handler.getFactory(this.state as Constructable);
+        if (factory === null) {
+          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+        }
         return factory.construct(requestor);
       }
       case ResolverStrategy.callback:
@@ -458,12 +536,6 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
     this.transformers = null;
   }
 
-  public static create<T extends Constructable>(Type: T): IFactory<T> {
-    const dependencies = DI.getDependencies(Type);
-    const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
-    return new Factory<T>(Type, invoker, dependencies);
-  }
-
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
     const transformers = this.transformers;
     let instance = dynamicDependencies !== void 0
@@ -490,6 +562,96 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
     return true;
   }
 }
+
+const createFactory = (function() {
+  function invokeWithDynamicDependencies<T>(
+    container: IContainer,
+    Type: Constructable<T>,
+    staticDependencies: Key[],
+    dynamicDependencies: Key[]
+  ): T {
+    let i = staticDependencies.length;
+    let args: Key[] = new Array(i);
+    let lookup: Key;
+
+    while (i-- > 0) {
+      lookup = staticDependencies[i];
+
+      if (lookup == null) {
+        throw Reporter.error(7, `Index ${i}.`);
+      } else {
+        args[i] = container.get(lookup);
+      }
+    }
+
+    if (dynamicDependencies !== void 0) {
+      args = args.concat(dynamicDependencies);
+    }
+
+    return Reflect.construct(Type, args);
+  }
+
+  const classInvokers: IInvoker[] = [
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>): T {
+        return new Type();
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(container.get(deps[0]));
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(container.get(deps[0]), container.get(deps[1]));
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(
+          container.get(deps[0]),
+          container.get(deps[1]),
+          container.get(deps[2]),
+          container.get(deps[3])
+        );
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(
+          container.get(deps[0]),
+          container.get(deps[1]),
+          container.get(deps[2]),
+          container.get(deps[3]),
+          container.get(deps[4])
+        );
+      },
+      invokeWithDynamicDependencies
+    }
+  ];
+
+  const fallbackInvoker: IInvoker = {
+    invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key[]) => Constructable,
+    invokeWithDynamicDependencies
+  };
+
+  return function <T extends Constructable>(Type: T): Factory<T> {
+    const dependencies = DI.getDependencies(Type);
+    const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
+    return new Factory<T>(Type, invoker, dependencies);
+  };
+})();
 
 /** @internal */
 export interface IContainerConfiguration {
@@ -531,7 +693,6 @@ export class Container implements IContainer {
 
   private readonly root: Container;
 
-  private readonly factories: Map<Key, IFactory>;
   private readonly resolvers: Map<Key, IResolver>;
 
   private readonly resourceResolvers: Record<string, IResolver | undefined>;
@@ -542,7 +703,6 @@ export class Container implements IContainer {
       this.path = this.id.toString();
       this.root = this;
 
-      this.factories = new Map();
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.create(null);
@@ -550,7 +710,6 @@ export class Container implements IContainer {
       this.path = `${parent.path}.${this.id}`;
       this.root = parent.root;
 
-      this.factories = new Map(parent.factories);
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
@@ -727,10 +886,10 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  public getFactory<K extends Constructable>(key: K): IFactory<K> {
-    let factory = this.factories.get(key);
-    if (factory == null) {
-      this.factories.set(key, factory = Factory.create(key));
+  public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
+    let factory = Metadata.getOwn('au:annotation:factory', Type);
+    if (factory === void 0) {
+      Metadata.define('au:annotation:factory', factory = createFactory(Type), Type);
     }
     return factory;
   }
@@ -850,89 +1009,4 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   }
 
   return [resolver.resolve(handler, requestor)];
-}
-
-/** @internal */
-export const classInvokers: IInvoker[] = [
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>): T {
-      return new Type();
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(container.get(deps[0]));
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(container.get(deps[0]), container.get(deps[1]));
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(
-        container.get(deps[0]),
-        container.get(deps[1]),
-        container.get(deps[2]),
-        container.get(deps[3])
-      );
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(
-        container.get(deps[0]),
-        container.get(deps[1]),
-        container.get(deps[2]),
-        container.get(deps[3]),
-        container.get(deps[4])
-      );
-    },
-    invokeWithDynamicDependencies
-  }
-];
-
-/** @internal */
-export const fallbackInvoker: IInvoker = {
-  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key[]) => Constructable,
-  invokeWithDynamicDependencies
-};
-
-/** @internal */
-export function invokeWithDynamicDependencies<T>(
-  container: IContainer,
-  Type: Constructable<T>,
-  staticDependencies: Key[],
-  dynamicDependencies: Key[]
-): T {
-  let i = staticDependencies.length;
-  let args: Key[] = new Array(i);
-  let lookup: Key;
-
-  while (i--) {
-    lookup = staticDependencies[i];
-
-    if (lookup == null) {
-      throw Reporter.error(7, `Index ${i}.`);
-    } else {
-      args[i] = container.get(lookup);
-    }
-  }
-
-  if (dynamicDependencies !== void 0) {
-    args = args.concat(dynamicDependencies);
-  }
-
-  return Reflect.construct(Type, args);
 }

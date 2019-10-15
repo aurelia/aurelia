@@ -1,76 +1,87 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
-  Class,
   Constructable,
   IContainer,
-  IResourceDefinition,
+  ResourceDefinition,
   IResourceKind,
-  IResourceType,
+  ResourceType,
   Registration,
-  Writable,
-  PLATFORM
+  Metadata,
+  Protocol,
+  PartialResourceDefinition,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { IBinding } from '../lifecycle';
-import { IScope } from '../observation';
 import { registerAliases } from '../definitions';
+import { LifecycleFlags } from '../flags';
+import { IScope } from '../observation';
+import { IBinding } from '../lifecycle';
 
-export interface IBindingBehavior<T = any[]> {
+export type BindingBehaviorInstance<T extends {} = {}> = {
   bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
-}
+} & T;
 
-export interface IBindingBehaviorDefinition extends IResourceDefinition {
-}
+export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
+export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
+  define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
+};
 
-type BindingBehaviorStaticProperties = Required<Pick<IBindingBehaviorDefinition, 'aliases'>>;
-export interface IBindingBehaviorType<C extends Constructable = Constructable> extends IResourceType<IBindingBehaviorDefinition, InstanceType<C> & IBindingBehavior>, BindingBehaviorStaticProperties { }
+export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
 
-export interface IBindingBehaviorResource extends
-  IResourceKind<IBindingBehaviorDefinition, IBindingBehavior, Class<IBindingBehavior>> {
-}
-
-export function bindingBehavior(definition: IBindingBehaviorDefinition): BindingBehaviorDecorator;
-export function bindingBehavior(name: string): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
-  return target => BindingBehavior.define(nameOrDefinition, target) as any; // TODO: fix this at some point
-}
-
-export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze({
-  name: 'au:binding-behavior',
-  keyFrom(name: string): string {
-    return `${BindingBehavior.name}:${name}`;
-  },
-  isType<T>(Type: T & Partial<IBindingBehaviorType>): Type is T & IBindingBehaviorType {
-    return Type.kind === BindingBehavior;
-  },
-  define<T extends Constructable = Constructable>(nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T> {
-    const Type = ctor as T & IBindingBehaviorType<T>;
-    const WritableType = Type as T & Writable<IBindingBehaviorType<T>>;
-    const description = createBindingBehaviorDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-
-    WritableType.kind = BindingBehavior;
-    WritableType.description = description;
-    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-    Type.register = function register(container: IContainer): void {
-      const aliases = description.aliases;
-      const key = BindingBehavior.keyFrom(description.name);
-      Registration.singleton(key, this).register(container);
-      Registration.alias(key, this).register(container);
-      registerAliases([...aliases, ...this.aliases], BindingBehavior, key, container);
-    };
-
-    return Type;
-  },
-});
-
-/** @internal */
-export function createBindingBehaviorDescription(def: IBindingBehaviorDefinition, Type: IBindingBehaviorType): Required<IBindingBehaviorDefinition> {
-  const aliases = def.aliases;
-  return {
-    name: def.name,
-    aliases: aliases == null ? PLATFORM.emptyArray : aliases,
+export function bindingBehavior(name: string): BindingBehaviorDecorator {
+  return function (target) {
+    return BindingBehavior.define(name, target);
   };
 }
 
-export type BindingBehaviorDecorator = <T extends Constructable>(target: T) => T & IBindingBehaviorType<T>;
+export class BindingBehaviorDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, BindingBehaviorInstance> {
+  private constructor(
+    public readonly Type: BindingBehaviorType<T>,
+    public readonly name: string,
+    public readonly aliases: readonly string[],
+    public readonly key: string = BindingBehavior.keyFrom(name),
+  ) {}
+
+  public static create<T extends Constructable = Constructable>(
+    nameOrDefinition: string | PartialResourceDefinition,
+    Type: BindingBehaviorType<T>,
+  ): BindingBehaviorDefinition<T> {
+    let name: string;
+    let aliases: string[];
+
+    if (typeof nameOrDefinition === 'string') {
+      name = nameOrDefinition;
+      aliases = [];
+    } else {
+      name = nameOrDefinition.name;
+      aliases = nameOrDefinition.aliases === void 0 ? [] : nameOrDefinition.aliases.slice();
+    }
+
+    if (Type.aliases !== void 0) {
+      aliases.push(...Type.aliases);
+    }
+
+    return new BindingBehaviorDefinition(Type, name, aliases);
+  }
+
+  public register(container: IContainer): void {
+    const { Type, key, aliases } = this;
+    Registration.singleton(key, Type).register(container);
+    Registration.alias(key, Type).register(container);
+    registerAliases(aliases, BindingBehavior, key, container);
+  }
+}
+
+export const BindingBehavior: BindingBehaviorKind = {
+  name: Protocol.resource.keyFor('binding-behavior'),
+  keyFrom(name: string): string {
+    return `${BindingBehavior.name}:${name}`;
+  },
+  define<T extends Constructable>(nameOrDefinition: string | BindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
+    const $Type = Type as BindingBehaviorType<T>;
+    const description = BindingBehaviorDefinition.create(nameOrDefinition, $Type);
+    Metadata.define(BindingBehavior.name, description, Type);
+    Protocol.resource.appendTo(Type, BindingBehavior.name);
+
+    return $Type;
+  },
+};

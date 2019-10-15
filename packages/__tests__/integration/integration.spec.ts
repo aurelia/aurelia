@@ -1,9 +1,9 @@
-import { CustomElement, DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
+import { CustomElement, DirtyCheckProperty, IDirtyChecker, DirtyCheckSettings, LifecycleFlags } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
-describe('app', function () {
+describe.only('app', function () {
 
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function () {
@@ -45,6 +45,9 @@ describe('app', function () {
     for (const expectedCall of unexpectedCalls) {
       assert.equal(recentCalls.has(expectedCall), false, `${message || ''} not expected ${expectedCall}`);
     }
+  }
+  function wait(ms = 300) {
+    return new Promise((resolve) => { setTimeout(resolve, ms); });
   }
 
   $it('has some readonly texts with different binding modes', function ({ host }) {
@@ -259,21 +262,50 @@ describe('app', function () {
   );
 
   $it('uses a user preference control gets dirty checked for non-configurable property',
-    async function ({ host, ctx }) {
+    async function ({ host, ctx: { lifecycle, container } }) {
 
       const { user } = getViewModel<App>(host);
       const userPref = host.querySelector('user-preference');
       const indeterminate = userPref.querySelector('#indeterminate');
       assert.html.textContent(indeterminate, 'test', 'incorrect text indeterminate');
 
-      const dirtyChecker = ctx.container.get(IDirtyChecker);
+      lifecycle.enqueueRAF(() => { /* noop */ });
+      lifecycle.processRAFQueue(undefined);
+      const fps = lifecycle.FPS;
+
+      // assert that it is being dirty checked
+      const dirtyChecker = container.get(IDirtyChecker);
       const dirtyCheckProperty = (dirtyChecker['tracked'] as DirtyCheckProperty[])
         .find((prop) => Object.is(user.arr, prop.obj) && prop.propertyKey === 'indeterminate');
       assert.notEqual(dirtyCheckProperty, undefined);
-      const spy = createSpy(dirtyCheckProperty, 'isDirty', true);
+      const isDirtySpy = createSpy(dirtyCheckProperty, 'isDirty', true);
 
-      await new Promise((resolve) => { setTimeout(resolve, 300); });
-      assert.greaterThan(spy.calls.length, 0);
+      // asser disable
+      DirtyCheckSettings.disabled = true;
+      isDirtySpy.reset();
+      await wait();
+      assert.equal(isDirtySpy.calls.length, 0);
+      DirtyCheckSettings.resetToDefault();
+
+      // assert rate
+      await wait();
+      const prevCallCount = isDirtySpy.calls.length;
+      assert.lessThanOrEqualTo(prevCallCount, (fps / DirtyCheckSettings.framesPerCheck) * (3 / 10));
+
+      isDirtySpy.reset();
+      DirtyCheckSettings.framesPerCheck = 2;
+
+      await wait();
+      assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
+      DirtyCheckSettings.resetToDefault();
+
+      // assert flush
+      const flushSpy = createSpy(dirtyCheckProperty, 'flush', true);
+      const newValue = 'foo';
+      user.arr.indeterminate = newValue;
+      await wait();
+      assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
+      assert.equal(flushSpy.calls.length, 1);
     }
   );
 });

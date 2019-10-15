@@ -1,49 +1,58 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
-  Class,
   Constructable,
   IContainer,
   IResourceKind,
-  IResourceType,
   Omit,
-  PLATFORM,
   Registration,
-  ResourceDescription,
-  Writable,
+  Protocol,
+  Metadata,
+  ResourceDefinition,
+  PartialResourceDefinition,
+  ResourceType,
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
-  IAttributeDefinition,
-  registerAliases
+  registerAliases,
+  IBindableDescription
 } from '../definitions';
 import {
   BindingMode,
   ensureValidStrategy,
+  BindingStrategy,
 } from '../flags';
 import {
   IViewModel,
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
-type CustomAttributeStaticProperties = Required<Pick<IAttributeDefinition, 'bindables' | 'aliases'>>;
+type CustomAttributeDef = PartialResourceDefinition<{
+  readonly defaultBindingMode?: BindingMode;
+  readonly isTemplateController?: boolean;
+  readonly bindables?: Record<string, IBindableDescription>;
+  readonly strategy?: BindingStrategy;
+  readonly hooks?: HooksDefinition;
+}>;
 
-export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
+export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, CustomAttributeDef>;
+export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+  define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
+  define<T extends Constructable>(def: CustomAttributeDef, Type: T): CustomAttributeType<T>;
+  define<T extends Constructable>(nameOrDef: string | CustomAttributeDef, Type: T): CustomAttributeType<T>;
+};
 
-export interface ICustomAttributeType<C extends Constructable = Constructable> extends
-  IResourceType<IAttributeDefinition, InstanceType<C> & IViewModel>,
-  CustomAttributeStaticProperties { }
-
-export interface ICustomAttributeResource extends
-  IResourceKind<IAttributeDefinition, IViewModel, Class<IViewModel> & CustomAttributeStaticProperties> {
-}
+export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => CustomAttributeType<T>;
 
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
-export function customAttribute(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(definition: CustomAttributeDef): CustomAttributeDecorator;
 export function customAttribute(name: string): CustomAttributeDecorator;
-export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator;
-export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
-  return target => CustomAttribute.define(nameOrDefinition, target) as any; // TODO: fix this at some point
+export function customAttribute(nameOrDefinition: string | CustomAttributeDef): CustomAttributeDecorator;
+export function customAttribute(nameOrDefinition: string | CustomAttributeDef): CustomAttributeDecorator {
+  return function (target) {
+    return CustomAttribute.define(nameOrDefinition, target);
+  };
 }
 
 /**
@@ -51,58 +60,98 @@ export function customAttribute(nameOrDefinition: string | IAttributeDefinition)
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function templateController(definition: Omit<CustomAttributeDef, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(name: string): CustomAttributeDecorator;
-export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
-export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
-  return target => CustomAttribute.define(
-    typeof nameOrDefinition === 'string'
-      ? { isTemplateController: true, name: nameOrDefinition }
-      : { isTemplateController: true, ...nameOrDefinition },
-    target) as any; // TODO: fix this at some point
-}
-
-export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze({
-  name: 'au:custom-attribute',
-  keyFrom(name: string): string {
-    return `${CustomAttribute.name}:${name}`;
-  },
-  isType<T>(Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType {
-    return Type.kind === CustomAttribute;
-  },
-  define<T extends Constructable = Constructable>(nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T> {
-    const Type = ctor as T & ICustomAttributeType<T>;
-    const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
-    const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-
-    WritableType.kind = CustomAttribute;
-    WritableType.description = description;
-    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-    Type.register = function register(container: IContainer): void {
-      const aliases = description.aliases;
-      const key = CustomAttribute.keyFrom(description.name);
-      Registration.transient(key, this).register(container);
-      Registration.alias(key, this).register(container);
-      registerAliases([...aliases, ...this.aliases], CustomAttribute, key, container);
-    };
-
-    return Type;
-  },
-});
-
-/** @internal */
-export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {
-  const aliases = def.aliases;
-  const defaultBindingMode = def.defaultBindingMode;
-  return {
-    name: def.name,
-    aliases: aliases == null ? PLATFORM.emptyArray : aliases,
-    defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
-    isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-    bindables: { ...Bindable.for(Type as unknown as {}).get(), ...Bindable.for(def).get() },
-    strategy: ensureValidStrategy(def.strategy),
-    hooks: new HooksDefinition(Type.prototype)
+export function templateController(nameOrDefinition: string | Omit<CustomAttributeDef, 'isTemplateController'>): CustomAttributeDecorator;
+export function templateController(nameOrDefinition: string | Omit<CustomAttributeDef, 'isTemplateController'>): CustomAttributeDecorator {
+  return function (target) {
+    return CustomAttribute.define(
+      typeof nameOrDefinition === 'string'
+        ? { isTemplateController: true, name: nameOrDefinition }
+        : { isTemplateController: true, ...nameOrDefinition },
+      target);
   };
 }
 
-export type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType<T>;
+export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, CustomAttributeDef> {
+  private constructor(
+    public readonly Type: CustomAttributeType<T>,
+    public readonly name: string,
+    public readonly aliases: readonly string[],
+    public readonly key: string,
+    public readonly defaultBindingMode: BindingMode,
+    public readonly isTemplateController: boolean,
+    public readonly bindables: Record<string, IBindableDescription>,
+    public readonly strategy: BindingStrategy,
+    public readonly hooks: HooksDefinition,
+  ) {}
+
+  public static create<T extends Constructable = Constructable>(
+    nameOrDef: string | PartialResourceDefinition<CustomAttributeDef>,
+    Type: CustomAttributeType<T>,
+  ): CustomAttributeDefinition<T> {
+    let name: string;
+    let aliases: string[];
+    let defaultBindingMode: BindingMode;
+    let isTemplateController: boolean;
+    let bindables: Record<string, IBindableDescription>;
+    let strategy: BindingStrategy;
+    let hooks: HooksDefinition;
+
+    if (typeof nameOrDef === 'string') {
+      name = nameOrDef;
+      aliases = [];
+      defaultBindingMode = BindingMode.toView;
+      isTemplateController = false;
+      bindables = { ...Bindable.for(Type).get() };
+      strategy = BindingStrategy.getterSetter;
+      hooks = new HooksDefinition(Type.prototype);
+    } else {
+      name = nameOrDef.name;
+      aliases = nameOrDef.aliases === void 0 ? [] : nameOrDef.aliases.slice();
+      defaultBindingMode = nameOrDef.defaultBindingMode === void 0 ? BindingMode.toView : nameOrDef.defaultBindingMode;
+      isTemplateController = nameOrDef.isTemplateController === true;
+      bindables = { ...Bindable.for(Type).get(), ...Bindable.for(nameOrDef).get() };
+      strategy = ensureValidStrategy(nameOrDef.strategy);
+      hooks = new HooksDefinition(Type.prototype);
+    }
+
+    if (Type.aliases !== void 0) {
+      aliases.push(...Type.aliases);
+    }
+
+    return new CustomAttributeDefinition(
+      Type,
+      name,
+      aliases,
+      CustomAttribute.keyFrom(name),
+      defaultBindingMode,
+      isTemplateController,
+      bindables,
+      strategy,
+      hooks,
+    );
+  }
+
+  public register(container: IContainer): void {
+    const { Type, key, aliases } = this;
+    Registration.singleton(key, Type).register(container);
+    Registration.alias(key, Type).register(container);
+    registerAliases(aliases, CustomAttribute, key, container);
+  }
+}
+
+export const CustomAttribute: CustomAttributeKind = {
+  name: Protocol.resource.keyFor('custom-attribute'),
+  keyFrom(name: string): string {
+    return `${CustomAttribute.name}:${name}`;
+  },
+  define<T extends Constructable>(nameOrDefinition: string | PartialResourceDefinition<CustomAttributeDef>, Type: T): CustomAttributeType<T> {
+    const $Type = Type as CustomAttributeType<T>;
+    const description = CustomAttributeDefinition.create(nameOrDefinition, $Type);
+    Metadata.define(CustomAttribute.name, description, Type);
+    Protocol.resource.appendTo(Type, CustomAttribute.name);
+
+    return $Type;
+  },
+};

@@ -2,7 +2,7 @@
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
-import { IResourceType, Protocol } from './resource';
+import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
 import { isNumeric } from './functions';
 
@@ -123,13 +123,16 @@ export class DI {
   }
 
   public static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
-    return Metadata.getOwn('au:annotation:paramtypes', Type);
+    const key = Protocol.annotation.keyFor('paramtypes');
+    return Metadata.getOwn(key, Type);
   }
 
   public static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
-    let annotationParamtypes = Metadata.getOwn('au:annotation:paramtypes', Type);
+    const key = Protocol.annotation.keyFor('paramtypes');
+    let annotationParamtypes = Metadata.getOwn(key, Type);
     if (annotationParamtypes === void 0) {
-      Metadata.define('au:annotation:paramtypes', annotationParamtypes = [], Type);
+      Metadata.define(key, annotationParamtypes = [], Type);
+      Protocol.annotation.appendTo(Type, key);
     }
     return annotationParamtypes;
   }
@@ -139,7 +142,8 @@ export class DI {
     // so be careful with making changes here as it can have a huge impact on complex end user apps.
     // Preferably, only make changes to the dependency resolution process via a RFC.
 
-    let dependencies = Metadata.getOwn('au:annotation:dependencies', Type) as Key[] | undefined;
+    const key = Protocol.annotation.keyFor('dependencies');
+    let dependencies = Metadata.getOwn(key, Type) as Key[] | undefined;
     if (dependencies === void 0) {
       // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
       // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
@@ -197,7 +201,8 @@ export class DI {
         dependencies = cloneArrayWithPossibleProps(inject);
       }
 
-      Metadata.define('au:annotation:dependencies', dependencies, Type);
+      Metadata.define(key, dependencies, Type);
+      Protocol.annotation.appendTo(Type, key);
     }
 
     return dependencies!;
@@ -656,7 +661,7 @@ const createFactory = (function() {
 /** @internal */
 export interface IContainerConfiguration {
   factories?: Map<Constructable, IFactory>;
-  resourceLookup?: Record<string, IResourceType<any, any>>;
+  resourceLookup?: Record<string, ResourceType<any, any>>;
 }
 
 const containerResolver: IResolver = {
@@ -887,9 +892,11 @@ export class Container implements IContainer {
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
-    let factory = Metadata.getOwn('au:annotation:factory', Type);
+    const key = Protocol.annotation.keyFor('factory');
+    let factory = Metadata.getOwn(key, Type);
     if (factory === void 0) {
-      Metadata.define('au:annotation:factory', factory = createFactory(Type), Type);
+      Metadata.define(key, factory = createFactory(Type), Type);
+      Protocol.annotation.appendTo(Type, key);
     }
     return factory;
   }

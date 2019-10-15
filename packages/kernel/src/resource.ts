@@ -1,33 +1,47 @@
-import { IContainer, IRegistry, IResolver } from './di';
-import { Constructable, ConstructableClass } from './interfaces';
+import { IContainer, IResolver } from './di';
+import { Constructable } from './interfaces';
+import { Metadata } from './metadata';
 
-export interface IResourceDefinition extends Object {
-  name: string;
-  aliases?: string[];
-}
+export type ResourceType<
+  TUserType extends Constructable = Constructable,
+  TResInstance extends {} = {},
+  TResType extends {} = {},
+  TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
+> = (
+  new (...args: any[]) => TResInstance & TUserInstance
+) & {
+  readonly aliases?: readonly string[];
+} & TResType & TUserType;
 
-export interface IResourceKind<TDef, TProto, TClass extends ConstructableClass<TProto, unknown> = ConstructableClass<TProto>> {
+export type ResourceDefinition<
+  TUserType extends Constructable = Constructable,
+  TResInstance extends {} = {},
+  TDef extends {} = {},
+  TResType extends {} = {},
+  TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
+> = {
+  readonly name: string;
+  readonly Type: ResourceType<TUserType, TResInstance, TResType, TUserInstance>;
+  readonly aliases?: readonly string[];
+} & TDef;
+
+export type PartialResourceDefinition<TDef extends {} = {}> = {
+  readonly name: string;
+  readonly aliases?: readonly string[];
+} & TDef;
+
+export interface IResourceKind<TType extends ResourceType, TDef extends ResourceDefinition> {
   readonly name: string;
   keyFrom(name: string): string;
-  isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
-
-  define<T extends Constructable>(name: string, ctor?: T): T & TClass & IResourceType<TDef, TProto>;
-  define<T extends Constructable>(definition: TDef, ctor?: T): T & TClass & IResourceType<TDef, TProto>;
-  define<T extends Constructable>(nameOrDefinition: string | TDef, ctor?: T): T & TClass & IResourceType<TDef, TProto>;
 }
 
 export type ResourceDescription<TDef> = Required<TDef>;
 
 export type ResourcePartDescription<TDef> = TDef;
 
-export interface IResourceType<TDef, TProto, TClass extends ConstructableClass<TProto, unknown> = ConstructableClass<TProto>> extends ConstructableClass<TProto, unknown>, IRegistry {
-  readonly kind: IResourceKind<TDef, TProto, TClass>;
-  readonly description: ResourceDescription<TDef>;
-}
-
 export interface IResourceDescriptions {
-  find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null;
-  create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null;
+  find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
+  create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
@@ -37,7 +51,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     this.context = context;
   }
 
-  public find<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): ResourceDescription<TDef> | null {
+  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
     const key = kind.keyFrom(name);
     let resourceResolvers = (this.context as unknown as { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
     let resolver = resourceResolvers[key];
@@ -50,7 +64,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       const factory = resolver.getFactory(this.context);
 
       if (factory != null) {
-        const description = (factory.Type as IResourceType<TDef, TProto>).description;
+        const description = factory.Type.description;
         return description === undefined ? null : description;
       }
     }
@@ -58,7 +72,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     return null;
   }
 
-  public create<TDef, TProto>(kind: IResourceKind<TDef, TProto>, name: string): TProto | null {
+  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
     const key = kind.keyFrom(name);
     let resourceResolvers = (this.context as unknown as { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
     let resolver = resourceResolvers[key];
@@ -76,18 +90,52 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
   }
 }
 
-function metadataKeyFor<TDef, TProto>(resourceKind: IResourceKind<TDef, TProto>, context?: string): string;
-function metadataKeyFor(annotationName: string): string;
-function metadataKeyFor<TDef, TProto>(resourceKindOrAnnotationName: string | IResourceKind<TDef, TProto>, context?: string): string {
-  if (typeof resourceKindOrAnnotationName === 'string') {
-    return `au:annotation:${resourceKindOrAnnotationName}`;
-  }
-  if (typeof context === 'string') {
-    return `au:resource:${resourceKindOrAnnotationName.name}:${context}`;
-  }
-  return `au:resource:${resourceKindOrAnnotationName.name}`;
-}
+const annotation = {
+  name: 'au:annotation',
+  appendTo(target: Constructable, key: string): void {
+    const keys = Metadata.getOwn(annotation.name, target);
+    if (keys === void 0) {
+      Metadata.define(annotation.name, [key], target);
+    } else {
+      keys.push(key);
+    }
+  },
+  isKey(key: string): boolean {
+    return key.startsWith(annotation.name);
+  },
+  keyFor(name: string, context?: string): string {
+    if (context === void 0) {
+      return `${annotation.name}:${name}`;
+    }
+
+    return `${annotation.name}:${name}:${context}`;
+  },
+};
+
+const resource = {
+  name: 'au:resource',
+  appendTo(target: Constructable, key: string): void {
+    const keys = Metadata.getOwn(resource.name, target);
+    if (keys === void 0) {
+      Metadata.define(resource.name, [key], target);
+    } else {
+      keys.push(key);
+    }
+  },
+  isKey(key: string): boolean {
+    return key.startsWith(resource.name);
+  },
+  keyFor(name: string, context?: string): string {
+    if (context === void 0) {
+      return `${resource.name}:${name}`;
+    }
+
+    return `${resource.name}:${name}:${context}`;
+  },
+};
 
 export const Protocol = {
-  metadataKeyFor: metadataKeyFor
+  annotation,
+  resource,
 };
+

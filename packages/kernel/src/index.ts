@@ -84,14 +84,15 @@ export {
   Profiler
 } from './profiler';
 export {
-  IResourceDefinition,
   IResourceDescriptions,
   IResourceKind,
-  IResourceType,
+  PartialResourceDefinition,
+  Protocol,
+  ResourceDefinition,
   ResourceDescription,
   ResourcePartDescription,
+  ResourceType,
   RuntimeCompilationResources,
-  Protocol,
 } from './resource';
 export {
   EventAggregator,

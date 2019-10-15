@@ -1,7 +1,7 @@
 const { FuseBox, HTMLPlugin, EnvPlugin, UglifyJSPlugin, QuantumPlugin, WebIndexPlugin } = require("fuse-box");
 const { src, task } = require("fuse-box/sparky");
 
-let run = (production) => {
+const run = (production) => {
   const fuse = FuseBox.init({
     target: "browser@es6",
     homeDir: 'src',

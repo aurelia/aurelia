@@ -181,11 +181,9 @@ export class Blur {
       return false;
     }
     let els: ArrayLike<Element>;
-    let i: number, ii: number;
+    let i: number;
     let j: number, jj: number;
-    let links: string | HasContains | (string | HasContains)[];
     let link: string | HasContains;
-    let contextNode: Element | null;
 
     const element = this.element;
     if (containsElementOrShadowRoot(element, target)) {
@@ -202,15 +200,15 @@ export class Blur {
     const searchSubTree = this.searchSubTree;
     const linkedMultiple = this.linkedMultiple;
 
-    links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
-    contextNode =
+    const links: string | HasContains | (string | HasContains)[] = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
+    const contextNode: Element | null =
       (typeof linkingContext === 'string'
         ? doc.querySelector(linkingContext)
         : linkingContext
       )
       || doc.body;
 
-    ii = links.length;
+    const ii: number = links.length;
     for (i = 0; ii > i; ++i) {
       link = links[i];
       // When user specify to link with something by a string, it acts as a CSS selector

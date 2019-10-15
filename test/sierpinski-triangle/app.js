@@ -92,9 +92,9 @@ new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
         }
 
         tick() {
-          let elapsed = new Date().getTime() - this.start;
-          let t = (elapsed / 1000) % 10;
-          let scale = 1 + (t > 5 ? 10 - t : t) / 10;
+          const elapsed = new Date().getTime() - this.start;
+          const t = (elapsed / 1000) % 10;
+          const scale = 1 + (t > 5 ? 10 - t : t) / 10;
           this.app.style.transform = `scaleX(${scale / 2.1}) scaleY(0.7) translateZ(0.1px)`;
           if (this.haveFun) {
             clock.next();

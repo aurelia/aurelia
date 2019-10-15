@@ -4,7 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var yargs = require('yargs');
 
-let args = yargs(process.argv)
+const args = yargs(process.argv)
   .usage("npm run build [-- [--check] [--skipIrrelevant] [--restartWith] [--benchmarks_only]]")
   .help('help')
   .boolean('check')
@@ -39,7 +39,7 @@ var relevant = args.skipIrrelevant && !_.some(core, isDifferent)
 _.each(skippable, ([dir,name]) => console.log(`*** Skipping ${dir}${name}`));
 
 _.each([].concat(relevant, core), function([dir,name]) {
-  let fullname = dir + name;
+  const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
     console.log(`*** Executing npm install in ${fullname}`);
     exec('npm install --no-package-lock', {
@@ -56,7 +56,7 @@ _.each([].concat(relevant, core), function([dir,name]) {
 
 var testable = args.check ? relevant : [];
 _.each(testable, function([dir,name]) {
-  let fullname = dir + name;
+  const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
     console.log(`*** Executing npm run selenium for ${fullname}`);
     exec(`npm run selenium -- --count 10 --fork false --framework ${name}`, {

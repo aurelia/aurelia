@@ -183,11 +183,11 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     it('does not call onBlur if value is not a function', function() {
-      let { sut, dispose } = setup();
+      const { sut, dispose } = setup();
       const testValues = [true, 'a', 5, Symbol(), new Date(), null, undefined, {}, [], new Proxy({}, {})];
       let onBlurValue: any;
       let accessCount = 0;
-      sut = new Proxy(sut, {
+      const proxiedSut = new Proxy(sut, {
         get($obj, propertyName) {
           if (propertyName === 'onBlur') {
             accessCount++;
@@ -197,7 +197,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       }) as any;
       for (const value of testValues) {
         onBlurValue = value;
-        sut.triggerBlur();
+        proxiedSut.triggerBlur();
       }
       assert.equal(accessCount, testValues.length);
       dispose();

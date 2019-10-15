@@ -39,7 +39,7 @@
         }
     }
     exports.I18nKeyEvaluationResult = I18nKeyEvaluationResult;
-    exports.I18N = kernel_1.DI.createInterface('I18nService').noDefault();
+    exports.I18N = kernel_1.DI.createInterface('I18N').noDefault();
     /**
      * Translation service class.
      */
@@ -51,18 +51,6 @@
             this.task = new runtime_1.PromiseTask(this.initializeI18next(options), null, this);
             this.intl = kernel_1.PLATFORM.global.Intl;
         }
-        /**
-         * Evaluates the `keyExpr` to translated values.
-         * Example:
-         * ```typescript
-         *  evaluate('key1;[attr]key2;[attr1,attr2]key3', [options]) => [
-         *    {key: 'key1', attributes:[], value: 'translated_value_of_key1'}
-         *    {key: 'key2', attributes:['attr'], value: 'translated_value_of_key2'}
-         *    {key: 'key3', attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
-         *  ]
-         * ```
-         * For a single key, `I18nService#tr` method can also be easily used.
-         */
         evaluate(keyExpr, options) {
             const parts = keyExpr.split(';');
             const results = [];
@@ -93,41 +81,18 @@
             this.ea.publish("i18n:locale:changed" /* I18N_EA_CHANNEL */, { oldLocale, newLocale });
             this.signaler.dispatchSignal("aurelia-translation-signal" /* I18N_SIGNAL */);
         }
-        /**
-         * Returns `Intl.NumberFormat` instance with given `[options]`, and `[locales]` which can be used to format a number.
-         * If the `locales` is skipped, then the `Intl.NumberFormat` instance is created using the currently active locale.
-         */
         createNumberFormat(options, locales) {
             return this.intl.NumberFormat(locales || this.getLocale(), options);
         }
-        /**
-         * Formats the given `input` number according to the given `[options]`, and `[locales]`.
-         * If the `locales` is skipped, then the number is formatted using the currently active locale.
-         *
-         * @returns Formatted number.
-         */
         nf(input, options, locales) {
             return this.createNumberFormat(options, locales).format(input);
         }
-        /**
-         * Returns `Intl.DateTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a date.
-         * If the `locales` is skipped, then the `Intl.DateTimeFormat` instance is created using the currently active locale.
-         */
         createDateTimeFormat(options, locales) {
             return this.intl.DateTimeFormat(locales || this.getLocale(), options);
         }
-        /**
-         * Formats the given `input` date according to the given `[options]` and `[locales]`.
-         * If the `locales` is skipped, then the date is formatted using the currently active locale.
-         *
-         * @returns Formatted date.
-         */
         df(input, options, locales) {
             return this.createDateTimeFormat(options, locales).format(input);
         }
-        /**
-         * Unformats a given numeric string to a number.
-         */
         uf(numberLike, locale) {
             // Unfortunately the Intl specs does not specify a way to get the thousand and decimal separators for a given locale.
             // Only straightforward way would be to include the CLDR data and query for the separators, which certainly is a overkill.
@@ -146,17 +111,9 @@
             // return real number
             return Number(result);
         }
-        /**
-         * Returns `Intl.RelativeTimeFormat` instance with given `[options]`, and `[locales]` which can be used to format a value with associated time unit.
-         * If the `locales` is skipped, then the `Intl.RelativeTimeFormat` instance is created using the currently active locale.
-         */
         createRelativeTimeFormat(options, locales) {
             return new this.intl.RelativeTimeFormat(locales || this.getLocale(), options);
         }
-        /**
-         * Returns a relative time format of the given `input` date as per the given `[options]`, and `[locales]`.
-         * If the `locales` is skipped, then the currently active locale is used for formatting.
-         */
         rt(input, options, locales) {
             let difference = input.getTime() - new Date().getTime();
             const epsilon = this.options.rtEpsilon * (difference > 0 ? 1 : 0);

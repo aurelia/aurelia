@@ -9,7 +9,6 @@ import {
   CustomElement,
   CustomElementHost,
   INode,
-  bindable
 } from '@aurelia/runtime';
 import {
   assert,

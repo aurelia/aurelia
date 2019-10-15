@@ -383,39 +383,22 @@ describe('templating-compiler.ref.spec.ts', function() {
       }
     },
     {
-      only: true,
       title: 'works with setter and @bindable',
-      root: CustomElement.define(
-        {
-          name: 'app',
-          bindables: ['div'],
-          template: '<div if.bind="shouldRenderRepeat"><div repeat.for="i of 10" ref=div></div></div>'
-        },
-        class App {
+      root: class App {
 
-          // public static bindables: string[] = ['div'];
+        public static bindables: string[] = ['div'];
 
-          public divSetterCount: number = 0;
-          public div: HTMLDivElement;
+        public divSetterCount: number = 0;
+        public div: HTMLDivElement;
 
-          // public binding(): void {
-          //   if (this.div !== undefined) {
-          //     this.divChanged();
-          //   }
-          // }
-
-          public divChanged(): void {
-            this.divSetterCount++;
-          }
+        public divChanged(): void {
+          this.divSetterCount++;
         }
-      ),
+      },
       template: '<div if.bind="shouldRenderRepeat"><div repeat.for="i of 10" ref=div></div></div>',
-      assertFn: async (ctx, host, comp: { div: HTMLDivElement; shouldRenderRepeat: boolean; divSetterCount: number }) => {
+      assertFn: (ctx, host, comp: { div: HTMLDivElement; shouldRenderRepeat: boolean; divSetterCount: number }) => {
         assert.strictEqual(comp.divSetterCount, 0, 'shoulda called setter 0 times');
-        await waitForFrames(1);
         comp.shouldRenderRepeat = true;
-        await waitForFrames(1);
-        ctx.lifecycle.processRAFQueue(0);
         assert.strictEqual(comp.divSetterCount, 10, 'shoulda called setter 10 times');
       },
       assertFnAfterDestroy: (
@@ -484,7 +467,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       try {
         const ctx = TestContext.createHTMLTestContext();
 
-        const App = CustomElement.isType(root) ? root : CustomElement.define({ name: 'app', template }, root);
+        const App = CustomElement.define({ name: 'app', template }, root);
         const au = new Aurelia(ctx.container);
 
         body = ctx.doc.body;

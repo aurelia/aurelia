@@ -1,4 +1,4 @@
-import { I18N, I18nService, Signals } from '@aurelia/i18n';
+import { I18N, Signals } from '@aurelia/i18n';
 import { customElement, ISignaler } from '@aurelia/runtime';
 import template from './sut-i18n.html';
 import { Locale } from './translation-resources';
@@ -13,7 +13,7 @@ export class SutI18N {
   private readonly myDate: Date;
   private locale: Locale;
   public constructor(
-    @I18N private readonly i18n: I18nService,
+    @I18N private readonly i18n: I18N,
     @ISignaler private readonly signaler: ISignaler
   ) {
     this.locale = this.i18n.getLocale() as Locale;

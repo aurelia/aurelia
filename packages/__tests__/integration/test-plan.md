@@ -36,7 +36,7 @@
 - [ ] `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
 - [ ] `self-observer`: utilized for `@bindable`s with change handler
 - [ ] `set-observer`: Observer for mutation in Set
-- [ ] `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
+- [x] `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
 
 #### Binding behaviors
 - `debounce`: delays change
@@ -51,21 +51,22 @@
 - `listener`: handle event binding between view and view model
 
 #### Observation
-- `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
-- `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
-- `class-attribute-accessor`: manipulates class attributes for an element.
-- `data-attribute-observer`: observes non-class, and non-style HTML attributes.
+- [ ] `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
+- [ ] `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
+- [ ] `class-attribute-accessor`: manipulates class attributes for an element.
+- [ ] `data-attribute-observer`: observes non-class, and non-style HTML attributes.
   ```html
   <div aria-disabled.attr="disabled">
   ```
-- `element-attribute-observer`: handles mutation of `style` and `class` attributes via VM properties.
+- [ ] `element-attribute-observer`: handles mutation of `style` and `class` attributes via VM properties.
   ```html
   <div selected.class="selected">
   <div background.style="bg">
   ```
-- `element-property-accessor`: handles mutation of other attributes via VM properties.
-- `select-value-observer`: handles selection of options in `<select>` element.
-- `style-attribute-accessor`: inline style accessor
+- [x] `element-property-accessor`: handles mutation of other attributes via VM properties.
+- [ ] `select-value-observer`: handles selection of options in `<select>` element.
+- [ ] `style-attribute-accessor`: inline style accessor
+- [x] `value-attribute-observer`: observer for `[value]` (input)
 
 #### Binding behaviors
 - `attr`: wrapper for data attribute observer.
@@ -94,10 +95,10 @@ ${value}
 **Potential coverage targets**
 
 - interpolation binding
-- call-binding (with the help of a higher-level CE that binds the value using a method call)
+- ~~call-binding (with the help of a higher-level CE that binds the value using a method call)~~
 - i18n (maybe later)
 - `setter-observer`
-- `attribute` binding
+- ~~`attribute` binding~~
 - `ElementPropertyAccessor` (for `textContent`)
 
 ##### Text input
@@ -139,8 +140,6 @@ Displays a list of supported locales, and enable selection.
 
 **Potential coverage targets**
 
-- `one-time` binding mode
-- `to-view` binding mode
 - `computed-observer` (`dirty-checker` transitive dep) via a `User` class which has a computed `fullName` property. An instance of `User` is bound to this control
 - `map-observer` via locales dialog + non real life actions of adding and removing locales
 

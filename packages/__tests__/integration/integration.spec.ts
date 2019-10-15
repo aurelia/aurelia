@@ -1,9 +1,10 @@
-import { CustomElement, DirtyCheckProperty, IDirtyChecker, DirtyCheckSettings, LifecycleFlags } from '@aurelia/runtime';
+/* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
+import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
-describe.only('app', function () {
+describe('app', function () {
 
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function () {
@@ -85,6 +86,22 @@ describe.only('app', function () {
     assert.html.value(fromView, '');
     assert.html.value(blurredInputTw, vm.inputBlrTw);
     assert.html.value(blurredInputFv, '');
+  });
+
+  $it('binds interpolated string to read-only-texts', function ({ host, ctx }) {
+    const el = host.querySelector('#interpolated-text');
+    const vm = getViewModel<App>(host);
+    assert.html.textContent(el, `interpolated: ${vm.text4}${vm.text5}`, `incorrect text`, host);
+
+    const text1 = 'hello', text2 = 'world';
+
+    vm.text4 = text1;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(el, `interpolated: ${text1}${vm.text5}`, `incorrect text - change1`, host);
+
+    vm.text5 = text2;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(el, `interpolated: ${text1}${text2}`, `incorrect text - change2`, host);
   });
 
   $it('changes in the text-input are reflected correctly as per binding mode', function ({ host, ctx }) {

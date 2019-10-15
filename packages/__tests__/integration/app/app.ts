@@ -11,6 +11,8 @@ export class App {
   private text1: string = 'text1';
   private text2: string = 'text2';
   private text3: string = 'text3';
+  public text4: string = 'foo';
+  public text5: string = 'bar';
 
   public inputOneTime: string = 'input1';
   public inputTwoWay: string = 'input2';

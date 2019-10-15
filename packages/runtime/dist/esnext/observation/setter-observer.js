@@ -24,9 +24,7 @@ let SetterObserver = class SetterObserver {
             const currentValue = this.currentValue;
             this.currentValue = newValue;
             if (this.lifecycle.batch.depth === 0) {
-                if ((flags & 4096 /* fromBind */) === 0) {
-                    this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-                }
+                this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
             }
             else if (!this.inBatch) {
                 this.inBatch = true;

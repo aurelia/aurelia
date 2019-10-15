@@ -33,7 +33,7 @@
             if (ast_1.hasBind(this.sourceExpression)) {
                 this.sourceExpression.bind(flags, scope, this);
             }
-            this.sourceExpression.assign(flags, this.$scope, this.locator, this.target, part);
+            this.sourceExpression.assign(flags | 32 /* updateSourceExpression */, this.$scope, this.locator, this.target, part);
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;

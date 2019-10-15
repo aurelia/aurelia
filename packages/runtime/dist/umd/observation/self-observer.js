@@ -54,10 +54,12 @@
                 const currentValue = this.currentValue;
                 this.currentValue = newValue;
                 if (this.lifecycle.batch.depth === 0) {
-                    if ((flags & 4096 /* fromBind */) === 0) {
-                        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-                        if (this.callback !== void 0) {
-                            this.callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+                    this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+                    // eslint-disable-next-line sonarjs/no-collapsible-if
+                    if ((flags & 4096 /* fromBind */) === 0 || (flags & 32 /* updateSourceExpression */) > 0) {
+                        const callback = this.callback;
+                        if (callback !== void 0) {
+                            callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
                         }
                     }
                 }

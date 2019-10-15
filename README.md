@@ -69,7 +69,7 @@ To get started with a new Aurelia 2 project, with Node.js installed, simply run 
 
 ## Documentation
 
-You can read the documentation on Aurelia 2 [here](https://docs.aurelia.io/). Our new docs are currently a work-in-progress, so the most complete documentation is available in our getting started section. If you've never used Aurelia before, you'll want to begin with our [Quick Start Guide](https://app.gitbook.com/@aurelia-1/s/aurelia/getting-started/quick-start-guide).
+You can read the documentation on Aurelia 2 [here](https://docs.aurelia.io/). Our new docs are currently a work-in-progress, so the most complete documentation is available in our getting started section. If you've never used Aurelia before, you'll want to begin with our [Quick Start Guide](https://docs.aurelia.io/getting-started/quick-start-guide).
 
 ## Contributing
 

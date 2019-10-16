@@ -1,8 +1,8 @@
-var _ = require('lodash');
-var exec = require('child_process').execSync;
-var fs = require('fs-extra');
-var path = require('path');
-var yargs = require ('yargs');
+const _ = require('lodash');
+const exec = require('child_process').execSync;
+const fs = require('fs-extra');
+const path = require('path');
+const yargs = require ('yargs');
 
 const args = yargs(process.argv)
   .usage("$0 [--bootstrap --minimal]")

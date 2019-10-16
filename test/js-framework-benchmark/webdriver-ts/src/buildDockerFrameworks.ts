@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as semver from 'semver';
 import * as yargs from 'yargs';
 const ncu = require('npm-check-updates');
-var exec = require('child_process').execSync;
+const exec = require('child_process').execSync;
 
 function prepareDockerVolume() {
   // Check if docker volume js-framework-benchmark exists and create it if not

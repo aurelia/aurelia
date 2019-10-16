@@ -1,12 +1,12 @@
 'use strict';
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
-var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-var path = require('path');
-var webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const path = require('path');
+const webpack = require('webpack');
 
-var cache = {};
-var loaders = [
+const cache = {};
+const loaders = [
   {
     test: /\.jsx$/,
     loader: 'babel-loader'
@@ -40,7 +40,7 @@ var loaders = [
     loader: 'file-loader'
   }
 ];
-var extensions = [
+const extensions = [
   '.ts', '.tsx', '.ts', '.js'
 ];
 

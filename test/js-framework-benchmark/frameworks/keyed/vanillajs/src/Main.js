@@ -1,18 +1,18 @@
 'use strict';
 
-var startTime;
-var lastMeasure;
-var startMeasure = function(name) {
+let startTime;
+let lastMeasure;
+const startMeasure = function(name) {
   startTime = performance.now();
   lastMeasure = name;
 };
-var stopMeasure = function() {
-  var last = lastMeasure;
+const stopMeasure = function() {
+  const last = lastMeasure;
   if (lastMeasure) {
     window.setTimeout(function () {
       lastMeasure = null;
-      var stop = performance.now();
-      var duration = 0;
+      const stop = performance.now();
+      const duration = 0;
       console.log(`${last} took ${stop-startTime}`);
     }, 0);
   }
@@ -33,11 +33,11 @@ class Store {
     this.id = 1;
   }
   buildData(count = 1000) {
-    var adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"];
-    var colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"];
-    var nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"];
-    var data = [];
-    for (var i = 0; i < count; i++)
+    const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"];
+    const colours = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"];
+    const nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"];
+    const data = [];
+    for (let i = 0; i < count; i++)
       data.push({id: this.id++, label: `${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}` });
     return data;
   }
@@ -87,14 +87,14 @@ class Store {
   }
   swapRows() {
     if(this.data.length > 998) {
-      var a = this.data[1];
+      const a = this.data[1];
       this.data[1] = this.data[998];
       this.data[998] = a;
     }
   }
 }
 
-var getParentId = function(elem) {
+const getParentId = function(elem) {
   while (elem) {
     if (elem.tagName==="TR") {
       return elem.dataId;
@@ -330,7 +330,7 @@ class Main {
     // this.tbody.appendChild(docfrag);
 
     // ... than adding directly
-    var rows = this.rows, sData = this.store.data, data = this.data, tbody = this.tbody;
+    const rows = this.rows, sData = this.store.data, data = this.data, tbody = this.tbody;
     for(let i=rows.length;i<sData.length; i++) {
       const tr = this.createRow(sData[i]);
       rows[i] = tr;

@@ -1,7 +1,7 @@
-var _ = require('lodash');
-var exec = require('child_process').execSync;
-var fs = require('fs');
-var commandExists = require('command-exists');
+const _ = require('lodash');
+const exec = require('child_process').execSync;
+const fs = require('fs');
+const commandExists = require('command-exists');
 const path = require('path');
 const rimraf = require('rimraf');
 

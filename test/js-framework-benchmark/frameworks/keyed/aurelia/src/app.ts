@@ -1,14 +1,14 @@
 import {Store} from './store';
 
-var startTime: number;
-var lastMeasure: string;
-var startMeasure = function(name) {
+let startTime: number;
+let lastMeasure: string;
+const startMeasure = function(name) {
   startTime = performance.now();
   lastMeasure = name;
 };
-var stopMeasure = function() {
+const stopMeasure = function() {
   window.setTimeout(function() {
-    var stop = performance.now();
+    const stop = performance.now();
     console.log(`${lastMeasure} took ${stop-startTime}`);
   }, 0);
 };

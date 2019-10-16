@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as _ from 'lodash';
-var exec = require('child_process').execSync;
+const exec = require('child_process').execSync;
 
 function main() {
   const frameworks = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);

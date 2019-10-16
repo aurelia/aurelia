@@ -291,7 +291,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         offset++;
       }
       for (let i = 0; plainAttributesLength > i; ++i) {
-        attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i]);
+        attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i], false);
         offset++;
       }
     } else if (offset > 0) {
@@ -308,7 +308,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return new HydrateAttributeInstruction(symbol.res, bindings);
   }
 
-  private compilePlainAttribute(symbol: PlainAttributeSymbol, isOnSurrogate?: boolean): HTMLAttributeInstruction {
+  private compilePlainAttribute(symbol: PlainAttributeSymbol, isOnSurrogate: boolean): HTMLAttributeInstruction {
     if (symbol.command === null) {
       const syntax = symbol.syntax;
       if (symbol.expression === null) {

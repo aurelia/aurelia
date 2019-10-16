@@ -14,11 +14,12 @@ import {
 import {
   HooksDefinition,
   registerAliases,
-  IBindableDescription
+  IBindableDescription,
+  mergeArrays,
+  firstDefined
 } from '../definitions';
 import {
   BindingMode,
-  ensureValidStrategy,
   BindingStrategy,
 } from '../flags';
 import {
@@ -39,6 +40,8 @@ export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttri
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: CustomAttributeDef, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(nameOrDef: string | CustomAttributeDef, Type: T): CustomAttributeType<T>;
+  annotate<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K, value: CustomAttributeDef[K]): void;
+  getAnnotation<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K): CustomAttributeDef[K];
 };
 
 export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => CustomAttributeType<T>;
@@ -69,7 +72,8 @@ export function templateController(nameOrDefinition: string | Omit<CustomAttribu
       typeof nameOrDefinition === 'string'
         ? { isTemplateController: true, name: nameOrDefinition }
         : { isTemplateController: true, ...nameOrDefinition },
-      target);
+      target
+    );
   };
 }
 
@@ -87,49 +91,30 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    nameOrDef: string | PartialResourceDefinition<CustomAttributeDef>,
+    nameOrDef: string | CustomAttributeDef,
     Type: CustomAttributeType<T>,
   ): CustomAttributeDefinition<T> {
-    let name: string;
-    let aliases: string[];
-    let defaultBindingMode: BindingMode;
-    let isTemplateController: boolean;
-    let bindables: Record<string, IBindableDescription>;
-    let strategy: BindingStrategy;
-    let hooks: HooksDefinition;
 
+    let name: string;
+    let def: CustomAttributeDef;
     if (typeof nameOrDef === 'string') {
       name = nameOrDef;
-      aliases = [];
-      defaultBindingMode = BindingMode.toView;
-      isTemplateController = false;
-      bindables = { ...Bindable.for(Type).get() };
-      strategy = BindingStrategy.getterSetter;
-      hooks = new HooksDefinition(Type.prototype);
+      def = { name };
     } else {
       name = nameOrDef.name;
-      aliases = nameOrDef.aliases === void 0 ? [] : nameOrDef.aliases.slice();
-      defaultBindingMode = nameOrDef.defaultBindingMode === void 0 ? BindingMode.toView : nameOrDef.defaultBindingMode;
-      isTemplateController = nameOrDef.isTemplateController === true;
-      bindables = { ...Bindable.for(Type).get(), ...Bindable.for(nameOrDef).get() };
-      strategy = ensureValidStrategy(nameOrDef.strategy);
-      hooks = new HooksDefinition(Type.prototype);
-    }
-
-    if (Type.aliases !== void 0) {
-      aliases.push(...Type.aliases);
+      def = nameOrDef;
     }
 
     return new CustomAttributeDefinition(
       Type,
-      name,
-      aliases,
+      firstDefined(CustomAttribute.getAnnotation(Type, 'name'), name),
+      mergeArrays(CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       CustomAttribute.keyFrom(name),
-      defaultBindingMode,
-      isTemplateController,
-      bindables,
-      strategy,
-      hooks,
+      firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
+      firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
+      Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
+      firstDefined(CustomAttribute.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, BindingStrategy.getterSetter),
+      firstDefined(CustomAttribute.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)),
     );
   }
 
@@ -146,12 +131,18 @@ export const CustomAttribute: CustomAttributeKind = {
   keyFrom(name: string): string {
     return `${CustomAttribute.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDefinition: string | PartialResourceDefinition<CustomAttributeDef>, Type: T): CustomAttributeType<T> {
+  define<T extends Constructable>(nameOrDefinition: string | CustomAttributeDef, Type: T): CustomAttributeType<T> {
     const $Type = Type as CustomAttributeType<T>;
     const description = CustomAttributeDefinition.create(nameOrDefinition, $Type);
     Metadata.define(CustomAttribute.name, description, Type);
     Protocol.resource.appendTo(Type, CustomAttribute.name);
 
     return $Type;
+  },
+  annotate<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K, value: CustomAttributeDef[K]): void {
+    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+  },
+  getAnnotation<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K): CustomAttributeDef[K] {
+    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
 };

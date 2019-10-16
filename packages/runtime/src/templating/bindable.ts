@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
   Constructable,
   kebabCase,
-  Reporter,
+  Metadata,
+  Protocol,
 } from '@aurelia/kernel';
 import {
   BindableSource,
   IBindableDescription,
+  firstDefined,
 } from '../definitions';
 import {
   BindingMode,
@@ -42,7 +45,9 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
       // - @bindable({...opts})
       config.property = $prop;
     }
-    Bindable.for($target.constructor as Partial<WithBindables>).add(config);
+
+    Metadata.define(Bindable.name, BindableDefinition.create($prop, config), $target, $prop);
+    Protocol.annotation.appendTo($target.constructor as Constructable, Bindable.keyFrom($prop));
   };
   if (arguments.length > 1) {
     // Non invocation:
@@ -66,54 +71,77 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
   return decorator as BindableDecorator;
 }
 
-interface IFluentBindableBuilder {
-  add(config: IBindableDescription): IFluentBindableBuilder;
-  add(propertyName: string): IFluentBindableBuilder;
-  get(): Record<string, IBindableDescription>;
+function isBindableAnnotation(key: string): boolean {
+  return key.startsWith(Bindable.name);
 }
 
 export const Bindable = {
-  for<T extends Partial<WithBindables>>(obj: T): IFluentBindableBuilder {
-    const builder: IFluentBindableBuilder = {
-      add(nameOrConfig: string | IBindableDescription): typeof builder {
-        let description: IBindableDescription = (void 0)!;
-        if (nameOrConfig instanceof Object) {
-          description = nameOrConfig;
-        } else if (typeof nameOrConfig === 'string') {
-          description = {
-            property: nameOrConfig
-          };
-        }
-        const prop = description.property;
-        if (!prop) {
-          throw Reporter.error(0); // TODO: create error code (must provide a property name)
-        }
-        if (!description.attribute) {
-          description.attribute = kebabCase(prop);
-        }
-        if (!description.callback) {
-          description.callback = `${prop}Changed`;
-        }
-        if (description.mode === undefined) {
-          description.mode = BindingMode.toView;
-        }
-        (obj.bindables as Record<string, IBindableDescription>)[prop] = description;
-        return this;
-      },
-      get(): Record<string, IBindableDescription> {
-        return obj.bindables as Record<string, IBindableDescription>;
-      }
-    };
-    if (obj.bindables === undefined) {
-      obj.bindables = {};
-    } else if (Array.isArray(obj.bindables)) {
-      const props = obj.bindables;
-      obj.bindables = {};
-      props.forEach(builder.add);
+  name: Protocol.annotation.keyFor('bindable'),
+  keyFrom(name: string): string {
+    return `${Bindable.name}:${name}`;
+  },
+  from(...bindableLists: readonly (BindableDefinition | Record<string, IBindableDescription> | readonly string[] | undefined)[]): Record<string, IBindableDescription> {
+    const bindables: Record<string, IBindableDescription> = {};
+
+    function addName(name: string): void {
+      bindables[name] = {
+        property: name,
+        attribute: kebabCase(name),
+        callback: `${name}Changed`,
+        mode: BindingMode.toView,
+        primary: false,
+      };
     }
-    return builder;
-  }
+
+    function addDescription(name: string, def: IBindableDescription): void {
+      bindables[name] = BindableDefinition.create(name, def);
+    }
+
+    function addList(maybeList: BindableDefinition | Record<string, IBindableDescription> | string[] | undefined): void {
+      if (Array.isArray(maybeList)) {
+        maybeList.forEach(addName);
+      } else if (maybeList instanceof BindableDefinition) {
+        Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
+      } else if (maybeList !== void 0) {
+        Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
+      }
+    }
+
+    bindableLists.forEach(addList);
+
+    return bindables;
+  },
+  getAll(Type: Constructable): readonly BindableDefinition[] {
+    const propStart = Bindable.name.length + 1;
+    const keys = Protocol.annotation.getKeys(Type).filter(isBindableAnnotation);
+    const len = keys.length;
+    const defs: BindableDefinition[] = Array(len);
+    for (let i = 0; i < len; ++i) {
+      defs[i] = Metadata.getOwn(Bindable.name, Type, keys[i].slice(propStart));
+    }
+    return defs;
+  },
 };
 
 export type WithBindables = { bindables: Record<string, IBindableDescription> | string[] };
 export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string) => void;
+
+export class BindableDefinition {
+  private constructor(
+    public readonly attribute: string,
+    public readonly callback: string,
+    public readonly mode: BindingMode,
+    public readonly primary: boolean,
+    public readonly property: string,
+  ) {}
+
+  public static create(prop: string, def: IBindableDescription = {}): BindableDefinition {
+    return new BindableDefinition(
+      firstDefined(def.attribute, kebabCase(prop)),
+      firstDefined(def.callback, `${prop}Changed`),
+      firstDefined(def.mode, BindingMode.toView),
+      firstDefined(def.primary, false),
+      firstDefined(def.property, prop),
+    );
+  }
+}

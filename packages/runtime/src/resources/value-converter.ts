@@ -10,7 +10,7 @@ import {
   Protocol,
   PartialResourceDefinition,
 } from '@aurelia/kernel';
-import { registerAliases } from '../definitions';
+import { registerAliases, mergeArrays } from '../definitions';
 
 export type ValueConverterInstance<T extends {} = {}> = {
   toView(input: unknown, ...args: unknown[]): unknown;
@@ -39,22 +39,18 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    nameOrDefinition: string | PartialResourceDefinition,
+    nameOrDef: string | PartialResourceDefinition,
     Type: ValueConverterType<T>,
   ): ValueConverterDefinition<T> {
     let name: string;
     let aliases: string[];
 
-    if (typeof nameOrDefinition === 'string') {
-      name = nameOrDefinition;
-      aliases = [];
+    if (typeof nameOrDef === 'string') {
+      name = nameOrDef;
+      aliases = mergeArrays(Type.aliases);
     } else {
-      name = nameOrDefinition.name;
-      aliases = nameOrDefinition.aliases === void 0 ? [] : nameOrDefinition.aliases.slice();
-    }
-
-    if (Type.aliases !== void 0) {
-      aliases.push(...Type.aliases);
+      name = nameOrDef.name;
+      aliases = mergeArrays(Type.aliases, nameOrDef.aliases);
     }
 
     return new ValueConverterDefinition(Type, name, aliases);
@@ -73,9 +69,9 @@ export const ValueConverter: ValueConverterKind = {
   keyFrom(name: string): string {
     return `${ValueConverter.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDefinition: string | ValueConverterDefinition, Type: T): ValueConverterType<T> {
+  define<T extends Constructable>(nameOrDef: string | ValueConverterDefinition, Type: T): ValueConverterType<T> {
     const $Type = Type as ValueConverterType<T>;
-    const description = ValueConverterDefinition.create(nameOrDefinition, $Type);
+    const description = ValueConverterDefinition.create(nameOrDef, $Type);
     Metadata.define(ValueConverter.name, description, Type);
     Protocol.resource.appendTo(Type, ValueConverter.name);
 

@@ -100,6 +100,19 @@ const annotation = {
       keys.push(key);
     }
   },
+  set(target: Constructable, prop: string, value: unknown): void {
+    Metadata.define(annotation.keyFor(prop), value, target);
+  },
+  get(target: Constructable, prop: string): unknown {
+    return Metadata.getOwn(annotation.keyFor(prop), target);
+  },
+  getKeys(target: Constructable): readonly string[] {
+    let keys = Metadata.getOwn(annotation.name, target);
+    if (keys === void 0) {
+      Metadata.define(annotation.name, keys = [], target);
+    }
+    return keys;
+  },
   isKey(key: string): boolean {
     return key.startsWith(annotation.name);
   },
@@ -121,6 +134,13 @@ const resource = {
     } else {
       keys.push(key);
     }
+  },
+  getKeys(target: Constructable): readonly string[] {
+    let keys = Metadata.getOwn(resource.name, target);
+    if (keys === void 0) {
+      Metadata.define(resource.name, keys = [], target);
+    }
+    return keys;
   },
   isKey(key: string): boolean {
     return key.startsWith(resource.name);

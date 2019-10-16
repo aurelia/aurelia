@@ -10,7 +10,7 @@ import {
   Protocol,
   PartialResourceDefinition,
 } from '@aurelia/kernel';
-import { registerAliases } from '../definitions';
+import { registerAliases, mergeArrays } from '../definitions';
 import { LifecycleFlags } from '../flags';
 import { IScope } from '../observation';
 import { IBinding } from '../lifecycle';
@@ -42,22 +42,18 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    nameOrDefinition: string | PartialResourceDefinition,
+    nameOrDef: string | PartialResourceDefinition,
     Type: BindingBehaviorType<T>,
   ): BindingBehaviorDefinition<T> {
     let name: string;
     let aliases: string[];
 
-    if (typeof nameOrDefinition === 'string') {
-      name = nameOrDefinition;
-      aliases = [];
+    if (typeof nameOrDef === 'string') {
+      name = nameOrDef;
+      aliases = mergeArrays(Type.aliases);
     } else {
-      name = nameOrDefinition.name;
-      aliases = nameOrDefinition.aliases === void 0 ? [] : nameOrDefinition.aliases.slice();
-    }
-
-    if (Type.aliases !== void 0) {
-      aliases.push(...Type.aliases);
+      name = nameOrDef.name;
+      aliases = mergeArrays(Type.aliases, nameOrDef.aliases);
     }
 
     return new BindingBehaviorDefinition(Type, name, aliases);
@@ -76,9 +72,9 @@ export const BindingBehavior: BindingBehaviorKind = {
   keyFrom(name: string): string {
     return `${BindingBehavior.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDefinition: string | BindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
+  define<T extends Constructable>(nameOrDef: string | BindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const $Type = Type as BindingBehaviorType<T>;
-    const description = BindingBehaviorDefinition.create(nameOrDefinition, $Type);
+    const description = BindingBehaviorDefinition.create(nameOrDef, $Type);
     Metadata.define(BindingBehavior.name, description, Type);
     Protocol.resource.appendTo(Type, BindingBehavior.name);
 

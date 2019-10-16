@@ -98,6 +98,8 @@ export {
   AttributeBindingRendererRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
 
@@ -135,6 +137,7 @@ export {
   DelegateBindingInstruction,
   SetAttributeInstruction,
   SetClassAttributeInstruction,
+  SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction

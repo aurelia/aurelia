@@ -117,6 +117,17 @@ export class SetClassAttributeInstruction implements ITargetedInstruction {
   }
 }
 
+export class SetStyleAttributeInstruction implements ITargetedInstruction {
+  public readonly type: HTMLTargetedInstructionType.setStyleAttribute;
+
+  public readonly value: string;
+
+  public constructor(value: string) {
+    this.type = HTMLTargetedInstructionType.setStyleAttribute;
+    this.value = value;
+  }
+}
+
 export class AttributeBindingInstruction implements IAttributeBindingInstruction {
   public type: HTMLTargetedInstructionType.attributeBinding;
 

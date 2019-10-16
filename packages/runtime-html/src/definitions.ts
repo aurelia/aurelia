@@ -67,6 +67,7 @@ export interface ISetAttributeInstruction extends ITargetedInstruction {
 export interface ISetClassAttributeInstruction extends ITargetedInstruction {
   type: HTMLTargetedInstructionType.setClassAttribute;
   value: string;
+  readonly classList: string[];
 }
 
 export interface ISetStyleAttributeInstruction extends ITargetedInstruction {

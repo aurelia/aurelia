@@ -96,7 +96,7 @@ export class SetClassAttributeRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
-    target.classList.add(...instruction.value.split(' ').filter(Boolean));
+    target.classList.add(...instruction.classList);
   }
 }
 

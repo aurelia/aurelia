@@ -110,10 +110,12 @@ export class SetClassAttributeInstruction implements ITargetedInstruction {
   public readonly type: HTMLTargetedInstructionType.setClassAttribute;
 
   public readonly value: string;
+  public readonly classList: string[];
 
   public constructor(value: string) {
     this.type = HTMLTargetedInstructionType.setClassAttribute;
     this.value = value;
+    this.classList = toClassList(value);
   }
 }
 
@@ -148,4 +150,12 @@ export class AttributeBindingInstruction implements IAttributeBindingInstruction
     this.attr = attr;
     this.to = to;
   }
+}
+
+const cachedMapping: Record<string, string[]> = {};
+function toClassList(className: string): string[] {
+  if (cachedMapping[className] === undefined) {
+    cachedMapping[className] = className.split(' ').filter(Boolean);
+  }
+  return cachedMapping[className];
 }

@@ -133,6 +133,25 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function() {
         });
       }
     },
+    {
+      title: 'Basic surrogate [style] merge scenario',
+      template: '<foo style="height: 100px;">',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: '<template style="height: 200px"></template>'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        const foo: HTMLElement = host.querySelector('foo');
+        [['height', '200px']].forEach(expectedValuePair => {
+          const [rule, value] = expectedValuePair;
+          assert.strictEqual(foo.style[rule], value, `<foo/> should have had style [${rule}] with value [${value}]`);
+        });
+      }
+    },
   ];
 
   for (const testCase of testCases) {

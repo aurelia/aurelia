@@ -35,7 +35,8 @@ import {
   HTMLInstructionRow,
   SetAttributeInstruction,
   TextBindingInstruction,
-  SetClassAttributeInstruction
+  SetClassAttributeInstruction,
+  SetStyleAttributeInstruction,
 } from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
@@ -311,8 +312,15 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (symbol.command === null) {
       const syntax = symbol.syntax;
       if (symbol.expression === null) {
-        if (isOnSurrogate && syntax.target === 'class') {
-          return new SetClassAttributeInstruction(syntax.rawValue);
+        if (isOnSurrogate) {
+          switch (syntax.target) {
+            case 'class':
+              return new SetClassAttributeInstruction(syntax.rawValue);
+            case 'style':
+              return new SetStyleAttributeInstruction(syntax.rawValue);
+            // todo:  define how to merge other attribute peacefully
+            //        this is an existing feature request
+          }
         }
         // a plain attribute on a surrogate
         return new SetAttributeInstruction(syntax.rawValue, syntax.target);

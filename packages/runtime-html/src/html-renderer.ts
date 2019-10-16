@@ -24,11 +24,11 @@ import {
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   IStylePropertyBindingInstruction,
-  ITextBindingInstruction
+  ITextBindingInstruction,
+  ISetClassAttributeInstruction,
+  ISetStyleAttributeInstruction
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
-
-const slice = Array.prototype.slice;
 
 @instructionRenderer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
@@ -88,6 +88,24 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetAttributeInstruction): void {
     target.setAttribute(instruction.to, instruction.value);
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.setClassAttribute)
+export class SetClassAttributeRenderer implements IInstructionRenderer {
+  public static readonly register: IRegistry['register'];
+
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
+    target.classList.add(...instruction.value.split(' ').filter(Boolean));
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.setStyleAttribute)
+export class SetStyleAttributeRenderer implements IInstructionRenderer {
+  public static readonly register: IRegistry['register'];
+
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetStyleAttributeInstruction): void {
+    target.style.cssText += instruction.value;
   }
 }
 

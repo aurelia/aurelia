@@ -13,6 +13,8 @@ export const enum HTMLTargetedInstructionType {
   attributeBinding = 'hc',
   stylePropertyBinding = 'hd',
   setAttribute = 'he',
+  setClassAttribute = 'hf',
+  setStyleAttribute = 'hg',
 }
 
 export type HTMLNodeInstruction =
@@ -24,7 +26,9 @@ export type HTMLAttributeInstruction =
   IListenerBindingInstruction |
   IAttributeBindingInstruction |
   IStylePropertyBindingInstruction |
-  ISetAttributeInstruction;
+  ISetAttributeInstruction |
+  ISetClassAttributeInstruction |
+  ISetStyleAttributeInstruction;
 
 export type HTMLTargetedInstruction = HTMLNodeInstruction | HTMLAttributeInstruction;
 // TODO: further improve specificity and integrate with the definitions;
@@ -58,6 +62,16 @@ export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: HTMLTargetedInstructionType.setAttribute;
   value: string;
   to: string;
+}
+
+export interface ISetClassAttributeInstruction extends ITargetedInstruction {
+  type: HTMLTargetedInstructionType.setClassAttribute;
+  value: string;
+}
+
+export interface ISetStyleAttributeInstruction extends ITargetedInstruction {
+  type: HTMLTargetedInstructionType.setClassAttribute;
+  value: string;
 }
 
 export interface IAttributeBindingInstruction extends ITargetedInstruction {

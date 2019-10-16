@@ -106,6 +106,17 @@ export class SetAttributeInstruction implements ITargetedInstruction {
   }
 }
 
+export class SetClassAttributeInstruction implements ITargetedInstruction {
+  public readonly type: HTMLTargetedInstructionType.setClassAttribute;
+
+  public readonly value: string;
+
+  public constructor(value: string) {
+    this.type = HTMLTargetedInstructionType.setClassAttribute;
+    this.value = value;
+  }
+}
+
 export class AttributeBindingInstruction implements IAttributeBindingInstruction {
   public type: HTMLTargetedInstructionType.attributeBinding;
 

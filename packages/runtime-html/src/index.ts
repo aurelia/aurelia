@@ -134,6 +134,7 @@ export {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   SetAttributeInstruction,
+  SetClassAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction

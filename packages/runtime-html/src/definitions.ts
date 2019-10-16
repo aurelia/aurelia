@@ -70,7 +70,7 @@ export interface ISetClassAttributeInstruction extends ITargetedInstruction {
 }
 
 export interface ISetStyleAttributeInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.setClassAttribute;
+  type: HTMLTargetedInstructionType.setStyleAttribute;
   value: string;
 }
 

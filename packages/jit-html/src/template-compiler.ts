@@ -311,19 +311,22 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compilePlainAttribute(symbol: PlainAttributeSymbol, isOnSurrogate: boolean): HTMLAttributeInstruction {
     if (symbol.command === null) {
       const syntax = symbol.syntax;
+
       if (symbol.expression === null) {
+        const attrRawValue = syntax.rawValue;
+
         if (isOnSurrogate) {
           switch (syntax.target) {
             case 'class':
-              return new SetClassAttributeInstruction(syntax.rawValue);
+              return new SetClassAttributeInstruction(attrRawValue);
             case 'style':
-              return new SetStyleAttributeInstruction(syntax.rawValue);
+              return new SetStyleAttributeInstruction(attrRawValue);
             // todo:  define how to merge other attribute peacefully
             //        this is an existing feature request
           }
         }
         // a plain attribute on a surrogate
-        return new SetAttributeInstruction(syntax.rawValue, syntax.target);
+        return new SetAttributeInstruction(attrRawValue, syntax.target);
       } else {
         // a plain attribute with an interpolation
         return new InterpolationInstruction(symbol.expression as IInterpolationExpression, syntax.target);

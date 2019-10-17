@@ -15,9 +15,6 @@ import {
 import {
   registerAliases,
   ITargetedInstruction,
-  IBuildInstruction,
-  IBindableDescription,
-  IChildrenObserverDescription,
   HooksDefinition,
   firstDefined,
   mergeArrays,
@@ -34,17 +31,18 @@ import {
   IViewModel,
 } from '../lifecycle';
 import { BindingStrategy } from '../flags';
-import { Bindable } from '../templating/bindable';
+import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
+import { PartialChildrenObserverDefinition, ChildrenObserverDefinition, ChildrenObserver } from '../templating/children';
 
-type CustomElementDef = PartialResourceDefinition<{
+export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly template?: unknown;
   readonly instructions?: readonly (readonly ITargetedInstruction[])[];
   readonly dependencies?: readonly Key[];
-  readonly build?: IBuildInstruction;
+  readonly needsCompile?: boolean;
   readonly surrogates?: readonly ITargetedInstruction[];
-  readonly bindables?: Record<string, IBindableDescription> | readonly string[];
-  readonly childrenObservers?: Record<string, IChildrenObserverDescription>;
+  readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
+  readonly childrenObservers?: Record<string, PartialChildrenObserverDefinition>;
   readonly containerless?: boolean;
   readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
@@ -54,14 +52,14 @@ type CustomElementDef = PartialResourceDefinition<{
   readonly scopeParts?: readonly string[];
 }>;
 
-export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, CustomElementDef>;
+export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
-  define<T extends Constructable>(def: CustomElementDef, Type: T): CustomElementType<T>;
-  define<T extends Constructable>(nameOrDef: string | CustomElementDef, Type: T): CustomElementType<T>;
+  define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
   getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T>;
-  annotate<K extends keyof CustomElementDef>(Type: Constructable, prop: K, value: CustomElementDef[K]): void;
-  getAnnotation<K extends keyof CustomElementDef>(Type: Constructable, prop: K): CustomElementDef[K];
+  annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
+  getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
 };
 
 export type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
@@ -69,16 +67,16 @@ export type CustomElementDecorator = <T extends Constructable>(Type: T) => Custo
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement(definition: CustomElementDef): CustomElementDecorator;
+export function customElement(definition: PartialCustomElementDefinition): CustomElementDecorator;
 export function customElement(name: string): CustomElementDecorator;
-export function customElement(nameOrDefinition: string | CustomElementDef): CustomElementDecorator;
-export function customElement(nameOrDefinition: string | CustomElementDef): CustomElementDecorator {
+export function customElement(nameOrDefinition: string | PartialCustomElementDefinition): CustomElementDecorator;
+export function customElement(nameOrDefinition: string | PartialCustomElementDefinition): CustomElementDecorator {
   return function (target) {
     return CustomElement.define(nameOrDefinition, target);
   };
 }
 
-type ShadowOptions = Pick<CustomElementDef, 'shadowOptions'>['shadowOptions'];
+type ShadowOptions = Pick<PartialCustomElementDefinition, 'shadowOptions'>['shadowOptions'];
 
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
@@ -140,7 +138,7 @@ export function strict(target?: Constructable): void | ((target: Constructable) 
   CustomElement.annotate(target, 'isStrictBinding', true);
 }
 
-export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, CustomElementDef> {
+export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomElementDefinition> {
   private constructor(
     public readonly Type: CustomElementType<T>,
     public readonly name: string,
@@ -150,10 +148,10 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly template: unknown,
     public readonly instructions: readonly (readonly ITargetedInstruction[])[],
     public readonly dependencies: readonly Key[],
-    public readonly build: IBuildInstruction,
+    public readonly needsCompile: boolean,
     public readonly surrogates: readonly ITargetedInstruction[],
-    public readonly bindables: Record<string, IBindableDescription>,
-    public readonly childrenObservers: Record<string, IChildrenObserverDescription>,
+    public readonly bindables: Record<string, BindableDefinition>,
+    public readonly childrenObservers: Record<string, ChildrenObserverDefinition>,
     public readonly containerless: boolean,
     public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
@@ -168,20 +166,20 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     Type: CustomElementType<T>,
   ): CustomElementDefinition<T>;
   public static create<T extends Constructable = Constructable>(
-    def: CustomElementDef,
+    def: PartialCustomElementDefinition,
     Type?: null,
   ): CustomElementDefinition<T>;
   public static create<T extends Constructable = Constructable>(
-    nameOrDef: string | CustomElementDef,
+    nameOrDef: string | PartialCustomElementDefinition,
     Type?: CustomElementType<T> | null,
   ): CustomElementDefinition<T>;
   public static create<T extends Constructable = Constructable>(
-    nameOrDef: string | CustomElementDef,
+    nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType<T> | null = null,
   ): CustomElementDefinition<T> {
 
     let name: string;
-    let def: CustomElementDef;
+    let def: PartialCustomElementDefinition;
     if (typeof nameOrDef === 'string') {
       name = nameOrDef;
       def = { name };
@@ -203,10 +201,20 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       firstDefined(CustomElement.getAnnotation(Type, 'template'), def.template, Type.template, null),
       mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), def.instructions, Type.instructions),
       mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
-      firstDefined(CustomElement.getAnnotation(Type, 'build'), def.build, Type.build, { compiler: 'default', required: true }),
+      firstDefined(CustomElement.getAnnotation(Type, 'needsCompile'), def.needsCompile, Type.needsCompile, true),
       mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), def.surrogates, Type.surrogates),
-      Bindable.from(...Bindable.getAll(Type), CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
-      mergeObjects(CustomElement.getAnnotation(Type, 'childrenObservers'), def.childrenObservers, Type.childrenObservers),
+      Bindable.from(
+        ...Bindable.getAll(Type),
+        CustomElement.getAnnotation(Type, 'bindables'),
+        Type.bindables,
+        def.bindables,
+      ),
+      ChildrenObserver.from(
+        ...ChildrenObserver.getAll(Type),
+        CustomElement.getAnnotation(Type, 'childrenObservers'),
+        Type.childrenObservers,
+        def.childrenObservers,
+      ),
       firstDefined(CustomElement.getAnnotation(Type, 'containerless'), def.containerless, Type.containerless, false),
       firstDefined(CustomElement.getAnnotation(Type, 'isStrictBinding'), def.isStrictBinding, Type.isStrictBinding, false),
       firstDefined(CustomElement.getAnnotation(Type, 'shadowOptions'), def.shadowOptions, Type.shadowOptions, null),
@@ -230,7 +238,7 @@ export const CustomElement: CustomElementKind = {
   keyFrom(name: string): string {
     return `${CustomElement.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDefinition: string | CustomElementDef, Type: T): CustomElementType<T> {
+  define<T extends Constructable>(nameOrDefinition: string | PartialCustomElementDefinition, Type: T): CustomElementType<T> {
     const $Type = Type as CustomElementType<T>;
     const description = CustomElementDefinition.create(nameOrDefinition, $Type);
     Metadata.define(CustomElement.name, description, Type);
@@ -246,10 +254,10 @@ export const CustomElement: CustomElementKind = {
 
     return def;
   },
-  annotate<K extends keyof CustomElementDef>(Type: Constructable, prop: K, value: CustomElementDef[K]): void {
+  annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void {
     Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
   },
-  getAnnotation<K extends keyof CustomElementDef>(Type: Constructable, prop: K): CustomElementDef[K] {
+  getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
 };

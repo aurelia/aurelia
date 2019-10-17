@@ -18,7 +18,6 @@ import {
   HooksDefinition,
   firstDefined,
   mergeArrays,
-  mergeObjects
 } from '../definitions';
 import {
   IDOM,
@@ -32,7 +31,7 @@ import {
 } from '../lifecycle';
 import { BindingStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
-import { PartialChildrenObserverDefinition, ChildrenObserverDefinition, ChildrenObserver } from '../templating/children';
+import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -42,7 +41,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly ITargetedInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
-  readonly childrenObservers?: Record<string, PartialChildrenObserverDefinition>;
+  readonly childrenObservers?: Record<string, PartialChildrenDefinition>;
   readonly containerless?: boolean;
   readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
@@ -54,6 +53,8 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
+  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined;
+  isType<T extends Constructable>(Type: T): Type is CustomElementType<T>;
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
   define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
@@ -151,7 +152,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly ITargetedInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
-    public readonly childrenObservers: Record<string, ChildrenObserverDefinition>,
+    public readonly childrenObservers: Record<string, ChildrenDefinition>,
     public readonly containerless: boolean,
     public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
@@ -209,8 +210,8 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         Type.bindables,
         def.bindables,
       ),
-      ChildrenObserver.from(
-        ...ChildrenObserver.getAll(Type),
+      Children.from(
+        ...Children.getAll(Type),
         CustomElement.getAnnotation(Type, 'childrenObservers'),
         Type.childrenObservers,
         def.childrenObservers,
@@ -237,6 +238,12 @@ export const CustomElement: CustomElementKind = {
   name: Protocol.resource.keyFor('custom-element'),
   keyFrom(name: string): string {
     return `${CustomElement.name}:${name}`;
+  },
+  isType<T extends Constructable>(Type: T): Type is CustomElementType<T> {
+    return Metadata.hasOwn(CustomElement.name, Type);
+  },
+  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
+    return (node as CustomElementHost<T>).$controller;
   },
   define<T extends Constructable>(nameOrDefinition: string | PartialCustomElementDefinition, Type: T): CustomElementType<T> {
     const $Type = Type as CustomElementType<T>;

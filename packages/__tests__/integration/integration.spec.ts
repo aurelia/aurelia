@@ -1,11 +1,11 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
+import { assert, Call, createSpy, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 import { toArray } from '@aurelia/kernel';
 
-describe.only('app', function () {
+describe('app', function () {
 
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function () {
@@ -327,7 +327,7 @@ describe.only('app', function () {
     }
   );
 
-  $it.only('uses a radio-button-list that renders a map as a list of radio buttons',
+  $it('uses a radio-button-list that renders a map as a list of radio buttons',
     function ({ host }) {
       const { contacts, chosenContact } = getViewModel<App>(host);
       const contactsArr = Array.from(contacts);

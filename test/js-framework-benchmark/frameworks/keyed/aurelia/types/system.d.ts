@@ -12,6 +12,6 @@ declare module 'system' {
   }
 
   global {
-    var System: System;
+    const System: System;
   }
 }

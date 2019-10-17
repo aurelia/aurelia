@@ -8,8 +8,8 @@ import * as R from 'ramda';
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
 // necessary to launch without specifiying a path
-var chromedriver: any = require('chromedriver');
-var jStat: any = require('jstat').jStat;
+const chromedriver: any = require('chromedriver');
+const jStat: any = require('jstat').jStat;
 
 let config: TConfig = defaultConfig;
 
@@ -102,11 +102,12 @@ function extractRawValue(results: any, id: string) {
 }
 
 function rmDir(dirPath: string) {
-  try { var files = fs.readdirSync(dirPath); }
+  let files: string[] = [];
+  try { files = fs.readdirSync(dirPath); }
   catch(e) { console.log(`error in rmDir ${dirPath}`, e); return; }
   if (files.length > 0)
-    for (var i = 0; i < files.length; i++) {
-      var filePath = path.join(dirPath, files[i]);
+    for (let i = 0; i < files.length; i++) {
+      const filePath = path.join(dirPath, files[i]);
       if (fs.statSync(filePath).isFile())
         fs.unlinkSync(filePath);
       else

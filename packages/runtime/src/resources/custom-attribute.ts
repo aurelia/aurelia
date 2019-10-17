@@ -39,6 +39,7 @@ export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttri
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
+  getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T>;
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
 };
@@ -137,6 +138,14 @@ export const CustomAttribute: CustomAttributeKind = {
     Protocol.resource.appendTo(Type, CustomAttribute.name);
 
     return $Type;
+  },
+  getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T> {
+    const def = Metadata.getOwn(CustomAttribute.name, Type);
+    if (def === void 0) {
+      throw new Error(`No definition found for type ${Type.name}`);
+    }
+
+    return def;
   },
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void {
     Metadata.define(Protocol.annotation.keyFor(prop), value, Type);

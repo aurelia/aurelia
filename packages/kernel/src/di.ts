@@ -741,6 +741,17 @@ export class Container implements IContainer {
         current.register(this);
       } else if (isClass(current)) {
         Registration.singleton(current, current as Constructable).register(this);
+      } else if (Protocol.resource.has(current)) {
+        const defs = Protocol.resource.getAll(current);
+        if (defs.length === 1) {
+          // Fast path for the very common case
+          defs[0].register(this);
+        } else {
+          const len = defs.length;
+          for (let d = 0; d < len; ++d) {
+            defs[i].register(this);
+          }
+        }
       } else {
         keys = Object.keys(current);
         j = 0;

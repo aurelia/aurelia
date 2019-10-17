@@ -89,8 +89,6 @@ export {
   PartialResourceDefinition,
   Protocol,
   ResourceDefinition,
-  ResourceDescription,
-  ResourcePartDescription,
   ResourceType,
   RuntimeCompilationResources,
 } from './resource';

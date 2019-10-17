@@ -1,6 +1,7 @@
 import { IContainer, IResolver } from './di';
 import { Constructable } from './interfaces';
 import { Metadata } from './metadata';
+import { PLATFORM } from './platform';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -23,6 +24,8 @@ export type ResourceDefinition<
   readonly name: string;
   readonly Type: ResourceType<TUserType, TResInstance, TResType, TUserInstance>;
   readonly aliases?: readonly string[];
+
+  register(container: IContainer): void;
 } & TDef;
 
 export type PartialResourceDefinition<TDef extends {} = {}> = {
@@ -34,10 +37,6 @@ export interface IResourceKind<TType extends ResourceType, TDef extends Resource
   readonly name: string;
   keyFrom(name: string): string;
 }
-
-export type ResourceDescription<TDef> = Required<TDef>;
-
-export type ResourcePartDescription<TDef> = TDef;
 
 export interface IResourceDescriptions {
   find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
@@ -93,7 +92,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 const annotation = {
   name: 'au:annotation',
   appendTo(target: Constructable, key: string): void {
-    const keys = Metadata.getOwn(annotation.name, target);
+    const keys = Metadata.getOwn(annotation.name, target) as string[];
     if (keys === void 0) {
       Metadata.define(annotation.name, [key], target);
     } else {
@@ -107,7 +106,7 @@ const annotation = {
     return Metadata.getOwn(annotation.keyFor(prop), target);
   },
   getKeys(target: Constructable): readonly string[] {
-    let keys = Metadata.getOwn(annotation.name, target);
+    let keys = Metadata.getOwn(annotation.name, target) as string[];
     if (keys === void 0) {
       Metadata.define(annotation.name, keys = [], target);
     }
@@ -128,15 +127,26 @@ const annotation = {
 const resource = {
   name: 'au:resource',
   appendTo(target: Constructable, key: string): void {
-    const keys = Metadata.getOwn(resource.name, target);
+    const keys = Metadata.getOwn(resource.name, target) as string[];
     if (keys === void 0) {
       Metadata.define(resource.name, [key], target);
     } else {
       keys.push(key);
     }
   },
+  has(target: unknown): target is Constructable {
+    return Metadata.hasOwn(resource.name, target);
+  },
+  getAll(target: Constructable): readonly ResourceDefinition[] {
+    const keys = Metadata.getOwn(resource.name, target) as string[];
+    if (keys === void 0) {
+      return PLATFORM.emptyArray;
+    } else {
+      return keys.map(k => Metadata.getOwn(k, target));
+    }
+  },
   getKeys(target: Constructable): readonly string[] {
-    let keys = Metadata.getOwn(resource.name, target);
+    let keys = Metadata.getOwn(resource.name, target) as string[];
     if (keys === void 0) {
       Metadata.define(resource.name, keys = [], target);
     }

@@ -21,8 +21,8 @@ export class Store {
     this.selectedIdx = -1;
   }
   public buildData(count = 1000) {
-    var data = [];
-    for (var i = 0; i < count; i++)
+    const data = [];
+    for (let i = 0; i < count; i++)
       data.push({
         id: this.id++,
         label: `${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`,
@@ -81,8 +81,8 @@ export class Store {
   }
   public swapRows() {
     if (this.data.length > 998) {
-      var temp = this.data[1];
-      var temp2 = this.data[998];
+      const temp = this.data[1];
+      const temp2 = this.data[998];
       this.lifecycle.batch.inline(() => {
         this.data.splice(1, 1, temp2);
         this.data.splice(998, 1, temp);

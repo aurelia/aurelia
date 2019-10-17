@@ -6,7 +6,7 @@ import {
 
 // https://github.com/darkskyapp/string-hash/blob/master/index.js
 function hash(str) {
-  var hash = 5381,
+  let hash = 5381,
     i = str.length;
 
   while(i) {
@@ -42,7 +42,7 @@ function inflateBenches(lib) {
   };
 
   Object.keys(lib.factors).forEach(type => {
-    var obj = {};
+    const obj = {};
     lib.bench[type].map(b => obj[b[0]] = decodeBench(b));
     lib.bench[type] = obj;
   });
@@ -108,7 +108,7 @@ const colorSteps = [
 function colorClass(factor) {
   const last = colorSteps.length - 1;
 
-  for (var i = 0; i < colorSteps.length; i++) {
+  for (let i = 0; i < colorSteps.length; i++) {
     if (i == last || factor < colorSteps[i+1])
       break;
   }
@@ -143,9 +143,9 @@ function eachEnabledBench(lib, cb) {
 }
 
 function anyEnabled(what, type) {
-  var all = STORE.enabled[what][type];
+  const all = STORE.enabled[what][type];
 
-  for (var name in all) {
+  for (const name in all) {
     if (all[name])
       return true;
   }
@@ -158,7 +158,7 @@ function clampMin(val, min) {
 }
 
 function setFactors() {
-  var mins = {
+  const mins = {
     keyed: benchStruct(1e10),
     unkeyed: benchStruct(1e10),
   };
@@ -166,7 +166,7 @@ function setFactors() {
   // calc minimums
   eachEnabledLib((implType, lib) => {
     eachEnabledBench(lib, (benchType, res) => {
-      var typeMins = mins[implType][benchType];
+      const typeMins = mins[implType][benchType];
       typeMins[res.name] = clampMin(Math.min(typeMins[res.name], res[STORE.metric]), STORE.clamp[benchType]);
     });
   });
@@ -174,17 +174,17 @@ function setFactors() {
   // set factors
   eachEnabledLib((implType, lib) => {
     eachEnabledBench(lib, (benchType, res) => {
-      var typeMins = mins[implType][benchType];
+      const typeMins = mins[implType][benchType];
       res.factor = clampMin(res[STORE.metric], STORE.clamp[benchType]) / typeMins[res.name];
     });
   });
 
   eachEnabledLib((implType, lib) => {
-    for (var benchType in lib.bench) {
+    for (const benchType in lib.bench) {
       lib.factors[benchType] = 0;
 
-      var i = 0;
-      for (var num in lib.bench[benchType]) {
+      let i = 0;
+      for (const num in lib.bench[benchType]) {
         if (benchEnabled(benchType, num)) {
           i++;
           lib.factors[benchType] += lib.bench[benchType][num].factor;
@@ -200,12 +200,12 @@ function sortBy(metric, sortDir) {
   STORE.sortDir = sortDir;
   STORE.sortBy = metric;
 
-  var typeNum = metric.split(".");
+  const typeNum = metric.split(".");
 
   // cpu, memory, startup
-  var benchType = typeNum[0];
-  var num = typeNum[1];
-  var cmp;
+  const benchType = typeNum[0];
+  const num = typeNum[1];
+  let cmp;
 
   if (benchType == "name")
     cmp = (a, b) => STORE.sortDir * a.name.localeCompare(b.name);
@@ -213,7 +213,7 @@ function sortBy(metric, sortDir) {
     cmp = (a, b) => STORE.sortDir * (a.factors[benchType] - b.factors[benchType]);
   else {
     cmp = (a, b) => {
-      var aVals = a.bench[benchType][num],
+      const aVals = a.bench[benchType][num],
         bVals = b.bench[benchType][num];
 
       return STORE.sortDir * (
@@ -242,7 +242,7 @@ function render(implType, benchType, aggr) {
   if (!anyEnabled("benchmarks", benchType))
     return null;
 
-  var enabledFrameworks = STORE.results[implType].filter(lib => frameworkEnabled(implType, lib.name)),
+  const enabledFrameworks = STORE.results[implType].filter(lib => frameworkEnabled(implType, lib.name)),
     enabledBenches = Object.keys(benchStruct()[benchType]).filter(num => benchEnabled(benchType, num));
 
   return el("table", [
@@ -261,7 +261,7 @@ function render(implType, benchType, aggr) {
           el("a", {href: "#", onclick: [sortBy, `${benchType}.${num}`, nextSortDir(`${benchType}.${num}`)]}, benchDescr[num]),
         ]),
         enabledFrameworks.map(lib => {
-          var bench = lib.bench[benchType][num];
+          const bench = lib.bench[benchType][num];
 
           if (bench == null)
             return el("td");
@@ -288,7 +288,7 @@ function render(implType, benchType, aggr) {
 
 // TODO?: DRY
 function toggle(what, type, num) {
-  var isEnabled = STORE.enabled[what][type][num] = !STORE.enabled[what][type][num];
+  const isEnabled = STORE.enabled[what][type][num] = !STORE.enabled[what][type][num];
 
   setFactors();
 
@@ -303,9 +303,9 @@ function toggle(what, type, num) {
 }
 
 function setAll(what, type, val) {
-  var all = STORE.enabled[what][type];
+  const all = STORE.enabled[what][type];
 
-  for (var name in all)
+  for (const name in all)
     all[name] = val;
 
   setFactors();
@@ -317,7 +317,7 @@ function setAll(what, type, val) {
 }
 
 function selectorTpl(what, fmtName) {
-  var struct = STORE.enabled[what];
+  const struct = STORE.enabled[what];
 
   return el("div", {id: what}, Object.keys(struct).map(type => [
     el("div", {class: "group"}, [

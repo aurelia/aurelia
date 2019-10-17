@@ -32,7 +32,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   if (depth === undefined) {
     depth = 0;
   }
-  if (typeof expected !== 'object' || expected === null || expected === undefined) {
+  if (typeof expected !== 'object' || expected === null) {
     assert.strictEqual(actual, expected, `actual, depth=${depth}, prop=${property}, index=${index}`);
     return;
   }

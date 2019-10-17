@@ -34,7 +34,9 @@ import {
   HTMLAttributeInstruction,
   HTMLInstructionRow,
   SetAttributeInstruction,
-  TextBindingInstruction
+  TextBindingInstruction,
+  SetClassAttributeInstruction,
+  SetStyleAttributeInstruction,
 } from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
@@ -123,18 +125,17 @@ export class TemplateCompiler implements ITemplateCompiler {
     const customAttributeLength = customAttributes.length;
     const plainAttributeLength = plainAttributes.length;
     if (customAttributeLength + plainAttributeLength > 0) {
-      let surrogates: ITargetedInstruction[];
       if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
         definition.surrogates = Array(customAttributeLength + plainAttributeLength);
       }
-      surrogates = definition.surrogates;
+      const surrogates: ITargetedInstruction[] = definition.surrogates;
       let offset = 0;
       for (let i = 0; customAttributeLength > i; ++i) {
-        surrogates[offset] = this.compileCustomAttribute(customAttributes[i] as CustomAttributeSymbol);
+        surrogates[offset] = this.compileCustomAttribute(customAttributes[i]);
         offset++;
       }
       for (let i = 0; i < plainAttributeLength; ++i) {
-        surrogates[offset] = this.compilePlainAttribute(plainAttributes[i] as PlainAttributeSymbol);
+        surrogates[offset] = this.compilePlainAttribute(plainAttributes[i], true);
         offset++;
       }
     }
@@ -286,11 +287,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       const plainAttributesLength = plainAttributes.length;
       attributeInstructions = Array(offset + customAttributeLength + plainAttributesLength);
       for (let i = 0; customAttributeLength > i; ++i) {
-        attributeInstructions[offset] = this.compileCustomAttribute(customAttributes[i] as CustomAttributeSymbol);
+        attributeInstructions[offset] = this.compileCustomAttribute(customAttributes[i]);
         offset++;
       }
       for (let i = 0; plainAttributesLength > i; ++i) {
-        attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i] as PlainAttributeSymbol);
+        attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i], false);
         offset++;
       }
     } else if (offset > 0) {
@@ -307,14 +308,28 @@ export class TemplateCompiler implements ITemplateCompiler {
     return new HydrateAttributeInstruction(symbol.res, bindings);
   }
 
-  private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
+  private compilePlainAttribute(symbol: PlainAttributeSymbol, isOnSurrogate: boolean): HTMLAttributeInstruction {
     if (symbol.command === null) {
+      const syntax = symbol.syntax;
+
       if (symbol.expression === null) {
+        const attrRawValue = syntax.rawValue;
+
+        if (isOnSurrogate) {
+          switch (syntax.target) {
+            case 'class':
+              return new SetClassAttributeInstruction(attrRawValue);
+            case 'style':
+              return new SetStyleAttributeInstruction(attrRawValue);
+            // todo:  define how to merge other attribute peacefully
+            //        this is an existing feature request
+          }
+        }
         // a plain attribute on a surrogate
-        return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
+        return new SetAttributeInstruction(attrRawValue, syntax.target);
       } else {
         // a plain attribute with an interpolation
-        return new InterpolationInstruction(symbol.expression as IInterpolationExpression, symbol.syntax.target);
+        return new InterpolationInstruction(symbol.expression as IInterpolationExpression, syntax.target);
       }
     } else {
       // a plain attribute with a binding command

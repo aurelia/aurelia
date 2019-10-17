@@ -11,8 +11,8 @@ export default class ValueConverterGenerator {
       'What would you like to call the value converter?'
     );
 
-    let fileName = this.project.makeFileName(name);
-    let className = this.project.makeClassName(name);
+    const fileName = this.project.makeFileName(name);
+    const className = this.project.makeClassName(name);
 
     this.project.valueConverters.add(
       ProjectItem.text(`${fileName}.ts`, this.generateSource(className))

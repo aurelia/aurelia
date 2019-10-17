@@ -11,8 +11,8 @@ export default class AttributeGenerator {
       'What would you like to call the custom attribute?'
     );
 
-    let fileName = this.project.makeFileName(name);
-    let className = this.project.makeClassName(name);
+    const fileName = this.project.makeFileName(name);
+    const className = this.project.makeClassName(name);
 
     this.project.attributes.add(
       ProjectItem.text(`${fileName}.ts`, this.generateSource(className))

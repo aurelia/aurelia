@@ -1,5 +1,4 @@
 import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
-import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
@@ -10,8 +9,9 @@ import {
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ITemplate } from '../rendering-engine';
-import { CustomElement } from '../resources/custom-element';
+import { CustomElement, PartialCustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
+import { PartialCustomElementDefinitionParts } from '../definitions';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -22,7 +22,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public isCaching: boolean;
   public name: string;
-  public parts: TemplatePartDefinitions;
+  public parts: PartialCustomElementDefinitionParts;
 
   private cache: IController<T>[];
   private cacheSize: number;
@@ -94,7 +94,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return controller;
   }
 
-  public addParts(parts: Record<string, ITemplateDefinition>): void {
+  public addParts(parts: PartialCustomElementDefinitionParts): void {
     if (this.parts === PLATFORM.emptyObject) {
       this.parts = { ...parts };
     } else {
@@ -104,10 +104,10 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 }
 
 type HasAssociatedViews = {
-  $views: ITemplateDefinition[];
+  $views: PartialCustomElementDefinition[];
 };
 
-export function view(v: ITemplateDefinition) {
+export function view(v: PartialCustomElementDefinition) {
   return function<T extends Constructable>(target: T & Partial<HasAssociatedViews>) {
     const views = target.$views || (target.$views = []);
     views.push(v);
@@ -134,7 +134,7 @@ export type ClassInstance<T> = T & {
 };
 
 export type ComposableObject = Omit<IViewModel, '$controller'>;
-export type ViewSelector = (object: ComposableObject, views: ITemplateDefinition[]) => string;
+export type ViewSelector = (object: ComposableObject, views: PartialCustomElementDefinition[]) => string;
 export type ComposableObjectComponentType<T extends ComposableObject>
   = ConstructableClass<{ viewModel: T } & ComposableObject>;
 
@@ -182,7 +182,7 @@ export class ViewLocator implements IViewLocator {
 
   private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
-    availableViews: ITemplateDefinition[],
+    availableViews: PartialCustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
     let lookup = this.modelInstanceToBoundComponent.get(object);
@@ -216,7 +216,7 @@ export class ViewLocator implements IViewLocator {
 
   private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
-    availableViews: ITemplateDefinition[],
+    availableViews: PartialCustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
     let lookup = this.modelTypeToUnboundComponent.get(object.constructor);
@@ -267,7 +267,7 @@ export class ViewLocator implements IViewLocator {
     return UnboundComponent;
   }
 
-  private getViewName(views: ITemplateDefinition[], requestedName?: string) {
+  private getViewName(views: PartialCustomElementDefinition[], requestedName?: string) {
     if (requestedName) {
       return requestedName;
     }
@@ -279,7 +279,7 @@ export class ViewLocator implements IViewLocator {
     return 'default-view';
   }
 
-  private getView(views: ITemplateDefinition[], name: string): ITemplateDefinition {
+  private getView(views: PartialCustomElementDefinition[], name: string): PartialCustomElementDefinition {
     const v = views.find(x => x.name === name);
 
     if (v === void 0) {

@@ -11,8 +11,8 @@ export default class TaskGenerator {
       'What would you like to call the task?'
     );
 
-    let fileName = this.project.makeFileName(name);
-    let functionName = this.project.makeFunctionName(name);
+    const fileName = this.project.makeFileName(name);
+    const functionName = this.project.makeFunctionName(name);
 
     this.project.tasks.add(
       ProjectItem.text(`${fileName}.ts`, this.generateSource(functionName))

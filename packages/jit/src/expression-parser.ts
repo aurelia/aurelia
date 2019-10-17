@@ -743,7 +743,7 @@ function parseTemplate(state: ParserState, access: Access, bindingType: BindingT
 function nextToken(state: ParserState): void {
   while (state.index < state.length) {
     state.startIndex = state.index;
-    if (((state.currentToken = (CharScanners[state.currentChar](state)) as Token)) != null) { // a null token means the character must be skipped
+    if ((state.currentToken = (CharScanners[state.currentChar](state)) as Token) != null) { // a null token means the character must be skipped
       return;
     }
   }

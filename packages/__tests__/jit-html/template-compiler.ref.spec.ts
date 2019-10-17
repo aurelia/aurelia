@@ -8,7 +8,7 @@ import {
   CustomAttribute,
   CustomElement,
   CustomElementHost,
-  INode
+  INode,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -327,6 +327,90 @@ describe('templating-compiler.ref.spec.ts', function() {
         ] as IRefIntegrationTestCase[];
       })
       .reduce((arr, cases) => arr.concat(cases), []),
+    // #region ref-binding order
+    {
+      title: 'works regardless of declaration order',
+      template: '<input value.to-view="div.toString()"><div ref="div"></div>',
+      assertFn: (ctx, host) => {
+        assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    {
+      title: 'works regardless of declaration order, and template controller in path',
+      template: '<input value.to-view="div.toString()"><div if.bind="true" ref="div"></div>',
+      assertFn: (ctx, host) => {
+        assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    {
+      title: 'works regardless of declaration order, and template controller in path with delayed rendering',
+      template: '<input value.to-view="div.toString()"><div if.bind="renderDiv" ref="div"></div>',
+      assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
+        assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
+        comp.renderDiv = true;
+        ctx.lifecycle.processRAFQueue(0);
+        assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
+      }
+    },
+    {
+      title: 'works with setter',
+      root: class App {
+        public divSetterCount: number = 0;
+        public divGetterCount: number = 0;
+        public _div: HTMLDivElement;
+        public set div(val: HTMLDivElement) {
+          this.divSetterCount++;
+          this._div = val;
+        }
+        public get div(): HTMLDivElement {
+          this.divGetterCount++;
+          return this._div;
+        }
+      },
+      template: '<div repeat.for="i of 10" ref=div></div>',
+      assertFn: (ctx, host, comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }) => {
+        assert.strictEqual(comp.divGetterCount, 0, 'shoulda called getter 0 times');
+        assert.strictEqual(comp.divSetterCount, 10, 'shoulda called setter 10 times');
+      },
+      assertFnAfterDestroy: (
+        ctx,
+        host,
+        comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }
+      ) => {
+        assert.strictEqual(comp.divGetterCount, 10, 'shoulda called getter 10 times');
+        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
+      }
+    },
+    {
+      title: 'works with setter and @bindable',
+      root: class App {
+
+        public static bindables: string[] = ['div'];
+
+        public divSetterCount: number = 0;
+        public div: HTMLDivElement;
+
+        public divChanged(): void {
+          this.divSetterCount++;
+        }
+      },
+      template: '<div if.bind="shouldRenderRepeat"><div repeat.for="i of 10" ref=div></div></div>',
+      assertFn: (ctx, host, comp: { div: HTMLDivElement; shouldRenderRepeat: boolean; divSetterCount: number }) => {
+        assert.strictEqual(comp.divSetterCount, 0, 'shoulda called setter 0 times');
+        comp.shouldRenderRepeat = true;
+        assert.strictEqual(comp.divSetterCount, 10, 'shoulda called setter 10 times');
+      },
+      assertFnAfterDestroy: (
+        ctx,
+        host,
+        comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }
+      ) => {
+        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
+      }
+    },
+    // #endregion ref-binding order
+
+    // #region wrong usage
     // bellow are non-happy-path scenarios
     // just to complete the assertion
     ...[
@@ -354,6 +438,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       template: `<div repeat.for="i of 1" repeat.ref=hello>`,
       assertFn: PLATFORM.noop
     },
+    // #endregion wrong usage
   ];
 
   for (const testCase of testCases) {

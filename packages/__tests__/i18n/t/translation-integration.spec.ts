@@ -1340,13 +1340,13 @@ describe('translation-integration', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
       it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
-        let App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; });
+        const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', `${value}`);
       });
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
-        let App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; });
+        const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', `${value || ''}`);

@@ -156,6 +156,8 @@ module.exports = {
     'no-useless-catch': 'error',
     'no-useless-escape': 'error',
     'no-trailing-spaces': 'error',
+    'no-var': 'error',
+    'prefer-const': 'error',
     'prefer-object-spread': 'error',
     'prefer-regex-literals': 'error',
     'prefer-rest-params': 'error',
@@ -210,8 +212,6 @@ module.exports = {
     'no-inner-declarations': 'warn',
     'no-shadow': 'warn',
     'no-undef': 'warn',
-    'no-var': 'warn',
-    'prefer-const': 'warn',
     'require-atomic-updates': 'warn',
 
     // Off for now as they create way to much noise

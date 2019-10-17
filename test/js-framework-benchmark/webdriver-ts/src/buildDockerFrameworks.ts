@@ -2,18 +2,18 @@ import * as path from 'path';
 import * as semver from 'semver';
 import * as yargs from 'yargs';
 const ncu = require('npm-check-updates');
-var exec = require('child_process').execSync;
+const exec = require('child_process').execSync;
 
 function prepareDockerVolume() {
   // Check if docker volume js-framework-benchmark exists and create it if not
   try {
-    let r: string[] = [];
+    const r: string[] = [];
     exec('docker volume inspect js-framework-benchmark', {
       stdio: r
     });
     console.log("docker volume js-framework-benchmark exists already");
   } catch (e) {
-    let r: string[] = [];
+    const r: string[] = [];
     if (e.message.indexOf("No such volume: js-framework-benchmark")>-1) {
       console.log("Volume not found. Creating volume: docker volume create js-framework-benchmark");
       exec('docker volume create js-framework-benchmark', {
@@ -27,7 +27,7 @@ function prepareDockerVolume() {
 
 function clearDockerVolume() {
   try {
-    let r: string[] = [];
+    const r: string[] = [];
     exec('docker volume inspect js-framework-benchmark', {
       stdio: r
     });
@@ -36,7 +36,7 @@ function clearDockerVolume() {
     return;
   }
   console.log("Remove docker volume js-framework-benchmark");
-  let r: string[] = [];
+  const r: string[] = [];
   exec('docker volume rm js-framework-benchmark', {
     stdio: r
   });
@@ -44,13 +44,13 @@ function clearDockerVolume() {
 
 function stopContainerIfRunnning() {
   console.log("checking if js-framework-benchmark container runs.");
-  let r: string[] = [];
-  let res = exec('docker ps', {
+  const r: string[] = [];
+  const res = exec('docker ps', {
     stdio: r
   });
   if (res.indexOf('js-framework-benchmark')>-1) {
     console.log("js-framework-benchmark container runs. Stopping this container.");
-    let res = exec('docker stop js-framework-benchmark', {
+    const res = exec('docker stop js-framework-benchmark', {
       stdio: r
     });
   }

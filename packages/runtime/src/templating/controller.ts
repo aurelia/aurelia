@@ -39,7 +39,7 @@ import {
   IViewCache,
   IViewModel,
   ViewModelKind,
-  IControllerHoldOptions
+  IControllerHoldParentOptions
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -103,8 +103,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   caching(flags: LifecycleFlags): void;
 }>;
 
-const defaultControllerHoldOptions: IControllerHoldOptions = {
-  isContainer: false,
+const defaultControllerHoldOptions: IControllerHoldParentOptions = {
   strategy: 'append'
 };
 
@@ -402,12 +401,18 @@ export class Controller<
     this.state |= State.hasLockedScope;
   }
 
-  public hold(location: IRenderLocation<T>, holdOptions?: IControllerHoldOptions): void {
+  public holdParent(location: IRenderLocation<T>, holdOptions?: IControllerHoldParentOptions): void {
     holdOptions = holdOptions || defaultControllerHoldOptions;
     this.state = (this.state | State.canBeCached) ^ State.canBeCached;
     this.location = location;
-    this.locationIsContainer = !!holdOptions.isContainer;
+    this.locationIsContainer = true;
     this.locationContentStrategy = holdOptions.strategy || 'append';
+  }
+
+  public hold(location: IRenderLocation<T>): void {
+    this.state = (this.state | State.canBeCached) ^ State.canBeCached;
+    this.location = location;
+    this.locationIsContainer = false;
   }
 
   public release(flags: LifecycleFlags): boolean {

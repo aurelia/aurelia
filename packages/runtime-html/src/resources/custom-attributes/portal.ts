@@ -5,7 +5,7 @@ import {
   bindable,
   ContinuationTask,
   IController,
-  IControllerHoldOptions,
+  IControllerHoldParentOptions,
   IDOM,
   ILifecycleTask,
   IRenderLocation,
@@ -37,8 +37,7 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
   return maybePromiseOrTask as ILifecycleTask;
 }
 
-const defaultPortalLocationHoldOptions: IControllerHoldOptions = {
-  isContainer: true,
+const defaultPortalLocationHoldOptions: IControllerHoldParentOptions = {
   strategy: 'append'
 };
 
@@ -152,7 +151,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     } = this;
     let task = this.task;
 
-    view.hold(target, defaultPortalLocationHoldOptions);
+    view.holdParent(target, defaultPortalLocationHoldOptions);
 
     if ((this.$controller.state & State.isAttachedOrAttaching) === 0) {
       return task;

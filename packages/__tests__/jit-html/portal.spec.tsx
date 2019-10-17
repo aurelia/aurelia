@@ -312,8 +312,8 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     title: string | (() => string);
     rootVm: Constructable<K>;
     deps?: any[];
-    assertionFn(ctx: HTMLTestContext, host: HTMLElement, component: K): targetChanged | Promise<targetChanged>;
-    postTeardownAssertionFn?(ctx: HTMLTestContext, host: HTMLElement, component: K): targetChanged | Promise<targetChanged>;
+    assertionFn(ctx: HTMLTestContext, host: HTMLElement, component: K): void | Promise<void>;
+    postTeardownAssertionFn?(ctx: HTMLTestContext, host: HTMLElement, component: K): void | Promise<void>;
   }
 
   interface IPortalTestRootVm {
@@ -344,7 +344,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     };
   }
 
-  const waitForFrames = async (frameCount: number): Promise<targetChanged> => {
+  const waitForFrames = async (frameCount: number): Promise<void> => {
     while (frameCount-- > 0) {
       await new Promise(PLATFORM.requestAnimationFrame);
     }

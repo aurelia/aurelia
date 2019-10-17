@@ -6,7 +6,6 @@ import {
   Protocol,
 } from '@aurelia/kernel';
 import {
-  BindableSource,
   firstDefined,
 } from '../definitions';
 import {
@@ -26,7 +25,7 @@ export type PartialBindableDefinition = {
  *
  * @param config - The overrides
  */
-export function bindable(config?: BindableSource): (target: {}, prop: symbol | string) => PropertyDecorator | ClassDecorator;
+export function bindable(config?: PartialBindableDefinition): (target: {}, prop: symbol | string) => PropertyDecorator | ClassDecorator;
 /**
  * Decorator: Specifies a bindable property on a class.
  *
@@ -40,7 +39,7 @@ export function bindable(prop: string): ClassDecorator;
  * @param prop - The property name
  */
 export function bindable(target: {}, prop: string): void;
-export function bindable(configOrTarget?: BindableSource | {}, prop?: string): void | PropertyDecorator | ClassDecorator {
+export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?: string): void | PropertyDecorator | ClassDecorator {
   let config: PartialBindableDefinition;
 
   function decorator($target: {}, $prop: symbol | string): void {

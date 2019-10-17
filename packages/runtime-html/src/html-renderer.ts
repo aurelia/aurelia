@@ -96,7 +96,7 @@ export class SetClassAttributeRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
-    target.classList.add(...instruction.classList);
+    target.classList.add(...toClassList(instruction.value));
   }
 }
 
@@ -157,4 +157,12 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
     );
     addBinding(renderable, binding);
   }
+}
+
+const cachedMapping: Record<string, string[]> = {};
+function toClassList(className: string): string[] {
+  if (cachedMapping[className] === undefined) {
+    cachedMapping[className] = className.split(' ').filter(Boolean);
+  }
+  return cachedMapping[className];
 }

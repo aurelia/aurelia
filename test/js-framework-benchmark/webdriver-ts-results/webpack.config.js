@@ -1,9 +1,7 @@
 'use strict';
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const path = require('path');
-const webpack = require('webpack');
 
 const cache = {};
 const loaders = [
@@ -69,7 +67,6 @@ module.exports = [{
     }
   },
   plugins: [
-    // new BundleAnalyzerPlugin(),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'index.html'),
       filename: 'table.html',

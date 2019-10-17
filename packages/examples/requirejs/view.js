@@ -112,7 +112,7 @@ define("view", [], function() {
   function createTemplateDescription(template) {
     var imports = [];
     var cleanedTemplate = template.replace(
-      /^@import\s+\'([a-zA-z\/.\-_!%&\?=0-9]*)\'\s*;/gm,
+      /^@import\s+\'([a-zA-Z\/.\-_!%&\?=0-9]*)\'\s*;/gm,
       function(match, url) {
         imports.push(parseImport(url));
         return "";

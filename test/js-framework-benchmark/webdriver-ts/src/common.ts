@@ -186,8 +186,7 @@ export function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate 
     for (const directory of directories) {
       const pathInFrameworksDir = path.join(keyedType, directory);
       if (matchPredicate(pathInFrameworksDir)) {
-        const fi = loadFrameworkInfo(pathInFrameworksDir);
-        if (fi!=null) results.push(fi);
+        results.push(loadFrameworkInfo(pathInFrameworksDir));
       }
     }
   });

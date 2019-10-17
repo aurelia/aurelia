@@ -42,7 +42,6 @@ export const hJsx = function (name, attrs, ...children) {
     const el = DOM.createElement(name === 'let$' ? 'let' : name);
     if (attrs != null) {
         let value;
-        let len;
         for (const attr in attrs) {
             value = attrs[attr];
             // if attr is class or its alias
@@ -82,7 +81,6 @@ export const hJsx = function (name, attrs, ...children) {
                     }
                 }
                 else {
-                    const len = attr.length;
                     const parts = attr.split('$');
                     if (parts.length === 1) {
                         el.setAttribute(kebabCase(attr), value);

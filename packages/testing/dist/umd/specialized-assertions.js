@@ -41,7 +41,7 @@
         if (depth === undefined) {
             depth = 0;
         }
-        if (typeof expected !== 'object' || expected === null || expected === undefined) {
+        if (typeof expected !== 'object' || expected === null) {
             assert_1.assert.strictEqual(actual, expected, `actual, depth=${depth}, prop=${property}, index=${index}`);
             return;
         }

@@ -676,7 +676,7 @@
     function nextToken(state) {
         while (state.index < state.length) {
             state.startIndex = state.index;
-            if (((state.currentToken = (CharScanners[state.currentChar](state)))) != null) { // a null token means the character must be skipped
+            if ((state.currentToken = (CharScanners[state.currentChar](state))) != null) { // a null token means the character must be skipped
                 return;
             }
         }

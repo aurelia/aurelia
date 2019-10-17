@@ -54,7 +54,6 @@
         const el = runtime_html_1.DOM.createElement(name === 'let$' ? 'let' : name);
         if (attrs != null) {
             let value;
-            let len;
             for (const attr in attrs) {
                 value = attrs[attr];
                 // if attr is class or its alias
@@ -94,7 +93,6 @@
                         }
                     }
                     else {
-                        const len = attr.length;
                         const parts = attr.split('$');
                         if (parts.length === 1) {
                             el.setAttribute(kernel_1.kebabCase(attr), value);

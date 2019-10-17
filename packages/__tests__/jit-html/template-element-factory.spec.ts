@@ -6,6 +6,7 @@ describe('HTMLTemplateElementFactory', function () {
   let sut: ITemplateElementFactory<HTMLElement>;
   let ctx: HTMLTestContext;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     ctx.container.register(ITemplateElementFactoryRegistration);

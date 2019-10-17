@@ -31,12 +31,12 @@
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^10.14.13",
-    "@types/selenium-webdriver": "^4.0.3",
-    "aurelia-cli": "^1.2.0",
+    "@types/selenium-webdriver": "^4.0.5",
+    "aurelia-cli": "^1.2.1",
     "browserify": "^16.5.0",
     "chai": "^4.2.0",
     "chromedriver": "^76.0.1",
-    "cross-env": "^6.0.2",
+    "cross-env": "^6.0.3",
     "esm": "^3.2.25",
     "event-stream": "4.0.1",
     "gulp": "^4.0.2",
@@ -55,7 +55,7 @@
     "ts-node": "^8.4.1",
     "tsconfig-paths": "^3.9.0",
     "tsify": "^4.0.1",
-    "typescript": "^3.6.3",
+    "typescript": "^3.6.4",
     "vinyl-source-stream": "^2.0.0"
   }
 }

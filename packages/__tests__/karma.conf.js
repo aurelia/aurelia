@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 
 const basePath = path.resolve(__dirname);
 
@@ -104,6 +103,10 @@ module.exports = function (config) {
               },
             ],
           },
+          {
+            test: /\.html$/i,
+            loader: 'html-loader'
+          }
         ]
       }
     },

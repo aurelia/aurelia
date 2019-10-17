@@ -6,7 +6,9 @@ import {
   ListenerBindingRenderer,
   SetAttributeRenderer,
   StylePropertyBindingRenderer,
-  TextBindingRenderer
+  TextBindingRenderer,
+  SetClassAttributeRenderer,
+  SetStyleAttributeRenderer
 } from './html-renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
@@ -60,6 +62,8 @@ export const DefaultResources = [
 export const ListenerBindingRendererRegistration = ListenerBindingRenderer as IRegistry;
 export const AttributeBindingRendererRegistration = AttributeBindingRenderer as IRegistry;
 export const SetAttributeRendererRegistration = SetAttributeRenderer as IRegistry;
+export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as IRegistry;
+export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as IRegistry;
 export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as IRegistry;
 export const TextBindingRendererRegistration = TextBindingRenderer as IRegistry;
 
@@ -74,6 +78,8 @@ export const DefaultRenderers = [
   ListenerBindingRendererRegistration,
   AttributeBindingRendererRegistration,
   SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration
 ];

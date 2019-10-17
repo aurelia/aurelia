@@ -6,6 +6,10 @@ import { subscriberCollection } from './subscriber-collection';
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
+/**
+ * Observer for the mutation of object property value employing getter-setter strategy.
+ * This is used for observing object properties that has no decorator.
+ */
 @subscriberCollection()
 export class SetterObserver {
   public readonly lifecycle: ILifecycle;
@@ -47,9 +51,7 @@ export class SetterObserver {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
-        if ((flags & LifecycleFlags.fromBind) === 0) {
-          this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        }
+        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
       } else if (!this.inBatch) {
         this.inBatch = true;
         this.oldValue = currentValue;

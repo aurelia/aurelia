@@ -116,6 +116,7 @@ describe('dom', function () {
     Object.assign(ctx.doc, DocumentBackup);
   }
 
+  // eslint-disable-next-line mocha/no-hooks
   before(function () {
     Object.assign(DOMBackup, ctx.dom);
     for (const propName in ctx.doc) {
@@ -126,6 +127,7 @@ describe('dom', function () {
     }
   });
 
+  // eslint-disable-next-line mocha/no-hooks
   afterEach(function () {
     restoreBackups();
   });

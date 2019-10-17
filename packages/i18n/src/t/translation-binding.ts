@@ -22,7 +22,7 @@ import {
   State
 } from '@aurelia/runtime';
 import i18next from 'i18next';
-import { I18N, I18nService } from '../i18n';
+import { I18N } from '../i18n';
 import { Signals } from '../utils';
 
 interface TranslationBindingCreationContext {
@@ -51,7 +51,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public $state: State;
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
-  private readonly i18n: I18nService;
+  private readonly i18n: I18N;
   private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression!: string;
   private translationParameters!: i18next.TOptions;

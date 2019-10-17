@@ -15,6 +15,9 @@ export interface ValueAttributeObserver
 
 // TODO: handle file attribute properly again, etc
 
+/**
+ * Observer for non-radio, non-checkbox input.
+ */
 @subscriberCollection()
 export class ValueAttributeObserver implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;

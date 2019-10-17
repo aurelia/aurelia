@@ -46,10 +46,7 @@ var MemoryStats = function (){
 
 	var perf = window.performance || {};
 	// polyfill usedJSHeapSize
-	if (!perf && !perf.memory){
-		perf.memory = { usedJSHeapSize : 0 };
-	}
-	if (perf && !perf.memory){
+	if (!perf.memory){
 		perf.memory = { usedJSHeapSize : 0 };
 	}
 

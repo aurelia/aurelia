@@ -455,7 +455,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
-    let evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
     }

@@ -85,10 +85,6 @@ export class Portal<T extends ParentNode = ParentNode> {
     @IDOM private readonly dom: HTMLDOM,
   ) {
     this.id = nextId('au$component');
-
-    this.factory = factory;
-    this.originalLoc = originalLoc;
-    this.dom = dom;
     // to make the shape of this object consistent.
     // todo: is this necessary
     this.currentTarget = dom.createElement('div');

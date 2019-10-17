@@ -344,12 +344,6 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     };
   }
 
-  const waitForFrames = async (frameCount: number): Promise<void> => {
-    while (frameCount-- > 0) {
-      await new Promise(PLATFORM.requestAnimationFrame);
-    }
-  };
-
   const childrenQuerySelector = (node: HTMLElement, selector: string): HTMLElement => {
     return Array
       .from(node.children)

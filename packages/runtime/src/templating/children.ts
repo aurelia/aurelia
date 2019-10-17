@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Constructable, Protocol, Metadata } from '@aurelia/kernel';
-import { ChildrenObserverSource, firstDefined } from '../definitions';
+import { firstDefined } from '../definitions';
 import { INode } from '../dom';
 import { IController, IViewModel } from '../lifecycle';
 import { IElementProjector } from '../resources/custom-element';
 
-export type PartialChildrenObserverDefinition<TNode extends INode = INode> = {
+export type PartialChildrenDefinition<TNode extends INode = INode> = {
   callback?: string;
   property?: string;
   options?: MutationObserverInit;
@@ -19,7 +19,7 @@ export type PartialChildrenObserverDefinition<TNode extends INode = INode> = {
  *
  * @param config - The overrides
  */
-export function children(config?: ChildrenObserverSource): PropertyDecorator | ClassDecorator;
+export function children(config?: PartialChildrenDefinition): PropertyDecorator | ClassDecorator;
 /**
  * Decorator: Specifies an array property on a class that synchronizes its items with child content nodes of the element.
  *
@@ -33,8 +33,8 @@ export function children(prop: string): ClassDecorator;
  * @param prop - The property name
  */
 export function children(target: {}, prop: string): void;
-export function children(configOrTarget?: ChildrenObserverSource | {}, prop?: string): void | PropertyDecorator | ClassDecorator {
-  let config: PartialChildrenObserverDefinition;
+export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?: string): void | PropertyDecorator | ClassDecorator {
+  let config: PartialChildrenDefinition;
 
   function decorator($target: {}, $prop: symbol | string): void {
     if (arguments.length > 1) {
@@ -46,8 +46,8 @@ export function children(configOrTarget?: ChildrenObserverSource | {}, prop?: st
       config.property = $prop as string;
     }
 
-    Metadata.define(ChildrenObserver.name, ChildrenObserverDefinition.create($prop as string, config), $target, $prop);
-    Protocol.annotation.appendTo($target.constructor as Constructable, ChildrenObserver.keyFrom($prop as string));
+    Metadata.define(Children.name, ChildrenDefinition.create($prop as string, config), $target, $prop);
+    Protocol.annotation.appendTo($target.constructor as Constructable, Children.keyFrom($prop as string));
   }
 
   if (arguments.length > 1) {
@@ -73,32 +73,32 @@ export function children(configOrTarget?: ChildrenObserverSource | {}, prop?: st
 }
 
 function isChildrenObserverAnnotation(key: string): boolean {
-  return key.startsWith(ChildrenObserver.name);
+  return key.startsWith(Children.name);
 }
 
-export const ChildrenObserver = {
+export const Children = {
   name: Protocol.annotation.keyFor('children-observer'),
   keyFrom(name: string): string {
-    return `${ChildrenObserver.name}:${name}`;
+    return `${Children.name}:${name}`;
   },
-  from(...childrenObserverLists: readonly (ChildrenObserverDefinition | Record<string, PartialChildrenObserverDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenObserverDefinition> {
-    const childrenObservers: Record<string, ChildrenObserverDefinition> = {};
+  from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition> {
+    const childrenObservers: Record<string, ChildrenDefinition> = {};
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
-      childrenObservers[name] = ChildrenObserverDefinition.create(name);
+      childrenObservers[name] = ChildrenDefinition.create(name);
     }
 
-    function addDescription(name: string, def: PartialChildrenObserverDefinition): void {
-      childrenObservers[name] = ChildrenObserverDefinition.create(name, def);
+    function addDescription(name: string, def: PartialChildrenDefinition): void {
+      childrenObservers[name] = ChildrenDefinition.create(name, def);
     }
 
-    function addList(maybeList: ChildrenObserverDefinition | Record<string, PartialChildrenObserverDefinition> | readonly string[] | undefined): void {
+    function addList(maybeList: ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined): void {
       if (isArray(maybeList)) {
         maybeList.forEach(addName);
-      } else if (maybeList instanceof ChildrenObserverDefinition) {
+      } else if (maybeList instanceof ChildrenDefinition) {
         Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
       } else if (maybeList !== void 0) {
         Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
@@ -109,19 +109,19 @@ export const ChildrenObserver = {
 
     return childrenObservers;
   },
-  getAll(Type: Constructable): readonly ChildrenObserverDefinition[] {
-    const propStart = ChildrenObserver.name.length + 1;
+  getAll(Type: Constructable): readonly ChildrenDefinition[] {
+    const propStart = Children.name.length + 1;
     const keys = Protocol.annotation.getKeys(Type).filter(isChildrenObserverAnnotation);
     const len = keys.length;
-    const defs: ChildrenObserverDefinition[] = Array(len);
+    const defs: ChildrenDefinition[] = Array(len);
     for (let i = 0; i < len; ++i) {
-      defs[i] = Metadata.getOwn(ChildrenObserver.name, Type, keys[i].slice(propStart));
+      defs[i] = Metadata.getOwn(Children.name, Type, keys[i].slice(propStart));
     }
     return defs;
   },
 };
 
-export class ChildrenObserverDefinition<TNode extends INode = INode> {
+export class ChildrenDefinition<TNode extends INode = INode> {
   private constructor(
     public readonly callback: string,
     public readonly property: string,
@@ -131,8 +131,8 @@ export class ChildrenObserverDefinition<TNode extends INode = INode> {
     public readonly map?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any,
   ) {}
 
-  public static create<TNode extends INode = INode>(prop: string, def: PartialChildrenObserverDefinition<TNode> = {}): ChildrenObserverDefinition<TNode> {
-    return new ChildrenObserverDefinition(
+  public static create<TNode extends INode = INode>(prop: string, def: PartialChildrenDefinition<TNode> = {}): ChildrenDefinition<TNode> {
+    return new ChildrenDefinition(
       firstDefined(def.callback, `${prop}Changed`),
       firstDefined(def.property, prop),
       def.options,

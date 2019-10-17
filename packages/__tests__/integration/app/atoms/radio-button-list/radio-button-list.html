@@ -1,0 +1,5 @@
+  <!-- <label repeat.for="[contact, type] of choices"> --> <!--does not work yet-->
+  <label repeat.for="choice of choices">
+    <input id='input#${$index}' type="radio" name.bind="group" checked.two-way="chosen" model.one-time="choice[0]">
+    ${choice[1]}
+  </label>

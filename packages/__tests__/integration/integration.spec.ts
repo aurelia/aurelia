@@ -1,10 +1,11 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, createSpy, fail } from '@aurelia/testing';
+import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
+import { toArray } from '@aurelia/kernel';
 
-describe('app', function () {
+describe.only('app', function () {
 
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function () {
@@ -91,7 +92,7 @@ describe('app', function () {
   $it('binds interpolated string to read-only-texts', function ({ host, ctx }) {
     const el = host.querySelector('#interpolated-text');
     const vm = getViewModel<App>(host);
-    assert.html.textContent(el, `interpolated: ${vm.text4}${vm.text5}`, `incorrect text`, host);
+    assert.html.textContent(el, `interpolated: ${vm.text4}${vm.text5}`, `incorrect text`);
 
     const text1 = 'hello', text2 = 'world';
 
@@ -323,6 +324,27 @@ describe('app', function () {
       await wait();
       assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
       assert.equal(flushSpy.calls.length, 1);
+    }
+  );
+
+  $it.only('uses a radio-button-list that renders a map as a list of radio buttons',
+    function ({ host }) {
+      const { contacts, chosenContact } = getViewModel<App>(host);
+      const contactsArr = Array.from(contacts);
+      const rbl = host.querySelector('radio-button-list');
+      const labels = toArray(rbl.querySelectorAll('label'));
+      assert.equal(labels.length, contacts.size);
+
+      // assert radio buttons and selection
+      for (let i = 0; i < labels.length; i++) {
+        const [number, type] = contactsArr[i];
+        assert.html.textContent(labels[i], type, `incorrect label for label#${i + 1}`);
+        if (chosenContact === number) {
+          const input = labels[i].querySelector('input');
+          assert.notEqual(input, null);
+          assert.equal(input.checked, true, 'expected radio button to be checked');
+        }
+      }
     }
   );
 });

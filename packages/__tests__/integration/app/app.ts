@@ -27,6 +27,10 @@ export class App {
   ];
 
   public user: User = new User('John', 'Doe', 0.1, "Role1", "Org1", "City1", "Country1");
+  public contacts: Map<number, string> = new Map<number, string>([
+    [123456790, "mobile"], [9087654321, "work"], [1122334455, "home"]
+  ]);
+  public chosenContact: number = 9087654321;
 
   public changeTexts() {
     this.text1 = 'newText1';

@@ -159,13 +159,6 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
   }
 }
 
-const cachedMapping: Record<string, string[]> = {};
-function toClassList(className: string): string[] {
-  if (cachedMapping[className] === undefined) {
-    cachedMapping[className] = className.split(' ').filter(Boolean);
-  }
-  return cachedMapping[className];
-}
 function addClasses(classList: DOMTokenList, className: string): void {
   const len = className.length;
   let start = 0;

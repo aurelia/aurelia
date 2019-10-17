@@ -191,10 +191,11 @@ export {
 export {
   bindingBehavior,
   BindingBehavior,
-  IBindingBehavior,
-  IBindingBehaviorDefinition,
-  IBindingBehaviorResource,
-  IBindingBehaviorType
+  BindingBehaviorDefinition,
+  BindingBehaviorKind,
+  BindingBehaviorDecorator,
+  BindingBehaviorInstance,
+  BindingBehaviorType,
 } from './resources/binding-behavior';
 export {
   BindingModeBehavior,
@@ -221,12 +222,13 @@ export {
 
 export {
   customAttribute,
-  CustomAttributeConstructor,
   CustomAttributeDecorator,
   CustomAttribute,
-  ICustomAttributeResource,
-  ICustomAttributeType,
-  templateController
+  CustomAttributeDefinition,
+  CustomAttributeKind,
+  CustomAttributeType,
+  PartialCustomAttributeDefinition,
+  templateController,
 } from './resources/custom-attribute';
 export {
   FrequentMutations,
@@ -252,21 +254,24 @@ export {
   customElement,
   CustomElementHost,
   CustomElement,
-  ICustomElementDecorator,
-  ICustomElementResource,
-  ICustomElementType,
+  CustomElementDecorator,
+  CustomElementKind,
+  CustomElementType,
+  CustomElementDefinition,
+  PartialCustomElementDefinition,
   IElementProjector,
   IProjectorLocator,
   useShadowDOM
 } from './resources/custom-element';
 
 export {
-  IValueConverter,
-  IValueConverterDefinition,
-  IValueConverterResource,
-  IValueConverterType,
+  ValueConverter,
+  ValueConverterDefinition,
+  ValueConverterKind,
+  ValueConverterDecorator,
+  ValueConverterInstance,
+  ValueConverterType,
   valueConverter,
-  ValueConverter
 } from './resources/value-converter';
 export {
   ISanitizer,
@@ -278,15 +283,15 @@ export {
 
 export {
   bindable,
-  BindableDecorator,
-  WithBindables,
+  PartialBindableDefinition,
+  BindableDefinition,
   Bindable,
 } from './templating/bindable';
 
 export {
-  children,
-  ChildrenDecorator,
-  HasChildrenObservers
+  PartialChildrenDefinition,
+  ChildrenDefinition,
+  Children,
 } from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them
@@ -342,18 +347,9 @@ export {
   RuntimeConfiguration
 } from './configuration';
 export {
-  AttributeDefinition,
   AttributeInstruction,
-  BindableDefinitions,
-  BindableSource,
-  buildTemplateDefinition,
-  CustomElementConstructor,
   HooksDefinition,
-  IAttributeDefinition,
-  IBindableDescription,
-  IBuildInstruction,
   ICallBindingInstruction,
-  IElementHydrationOptions,
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateLetElementInstruction,
@@ -368,12 +364,10 @@ export {
   ISetPropertyInstruction,
   isTargetedInstruction,
   ITargetedInstruction,
-  ITemplateDefinition,
   NodeInstruction,
   TargetedInstruction,
   TargetedInstructionType,
-  TemplateDefinition,
-  TemplatePartDefinitions,
+  PartialCustomElementDefinitionParts,
   alias,
   registerAliases
 } from './definitions';

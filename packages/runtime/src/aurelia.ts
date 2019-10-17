@@ -29,7 +29,6 @@ import {
 import { ExposedContext } from './rendering-engine';
 import {
   CustomElement,
-  ICustomElementType
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 
@@ -157,7 +156,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   private create(): void {
     const config = this.config;
-    this.viewModel = CustomElement.isType(config.component as ICustomElementType)
+    this.viewModel = CustomElement.isType(config.component as Constructable)
       ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 

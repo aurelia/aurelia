@@ -249,6 +249,7 @@ export const CustomElement: CustomElementKind = {
     const $Type = Type as CustomElementType<T>;
     const description = CustomElementDefinition.create(nameOrDefinition, $Type);
     Metadata.define(CustomElement.name, description, Type);
+    Metadata.define(CustomElement.name, description, description);
     Protocol.resource.appendTo(Type, CustomElement.name);
 
     return $Type;

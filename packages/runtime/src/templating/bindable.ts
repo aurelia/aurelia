@@ -7,19 +7,26 @@ import {
 } from '@aurelia/kernel';
 import {
   BindableSource,
-  IBindableDescription,
   firstDefined,
 } from '../definitions';
 import {
   BindingMode,
 } from '../flags';
 
+export type PartialBindableDefinition = {
+  mode?: BindingMode;
+  callback?: string;
+  attribute?: string;
+  property?: string;
+  primary?: boolean;
+};
+
 /**
  * Decorator: Specifies custom behavior for a bindable property.
  *
  * @param config - The overrides
  */
-export function bindable(config?: BindableSource): BindableDecorator;
+export function bindable(config?: BindableSource): (target: {}, prop: symbol | string) => PropertyDecorator | ClassDecorator;
 /**
  * Decorator: Specifies a bindable property on a class.
  *
@@ -32,28 +39,29 @@ export function bindable(prop: string): ClassDecorator;
  * @param target - The class
  * @param prop - The property name
  */
-export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
-export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T, prop?: string): void | BindableDecorator | ClassDecorator {
-  let config: IBindableDescription;
+export function bindable(target: {}, prop: string): void;
+export function bindable(configOrTarget?: BindableSource | {}, prop?: string): void | PropertyDecorator | ClassDecorator {
+  let config: PartialBindableDefinition;
 
-  const decorator = function decorate($target: T, $prop: string): void {
+  function decorator($target: {}, $prop: symbol | string): void {
     if (arguments.length > 1) {
       // Non invocation:
       // - @bindable
       // Invocation with or w/o opts:
       // - @bindable()
       // - @bindable({...opts})
-      config.property = $prop;
+      config.property = $prop as string;
     }
 
-    Metadata.define(Bindable.name, BindableDefinition.create($prop, config), $target, $prop);
-    Protocol.annotation.appendTo($target.constructor as Constructable, Bindable.keyFrom($prop));
-  };
+    Metadata.define(Bindable.name, BindableDefinition.create($prop as string, config), $target, $prop);
+    Protocol.annotation.appendTo($target.constructor as Constructable, Bindable.keyFrom($prop as string));
+  }
+
   if (arguments.length > 1) {
     // Non invocation:
     // - @bindable
     config = {};
-    decorator(configOrTarget as T, prop!);
+    decorator(configOrTarget!, prop!);
     return;
   } else if (typeof configOrTarget === 'string') {
     // ClassDecorator
@@ -61,14 +69,14 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     // Direct call:
     // - @bindable('bar')(Foo)
     config = {};
-    return decorator as BindableDecorator;
+    return decorator;
   }
 
   // Invocation with or w/o opts:
   // - @bindable()
   // - @bindable({...opts})
-  config = (configOrTarget || {}) as IBindableDescription;
-  return decorator as BindableDecorator;
+  config = configOrTarget === void 0 ? {} : configOrTarget;
+  return decorator;
 }
 
 function isBindableAnnotation(key: string): boolean {
@@ -80,25 +88,22 @@ export const Bindable = {
   keyFrom(name: string): string {
     return `${Bindable.name}:${name}`;
   },
-  from(...bindableLists: readonly (BindableDefinition | Record<string, IBindableDescription> | readonly string[] | undefined)[]): Record<string, IBindableDescription> {
-    const bindables: Record<string, IBindableDescription> = {};
+  from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
+    const bindables: Record<string, BindableDefinition> = {};
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
-      bindables[name] = {
-        property: name,
-        attribute: kebabCase(name),
-        callback: `${name}Changed`,
-        mode: BindingMode.toView,
-        primary: false,
-      };
+      bindables[name] = BindableDefinition.create(name);
     }
 
-    function addDescription(name: string, def: IBindableDescription): void {
+    function addDescription(name: string, def: PartialBindableDefinition): void {
       bindables[name] = BindableDefinition.create(name, def);
     }
 
-    function addList(maybeList: BindableDefinition | Record<string, IBindableDescription> | string[] | undefined): void {
-      if (Array.isArray(maybeList)) {
+    function addList(maybeList: BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined): void {
+      if (isArray(maybeList)) {
         maybeList.forEach(addName);
       } else if (maybeList instanceof BindableDefinition) {
         Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
@@ -123,9 +128,6 @@ export const Bindable = {
   },
 };
 
-export type WithBindables = { bindables: Record<string, IBindableDescription> | string[] };
-export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string) => void;
-
 export class BindableDefinition {
   private constructor(
     public readonly attribute: string,
@@ -135,7 +137,7 @@ export class BindableDefinition {
     public readonly property: string,
   ) {}
 
-  public static create(prop: string, def: IBindableDescription = {}): BindableDefinition {
+  public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
     return new BindableDefinition(
       firstDefined(def.attribute, kebabCase(prop)),
       firstDefined(def.callback, `${prop}Changed`),

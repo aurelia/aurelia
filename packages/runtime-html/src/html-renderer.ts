@@ -96,7 +96,7 @@ export class SetClassAttributeRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
-    target.classList.add(...toClassList(instruction.value));
+    addClasses(target.classList, instruction.value);
   }
 }
 
@@ -165,4 +165,18 @@ function toClassList(className: string): string[] {
     cachedMapping[className] = className.split(' ').filter(Boolean);
   }
   return cachedMapping[className];
+}
+function addClasses(classList: DOMTokenList, className: string): void {
+  const len = className.length;
+  let start = 0;
+  for (let i = 0; i < len; ++i) {
+    if (className.charCodeAt(i) === 0x20) {
+      if (i !== start) {
+        classList.add(className.slice(start, i));
+      }
+      start = i + 1;
+    } else if (i + 1 === len) {
+      classList.add(className.slice(start));
+    }
+  }
 }

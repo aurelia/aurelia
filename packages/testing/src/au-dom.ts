@@ -146,7 +146,7 @@ export class AuNode implements INode {
 
   public static createText(text?: string): AuNode {
     const node = new AuNode('#text', false, false, false, false, false, false);
-    if (text !== targetChanged 0) {
+    if (text !== void 0) {
       node._textContent = text;
     }
     return node;
@@ -174,7 +174,7 @@ export class AuNode implements INode {
     return this;
   }
 
-  public removeChild(childNode: AuNode): targetChanged {
+  public removeChild(childNode: AuNode): void {
     if (childNode.parentNode === this) {
       const prev = childNode.previousSibling;
       const next = childNode.nextSibling;
@@ -199,14 +199,14 @@ export class AuNode implements INode {
     }
   }
 
-  public remove(): targetChanged {
+  public remove(): void {
     const currentParent = this.parentNode;
     if (currentParent != null) {
       currentParent.removeChild(this);
     }
   }
 
-  public replaceChild(newNode: AuNode, oldNode: AuNode): targetChanged {
+  public replaceChild(newNode: AuNode, oldNode: AuNode): void {
     if (oldNode.parentNode !== this) {
       throw new Error('oldNode is not a child of this parent');
     }
@@ -238,7 +238,7 @@ export class AuNode implements INode {
     oldNode.isConnected = false;
   }
 
-  public insertBefore(newNode: AuNode, refNode: AuNode): targetChanged {
+  public insertBefore(newNode: AuNode, refNode: AuNode): void {
     if (newNode.parentNode != null) {
       newNode.remove();
     }
@@ -272,7 +272,7 @@ export class AuNode implements INode {
     return newNode;
   }
 
-  public populateTargets(targets: AuNode[]): targetChanged {
+  public populateTargets(targets: AuNode[]): void {
     let current = this.firstChild;
     while (current != null) {
       if (current.isTarget === true) {
@@ -290,10 +290,10 @@ export class AuNode implements INode {
 }
 
 export class AuDOM implements IDOM<AuNode> {
-  public addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): targetChanged {
+  public addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
     return;
   }
-  public appendChild(parent: AuNode, child: AuNode): targetChanged {
+  public appendChild(parent: AuNode, child: AuNode): void {
     parent.appendChild(child);
   }
   public cloneNode<T extends INode = AuNode>(node: T, deep?: boolean): T {
@@ -340,7 +340,7 @@ export class AuDOM implements IDOM<AuNode> {
   public createTextNode(text: string): AuNode {
     return AuNode.createText(text);
   }
-  public insertBefore(nodeToInsert: AuNode, referenceNode: AuNode): targetChanged {
+  public insertBefore(nodeToInsert: AuNode, referenceNode: AuNode): void {
     if (referenceNode.parentNode == null) {
       throw new Error('referenceNode.parentNode is null in insertBefore');
     }
@@ -353,31 +353,31 @@ export class AuDOM implements IDOM<AuNode> {
     return node instanceof AuNode;
   }
   public isRenderLocation(node: unknown): node is IRenderLocation<AuNode> & AuNode {
-    return node !== targetChanged 0 && (node as AuNode).isRenderLocation;
+    return node !== void 0 && (node as AuNode).isRenderLocation;
   }
-  public makeTarget(node: AuNode): targetChanged {
+  public makeTarget(node: AuNode): void {
     node.isTarget = true;
   }
-  public registerElementResolver(container: IContainer, resolver: IResolver): targetChanged {
+  public registerElementResolver(container: IContainer, resolver: IResolver): void {
     container.registerResolver(INode, resolver);
     container.registerResolver(AuNode, resolver);
   }
-  public remove(node: AuNode): targetChanged {
+  public remove(node: AuNode): void {
     node.remove();
   }
-  public removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): targetChanged {
+  public removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
     return;
   }
-  public setAttribute(node: AuNode, name: string, value: unknown): targetChanged {
+  public setAttribute(node: AuNode, name: string, value: unknown): void {
     (node as AuNode & Record<string, unknown>)[name] = value;
   }
   public createCustomEvent(eventType: string, options?: unknown): unknown {
     throw new Error('Method not implemented.');
   }
-  public dispatchEvent(evt: unknown): targetChanged {
+  public dispatchEvent(evt: unknown): void {
     throw new Error('Method not implemented.');
   }
-  public createNodeObserver?(node: AuNode, cb: (...args: unknown[]) => targetChanged, init: unknown): unknown {
+  public createNodeObserver?(node: AuNode, cb: (...args: unknown[]) => void, init: unknown): unknown {
     throw new Error('Method not implemented.');
   }
 }
@@ -400,13 +400,13 @@ export class AuProjector implements IElementProjector {
     return this.host.childNodes as ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>>;
   }
 
-  public subscribeToChildrenChange(callback: () => targetChanged): targetChanged { /* do nothing */ }
+  public subscribeToChildrenChange(callback: () => void): void { /* do nothing */ }
 
   public provideEncapsulationSource(): AuNode {
     return this.host;
   }
 
-  public project(nodes: INodeSequence): targetChanged {
+  public project(nodes: INodeSequence): void {
     if (this.host.isRenderLocation) {
       nodes.insertBefore(this.host);
     } else {
@@ -414,7 +414,7 @@ export class AuProjector implements IElementProjector {
     }
   }
 
-  public take(nodes: INodeSequence): targetChanged {
+  public take(nodes: INodeSequence): void {
     nodes.remove();
   }
 }
@@ -458,16 +458,16 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     this.wrapper = wrapper;
     this.targets = targets;
 
-    this.next = targetChanged 0;
+    this.next = void 0;
 
-    this.refNode = targetChanged 0;
+    this.refNode = void 0;
   }
 
   public findTargets(): AuNode[] {
     return this.targets;
   }
 
-  public insertBefore(refNode: AuNode): targetChanged {
+  public insertBefore(refNode: AuNode): void {
     if (this.isLinked && !!this.refNode) {
       this.addToLinked();
     } else {
@@ -490,7 +490,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  public appendTo(parent: AuNode): targetChanged {
+  public appendTo(parent: AuNode): void {
     this.isMounted = true;
 
     let current = this.firstChild;
@@ -509,7 +509,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  public prependTo(parent: AuNode): targetChanged {
+  public prependTo(parent: AuNode): void {
     const targetNode = parent.firstChild;
     if (targetNode === null) {
       this.appendTo(parent);
@@ -536,7 +536,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  public remove(): targetChanged {
+  public remove(): void {
     if (this.isMounted) {
       this.isMounted = false;
 
@@ -558,7 +558,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  public addToLinked(): targetChanged {
+  public addToLinked(): void {
     const refNode = this.refNode!;
     const parent = refNode.parentNode!;
     this.isMounted = true;
@@ -578,13 +578,13 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  public unlink(): targetChanged {
+  public unlink(): void {
     this.isLinked = false;
-    this.next = targetChanged 0;
-    this.refNode = targetChanged 0;
+    this.next = void 0;
+    this.refNode = void 0;
   }
 
-  public link(next: INodeSequence<AuNode> | IRenderLocation<AuNode> | undefined): targetChanged {
+  public link(next: INodeSequence<AuNode> | IRenderLocation<AuNode> | undefined): void {
     this.isLinked = true;
     if (this.dom.isRenderLocation(next)) {
       this.refNode = next;
@@ -594,11 +594,11 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  private obtainRefNode(): targetChanged {
-    if (this.next !== targetChanged 0) {
+  private obtainRefNode(): void {
+    if (this.next !== void 0) {
       this.refNode = this.next.firstChild;
     } else {
-      this.refNode = targetChanged 0;
+      this.refNode = void 0;
     }
   }
 }
@@ -685,7 +685,7 @@ export class AuTextRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): targetChanged {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
     let realTarget: AuNode;
     if (target.isRenderLocation) {
       realTarget = AuNode.createText();
@@ -699,7 +699,7 @@ export class AuTextRenderer implements IInstructionRenderer {
 }
 
 export const AuDOMConfiguration = {
-  register(container: IContainer): targetChanged {
+  register(container: IContainer): void {
     container.register(
       RuntimeConfiguration,
       AuTextRenderer as unknown as IRegistry,

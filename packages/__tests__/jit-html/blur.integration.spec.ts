@@ -13,13 +13,6 @@ describe('blur.integration.spec.ts', function() {
     hasFocus: boolean;
   }
 
-  before(async function () {
-    await waitForFrames(2);
-  });
-  after(async function () {
-    await waitForFrames(2);
-  });
-
   describe('>> with mouse', function() {
     describe('>> Basic scenarios', function() {
       // Note that from-view binding are not working at the moment

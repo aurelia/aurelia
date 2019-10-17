@@ -1,7 +1,7 @@
-var _ = require('lodash');
-var exec = require('child_process').execSync;
-var fs = require('fs-extra');
-var path = require('path');
+const _ = require('lodash');
+const exec = require('child_process').execSync;
+const fs = require('fs-extra');
+const path = require('path');
 
 if (fs.existsSync("dist")) fs.removeSync("dist");
 fs.mkdirSync("dist");
@@ -11,13 +11,13 @@ fs.copySync(`webdriver-ts${path.sep}table.html`, `dist${path.sep}webdriver-ts${p
 fs.copySync("index.html", `dist${path.sep}index.html`);
 fs.copySync("css", `dist${path.sep}css`);
 
-var excludes = ["node_modules","elm-stuff","project",".DS_Store"];
-var excludedDirectories = ['css', 'dist','node_modules','webdriver-ts'];
+const excludes = ["node_modules","elm-stuff","project",".DS_Store"];
+const excludedDirectories = ['css', 'dist','node_modules','webdriver-ts'];
 
 // http://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
 function copyFileSync(source, target) {
 
-  var targetFile = target;
+  let targetFile = target;
 
   // if target is a directory a new file with the same name will be created
   if (fs.existsSync(target) && fs.lstatSync(target).isDirectory()) {
@@ -38,19 +38,17 @@ function include(name) {
 }
 
 function copyFolderRecursiveSync(source, target) {
-  var files = [];
-
   // check if folder needs to be created or integrated
-  var targetFolder = path.join(target, path.basename(source));
+  const targetFolder = path.join(target, path.basename(source));
   if (!fs.existsSync(targetFolder)) {
     fs.mkdirSync(targetFolder);
   }
 
   // copy
   if (fs.lstatSync(source).isDirectory()) {
-    files = fs.readdirSync(source);
+    const files = fs.readdirSync(source);
     files.forEach(function (file) {
-      var curSource = path.join(source, file);
+      const curSource = path.join(source, file);
       if (include(curSource)) {
         if (fs.lstatSync(curSource).isDirectory()) {
           console.log(`copy dir ${curSource}`);

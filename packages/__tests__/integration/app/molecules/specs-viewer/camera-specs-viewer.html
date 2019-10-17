@@ -1,0 +1,16 @@
+<thing-viewer model.bind="model"></thing-viewer>
+
+<read-only-text value="Optical zoom"></read-only-text>
+<read-only-text value="${model.zoom.optical}x"></read-only-text>
+
+<read-only-text value="Digital zoom"></read-only-text>
+<read-only-text value="${model.zoom.digital}x"></read-only-text>
+
+<read-only-text value="ISO"></read-only-text>
+<read-only-text repeat.for="value of model.iso" value.bind="value"></read-only-text>
+
+<read-only-text value="Focal length"></read-only-text>
+<read-only-text value.bind="focalLength"></read-only-text>
+
+<read-only-text value="f/-number"></read-only-text>
+<read-only-text value.bind="fNumber"></read-only-text>

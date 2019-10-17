@@ -4,6 +4,7 @@ import { kebabCase } from '../../packages/kernel/src/index';
 import project from '../project';
 import {
   $$call,
+  $$comment,
   $$const,
   $$functionDecl,
   $$functionExpr,
@@ -1038,17 +1039,21 @@ function generateAndEmit(): void {
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
         $functionExpr([
-          $$functionExpr('before', [
-            $functionExpr([
-              $$call('Profiler.enable')
+          $$comment('eslint-disable-next-line mocha/no-hooks',
+            $$functionExpr('before', [
+              $functionExpr([
+                $$call('Profiler.enable')
+              ])
             ])
-          ]),
-          $$functionExpr('after', [
-            $functionExpr([
-              $$call('Profiler.disable'),
-              $$call('writeProfilerReport', [$expression(suffix)])
+          ),
+          $$comment('eslint-disable-next-line mocha/no-hooks',
+            $$functionExpr('after', [
+              $functionExpr([
+                $$call('Profiler.disable'),
+                $$call('writeProfilerReport', [$expression(suffix)])
+              ])
             ])
-          ]),
+          ),
           $$functionDecl(
             'setup',
             [

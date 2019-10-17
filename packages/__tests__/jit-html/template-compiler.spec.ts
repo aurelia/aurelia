@@ -56,6 +56,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let container: IContainer;
   let dom: IDOM;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     container = ctx.container;
@@ -86,7 +87,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           verifyInstructions(instructions, []);
           verifyInstructions(
             surrogates,
-            [{ toVerify: ['type', 'value', 'to'], type: HTT.setAttribute, value: 'h-100', to: 'class' }]
+            [{ toVerify: ['type', 'value'], type: HTT.setClassAttribute, value: 'h-100' }]
           );
         });
 

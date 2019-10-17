@@ -4,7 +4,12 @@
 
 ## Getting Started
 
-* [Quick Start Guide](getting-started/quick-start-guide.md)
+* [Quick Start Guide](getting-started/quick-start-guide/README.md)
+  * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
+  * [Exploring the Source Code](getting-started/quick-start-guide/exploring-the-source-code.md)
+  * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
+  * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
+  * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Building Components](getting-started/components.md)
 * [Displaying Basic Data](getting-started/displaying-basic-data.md)
 * [Rendering Collections](getting-started/rendering-collections.md)

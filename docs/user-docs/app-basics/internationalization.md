@@ -260,13 +260,13 @@ If you are familiar with the `aurelia-i18n` plugin, then you know that apart fro
 
 ### Active locale
 
-The active locale can be `get` or `set` by injecting an instance of the `I18nService` \(in the previous version on Aurelia this was known as `I18N`\), and using `getLocale()`, and `setLocale()` methods. The following example shows how to manipulate the active locale.
+The active locale can be `get` or `set` by injecting an instance of the `I18N`, and using `getLocale()`, and `setLocale()` methods. The following example shows how to manipulate the active locale.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const currentLocale = this.i18n.getLocale();
   }
 
@@ -276,7 +276,7 @@ export class MyDemoVm {
 }
 ```
 
-Note that when the active locale is changed, the `I18nService` publishes the `i18n:locale:changed` event, and dispatches the `aurelia-translation-signal` signal. The i18n value-converters and binding-behaviors subscribe to these events, and update translations automatically. This event and signal are very useful tools if you want to perform your own custom locale-sensitive logic when the locale is changed.
+Note that when the active locale is changed, the `I18N` publishes the `i18n:locale:changed` event, and dispatches the `aurelia-translation-signal` signal. The i18n value-converters and binding-behaviors subscribe to these events, and update translations automatically. This event and signal are very useful tools if you want to perform your own custom locale-sensitive logic when the locale is changed.
 
 > Note Unlike the previous version of Aurelia, in vNext all translatable resources \(marked by the out of the box attributes, value converters, and binding behaviors\) are updated automatically on change of locale, without the need of any additional component or service.
 
@@ -534,15 +534,15 @@ Combined with appropriate translation resource, the correct value will be render
 
 #### Translation via code
 
-Translations via code are done by using the method `I18nService#tr`. You can pass in the `key` as the first parameter, followed by the optional second parameter `options`.
+Translations via code are done by using the method `I18N#tr`. You can pass in the `key` as the first parameter, followed by the optional second parameter `options`.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
   private status: string = 'dispatched';
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const statusText = this.i18n.tr('status', { context: this.status });
   }
 }
@@ -584,28 +584,28 @@ The formatting options are used to affect how the number is formatted. A promine
 
 #### Format number via code
 
-Formatting numbers via code works by using the method `I18nService#nf`. You can pass in the number as its first parameter, followed by the optional parameters `options`, and `locales`.
+Formatting numbers via code works by using the method `I18N#nf`. You can pass in the number as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const formatted = this.i18n.nf(123456789.12); // 123,456,789.12 - considering the current locale to be en
     const formattedCurrency = this.i18n.nf(123456789.12, { style: 'currency', currency: 'EUR' }, 'de'); // 123.456.789,12 €
   }
 }
 ```
 
-Additionally, if needed, an instance of `Intl.NumberFormat` can be created using the `I18nService#createNumberFormat` method.
+Additionally, if needed, an instance of `Intl.NumberFormat` can be created using the `I18N#createNumberFormat` method.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const nf = this.i18n.createNumberFormat({ style: 'currency', currency: 'EUR' }, 'de');
     const formatted = nf.format(123456789.12); // 123.456.789,12 €
   }
@@ -614,18 +614,18 @@ export class MyDemoVm {
 
 This can be useful if you want to cache the `Intl.NumberFormat` instance and reuse that later.
 
-> Note The `I18N#nf` in the previous version of Aurelia matches the `I18nService#createNumberFormat`, whereas `I18nService#nf` provides the formatted number instead.
+> Note The `I18N#nf` in the previous version of Aurelia matches the `I18N#createNumberFormat`, whereas `I18N#nf` provides the formatted number instead.
 
 ### Unformat number via code
 
-Numeric strings can be converted back to a number using the `I18nService#uf` method. The method takes the numeric string as first argument, followed by an optional second argument for locale, as shown in the following example.
+Numeric strings can be converted back to a number using the `I18N#uf` method. The method takes the numeric string as first argument, followed by an optional second argument for locale, as shown in the following example.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     // all of the strings are converted back to `123456789.12`
     const ufSimple = this.i18n.uf('123,456,789.12');
     const ufLocale = this.i18n.uf('123.456.789,12', 'de');
@@ -669,14 +669,14 @@ The value being formatted does not strictly need to be a date object. Apart from
 
 #### Format date via code
 
-Formatting date via code works by using the method `I18nService#df`. You can pass in the date as its first parameter, followed by the optional parameters `options`, and `locales`.
+Formatting date via code works by using the method `I18N#df`. You can pass in the date as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const df1 = this.i18n.df(new Date(2020, 1, 10)); // '2/10/2020'
     const df2 = this.i18n.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }, 'de'); // '10.02.2020'
     const df3 = this.i18n.df(0); // '1/1/1970'
@@ -684,14 +684,14 @@ export class MyDemoVm {
 }
 ```
 
-Additionally, if needed an instance of `Intl.DateTimeFormat` can be created using the `I18nService#createDateTimeFormat` method.
+Additionally, if needed an instance of `Intl.DateTimeFormat` can be created using the `I18N#createDateTimeFormat` method.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const df = this.i18n.createDateTimeFormat({ month: '2-digit', day: 'numeric', year: 'numeric' }, 'de');
     const formatted = df.format(new Date(2020, 1, 10)); // '10.02.2020'
   }
@@ -700,7 +700,7 @@ export class MyDemoVm {
 
 This can be useful if you want to cache the `Intl.DateTimeFormat` instance and reuse it later.
 
-> Note The `I18N#df` in the previous version of Aurelia matches the `I18nService#createDateTimeFormat`, whereas `I18nService#df` provides the formatted date instead.
+> Note The `I18N#df` in the previous version of Aurelia matches the `I18N#createDateTimeFormat`, whereas `I18N#df` provides the formatted date instead.
 
 ### Relative time formatting
 
@@ -764,13 +764,13 @@ Both ValueConverter and BindingBehavior react to this signal and update the view
 
 #### Relative time format via code
 
-Formatting relative dates via code works by using the method `I18nService#rt`. You can pass in the date as its first parameter, followed by the optional parameters `options`, and `locales`.
+Formatting relative dates via code works by using the method `I18N#rt`. You can pass in the date as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const date = new Date();
     date.setSeconds(input.getSeconds() + 5);
 
@@ -779,14 +779,14 @@ export class MyDemoVm {
 }
 ```
 
-Additionally, if needed an instance of `Intl.RelativeTimeFormat` can be created using the `I18nService#createRelativeTimeFormat` method.
+Additionally, if needed an instance of `Intl.RelativeTimeFormat` can be created using the `I18N#createRelativeTimeFormat` method.
 
 ```typescript
-import { I18N, I18nService } from '@aurelia/i18n';
+import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18nService) {
+  constructor(@I18N private readonly i18n: I18N) {
     const date = new Date();
     date.setSeconds(input.getSeconds() - 5);
 
@@ -798,7 +798,7 @@ export class MyDemoVm {
 
 This can be useful if you want to cache the `Intl.RelativeTimeFormat` instance and reuse it later.
 
-> Note If you have used relative time formatting with `aurelia-i18n` plugin, then you have noticed that instead of full-fledged class dedicated for relative time formatting, in `@aurelia/i18n` plugin it is just a couple of methods in `I18nService`.
+> Note If you have used relative time formatting with `aurelia-i18n` plugin, then you have noticed that instead of full-fledged class dedicated for relative time formatting, in `@aurelia/i18n` plugin it is just a couple of methods in `I18N`.
 
 **A caveat**
 
@@ -809,10 +809,9 @@ If the date being formatted is a future date, then there lies an edge case, whic
 This section outline the breaking changes introduced by `@aurelia/i18n` as compared to the predecessor `aurelia-i18n`. We can happily say that there is next to no breaking changes on how the plugin is used in view, for translation or date and number formatting. However, there are couple of breaking changes in the API which are elaborated later. We hope that this documentation also serves as a migration guide for the well-known use cases.
 
 * `aurelia-i18n` used `i18next@14.x.x`, whereas `@aurelia/i18n` uses `i18next@17.x.x`. Therefore all/any of the breaking changes from `i18next` also applies here \(however we have not experienced any friction from `i18next` when we ported the plugin\).
-* The `I18N` service in `aurelia-i18n` is renamed to `I18nService` in `@aurelia/i18n`. Apart from the formatting API, the rest of the API is still the same. Therefore, a find/replace should work for most of the cases.
 * The formatting methods such as `nf`, and `df` returns formatted number and date string in the new version of plugin. Earlier, it returned instance of `Intl.NumberFormat`, and `Intl.DateFormat` respectively, which then can be used to format the number or date. However in the new plugin that has became an one step process. We hope that this is a happy change. In case you miss the old methods, those are still available under the names `createNumberFormat`, and `createDateTimeFormat` respectively. For least friction in migration process, these new methods can be used. For more details see the section on [number](internationalization.md#formatting-numbers), and [date](internationalization.md#formatting-dates) formatting.
 * Another major breaking change is with relative time formatting. Following are some of breaking changes; for full details check the respective [section](internationalization.md#relative-time-formatting).
-  * The relative time formatting can now be done using the `rt` method in `I18nService` as compared to the full-fledged `RelativeTime` class in `aurelia-i18n`. Therefore, instead of `RelativeTime#getRelativeTime`, you can use `I18nService#rt`. The class `RelativeTime` does not exist anymore in the new version.
+  * The relative time formatting can now be done using the `rt` method in `I18N` as compared to the full-fledged `RelativeTime` class in `aurelia-i18n`. Therefore, instead of `RelativeTime#getRelativeTime`, you can use `I18N#rt`. The class `RelativeTime` does not exist anymore in the new version.
   * Registering translation resources for relative time formatting is no longer required, as the new API relies on `Intl.RelativeTimeFormat`, which use the locale data provided by the environment such as Browsers, or Node.js.
   * There is a minor downside of not maintaining the custom translation resources for relative time. The smallest time unit supported by `Intl.RelativeTimeFormat` is `second`. Therefore, any time difference that is lesser than a second is approximated to one second and formatted. Such cases are formatted in `aurelia-i18n` as a variant of "now", which is not possible any more in the new plugin.
   * There is a new time unit "week" in `Intl.RelativeTimeFormat` API as compared to `RelativeTime` class in `aurelia-i18n`.

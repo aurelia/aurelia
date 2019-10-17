@@ -111,13 +111,12 @@ export class ObserverLocator implements IObserverLocator {
       return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
     }
     let observersLookup = obj.$observers as ObserversLookup;
-    let observer: AccessorOrObserver & { doNotCache?: boolean };
 
     if (observersLookup && propertyName in observersLookup) {
       return observersLookup[propertyName];
     }
 
-    observer = this.createPropertyObserver(flags, obj, propertyName);
+    const observer: AccessorOrObserver & { doNotCache?: boolean } = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
       if (observersLookup === void 0) {

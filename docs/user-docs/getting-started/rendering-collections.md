@@ -194,26 +194,13 @@ Value Converters are a powerful part of Aurelia's binding language that you can 
 
 ## Contextual Properties
 
-Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context, such as within a repeat block or an event handler. Below is a brief summary of the available contextual properties that you have access to.
-
-### General
-
-* `$this` - The the view-model that your binding expressions are being evaluated against.
-
-### Event
-
-* `$event` - The DOM Event in `delegate`, `trigger`, and `capture` bindings.
-
-### Repeater
-
-{% hint style="danger" %}
-**Not Yet Implemented in Aurelia 2**
-{% endhint %}
+Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context. Below is a brief summary of the available contextual properties within repeats.
 
 * `$index` - In a repeat template, the index of the item in the collection.
 * `$first` - In a repeat template, is `true` if the item is the first item in the array.
 * `$last` - In a repeat template, is `true` if the item is the last item in the array.
 * `$even` - In a repeat template, is `true` if the item has an even numbered index.
 * `$odd` - In a repeat template, is `true` if the item has an odd numbered index.
+* `$length` - In a repeat template, this indicates the length of the collection.
 * `$parent` - Explicitly accesses the outer scope from within a `repeat` template. You may need this when a property on the current scope masks a property on the outer scope. Note that this property is chainable, e.g. `$parent.$parent.foo` is supported.
 

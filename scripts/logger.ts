@@ -2,7 +2,7 @@ import * as c from 'chalk';
 import * as l from 'fancy-log';
 
 const chalk = (c.default || c) as import('chalk').Chalk;
-const log = (l.default || l) as typeof import('fancy-log');
+const log = ((l as {default?: unknown}).default || l) as typeof import('fancy-log');
 
 export function createLogger(name: string): typeof log {
   const prefix = `> ${chalk.green(name)} `;

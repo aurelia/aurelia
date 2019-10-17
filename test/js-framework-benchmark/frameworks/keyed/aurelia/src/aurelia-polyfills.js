@@ -1,7 +1,7 @@
 // This replaces the aurelia-polyfills package. It includes only non-standard polyfills.
 (function () {
-  var emptyMetadata = Object.freeze({});
-  var metadataContainerKey = '__metadata__';
+  const emptyMetadata = Object.freeze({});
+  const metadataContainerKey = '__metadata__';
 
   if (typeof Reflect.getOwnMetadata !== 'function') {
     Reflect.getOwnMetadata = function (metadataKey, target, targetKey) {
@@ -13,8 +13,8 @@
 
   if (typeof Reflect.defineMetadata !== 'function') {
     Reflect.defineMetadata = function (metadataKey, metadataValue, target, targetKey) {
-      var metadataContainer = Object.prototype.hasOwnProperty.call(target, metadataContainerKey) ? target[metadataContainerKey] : target[metadataContainerKey] = {};
-      var targetContainer = metadataContainer[targetKey] || (metadataContainer[targetKey] = {});
+      const metadataContainer = Object.prototype.hasOwnProperty.call(target, metadataContainerKey) ? target[metadataContainerKey] : target[metadataContainerKey] = {};
+      const targetContainer = metadataContainer[targetKey] || (metadataContainer[targetKey] = {});
       targetContainer[metadataKey] = metadataValue;
     };
   }

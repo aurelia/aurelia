@@ -17,6 +17,7 @@ const eventDefaults = { bubbles: true };
 
 describe.skip('CheckedObserver', function () {
 
+  // eslint-disable-next-line mocha/no-hooks
   before(function () {
     enableArrayObservation();
   });

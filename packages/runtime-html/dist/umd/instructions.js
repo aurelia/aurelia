@@ -63,6 +63,20 @@
         }
     }
     exports.SetAttributeInstruction = SetAttributeInstruction;
+    class SetClassAttributeInstruction {
+        constructor(value) {
+            this.type = "hf" /* setClassAttribute */;
+            this.value = value;
+        }
+    }
+    exports.SetClassAttributeInstruction = SetClassAttributeInstruction;
+    class SetStyleAttributeInstruction {
+        constructor(value) {
+            this.type = "hg" /* setStyleAttribute */;
+            this.value = value;
+        }
+    }
+    exports.SetStyleAttributeInstruction = SetStyleAttributeInstruction;
     class AttributeBindingInstruction {
         constructor(attr, from, to) {
             this.type = "hc" /* attributeBinding */;

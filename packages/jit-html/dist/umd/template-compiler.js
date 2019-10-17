@@ -73,7 +73,7 @@
                     offset++;
                 }
                 for (let i = 0; i < plainAttributeLength; ++i) {
-                    surrogates[offset] = this.compilePlainAttribute(plainAttributes[i]);
+                    surrogates[offset] = this.compilePlainAttribute(plainAttributes[i], true);
                     offset++;
                 }
             }
@@ -212,7 +212,7 @@
                     offset++;
                 }
                 for (let i = 0; plainAttributesLength > i; ++i) {
-                    attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i]);
+                    attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i], false);
                     offset++;
                 }
             }
@@ -229,15 +229,27 @@
             const bindings = this.compileBindings(symbol);
             return new runtime_1.HydrateAttributeInstruction(symbol.res, bindings);
         }
-        compilePlainAttribute(symbol) {
+        compilePlainAttribute(symbol, isOnSurrogate) {
             if (symbol.command === null) {
+                const syntax = symbol.syntax;
                 if (symbol.expression === null) {
+                    const attrRawValue = syntax.rawValue;
+                    if (isOnSurrogate) {
+                        switch (syntax.target) {
+                            case 'class':
+                                return new runtime_html_1.SetClassAttributeInstruction(attrRawValue);
+                            case 'style':
+                                return new runtime_html_1.SetStyleAttributeInstruction(attrRawValue);
+                            // todo:  define how to merge other attribute peacefully
+                            //        this is an existing feature request
+                        }
+                    }
                     // a plain attribute on a surrogate
-                    return new runtime_html_1.SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
+                    return new runtime_html_1.SetAttributeInstruction(attrRawValue, syntax.target);
                 }
                 else {
                     // a plain attribute with an interpolation
-                    return new runtime_1.InterpolationInstruction(symbol.expression, symbol.syntax.target);
+                    return new runtime_1.InterpolationInstruction(symbol.expression, syntax.target);
                 }
             }
             else {

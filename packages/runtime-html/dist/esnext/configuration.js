@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { RuntimeConfiguration } from '@aurelia/runtime';
 import { HTMLTemplateFactory } from './dom';
-import { AttributeBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer, TextBindingRenderer } from './html-renderer';
+import { AttributeBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer, TextBindingRenderer, SetClassAttributeRenderer, SetStyleAttributeRenderer } from './html-renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
@@ -49,6 +49,8 @@ export const DefaultResources = [
 export const ListenerBindingRendererRegistration = ListenerBindingRenderer;
 export const AttributeBindingRendererRegistration = AttributeBindingRenderer;
 export const SetAttributeRendererRegistration = SetAttributeRenderer;
+export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer;
+export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer;
 export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer;
 export const TextBindingRendererRegistration = TextBindingRenderer;
 /**
@@ -62,6 +64,8 @@ export const DefaultRenderers = [
     ListenerBindingRendererRegistration,
     AttributeBindingRendererRegistration,
     SetAttributeRendererRegistration,
+    SetClassAttributeRendererRegistration,
+    SetStyleAttributeRendererRegistration,
     StylePropertyBindingRendererRegistration,
     TextBindingRendererRegistration
 ];

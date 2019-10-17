@@ -17,11 +17,11 @@ export { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/upda
 export { Blur, BlurManager } from './resources/custom-attributes/blur';
 export { Focus } from './resources/custom-attributes/focus';
 export { Compose } from './resources/custom-elements/compose';
-export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
+export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, SetClassAttributeRendererRegistration, SetStyleAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';
 export { HTMLTargetedInstructionType, isHTMLTargetedInstruction } from './definitions';
 export { NodeType, HTMLDOM, DOM, NodeSequenceFactory, FragmentNodeSequence } from './dom';
-export { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
+export { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
 export { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from './projectors';
 export { StyleConfiguration, styles } from './styles/style-configuration';
 export { CSSModulesProcessorRegistry } from './styles/css-modules-registry';

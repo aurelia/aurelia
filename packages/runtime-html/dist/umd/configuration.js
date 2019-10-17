@@ -60,6 +60,8 @@
     exports.ListenerBindingRendererRegistration = html_renderer_1.ListenerBindingRenderer;
     exports.AttributeBindingRendererRegistration = html_renderer_1.AttributeBindingRenderer;
     exports.SetAttributeRendererRegistration = html_renderer_1.SetAttributeRenderer;
+    exports.SetClassAttributeRendererRegistration = html_renderer_1.SetClassAttributeRenderer;
+    exports.SetStyleAttributeRendererRegistration = html_renderer_1.SetStyleAttributeRenderer;
     exports.StylePropertyBindingRendererRegistration = html_renderer_1.StylePropertyBindingRenderer;
     exports.TextBindingRendererRegistration = html_renderer_1.TextBindingRenderer;
     /**
@@ -73,6 +75,8 @@
         exports.ListenerBindingRendererRegistration,
         exports.AttributeBindingRendererRegistration,
         exports.SetAttributeRendererRegistration,
+        exports.SetClassAttributeRendererRegistration,
+        exports.SetStyleAttributeRendererRegistration,
         exports.StylePropertyBindingRendererRegistration,
         exports.TextBindingRendererRegistration
     ];

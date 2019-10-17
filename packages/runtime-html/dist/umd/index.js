@@ -68,6 +68,8 @@
     exports.AttributeBindingRendererRegistration = configuration_1.AttributeBindingRendererRegistration;
     exports.ListenerBindingRendererRegistration = configuration_1.ListenerBindingRendererRegistration;
     exports.SetAttributeRendererRegistration = configuration_1.SetAttributeRendererRegistration;
+    exports.SetClassAttributeRendererRegistration = configuration_1.SetClassAttributeRendererRegistration;
+    exports.SetStyleAttributeRendererRegistration = configuration_1.SetStyleAttributeRendererRegistration;
     exports.StylePropertyBindingRendererRegistration = configuration_1.StylePropertyBindingRendererRegistration;
     exports.TextBindingRendererRegistration = configuration_1.TextBindingRendererRegistration;
     exports.DefaultRenderers = configuration_1.DefaultRenderers;
@@ -89,6 +91,8 @@
     exports.CaptureBindingInstruction = instructions_1.CaptureBindingInstruction;
     exports.DelegateBindingInstruction = instructions_1.DelegateBindingInstruction;
     exports.SetAttributeInstruction = instructions_1.SetAttributeInstruction;
+    exports.SetClassAttributeInstruction = instructions_1.SetClassAttributeInstruction;
+    exports.SetStyleAttributeInstruction = instructions_1.SetStyleAttributeInstruction;
     exports.StylePropertyBindingInstruction = instructions_1.StylePropertyBindingInstruction;
     exports.TextBindingInstruction = instructions_1.TextBindingInstruction;
     exports.TriggerBindingInstruction = instructions_1.TriggerBindingInstruction;

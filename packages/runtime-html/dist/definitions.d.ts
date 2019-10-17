@@ -4,10 +4,12 @@ export declare const enum HTMLTargetedInstructionType {
     listenerBinding = "hb",
     attributeBinding = "hc",
     stylePropertyBinding = "hd",
-    setAttribute = "he"
+    setAttribute = "he",
+    setClassAttribute = "hf",
+    setStyleAttribute = "hg"
 }
 export declare type HTMLNodeInstruction = NodeInstruction | ITextBindingInstruction;
-export declare type HTMLAttributeInstruction = AttributeInstruction | IListenerBindingInstruction | IAttributeBindingInstruction | IStylePropertyBindingInstruction | ISetAttributeInstruction;
+export declare type HTMLAttributeInstruction = AttributeInstruction | IListenerBindingInstruction | IAttributeBindingInstruction | IStylePropertyBindingInstruction | ISetAttributeInstruction | ISetClassAttributeInstruction | ISetStyleAttributeInstruction;
 export declare type HTMLTargetedInstruction = HTMLNodeInstruction | HTMLAttributeInstruction;
 export declare type HTMLInstructionRow = [HTMLTargetedInstruction, ...HTMLAttributeInstruction[]];
 export declare function isHTMLTargetedInstruction(value: unknown): value is HTMLTargetedInstruction;
@@ -31,6 +33,14 @@ export interface ISetAttributeInstruction extends ITargetedInstruction {
     type: HTMLTargetedInstructionType.setAttribute;
     value: string;
     to: string;
+}
+export interface ISetClassAttributeInstruction extends ITargetedInstruction {
+    type: HTMLTargetedInstructionType.setClassAttribute;
+    value: string;
+}
+export interface ISetStyleAttributeInstruction extends ITargetedInstruction {
+    type: HTMLTargetedInstructionType.setStyleAttribute;
+    value: string;
 }
 export interface IAttributeBindingInstruction extends ITargetedInstruction {
     type: HTMLTargetedInstructionType.attributeBinding;

@@ -3,7 +3,6 @@ import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructi
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import { IEventManager } from './observation/event-manager';
-const slice = Array.prototype.slice;
 let TextBindingRenderer = 
 /** @internal */
 class TextBindingRenderer {
@@ -64,6 +63,24 @@ SetAttributeRenderer = __decorate([
     /** @internal */
 ], SetAttributeRenderer);
 export { SetAttributeRenderer };
+let SetClassAttributeRenderer = class SetClassAttributeRenderer {
+    render(flags, dom, context, renderable, target, instruction) {
+        addClasses(target.classList, instruction.value);
+    }
+};
+SetClassAttributeRenderer = __decorate([
+    instructionRenderer("hf" /* setClassAttribute */)
+], SetClassAttributeRenderer);
+export { SetClassAttributeRenderer };
+let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
+    render(flags, dom, context, renderable, target, instruction) {
+        target.style.cssText += instruction.value;
+    }
+};
+SetStyleAttributeRenderer = __decorate([
+    instructionRenderer("hg" /* setStyleAttribute */)
+], SetStyleAttributeRenderer);
+export { SetStyleAttributeRenderer };
 let StylePropertyBindingRenderer = 
 /** @internal */
 class StylePropertyBindingRenderer {
@@ -102,4 +119,19 @@ AttributeBindingRenderer = __decorate([
     /** @internal */
 ], AttributeBindingRenderer);
 export { AttributeBindingRenderer };
+function addClasses(classList, className) {
+    const len = className.length;
+    let start = 0;
+    for (let i = 0; i < len; ++i) {
+        if (className.charCodeAt(i) === 0x20) {
+            if (i !== start) {
+                classList.add(className.slice(start, i));
+            }
+            start = i + 1;
+        }
+        else if (i + 1 === len) {
+            classList.add(className.slice(start));
+        }
+    }
+}
 //# sourceMappingURL=html-renderer.js.map

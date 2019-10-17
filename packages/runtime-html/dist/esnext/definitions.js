@@ -5,6 +5,8 @@ export var HTMLTargetedInstructionType;
     HTMLTargetedInstructionType["attributeBinding"] = "hc";
     HTMLTargetedInstructionType["stylePropertyBinding"] = "hd";
     HTMLTargetedInstructionType["setAttribute"] = "he";
+    HTMLTargetedInstructionType["setClassAttribute"] = "hf";
+    HTMLTargetedInstructionType["setStyleAttribute"] = "hg";
 })(HTMLTargetedInstructionType || (HTMLTargetedInstructionType = {}));
 export function isHTMLTargetedInstruction(value) {
     const type = value.type;

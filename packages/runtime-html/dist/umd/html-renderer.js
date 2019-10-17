@@ -14,7 +14,6 @@
     const attribute_1 = require("./binding/attribute");
     const listener_1 = require("./binding/listener");
     const event_manager_1 = require("./observation/event-manager");
-    const slice = Array.prototype.slice;
     let TextBindingRenderer = 
     /** @internal */
     class TextBindingRenderer {
@@ -75,6 +74,24 @@
         /** @internal */
     ], SetAttributeRenderer);
     exports.SetAttributeRenderer = SetAttributeRenderer;
+    let SetClassAttributeRenderer = class SetClassAttributeRenderer {
+        render(flags, dom, context, renderable, target, instruction) {
+            addClasses(target.classList, instruction.value);
+        }
+    };
+    SetClassAttributeRenderer = tslib_1.__decorate([
+        runtime_1.instructionRenderer("hf" /* setClassAttribute */)
+    ], SetClassAttributeRenderer);
+    exports.SetClassAttributeRenderer = SetClassAttributeRenderer;
+    let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
+        render(flags, dom, context, renderable, target, instruction) {
+            target.style.cssText += instruction.value;
+        }
+    };
+    SetStyleAttributeRenderer = tslib_1.__decorate([
+        runtime_1.instructionRenderer("hg" /* setStyleAttribute */)
+    ], SetStyleAttributeRenderer);
+    exports.SetStyleAttributeRenderer = SetStyleAttributeRenderer;
     let StylePropertyBindingRenderer = 
     /** @internal */
     class StylePropertyBindingRenderer {
@@ -113,5 +130,20 @@
         /** @internal */
     ], AttributeBindingRenderer);
     exports.AttributeBindingRenderer = AttributeBindingRenderer;
+    function addClasses(classList, className) {
+        const len = className.length;
+        let start = 0;
+        for (let i = 0; i < len; ++i) {
+            if (className.charCodeAt(i) === 0x20) {
+                if (i !== start) {
+                    classList.add(className.slice(start, i));
+                }
+                start = i + 1;
+            }
+            else if (i + 1 === len) {
+                classList.add(className.slice(start));
+            }
+        }
+    }
 });
 //# sourceMappingURL=html-renderer.js.map

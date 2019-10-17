@@ -1,6 +1,6 @@
 import { InterfaceSymbol, IRegistry, Key } from '@aurelia/kernel';
 import { IController, IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { IAttributeBindingInstruction, IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
+import { IAttributeBindingInstruction, IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, ISetClassAttributeInstruction, ISetStyleAttributeInstruction } from './definitions';
 import { IEventManager } from './observation/event-manager';
 export declare class TextBindingRenderer implements IInstructionRenderer {
     static readonly inject: readonly Key[];
@@ -21,6 +21,14 @@ export declare class ListenerBindingRenderer implements IInstructionRenderer {
 export declare class SetAttributeRenderer implements IInstructionRenderer {
     static readonly register: IRegistry['register'];
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetAttributeInstruction): void;
+}
+export declare class SetClassAttributeRenderer implements IInstructionRenderer {
+    static readonly register: IRegistry['register'];
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void;
+}
+export declare class SetStyleAttributeRenderer implements IInstructionRenderer {
+    static readonly register: IRegistry['register'];
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetStyleAttributeInstruction): void;
 }
 export declare class StylePropertyBindingRenderer implements IInstructionRenderer {
     static readonly inject: readonly Key[];

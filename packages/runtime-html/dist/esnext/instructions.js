@@ -46,6 +46,18 @@ export class SetAttributeInstruction {
         this.value = value;
     }
 }
+export class SetClassAttributeInstruction {
+    constructor(value) {
+        this.type = "hf" /* setClassAttribute */;
+        this.value = value;
+    }
+}
+export class SetStyleAttributeInstruction {
+    constructor(value) {
+        this.type = "hg" /* setStyleAttribute */;
+        this.value = value;
+    }
+}
 export class AttributeBindingInstruction {
     constructor(attr, from, to) {
         this.type = "hc" /* attributeBinding */;

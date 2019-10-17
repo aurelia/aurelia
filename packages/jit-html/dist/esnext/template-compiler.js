@@ -2,7 +2,7 @@ import { __decorate, __param } from "tslib";
 import { IAttributeParser, ResourceModel, } from '@aurelia/jit';
 import { mergeDistinct, PLATFORM, Registration, } from '@aurelia/kernel';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IExpressionParser, InterpolationInstruction, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, SetPropertyInstruction } from '@aurelia/runtime';
-import { SetAttributeInstruction, TextBindingInstruction } from '@aurelia/runtime-html';
+import { SetAttributeInstruction, TextBindingInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, } from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -62,7 +62,7 @@ let TemplateCompiler = class TemplateCompiler {
                 offset++;
             }
             for (let i = 0; i < plainAttributeLength; ++i) {
-                surrogates[offset] = this.compilePlainAttribute(plainAttributes[i]);
+                surrogates[offset] = this.compilePlainAttribute(plainAttributes[i], true);
                 offset++;
             }
         }
@@ -201,7 +201,7 @@ let TemplateCompiler = class TemplateCompiler {
                 offset++;
             }
             for (let i = 0; plainAttributesLength > i; ++i) {
-                attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i]);
+                attributeInstructions[offset] = this.compilePlainAttribute(plainAttributes[i], false);
                 offset++;
             }
         }
@@ -218,15 +218,27 @@ let TemplateCompiler = class TemplateCompiler {
         const bindings = this.compileBindings(symbol);
         return new HydrateAttributeInstruction(symbol.res, bindings);
     }
-    compilePlainAttribute(symbol) {
+    compilePlainAttribute(symbol, isOnSurrogate) {
         if (symbol.command === null) {
+            const syntax = symbol.syntax;
             if (symbol.expression === null) {
+                const attrRawValue = syntax.rawValue;
+                if (isOnSurrogate) {
+                    switch (syntax.target) {
+                        case 'class':
+                            return new SetClassAttributeInstruction(attrRawValue);
+                        case 'style':
+                            return new SetStyleAttributeInstruction(attrRawValue);
+                        // todo:  define how to merge other attribute peacefully
+                        //        this is an existing feature request
+                    }
+                }
                 // a plain attribute on a surrogate
-                return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
+                return new SetAttributeInstruction(attrRawValue, syntax.target);
             }
             else {
                 // a plain attribute with an interpolation
-                return new InterpolationInstruction(symbol.expression, symbol.syntax.target);
+                return new InterpolationInstruction(symbol.expression, syntax.target);
             }
         }
         else {

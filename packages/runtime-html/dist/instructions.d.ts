@@ -41,6 +41,16 @@ export declare class SetAttributeInstruction implements ITargetedInstruction {
     value: string;
     constructor(value: string, to: string);
 }
+export declare class SetClassAttributeInstruction implements ITargetedInstruction {
+    readonly type: HTMLTargetedInstructionType.setClassAttribute;
+    readonly value: string;
+    constructor(value: string);
+}
+export declare class SetStyleAttributeInstruction implements ITargetedInstruction {
+    readonly type: HTMLTargetedInstructionType.setStyleAttribute;
+    readonly value: string;
+    constructor(value: string);
+}
 export declare class AttributeBindingInstruction implements IAttributeBindingInstruction {
     type: HTMLTargetedInstructionType.attributeBinding;
     from: string | IsBindingBehavior;

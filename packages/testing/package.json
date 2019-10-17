@@ -56,9 +56,9 @@
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "@types/node": "^10.14.13",
-    "jsdom": "^15.1.1",
+    "jsdom": "^15.2.0",
     "mocha": "~6.1.4",
     "tslib": "^1.10.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   }
 }

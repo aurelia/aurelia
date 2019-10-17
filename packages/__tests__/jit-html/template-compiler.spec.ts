@@ -87,7 +87,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           verifyInstructions(instructions, []);
           verifyInstructions(
             surrogates,
-            [{ toVerify: ['type', 'value', 'to'], type: HTT.setAttribute, value: 'h-100', to: 'class' }]
+            [{ toVerify: ['type', 'value'], type: HTT.setClassAttribute, value: 'h-100' }]
           );
         });
 

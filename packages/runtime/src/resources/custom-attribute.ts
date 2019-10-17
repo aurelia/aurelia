@@ -14,7 +14,6 @@ import {
 import {
   HooksDefinition,
   registerAliases,
-  IBindableDescription,
   mergeArrays,
   firstDefined
 } from '../definitions';
@@ -25,23 +24,23 @@ import {
 import {
   IViewModel,
 } from '../lifecycle';
-import { Bindable } from '../templating/bindable';
+import { Bindable, BindableDefinition, PartialBindableDefinition } from '../templating/bindable';
 
-type CustomAttributeDef = PartialResourceDefinition<{
+export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;
-  readonly bindables?: Record<string, IBindableDescription>;
+  readonly bindables?: Record<string, PartialBindableDefinition>;
   readonly strategy?: BindingStrategy;
   readonly hooks?: HooksDefinition;
 }>;
 
-export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, CustomAttributeDef>;
+export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
-  define<T extends Constructable>(def: CustomAttributeDef, Type: T): CustomAttributeType<T>;
-  define<T extends Constructable>(nameOrDef: string | CustomAttributeDef, Type: T): CustomAttributeType<T>;
-  annotate<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K, value: CustomAttributeDef[K]): void;
-  getAnnotation<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K): CustomAttributeDef[K];
+  define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
+  annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
+  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
 };
 
 export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => CustomAttributeType<T>;
@@ -49,10 +48,10 @@ export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => Cus
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
-export function customAttribute(definition: CustomAttributeDef): CustomAttributeDecorator;
+export function customAttribute(definition: PartialCustomAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(name: string): CustomAttributeDecorator;
-export function customAttribute(nameOrDefinition: string | CustomAttributeDef): CustomAttributeDecorator;
-export function customAttribute(nameOrDefinition: string | CustomAttributeDef): CustomAttributeDecorator {
+export function customAttribute(nameOrDefinition: string | PartialCustomAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(nameOrDefinition: string | PartialCustomAttributeDefinition): CustomAttributeDecorator {
   return function (target) {
     return CustomAttribute.define(nameOrDefinition, target);
   };
@@ -63,10 +62,10 @@ export function customAttribute(nameOrDefinition: string | CustomAttributeDef): 
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(definition: Omit<CustomAttributeDef, 'isTemplateController'>): CustomAttributeDecorator;
+export function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(name: string): CustomAttributeDecorator;
-export function templateController(nameOrDefinition: string | Omit<CustomAttributeDef, 'isTemplateController'>): CustomAttributeDecorator;
-export function templateController(nameOrDefinition: string | Omit<CustomAttributeDef, 'isTemplateController'>): CustomAttributeDecorator {
+export function templateController(nameOrDefinition: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
+export function templateController(nameOrDefinition: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return function (target) {
     return CustomAttribute.define(
       typeof nameOrDefinition === 'string'
@@ -77,7 +76,7 @@ export function templateController(nameOrDefinition: string | Omit<CustomAttribu
   };
 }
 
-export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, CustomAttributeDef> {
+export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomAttributeDefinition> {
   private constructor(
     public readonly Type: CustomAttributeType<T>,
     public readonly name: string,
@@ -85,18 +84,18 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly key: string,
     public readonly defaultBindingMode: BindingMode,
     public readonly isTemplateController: boolean,
-    public readonly bindables: Record<string, IBindableDescription>,
+    public readonly bindables: Record<string, BindableDefinition>,
     public readonly strategy: BindingStrategy,
     public readonly hooks: HooksDefinition,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    nameOrDef: string | CustomAttributeDef,
+    nameOrDef: string | PartialCustomAttributeDefinition,
     Type: CustomAttributeType<T>,
   ): CustomAttributeDefinition<T> {
 
     let name: string;
-    let def: CustomAttributeDef;
+    let def: PartialCustomAttributeDefinition;
     if (typeof nameOrDef === 'string') {
       name = nameOrDef;
       def = { name };
@@ -131,7 +130,7 @@ export const CustomAttribute: CustomAttributeKind = {
   keyFrom(name: string): string {
     return `${CustomAttribute.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDefinition: string | CustomAttributeDef, Type: T): CustomAttributeType<T> {
+  define<T extends Constructable>(nameOrDefinition: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
     const $Type = Type as CustomAttributeType<T>;
     const description = CustomAttributeDefinition.create(nameOrDefinition, $Type);
     Metadata.define(CustomAttribute.name, description, Type);
@@ -139,10 +138,10 @@ export const CustomAttribute: CustomAttributeKind = {
 
     return $Type;
   },
-  annotate<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K, value: CustomAttributeDef[K]): void {
+  annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void {
     Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
   },
-  getAnnotation<K extends keyof CustomAttributeDef>(Type: Constructable, prop: K): CustomAttributeDef[K] {
+  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
 };

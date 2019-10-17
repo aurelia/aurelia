@@ -1,4 +1,4 @@
-import { Constructable, IRegistry, PLATFORM } from '@aurelia/kernel';
+import { Constructable, IRegistry } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, eachCartesianJoin, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
 

@@ -18,7 +18,7 @@ const b = browserify({
   .plugin(tsify)
   .transform(stringify, { appliesTo: { includeExtensions: ['.html'] } });
 
-function bundle() {
+function bundle(b) {
   return b
     .bundle()
     .pipe(source('bundle.js'))

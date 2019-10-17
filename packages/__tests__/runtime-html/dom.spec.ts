@@ -9,7 +9,7 @@ function wrap(inner: string, tag: string): string {
   return `<${tag}>${inner}</${tag}>`;
 }
 
-function verifyThrows(call: () => targetChanged): targetChanged {
+function verifyThrows(call: () => void): void {
   let err;
   try {
     call();
@@ -19,7 +19,7 @@ function verifyThrows(call: () => targetChanged): targetChanged {
   assert.strictEqual(err instanceof Error, true, `err instanceof Error`);
 }
 
-function verifyDoesNotThrow(call: () => targetChanged): targetChanged {
+function verifyDoesNotThrow(call: () => void): void {
   let err;
   try {
     call();
@@ -111,7 +111,7 @@ describe('dom', function () {
   // reset doc after each test to clear any spies
   const DocumentBackup = Object.create(null);
 
-  function restoreBackups(): targetChanged {
+  function restoreBackups(): void {
     Object.assign(ctx.dom, DOMBackup);
     Object.assign(ctx.doc, DocumentBackup);
   }
@@ -543,7 +543,7 @@ function createFragment(ctx: HTMLTestContext, node: HTMLElement, level: number, 
   return root;
 }
 
-function appendTree(root: HTMLElement, node: HTMLElement, level: number, depth: number, width: number): targetChanged {
+function appendTree(root: HTMLElement, node: HTMLElement, level: number, depth: number, width: number): void {
   if (level < depth) {
     const children = appendChildren(root, node, width);
     for (const child of children) {

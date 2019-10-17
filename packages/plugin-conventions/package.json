@@ -40,7 +40,7 @@
     "@aurelia/runtime": "0.4.0-dev.201910172325",
     "modify-code": "^1.0.1",
     "parse5": "^5.1.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

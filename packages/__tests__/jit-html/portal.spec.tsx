@@ -1,6 +1,12 @@
 import { Constructable, IRegistry } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { assert, eachCartesianJoin, hJsx, HTMLTestContext, TestContext } from '@aurelia/testing';
+import {
+  assert,
+  eachCartesianJoin,
+  hJsx, // deepscan-disable-line UNUSED_IMPORT
+  HTMLTestContext,
+  TestContext
+} from '@aurelia/testing';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
 

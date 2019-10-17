@@ -14,7 +14,7 @@ import {
   PackageVersionInformationResult
 } from './common';
 const ncu = require('npm-check-updates');
-var exec = require('child_process').execSync;
+const exec = require('child_process').execSync;
 
 const args = yargs(process.argv)
   .usage("$0 --updade true|false --dir")

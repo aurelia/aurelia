@@ -242,7 +242,7 @@ export function buildDriver(benchmarkOptions: BenchmarkDriverOptions): WebDriver
   });
     // port probing fails sometimes on windows, the following driver construction avoids probing:
   const service = new chrome.ServiceBuilder().setPort(benchmarkOptions.chromePort).build();
-  var driver = chrome.Driver.createSession(caps, service);
+  const driver = chrome.Driver.createSession(caps, service);
 
   return driver;
 }

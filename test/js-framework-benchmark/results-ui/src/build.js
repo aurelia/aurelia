@@ -40,9 +40,9 @@ const libs = {
 
 // grab result files, group by framework, bench types and encode benches into arrays
 fs.readdirSync(RESULTS_PATH).filter(file => file.endsWith('.json') && filterFramework(file)).forEach(file => {
-  var r = JSON.parse(fs.readFileSync(`${RESULTS_PATH}/${file}`, 'utf8'));
-  var implGroup = r.keyed ? libs.keyed : libs.unkeyed;
-  var libName = r.framework;
+  const r = JSON.parse(fs.readFileSync(`${RESULTS_PATH}/${file}`, 'utf8'));
+  const implGroup = r.keyed ? libs.keyed : libs.unkeyed;
+  const libName = r.framework;
 
   if (implGroup[libName] == null) {
     implGroup[libName] = {
@@ -141,7 +141,7 @@ async function build() {
 
   const minJs = terser.minify(output[0].code, uglifyOpts).code;
 
-  var css = fs.readFileSync(`${__dirname}/bootstrap-reboot.css`, 'utf8').replace(/\/\*[\s\S]+?\*\/\s*/gm, '');
+  let css = fs.readFileSync(`${__dirname}/bootstrap-reboot.css`, 'utf8').replace(/\/\*[\s\S]+?\*\/\s*/gm, '');
   css += fs.readFileSync(`${__dirname}/style.css`, 'utf8');
 
   const minCss = new CleanCSS({level: 2}).minify(css).styles;

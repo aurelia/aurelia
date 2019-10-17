@@ -9,15 +9,11 @@ import {
   Reporter,
   Writable,
   Metadata,
-  Protocol,
 } from '@aurelia/kernel';
 import {
-  buildTemplateDefinition,
   InstructionTypeName,
   ITargetedInstruction,
-  ITemplateDefinition,
-  TemplateDefinition,
-  TemplatePartDefinitions,
+  PartialCustomElementDefinitionParts,
 } from './definitions';
 import {
   IDOM,
@@ -44,15 +40,23 @@ import { subscriberCollection } from './observation/subscriber-collection';
 import { RenderContext } from './render-context';
 import {
   CustomElement,
-  ICustomElementType,
   IElementProjector,
+  PartialCustomElementDefinition,
+  CustomElementDefinition,
+  CustomElementType,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
 
 export interface ITemplateCompiler {
   readonly name: string;
-  compile(dom: IDOM, definition: ITemplateDefinition, resources: IResourceDescriptions, viewCompileFlags?: ViewCompileFlags): TemplateDefinition;
+
+  compile(
+    dom: IDOM,
+    definition: PartialCustomElementDefinition,
+    resources: IResourceDescriptions,
+    viewCompileFlags?: ViewCompileFlags,
+  ): CustomElementDefinition;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
@@ -64,7 +68,7 @@ export enum ViewCompileFlags {
 }
 
 export interface ITemplateFactory<T extends INode = INode> {
-  create(parentRenderContext: IRenderContext<T>, definition: TemplateDefinition): ITemplate<T>;
+  create(parentRenderContext: IRenderContext<T>, definition: CustomElementDefinition): ITemplate<T>;
 }
 
 export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateFactory').noDefault();
@@ -77,34 +81,43 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  readonly definition: TemplateDefinition;
-  render(controller: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
-  render(viewModel: IViewModel<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
+  readonly definition: CustomElementDefinition;
+  render(controller: IController<T>, host?: T, parts?: Record<string, PartialCustomElementDefinition>, flags?: LifecycleFlags): void;
+  render(viewModel: IViewModel<T>, host?: T, parts?: Record<string, PartialCustomElementDefinition>, flags?: LifecycleFlags): void;
 }
 
 // This is the main implementation of ITemplate.
-// It is used to create instances of IController based on a compiled TemplateDefinition.
+// It is used to create instances of IController based on a compiled CustomElementDefinition.
 // TemplateDefinitions are hand-coded today, but will ultimately be the output of the
 // TemplateCompiler either through a JIT or AOT process.
-// Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
+// Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a CustomElementDefinition
 // and create instances of it on demand.
 export class CompiledTemplate<T extends INode = INode> implements ITemplate {
-  public readonly factory: INodeSequenceFactory<T>;
-  public readonly renderContext: IRenderContext<T>;
-  public readonly dom: IDOM<T>;
+  public constructor(
+    public readonly dom: IDOM<T>,
+    public readonly definition: CustomElementDefinition,
+    public readonly factory: INodeSequenceFactory<T>,
+    public readonly renderContext: IRenderContext<T>,
+  ) { }
 
-  public readonly definition: TemplateDefinition;
-
-  public constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
-    this.dom = dom;
-    this.definition = definition;
-    this.factory = factory;
-    this.renderContext = renderContext;
-  }
-
-  public render(viewModel: IViewModel<T>, host?: T, parts?: TemplatePartDefinitions, flags?: LifecycleFlags): void;
-  public render(controller: IController<T>, host?: T, parts?: TemplatePartDefinitions, flags?: LifecycleFlags): void;
-  public render(viewModelOrController: IViewModel<T> | IController<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
+  public render(
+    viewModel: IViewModel<T>,
+    host?: T,
+    parts?: PartialCustomElementDefinitionParts,
+    flags?: LifecycleFlags,
+  ): void;
+  public render(
+    controller: IController<T>,
+    host?: T,
+    parts?: PartialCustomElementDefinitionParts,
+    flags?: LifecycleFlags,
+  ): void;
+  public render(
+    viewModelOrController: IViewModel<T> | IController<T>,
+    host?: T,
+    parts?: PartialCustomElementDefinitionParts,
+    flags: LifecycleFlags = LifecycleFlags.none,
+  ): void {
     const controller = viewModelOrController instanceof Controller
       ? viewModelOrController as IController<T>
       : (viewModelOrController as IViewModel<T>).$controller;
@@ -126,6 +139,7 @@ export const noViewTemplate: ITemplate = {
   renderContext: (void 0)!,
   dom: (void 0)!,
   definition: (void 0)!,
+
   render(viewModelOrController: IViewModel | IController): void {
     const controller = viewModelOrController instanceof Controller ? viewModelOrController : (viewModelOrController as IViewModel).$controller;
     (controller as Writable<IController>).nodes = NodeSequence.empty;
@@ -157,15 +171,16 @@ export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('II
 
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer['render']>;
+
   render(
     flags: LifecycleFlags,
     dom: IDOM,
     context: IRenderContext,
     renderable: IController,
     targets: ArrayLike<INode>,
-    templateDefinition: TemplateDefinition,
+    templateDefinition: CustomElementDefinition,
     host?: INode,
-    parts?: TemplatePartDefinitions
+    parts?: PartialCustomElementDefinitionParts
   ): void;
 }
 
@@ -174,53 +189,42 @@ export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 export interface IRenderingEngine {
   getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
-    definition: TemplateDefinition,
+    definition: CustomElementDefinition,
     parentContext?: IContainer | IRenderContext<T>,
-    componentType?: ICustomElementType,
+    componentType?: CustomElementType,
   ): ITemplate<T>|undefined;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
-    source: ITemplateDefinition,
+    source: PartialCustomElementDefinition,
     parentContext?: IContainer | IRenderContext<T>,
   ): IViewFactory<T>;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
 
-type ViewFactoryRecord = { [key: number]: IViewFactory | undefined };
-
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
   public static readonly inject: readonly Key[] = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
-  private readonly compilers: Record<string, ITemplateCompiler>;
-  private readonly container: IContainer;
-  private readonly templateFactory: ITemplateFactory;
-  private readonly lifecycle: ILifecycle;
-
-  public constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
-    this.container = container;
-    this.templateFactory = templateFactory;
-    this.lifecycle = lifecycle;
-
-    this.compilers = templateCompilers.reduce(
-      (acc, item) => {
-        acc[item.name] = item;
-        return acc;
-      },
-      Object.create(null)
-    );
-  }
+  public constructor(
+    private readonly container: IContainer,
+    private readonly templateFactory: ITemplateFactory,
+    private readonly lifecycle: ILifecycle,
+    private readonly compiler: ITemplateCompiler,
+  ) { }
 
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
-    definition: TemplateDefinition,
+    definition: CustomElementDefinition,
     parentContext?: IContainer | IRenderContext<T>,
-    componentType?: ICustomElementType
+    componentType?: CustomElementType
   ): ITemplate<T> | undefined {
     if (definition == void 0) {
       return void 0;
+    }
+    if (parentContext == void 0) {
+      parentContext = this.container as ExposedContext;
     }
 
     return this.templateFromSource(dom, definition, parentContext, componentType);
@@ -228,28 +232,36 @@ export class RenderingEngine implements IRenderingEngine {
 
   public getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
-    definition: ITemplateDefinition,
+    partialDefinition: PartialCustomElementDefinition,
     parentContext?: IContainer | IRenderContext<T>
   ): IViewFactory<T> {
-    if (definition == void 0) {
+    if (partialDefinition == void 0) {
       throw new Error(`No definition provided`); // TODO: create error code
     }
 
-    const path = parentContext != null ? parentContext.path : '#';
-    const metadataKey = Protocol.metadataKeyFor(CustomElement, path);
-
-    let validSource = Metadata.getOwn(metadataKey, definition);
-    if (validSource === void 0) {
-      validSource = buildTemplateDefinition(null, definition);
-      Metadata.define(metadataKey, validSource, definition);
+    let definition: CustomElementDefinition;
+    if (partialDefinition instanceof CustomElementDefinition) {
+      definition = partialDefinition;
+    } else if (Metadata.hasOwn(CustomElement.name, partialDefinition)) {
+      definition = Metadata.getOwn(CustomElement.name, partialDefinition);
+    } else {
+      definition = CustomElementDefinition.create(partialDefinition);
+      // Make sure the full definition can be retrieved both from the partialDefinition as well as its dynamically created class
+      Metadata.define(CustomElement.name, definition, partialDefinition);
+      Metadata.define(CustomElement.name, definition, definition.Type);
     }
 
-    let factory = Metadata.getOwn(metadataKey, validSource);
+    if (parentContext == void 0) {
+      parentContext = this.container as ExposedContext;
+    }
+    const factorykey = CustomElement.keyFrom(`${parentContext.path}:factory`);
+
+    let factory = Metadata.getOwn(factorykey, definition);
     if (factory === void 0) {
-      const template = this.templateFromSource(dom, validSource, parentContext, void 0);
-      factory = new ViewFactory(validSource.name, template, this.lifecycle);
-      factory.setCacheSize(validSource.cache, true);
-      Metadata.define(metadataKey, factory, validSource);
+      const template = this.templateFromSource(dom, definition, parentContext, void 0);
+      factory = new ViewFactory(definition.name, template, this.lifecycle);
+      factory.setCacheSize(definition.cache, true);
+      Metadata.define(factorykey, factory, definition);
     }
 
     return factory as IViewFactory<T>;
@@ -257,43 +269,37 @@ export class RenderingEngine implements IRenderingEngine {
 
   private templateFromSource<T extends INode = INode>(
     dom: IDOM,
-    definition: TemplateDefinition,
-    parentContext?: IContainer | IRenderContext,
-    componentType?: ICustomElementType
+    definition: CustomElementDefinition,
+    parentContext: IContainer | IRenderContext,
+    componentType?: CustomElementType
   ): ITemplate<T> {
-    if (parentContext == void 0) {
-      parentContext = this.container as ExposedContext;
+    const templateKey = CustomElement.keyFrom(`${parentContext.path}:template`);
+
+    let template = Metadata.getOwn(templateKey, definition);
+    if (template === void 0) {
+      template = this.templateFromSourceCore(dom, definition, parentContext, componentType);
+      Metadata.define(templateKey, template, definition);
     }
 
-    const path = parentContext.path;
-    const metadataKey = Protocol.metadataKeyFor(CustomElement, path);
-    let found = Metadata.getOwn(metadataKey, definition);
-    if (found === void 0) {
-      found = this.templateFromSourceCore(dom, definition, parentContext, componentType);
-      Metadata.define(metadataKey, found, definition);
-    }
-
-    return found;
+    return template;
   }
 
   private templateFromSourceCore(
     dom: IDOM,
-    definition: TemplateDefinition,
+    definition: CustomElementDefinition,
     parentContext: IContainer | IRenderContext,
-    componentType?: ICustomElementType
+    componentType?: CustomElementType
   ): ITemplate {
     if (definition.template != void 0) {
       const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
 
-      if (definition.build.required) {
-        const compilerName = definition.build.compiler || defaultCompilerName;
-        const compiler = this.compilers[compilerName];
-
-        if (compiler === undefined) {
-          throw Reporter.error(20, compilerName);
-        }
-
-        definition = compiler.compile(dom, definition as ITemplateDefinition, renderContext.createRuntimeCompilationResources(), ViewCompileFlags.surrogate);
+      if (definition.needsCompile) {
+        definition = this.compiler.compile(
+          dom,
+          definition as PartialCustomElementDefinition,
+          renderContext.createRuntimeCompilationResources(),
+          ViewCompileFlags.surrogate,
+        );
       }
 
       return this.templateFactory.create(renderContext, definition);
@@ -398,6 +404,18 @@ export class ChildrenObserver {
   }
 }
 
+function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
+  return projector.children;
+}
+
+function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
+  return !!viewModel;
+}
+
+function defaultChildMap(node: INode, controller?: IController, viewModel?: any): any {
+  return viewModel;
+}
+
 /** @internal */
 export function filterChildren(
   projector: IElementProjector,
@@ -419,18 +437,6 @@ export function filterChildren(
   }
 
   return children;
-}
-
-function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
-  return projector.children;
-}
-
-function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
-  return !!viewModel;
-}
-
-function defaultChildMap(node: INode, controller?: IController, viewModel?: any): any {
-  return viewModel;
 }
 
 /** @internal */

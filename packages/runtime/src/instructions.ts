@@ -16,10 +16,11 @@ import {
   IRefBindingInstruction,
   ISetPropertyInstruction,
   ITargetedInstruction,
-  ITemplateDefinition,
-  TargetedInstructionType
+  TargetedInstructionType,
+  PartialCustomElementDefinitionParts
 } from './definitions';
 import { BindingMode } from './flags';
+import { PartialCustomElementDefinition } from './resources/custom-element';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation;
@@ -164,10 +165,10 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public type: TargetedInstructionType.hydrateElement;
 
   public instructions: ITargetedInstruction[];
-  public parts?: Record<string, ITemplateDefinition>;
+  public parts?: PartialCustomElementDefinitionParts;
   public res: string;
 
-  public constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>) {
+  public constructor(res: string, instructions: ITargetedInstruction[], parts?: PartialCustomElementDefinitionParts) {
     this.type = TargetedInstructionType.hydrateElement;
 
     this.instructions = instructions;
@@ -193,18 +194,18 @@ export class HydrateAttributeInstruction implements IHydrateAttributeInstruction
 export class HydrateTemplateController implements IHydrateTemplateController {
   public type: TargetedInstructionType.hydrateTemplateController;
 
-  public def: ITemplateDefinition;
+  public def: PartialCustomElementDefinition;
   public instructions: ITargetedInstruction[];
   public link?: boolean;
-  public parts?: Record<string, ITemplateDefinition>;
+  public parts?: PartialCustomElementDefinitionParts;
   public res: string;
 
   public constructor(
-    def: ITemplateDefinition,
+    def: PartialCustomElementDefinition,
     res: string,
     instructions: ITargetedInstruction[],
     link?: boolean,
-    parts?: Record<string, ITemplateDefinition>,
+    parts?: PartialCustomElementDefinitionParts,
   ) {
     this.type = TargetedInstructionType.hydrateTemplateController;
 

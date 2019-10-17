@@ -31,7 +31,7 @@
     "style-loader": "^1.0.0",
     "ts-loader": "latest",
     "typescript": "latest",
-    "url-loader": "^2.1.0",
+    "url-loader": "^2.2.0",
     "webpack": "latest",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"

@@ -39,10 +39,10 @@
     "html-webpack-plugin": "^3.2.0",
     "http-server": "0.9.0",
     "rimraf": "^3.0.0",
-    "start-server-and-test": "^1.10.2",
+    "start-server-and-test": "^1.10.6",
     "ts-loader": "^6.2.0",
-    "typescript": "^3.6.3",
-    "webpack": "^4.41.0",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.2",
     "copy-webpack-plugin": "^5.0.4"

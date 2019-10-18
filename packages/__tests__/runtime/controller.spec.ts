@@ -6,7 +6,6 @@ import {
   Interpolation,
   AccessScopeExpression,
   CustomElement,
-  ICustomElementResource,
   PartialCustomElementDefinition,
   ITargetedInstruction,
   BindingStrategy,
@@ -18,6 +17,8 @@ import {
   HydrateTemplateController,
   ToViewBindingInstruction,
   If,
+  CustomElementDefinition,
+  BindableDefinition,
 } from '@aurelia/runtime';
 import {
   parseExpression,
@@ -120,37 +121,19 @@ describe.skip('controller', function () {
     instructions: ITargetedInstruction[][],
     hooks: Readonly<HooksDefinition>,
   ) {
-    return Object.freeze<Required<PartialCustomElementDefinition>>({
+    return CustomElementDefinition.from({
       name,
       template,
-      cache: 0,
-      build: buildNotRequired,
-      bindables: Object.freeze(
-        bindables.reduce(
-          (acc, cur) => {
-            acc[cur] = Object.freeze({
-              property: cur,
-              attribute: kebabCase(cur),
-              callback: `${cur}Changed`,
-              mode: BindingMode.oneTime,
-            });
-            return acc;
-          },
-          {},
-        )
-      ) as readonly string[] & string[],
+      needsCompile: false,
+      bindables: bindables.reduce(
+        function (acc, cur) {
+          acc[cur] = BindableDefinition.create(cur, { mode: BindingMode.oneTime });
+          return acc;
+        },
+        {},
+      ),
       instructions,
-      dependencies: noDependencies,
-      surrogates: noSurrogates,
-      aliases: noAliases,
-      containerless: false,
-      isStrictBinding: true,
-      shadowOptions: noShadowOptions,
-      hasSlots: false,
-      strategy: BindingStrategy.getterSetter,
       hooks,
-      scopeParts: PLATFORM.emptyArray,
-      childrenObservers: PLATFORM.emptyObject
     });
   }
 
@@ -159,11 +142,6 @@ describe.skip('controller', function () {
     bindables: string[],
     instructions: ITargetedInstruction[][],
   ) {
-
-    const inject: readonly Key[] = Object.freeze([CallCollection]);
-
-    const kind: ICustomElementResource = CustomElement;
-
     const description = createDescription(
       'view-model',
       template,
@@ -172,28 +150,18 @@ describe.skip('controller', function () {
       allHooks,
     );
 
-    return addTracingHooks(class $ViewModel {
-      public static readonly inject = inject;
-      public static readonly kind = kind;
-      public static readonly description = description;
+    const $ViewModel = CustomElement.define(description, class {
+      public static readonly inject = [CallCollection];
 
       public $controller: Controller<Node>;
-      public readonly id: number;
-      public readonly $$calls: CallCollection;
+      public readonly id: number = nextId('au$component');
 
       public constructor(
-        calls: CallCollection,
-      ) {
-        this.id = nextId('au$component');
+        public readonly $$calls: CallCollection,
+      ) {}
+    })
 
-        this.$$calls = calls;
-      }
-
-      public static register(container: IContainer): void {
-        container.register(Registration.transient('au:custom-element:view-model', this));
-        container.register(Registration.transient(this, this));
-      }
-    });
+    return addTracingHooks($ViewModel);
   }
 
   function setup() {
@@ -461,13 +429,13 @@ describe.skip('controller', function () {
           .addCall(3, 'binding', LF.fromBind)
           .addCall(3, 'swap', true, LF.fromBind)
           .addCall(3, 'updateView', true, LF.fromBind)
-          .addCall(3, 'ensureView', void 0, ifInstance.ifFactory, LF.fromBind)
+          .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
 
           // ce #2
           .addCall(6, 'created', LF.fromBind | LF.getterSetterStrategy)
 
           // if #1 ifView
-          .addCall(5, 'hold', ifInstance.location)
+          .addCall(5, 'hold', ifInstance['location'])
 
           // if #1
           .addCall(3, 'activate', ifInstance.ifView, LF.fromBind)
@@ -862,13 +830,13 @@ describe.skip('controller', function () {
           .addCall(3, 'binding', LF.fromBind)
           .addCall(3, 'swap', true, LF.fromBind)
           .addCall(3, 'updateView', true, LF.fromBind)
-          .addCall(3, 'ensureView', void 0, ifInstance.ifFactory, LF.fromBind)
+          .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
 
           // ce #2
           .addCall(6, 'created', LF.fromBind | LF.getterSetterStrategy)
 
           // if #1 ifView
-          .addCall(5, 'hold', ifInstance.location)
+          .addCall(5, 'hold', ifInstance['location'])
 
           // if #1
           .addCall(3, 'activate', ifInstance.ifView, LF.fromBind)

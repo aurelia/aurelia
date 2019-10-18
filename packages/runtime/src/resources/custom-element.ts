@@ -57,8 +57,10 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
   define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
   define<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<T>;
+  define<T extends Constructable = Constructable>(name: string, Type?: null): CustomElementType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
+  define<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: null): CustomElementType<T>;
   getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];

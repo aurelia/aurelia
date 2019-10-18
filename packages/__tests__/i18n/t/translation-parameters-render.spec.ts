@@ -1,5 +1,5 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
-import { AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
 import { AnyBindingExpression, BindingType, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration, ICallBindingInstruction } from '@aurelia/runtime';
@@ -42,7 +42,7 @@ describe('TranslationParametersBindingCommand', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(TranslationParametersBindingCommand);
-    return container.get<IBindingCommand>(BindingCommand.keyFrom(`t-params.bind`));
+    return container.get<BindingCommandInstance>(BindingCommand.keyFrom(`t-params.bind`));
   }
 
   it('registers the `t-params.bind` command', function () {

@@ -38,10 +38,10 @@ export const DefaultComponents = [
   ITemplateFactoryRegistration
 ];
 
-export const AttrBindingBehaviorRegistration = AttrBindingBehavior as IRegistry;
-export const SelfBindingBehaviorRegistration = SelfBindingBehavior as IRegistry;
-export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as IRegistry;
-export const ComposeRegistration = Compose as IRegistry;
+export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
+export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
+export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
+export const ComposeRegistration = Compose as unknown as IRegistry;
 export const FocusRegistration = Focus as unknown as IRegistry;
 export const BlurRegistration = Blur as unknown as IRegistry;
 

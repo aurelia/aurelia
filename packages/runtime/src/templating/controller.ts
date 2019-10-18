@@ -39,7 +39,7 @@ import {
   IViewCache,
   IViewModel,
   ViewModelKind,
-  IControllerHoldParentOptions
+  MountStrategy,
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -103,10 +103,6 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   caching(flags: LifecycleFlags): void;
 }>;
 
-const defaultControllerHoldOptions: IControllerHoldParentOptions = {
-  strategy: 'append'
-};
-
 export class Controller<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>
@@ -159,8 +155,7 @@ export class Controller<
   public nodes?: INodeSequence<T>;
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
-  public locationIsContainer?: boolean;
-  public locationContentStrategy?: 'append' | 'prepend';
+  public mountStrategy: MountStrategy;
 
   // todo: refactor
   public constructor(
@@ -194,6 +189,7 @@ export class Controller<
 
     this.bindings = void 0;
     this.controllers = void 0;
+    this.mountStrategy = MountStrategy.insertBefore;
 
     this.state = State.none;
 
@@ -401,18 +397,10 @@ export class Controller<
     this.state |= State.hasLockedScope;
   }
 
-  public holdParent(location: IRenderLocation<T>, holdOptions?: IControllerHoldParentOptions): void {
-    holdOptions = holdOptions || defaultControllerHoldOptions;
+  public hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void {
     this.state = (this.state | State.canBeCached) ^ State.canBeCached;
     this.location = location;
-    this.locationIsContainer = true;
-    this.locationContentStrategy = holdOptions.strategy || 'append';
-  }
-
-  public hold(location: IRenderLocation<T>): void {
-    this.state = (this.state | State.canBeCached) ^ State.canBeCached;
-    this.location = location;
-    this.locationIsContainer = false;
+    this.mountStrategy = mountStrategy;
   }
 
   public release(flags: LifecycleFlags): boolean {
@@ -954,12 +942,8 @@ export class Controller<
     const location = this.location!; // non null is implied by the hook
     this.state |= State.isMounted;
 
-    if (this.locationIsContainer) {
-      if (this.locationContentStrategy === 'append') {
-        nodes.appendTo(location as T);
-      } else {
-        nodes.prependTo(location as T);
-      }
+    if (this.mountStrategy === MountStrategy.append) {
+      nodes.appendTo(location as T);
     } else {
       nodes.insertBefore(location);
     }

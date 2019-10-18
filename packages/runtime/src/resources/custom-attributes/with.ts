@@ -21,7 +21,8 @@ import {
 } from '../../flags';
 import {
   IController,
-  IViewFactory
+  IViewFactory,
+  MountStrategy
 } from '../../lifecycle';
 import { InlineObserversLookup } from '../../observation';
 import { Scope } from '../../observation/binding-context';
@@ -77,7 +78,7 @@ export class With<T extends INode = INode> {
 
     this.factory = factory;
     this.view = this.factory.create();
-    this.view.hold(location);
+    this.view.hold(location, MountStrategy.insertBefore);
 
     this._value = void 0;
   }

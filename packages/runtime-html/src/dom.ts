@@ -287,15 +287,6 @@ export class TextNodeSequence implements INodeSequence {
     }
   }
 
-  public prependTo(parent: Node): void {
-    if (this.isLinked && !!this.refNode) {
-      this.addToLinked();
-    } else {
-      this.isMounted = true;
-      parent.insertBefore(this.firstChild, parent.firstChild);
-    }
-  }
-
   public remove(): void {
     this.isMounted = false;
     this.firstChild.remove();
@@ -454,33 +445,6 @@ export class FragmentNodeSequence implements INodeSequence {
     } else {
       this.isMounted = true;
       parent.appendChild(this.fragment);
-    }
-  }
-
-  public prependTo(parent: Node): void {
-    const targetNode = parent.firstChild;
-    if (targetNode === null) {
-      this.appendTo(parent);
-      return;
-    }
-    if (this.isMounted) {
-      let current = this.firstChild;
-      const end = this.lastChild;
-      let next: Node;
-
-      while (current != null) {
-        next = current.nextSibling!;
-        parent.insertBefore(current, targetNode);
-
-        if (current === end) {
-          break;
-        }
-
-        current = next;
-      }
-    } else {
-      this.isMounted = true;
-      parent.insertBefore(this.fragment, targetNode);
     }
   }
 

@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IViewFactory } from '../../lifecycle';
+import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { templateController } from '../custom-attribute';
 
@@ -21,7 +21,7 @@ export class Replaceable<T extends INode = INode> {
     this.id = nextId('au$component');
 
     this.view = this.factory.create();
-    this.view.hold(location);
+    this.view.hold(location, MountStrategy.insertBefore);
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {

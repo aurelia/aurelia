@@ -509,33 +509,6 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     }
   }
 
-  public prependTo(parent: AuNode): void {
-    const targetNode = parent.firstChild;
-    if (targetNode === null) {
-      this.appendTo(parent);
-      return;
-    }
-    if (this.isMounted) {
-      let current = this.firstChild;
-      const end = this.lastChild;
-      let next: AuNode;
-
-      while (current != null) {
-        next = current.nextSibling!;
-        parent.insertBefore(current, targetNode);
-
-        if (current === end) {
-          break;
-        }
-
-        current = next;
-      }
-    } else {
-      this.isMounted = true;
-      parent.insertBefore(this.wrapper, targetNode);
-    }
-  }
-
   public remove(): void {
     if (this.isMounted) {
       this.isMounted = false;

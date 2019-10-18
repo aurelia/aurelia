@@ -25,6 +25,7 @@ import {
 import {
   IController,
   IViewFactory,
+  MountStrategy,
 } from '../../lifecycle';
 import {
   AggregateContinuationTask,
@@ -63,6 +64,8 @@ const isMountedOrAttached = State.isMounted | State.isAttached;
 const isMountedOrAttachedOrAttaching = isMountedOrAttached | State.isAttaching;
 const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
 const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
+
+const insertBeforeMountStrategy = MountStrategy.insertBefore;
 
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
 
@@ -536,7 +539,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     if (indexMap === void 0) {
       for (let i = 0, ii = views.length; i < ii; ++i) {
         view = views[i];
-        view.hold(location);
+        view.hold(location, insertBeforeMountStrategy);
         view.nodes!.unlink();
         view.attach(flags);
       }
@@ -544,7 +547,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       for (let i = 0, ii = views.length; i < ii; ++i) {
         if (indexMap[i] !== i) {
           view = views[i];
-          view.hold(location);
+          view.hold(location, insertBeforeMountStrategy);
           view.nodes!.unlink();
           view.attach(flags);
         }
@@ -560,7 +563,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.$controller.lifecycle.attached.begin();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
-      view.hold(location);
+      view.hold(location, insertBeforeMountStrategy);
       view.nodes!.unlink();
       view.attach(flags);
     }
@@ -590,7 +593,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       view = views[i];
       if (indexMap[i] === -2) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.hold(location);
+        view.hold(location, insertBeforeMountStrategy);
         view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);

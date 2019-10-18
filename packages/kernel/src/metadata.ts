@@ -9,11 +9,11 @@ function ensureObject(target: any): boolean {
       return target;
     case 'object':
       if (target === null) {
-        throw new TypeError();
+        throw new TypeError(`Attempted to perform get() or define() metadata operation on null value.`);
       }
       return target;
     default:
-      throw new TypeError();
+      throw new TypeError(`Attempted to perform get() or define() metadata operation on ${typeof target} value: ${target}.`);
   }
 }
 
@@ -35,7 +35,7 @@ function ensurePropertyKeyOrUndefined(propertyKey: any): undefined | string | sy
     case 'symbol':
       return propertyKey;
     default:
-      throw new TypeError();
+      throw new TypeError(`Invalid metadata propertyKey: ${propertyKey}.`);
   }
 }
 

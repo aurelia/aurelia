@@ -95,10 +95,8 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   }
 
   public addParts(parts: PartialCustomElementDefinitionParts): void {
-    if (this.parts === PLATFORM.emptyObject) {
-      this.parts = { ...parts };
-    } else {
-      Object.assign(this.parts, parts);
+    if (Object.keys(parts).length > 0) {
+      this.parts = { ...this.parts, ...parts };
     }
   }
 }

@@ -701,7 +701,7 @@ export const AuDOMTest = {
   },
   createTextDefinition(expression: string, name: string = `${expression}-text`): PartialCustomElementDefinition {
     return {
-      build: { required: false },
+      needsCompile: false,
       name,
       template: AuNode.createText().makeTarget(),
       instructions: [[new AuTextInstruction(parseExpression(expression))]]
@@ -709,7 +709,7 @@ export const AuDOMTest = {
   },
   createTemplateControllerDefinition(instruction: HydrateTemplateController, name: string = instruction.res): PartialCustomElementDefinition {
     return {
-      build: { required: false },
+      needsCompile: false,
       name,
       template: AuNode.createMarker(),
       instructions: [[instruction]]
@@ -721,7 +721,7 @@ export const AuDOMTest = {
       template.appendChild(AuNode.createMarker());
     });
     return {
-      build: { required: false },
+      needsCompile: false,
       name,
       template,
       instructions

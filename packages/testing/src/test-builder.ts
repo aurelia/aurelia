@@ -22,7 +22,7 @@ import {
   PartialCustomAttributeDefinition,
   IController,
 
-  ICustomElementType,
+  CustomElementType,
 
   IDirtyChecker,
   IHydrateElementInstruction,

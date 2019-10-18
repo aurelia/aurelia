@@ -13,8 +13,7 @@ export class AppPage {
   }
 
   private static getDescriptionInput() {
-    const input = this.waitForElement('#description');
-    return input;
+    return this.waitForElement('#description');
   }
 
   public static setDescriptionInputValue(value: string) {
@@ -31,8 +30,7 @@ export class AppPage {
   }
 
   private static getCountInput() {
-    const input = this.waitForElement('#count');
-    return input;
+    return this.waitForElement('#count');
   }
 
   public static setCountInputValue(value: number) {
@@ -59,8 +57,7 @@ export class AppPage {
   }
 
   private static getClearTodosButton() {
-    const button = this.waitForElement('#clearTodos');
-    return button;
+    return this.waitForElement('#clearTodos');
   }
 
   public static clearTodos() {
@@ -71,8 +68,7 @@ export class AppPage {
 
   private static getToggleTodosButton() {
     logAction(`click Toggle todos`);
-    const button = this.waitForElement('#toggleTodos');
-    return button;
+    return this.waitForElement('#toggleTodos');
   }
 
   public static toggleTodos() {
@@ -82,8 +78,7 @@ export class AppPage {
   }
 
   private static getDescriptionInterpolation() {
-    const text = this.waitForElement('#descriptionText');
-    return text;
+    return this.waitForElement('#descriptionText');
   }
 
   public static getDescriptionInterpolationText() {
@@ -98,13 +93,11 @@ export class AppPage {
   }
 
   public static getTodos() {
-    const todos = this.waitForElements('.todo');
-    return todos;
+    return this.waitForElements('.todo');
   }
 
   public static getTodoElement(id: number) {
-    const todo = this.waitForElement(`#todo-${id}`);
-    return todo;
+    return this.waitForElement(`#todo-${id}`);
   }
 
   public static clickTodoDoneCheckbox(id: number) {

@@ -154,13 +154,12 @@ async function runLighthouse(framework: FrameworkData, benchmarkOptions: Benchma
     }
     // console.log("lh result", results);
 
-    const LighthouseData: LighthouseData = {
+    return {
       TimeToConsistentlyInteractive: extractRawValue(results.lhr, 'interactive'),
       ScriptBootUpTtime: Math.max(16, extractRawValue(results.lhr, 'bootup-time')),
       MainThreadWorkCost: extractRawValue(results.lhr, 'mainthread-work-breakdown'),
       TotalKiloByteWeight: extractRawValue(results.lhr, 'total-byte-weight')/1024.0
     };
-    return LighthouseData;
   } catch (error) {
     console.log("error running lighthouse", error);
     throw error;
@@ -292,8 +291,7 @@ async function snapMemorySize(driver: WebDriver): Promise<number> {
     selfSize += nodes[k];
   }
 
-  const memory = selfSize / 1024.0 / 1024.0;
-  return memory;
+  return selfSize / 1024.0 / 1024.0;
 }
 
 async function runBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData): Promise<any> {

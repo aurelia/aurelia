@@ -16,6 +16,8 @@ import { LifecycleFlags } from '../flags';
 import { IScope } from '../observation';
 import { IBinding } from '../lifecycle';
 
+export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
+
 export type BindingBehaviorInstance<T extends {} = {}> = {
   bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
@@ -23,14 +25,21 @@ export type BindingBehaviorInstance<T extends {} = {}> = {
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
+  isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
+  getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
 };
 
 export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
 
-export function bindingBehavior(name: string): BindingBehaviorDecorator {
+export function bindingBehavior(definition: PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(name: string): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrDefinition: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrDefinition: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator {
   return function (target) {
-    return BindingBehavior.define(name, target);
+    return BindingBehavior.define(nameOrDefinition, target);
   };
 }
 
@@ -43,7 +52,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    nameOrDef: string | PartialResourceDefinition,
+    nameOrDef: string | PartialBindingBehaviorDefinition,
     Type: BindingBehaviorType<T>,
   ): BindingBehaviorDefinition<T> {
     let name: string;
@@ -73,12 +82,23 @@ export const BindingBehavior: BindingBehaviorKind = {
   keyFrom(name: string): string {
     return `${BindingBehavior.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDef: string | BindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
+  isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
+    return typeof value === 'function' && Metadata.hasOwn(BindingBehavior.name, value);
+  },
+  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const $Type = Type as BindingBehaviorType<T>;
     const description = BindingBehaviorDefinition.create(nameOrDef, $Type);
     Metadata.define(BindingBehavior.name, description, Type);
     Protocol.resource.appendTo(Type, BindingBehavior.name);
 
     return $Type;
+  },
+  getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
+    const def = Metadata.getOwn(BindingBehavior.name, Type);
+    if (def === void 0) {
+      throw new Error(`No definition found for type ${Type.name}`);
+    }
+
+    return def;
   },
 };

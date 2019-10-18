@@ -192,6 +192,7 @@ export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorDefinition,
+  PartialBindingBehaviorDefinition,
   BindingBehaviorKind,
   BindingBehaviorDecorator,
   BindingBehaviorInstance,
@@ -267,6 +268,7 @@ export {
 export {
   ValueConverter,
   ValueConverterDefinition,
+  PartialValueConverterDefinition,
   ValueConverterKind,
   ValueConverterDecorator,
   ValueConverterInstance,

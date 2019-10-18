@@ -13,6 +13,8 @@ import {
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
 
+export type PartialValueConverterDefinition = PartialResourceDefinition;
+
 export type ValueConverterInstance<T extends {} = {}> = {
   toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
@@ -20,14 +22,21 @@ export type ValueConverterInstance<T extends {} = {}> = {
 
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterKind = IResourceKind<ValueConverterType, ValueConverterDefinition> & {
+  isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never);
   define<T extends Constructable>(name: string, Type: T): ValueConverterType<T>;
+  define<T extends Constructable>(def: PartialValueConverterDefinition, Type: T): ValueConverterType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T>;
+  getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T>;
 };
 
 export type ValueConverterDecorator = <T extends Constructable>(Type: T) => ValueConverterType<T>;
 
-export function valueConverter(name: string): ValueConverterDecorator {
+export function valueConverter(definition: PartialValueConverterDefinition): ValueConverterDecorator;
+export function valueConverter(name: string): ValueConverterDecorator;
+export function valueConverter(nameOrDefinition: string | PartialValueConverterDefinition): ValueConverterDecorator;
+export function valueConverter(nameOrDefinition: string | PartialValueConverterDefinition): ValueConverterDecorator {
   return function (target) {
-    return ValueConverter.define(name, target);
+    return ValueConverter.define(nameOrDefinition, target);
   };
 }
 
@@ -70,12 +79,23 @@ export const ValueConverter: ValueConverterKind = {
   keyFrom(name: string): string {
     return `${ValueConverter.name}:${name}`;
   },
-  define<T extends Constructable>(nameOrDef: string | ValueConverterDefinition, Type: T): ValueConverterType<T> {
+  isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
+    return typeof value === 'function' && Metadata.hasOwn(ValueConverter.name, value);
+  },
+  define<T extends Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const $Type = Type as ValueConverterType<T>;
     const description = ValueConverterDefinition.create(nameOrDef, $Type);
     Metadata.define(ValueConverter.name, description, Type);
     Protocol.resource.appendTo(Type, ValueConverter.name);
 
     return $Type;
+  },
+  getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
+    const def = Metadata.getOwn(ValueConverter.name, Type);
+    if (def === void 0) {
+      throw new Error(`No definition found for type ${Type.name}`);
+    }
+
+    return def;
   },
 };

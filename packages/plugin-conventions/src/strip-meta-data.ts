@@ -1,5 +1,5 @@
 import { kebabCase } from '@aurelia/kernel';
-import { BindingMode, IBindableDescription } from '@aurelia/runtime';
+import { BindingMode, PartialBindableDefinition } from '@aurelia/runtime';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
 interface IStrippedHtml {
@@ -7,7 +7,7 @@ interface IStrippedHtml {
   deps: string[];
   shadowMode: 'open' | 'closed' | null;
   containerless: boolean;
-  bindables: Record<string, IBindableDescription>;
+  bindables: Record<string, PartialBindableDefinition>;
   aliases: string[];
 }
 
@@ -15,7 +15,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
   let shadowMode: 'open' | 'closed' | null = null;
   let containerless: boolean = false;
-  const bindables: Record<string, IBindableDescription> = {};
+  const bindables: Record<string, PartialBindableDefinition> = {};
   const aliases: string[] = [];
   const toRemove: [number, number][] = [];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
@@ -161,12 +161,12 @@ function stripAlias(node: DefaultTreeElement, cb: (bindables: string[], ranges: 
 // <template bindable="firstName,lastName">
 // <template bindable="firstName,
 //                     lastName">
-function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, IBindableDescription>, ranges: [number, number][]) => void) {
+function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, PartialBindableDefinition>, ranges: [number, number][]) => void) {
   return stripTag(node, 'bindable', (attrs, ranges) => {
     const { name, mode, attribute } = attrs;
-    const bindables: Record<string, IBindableDescription> = {};
+    const bindables: Record<string, PartialBindableDefinition> = {};
     if (name) {
-      const description: IBindableDescription = {};
+      const description: PartialBindableDefinition = {};
       if (attribute) description.attribute = attribute;
       const bindingMode = toBindingMode(mode);
       if (bindingMode) description.mode = bindingMode;
@@ -174,7 +174,7 @@ function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, 
     }
     cb(bindables, ranges);
   }) || stripAttribute(node, 'template', 'bindable', (value, ranges) => {
-    const bindables: Record<string, IBindableDescription> = {};
+    const bindables: Record<string, PartialBindableDefinition> = {};
     const names = value.split(',').map(s => s.trim()).filter(s => s);
     names.forEach(name => bindables[name] = {});
     cb(bindables, ranges);

@@ -143,7 +143,7 @@ describe('BrowserNavigator', function () {
     sut.activate({ callback });
     await wait();
 
-    const length = sut['pendingCalls'].length;
+    const length: number = sut['pendingCalls'].length;
     sut.pushNavigatorState(toNavigatorState('one')).catch((error: Error) => { throw error; }); // 1 item, cost 1
     sut.replaceNavigatorState(toNavigatorState('two')).catch((error: Error) => { throw error; }); // 1 item, cost 1
     sut.go(-1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1

@@ -190,7 +190,10 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
     '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/promise-function-async': 'warn',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
+    '@typescript-eslint/require-array-sort-compare': 'warn',
+    '@typescript-eslint/restrict-plus-operands': 'warn',
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
     '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far
@@ -232,6 +235,7 @@ module.exports = {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/typedef': 'off',
       'compat/compat': 'off'
     }

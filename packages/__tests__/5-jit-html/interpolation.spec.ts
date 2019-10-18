@@ -194,10 +194,10 @@ describe('interpolation', function () {
         component.value = `${component.value || ``}1`;
 
       } else {
-        component.value = (component.value || 0) + 1;
+        component.value = (component.value as number || 0) + 1;
       }
       scheduler.getRenderTaskQueue().flush();
-      assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange && x.expectedValueAfterChange.toString()) || (x.expected as any + 1).toString(), `host.textContent`);
+      assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange && x.expectedValueAfterChange.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
       await tearDown();
     });
     if (x.expectedStrictMode) {

@@ -22,11 +22,26 @@ interface Timingresult {
   evt?: any;
 }
 
+interface IRelevantEvent {
+  method?: string;
+  params: {
+    args: {
+      data: {
+        message: string;
+        type: string;
+      };
+      usedHeapSizeAfter: unknown;
+    };
+    dur: number;
+    name: string;
+    ts: number;
+  };
+}
 function extractRelevantEvents(entries: logging.Entry[]) {
   const filteredEvents: Timingresult[] = [];
   const protocolEvents: any[] = [];
   entries.forEach(x => {
-    const e = JSON.parse(x.message).message;
+    const e: IRelevantEvent = JSON.parse(x.message).message;
     if (config.LOG_DETAILS) console.log(JSON.stringify(e));
     if (e.method === 'Tracing.dataCollected') {
       protocolEvents.push(e);

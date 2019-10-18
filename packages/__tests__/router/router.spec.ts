@@ -6,7 +6,7 @@ import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testin
 
 describe('Router', function () {
   function getModifiedRouter(container) {
-    const router = container.get(IRouter);
+    const router = container.get(IRouter) as IRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;
@@ -153,7 +153,7 @@ describe('Router', function () {
 
     const { scheduler, host, router, tearDown } = await setup();
 
-    router.goto('uier@left');
+    router.goto('uier@left').catch((error) => { throw error; });
     const last = router.goto('bar@left');
     // Depending on browser/node, there can be 1 or 2 in the queue here
     assert.notStrictEqual(router.navigator.queued, 0, `router.navigator.queued`);

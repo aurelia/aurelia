@@ -280,14 +280,13 @@ export const CustomElement: CustomElementKind = {
   behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
     return (node as CustomElementHost<T>).$controller;
   },
-  define<T extends Constructable>(nameOrDefinition: string | PartialCustomElementDefinition, Type: T): CustomElementType<T> {
-    const $Type = Type as CustomElementType<T>;
-    const description = CustomElementDefinition.create(nameOrDefinition, $Type);
-    Metadata.define(CustomElement.name, description, Type);
+  define<T extends Constructable>(nameOrDefinition: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
+    const description = CustomElementDefinition.create(nameOrDefinition, Type as Constructable | null);
+    Metadata.define(CustomElement.name, description, description.Type);
     Metadata.define(CustomElement.name, description, description);
-    Protocol.resource.appendTo(Type, CustomElement.name);
+    Protocol.resource.appendTo(description.Type, CustomElement.name);
 
-    return $Type;
+    return description.Type as CustomElementType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T> {
     const def = Metadata.getOwn(CustomElement.name, Type);

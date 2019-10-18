@@ -78,5 +78,6 @@ const watcher = chokidar.watch(watched, {
 });
 watcher.on('all', handleChange);
 if (!toWatch) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   watcher.on('ready', watcher.close);
 }

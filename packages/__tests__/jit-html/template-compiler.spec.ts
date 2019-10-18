@@ -30,7 +30,9 @@ import {
   PartialCustomElementDefinition,
   PrimitiveLiteralExpression,
   TargetedInstructionType as TT,
-  IHydrateLetElementInstruction
+  IHydrateLetElementInstruction,
+  ITargetedInstruction,
+  PartialCustomAttributeDefinition
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -46,8 +48,6 @@ export function createAttribute(name: string, value: string): Attr {
   attr.value = value;
   return attr;
 }
-
-const buildNotRequired = { required: false, compiler: 'default' };
 
 describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let ctx: HTMLTestContext;
@@ -400,7 +400,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
       return sut.compile(dom, templateDefinition, resources);
     }
 
-    function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
+    function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
       assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
       for (let i = 0, ii = actual.length; i < ii; ++i) {
         const actualInst = actual[i];
@@ -475,7 +475,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         name: target,
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
-        build: buildNotRequired,
+        needsCompile: false,
         scopeParts: [],
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -488,7 +488,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
     const output: PartialCustomElementDefinition = {
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
-      build: buildNotRequired,
+      needsCompile: false,
       scopeParts: [],
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -509,7 +509,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         name: target,
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
-        build: buildNotRequired,
+        needsCompile: false,
         scopeParts: [],
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -523,14 +523,24 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
     const output: PartialCustomElementDefinition = {
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]],
-      build: buildNotRequired,
+      needsCompile: false,
       scopeParts: [],
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
 }
 
-function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+function createCustomElement(
+  ctx: HTMLTestContext,
+  tagName: string,
+  finalize: boolean,
+  attributes: readonly [string, string][],
+  childInstructions: readonly any[],
+  siblingInstructions: readonly any[],
+  nestedElInstructions: readonly any[],
+  childOutput?,
+  childInput?,
+): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
   const instruction = {
     type: TT.hydrateElement,
     res: tagName,
@@ -540,21 +550,33 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
   const input = {
+    name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
   const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
+    name: 'unnamed',
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
-    build: buildNotRequired,
+    needsCompile: false,
     scopeParts: [],
   };
   return [input, output];
 }
 
-function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+function createCustomAttribute(
+  ctx: HTMLTestContext,
+  resName: string,
+  finalize: boolean,
+  attributes: readonly [string, string][],
+  childInstructions: readonly any[],
+  siblingInstructions: readonly any[],
+  nestedElInstructions: readonly any[],
+  childOutput?,
+  childInput?,
+): [PartialCustomAttributeDefinition, PartialCustomAttributeDefinition] {
   const instruction = {
     type: TT.hydrateAttribute,
     res: resName,
@@ -563,15 +585,17 @@ function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: 
   const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
   const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput && childInput.template) || ''}</div>`;
   const input = {
+    name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
   const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
+    name: 'unnamed',
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
-    build: buildNotRequired,
+    needsCompile: false,
     scopeParts: [],
   };
   return [input, output];
@@ -641,7 +665,7 @@ type CTCResult = [PartialCustomElementDefinition, PartialCustomElementDefinition
 type Bindables = { [pdName: string]: BindableDefinition };
 
 describe(`TemplateCompiler - combinations`, function () {
-  function setup(ctx: HTMLTestContext, ...globals: IRegistry[]) {
+  function setup(ctx: HTMLTestContext, ...globals: any[]) {
     const container = ctx.container;
     container.register(...globals);
     const sut = ctx.templateCompiler;
@@ -689,7 +713,7 @@ describe(`TemplateCompiler - combinations`, function () {
           template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],
           surrogates: [],
-          build: buildNotRequired,
+          needsCompile: false,
           scopeParts: [],
         };
 
@@ -760,7 +784,7 @@ describe(`TemplateCompiler - combinations`, function () {
           template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
           instructions: [[instruction]],
           surrogates: [],
-          build: buildNotRequired,
+          needsCompile: false,
           scopeParts: [],
         };
 
@@ -1024,7 +1048,7 @@ describe(`TemplateCompiler - combinations`, function () {
         const output = {
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
-          build: buildNotRequired,
+          needsCompile: false,
           scopeParts: [],
         };
         // enableTracing();

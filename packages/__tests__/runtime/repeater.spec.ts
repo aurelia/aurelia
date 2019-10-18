@@ -623,7 +623,7 @@ describe(`Repeat`, function () {
           sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
           sut.$controller = Controller.forCustomAttribute(sut, container);
         }
-        binding.target = sut;
+        binding.target = sut as any;
 
         // -- Round 1 --
         let scope = Scope.create(baseFlags, BindingContext.create(baseFlags));

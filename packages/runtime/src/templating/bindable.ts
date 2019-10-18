@@ -25,7 +25,7 @@ export type PartialBindableDefinition = {
  *
  * @param config - The overrides
  */
-export function bindable(config?: PartialBindableDefinition): (target: {}, prop: symbol | string) => PropertyDecorator | ClassDecorator;
+export function bindable(config?: PartialBindableDefinition): PropertyDecorator;
 /**
  * Decorator: Specifies a bindable property on a class.
  *

@@ -49,7 +49,7 @@ export {
 
   bindingCommand,
   // BindingCommandResource,
-  IBindingCommand,
+  BindingCommandInstance,
   // IBindingCommandDefinition,
   // IBindingCommandResource,
   // IBindingCommandType,
@@ -516,7 +516,7 @@ export {
 
   bindingBehavior,
   BindingBehavior,
-  IBindingBehavior,
+  BindingBehaviorInstance,
   // IBindingBehaviorDefinition,
   // IBindingBehaviorResource,
   // IBindingBehaviorType,
@@ -570,7 +570,7 @@ export {
   // IProjectorLocator,
   useShadowDOM,
 
-  IValueConverter,
+  ValueConverterInstance,
   // IValueConverterDefinition,
   // IValueConverterResource,
   // IValueConverterType,

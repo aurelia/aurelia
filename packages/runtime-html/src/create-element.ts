@@ -1,15 +1,15 @@
 import {
   Constructable,
   IContainer,
-  IRegistry
+  IRegistry,
+  Key
 } from '@aurelia/kernel';
 import {
-  buildTemplateDefinition,
   CustomElement,
   HydrateElementInstruction,
-  IBindableDescription,
+  BindableDefinition,
   IController,
-  ICustomElementType,
+  CustomElementType,
   IDOM,
   INode,
   IRenderContext,
@@ -25,8 +25,6 @@ import {
   isHTMLTargetedInstruction
 } from './definitions';
 import { SetAttributeInstruction } from './instructions';
-
-const slice = Array.prototype.slice;
 
 export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
   dom: IDOM<T>,
@@ -47,34 +45,29 @@ export function createElement<T extends INode = Node, C extends Constructable = 
  * RenderPlan. Todo: describe goal of this class
  */
 export class RenderPlan<T extends INode = Node> {
-  private readonly dom: IDOM<T>;
-  private readonly dependencies: readonly IRegistry[];
-  private readonly instructions: HTMLTargetedInstruction[][];
-  private readonly node: T;
-
-  private lazyDefinition?: CustomElementDefinition;
+  private lazyDefinition?: CustomElementDefinition = void 0;
 
   public constructor(
-    dom: IDOM<T>,
-    node: T,
-    instructions: HTMLTargetedInstruction[][],
-    dependencies: readonly IRegistry[]
-  ) {
-    this.dom = dom;
-    this.dependencies = dependencies;
-    this.instructions = instructions;
-    this.node = node;
-    this.lazyDefinition = void 0;
-  }
+    private readonly dom: IDOM<T>,
+    private readonly node: T,
+    private readonly instructions: HTMLTargetedInstruction[][],
+    private readonly dependencies: Key[]
+  ) {}
 
   public get definition(): CustomElementDefinition {
     if (this.lazyDefinition === void 0) {
-      this.lazyDefinition = buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies);
+      this.lazyDefinition = CustomElementDefinition.create({
+        name: 'unnamed',
+        template: this.node,
+        needsCompile: typeof this.node === 'string',
+        instructions: this.instructions,
+        dependencies: this.dependencies,
+      });
     }
     return this.lazyDefinition;
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T>|undefined {
+  public getElementTemplate(engine: IRenderingEngine, Type?: CustomElementType): ITemplate<T>|undefined {
     return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
   }
 
@@ -87,7 +80,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   /** @internal */
-  public mergeInto(parent: T, instructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
+  public mergeInto(parent: T, instructions: HTMLTargetedInstruction[][], dependencies: Key[]): void {
     this.dom.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
@@ -129,16 +122,17 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
 
 function createElementForType<T extends INode>(
   dom: IDOM<T>,
-  Type: ICustomElementType,
+  Type: CustomElementType,
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
 ): RenderPlan<T> {
-  const tagName = Type.description.name;
+  const definition = CustomElement.getDefinition(Type);
+  const tagName = definition.name;
   const instructions: HTMLTargetedInstruction[] = [];
   const allInstructions = [instructions];
-  const dependencies: IRegistry[] = [];
+  const dependencies: Key[] = [];
   const childInstructions: HTMLTargetedInstruction[] = [];
-  const bindables = Type.description.bindables as Record<string, IBindableDescription>;
+  const bindables = definition.bindables;
   const element = dom.createElement(tagName);
 
   dom.makeTarget(element);
@@ -179,7 +173,13 @@ function createElementForType<T extends INode>(
   return new RenderPlan<T>(dom, element, allInstructions, dependencies);
 }
 
-function addChildren<T extends INode>(dom: IDOM<T>, parent: T, children: ArrayLike<unknown>, allInstructions: HTMLTargetedInstruction[][], dependencies: IRegistry[]): void {
+function addChildren<T extends INode>(
+  dom: IDOM<T>,
+  parent: T,
+  children: ArrayLike<unknown>,
+  allInstructions: HTMLTargetedInstruction[][],
+  dependencies: Key[],
+): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
     const current = children[i];
 

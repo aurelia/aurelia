@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-parcel",
-  "version": "0.4.0-dev.201910172358",
+  "version": "0.4.0-dev.201910180014",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,8 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201910172358",
-    "@aurelia/runtime": "0.4.0-dev.201910172358"
+    "@aurelia/kernel": "0.4.0-dev.201910180014",
+    "@aurelia/runtime": "0.4.0-dev.201910180014"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

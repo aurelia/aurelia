@@ -24,9 +24,9 @@ describe('Queue', function () {
       }
     };
     const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
-    q.enqueue(new Animal('dog', 'Pluto'));
+    q.enqueue(new Animal('dog', 'Pluto')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
-    q.enqueue(new Animal('cat', 'Figaro'));
+    q.enqueue(new Animal('cat', 'Figaro')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(110);
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
@@ -44,12 +44,12 @@ describe('Queue', function () {
       }
     };
     const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
-    q.enqueue(new Animal('dog', 'Pluto'));
+    q.enqueue(new Animal('dog', 'Pluto')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
-    q.enqueue(new Animal('cat', 'Figaro'));
+    q.enqueue(new Animal('cat', 'Figaro')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     assert.strictEqual(q.pending[0].cost, 1, `q.pending[0].cost`);
-    q.enqueue(new Animal('cat', 'Figaro II'), 2);
+    q.enqueue(new Animal('cat', 'Figaro II'), 2).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 2, `q.pending.length`);
     assert.strictEqual(q.pending[1].cost, 2, `q.pending[1].cost`);
     q.enqueue([

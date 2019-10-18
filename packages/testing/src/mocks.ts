@@ -329,7 +329,7 @@ export class MockBrowserHistoryLocation {
   private notifyChange() {
     if (this.changeCallback) {
       console.log('MOCK: notifyChange', this.path, this.state);
-      this.changeCallback(null as any);
+      this.changeCallback(null as any).catch((error: Error) => { throw error; });
     }
   }
 }

@@ -70,6 +70,7 @@ module.exports = {
     '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
     '@typescript-eslint/no-empty-function': 'error',
     '@typescript-eslint/no-extraneous-class': 'off',
+    '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-for-in-array': 'error',
     '@typescript-eslint/no-misused-new': 'error',
     '@typescript-eslint/no-misused-promises': 'error',
@@ -181,7 +182,6 @@ module.exports = {
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
     '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-floating-promises': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',

@@ -1,5 +1,5 @@
-import { IRegistry, Reporter } from '@aurelia/kernel';
-import { BindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { Reporter } from '@aurelia/kernel';
+import { IScope, LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
 import { Listener } from '../../binding/listener';
 import { findOriginalEventTarget } from '../../observation/event-manager';
 
@@ -18,9 +18,8 @@ export type SelfableBinding = Listener & {
   selfEventCallSource: Listener['callSource'];
 };
 
+@bindingBehavior('self')
 export class SelfBindingBehavior {
-  public static register: IRegistry['register'];
-
   public bind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
     if (!binding.callSource || !binding.targetEvent) {
       throw Reporter.error(8);
@@ -35,4 +34,3 @@ export class SelfBindingBehavior {
     binding.selfEventCallSource = null!;
   }
 }
-BindingBehavior.define('self', SelfBindingBehavior);

@@ -5,7 +5,7 @@ import {
   AttrSyntax,
   BindableInfo,
   IAttributeParser,
-  IBindingCommand,
+  BindingCommandInstance,
   ResourceModel,
   SymbolFlags,
   Char,
@@ -531,7 +531,7 @@ export class TemplateBinder {
   private bindCustomAttribute(
     attrSyntax: AttrSyntax,
     attrInfo: AttrInfo,
-    command: IBindingCommand | null,
+    command: BindingCommandInstance | null,
     manifest: ElementSymbol,
   ): void {
     let symbol: CustomAttributeSymbol;

@@ -190,7 +190,9 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     }
 
     if (Type === null) {
-      Type = class HTMLOnlyElement { /* HTML Only */ } as CustomElementType<T>;
+      Type = typeof (nameOrDef as CustomElementDefinition<T>).Type === 'function'
+        ? (nameOrDef as CustomElementDefinition<T>).Type
+        : class HTMLOnlyElement { /* HTML Only */ } as CustomElementType<T>;
     }
 
     return new CustomElementDefinition(
@@ -223,6 +225,36 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       firstDefined(CustomElement.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, BindingStrategy.getterSetter),
       firstDefined(CustomElement.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)),
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), def.scopeParts, Type.scopeParts),
+    );
+  }
+
+  public static from<T extends Constructable = Constructable>(
+    def: PartialCustomElementDefinition | CustomElementDefinition<T>,
+  ): CustomElementDefinition<T> {
+    const Type = typeof (def as CustomElementDefinition<T>).Type === 'function'
+      ? (def as CustomElementDefinition<T>).Type
+      : class HTMLOnlyElement { /* HTML Only */ } as CustomElementType<T>;
+
+    return new CustomElementDefinition(
+      Type,
+      def.name,
+      mergeArrays(def.aliases),
+      CustomElement.keyFrom(def.name),
+      firstDefined(def.cache, 0),
+      firstDefined(def.template, null),
+      mergeArrays(def.instructions),
+      mergeArrays(def.dependencies),
+      firstDefined(def.needsCompile, true),
+      mergeArrays(def.surrogates),
+      Bindable.from(def.bindables),
+      Children.from(def.childrenObservers),
+      firstDefined(def.containerless, false),
+      firstDefined(def.isStrictBinding, false),
+      firstDefined(def.shadowOptions, null),
+      firstDefined(def.hasSlots, false),
+      firstDefined(def.strategy, BindingStrategy.getterSetter),
+      firstDefined(def.hooks, new HooksDefinition(Type.prototype)),
+      mergeArrays(def.scopeParts),
     );
   }
 

@@ -10,12 +10,12 @@ import {
   mergeDistinct,
   PLATFORM,
   Registration,
+  mergeArrays,
 } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
-  IBuildInstruction,
   IDOM,
   IExpressionParser,
   IInterpolationExpression,
@@ -52,15 +52,36 @@ import {
   LetElementSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
-  ReplacePartSymbol,
   TemplateControllerSymbol,
   TextSymbol
 } from './semantic-model';
 
-const buildNotRequired: IBuildInstruction = Object.freeze({
-  required: false,
-  compiler: 'default'
-});
+class CustomElementCompilationUnit {
+  public readonly instructions: ITargetedInstruction[][] = [];
+  public readonly surrogates: ITargetedInstruction[] = [];
+  public readonly scopeParts: string[] = [];
+  public readonly parts: Record<string, PartialCustomElementDefinition> = {};
+
+  public constructor(
+    public readonly partialDefinition: PartialCustomElementDefinition,
+    public readonly surrogate: PlainElementSymbol,
+    public readonly template: unknown,
+  ) {}
+
+  public toDefinition(): CustomElementDefinition {
+    const def = this.partialDefinition;
+
+    return CustomElementDefinition.from({
+      ...def,
+      instructions: mergeArrays(def.instructions, this.instructions),
+      surrogates: mergeArrays(def.surrogates, this.surrogates),
+      scopeParts: mergeArrays(def.scopeParts, this.scopeParts),
+      template: this.template,
+      needsCompile: false,
+      hasSlots: this.surrogate.hasSlots,
+    });
+  }
+}
 
 /**
  * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
@@ -69,13 +90,7 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
  */
 export class TemplateCompiler implements ITemplateCompiler {
 
-  /**
-   * The instructions array for the currently instruction-collecting `PartialCustomElementDefinition`
-   */
-  private instructionRows: HTMLInstructionRow[];
-
-  private scopeParts: string[];
-  private parts: Record<string, PartialCustomElementDefinition>;
+  private compilation!: CustomElementCompilationUnit;
 
   public get name(): string {
     return 'default';
@@ -86,72 +101,56 @@ export class TemplateCompiler implements ITemplateCompiler {
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
     @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer
-  ) {
-    this.instructionRows = null!;
-    this.parts = null!;
-    this.scopeParts = null!;
-  }
+  ) {}
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
 
-  public compile(dom: IDOM, definition: PartialCustomElementDefinition, descriptions: IResourceDescriptions): CustomElementDefinition {
-    const binder = new TemplateBinder(
-      dom,
-      new ResourceModel(descriptions),
-      this.attrParser,
-      this.exprParser,
-      this.attrSyntaxModifier
-    );
-    const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
-    const surrogate = binder.bind(template);
-    if (definition.instructions === undefined || definition.instructions === (PLATFORM.emptyArray as typeof definition.instructions & typeof PLATFORM.emptyArray)) {
-      definition.instructions = [];
-    }
-    if (surrogate.hasSlots === true) {
-      definition.hasSlots = true;
-    }
-    if (definition.scopeParts === void 0 || definition.scopeParts === PLATFORM.emptyArray) {
-      definition.scopeParts = [];
-    }
+  public compile(
+    dom: IDOM,
+    partialDefinition: PartialCustomElementDefinition,
+    descriptions: IResourceDescriptions,
+  ): CustomElementDefinition {
+    const resources = new ResourceModel(descriptions);
+    const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
-    this.instructionRows = definition.instructions as HTMLInstructionRow[];
-    this.parts = {};
-    this.scopeParts = definition.scopeParts as (readonly string[]) & string[];
+    const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
+
+    const template = factory.createTemplate(partialDefinition.template) as HTMLTemplateElement;
+    const surrogate = binder.bind(template);
+
+    const compilation = this.compilation = new CustomElementCompilationUnit(partialDefinition, surrogate, template);
 
     const customAttributes = surrogate.customAttributes;
     const plainAttributes = surrogate.plainAttributes;
     const customAttributeLength = customAttributes.length;
     const plainAttributeLength = plainAttributes.length;
     if (customAttributeLength + plainAttributeLength > 0) {
-      if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
-        definition.surrogates = Array(customAttributeLength + plainAttributeLength);
-      }
-      const surrogates: ITargetedInstruction[] = definition.surrogates;
       let offset = 0;
       for (let i = 0; customAttributeLength > i; ++i) {
-        surrogates[offset] = this.compileCustomAttribute(customAttributes[i]);
+        compilation.surrogates[offset] = this.compileCustomAttribute(customAttributes[i]);
         offset++;
       }
       for (let i = 0; i < plainAttributeLength; ++i) {
-        surrogates[offset] = this.compilePlainAttribute(plainAttributes[i], true);
+        compilation.surrogates[offset] = this.compilePlainAttribute(plainAttributes[i], true);
         offset++;
       }
     }
 
-    this.compileChildNodes(surrogate);
+    this.compileChildNodes(surrogate, compilation.instructions, compilation.scopeParts);
 
-    this.instructionRows = null!;
-    this.parts = null!;
-    this.scopeParts = null!;
+    const definition = compilation.toDefinition();
+    this.compilation = null!;
 
-    definition.build = buildNotRequired;
-
-    return definition as CustomElementDefinition;
+    return definition;
   }
 
-  private compileChildNodes(parent: ElementSymbol): void {
+  private compileChildNodes(
+    parent: ElementSymbol,
+    instructionRows: ITargetedInstruction[][],
+    scopeParts: string[],
+  ): void {
     if ((parent.flags & SymbolFlags.hasChildNodes) > 0) {
       const { childNodes } = parent;
       let childNode: NodeSymbol;
@@ -159,7 +158,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (let i = 0; i < ii; ++i) {
         childNode = childNodes[i];
         if ((childNode.flags & SymbolFlags.isText) > 0) {
-          this.instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
+          instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
         } else if ((childNode.flags & SymbolFlags.isLetElement) > 0) {
           const bindings = (childNode as LetElementSymbol).bindings;
           const instructions: ILetBindingInstruction[] = [];
@@ -169,80 +168,98 @@ export class TemplateCompiler implements ITemplateCompiler {
             binding = bindings[j];
             instructions[j] = new LetBindingInstruction(binding.expression as IsBindingBehavior, binding.target);
           }
-          this.instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toBindingContext)]);
+          instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toBindingContext)]);
         } else {
-          this.compileParentNode(childNode as ParentNodeSymbol);
+          this.compileParentNode(childNode as ParentNodeSymbol, instructionRows, scopeParts);
         }
       }
     }
   }
 
-  private compileCustomElement(symbol: CustomElementSymbol): void {
+  private compileCustomElement(
+    symbol: CustomElementSymbol,
+    instructionRows: ITargetedInstruction[][],
+    scopeParts: string[],
+  ): void {
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
     instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
       this.compileBindings(symbol),
-      this.compileParts(symbol)
+      this.compileParts(symbol, scopeParts),
     );
 
-    this.instructionRows.push(instructionRow);
+    instructionRows.push(instructionRow);
 
-    this.compileChildNodes(symbol);
+    this.compileChildNodes(symbol, instructionRows, scopeParts);
   }
 
-  private compilePlainElement(symbol: PlainElementSymbol): void {
+  private compilePlainElement(
+    symbol: PlainElementSymbol,
+    instructionRows: ITargetedInstruction[][],
+    scopeParts: string[],
+  ): void {
     const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
-      this.instructionRows.push(attributes as HTMLInstructionRow);
+      instructionRows.push(attributes as HTMLInstructionRow);
     }
 
-    this.compileChildNodes(symbol);
+    this.compileChildNodes(symbol, instructionRows, scopeParts);
   }
 
-  private compileParentNode(symbol: ParentNodeSymbol): void {
+  private compileParentNode(
+    symbol: ParentNodeSymbol,
+    instructionRows: ITargetedInstruction[][],
+    scopeParts: string[],
+  ): void {
     switch (symbol.flags & SymbolFlags.type) {
       case SymbolFlags.isCustomElement:
-        this.compileCustomElement(symbol as CustomElementSymbol);
+        this.compileCustomElement(symbol as CustomElementSymbol, instructionRows, scopeParts);
         break;
       case SymbolFlags.isPlainElement:
-        this.compilePlainElement(symbol as PlainElementSymbol);
+        this.compilePlainElement(symbol as PlainElementSymbol, instructionRows, scopeParts);
         break;
       case SymbolFlags.isTemplateController:
-        this.compileTemplateController(symbol as TemplateControllerSymbol);
+        this.compileTemplateController(symbol as TemplateControllerSymbol, instructionRows, scopeParts);
     }
   }
 
-  private compileTemplateController(symbol: TemplateControllerSymbol): void {
+  private compileTemplateController(
+    symbol: TemplateControllerSymbol,
+    instructionRows: ITargetedInstruction[][],
+    scopeParts: string[],
+  ): void {
     const bindings = this.compileBindings(symbol);
-    const instructionRowsSave = this.instructionRows;
-    const scopePartsSave = this.scopeParts;
-    const controllerInstructions = this.instructionRows = [];
-    const scopeParts = this.scopeParts = [];
-    this.compileParentNode(symbol.template!);
-    this.instructionRows = instructionRowsSave;
-    this.scopeParts = mergeDistinct(scopePartsSave, scopeParts, false);
 
-    const def: PartialCustomElementDefinition = {
-      scopeParts,
+    const controllerInstructionRows: ITargetedInstruction[][] = [];
+    const controllerScopeParts: string[] = [];
+
+    this.compileParentNode(symbol.template!, controllerInstructionRows, controllerScopeParts);
+
+    mergeDistinct(scopeParts, controllerScopeParts, false);
+
+    const def = CustomElementDefinition.from({
       name: symbol.partName === null ? symbol.res : symbol.partName,
+      scopeParts: controllerScopeParts,
       template: symbol.physicalNode,
-      instructions: controllerInstructions,
-      build: buildNotRequired
-    };
+      instructions: controllerInstructionRows,
+      needsCompile: false,
+    });
 
     let parts: Record<string, PartialCustomElementDefinition> | undefined = void 0;
     if ((symbol.flags & SymbolFlags.hasParts) > 0) {
       parts = {};
       for (const part of symbol.parts) {
-        parts[part.name] = this.parts[part.name];
+        parts[part.name] = this.compilation.parts[part.name];
       }
     }
 
-    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else', parts)]);
+    instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else', parts)]);
   }
 
-  private compileBindings(symbol: SymbolWithBindings): HTMLAttributeInstruction[] {
+  private compileBindings(
+    symbol: SymbolWithBindings,
+  ): HTMLAttributeInstruction[] {
     let bindingInstructions: HTMLAttributeInstruction[];
     if ((symbol.flags & SymbolFlags.hasBindings) > 0) {
       // either a custom element with bindings, a custom attribute / template controller with dynamic options,
@@ -260,7 +277,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     return bindingInstructions;
   }
 
-  private compileBinding(symbol: BindingSymbol): HTMLAttributeInstruction {
+  private compileBinding(
+    symbol: BindingSymbol,
+  ): HTMLAttributeInstruction {
     if (symbol.command === null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
       if (symbol.expression === null) {
@@ -277,7 +296,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  private compileAttributes(symbol: ElementSymbol, offset: number): HTMLAttributeInstruction[] {
+  private compileAttributes(
+    symbol: ElementSymbol,
+    offset: number,
+  ): HTMLAttributeInstruction[] {
     let attributeInstructions: HTMLAttributeInstruction[];
     if ((symbol.flags & SymbolFlags.hasAttributes) > 0) {
       // any attributes on a custom element (which are not bindables) or a plain element
@@ -302,13 +324,18 @@ export class TemplateCompiler implements ITemplateCompiler {
     return attributeInstructions;
   }
 
-  private compileCustomAttribute(symbol: CustomAttributeSymbol): HTMLAttributeInstruction {
+  private compileCustomAttribute(
+    symbol: CustomAttributeSymbol,
+  ): HTMLAttributeInstruction {
     // a normal custom attribute (not template controller)
     const bindings = this.compileBindings(symbol);
     return new HydrateAttributeInstruction(symbol.res, bindings);
   }
 
-  private compilePlainAttribute(symbol: PlainAttributeSymbol, isOnSurrogate: boolean): HTMLAttributeInstruction {
+  private compilePlainAttribute(
+    symbol: PlainAttributeSymbol,
+    isOnSurrogate: boolean,
+  ): HTMLAttributeInstruction {
     if (symbol.command === null) {
       const syntax = symbol.syntax;
 
@@ -346,39 +373,38 @@ export class TemplateCompiler implements ITemplateCompiler {
   //   }
   // }
 
-  private compileParts(symbol: CustomElementSymbol): Record<string, PartialCustomElementDefinition> {
-    let parts: Record<string, PartialCustomElementDefinition>;
+  private compileParts(
+    symbol: CustomElementSymbol,
+    scopeParts: string[],
+  ): Record<string, PartialCustomElementDefinition> {
+    const parts: Record<string, PartialCustomElementDefinition> = {};
+
     if ((symbol.flags & SymbolFlags.hasParts) > 0) {
-      parts = {};
       const replaceParts = symbol.parts;
-      const ii = replaceParts.length;
-      let instructionRowsSave: HTMLInstructionRow[];
-      let partScopesSave: string[];
-      let scopeParts: string[];
-      let partInstructions: HTMLInstructionRow[];
-      let replacePart: ReplacePartSymbol;
-      for (let i = 0; i < ii; ++i) {
-        replacePart = replaceParts[i];
-        instructionRowsSave = this.instructionRows;
-        partScopesSave = this.scopeParts;
-        if (!partScopesSave.includes(replacePart.name)) {
-          partScopesSave.push(replacePart.name);
+      const len = replaceParts.length;
+      let s = scopeParts.length;
+
+      for (let i = 0; i < len; ++i) {
+        const replacePart = replaceParts[i];
+        if (!scopeParts.includes(replacePart.name)) {
+          scopeParts[s++] = replacePart.name;
         }
-        scopeParts = this.scopeParts = [];
-        partInstructions = this.instructionRows = [];
-        this.compileParentNode(replacePart.template!);
-        this.parts[replacePart.name] = parts[replacePart.name] = {
-          scopeParts,
+
+        const partScopeParts: string[] = [];
+        const partInstructionRows: ITargetedInstruction[][] = [];
+
+        this.compileParentNode(replacePart.template!, partInstructionRows, partScopeParts);
+
+        // TODO: the assignment to `this.compilation.parts[replacePart.name]` might be the cause of replaceable bug reported by rluba
+        // need to verify this
+        this.compilation.parts[replacePart.name] = parts[replacePart.name] = CustomElementDefinition.from({
           name: replacePart.name,
+          scopeParts: partScopeParts,
           template: replacePart.physicalNode,
-          instructions: partInstructions,
-          build: buildNotRequired,
-        };
-        this.instructionRows = instructionRowsSave;
-        this.scopeParts = partScopesSave;
+          instructions: partInstructionRows,
+          needsCompile: false,
+        });
       }
-    } else {
-      parts = PLATFORM.emptyObject;
     }
     return parts;
   }

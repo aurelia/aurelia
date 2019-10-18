@@ -4,7 +4,7 @@ import {
   bindingCommand,
   BindingSymbol,
   getTarget,
-  IBindingCommand,
+  BindingCommandInstance,
   PlainAttributeSymbol
 } from '@aurelia/jit';
 import {
@@ -43,7 +43,7 @@ export class TranslationParametersBindingInstruction {
 }
 
 @bindingCommand(attribute)
-export class TranslationParametersBindingCommand implements IBindingCommand {
+export class TranslationParametersBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationParametersBindingInstruction {

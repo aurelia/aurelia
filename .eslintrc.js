@@ -124,6 +124,7 @@ module.exports = {
     'jsdoc/require-hyphen-before-param-description': ['error', 'always'],
     'sonarjs/no-useless-catch': 'error',
     'sonarjs/prefer-immediate-return': 'error',
+    'array-callback-return': 'error',
     'eol-last': ['error', 'always'],
     'function-call-argument-newline': ['error', 'consistent'],
     'max-lines-per-function': ['error', 200],

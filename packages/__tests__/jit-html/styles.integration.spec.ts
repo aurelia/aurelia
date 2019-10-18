@@ -39,8 +39,8 @@ describe('styles', function () {
         dependencies: [WithStyles, WithoutStyles]
       },
       class {
-        withStyles: any;
-        withoutStyles: any;
+        public withStyles: any;
+        public withoutStyles: any;
       }
     );
 

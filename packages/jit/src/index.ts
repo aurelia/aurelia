@@ -20,8 +20,8 @@ export {
 } from './attribute-patterns';
 export {
   bindingCommand,
-  BindingCommandResource,
-  IBindingCommand,
+  BindingCommand as BindingCommandResource,
+  BindingCommandInstance as IBindingCommand,
   IBindingCommandDefinition,
   IBindingCommandResource,
   IBindingCommandType,

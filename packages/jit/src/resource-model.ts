@@ -11,7 +11,7 @@ import {
   CustomElementDefinition,
 } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
-import { BindingCommandResource, IBindingCommand } from './binding-command';
+import { BindingCommand, BindingCommandInstance } from './binding-command';
 
 /**
  * A pre-processed piece of information about a defined bindable property on a custom
@@ -168,7 +168,7 @@ export class AttrInfo {
 export class ResourceModel {
   private readonly elementLookup: Record<string, ElementInfo | null | undefined> = Object.create(null);
   private readonly attributeLookup: Record<string, AttrInfo | null | undefined> = Object.create(null);
-  private readonly commandLookup: Record<string, IBindingCommand | null | undefined> = Object.create(null);
+  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = Object.create(null);
 
   public constructor(
     private readonly resources: IResourceDescriptions,
@@ -213,14 +213,14 @@ export class ResourceModel {
    *
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
-  public getBindingCommand(syntax: AttrSyntax, optional: boolean): IBindingCommand | null {
+  public getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
     const name = syntax.command;
     if (name === null) {
       return null;
     }
     let result = this.commandLookup[name];
     if (result === void 0) {
-      result = this.resources.create(BindingCommandResource, name);
+      result = this.resources.create(BindingCommand, name);
       if (result === null) {
         if (optional) {
           return null;

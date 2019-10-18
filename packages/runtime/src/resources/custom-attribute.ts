@@ -36,6 +36,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+  isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -130,6 +131,9 @@ export const CustomAttribute: CustomAttributeKind = {
   name: Protocol.resource.keyFor('custom-attribute'),
   keyFrom(name: string): string {
     return `${CustomAttribute.name}:${name}`;
+  },
+  isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
+    return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
   },
   define<T extends Constructable>(nameOrDefinition: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
     const $Type = Type as CustomAttributeType<T>;

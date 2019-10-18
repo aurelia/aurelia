@@ -205,13 +205,11 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRendering
 
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
-  public static readonly inject: readonly Key[] = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
-
   public constructor(
-    private readonly container: IContainer,
-    private readonly templateFactory: ITemplateFactory,
-    private readonly lifecycle: ILifecycle,
-    private readonly compiler: ITemplateCompiler,
+    @IContainer private readonly container: IContainer,
+    @ITemplateFactory private readonly templateFactory: ITemplateFactory,
+    @ILifecycle private readonly lifecycle: ILifecycle,
+    @ITemplateCompiler private readonly compiler: ITemplateCompiler,
   ) { }
 
   public getElementTemplate<T extends INode = INode>(

@@ -62,6 +62,7 @@ module.exports = {
         Symbol: { message: 'Use symbol instead', fixWith: 'symbol' }
       }
     }],
+    '@typescript-eslint/brace-style': ['error', '1tbs', { allowSingleLine: true }],
     '@typescript-eslint/class-name-casing': 'error',
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
     '@typescript-eslint/member-delimiter-style': 'error',

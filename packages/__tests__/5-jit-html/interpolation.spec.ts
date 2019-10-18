@@ -189,8 +189,7 @@ describe('interpolation', function () {
         if (val != null) {
           component.value = val;
         }
-      }
-      else if (typeof x.expected === 'string' && x.expected !== 'Infinity') {
+      } else if (typeof x.expected === 'string' && x.expected !== 'Infinity') {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         component.value = `${component.value || ``}1`;
 

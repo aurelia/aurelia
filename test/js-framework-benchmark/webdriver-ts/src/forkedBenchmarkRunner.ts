@@ -103,8 +103,12 @@ function extractRawValue(results: any, id: string) {
 
 function rmDir(dirPath: string) {
   let files: string[] = [];
-  try { files = fs.readdirSync(dirPath); }
-  catch(e) { console.log(`error in rmDir ${dirPath}`, e); return; }
+  try {
+    files = fs.readdirSync(dirPath);
+  } catch(e) {
+    console.log(`error in rmDir ${dirPath}`, e);
+    return;
+  }
   if (files.length > 0)
     for (let i = 0; i < files.length; i++) {
       const filePath = path.join(dirPath, files[i]);
@@ -368,8 +372,7 @@ async function registerError(driver: WebDriver, framework: FrameworkData, benchm
 
 const wait = (delay = 1000) => new Promise(res => setTimeout(res, delay));
 
-async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
-{
+async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   const errors: BenchmarkError[] = [];
   const warnings: string[] = [];
 
@@ -434,8 +437,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
   return {errors, warnings};
 }
 
-async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
-{
+async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   const errors: BenchmarkError[] = [];
   const warnings: string[] = [];
   const allResults: number[] = [];
@@ -485,8 +487,7 @@ async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, b
   return {errors, warnings};
 }
 
-async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
-{
+async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   console.log("benchmarking startup", framework, benchmark.id);
 
   const errors: BenchmarkError[] = [];

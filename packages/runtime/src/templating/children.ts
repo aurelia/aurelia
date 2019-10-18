@@ -18,7 +18,7 @@ export type PartialChildrenDefinition<TNode extends INode = INode> = {
  *
  * @param config - The overrides
  */
-export function children(config?: PartialChildrenDefinition): PropertyDecorator | ClassDecorator;
+export function children(config?: PartialChildrenDefinition): PropertyDecorator;
 /**
  * Decorator: Specifies an array property on a class that synchronizes its items with child content nodes of the element.
  *

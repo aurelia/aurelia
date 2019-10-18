@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs');
 
 const htmlSourceDirs = ['integration'];
-const baseOutDir = 'dist/esnext/__tests__';
+const baseOutDir = path.join('dist', 'esnext', '__tests__');
 const toWatch = argv.watch;
 const verbose = argv.watch;
 const cwd = process.cwd();
@@ -78,8 +78,5 @@ const watcher = chokidar.watch(watched, {
 });
 watcher.on('all', handleChange);
 if (!toWatch) {
-  watcher.on('ready', () => {
-    watcher.unwatch(watched);
-    watcher.close();
-  });
+  watcher.on('ready', watcher.close);
 }

@@ -646,7 +646,7 @@ export {
   // CustomElementConstructor,
   // HooksDefinition,
   // PartialCustomAttributeDefinition,
-  // IBindableDescription,
+  // BindableDefinition,
   // IBuildInstruction,
   // ICallBindingInstruction,
   // IElementHydrationOptions,

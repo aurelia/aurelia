@@ -22,7 +22,7 @@ import {
   DelegationStrategy,
   ForOfStatement,
   HydrateTemplateController,
-  IBindableDescription,
+  BindableDefinition,
   IDOM,
   IHydrateElementInstruction,
   IHydrateTemplateController,
@@ -586,7 +586,7 @@ const commandToMode = {
 
 const validCommands = ['bind', 'one-time', 'to-view', 'from-view', 'two-way', 'trigger', 'delegate', 'capture', 'call'];
 
-function createAttributeInstruction(bindableDescription: IBindableDescription | null, attributeName: string, attributeValue: string, isMulti: boolean) {
+function createAttributeInstruction(bindableDescription: BindableDefinition | null, attributeName: string, attributeValue: string, isMulti: boolean) {
   const parts = attributeName.split('.');
   const attr = parts[0];
   const cmd = parts.pop();
@@ -638,7 +638,7 @@ function createAttributeInstruction(bindableDescription: IBindableDescription | 
 
 type CTCResult = [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-type Bindables = { [pdName: string]: IBindableDescription };
+type Bindables = { [pdName: string]: BindableDefinition };
 
 describe(`TemplateCompiler - combinations`, function () {
   function setup(ctx: HTMLTestContext, ...globals: IRegistry[]) {
@@ -715,7 +715,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
         (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
         (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
-      ] as ((ctx: HTMLTestContext) => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[],
+      ] as ((ctx: HTMLTestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
       [
         (ctx) => ['foo',     '', class Foo {}],
         (ctx) => ['foo-foo', '', class FooFoo {}],
@@ -737,7 +737,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
-      ] as ((ctx: HTMLTestContext, $1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
+      ] as ((ctx: HTMLTestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       if (childInstruction.mode !== undefined) {
         childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
@@ -809,7 +809,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}.qux${cmd}`],
         (ctx, pdName, pdProp, bindables, [cmd]) => [null,              `${pdProp}Qux${cmd}`]
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [IBindableDescription, string])[]
+      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
@@ -1080,7 +1080,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[],
+      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [BindableDefinition, string])[],
       [
         (ctx) => `''`
       ] as ((ctx: HTMLTestContext) => string)[]

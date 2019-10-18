@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 /// <reference types="reflect-metadata" />
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
@@ -739,8 +740,6 @@ export class Container implements IContainer {
       current = params[i];
       if (isRegistry(current)) {
         current.register(this);
-      } else if (isClass(current)) {
-        Registration.singleton(current, current as Constructable).register(this);
       } else if (Protocol.resource.has(current)) {
         const defs = Protocol.resource.getAll(current);
         if (defs.length === 1) {
@@ -752,6 +751,8 @@ export class Container implements IContainer {
             defs[i].register(this);
           }
         }
+      } else if (isClass(current)) {
+        Registration.singleton(current, current as Constructable).register(this);
       } else {
         keys = Object.keys(current);
         j = 0;

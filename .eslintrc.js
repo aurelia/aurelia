@@ -69,6 +69,7 @@ module.exports = {
     '@typescript-eslint/member-delimiter-style': 'error',
     '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
     '@typescript-eslint/no-empty-function': 'error',
+    '@typescript-eslint/no-extraneous-class': 'off',
     '@typescript-eslint/no-for-in-array': 'error',
     '@typescript-eslint/no-misused-new': 'error',
     '@typescript-eslint/no-misused-promises': 'error',

@@ -7,7 +7,7 @@ import {
   BindingMode,
   CustomAttribute,
   CustomElement,
-  IBindableDescription,
+  BindableDefinition,
   CustomElementDefinition,
 } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
@@ -56,10 +56,10 @@ export class ElementInfo {
 
   public static from(def: CustomElementDefinition): ElementInfo {
     const info = new ElementInfo(def.name, def.containerless);
-    const bindables = def.bindables as Record<string, IBindableDescription>;
+    const bindables = def.bindables;
     const defaultBindingMode = BindingMode.toView;
 
-    let bindable: IBindableDescription;
+    let bindable: BindableDefinition;
     let prop: string;
     let attr: string;
     let mode: BindingMode;
@@ -116,12 +116,12 @@ export class AttrInfo {
 
   public static from(def: CustomAttributeDefinition): AttrInfo {
     const info = new AttrInfo(def.name, def.isTemplateController);
-    const bindables = def.bindables as Record<string, IBindableDescription>;
+    const bindables = def.bindables;
     const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
       ? def.defaultBindingMode
       : BindingMode.toView;
 
-    let bindable: IBindableDescription;
+    let bindable: BindableDefinition;
     let prop: string;
     let mode: BindingMode;
     let hasPrimary: boolean = false;
@@ -184,7 +184,7 @@ export class ResourceModel {
   public getElementInfo(name: string): ElementInfo | null {
     let result = this.elementLookup[name];
     if (result === void 0) {
-      const def = this.resources.find(CustomElement, name);
+      const def = this.resources.find(CustomElement, name) as unknown as CustomElementDefinition;
       this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
     }
     return result;
@@ -200,7 +200,7 @@ export class ResourceModel {
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
     let result = this.attributeLookup[syntax.target];
     if (result === void 0) {
-      const def = this.resources.find(CustomAttribute, syntax.target);
+      const def = this.resources.find(CustomAttribute, syntax.target) as unknown as CustomAttributeDefinition;
       this.attributeLookup[syntax.target] = result = def === null ? null : AttrInfo.from(def);
     }
     return result;
@@ -220,7 +220,7 @@ export class ResourceModel {
     }
     let result = this.commandLookup[name];
     if (result === void 0) {
-      result = this.resources.create(BindingCommand, name);
+      result = this.resources.create(BindingCommand, name) as BindingCommandInstance;
       if (result === null) {
         if (optional) {
           return null;

@@ -217,7 +217,7 @@ export class Aurelia<TNode extends INode = INode> {
     Registration.instance(Aurelia, this).register(container);
   }
 
-  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
+  public register(...params: any[]): this {
     this.container.register(...params);
     return this;
   }

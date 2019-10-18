@@ -20,11 +20,11 @@ export {
 } from './attribute-patterns';
 export {
   bindingCommand,
-  BindingCommand as BindingCommandResource,
-  BindingCommandInstance as IBindingCommand,
-  IBindingCommandDefinition,
-  IBindingCommandResource,
-  IBindingCommandType,
+  BindingCommand ,
+  BindingCommandInstance,
+  BindingCommandDefinition,
+  BindingCommandKind,
+  BindingCommandType,
   getTarget,
 } from './binding-command';
 export {

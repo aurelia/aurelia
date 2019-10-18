@@ -1,5 +1,5 @@
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -42,7 +42,7 @@ export class Guard {
 }
 
 class Target {
-  public componentType: IRouteableComponentType | null = null;
+  public componentType: RouteableComponentType | null = null;
   public componentName: string | null = null;
   public viewport: Viewport | null = null;
   public viewportName: string | null = null;
@@ -50,9 +50,9 @@ class Target {
   public constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {
-      this.componentType = target as IRouteableComponentType;
-      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
+    } else if (ComponentAppellationResolver.isType(target as RouteableComponentType)) {
+      this.componentType = target as RouteableComponentType;
+      this.componentName = ComponentAppellationResolver.getName(target as RouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       if (cvTarget.component) {

@@ -1,6 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, IController, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -258,7 +258,7 @@ export class ViewportContent {
   public toComponentName(): string | null {
     return this.content.componentName;
   }
-  public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
+  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
     if (this.content.isEmpty()) {
       return null;
     }

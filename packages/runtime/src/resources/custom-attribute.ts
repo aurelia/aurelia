@@ -29,7 +29,7 @@ import { Bindable, BindableDefinition, PartialBindableDefinition } from '../temp
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;
-  readonly bindables?: Record<string, PartialBindableDefinition>;
+  readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
   readonly strategy?: BindingStrategy;
   readonly hooks?: HooksDefinition;
 }>;

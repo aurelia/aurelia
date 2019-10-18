@@ -48,7 +48,7 @@ export {
   // RefAttributePattern,
 
   bindingCommand,
-  // BindingCommandResource,
+  // BindingCommand,
   BindingCommandInstance,
   // IBindingCommandDefinition,
   // IBindingCommandResource,

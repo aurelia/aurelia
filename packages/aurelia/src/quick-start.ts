@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { Aurelia as $Aurelia, CompositionRoot, ICustomElementType, ILifecycleTask, ISinglePageApp } from '@aurelia/runtime';
+import { Aurelia as $Aurelia, CompositionRoot, CustomElementType, ILifecycleTask, ISinglePageApp, CustomElement } from '@aurelia/runtime';
 
 // TODO: SSR?? abstract HTMLElement and document.
 
@@ -40,11 +40,10 @@ export class Aurelia extends $Aurelia<HTMLElement> {
   }
 
   public app(config: ISinglePageApp<HTMLElement> | unknown): this {
-    const comp = config as ICustomElementType;
-    if (comp && comp.kind && comp.kind.name === 'au:custom-element') {
+    if (CustomElement.isType(config as CustomElementType)) {
       // Default to custom element element name
-      const elementName = comp.description && comp.description.name;
-      let host = document.querySelector(elementName);
+      const definition = CustomElement.getDefinition(config as CustomElementType);
+      let host = document.querySelector(definition.name);
       if (host === null) {
         // When no target is found, default to body.
         // For example, when user forgot to write <my-app></my-app> in html.
@@ -52,7 +51,7 @@ export class Aurelia extends $Aurelia<HTMLElement> {
       }
       return super.app({
         host: host as HTMLElement,
-        component: comp as unknown
+        component: config as CustomElementType
       });
     }
 

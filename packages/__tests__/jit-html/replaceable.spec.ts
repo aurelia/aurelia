@@ -70,8 +70,7 @@ describe('replaceable', function () {
   it(`replaceable - default bind to parent containerless template element no name short`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo><div>\${baz}</div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable></template></template>` }, class { public baz = 'abc'; });
-    Foo.containerless = true;
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable></template></template>`, containerless: true }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -112,8 +111,7 @@ describe('replaceable', function () {
   it(`replaceable - default bind to target containerless template element short`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace>\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>` }, class { public baz = 'abc'; });
-    Foo.containerless = true;
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>`, containerless: true }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -133,8 +131,7 @@ describe('replaceable', function () {
   it(`replaceable - default bind to parent containerless no element short template`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>` }, class { public baz = 'abc'; });
-    Foo.containerless = true;
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>`, containerless: true }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -154,8 +151,7 @@ describe('replaceable', function () {
   it(`replaceable - default bind to parent containerless no element long template`, function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><foo>\${baz}</foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable></template></template>` }, class { public baz = 'abc'; });
-    Foo.containerless = true;
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable></template></template>`, containerless: true }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);

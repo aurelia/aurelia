@@ -22,14 +22,14 @@ import {
   INode,
   IRenderingEngine,
   ITargetedInstruction,
-  ITemplateDefinition,
+  PartialCustomElementDefinition,
   IViewFactory,
   LifecycleFlags,
   LifecycleTask,
   PromiseTask,
   State,
   TargetedInstruction,
-  TemplateDefinition,
+  CustomElementDefinition,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -38,14 +38,14 @@ import {
 
 const bindables = ['subject', 'composing'];
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | TemplateDefinition;
+export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
 export class Compose<T extends INode = Node> {
   public static readonly inject: readonly Key[] = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
 
   public static readonly kind: ICustomElementResource = CustomElement;
-  public static readonly description: Required<ITemplateDefinition> = Object.freeze({
+  public static readonly description: Required<PartialCustomElementDefinition> = Object.freeze({
     name: 'au-compose',
     template: null,
     cache: 0,

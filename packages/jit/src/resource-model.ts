@@ -3,12 +3,12 @@ import {
   kebabCase,
 } from '@aurelia/kernel';
 import {
-  AttributeDefinition,
+  CustomAttributeDefinition,
   BindingMode,
   CustomAttribute,
   CustomElement,
   IBindableDescription,
-  TemplateDefinition,
+  CustomElementDefinition,
 } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -54,7 +54,7 @@ export class ElementInfo {
     public containerless: boolean,
   ) {}
 
-  public static from(def: TemplateDefinition): ElementInfo {
+  public static from(def: CustomElementDefinition): ElementInfo {
     const info = new ElementInfo(def.name, def.containerless);
     const bindables = def.bindables as Record<string, IBindableDescription>;
     const defaultBindingMode = BindingMode.toView;
@@ -114,7 +114,7 @@ export class AttrInfo {
     public isTemplateController: boolean,
   ) {}
 
-  public static from(def: AttributeDefinition): AttrInfo {
+  public static from(def: CustomAttributeDefinition): AttrInfo {
     const info = new AttrInfo(def.name, def.isTemplateController);
     const bindables = def.bindables as Record<string, IBindableDescription>;
     const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default

@@ -19,7 +19,7 @@ import {
   ITemplate,
   ITemplateFactory,
   NodeSequence,
-  TemplateDefinition
+  CustomElementDefinition
 } from '@aurelia/runtime';
 
 export const enum NodeType {
@@ -609,7 +609,7 @@ export class HTMLTemplateFactory implements ITemplateFactory {
     return Registration.singleton(ITemplateFactory, this).register(container);
   }
 
-  public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {
+  public create(parentRenderContext: IRenderContext, definition: CustomElementDefinition): ITemplate {
     return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node), parentRenderContext);
   }
 }

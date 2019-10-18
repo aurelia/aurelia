@@ -7,7 +7,7 @@ import {
   AccessScopeExpression,
   CustomElement,
   ICustomElementResource,
-  ITemplateDefinition,
+  PartialCustomElementDefinition,
   ITargetedInstruction,
   BindingStrategy,
   HooksDefinition,
@@ -120,7 +120,7 @@ describe.skip('controller', function () {
     instructions: ITargetedInstruction[][],
     hooks: Readonly<HooksDefinition>,
   ) {
-    return Object.freeze<Required<ITemplateDefinition>>({
+    return Object.freeze<Required<PartialCustomElementDefinition>>({
       name,
       template,
       cache: 0,

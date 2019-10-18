@@ -18,7 +18,7 @@ import {
   IViewFactory,
   LifecycleFlags,
   TargetedInstructionType,
-  TemplateDefinition
+  CustomElementDefinition
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstruction,
@@ -52,7 +52,7 @@ export class RenderPlan<T extends INode = Node> {
   private readonly instructions: HTMLTargetedInstruction[][];
   private readonly node: T;
 
-  private lazyDefinition?: TemplateDefinition;
+  private lazyDefinition?: CustomElementDefinition;
 
   public constructor(
     dom: IDOM<T>,
@@ -67,7 +67,7 @@ export class RenderPlan<T extends INode = Node> {
     this.lazyDefinition = void 0;
   }
 
-  public get definition(): TemplateDefinition {
+  public get definition(): CustomElementDefinition {
     if (this.lazyDefinition === void 0) {
       this.lazyDefinition = buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies);
     }

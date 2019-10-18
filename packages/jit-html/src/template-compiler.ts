@@ -24,11 +24,11 @@ import {
   IsBindingBehavior,
   ITargetedInstruction,
   ITemplateCompiler,
-  ITemplateDefinition,
+  PartialCustomElementDefinition,
   LetBindingInstruction,
   LetElementInstruction,
   SetPropertyInstruction,
-  TemplateDefinition
+  CustomElementDefinition
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -70,12 +70,12 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
 export class TemplateCompiler implements ITemplateCompiler {
 
   /**
-   * The instructions array for the currently instruction-collecting `ITemplateDefinition`
+   * The instructions array for the currently instruction-collecting `PartialCustomElementDefinition`
    */
   private instructionRows: HTMLInstructionRow[];
 
   private scopeParts: string[];
-  private parts: Record<string, ITemplateDefinition>;
+  private parts: Record<string, PartialCustomElementDefinition>;
 
   public get name(): string {
     return 'default';
@@ -96,7 +96,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
 
-  public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
+  public compile(dom: IDOM, definition: PartialCustomElementDefinition, descriptions: IResourceDescriptions): CustomElementDefinition {
     const binder = new TemplateBinder(
       dom,
       new ResourceModel(descriptions),
@@ -148,7 +148,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     definition.build = buildNotRequired;
 
-    return definition as TemplateDefinition;
+    return definition as CustomElementDefinition;
   }
 
   private compileChildNodes(parent: ElementSymbol): void {
@@ -223,7 +223,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = instructionRowsSave;
     this.scopeParts = mergeDistinct(scopePartsSave, scopeParts, false);
 
-    const def: ITemplateDefinition = {
+    const def: PartialCustomElementDefinition = {
       scopeParts,
       name: symbol.partName === null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
@@ -231,7 +231,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       build: buildNotRequired
     };
 
-    let parts: Record<string, ITemplateDefinition> | undefined = void 0;
+    let parts: Record<string, PartialCustomElementDefinition> | undefined = void 0;
     if ((symbol.flags & SymbolFlags.hasParts) > 0) {
       parts = {};
       for (const part of symbol.parts) {
@@ -346,8 +346,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   //   }
   // }
 
-  private compileParts(symbol: CustomElementSymbol): Record<string, ITemplateDefinition> {
-    let parts: Record<string, ITemplateDefinition>;
+  private compileParts(symbol: CustomElementSymbol): Record<string, PartialCustomElementDefinition> {
+    let parts: Record<string, PartialCustomElementDefinition>;
     if ((symbol.flags & SymbolFlags.hasParts) > 0) {
       parts = {};
       const replaceParts = symbol.parts;

@@ -14,7 +14,7 @@ import {
   ITemplate,
   LifecycleFlags,
   RenderContext,
-  TemplateDefinition
+  CustomElementDefinition
 } from '@aurelia/runtime';
 import {
   IRouter,
@@ -44,7 +44,7 @@ export class ViewportCustomElement {
     private readonly element: Element, private readonly renderingEngine: IRenderingEngine
   ) { }
 
-  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
+  public render(flags: LifecycleFlags, host: INode, parts: Record<string, CustomElementDefinition>, parentContext: IRenderContext | null): void {
     const Type = this.constructor as ICustomElementType;
     if (!parentContext) {
       parentContext = this.$controller.context as IRenderContext;

@@ -65,6 +65,7 @@ module.exports = {
     '@typescript-eslint/brace-style': ['error', '1tbs', { allowSingleLine: true }],
     '@typescript-eslint/class-name-casing': 'error',
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
+    '@typescript-eslint/func-call-spacing': ['error', 'never'],
     '@typescript-eslint/member-delimiter-style': 'error',
     '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
     '@typescript-eslint/no-empty-function': 'error',
@@ -127,6 +128,7 @@ module.exports = {
     'sonarjs/prefer-immediate-return': 'error',
     'array-callback-return': 'error',
     'eol-last': ['error', 'always'],
+    'func-call-spacing': 'off', //  See @typescript-eslint/func-call-spacing
     'function-call-argument-newline': ['error', 'consistent'],
     'max-lines-per-function': ['error', 200],
     'new-parens': ['error', 'always'],

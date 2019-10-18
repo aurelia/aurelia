@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Constructable, Protocol, Metadata } from '@aurelia/kernel';
-import { firstDefined } from '../definitions';
+import { Constructable, Protocol, Metadata, firstDefined } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IController, IViewModel } from '../lifecycle';
 import { IElementProjector } from '../resources/custom-element';

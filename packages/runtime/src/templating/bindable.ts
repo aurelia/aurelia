@@ -4,10 +4,8 @@ import {
   kebabCase,
   Metadata,
   Protocol,
-} from '@aurelia/kernel';
-import {
   firstDefined,
-} from '../definitions';
+} from '@aurelia/kernel';
 import {
   BindingMode,
 } from '../flags';

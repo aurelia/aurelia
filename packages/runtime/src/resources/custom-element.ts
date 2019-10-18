@@ -10,14 +10,14 @@ import {
   Metadata,
   PartialResourceDefinition,
   Key,
-  ResourceDefinition
+  ResourceDefinition,
+  firstDefined,
+  mergeArrays,
 } from '@aurelia/kernel';
 import {
   registerAliases,
   ITargetedInstruction,
   HooksDefinition,
-  firstDefined,
-  mergeArrays,
 } from '../definitions';
 import {
   IDOM,

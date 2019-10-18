@@ -9,8 +9,9 @@ import {
   Metadata,
   Protocol,
   PartialResourceDefinition,
+  mergeArrays,
 } from '@aurelia/kernel';
-import { registerAliases, mergeArrays } from '../definitions';
+import { registerAliases } from '../definitions';
 import { LifecycleFlags } from '../flags';
 import { IScope } from '../observation';
 import { IBinding } from '../lifecycle';

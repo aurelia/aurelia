@@ -10,12 +10,12 @@ import {
   ResourceDefinition,
   PartialResourceDefinition,
   ResourceType,
+  mergeArrays,
+  firstDefined,
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
   registerAliases,
-  mergeArrays,
-  firstDefined
 } from '../definitions';
 import {
   BindingMode,

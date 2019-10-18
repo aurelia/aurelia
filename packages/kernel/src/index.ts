@@ -108,4 +108,7 @@ export {
   mergeDistinct,
   isNumberOrBigInt,
   isStringOrDate,
+  mergeArrays,
+  mergeObjects,
+  firstDefined,
 } from './functions';

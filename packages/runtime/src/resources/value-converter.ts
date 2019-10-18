@@ -9,8 +9,9 @@ import {
   Metadata,
   Protocol,
   PartialResourceDefinition,
+  mergeArrays,
 } from '@aurelia/kernel';
-import { registerAliases, mergeArrays } from '../definitions';
+import { registerAliases } from '../definitions';
 
 export type ValueConverterInstance<T extends {} = {}> = {
   toView(input: unknown, ...args: unknown[]): unknown;

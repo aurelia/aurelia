@@ -22,6 +22,7 @@ import {
 import {
   IController,
   IViewFactory,
+  MountStrategy,
 } from '../../lifecycle';
 import {
   ContinuationTask,
@@ -202,7 +203,7 @@ export class If<T extends INode = INode> {
       view = factory.create(flags);
     }
 
-    view.hold(this.location);
+    view.hold(this.location, MountStrategy.insertBefore);
 
     return view;
   }

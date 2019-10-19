@@ -9,7 +9,7 @@ let Replaceable = class Replaceable {
         this.location = location;
         this.id = nextId('au$component');
         this.view = this.factory.create();
-        this.view.hold(location);
+        this.view.hold(location, 1 /* insertBefore */);
     }
     binding(flags) {
         this.view.parent = this.$controller;

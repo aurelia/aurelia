@@ -7,6 +7,14 @@ export var ViewModelKind;
     ViewModelKind[ViewModelKind["synthetic"] = 2] = "synthetic";
 })(ViewModelKind || (ViewModelKind = {}));
 export const IController = DI.createInterface('IController').noDefault();
+/**
+ * Describing characteristics of a mounting operation a controller will perform
+ */
+export var MountStrategy;
+(function (MountStrategy) {
+    MountStrategy[MountStrategy["insertBefore"] = 1] = "insertBefore";
+    MountStrategy[MountStrategy["append"] = 2] = "append";
+})(MountStrategy || (MountStrategy = {}));
 export const IViewFactory = DI.createInterface('IViewFactory').noDefault();
 class LinkedCallback {
     constructor(cb, context = void 0, priority = 16384 /* normal */, once = false) {

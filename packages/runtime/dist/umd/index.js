@@ -253,6 +253,7 @@
     exports.ILifecycle = lifecycle_1.ILifecycle;
     exports.IController = lifecycle_1.IController;
     exports.IViewFactory = lifecycle_1.IViewFactory;
+    exports.MountStrategy = lifecycle_1.MountStrategy;
     exports.Priority = lifecycle_1.Priority;
     var lifecycle_task_1 = require("./lifecycle-task");
     exports.AggregateContinuationTask = lifecycle_task_1.AggregateContinuationTask;

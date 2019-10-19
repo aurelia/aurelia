@@ -156,7 +156,7 @@ export class Compose {
     resolveView(subject, flags) {
         const view = this.provideViewFor(subject, flags);
         if (view) {
-            view.hold(this.$controller.projector.host);
+            view.hold(this.$controller.projector.host, 1 /* insertBefore */);
             view.lockScope(this.renderable.scope);
             return view;
         }

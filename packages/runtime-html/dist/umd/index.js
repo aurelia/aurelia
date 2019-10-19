@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors", "./styles/style-configuration", "./styles/css-modules-registry", "./styles/shadow-dom-registry", "./styles/shadow-dom-styles"], factory);
+        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-attributes/portal", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors", "./styles/style-configuration", "./styles/css-modules-registry", "./styles/shadow-dom-registry", "./styles/shadow-dom-styles"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -52,6 +52,8 @@
     exports.BlurManager = blur_1.BlurManager;
     var focus_1 = require("./resources/custom-attributes/focus");
     exports.Focus = focus_1.Focus;
+    var portal_1 = require("./resources/custom-attributes/portal");
+    exports.Portal = portal_1.Portal;
     var compose_1 = require("./resources/custom-elements/compose");
     exports.Compose = compose_1.Compose;
     var configuration_1 = require("./configuration");

@@ -16,6 +16,7 @@ export { SelfBindingBehavior } from './resources/binding-behaviors/self';
 export { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
 export { Blur, BlurManager } from './resources/custom-attributes/blur';
 export { Focus } from './resources/custom-attributes/focus';
+export { Portal } from './resources/custom-attributes/portal';
 export { Compose } from './resources/custom-elements/compose';
 export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, SetClassAttributeRendererRegistration, SetStyleAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';

@@ -1,7 +1,7 @@
 import { mergeDistinct, nextId, PLATFORM, } from '@aurelia/kernel';
 import { HooksDefinition } from '../definitions';
 import { IDOM } from '../dom';
-import { ILifecycle } from '../lifecycle';
+import { ILifecycle, } from '../lifecycle';
 import { AggregateContinuationTask, ContinuationTask, hasAsyncWork, LifecycleTask, } from '../lifecycle-task';
 import { Scope, } from '../observation/binding-context';
 import { ProxyObserver, } from '../observation/proxy-observer';
@@ -31,6 +31,7 @@ export class Controller {
         this.viewCache = viewCache;
         this.bindings = void 0;
         this.controllers = void 0;
+        this.mountStrategy = 1 /* insertBefore */;
         this.state = 0 /* none */;
         if (viewModel == void 0) {
             if (viewCache == void 0) {
@@ -163,9 +164,10 @@ export class Controller {
         this.scope = scope;
         this.state |= 16384 /* hasLockedScope */;
     }
-    hold(location) {
+    hold(location, mountStrategy) {
         this.state = (this.state | 32768 /* canBeCached */) ^ 32768 /* canBeCached */;
         this.location = location;
+        this.mountStrategy = mountStrategy;
     }
     release(flags) {
         this.state |= 32768 /* canBeCached */;
@@ -605,9 +607,16 @@ export class Controller {
         this.projector.project(this.nodes); // non-null is implied by the hook
     }
     mountSynthetic(flags) {
+        const nodes = this.nodes; // non null is implied by the hook
+        const location = this.location; // non null is implied by the hook
         this.state |= 64 /* isMounted */;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.nodes.insertBefore(this.location); // non-null is implied by the hook
+        switch (this.mountStrategy) {
+            case 2 /* append */:
+                nodes.appendTo(location);
+                break;
+            default:
+                nodes.insertBefore(location);
+        }
     }
     unmountCustomElement(flags) {
         if ((this.state & 64 /* isMounted */) === 0) {

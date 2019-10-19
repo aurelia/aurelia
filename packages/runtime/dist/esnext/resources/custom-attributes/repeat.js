@@ -368,7 +368,7 @@ export class Repeat {
         if (indexMap === void 0) {
             for (let i = 0, ii = views.length; i < ii; ++i) {
                 view = views[i];
-                view.hold(location);
+                view.hold(location, 1 /* insertBefore */);
                 view.nodes.unlink();
                 view.attach(flags);
             }
@@ -377,7 +377,7 @@ export class Repeat {
             for (let i = 0, ii = views.length; i < ii; ++i) {
                 if (indexMap[i] !== i) {
                     view = views[i];
-                    view.hold(location);
+                    view.hold(location, 1 /* insertBefore */);
                     view.nodes.unlink();
                     view.attach(flags);
                 }
@@ -391,7 +391,7 @@ export class Repeat {
         this.$controller.lifecycle.attached.begin();
         for (let i = 0, ii = views.length; i < ii; ++i) {
             view = views[i];
-            view.hold(location);
+            view.hold(location, 1 /* insertBefore */);
             view.nodes.unlink();
             view.attach(flags);
         }
@@ -417,7 +417,7 @@ export class Repeat {
             view = views[i];
             if (indexMap[i] === -2) {
                 setContextualProperties(view.scope.overrideContext, i, newLen);
-                view.hold(location);
+                view.hold(location, 1 /* insertBefore */);
                 view.attach(flags);
             }
             else if (j < 0 || seqLen === 1 || i !== seq[j]) {

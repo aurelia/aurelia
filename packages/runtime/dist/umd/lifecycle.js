@@ -18,6 +18,14 @@
         ViewModelKind[ViewModelKind["synthetic"] = 2] = "synthetic";
     })(ViewModelKind = exports.ViewModelKind || (exports.ViewModelKind = {}));
     exports.IController = kernel_1.DI.createInterface('IController').noDefault();
+    /**
+     * Describing characteristics of a mounting operation a controller will perform
+     */
+    var MountStrategy;
+    (function (MountStrategy) {
+        MountStrategy[MountStrategy["insertBefore"] = 1] = "insertBefore";
+        MountStrategy[MountStrategy["append"] = 2] = "append";
+    })(MountStrategy = exports.MountStrategy || (exports.MountStrategy = {}));
     exports.IViewFactory = kernel_1.DI.createInterface('IViewFactory').noDefault();
     class LinkedCallback {
         constructor(cb, context = void 0, priority = 16384 /* normal */, once = false) {

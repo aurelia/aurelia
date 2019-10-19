@@ -14,7 +14,7 @@ export class With {
         this.id = nextId('au$component');
         this.factory = factory;
         this.view = this.factory.create();
-        this.view.hold(location);
+        this.view.hold(location, 1 /* insertBefore */);
         this._value = void 0;
     }
     get value() {

@@ -15,12 +15,14 @@ export declare const AttrBindingBehaviorRegistration: IRegistry;
 export declare const SelfBindingBehaviorRegistration: IRegistry;
 export declare const UpdateTriggerBindingBehaviorRegistration: IRegistry;
 export declare const ComposeRegistration: IRegistry;
+export declare const PortalRegistration: IRegistry;
 export declare const FocusRegistration: IRegistry;
 export declare const BlurRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `attr`, `self`, `updateTrigger`
  * - Custom Elements: `au-compose`
+ * - Custom Attributes: `blur`, `focus`, `portal`
  */
 export declare const DefaultResources: IRegistry[];
 export declare const ListenerBindingRendererRegistration: IRegistry;

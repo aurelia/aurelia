@@ -124,7 +124,7 @@ export class If {
         if (view === void 0) {
             view = factory.create(flags);
         }
-        view.hold(this.location);
+        view.hold(this.location, 1 /* insertBefore */);
         return view;
     }
     swap(value, flags) {

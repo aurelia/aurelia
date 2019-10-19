@@ -9,6 +9,7 @@ import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
+import { Portal } from './resources/custom-attributes/portal';
 import { Compose } from './resources/custom-elements/compose';
 export const IProjectorLocatorRegistration = HTMLProjectorLocator;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator;
@@ -31,18 +32,21 @@ export const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior;
 export const ComposeRegistration = Compose;
+export const PortalRegistration = Portal;
 export const FocusRegistration = Focus;
 export const BlurRegistration = Blur;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `attr`, `self`, `updateTrigger`
  * - Custom Elements: `au-compose`
+ * - Custom Attributes: `blur`, `focus`, `portal`
  */
 export const DefaultResources = [
     AttrBindingBehaviorRegistration,
     SelfBindingBehaviorRegistration,
     UpdateTriggerBindingBehaviorRegistration,
     ComposeRegistration,
+    PortalRegistration,
     FocusRegistration,
     BlurRegistration
 ];

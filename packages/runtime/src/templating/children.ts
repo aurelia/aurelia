@@ -45,7 +45,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
       config.property = $prop as string;
     }
 
-    Metadata.define(Children.name, ChildrenDefinition.create($prop as string, config), $target, $prop);
+    Metadata.define(Children.name, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
     Protocol.annotation.appendTo($target.constructor as Constructable, Children.keyFrom($prop as string));
   }
 

@@ -281,6 +281,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           );
         }
       },
+      // todo: re-enable the test after fixing the parser
       // {
       //   title: 'it works with funny movement, with render context',
       //   rootVm: CustomElement.define(

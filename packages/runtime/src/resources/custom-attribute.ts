@@ -121,7 +121,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    Registration.singleton(key, Type).register(container);
+    Registration.transient(key, Type).register(container);
     Registration.alias(key, Type).register(container);
     registerAliases(aliases, CustomAttribute, key, container);
   }

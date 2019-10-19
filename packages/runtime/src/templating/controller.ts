@@ -128,8 +128,6 @@ export class Controller<
   public readonly hooks: HooksDefinition;
   public readonly bindingContext?: BindingContext<T, C>;
 
-  public readonly host?: T;
-
   public scopeParts?: string[];
   public isStrictBinding?: boolean;
 
@@ -148,8 +146,8 @@ export class Controller<
     public readonly viewCache: IViewCache<T> | undefined,
     public readonly lifecycle: ILifecycle,
     public readonly viewModel: C | undefined,
-    parentContext: IContainer | IRenderContext<T> | undefined,
-    host: T | undefined,
+    public readonly parentContext: IContainer | IRenderContext<T> | undefined,
+    public readonly host: T | undefined,
     options: { parts?: PartialCustomElementDefinitionParts },
   ) {
     switch (vmKind) {

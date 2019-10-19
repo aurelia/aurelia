@@ -82,7 +82,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
       firstDefined(BindingCommand.getAnnotation(Type, 'name'), name),
       mergeArrays(BindingCommand.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       BindingCommand.keyFrom(name),
-      firstDefined(BindingCommand.getAnnotation(Type, 'type'), def.type, Type.type),
+      firstDefined(BindingCommand.getAnnotation(Type, 'type'), def.type, Type.type, null),
     );
   }
 

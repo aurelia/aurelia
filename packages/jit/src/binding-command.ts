@@ -28,15 +28,19 @@ export type PartialBindingCommandDefinition = PartialResourceDefinition<{
 }>;
 
 export type BindingCommandInstance<T extends {} = {}> = {
-  bindingType: BindingType;
-  compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
+  bindingType?: BindingType;
+  compile?(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 } & T;
 
-export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance>;
+export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
+  isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
+  getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
+  annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
+  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
 };
 
 export type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
@@ -62,21 +66,24 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
     nameOrDef: string | PartialBindingCommandDefinition,
     Type: BindingCommandType<T>,
   ): BindingCommandDefinition<T> {
-    let name: string;
-    let aliases: string[];
-    let type: string | null;
 
+    let name: string;
+    let def: PartialBindingCommandDefinition;
     if (typeof nameOrDef === 'string') {
       name = nameOrDef;
-      aliases = mergeArrays(Type.aliases);
-      type = null;
+      def = { name };
     } else {
       name = nameOrDef.name;
-      aliases = mergeArrays(Type.aliases, nameOrDef.aliases);
-      type = firstDefined(nameOrDef.type, null);
+      def = nameOrDef;
     }
 
-    return new BindingCommandDefinition(Type, name, aliases, BindingCommand.keyFrom(name), type);
+    return new BindingCommandDefinition(
+      Type,
+      firstDefined(BindingCommand.getAnnotation(Type, 'name'), name),
+      mergeArrays(BindingCommand.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      BindingCommand.keyFrom(name),
+      firstDefined(BindingCommand.getAnnotation(Type, 'type'), def.type, Type.type),
+    );
   }
 
   public register(container: IContainer): void {
@@ -92,13 +99,30 @@ export const BindingCommand: BindingCommandKind = {
   keyFrom(name: string): string {
     return `${BindingCommand.name}:${name}`;
   },
+  isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
+    return typeof value === 'function' && Metadata.hasOwn(BindingCommand.name, value);
+  },
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
-    const $Type = Type as BindingCommandType<T>;
-    const description = BindingCommandDefinition.create(nameOrDef, $Type);
-    Metadata.define(BindingCommand.name, description, Type);
+    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable);
+    Metadata.define(BindingCommand.name, definition, definition.Type);
+    Metadata.define(BindingCommand.name, definition, definition);
     Protocol.resource.appendTo(Type, BindingCommand.name);
 
-    return $Type;
+    return definition.Type as BindingCommandType<T>;
+  },
+  getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
+    const def = Metadata.getOwn(BindingCommand.name, Type);
+    if (def === void 0) {
+      throw new Error(`No definition found for type ${Type.name}`);
+    }
+
+    return def;
+  },
+  annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void {
+    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+  },
+  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K] {
+    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
 };
 

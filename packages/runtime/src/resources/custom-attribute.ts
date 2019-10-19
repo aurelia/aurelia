@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
   Constructable,
   IContainer,
@@ -52,10 +51,10 @@ export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => Cus
  */
 export function customAttribute(definition: PartialCustomAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(name: string): CustomAttributeDecorator;
-export function customAttribute(nameOrDefinition: string | PartialCustomAttributeDefinition): CustomAttributeDecorator;
-export function customAttribute(nameOrDefinition: string | PartialCustomAttributeDefinition): CustomAttributeDecorator {
+export function customAttribute(nameOrDef: string | PartialCustomAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(nameOrDef: string | PartialCustomAttributeDefinition): CustomAttributeDecorator {
   return function (target) {
-    return CustomAttribute.define(nameOrDefinition, target);
+    return CustomAttribute.define(nameOrDef, target);
   };
 }
 
@@ -66,13 +65,13 @@ export function customAttribute(nameOrDefinition: string | PartialCustomAttribut
  */
 export function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(name: string): CustomAttributeDecorator;
-export function templateController(nameOrDefinition: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
-export function templateController(nameOrDefinition: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
+export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
+export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return function (target) {
     return CustomAttribute.define(
-      typeof nameOrDefinition === 'string'
-        ? { isTemplateController: true, name: nameOrDefinition }
-        : { isTemplateController: true, ...nameOrDefinition },
+      typeof nameOrDef === 'string'
+        ? { isTemplateController: true, name: nameOrDef }
+        : { isTemplateController: true, ...nameOrDef },
       target
     );
   };
@@ -135,13 +134,13 @@ export const CustomAttribute: CustomAttributeKind = {
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
   },
-  define<T extends Constructable>(nameOrDefinition: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
-    const description = CustomAttributeDefinition.create(nameOrDefinition, Type as Constructable);
-    Metadata.define(CustomAttribute.name, description, description.Type);
-    Metadata.define(CustomAttribute.name, description, description);
+  define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
+    const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
+    Metadata.define(CustomAttribute.name, definition, definition.Type);
+    Metadata.define(CustomAttribute.name, definition, definition);
     Protocol.resource.appendTo(Type, CustomAttribute.name);
 
-    return description.Type as CustomAttributeType<T>;
+    return definition.Type as CustomAttributeType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T> {
     const def = Metadata.getOwn(CustomAttribute.name, Type) as CustomAttributeDefinition<T>;

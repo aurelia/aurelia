@@ -19,8 +19,8 @@ import { IBinding } from '../lifecycle';
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
-  bind?(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
-  unbind?(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
+  bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
+  unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
 } & T;
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
@@ -92,8 +92,8 @@ export const BindingBehavior: BindingBehaviorKind = {
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(BindingBehavior.name, value);
   },
-  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
-    const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable);
+  define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
+    const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
     Metadata.define(BindingBehavior.name, definition, definition.Type);
     Metadata.define(BindingBehavior.name, definition, definition);
     Protocol.resource.appendTo(Type, BindingBehavior.name);

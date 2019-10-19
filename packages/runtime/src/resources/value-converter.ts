@@ -16,7 +16,7 @@ import { registerAliases } from '../definitions';
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 
 export type ValueConverterInstance<T extends {} = {}> = {
-  toView?(input: unknown, ...args: unknown[]): unknown;
+  toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
 } & T;
 
@@ -89,8 +89,8 @@ export const ValueConverter: ValueConverterKind = {
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(ValueConverter.name, value);
   },
-  define<T extends Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
-    const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable);
+  define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
+    const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
     Metadata.define(ValueConverter.name, definition, definition.Type);
     Metadata.define(ValueConverter.name, definition, definition);
     Protocol.resource.appendTo(Type, ValueConverter.name);

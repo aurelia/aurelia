@@ -28,8 +28,8 @@ export type PartialBindingCommandDefinition = PartialResourceDefinition<{
 }>;
 
 export type BindingCommandInstance<T extends {} = {}> = {
-  bindingType?: BindingType;
-  compile?(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
+  bindingType: BindingType;
+  compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
 } & T;
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
@@ -102,8 +102,8 @@ export const BindingCommand: BindingCommandKind = {
   isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(BindingCommand.name, value);
   },
-  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
-    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable);
+  define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
+    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
     Metadata.define(BindingCommand.name, definition, definition.Type);
     Metadata.define(BindingCommand.name, definition, definition);
     Protocol.resource.appendTo(Type, BindingCommand.name);

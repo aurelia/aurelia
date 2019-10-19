@@ -5,7 +5,7 @@ import {
   bindable,
   ContinuationTask,
   IController,
-  IControllerHoldParentOptions,
+  MountStrategy,
   IDOM,
   ILifecycleTask,
   IRenderLocation,
@@ -87,7 +87,7 @@ export class Portal<T extends ParentNode = ParentNode> {
 
     this.task = LifecycleTask.done;
     this.view = this.factory.create();
-    this.view.hold(originalLoc);
+    this.view.hold(originalLoc, MountStrategy.insertBefore);
 
     this.strict = false;
   }
@@ -143,7 +143,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     } = this;
     let task = this.task;
 
-    view.holdParent(target, Mounstar);
+    view.hold(target, MountStrategy.append);
 
     if ((this.$controller.state & State.isAttachedOrAttaching) === 0) {
       return task;

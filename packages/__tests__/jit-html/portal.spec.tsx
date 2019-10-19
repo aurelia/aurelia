@@ -280,6 +280,35 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             'when .target = undefined, .divdiv shoulda gone back to body (6)'
           );
         }
+      },
+      {
+        title: 'it works with funny movement',
+        rootVm: CustomElement.define(
+          {
+            name: 'app',
+            template: <template>
+              <div ref='divdiv' portal='target.bind: target; render-context: mock-render-context' class='divdiv'>{'${message}'}</div>
+              <div ref='localDiv'></div>
+              <div id="mock-render-context">
+                <div id="mock-1"></div>
+                <div id="mock-2"></div>
+                <div id="mock-3"></div>
+              </div>
+            </template>
+          },
+          class App {
+            public localDiv: HTMLElement;
+            public items: any[];
+            public $if: boolean;
+          }
+        ),
+        assertionFn: (ctx, host, comp) => {
+          assert.notStrictEqual(
+            childrenQuerySelector(ctx.doc.body, '.divdiv'),
+            null,
+            'it should have been moved to body'
+          );
+        }
       }
     ];
 

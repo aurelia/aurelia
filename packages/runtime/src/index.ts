@@ -413,13 +413,13 @@ export {
 export {
   ViewModelKind,
   IBinding,
-  IControllerHoldParentOptions,
   ILifecycle,
   IViewModel,
   IController,
   IRenderContext,
   IViewCache,
   IViewFactory,
+  MountStrategy,
   Priority,
 } from './lifecycle';
 export {

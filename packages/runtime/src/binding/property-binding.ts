@@ -12,7 +12,7 @@ import {
   LifecycleFlags,
   State,
 } from '../flags';
-import { ILifecycle, IBinding } from '../lifecycle';
+import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
   IBindingTargetObserver,
@@ -29,7 +29,6 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
-import { sortableBinding } from './util';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -40,7 +39,6 @@ const toViewOrOneTime = toView | oneTime;
 export interface PropertyBinding extends IConnectableBinding {}
 
 @connectable()
-@sortableBinding(propertyBindingComparer)
 export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State;
@@ -206,20 +204,5 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-  }
-}
-
-function propertyBindingComparer(bindingA: IBinding, bindingB: IBinding): number {
-  const propertyOrder = ['model', 'matcher', 'checked'];
-  let indexA = Number.POSITIVE_INFINITY;
-  let indexB = Number.POSITIVE_INFINITY;
-  if (bindingA instanceof PropertyBinding && bindingB instanceof PropertyBinding) {
-    indexA = propertyOrder.indexOf(bindingA.targetProperty);
-    indexB = propertyOrder.indexOf(bindingB.targetProperty);
-  }
-  switch(true){
-    case indexA < indexB: return -1;
-    case indexB < indexA: return 1;
-    default: return 0;
   }
 }

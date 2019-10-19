@@ -57,7 +57,6 @@ import {
 import {
   Controller,
 } from './templating/controller';
-import { getBindingCompareFunction } from './binding/util';
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -130,7 +129,6 @@ export class Renderer implements IRenderer {
         instructionRenderers[current.type](flags, dom, context, renderable, target, current, parts);
       }
     }
-    this.postProcessBindings(renderable);
 
     if (host) {
       const surrogateInstructions = definition.surrogates;
@@ -140,27 +138,6 @@ export class Renderer implements IRenderer {
         instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
       }
     }
-  }
-
-  private postProcessBindings(renderable: IController) {
-    const bindings = renderable.bindings;
-    if (bindings === void 0) {
-      return;
-    }
-    bindings.sort((bindingA, bindingB) => {
-      const compareFnA = getBindingCompareFunction(bindingA);
-      const resultA = (compareFnA && compareFnA(bindingA, bindingB)) || 0;
-
-      const compareFnB = getBindingCompareFunction(bindingB);
-      const resultB = (compareFnB && compareFnB(bindingA, bindingB)) || 0;
-
-      if (resultA !== resultB) {
-        // TODO to be replaced with Reporter/Logger
-        console.warn('Cannot reliably sort the bindables');
-        return 0;
-      }
-      return resultA;
-    });
   }
 }
 

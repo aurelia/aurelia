@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
   Constructable,
   IContainer,
@@ -10,6 +9,7 @@ import {
   Protocol,
   PartialResourceDefinition,
   mergeArrays,
+  firstDefined,
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
 import { LifecycleFlags } from '../flags';
@@ -19,8 +19,8 @@ import { IBinding } from '../lifecycle';
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
-  bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
+  bind?(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
+  unbind?(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
 } & T;
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
@@ -30,16 +30,18 @@ export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBeha
   define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
+  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void;
+  getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K];
 };
 
 export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
 
 export function bindingBehavior(definition: PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrDefinition: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrDefinition: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator {
+export function bindingBehavior(nameOrDef: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrDef: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator {
   return function (target) {
-    return BindingBehavior.define(nameOrDefinition, target);
+    return BindingBehavior.define(nameOrDef, target);
   };
 }
 
@@ -48,25 +50,30 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
     public readonly Type: BindingBehaviorType<T>,
     public readonly name: string,
     public readonly aliases: readonly string[],
-    public readonly key: string = BindingBehavior.keyFrom(name),
+    public readonly key: string,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialBindingBehaviorDefinition,
     Type: BindingBehaviorType<T>,
   ): BindingBehaviorDefinition<T> {
-    let name: string;
-    let aliases: string[];
 
+    let name: string;
+    let def: PartialBindingBehaviorDefinition;
     if (typeof nameOrDef === 'string') {
       name = nameOrDef;
-      aliases = mergeArrays(Type.aliases);
+      def = { name };
     } else {
       name = nameOrDef.name;
-      aliases = mergeArrays(Type.aliases, nameOrDef.aliases);
+      def = nameOrDef;
     }
 
-    return new BindingBehaviorDefinition(Type, name, aliases);
+    return new BindingBehaviorDefinition(
+      Type,
+      firstDefined(BindingBehavior.getAnnotation(Type, 'name'), name),
+      mergeArrays(BindingBehavior.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      BindingBehavior.keyFrom(name),
+    );
   }
 
   public register(container: IContainer): void {
@@ -86,12 +93,12 @@ export const BindingBehavior: BindingBehaviorKind = {
     return typeof value === 'function' && Metadata.hasOwn(BindingBehavior.name, value);
   },
   define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
-    const $Type = Type as BindingBehaviorType<T>;
-    const description = BindingBehaviorDefinition.create(nameOrDef, $Type);
-    Metadata.define(BindingBehavior.name, description, Type);
+    const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable);
+    Metadata.define(BindingBehavior.name, definition, definition.Type);
+    Metadata.define(BindingBehavior.name, definition, definition);
     Protocol.resource.appendTo(Type, BindingBehavior.name);
 
-    return $Type;
+    return definition.Type as BindingBehaviorType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
     const def = Metadata.getOwn(BindingBehavior.name, Type);
@@ -100,5 +107,11 @@ export const BindingBehavior: BindingBehaviorKind = {
     }
 
     return def;
+  },
+  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void {
+    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+  },
+  getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K] {
+    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
 };

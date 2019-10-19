@@ -494,27 +494,6 @@ describe('FragmentNodeSequence', function () {
     }
   });
 
-  describe('prependTo', function() {
-    for (const width of widthArr) {
-      for (const depth of depthArr.filter(d => d > 0)) {
-        it(`should append the view to the parent (depth=${depth},width=${width})`, function() {
-          const node = ctx.dom.createElement('div');
-          const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.dom, fragment);
-          const parent = ctx.dom.createElement('div');
-          sut.prependTo(parent);
-          assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
-          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
-          let i = 0;
-          while (i < width) {
-            assert.strictEqual(parent.childNodes.item(i) === sut.childNodes[i], true, `parent.childNodes.item(i) === sut.childNodes[i]`);
-            i++;
-          }
-        });
-      }
-    }
-  });
-
   describe.skip('remove', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {

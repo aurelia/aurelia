@@ -1,11 +1,11 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
+import { toArray } from '@aurelia/kernel';
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
-import { toArray } from '@aurelia/kernel';
 
-describe.only('app', function() {
+describe('app', function() {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function() {
       const ctx = await startup();
@@ -313,7 +313,7 @@ describe.only('app', function() {
     assert.equal(flushSpy.calls.length, 1);
   });
 
-  $it('uses a radio-button-list that renders a map as a list of radio buttons', function({ host, ctx }) {
+  $it('uses a radio-button-list that renders a map as a list of radio buttons', async function({ host, ctx }) {
     const app = getViewModel<App>(host);
     const contacts = app.contacts;
     const contactsArr = Array.from(contacts);
@@ -358,12 +358,12 @@ describe.only('app', function() {
     labels = toArray(rbl.querySelectorAll('label'));
     size = contacts.size;
     assert.equal(labels.length, size);
-    assert.html.textContent(labels[size-1], newContacts[1][1], 'incorrect text');
-    assert.html.textContent(labels[size-2], newContacts[0][1], 'incorrect text');
+    assert.html.textContent(labels[size - 1], newContacts[1][1], 'incorrect text');
+    assert.html.textContent(labels[size - 2], newContacts[0][1], 'incorrect text');
 
-    contacts.set(newContacts[1][0], 'work3');
+    // change value of existing key
+    contacts.set(222, 'work3');
     ctx.lifecycle.processRAFQueue(undefined);
-    assert.html.textContent(labels[size-1], 'work3', 'incorrect text');
-
+    assert.html.textContent(rbl.querySelector('label:last-of-type'), 'work3', 'incorrect text');
   });
 });

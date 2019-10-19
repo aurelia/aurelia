@@ -1,4 +1,4 @@
-import { view, ViewLocator, ViewValueConverter } from '@aurelia/runtime';
+import { view, ViewLocator, ViewValueConverter, CustomElement } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('the view value converter', function() {
@@ -112,7 +112,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-1', template.name);
@@ -130,7 +130,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model, 'view-2');
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
@@ -148,7 +148,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('default-view', template.name);
@@ -175,7 +175,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model, selectView);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
@@ -196,7 +196,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model, selectView);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal(template1.name, template.name);
@@ -213,7 +213,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-1', template.name);

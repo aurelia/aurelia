@@ -124,12 +124,12 @@ export class DI {
   }
 
   public static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
-    const key = Protocol.annotation.keyFor('paramtypes');
+    const key = Protocol.annotation.keyFor('di:paramtypes');
     return Metadata.getOwn(key, Type);
   }
 
   public static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
-    const key = Protocol.annotation.keyFor('paramtypes');
+    const key = Protocol.annotation.keyFor('di:paramtypes');
     let annotationParamtypes = Metadata.getOwn(key, Type);
     if (annotationParamtypes === void 0) {
       Metadata.define(key, annotationParamtypes = [], Type);
@@ -143,7 +143,7 @@ export class DI {
     // so be careful with making changes here as it can have a huge impact on complex end user apps.
     // Preferably, only make changes to the dependency resolution process via a RFC.
 
-    const key = Protocol.annotation.keyFor('dependencies');
+    const key = Protocol.annotation.keyFor('di:dependencies');
     let dependencies = Metadata.getOwn(key, Type) as Key[] | undefined;
     if (dependencies === void 0) {
       // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
@@ -156,7 +156,7 @@ export class DI {
       if (inject === void 0) {
         // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
         const designParamtypes = DI.getDesignParamtypes(Type);
-        // au:annotation:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
+        // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
         const annotationParamtypes = DI.getAnnotationParamtypes(Type);
         if (designParamtypes === void 0) {
           if (annotationParamtypes === void 0) {
@@ -169,14 +169,14 @@ export class DI {
               dependencies = [];
             }
           } else {
-            // No design:paramtypes so just use the au:annotation:paramtypes
+            // No design:paramtypes so just use the au:annotation:di:paramtypes
             dependencies = cloneArrayWithPossibleProps(annotationParamtypes);
           }
         } else if (annotationParamtypes === void 0) {
-          // No au:annotation:paramtypes so just use the design:paramtypes
+          // No au:annotation:di:paramtypes so just use the design:paramtypes
           dependencies = cloneArrayWithPossibleProps(designParamtypes);
         } else {
-          // We've got both, so merge them (in case of conflict on same index, au:annotation:paramtypes take precedence)
+          // We've got both, so merge them (in case of conflict on same index, au:annotation:di:paramtypes take precedence)
           dependencies = cloneArrayWithPossibleProps(designParamtypes);
           let len = annotationParamtypes.length;
           let auAnnotationParamtype: Key;

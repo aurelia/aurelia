@@ -764,11 +764,11 @@ describe(`TemplateCompiler - combinations`, function () {
       // PartialCustomAttributeDefinition.bindables
       [
         (ctx) => [undefined, undefined, 'value'],
-        (ctx) => [{}, undefined,  'value'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime } }, BindingMode.oneTime, 'bazBaz'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
+        (ctx) => [BindableDefinition.create('value', {}), undefined,  'value'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
       ] as ((ctx: HTMLTestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
       [
         (ctx) => ['foo',     '', class Foo {}],
@@ -844,11 +844,11 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
       ] as ((ctx: HTMLTestContext, $1: string) => string)[],
       [
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   } })
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   }) })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],
@@ -1117,11 +1117,11 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp) => `${kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => string)[],
       [
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.default  }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   }) })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],

@@ -98,7 +98,7 @@ export const Children = {
       if (isArray(maybeList)) {
         maybeList.forEach(addName);
       } else if (maybeList instanceof ChildrenDefinition) {
-        Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
+        childrenObservers[maybeList.property] = maybeList;
       } else if (maybeList !== void 0) {
         Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
       }

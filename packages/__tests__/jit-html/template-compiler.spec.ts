@@ -32,7 +32,9 @@ import {
   TargetedInstructionType as TT,
   IHydrateLetElementInstruction,
   ITargetedInstruction,
-  PartialCustomAttributeDefinition
+  PartialCustomAttributeDefinition,
+  CustomElementDefinition,
+  HooksDefinition
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -426,6 +428,22 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   });
 });
 
+const defaultCustomElementDefinitionProperties = {
+  Type: class HTMLOnlyElement {},
+  aliases: [],
+  key: 'au:resource:custom-element:undefined',
+  cache: 0,
+  dependencies: [],
+  bindables: {},
+  childrenObservers: {},
+  containerless: false,
+  isStrictBinding: false,
+  hasSlots: false,
+  shadowOptions: null,
+  strategy: 1,
+  hooks: HooksDefinition.none,
+};
+
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
     return [{
@@ -472,7 +490,9 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       type: TT.hydrateTemplateController,
       res: target,
       def: {
+        ...defaultCustomElementDefinitionProperties,
         name: target,
+        key: `au:resource:custom-element:${target}`,
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
         needsCompile: false,
@@ -490,6 +510,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
+      ...defaultCustomElementDefinitionProperties,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -506,7 +527,9 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       type: TT.hydrateTemplateController,
       res: target,
       def: {
+        ...defaultCustomElementDefinitionProperties,
         name: target,
+        key: `au:resource:custom-element:${target}`,
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
         needsCompile: false,
@@ -525,6 +548,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
+      ...defaultCustomElementDefinitionProperties,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -557,7 +581,9 @@ function createCustomElement(
   const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
+    ...defaultCustomElementDefinitionProperties,
     name: 'unnamed',
+    key: 'au:resource:custom-element:unnamed',
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
@@ -592,7 +618,9 @@ function createCustomAttribute(
   const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
+    ...defaultCustomElementDefinitionProperties,
     name: 'unnamed',
+    key: 'au:resource:custom-element:unnamed',
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
@@ -715,6 +743,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
+          ...defaultCustomElementDefinitionProperties
         };
 
         const { sut, resources, dom } = setup(ctx);
@@ -786,6 +815,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
+          ...defaultCustomElementDefinitionProperties
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1050,6 +1080,7 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           scopeParts: [],
+          ...defaultCustomElementDefinitionProperties,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

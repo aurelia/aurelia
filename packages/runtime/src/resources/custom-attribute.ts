@@ -136,15 +136,15 @@ export const CustomAttribute: CustomAttributeKind = {
     return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
   },
   define<T extends Constructable>(nameOrDefinition: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
-    const $Type = Type as CustomAttributeType<T>;
-    const description = CustomAttributeDefinition.create(nameOrDefinition, $Type);
-    Metadata.define(CustomAttribute.name, description, Type);
+    const description = CustomAttributeDefinition.create(nameOrDefinition, Type as Constructable);
+    Metadata.define(CustomAttribute.name, description, description.Type);
+    Metadata.define(CustomAttribute.name, description, description);
     Protocol.resource.appendTo(Type, CustomAttribute.name);
 
-    return $Type;
+    return description.Type as CustomAttributeType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T> {
-    const def = Metadata.getOwn(CustomAttribute.name, Type);
+    const def = Metadata.getOwn(CustomAttribute.name, Type) as CustomAttributeDefinition<T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }

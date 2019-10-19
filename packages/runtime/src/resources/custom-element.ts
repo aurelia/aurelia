@@ -289,7 +289,7 @@ export const CustomElement: CustomElementKind = {
     return description.Type as CustomElementType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T> {
-    const def = Metadata.getOwn(CustomElement.name, Type);
+    const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }

@@ -63,8 +63,10 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       const factory = resolver.getFactory(this.context);
 
       if (factory != null) {
-        const description = factory.Type.description;
-        return description === undefined ? null : description;
+        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
+        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
+        const definition = Metadata.getOwn(kind.name, factory.Type);
+        return definition === void 0 ? null : definition;
       }
     }
 

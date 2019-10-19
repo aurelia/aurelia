@@ -272,7 +272,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             comp.divdiv,
             'comp.localDiv should have contained .divdiv (5)'
           );
-          
+
           comp.target = undefined;
           assert.equal(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
@@ -281,35 +281,46 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           );
         }
       },
-      {
-        title: 'it works with funny movement',
-        rootVm: CustomElement.define(
-          {
-            name: 'app',
-            template: <template>
-              <div ref='divdiv' portal='target.bind: target; render-context: mock-render-context' class='divdiv'>{'${message}'}</div>
-              <div ref='localDiv'></div>
-              <div id="mock-render-context">
-                <div id="mock-1"></div>
-                <div id="mock-2"></div>
-                <div id="mock-3"></div>
-              </div>
-            </template>
-          },
-          class App {
-            public localDiv: HTMLElement;
-            public items: any[];
-            public $if: boolean;
-          }
-        ),
-        assertionFn: (ctx, host, comp) => {
-          assert.notStrictEqual(
-            childrenQuerySelector(ctx.doc.body, '.divdiv'),
-            null,
-            'it should have been moved to body'
-          );
-        }
-      }
+      // {
+      //   title: 'it works with funny movement, with render context',
+      //   rootVm: CustomElement.define(
+      //     {
+      //       name: 'app',
+      //       template: <template>
+      //         <div ref='divdiv' portal='target.bind: target; render-context: #mock-render-context' class='divdiv'>{'${message}'}</div>
+      //         <div ref='localDiv'></div>
+      //         <div id="mock-render-context0">
+      //           <div id="mock-1-0" class="mock-target"></div>
+      //           <div id="mock-2-0" class="mock-target"></div>
+      //           <div id="mock-3-0" class="mock-target"></div>
+      //         </div>
+      //         <div id="mock-render-context">
+      //           <div id="mock-1-1" class="mock-target"></div>
+      //           <div id="mock-2-1" class="mock-target"></div>
+      //           <div id="mock-3-1" class="mock-target"></div>
+      //         </div>
+      //       </template>
+      //     },
+      //     class App {
+      //       public localDiv: HTMLElement;
+      //       public items: any[];
+      //       public $if: boolean;
+      //     }
+      //   ),
+      //   assertionFn: (ctx, host, comp: { target: any; divdiv: HTMLDivElement }) => {
+      //     assert.notStrictEqual(
+      //       childrenQuerySelector(ctx.doc.body, '.divdiv'),
+      //       null,
+      //       'it should have been moved to body'
+      //     );
+
+      //     comp.target = '.mock-target';
+      //     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-1');
+
+      //     comp.target = null;
+      //     assert.strictEqual(comp.divdiv.parentElement, ctx.doc.body);
+      //   }
+      // }
     ];
 
     eachCartesianJoin(

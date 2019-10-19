@@ -942,10 +942,13 @@ export class Controller<
     const location = this.location!; // non null is implied by the hook
     this.state |= State.isMounted;
 
-    if (this.mountStrategy === MountStrategy.append) {
-      nodes.appendTo(location as T);
-    } else {
-      nodes.insertBefore(location);
+    // eslint-disable-next-line sonarjs/no-small-switch
+    switch (this.mountStrategy) {
+      case MountStrategy.append:
+        nodes.appendTo(location as T);
+        break;
+      default:
+        nodes.insertBefore(location);
     }
   }
 

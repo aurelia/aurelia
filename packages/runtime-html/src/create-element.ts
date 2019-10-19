@@ -57,7 +57,7 @@ export class RenderPlan<T extends INode = Node> {
   public get definition(): CustomElementDefinition {
     if (this.lazyDefinition === void 0) {
       this.lazyDefinition = CustomElementDefinition.create({
-        name: 'unnamed',
+        name: CustomElement.generateName(),
         template: this.node,
         needsCompile: typeof this.node === 'string',
         instructions: this.instructions,

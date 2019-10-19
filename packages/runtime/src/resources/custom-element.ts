@@ -63,6 +63,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
+  generateName(): string;
 };
 
 export type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
@@ -181,7 +182,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     Type: CustomElementType<T> | null = null,
   ): CustomElementDefinition<T> {
 
-    let name: string;
+    let name: string | undefined;
     let def: PartialCustomElementDefinition;
     if (typeof nameOrDef === 'string') {
       name = nameOrDef;
@@ -195,6 +196,10 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       Type = typeof (nameOrDef as CustomElementDefinition<T>).Type === 'function'
         ? (nameOrDef as CustomElementDefinition<T>).Type
         : class HTMLOnlyElement { /* HTML Only */ } as CustomElementType<T>;
+    }
+
+    if (name === void 0) {
+      name = CustomElement.generateName();
     }
 
     return new CustomElementDefinition(
@@ -301,6 +306,13 @@ export const CustomElement: CustomElementKind = {
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K] {
     return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
   },
+  generateName: (function () {
+    let id = 0;
+
+    return function () {
+      return `unnamed-${++id}`;
+    };
+  })(),
 };
 
 export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {

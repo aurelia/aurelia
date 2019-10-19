@@ -128,7 +128,7 @@ export const IController = DI.createInterface<IController>('IController').noDefa
 /**
  * Describing characteristics of a mounting operation a controller will perform
  */
-export enum MountStrategy {
+export const enum MountStrategy {
   insertBefore = 1,
   append = 2,
 }

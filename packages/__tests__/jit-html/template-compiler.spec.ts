@@ -441,6 +441,7 @@ const defaultCustomElementDefinitionProperties = {
   hasSlots: false,
   shadowOptions: null,
   strategy: 1,
+  surrogates: [],
   hooks: HooksDefinition.none,
 };
 

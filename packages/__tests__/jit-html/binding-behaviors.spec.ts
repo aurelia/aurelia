@@ -12,7 +12,7 @@ import {
 } from '@aurelia/runtime';
 import { assert, setup } from '@aurelia/testing';
 
-describe('value-converters', function () {
+describe('binding-behaviors', function () {
   // custom elements
   describe('01. Aliases', function () {
 

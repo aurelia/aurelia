@@ -416,6 +416,7 @@ export {
   IRenderContext,
   IViewCache,
   IViewFactory,
+  MountStrategy,
   Priority,
 } from './lifecycle';
 export {

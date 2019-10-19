@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IController, IViewFactory } from '../../lifecycle';
+import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -114,7 +114,7 @@ export class If<T extends INode = INode> {
       view = factory.create(flags);
     }
 
-    view.hold(this.location);
+    view.hold(this.location, MountStrategy.insertBefore);
 
     return view;
   }

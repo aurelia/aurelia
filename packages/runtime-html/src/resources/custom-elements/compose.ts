@@ -22,6 +22,7 @@ import {
   CustomElementDefinition,
   bindable,
   customElement,
+  MountStrategy,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -209,7 +210,7 @@ export class Compose<T extends INode = Node> {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
-      view.hold(this.$controller.projector!.host);
+      view.hold(this.$controller.projector!.host, MountStrategy.insertBefore);
       view.lockScope(this.renderable.scope!);
       return view;
     }

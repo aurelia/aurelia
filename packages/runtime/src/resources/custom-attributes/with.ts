@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IController, IViewFactory } from '../../lifecycle';
+import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
@@ -24,7 +24,7 @@ export class With<T extends INode = INode> {
 
     this.factory = factory;
     this.view = this.factory.create();
-    this.view.hold(location);
+    this.view.hold(location, MountStrategy.insertBefore);
   }
 
   public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {

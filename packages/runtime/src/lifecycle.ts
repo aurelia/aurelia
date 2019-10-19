@@ -105,7 +105,7 @@ export interface IController<
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;
-  hold(location: IRenderLocation<T>): void;
+  hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   release(flags: LifecycleFlags): boolean;
   bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
@@ -122,6 +122,14 @@ export interface IController<
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
+
+/**
+ * Describing characteristics of a mounting operation a controller will perform
+ */
+export const enum MountStrategy {
+  insertBefore = 1,
+  append = 2,
+}
 
 export interface IRenderContext<T extends INode = INode> extends IContainer {
   readonly parentId: number;

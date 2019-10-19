@@ -34,7 +34,8 @@ import {
   IRenderContext,
   IViewCache,
   IViewModel,
-  ViewModelKind
+  ViewModelKind,
+  MountStrategy,
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -138,6 +139,7 @@ export class Controller<
   public nodes?: INodeSequence<T>;
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
+  public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
   // todo: refactor
   public constructor(
@@ -366,9 +368,10 @@ export class Controller<
     this.state |= State.hasLockedScope;
   }
 
-  public hold(location: IRenderLocation<T>): void {
+  public hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void {
     this.state = (this.state | State.canBeCached) ^ State.canBeCached;
     this.location = location;
+    this.mountStrategy = mountStrategy;
   }
 
   public release(flags: LifecycleFlags): boolean {
@@ -906,9 +909,17 @@ export class Controller<
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {
+    const nodes = this.nodes!; // non null is implied by the hook
+    const location = this.location!; // non null is implied by the hook
     this.state |= State.isMounted;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.nodes!.insertBefore(this.location!); // non-null is implied by the hook
+
+    switch (this.mountStrategy) {
+      case MountStrategy.append:
+        nodes.appendTo(location as T);
+        break;
+      default:
+        nodes.insertBefore(location);
+    }
   }
 
   private unmountCustomElement(flags: LifecycleFlags): void {

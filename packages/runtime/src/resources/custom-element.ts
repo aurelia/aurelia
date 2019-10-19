@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
   Constructable,
   DI,
@@ -73,10 +72,10 @@ export type CustomElementDecorator = <T extends Constructable>(Type: T) => Custo
  */
 export function customElement(definition: PartialCustomElementDefinition): CustomElementDecorator;
 export function customElement(name: string): CustomElementDecorator;
-export function customElement(nameOrDefinition: string | PartialCustomElementDefinition): CustomElementDecorator;
-export function customElement(nameOrDefinition: string | PartialCustomElementDefinition): CustomElementDecorator {
+export function customElement(nameOrDef: string | PartialCustomElementDefinition): CustomElementDecorator;
+export function customElement(nameOrDef: string | PartialCustomElementDefinition): CustomElementDecorator {
   return function (target) {
-    return CustomElement.define(nameOrDefinition, target);
+    return CustomElement.define(nameOrDef, target);
   };
 }
 
@@ -280,13 +279,13 @@ export const CustomElement: CustomElementKind = {
   behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
     return (node as CustomElementHost<T>).$controller;
   },
-  define<T extends Constructable>(nameOrDefinition: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
-    const description = CustomElementDefinition.create(nameOrDefinition, Type as Constructable | null);
-    Metadata.define(CustomElement.name, description, description.Type);
-    Metadata.define(CustomElement.name, description, description);
-    Protocol.resource.appendTo(description.Type, CustomElement.name);
+  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
+    const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
+    Metadata.define(CustomElement.name, definition, definition.Type);
+    Metadata.define(CustomElement.name, definition, definition);
+    Protocol.resource.appendTo(definition.Type, CustomElement.name);
 
-    return description.Type as CustomElementType<T>;
+    return definition.Type as CustomElementType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T> {
     const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<T>;

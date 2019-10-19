@@ -158,7 +158,6 @@ export class Controller<
         }
 
         this.hooks = HooksDefinition.none;
-        this.viewModel = void 0;
         this.bindingContext = void 0; // stays undefined
 
         this.host = void 0; // stays undefined
@@ -195,7 +194,6 @@ export class Controller<
         flags |= definition.strategy;
         createObservers(this, definition, flags, viewModel);
         this.hooks = definition.hooks;
-        this.viewModel = viewModel;
         this.bindingContext = getBindingContext<T, C>(flags, viewModel);
 
         const renderingEngine = parentContext.get(IRenderingEngine);
@@ -257,6 +255,8 @@ export class Controller<
 
         this.location = void 0;
 
+        (viewModel as Writable<IViewModel>).$controller = this;
+
         if (this.hooks.hasCreated) {
           this.bindingContext.created(flags);
         }
@@ -277,7 +277,6 @@ export class Controller<
         flags |= definition.strategy;
         createObservers(this, definition, flags, viewModel);
         this.hooks = definition.hooks;
-        this.viewModel = viewModel;
         this.bindingContext = getBindingContext<T, C>(flags, viewModel);
 
         this.scope = void 0;
@@ -286,6 +285,8 @@ export class Controller<
         this.nodes = void 0;
         this.context = void 0;
         this.location = void 0;
+
+        (viewModel as Writable<IViewModel>).$controller = this;
 
         if (this.hooks.hasCreated) {
           this.bindingContext.created(flags);

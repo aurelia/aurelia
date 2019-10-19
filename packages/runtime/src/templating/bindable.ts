@@ -50,7 +50,7 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       config.property = $prop as string;
     }
 
-    Metadata.define(Bindable.name, BindableDefinition.create($prop as string, config), $target, $prop);
+    Metadata.define(Bindable.name, BindableDefinition.create($prop as string, config), $target.constructor, $prop);
     Protocol.annotation.appendTo($target.constructor as Constructable, Bindable.keyFrom($prop as string));
   }
 

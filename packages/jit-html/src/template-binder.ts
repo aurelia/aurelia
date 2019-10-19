@@ -404,7 +404,12 @@ export class TemplateBinder {
         );
       }
     }
-
+    if (node.tagName === 'INPUT') {
+      const type = (node as HTMLInputElement).type;
+      if(type === 'checkbox' || type === 'radio') {
+        this.ensureAttributeOrder(manifest);
+      }
+    }
     processTemplateControllers(this.dom, manifestProxy, manifest);
 
     if (replacePart === null) {
@@ -433,6 +438,27 @@ export class TemplateBinder {
       }
 
       processReplacePart(this.dom, replacePart, manifestProxy);
+    }
+  }
+
+  private ensureAttributeOrder(manifest: ElementSymbol) {
+    // swap the order of checked and model/value attribute, so that the required observers are prepared for checked-observer
+    const attributes = manifest.plainAttributes;
+    let modelOrValueIndex: number | undefined = void 0;
+    let checkedIndex: number | undefined = void 0;
+    let found = 0;
+    for (let i = 0; i < attributes.length && found < 3; i++) {
+      const target = attributes[i].syntax.target;
+      if (target === 'model' || target === 'value') {
+        modelOrValueIndex = i;
+        found++;
+      } else if (target === 'checked') {
+        checkedIndex = i;
+        found++;
+      }
+    }
+    if (checkedIndex !== void 0 && modelOrValueIndex !== void 0 && checkedIndex < modelOrValueIndex) {
+      [attributes[modelOrValueIndex], attributes[checkedIndex]] = [attributes[checkedIndex], attributes[modelOrValueIndex]];
     }
   }
 

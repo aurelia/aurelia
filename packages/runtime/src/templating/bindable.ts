@@ -103,7 +103,7 @@ export const Bindable = {
       if (isArray(maybeList)) {
         maybeList.forEach(addName);
       } else if (maybeList instanceof BindableDefinition) {
-        Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
+        bindables[maybeList.property] = maybeList;
       } else if (maybeList !== void 0) {
         Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
       }

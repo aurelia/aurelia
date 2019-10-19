@@ -478,7 +478,7 @@ export class Resolver implements IResolver, IRegistration {
         if (factory === null) {
           throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
         }
-        return this.state = factory.construct(handler);
+        return this.state = factory.construct(requestor);
       }
       case ResolverStrategy.transient: {
         // Always create transients from the requesting container

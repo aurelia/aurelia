@@ -39,6 +39,7 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-inferrable-types': 'off', // Turn no-inferrable-types off in order to make the code consistent in its use of type decorations.
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-use-before-define': 'off',
     'security/detect-object-injection': 'off',
     'sonarjs/cognitive-complexity': 'off',
     'sonarjs/no-identical-functions': 'off',
@@ -129,6 +130,7 @@ module.exports = {
     'jsdoc/check-syntax': 'error',
     'jsdoc/newline-after-description': 'error',
     'jsdoc/require-hyphen-before-param-description': ['error', 'always'],
+    'sonarjs/no-small-switch': 'off',
     'sonarjs/no-useless-catch': 'error',
     'sonarjs/prefer-immediate-return': 'error',
     'array-callback-return': 'error',
@@ -177,6 +179,7 @@ module.exports = {
     'quote-props': ['error', 'consistent'],
     'quotes': ['off'],
     'radix': 'error',
+    'sort-keys': ['off'],
     'space-in-parens': 'error',
     'spaced-comment': ['error', 'always', {
       line: { markers: ['/'], exceptions: ['-', '+'] },
@@ -189,7 +192,6 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/promise-function-async': 'warn',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
@@ -212,8 +214,6 @@ module.exports = {
     'sonarjs/no-duplicated-branches': 'warn',
     'sonarjs/no-extra-arguments': 'warn',
     'sonarjs/no-inverted-boolean-check': 'warn',
-    'sonarjs/no-small-switch': 'off',
-    'sort-keys': ['off'],
     'default-param-last': ['warn'],
     'eqeqeq': 'warn',
     'no-await-in-loop': 'warn',

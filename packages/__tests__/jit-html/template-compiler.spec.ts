@@ -428,10 +428,18 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   });
 });
 
+function stringOrUnnamed(str: string | undefined): string {
+  if (str === void 0) {
+    return 'unnamed';
+  }
+  return str;
+}
+
 const defaultCustomElementDefinitionProperties = {
+  name: 'unnamed',
   Type: class HTMLOnlyElement {},
   aliases: [],
-  key: 'au:resource:custom-element:undefined',
+  key: 'au:resource:custom-element:unnamed',
   cache: 0,
   dependencies: [],
   bindables: {},
@@ -492,8 +500,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       res: target,
       def: {
         ...defaultCustomElementDefinitionProperties,
-        name: target,
-        key: `au:resource:custom-element:${target}`,
+        name: stringOrUnnamed(target),
+        key: `au:resource:custom-element:${stringOrUnnamed(target)}`,
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
         needsCompile: false,
@@ -529,8 +537,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       res: target,
       def: {
         ...defaultCustomElementDefinitionProperties,
-        name: target,
-        key: `au:resource:custom-element:${target}`,
+        name: stringOrUnnamed(target),
+        key: `au:resource:custom-element:${stringOrUnnamed(target)}`,
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
         needsCompile: false,

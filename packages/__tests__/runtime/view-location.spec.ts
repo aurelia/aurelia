@@ -1,4 +1,4 @@
-import { view, ViewLocator, ViewValueConverter, CustomElement } from '@aurelia/runtime';
+import { view, ViewLocator, ViewValueConverter, CustomElement, Views, CustomElementDefinition } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('the view value converter', function() {
@@ -32,7 +32,7 @@ describe('the view decorator', function() {
     @view(template)
     class MyModel {}
 
-    const associated = (MyModel as any).$views[0];
+    const [associated] = Views.get(MyModel);
     assert.equal(associated, template);
   });
 
@@ -44,8 +44,10 @@ describe('the view decorator', function() {
     @view(template2)
     class MyModel {}
 
-    assert.includes((MyModel as any).$views, template1);
-    assert.includes((MyModel as any).$views, template2);
+    const views = Views.get(MyModel) as CustomElementDefinition[];
+
+    assert.includes(views, template1);
+    assert.includes(views, template2);
   });
 });
 
@@ -180,7 +182,7 @@ describe('the view locator', function() {
     assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
     assert.equal(receivedObject, model);
-    assert.equal(receivedViews, (MyModel as any).$views);
+    assert.equal(receivedViews, Views.get(MyModel));
   });
 
   it('can return a component based on a dynamic view when selector used with model without associated views', function() {

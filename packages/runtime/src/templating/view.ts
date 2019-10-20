@@ -101,13 +101,34 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   }
 }
 
+const seenViews = new WeakSet();
+function notYetSeen($view: PartialCustomElementDefinition): boolean {
+  return !seenViews.has($view);
+}
+function toCustomElementDefinition($view: PartialCustomElementDefinition): CustomElementDefinition {
+  seenViews.add($view);
+  return CustomElementDefinition.create($view);
+}
+
 export const Views = {
   name: Protocol.resource.keyFor('views'),
   has(value: object): boolean {
     return typeof value === 'function' && Metadata.hasOwn(Views.name, value);
   },
-  get(value: object): readonly CustomElementDefinition[] {
-    return Metadata.getOwn(Views.name, value);
+  get(value: object | Constructable): readonly CustomElementDefinition[] {
+    if (typeof value === 'function' && '$views' in value) {
+      // TODO: a `get` operation with side effects is not a good thing. Should refactor this to a proper resource kind.
+      const $views = (value as { $views: PartialCustomElementDefinition[] }).$views;
+      const definitions = $views.filter(notYetSeen).map(toCustomElementDefinition);
+      for (const def of definitions) {
+        Views.add(value, def);
+      }
+    }
+    let views = Metadata.getOwn(Views.name, value) as CustomElementDefinition[] | undefined;
+    if (views === void 0) {
+      Metadata.define(Views.name, views = [], value);
+    }
+    return views;
   },
   add<T extends Constructable>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[] {
     const definition = CustomElementDefinition.create(partialDefinition);

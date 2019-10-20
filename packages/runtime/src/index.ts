@@ -305,7 +305,8 @@ export {
   ViewFactory,
   IViewLocator,
   ViewLocator,
-  view
+  view,
+  Views,
 } from './templating/view';
 
 export {

@@ -50,7 +50,7 @@ export interface IServiceLocator {
 }
 
 export interface IRegistry {
-  register(container: IContainer, ...params: unknown[]): void;
+  register(container: IContainer, ...params: unknown[]): void | IResolver;
 }
 
 export interface IContainer extends IServiceLocator {
@@ -748,7 +748,7 @@ export class Container implements IContainer {
         } else {
           const len = defs.length;
           for (let d = 0; d < len; ++d) {
-            defs[i].register(this);
+            defs[d].register(this);
           }
         }
       } else if (isClass(current)) {
@@ -922,7 +922,7 @@ export class Container implements IContainer {
       throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
     }
 
-    if (keyAsValue.register !== void 0) {
+    if (isRegistry(keyAsValue)) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
         const newResolver = handler.resolvers.get(keyAsValue);
@@ -932,11 +932,27 @@ export class Container implements IContainer {
         throw Reporter.error(40); // did not return a valid resolver from the static register method
       }
       return registrationResolver;
+    } else if (Protocol.resource.has(keyAsValue)) {
+      const defs = Protocol.resource.getAll(keyAsValue);
+      if (defs.length === 1) {
+        // Fast path for the very common case
+        defs[0].register(handler);
+      } else {
+        const len = defs.length;
+        for (let d = 0; d < len; ++d) {
+          defs[d].register(handler);
+        }
+      }
+      const newResolver = handler.resolvers.get(keyAsValue);
+      if (newResolver != void 0) {
+        return newResolver;
+      }
+      throw Reporter.error(40); // did not return a valid resolver from the static register method
+    } else {
+      const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);
+      handler.resolvers.set(keyAsValue, resolver);
+      return resolver;
     }
-
-    const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);
-    handler.resolvers.set(keyAsValue, resolver);
-    return resolver;
   }
 }
 

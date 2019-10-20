@@ -5,7 +5,7 @@ import { assert, Call, createSpy, fail } from '@aurelia/testing';
 import { App } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
-describe('app', function() {
+describe.only('app', function() {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function() {
       const ctx = await startup();
@@ -313,11 +313,11 @@ describe('app', function() {
     assert.equal(flushSpy.calls.length, 1);
   });
 
-  $it('uses a radio-button-list that renders a map as a list of radio buttons', async function({ host, ctx }) {
+  $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model`, function({ host, ctx }) {
     const app = getViewModel<App>(host);
-    const contacts = app.contacts;
+    const contacts = app.contacts1;
     const contactsArr = Array.from(contacts);
-    const rbl = host.querySelector('radio-button-list');
+    const rbl = host.querySelector(`radio-button-list #rbl-checked-model`);
     let labels = toArray(rbl.querySelectorAll('label'));
     let size = contacts.size;
     assert.equal(labels.length, size);
@@ -327,7 +327,7 @@ describe('app', function() {
     for (let i = 0; i < size; i++) {
       const [number, type] = contactsArr[i];
       assert.html.textContent(labels[i], type, `incorrect label for label#${i + 1}`);
-      if (app.chosenContact === number) {
+      if (app.chosenContact1 === number) {
         prevCheckedIndex = i;
         const input = labels[i].querySelector('input');
         assert.notEqual(input, null);
@@ -336,7 +336,7 @@ describe('app', function() {
     }
 
     // assert if the choice is changed in VM, it is propagated to view
-    app.chosenContact = contactsArr[0][0];
+    app.chosenContact1 = contactsArr[0][0];
     ctx.lifecycle.processRAFQueue(undefined);
     assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
     assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
@@ -347,7 +347,7 @@ describe('app', function() {
     lastChoice.click();
     ctx.lifecycle.processRAFQueue(undefined);
     assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
-    assert.equal(app.chosenContact, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
+    assert.equal(app.chosenContact1, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
 
     // assert that change of map is reflected
     // add
@@ -361,9 +361,122 @@ describe('app', function() {
     assert.html.textContent(labels[size - 1], newContacts[1][1], 'incorrect text');
     assert.html.textContent(labels[size - 2], newContacts[0][1], 'incorrect text');
 
-    // change value of existing key
+    // change value of existing key - last
     contacts.set(222, 'work3');
     ctx.lifecycle.processRAFQueue(undefined);
     assert.html.textContent(rbl.querySelector('label:last-of-type'), 'work3', 'incorrect text');
+    // change value of existing key - middle
+    contacts.set(111, 'home3');
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(rbl.querySelector(`label:nth-of-type(${size - 1})`), 'home3', 'incorrect text');
+
+    // delete single item
+    contacts.delete(111);
+    ctx.lifecycle.processRAFQueue(undefined);
+    labels = toArray(rbl.querySelectorAll('label'));
+    assert.equal(labels.length, size - 1);
+
+    // clear map
+    contacts.clear();
+    ctx.lifecycle.processRAFQueue(undefined);
+    labels = toArray(rbl.querySelectorAll('label'));
+    assert.equal(labels.length, 0, `expected no label ${rbl.outerHTML}`);
+  });
+
+  $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked`, function({ host, ctx }) {
+    const app = getViewModel<App>(host);
+    const contacts = app.contacts2;
+    const contactsArr = Array.from(contacts);
+    const rbl = host.querySelector(`radio-button-list #rbl-model-checked`);
+    const labels = toArray(rbl.querySelectorAll('label'));
+    const size = contacts.size;
+    assert.equal(labels.length, size);
+
+    // assert radio buttons and selection
+    let prevCheckedIndex: number;
+    for (let i = 0; i < size; i++) {
+      const [number, type] = contactsArr[i];
+      assert.html.textContent(labels[i], type, `incorrect label for label#${i + 1}`);
+      if (app.chosenContact2 === number) {
+        prevCheckedIndex = i;
+        const input = labels[i].querySelector('input');
+        assert.notEqual(input, null);
+        assert.equal(input.checked, true, 'expected radio button to be checked');
+      }
+    }
+
+    // assert if the choice is changed in VM, it is propagated to view
+    app.chosenContact2 = contactsArr[0][0];
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
+    assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
+
+    // assert that when choice is changed from view, it is propagaetd to VM
+    const lastIndex = size - 1;
+    const lastChoice = labels[lastIndex];
+    lastChoice.click();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
+    assert.equal(app.chosenContact2, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
+  });
+
+  $it(`binds an object array to radio-button-list`, function({ host, ctx }) {
+    const app = getViewModel<App>(host);
+    const contacts = app.contacts3;
+    const rbl = host.querySelector(`radio-button-list #rbl-obj-array`);
+    const labels = toArray(rbl.querySelectorAll('label'));
+    const size = contacts.length;
+    assert.equal(labels.length, size);
+
+    // assert radio buttons and selection
+    for (let i = 0; i < size; i++) {
+      const { type } = contacts[i];
+      assert.html.textContent(labels[i], type, `incorrect label for label#${i + 1}`);
+    }
+    assert.equal(labels[0].querySelector('input').checked, true, 'expected radio button to be checked');
+
+    // assert if the choice is changed in VM, it is propagated to view
+    app.chosenContact3 = contacts[1];
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
+    assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
+
+    // assert that when choice is changed from view, it is propagaetd to VM
+    const lastIndex = size - 1;
+    const lastChoice = labels[lastIndex];
+    lastChoice.click();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
+    assert.equal(app.chosenContact3, contacts[2], 'expected change to porapagate to vm');
+  });
+
+  $it(`binds an object array with matcher to radio-button-list`, function({ host, ctx }) {
+    const app = getViewModel<App>(host);
+    const contacts = app.contacts4;
+    const rbl = host.querySelector(`radio-button-list #rbl-obj-array-matcher`);
+    const labels = toArray(rbl.querySelectorAll('label'));
+    const size = contacts.length;
+    assert.equal(labels.length, size);
+
+    // assert radio buttons and selection
+    for (let i = 0; i < size; i++) {
+      const { type } = contacts[i];
+      assert.html.textContent(labels[i], type, `incorrect label for label#${i + 1}`);
+    }
+    assert.equal(labels[0].querySelector('input').checked, true, 'expected radio button to be checked');
+
+    // assert if the choice is changed in VM, it is propagated to view
+    app.chosenContact4 = contacts[1];
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
+    assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
+
+    // assert that when choice is changed from view, it is propagaetd to VM
+    const lastIndex = size - 1;
+    const lastChoice = labels[lastIndex];
+    lastChoice.click();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
+    assert.deepEqual(app.chosenContact4, contacts[2], 'expected change to porapagate to vm');
   });
 });

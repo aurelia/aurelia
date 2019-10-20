@@ -1,5 +1,29 @@
-  <!-- <label repeat.for="[contact, type] of choices"> --> <!--does not work yet-->
-  <label repeat.for="choice of choices">
-    <input id='input#${$index}' type="radio" name.bind="group" checked.two-way="chosen" model.one-time="choice[0]">
+<!-- <label repeat.for="[contact, type] of choices"> -->
+<!--does not work yet-->
+<div id="rbl-checked-model">
+  <label repeat.for="choice of choices1">
+    <input type="radio" name="${group}1" checked.two-way="chosen1" model.one-time="choice[0]" />
     ${choice[1]}
   </label>
+</div>
+
+<div id="rbl-model-checked">
+  <label repeat.for="choice of choices2">
+    <input type="radio" name="${group}2" model.one-time="choice[0]" checked.two-way="chosen2" />
+    ${choice[1]}
+  </label>
+</div>
+
+<div id="rbl-obj-array">
+  <label repeat.for="choice of choices3">
+    <input type="radio" name="${group}3" model.one-time="choice" checked.two-way="chosen3" />
+    ${choice.type}
+  </label>
+</div>
+
+<div id="rbl-obj-array-matcher">
+  <label repeat.for="choice of choices4">
+    <input type="radio" name="${group}4" matcher.bind="matcher" model.one-time="choice" checked.two-way="chosen4" />
+    ${choice.type}
+  </label>
+</div>

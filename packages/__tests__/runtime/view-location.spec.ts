@@ -33,7 +33,7 @@ describe('the view decorator', function() {
     class MyModel {}
 
     const [associated] = Views.get(MyModel);
-    assert.equal(associated, template);
+    assert.equal(associated.name, template.name);
   });
 
   it('can associate multiple views with a class', function() {
@@ -44,10 +44,10 @@ describe('the view decorator', function() {
     @view(template2)
     class MyModel {}
 
-    const views = Views.get(MyModel) as CustomElementDefinition[];
+    const [view2, view1] = Views.get(MyModel) as CustomElementDefinition[];
 
-    assert.includes(views, template1);
-    assert.includes(views, template2);
+    assert.includes(view1.name, template1.name);
+    assert.includes(view2.name, template2.name);
   });
 });
 

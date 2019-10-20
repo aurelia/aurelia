@@ -113,7 +113,7 @@ function toCustomElementDefinition($view: PartialCustomElementDefinition): Custo
 export const Views = {
   name: Protocol.resource.keyFor('views'),
   has(value: object): boolean {
-    return typeof value === 'function' && Metadata.hasOwn(Views.name, value);
+    return typeof value === 'function' && (Metadata.hasOwn(Views.name, value) || '$views' in value);
   },
   get(value: object | Constructable): readonly CustomElementDefinition[] {
     if (typeof value === 'function' && '$views' in value) {
@@ -230,11 +230,14 @@ export class ViewLocator implements IViewLocator {
         resolvedViewName
       );
 
-      BoundComponent = class extends UnboundComponent {
-        public constructor() {
-          super(object);
+      BoundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+        this.getView(availableViews, resolvedViewName),
+        class extends UnboundComponent {
+          public constructor() {
+            super(object);
+          }
         }
-      };
+      );
 
       lookup[resolvedViewName] = BoundComponent;
     }

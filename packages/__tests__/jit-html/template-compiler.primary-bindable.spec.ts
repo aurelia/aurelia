@@ -630,7 +630,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       if (PLATFORM.isBrowserLike) {
         assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
       } else {
-        assert.strictEqual(anchorEl.href, '/?params=[object%20Object]');
+        assert.strictEqual(anchorEl.href, '/?params=[object Object]');
       }
 
       await au.stop().wait();

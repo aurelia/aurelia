@@ -91,6 +91,9 @@ export {
   ResourceDefinition,
   ResourceType,
   RuntimeCompilationResources,
+  fromAnnotationOrDefinitionOrTypeOrDefault,
+  fromAnnotationOrTypeOrDefault,
+  fromDefinitionOrDefault,
 } from './resource';
 export {
   EventAggregator,
@@ -101,6 +104,7 @@ export {
   isNumeric,
   camelCase,
   kebabCase,
+  pascalCase,
   toArray,
   nextId,
   resetId,
@@ -111,4 +115,5 @@ export {
   mergeArrays,
   mergeObjects,
   firstDefined,
+  getPrototypeChain,
 } from './functions';

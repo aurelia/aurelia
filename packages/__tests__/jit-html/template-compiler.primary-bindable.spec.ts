@@ -557,7 +557,11 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       au.app({ component: App, host });
       await au.start().wait();
 
-      assert.includes(host.querySelector('a').search, `?route=home.main`);
+      if (PLATFORM.isBrowserLike) {
+        assert.includes(host.querySelector('a').search, `?route=home.main`);
+      } else {
+        assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
+      }
 
       await au.stop().wait();
       host.remove();
@@ -579,7 +583,11 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       au.app({ component: App, host });
       await au.start().wait();
 
-      assert.strictEqual(host.querySelector('a').search, '?route=home--main');
+      if (PLATFORM.isBrowserLike) {
+        assert.strictEqual(host.querySelector('a').search, '?route=home--main');
+      } else {
+        assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
+      }
 
       await au.stop().wait();
       host.remove();
@@ -615,7 +623,11 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       const app = au.root.controller.viewModel as any;
 
       app.appId = 'appId-appId';
-      assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
+      if (PLATFORM.isBrowserLike) {
+        assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
+      } else {
+        assert.strictEqual(anchorEl.href, '/?params=[object%20Object]');
+      }
 
       await au.stop().wait();
       host.remove();

@@ -601,7 +601,7 @@ export class TemplateBinder {
         }
 
         const attrSyntax = this.attrParser.parse(attrName, attrValue);
-        const attrTarget = attrSyntax.target;
+        const attrTarget = camelCase(attrSyntax.target);
         const command = this.resources.getBindingCommand(attrSyntax, false);
         const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
         const expr = this.exprParser.parse(attrValue, bindingType);

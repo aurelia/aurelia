@@ -71,7 +71,7 @@ class CustomElementCompilationUnit {
   public toDefinition(): CustomElementDefinition {
     const def = this.partialDefinition;
 
-    return CustomElementDefinition.from({
+    return CustomElementDefinition.create({
       ...def,
       instructions: mergeArrays(def.instructions, this.instructions),
       surrogates: mergeArrays(def.surrogates, this.surrogates),
@@ -238,7 +238,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     mergeDistinct(scopeParts, controllerScopeParts, false);
 
-    const def = CustomElementDefinition.from({
+    const def = CustomElementDefinition.create({
       name: symbol.partName === null ? symbol.res : symbol.partName,
       scopeParts: controllerScopeParts,
       template: symbol.physicalNode,
@@ -397,7 +397,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         // TODO: the assignment to `this.compilation.parts[replacePart.name]` might be the cause of replaceable bug reported by rluba
         // need to verify this
-        this.compilation.parts[replacePart.name] = parts[replacePart.name] = CustomElementDefinition.from({
+        this.compilation.parts[replacePart.name] = parts[replacePart.name] = CustomElementDefinition.create({
           name: replacePart.name,
           scopeParts: partScopeParts,
           template: replacePart.physicalNode,

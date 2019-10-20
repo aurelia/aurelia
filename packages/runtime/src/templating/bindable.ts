@@ -96,7 +96,7 @@ export const Bindable = {
     }
 
     function addDescription(name: string, def: PartialBindableDefinition): void {
-      bindables[name] = BindableDefinition.create(name, def);
+      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def);
     }
 
     function addList(maybeList: BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined): void {
@@ -105,7 +105,7 @@ export const Bindable = {
       } else if (maybeList instanceof BindableDefinition) {
         bindables[maybeList.property] = maybeList;
       } else if (maybeList !== void 0) {
-        Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
+        Object.keys(maybeList).forEach(name => addDescription(name, maybeList[name]));
       }
     }
 

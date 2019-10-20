@@ -279,7 +279,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       .from({ length: 10 })
       .map((_, idx, arr) => {
         const dotNotationExpressions = Array(arr.length).fill(`div${idx}`); // div1.div1.div1.div1
-        const CustomElementTestClass = CustomElement.define('c-e');
+        const CustomElementTestClass = CustomElement.define('c-e', class {});
         return [
           {
             title: 'it works with complex expression',

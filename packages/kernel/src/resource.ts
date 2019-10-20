@@ -171,3 +171,80 @@ export const Protocol = {
   resource,
 };
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const hasOwn = Object.prototype.hasOwnProperty;
+
+/**
+ * The order in which the values are checked:
+ * 1. Annotations (usually set by decorators) have the highest priority; they override the definition as well as static properties on the type.
+ * 2. Definition properties (usually set by the customElement decorator object literal) come next. They override static properties on the type.
+ * 3. Static properties on the type come last. Note that this does not look up the prototype chain (bindables are an exception here, but we do that differently anyway)
+ * 4. The default property that is provided last. The function is only called if the default property is needed
+ */
+export function fromAnnotationOrDefinitionOrTypeOrDefault<
+  TDef extends PartialResourceDefinition,
+  K extends keyof TDef,
+>(
+  name: K,
+  def: TDef,
+  Type: Constructable,
+  getDefault: () => Required<TDef>[K],
+): Required<TDef>[K] {
+  let value = Metadata.getOwn(Protocol.annotation.keyFor(name as string), Type) as TDef[K] | undefined;
+  if (value === void 0) {
+    value = def[name];
+    if (value === void 0) {
+      value = (Type as Constructable & TDef)[name] as TDef[K] | undefined;
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain
+        return getDefault();
+      }
+      return value;
+    }
+    return value;
+  }
+  return value;
+}
+
+/**
+ * The order in which the values are checked:
+ * 1. Annotations (usually set by decorators) have the highest priority; they override static properties on the type.
+ * 2. Static properties on the typ. Note that this does not look up the prototype chain (bindables are an exception here, but we do that differently anyway)
+ * 3. The default property that is provided last. The function is only called if the default property is needed
+ */
+export function fromAnnotationOrTypeOrDefault<T, K extends keyof T, V>(
+  name: K,
+  Type: T,
+  getDefault: () => V,
+): V {
+  let value = Metadata.getOwn(Protocol.annotation.keyFor(name as string), Type) as V;
+  if (value === void 0) {
+    value = Type[name] as unknown as V;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain
+      return getDefault();
+    }
+    return value;
+  }
+  return value;
+}
+
+/**
+ * The order in which the values are checked:
+ * 1. Definition properties.
+ * 2. The default property that is provided last. The function is only called if the default property is needed
+ */
+export function fromDefinitionOrDefault<
+  TDef extends PartialResourceDefinition,
+  K extends keyof TDef,
+>(
+  name: K,
+  def: TDef,
+  getDefault: () => Required<TDef>[K],
+): Required<TDef>[K] {
+  const value = def[name];
+  if (value === void 0) {
+    return getDefault();
+  }
+  return value;
+}

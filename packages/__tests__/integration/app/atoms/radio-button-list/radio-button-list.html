@@ -23,7 +23,14 @@
 
 <div id="rbl-obj-array-matcher">
   <label repeat.for="choice of choices4">
-    <input type="radio" name="${group}4" matcher.bind="matcher" model.one-time="choice" checked.two-way="chosen4" />
+    <input type="radio" name="${group}4" matcher.bind="matcher1" model.one-time="choice" checked.two-way="chosen4" />
     ${choice.type}
   </label>
 </div>
+
+<!-- <div id="rbl-obj-array-matcher-order">
+  <label repeat.for="choice of choices4">
+    <input type="radio" name="${group}4" model.one-time="choice" checked.two-way="chosen4" matcher.bind="matcher" />
+    ${choice.type}
+  </label>
+</div> -->

@@ -121,7 +121,7 @@ describe.skip('controller', function () {
     instructions: ITargetedInstruction[][],
     hooks: Readonly<HooksDefinition>,
   ) {
-    return CustomElementDefinition.from({
+    return CustomElementDefinition.create({
       name,
       template,
       needsCompile: false,
@@ -159,7 +159,7 @@ describe.skip('controller', function () {
       public constructor(
         public readonly $$calls: CallCollection,
       ) {}
-    })
+    });
 
     return addTracingHooks($ViewModel);
   }

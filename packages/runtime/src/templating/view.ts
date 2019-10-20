@@ -1,4 +1,4 @@
-import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter, Metadata, Protocol } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ITemplate } from '../rendering-engine';
-import { CustomElement, PartialCustomElementDefinition } from '../resources/custom-element';
+import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts } from '../definitions';
 
@@ -101,19 +101,30 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   }
 }
 
-type HasAssociatedViews = {
-  $views: PartialCustomElementDefinition[];
+export const Views = {
+  name: Protocol.resource.keyFor('views'),
+  has(value: object): boolean {
+    return typeof value === 'function' && Metadata.hasOwn(Views.name, value);
+  },
+  get(value: object): readonly CustomElementDefinition[] {
+    return Metadata.getOwn(Views.name, value);
+  },
+  add<T extends Constructable>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[] {
+    const definition = CustomElementDefinition.create(partialDefinition);
+    let views = Metadata.getOwn(Views.name, Type) as CustomElementDefinition[] | undefined;
+    if (views === void 0) {
+      Metadata.define(Views.name, views = [definition], Type);
+    } else {
+      views.push(definition);
+    }
+    return views;
+  },
 };
 
 export function view(v: PartialCustomElementDefinition) {
-  return function<T extends Constructable>(target: T & Partial<HasAssociatedViews>) {
-    const views = target.$views || (target.$views = []);
-    views.push(v);
+  return function<T extends Constructable>(target: T) {
+    Views.add(target, v);
   };
-}
-
-function hasAssociatedViews<T>(object: T): object is T & HasAssociatedViews {
-  return object && '$views' in object;
 }
 
 export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
@@ -132,7 +143,7 @@ export type ClassInstance<T> = T & {
 };
 
 export type ComposableObject = Omit<IViewModel, '$controller'>;
-export type ViewSelector = (object: ComposableObject, views: PartialCustomElementDefinition[]) => string;
+export type ViewSelector = (object: ComposableObject, views: readonly PartialCustomElementDefinition[]) => string;
 export type ComposableObjectComponentType<T extends ComposableObject>
   = ConstructableClass<{ viewModel: T } & ComposableObject>;
 
@@ -161,9 +172,7 @@ export class ViewLocator implements IViewLocator {
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {
     if (object) {
-      const availableViews = hasAssociatedViews(object.constructor)
-        ? object.constructor.$views
-        : [];
+      const availableViews = Views.has(object.constructor) ? Views.get(object.constructor) : [];
       const resolvedViewName = typeof viewNameOrSelector === 'function'
         ? viewNameOrSelector(object, availableViews)
         : this.getViewName(availableViews, viewNameOrSelector);
@@ -180,7 +189,7 @@ export class ViewLocator implements IViewLocator {
 
   private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
-    availableViews: PartialCustomElementDefinition[],
+    availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
     let lookup = this.modelInstanceToBoundComponent.get(object);
@@ -214,7 +223,7 @@ export class ViewLocator implements IViewLocator {
 
   private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
-    availableViews: PartialCustomElementDefinition[],
+    availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
     let lookup = this.modelTypeToUnboundComponent.get(object.constructor);
@@ -265,7 +274,7 @@ export class ViewLocator implements IViewLocator {
     return UnboundComponent;
   }
 
-  private getViewName(views: PartialCustomElementDefinition[], requestedName?: string) {
+  private getViewName(views: readonly CustomElementDefinition[], requestedName?: string) {
     if (requestedName) {
       return requestedName;
     }
@@ -277,7 +286,7 @@ export class ViewLocator implements IViewLocator {
     return 'default-view';
   }
 
-  private getView(views: PartialCustomElementDefinition[], name: string): PartialCustomElementDefinition {
+  private getView(views: readonly CustomElementDefinition[], name: string): CustomElementDefinition {
     const v = views.find(x => x.name === name);
 
     if (v === void 0) {

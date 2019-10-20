@@ -507,11 +507,11 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: []
     } as unknown as PartialCustomElementDefinition;
     const output: PartialCustomElementDefinition = {
+      ...defaultCustomElementDefinitionProperties,
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
-      ...defaultCustomElementDefinitionProperties,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -545,11 +545,11 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: []
     } as unknown as PartialCustomElementDefinition;
     const output: PartialCustomElementDefinition = {
+      ...defaultCustomElementDefinitionProperties,
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
-      ...defaultCustomElementDefinitionProperties,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -739,12 +739,12 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
         } as unknown as PartialCustomElementDefinition;
         const expected = {
+          ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
-          ...defaultCustomElementDefinitionProperties
         };
 
         const { sut, resources, dom } = setup(ctx);
@@ -811,12 +811,12 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [childInstruction],
         };
         const expected = {
+          ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
           instructions: [[instruction]],
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
-          ...defaultCustomElementDefinitionProperties
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1077,11 +1077,11 @@ describe(`TemplateCompiler - combinations`, function () {
         );
 
         const output = {
+          ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           scopeParts: [],
-          ...defaultCustomElementDefinitionProperties,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

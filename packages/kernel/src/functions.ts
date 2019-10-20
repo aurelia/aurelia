@@ -1,4 +1,5 @@
 import { PLATFORM } from './platform';
+import { Constructable } from './interfaces';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -190,6 +191,32 @@ export const camelCase = (function () {
 })();
 
 /**
+ * Efficiently convert a string to PascalCase.
+ *
+ * Non-alphanumeric characters are treated as separators.
+ *
+ * Primarily used by Aurelia to convert element names to class names for synthetic types.
+ *
+ * Results are cached.
+ */
+export const pascalCase = (function () {
+  const cache = Object.create(null) as Record<string, string | undefined>;
+
+  return function (input: string): string {
+    let output = cache[input];
+    if (output === void 0) {
+      output = camelCase(input);
+      if (output.length > 0) {
+        output = output[0].toUpperCase() + output.slice(1);
+      }
+      cache[input] = output;
+    }
+
+    return output;
+  };
+})();
+
+/**
  * Efficiently convert a string to kebab-case.
  *
  * Non-alphanumeric characters are treated as separators.
@@ -359,3 +386,26 @@ export function firstDefined<T>(...values: readonly (T | undefined)[]): T {
   }
   throw new Error(`No default value found`);
 }
+
+export const getPrototypeChain = (function () {
+  const functionPrototype = Function.prototype;
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const getPrototypeOf = Object.getPrototypeOf;
+
+  const cache = new WeakMap<Constructable, [Constructable, ...Constructable[]]>();
+  let proto = functionPrototype as Constructable;
+  let i = 0;
+  let chain: [Constructable, ...Constructable[]] | undefined = void 0;
+
+  return function <T extends Constructable>(Type: T): readonly [T, ...Constructable[]] {
+    chain = cache.get(Type);
+    if (chain === void 0) {
+      cache.set(Type, chain = [proto = Type]);
+      i = 0;
+      while ((proto = getPrototypeOf(proto)) !== functionPrototype) {
+        chain[++i] = proto;
+      }
+    }
+    return chain as [T, ...Constructable[]];
+  };
+})();

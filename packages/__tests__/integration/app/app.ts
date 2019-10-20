@@ -27,7 +27,7 @@ export class App {
   // computed
   public user: User = new User('John', 'Doe', 0.1, 'Role1', 'Org1', 'City1', 'Country1');
 
-  //#region checked, map, repeat
+  // #region checked, map, repeat
   public contacts1: Map<number, string> = new Map<number, string>([[123456790, 'mobile'], [9087654321, 'work'], [1122334455, 'home']]);
   public contacts2: Map<number, string> = new Map<number, string>(Array.from(this.contacts1));
   public chosenContact1: number = 9087654321;
@@ -43,7 +43,12 @@ export class App {
   public chosenContact6: string = this.contacts6[0];
   public contacts7: string[] = this.contacts6.slice(0);
   public chosenContact7: string = this.contacts7[0];
-  //#endregion
+  public likesCake: boolean;
+  public noDisplayValue: string = 'Don\'t care';
+  public trueValue: string = 'Yes';
+  public falseValue: string = 'No';
+
+  // #endregion
 
   public changeTexts() {
     this.text1 = 'newText1';

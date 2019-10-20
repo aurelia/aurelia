@@ -460,10 +460,7 @@ describe.only('app', function() {
     })
   );
 
-  [
-    { id: 'rbl-string-array', collProp: 'contacts6' as const, chosenProp: 'chosenContact6' as const },
-    { id: 'rbl-string-array-order', collProp: 'contacts7' as const, chosenProp: 'chosenContact7' as const },
-  ].map(({ id, collProp, chosenProp }) =>
+  [{ id: 'rbl-string-array', collProp: 'contacts6' as const, chosenProp: 'chosenContact6' as const }, { id: 'rbl-string-array-order', collProp: 'contacts7' as const, chosenProp: 'chosenContact7' as const }].map(({ id, collProp, chosenProp }) =>
     $it(`binds a string array to radio-button-list - ${id}`, function({ host, ctx }) {
       const app = getViewModel<App>(host);
       const contacts = app[collProp];
@@ -493,4 +490,29 @@ describe.only('app', function() {
       assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
     })
   );
+
+  $it(`uses a tri-state-boolean`, function({ host, ctx }) {
+    const app = getViewModel<App>(host);
+    const tsb = host.querySelector(`tri-state-boolean`);
+    const labels = toArray(tsb.querySelectorAll('label'));
+
+    // assert radio buttons and selection
+    assert.html.textContent(labels[0], app.noDisplayValue, `incorrect label for noValue`);
+    assert.html.textContent(labels[1], app.trueValue, `incorrect label for true`);
+    assert.html.textContent(labels[2], app.falseValue, `incorrect label for false`);
+    assert.equal(labels[0].querySelector('input').checked, false, `should not have been checked for noValue`);
+    assert.equal(labels[1].querySelector('input').checked, false, `should not have been checked for true`);
+    assert.equal(labels[2].querySelector('input').checked, false, `should not have been checked for false`);
+
+    // assert if the choice is changed in VM, it is propagated to view
+    app.likesCake = true;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(labels[1].querySelector('input').checked, true, `should have been checked for true`);
+
+    // assert that when choice is changed from view, it is propagaetd to VM
+    labels[2].click();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(labels[2].querySelector('input').checked, true, `should have been checked for false`);
+    assert.equal(app.likesCake, false, 'expected change to porapagate to vm');
+  });
 });

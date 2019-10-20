@@ -32,7 +32,7 @@
 - [ ] `collection-length-observer`: Observer for array length
 - [ ] `collection-size-observer`: Observer for set or map size
 - [x] `computed-observer`: Observer for computed properties
-- [ ] `map-observer`: Observer for mutation in Map
+- [x] `map-observer`: Observer for mutation in Map
 - [ ] `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
 - [ ] `self-observer`: utilized for `@bindable`s with change handler
 - [ ] `set-observer`: Observer for mutation in Set
@@ -206,16 +206,16 @@ The update of the display is triggered every 2 seconds via a signal.
 
 ##### Edit form
 
-- checkbox:
+- [ ] checkbox:
   - single boolean checkbox: `checked-observer` simple case
   - collection of checkboxes:
     - bound to array of models: `checked-observer` with collection as value
     - with custom matcher
-- collection of radios:
-  - simple id-value pair case
-  - bind model
-  - bind matcher
-  - bind boolean
+- [x] collection of radios:
+  - [x] simple id-value pair case
+  - [x] bind model
+  - [x] bind matcher
+  - [x] bind boolean
 - card selector: displays a list of cards and applies a special css class and inline style (I know this is hypothetical, just grouping this here) on the selected card. Should cover `class-attribute-accessor`, `style-attribute-accessor`, and `element-attribute-observer`. Additionally, it applies a `src` attribute on the card images which should cover `data-attribute-accessor`.
 - `<select>`
   - single select

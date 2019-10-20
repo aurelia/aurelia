@@ -1,0 +1,10 @@
+import { customElement, bindable } from '@aurelia/runtime';
+import * as template from './tri-state-boolean.html';
+
+@customElement({ name: 'tri-state-boolean', template })
+export class TriStateBoolean {
+  @bindable public noValueDisplay: string;
+  @bindable public trueDisplay: string;
+  @bindable public falseDisplay: string;
+  @bindable public value?: boolean;
+}

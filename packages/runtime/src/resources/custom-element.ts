@@ -12,6 +12,10 @@ import {
   ResourceDefinition,
   firstDefined,
   mergeArrays,
+  fromDefinitionOrDefault,
+  pascalCase,
+  fromAnnotationOrTypeOrDefault,
+  fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -50,7 +54,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly scopeParts?: readonly string[];
 }>;
 
-export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomElementDefinition>;
+export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
   behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
@@ -64,6 +68,10 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
+  generateType<P extends {} = {}>(
+    name: string,
+    proto?: P,
+  ): CustomElementType<Constructable<P>>;
 };
 
 export type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
@@ -181,87 +189,121 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType<T> | null = null,
   ): CustomElementDefinition<T> {
-
-    let name: string | undefined;
-    let def: PartialCustomElementDefinition;
-    if (typeof nameOrDef === 'string') {
-      name = nameOrDef;
-      def = { name };
-    } else {
-      name = nameOrDef.name;
-      def = nameOrDef;
-    }
-
     if (Type === null) {
-      Type = typeof (nameOrDef as CustomElementDefinition<T>).Type === 'function'
-        ? (nameOrDef as CustomElementDefinition<T>).Type
-        : class HTMLOnlyElement { /* HTML Only */ } as CustomElementType<T>;
+      const def = nameOrDef;
+      if (typeof def === 'string') {
+        throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
+      if (typeof (def as CustomElementDefinition).Type === 'function') {
+        // This needs to be a clone (it will usually be the compiler calling this signature)
+
+        // TODO: we need to make sure it's documented that passing in the type via the definition (while passing in null
+        // as the "Type" parameter) effectively skips type analysis, so it should only be used this way for cloning purposes.
+        Type = (def as CustomElementDefinition).Type as CustomElementType<T>;
+      } else {
+        Type = CustomElement.generateType(pascalCase(name)) as CustomElementType<T>;
+      }
+
+      return new CustomElementDefinition(
+        Type,
+        name,
+        mergeArrays(def.aliases),
+        fromDefinitionOrDefault('key', def as CustomElementDefinition, () => CustomElement.keyFrom(name)),
+        fromDefinitionOrDefault('cache', def, () => 0),
+        fromDefinitionOrDefault('template', def, () => null),
+        mergeArrays(def.instructions),
+        mergeArrays(def.dependencies),
+        fromDefinitionOrDefault('needsCompile', def, () => true),
+        mergeArrays(def.surrogates),
+        Bindable.from(def.bindables),
+        Children.from(def.childrenObservers),
+        fromDefinitionOrDefault('containerless', def, () => false),
+        fromDefinitionOrDefault('isStrictBinding', def, () => false),
+        fromDefinitionOrDefault('shadowOptions', def, () => null),
+        fromDefinitionOrDefault('hasSlots', def, () => false),
+        fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
+        fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
+        mergeArrays(def.scopeParts),
+      );
     }
 
-    if (name === void 0) {
-      name = CustomElement.generateName();
+    // If a type is passed in, we ignore the Type property on the definition if it exists.
+    // TODO: document this behavior
+
+    if (typeof nameOrDef === 'string') {
+      return new CustomElementDefinition(
+        Type,
+        nameOrDef,
+        mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), Type.aliases),
+        CustomElement.keyFrom(nameOrDef),
+        fromAnnotationOrTypeOrDefault('cache', Type, () => 0),
+        fromAnnotationOrTypeOrDefault('template', Type, () => null),
+        mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), Type.instructions),
+        mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies),
+        fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true),
+        mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates),
+        Bindable.from(
+          ...Bindable.getAll(Type),
+          CustomElement.getAnnotation(Type, 'bindables'),
+          Type.bindables,
+        ),
+        Children.from(
+          ...Children.getAll(Type),
+          CustomElement.getAnnotation(Type, 'childrenObservers'),
+          Type.childrenObservers,
+        ),
+        fromAnnotationOrTypeOrDefault('containerless', Type, () => false),
+        fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false),
+        fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null),
+        fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false),
+        fromAnnotationOrTypeOrDefault('strategy', Type, () => BindingStrategy.getterSetter),
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
+        mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
+      );
     }
 
+    // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
+    // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
+    // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
+    // if this turns out to be too opinionated.
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const name = fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
     return new CustomElementDefinition(
       Type,
-      firstDefined(CustomElement.getAnnotation(Type, 'name'), name),
-      mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      name,
+      mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
       CustomElement.keyFrom(name),
-      firstDefined(CustomElement.getAnnotation(Type, 'cache'), def.cache, Type.cache, 0),
-      firstDefined(CustomElement.getAnnotation(Type, 'template'), def.template, Type.template, null),
-      mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), def.instructions, Type.instructions),
-      mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
-      firstDefined(CustomElement.getAnnotation(Type, 'needsCompile'), def.needsCompile, Type.needsCompile, true),
-      mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), def.surrogates, Type.surrogates),
+      fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0),
+      fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null),
+      mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
+      mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
+      fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true),
+      mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
         ...Bindable.getAll(Type),
         CustomElement.getAnnotation(Type, 'bindables'),
         Type.bindables,
-        def.bindables,
+        nameOrDef.bindables,
       ),
       Children.from(
         ...Children.getAll(Type),
         CustomElement.getAnnotation(Type, 'childrenObservers'),
         Type.childrenObservers,
-        def.childrenObservers,
+        nameOrDef.childrenObservers,
       ),
-      firstDefined(CustomElement.getAnnotation(Type, 'containerless'), def.containerless, Type.containerless, false),
-      firstDefined(CustomElement.getAnnotation(Type, 'isStrictBinding'), def.isStrictBinding, Type.isStrictBinding, false),
-      firstDefined(CustomElement.getAnnotation(Type, 'shadowOptions'), def.shadowOptions, Type.shadowOptions, null),
-      firstDefined(CustomElement.getAnnotation(Type, 'hasSlots'), def.hasSlots, Type.hasSlots, false),
-      firstDefined(CustomElement.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, BindingStrategy.getterSetter),
-      firstDefined(CustomElement.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)),
-      mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), def.scopeParts, Type.scopeParts),
-    );
-  }
-
-  public static from<T extends Constructable = Constructable>(
-    def: PartialCustomElementDefinition | CustomElementDefinition<T>,
-  ): CustomElementDefinition<T> {
-    const Type = typeof (def as CustomElementDefinition<T>).Type === 'function'
-      ? (def as CustomElementDefinition<T>).Type
-      : class HTMLOnlyElement { /* HTML Only */ } as CustomElementType<T>;
-
-    return new CustomElementDefinition(
-      Type,
-      def.name,
-      mergeArrays(def.aliases),
-      CustomElement.keyFrom(def.name),
-      firstDefined(def.cache, 0),
-      firstDefined(def.template, null),
-      mergeArrays(def.instructions),
-      mergeArrays(def.dependencies),
-      firstDefined(def.needsCompile, true),
-      mergeArrays(def.surrogates),
-      Bindable.from(def.bindables),
-      Children.from(def.childrenObservers),
-      firstDefined(def.containerless, false),
-      firstDefined(def.isStrictBinding, false),
-      firstDefined(def.shadowOptions, null),
-      firstDefined(def.hasSlots, false),
-      firstDefined(def.strategy, BindingStrategy.getterSetter),
-      firstDefined(def.hooks, new HooksDefinition(Type.prototype)),
-      mergeArrays(def.scopeParts),
+      fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false),
+      fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false),
+      fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null),
+      fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false),
+      fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => BindingStrategy.getterSetter),
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
+      mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
     );
   }
 
@@ -311,6 +353,38 @@ export const CustomElement: CustomElementKind = {
 
     return function () {
       return `unnamed-${++id}`;
+    };
+  })(),
+  generateType: (function () {
+    const nameDescriptor: PropertyDescriptor = {
+      value: '',
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const defaultProto = {} as any;
+
+    return function <P extends {} = {}>(
+      name: string,
+      proto: P = defaultProto,
+    ): CustomElementType<Constructable<P>> {
+      // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
+      // looking similarly from the outside (when inspected via debugger, etc).
+      const Type = class {} as CustomElementType<Constructable<P>>;
+
+      // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
+      // even when minified.
+      nameDescriptor.value = name;
+      Reflect.defineProperty(Type, 'name', nameDescriptor);
+
+      // Assign anything from the prototype that was passed in
+      if (proto !== defaultProto) {
+        Object.assign(Type.prototype, proto);
+      }
+
+      return Type;
     };
   })(),
 };

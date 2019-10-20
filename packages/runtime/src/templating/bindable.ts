@@ -5,6 +5,7 @@ import {
   Metadata,
   Protocol,
   firstDefined,
+  getPrototypeChain,
 } from '@aurelia/kernel';
 import {
   BindingMode,
@@ -115,11 +116,21 @@ export const Bindable = {
   },
   getAll(Type: Constructable): readonly BindableDefinition[] {
     const propStart = Bindable.name.length + 1;
-    const keys = Protocol.annotation.getKeys(Type).filter(isBindableAnnotation);
-    const len = keys.length;
-    const defs: BindableDefinition[] = Array(len);
-    for (let i = 0; i < len; ++i) {
-      defs[i] = Metadata.getOwn(Bindable.name, Type, keys[i].slice(propStart));
+    const defs: BindableDefinition[] = [];
+    const prototypeChain = getPrototypeChain(Type);
+
+    let iProto = prototypeChain.length;
+    let iDefs = 0;
+    let keys: string[];
+    let keysLen: number;
+    let Class: Constructable;
+    while (--iProto >= 0) {
+      Class = prototypeChain[iProto];
+      keys = Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
+      keysLen = keys.length;
+      for (let i = 0; i < keysLen; ++i) {
+        defs[iDefs++] = Metadata.getOwn(Bindable.name, Class, keys[i].slice(propStart));
+      }
     }
     return defs;
   },

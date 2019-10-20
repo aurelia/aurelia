@@ -50,7 +50,7 @@ export interface IServiceLocator {
 }
 
 export interface IRegistry {
-  register(container: IContainer, ...params: unknown[]): void | IResolver;
+  register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 
 export interface IContainer extends IServiceLocator {
@@ -924,14 +924,14 @@ export class Container implements IContainer {
 
     if (isRegistry(keyAsValue)) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
-      if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
+      if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
         const newResolver = handler.resolvers.get(keyAsValue);
         if (newResolver != void 0) {
           return newResolver;
         }
         throw Reporter.error(40); // did not return a valid resolver from the static register method
       }
-      return registrationResolver;
+      return registrationResolver as IResolver;
     } else if (Protocol.resource.has(keyAsValue)) {
       const defs = Protocol.resource.getAll(keyAsValue);
       if (defs.length === 1) {

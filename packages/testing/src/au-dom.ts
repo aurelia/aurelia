@@ -51,7 +51,8 @@ import {
   RuntimeConfiguration,
   TargetedInstruction,
   CustomElementDefinition,
-  ToViewBindingInstruction
+  ToViewBindingInstruction,
+  ITemplateCompiler
 } from '@aurelia/runtime';
 
 const slice = Array.prototype.slice;
@@ -681,7 +682,8 @@ export const AuDOMConfiguration = {
       Registration.singleton(IProjectorLocator, AuProjectorLocator),
       Registration.singleton(ITargetAccessorLocator, AuObserverLocator),
       Registration.singleton(ITargetObserverLocator, AuObserverLocator),
-      Registration.singleton(ITemplateFactory, AuTemplateFactory)
+      Registration.singleton(ITemplateFactory, AuTemplateFactory),
+      Registration.instance(ITemplateCompiler, {}), // TODO: fix this dep tree
     );
   },
   createContainer(): IContainer {

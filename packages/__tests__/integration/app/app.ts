@@ -34,6 +34,8 @@ export class App {
   public chosenContact3: Contact = this.contacts3[0];
   public contacts4: Contact[] = this.contacts3.slice(0);
   public chosenContact4: Contact = { number: 123456790, type: 'mobile' };
+  public contacts5: Contact[] = this.contacts3.slice(0);
+  public chosenContact5: Contact = { number: 123456790, type: 'mobile' };
   public matcher: (a: Contact, b: Contact) => boolean = (a: Contact, b: Contact) => a.type === b.type && a.number === b.number;
 
   public changeTexts() {

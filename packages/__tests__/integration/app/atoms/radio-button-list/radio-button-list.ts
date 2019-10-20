@@ -17,5 +17,9 @@ export class RadioButtonList {
 
   @bindable public choices4: object[];
   @bindable public chosen4: object;
-  @bindable public matcher1: (a: any, b: any) => boolean;
+
+  @bindable public choices5: object[];
+  @bindable public chosen5: object;
+
+  @bindable public matcher: (a: any, b: any) => boolean;
 }

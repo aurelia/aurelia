@@ -22,4 +22,10 @@ export class RadioButtonList {
   @bindable public chosen5: object;
 
   @bindable public matcher: (a: any, b: any) => boolean;
+
+  @bindable public choices6: string[];
+  @bindable public chosen6: string;
+
+  @bindable public choices7: string[];
+  @bindable public chosen7: string;
 }

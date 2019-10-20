@@ -24,8 +24,10 @@ export class App {
 
   public things: Thing[] = [new Camera(new Zoom(40, 4), [125, 1600, 3200, 6400], [4, 16], [3, 6.5], 'Coolpix B500', 'Nikon'), new Laptop('Core i5 3.40 GHz', '8GB DDR4', new Storage('SSD', 1, 'TB'), '14 inch', 'T460', 'Lenovo')];
 
+  // computed
   public user: User = new User('John', 'Doe', 0.1, 'Role1', 'Org1', 'City1', 'Country1');
 
+  //#region checked, map, repeat
   public contacts1: Map<number, string> = new Map<number, string>([[123456790, 'mobile'], [9087654321, 'work'], [1122334455, 'home']]);
   public contacts2: Map<number, string> = new Map<number, string>(Array.from(this.contacts1));
   public chosenContact1: number = 9087654321;
@@ -37,6 +39,11 @@ export class App {
   public contacts5: Contact[] = this.contacts3.slice(0);
   public chosenContact5: Contact = { number: 123456790, type: 'mobile' };
   public matcher: (a: Contact, b: Contact) => boolean = (a: Contact, b: Contact) => a.type === b.type && a.number === b.number;
+  public contacts6: string[] = this.contacts5.map(({ number, type }) => `${number}-${type}`);
+  public chosenContact6: string = this.contacts6[0];
+  public contacts7: string[] = this.contacts6.slice(0);
+  public chosenContact7: string = this.contacts7[0];
+  //#endregion
 
   public changeTexts() {
     this.text1 = 'newText1';

@@ -904,7 +904,7 @@ export class Container implements IContainer {
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
-    const key = Protocol.annotation.keyFor('factory');
+    const key = Protocol.annotation.keyFor('di:factory');
     let factory = Metadata.getOwn(key, Type);
     if (factory === void 0) {
       Metadata.define(key, factory = createFactory(Type), Type);

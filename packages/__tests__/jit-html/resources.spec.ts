@@ -44,8 +44,8 @@ describe('CustomAttribute', function () {
     assert.deepStrictEqual(
       $class['au:annotation'],
       [
-        'au:annotation:dependencies',
-        'au:annotation:factory',
+        'au:annotation:di:dependencies',
+        'au:annotation:di:factory',
       ],
       `$class['au:annotation']`,
     );
@@ -115,8 +115,8 @@ describe('CustomAttribute', function () {
     assert.deepStrictEqual(
       $class['au:annotation'],
       [
-        'au:annotation:dependencies',
-        'au:annotation:factory',
+        'au:annotation:di:dependencies',
+        'au:annotation:di:factory',
       ],
       `$class['au:annotation']`,
     );

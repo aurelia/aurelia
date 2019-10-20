@@ -397,7 +397,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     }
 
     function compileWith(markup: string | Element, extraResources: any[] = []) {
-      extraResources.forEach(e => e.register(container));
+      extraResources.forEach(e => container.register(e));
       const templateDefinition: PartialCustomElementDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as PartialCustomElementDefinition;
       return sut.compile(dom, templateDefinition, resources);
     }
@@ -764,7 +764,7 @@ describe(`TemplateCompiler - combinations`, function () {
       // PartialCustomAttributeDefinition.bindables
       [
         (ctx) => [undefined, undefined, 'value'],
-        (ctx) => [BindableDefinition.create('value', {}), undefined,  'value'],
+        (ctx) => [{}, undefined,  'value'] as any,
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],

@@ -618,7 +618,11 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
 
       const anchorEl = host.querySelector('a');
 
-      assert.strictEqual(anchorEl.search, '?route=home.main');
+      if (PLATFORM.isBrowserLike) {
+        assert.strictEqual(anchorEl.search, '?route=home.main');
+      } else {
+        assert.strictEqual(anchorEl.href, '/?route=home.main');
+      }
 
       const app = au.root.controller.viewModel as any;
 

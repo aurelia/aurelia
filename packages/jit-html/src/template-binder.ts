@@ -448,13 +448,17 @@ export class TemplateBinder {
     let checkedIndex: number | undefined = void 0;
     let found = 0;
     for (let i = 0; i < attributes.length && found < 3; i++) {
-      const target = attributes[i].syntax.target;
-      if (target === 'model' || target === 'value') {
-        modelOrValueIndex = i;
-        found++;
-      } else if (target === 'checked') {
-        checkedIndex = i;
-        found++;
+      switch (attributes[i].syntax.target) {
+        case 'model':
+        case 'value':
+        case 'matcher':
+          modelOrValueIndex = i;
+          found++;
+          break;
+        case 'checked':
+          checkedIndex = i;
+          found++;
+          break;
       }
     }
     if (checkedIndex !== void 0 && modelOrValueIndex !== void 0 && checkedIndex < modelOrValueIndex) {

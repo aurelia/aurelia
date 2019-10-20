@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Constructable, Protocol, Metadata, firstDefined } from '@aurelia/kernel';
+import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IController, IViewModel } from '../lifecycle';
 import { IElementProjector } from '../resources/custom-element';
@@ -110,11 +110,21 @@ export const Children = {
   },
   getAll(Type: Constructable): readonly ChildrenDefinition[] {
     const propStart = Children.name.length + 1;
-    const keys = Protocol.annotation.getKeys(Type).filter(isChildrenObserverAnnotation);
-    const len = keys.length;
-    const defs: ChildrenDefinition[] = Array(len);
-    for (let i = 0; i < len; ++i) {
-      defs[i] = Metadata.getOwn(Children.name, Type, keys[i].slice(propStart));
+    const defs: ChildrenDefinition[] = [];
+    const prototypeChain = getPrototypeChain(Type);
+
+    let iProto = prototypeChain.length;
+    let iDefs = 0;
+    let keys: string[];
+    let keysLen: number;
+    let Class: Constructable;
+    while (--iProto >= 0) {
+      Class = prototypeChain[iProto];
+      keys = Protocol.annotation.getKeys(Class).filter(isChildrenObserverAnnotation);
+      keysLen = keys.length;
+      for (let i = 0; i < keysLen; ++i) {
+        defs[iDefs++] = Metadata.getOwn(Children.name, Class, keys[i].slice(propStart));
+      }
     }
     return defs;
   },

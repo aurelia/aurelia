@@ -292,12 +292,20 @@ export class RenderingEngine implements IRenderingEngine {
       const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
 
       if (definition.needsCompile) {
-        definition = this.compiler.compile(
-          dom,
-          definition as PartialCustomElementDefinition,
-          renderContext.createRuntimeCompilationResources(),
-          ViewCompileFlags.surrogate,
-        );
+        const compiledDefinitionKey = CustomElement.keyFrom(`${parentContext.path}:compiled-definition`);
+
+        let compiledDefinition = Metadata.getOwn(compiledDefinitionKey, definition) as CustomElementDefinition | undefined;
+        if (compiledDefinition === void 0) {
+          compiledDefinition = this.compiler.compile(
+            dom,
+            definition as PartialCustomElementDefinition,
+            renderContext.createRuntimeCompilationResources(),
+            ViewCompileFlags.surrogate,
+          );
+          Metadata.define(compiledDefinitionKey, compiledDefinition, definition);
+        }
+
+        return this.templateFactory.create(renderContext, compiledDefinition);
       }
 
       return this.templateFactory.create(renderContext, definition);

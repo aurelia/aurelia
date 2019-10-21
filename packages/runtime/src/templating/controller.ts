@@ -252,7 +252,7 @@ export class Controller<
           parentContext.get(IDOM),
           this,
           host,
-          definition,
+          template !== void 0 ? template.definition : definition,
         );
 
         this.location = void 0;

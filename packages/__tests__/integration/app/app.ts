@@ -6,6 +6,7 @@ import { User } from './molecules/user-preference/user-preference';
 import { Thing } from './molecules/specs-viewer/thing-viewer';
 
 type Contact = { number: number; type: string };
+export type Product = { id: number; name: string };
 
 @customElement({ name: 'app', template })
 export class App {
@@ -44,10 +45,17 @@ export class App {
   public contacts7: string[] = this.contacts6.slice(0);
   public chosenContact7: string = this.contacts7[0];
   public likesCake: boolean;
-  public noDisplayValue: string = 'Don\'t care';
+  public noDisplayValue: string = "Don't care";
   public trueValue: string = 'Yes';
   public falseValue: string = 'No';
+
   public hasAgreed: boolean;
+
+  public products1: Product[] = [{ id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }];
+  public chosenProducts1: Product[] = [this.products1[0]];
+  public products2: Product[] = this.products1.slice(0);
+  public chosenProducts2: Product[] = [{ id: 0, name: 'Motherboard' }];
+  public productMatcher: (a: Product, b: Product) => boolean = (a, b) => a.id === b.id && a.name === b.name;
   // #endregion
 
   public changeTexts() {

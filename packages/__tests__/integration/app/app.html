@@ -27,13 +27,17 @@
       choices5.to-view="contacts5" chosen5.two-way="chosenContact5"
       choices6.to-view="contacts6" chosen6.two-way="chosenContact6"
       choices7.to-view="contacts7" chosen7.two-way="chosenContact7"
-      >
-    </radio-button-list>
+    ></radio-button-list>
     <tri-state-boolean value.two-way="likesCake" no-value-display.bind="noDisplayValue" true-display.bind="trueValue" false-display.bind="falseValue"></tri-state-boolean>
 
     <label id='consent'>
       <input type="checkbox" checked.two-way="hasAgreed">
       I agree
     </label>
+
+    <checkbox-list
+      choices1.to-view="products1" selected-items1.bind="chosenProducts1"
+      choices2.to-view="products2" selected-items2.bind="chosenProducts2" matcher.bind="productMatcher"
+    ></checkbox-list>
   </div>
 </template>

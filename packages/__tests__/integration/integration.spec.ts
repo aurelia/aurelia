@@ -2,10 +2,10 @@
 import { toArray } from '@aurelia/kernel';
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail } from '@aurelia/testing';
-import { App } from './app/app';
+import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
-describe.only('app', function() {
+describe('app', function() {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function() {
       const ctx = await startup();
@@ -532,4 +532,36 @@ describe.only('app', function() {
     ctx.lifecycle.processRAFQueue(undefined);
     assert.equal(consent.checked, false, 'unchecked2');
   });
+
+  [{ id: 'cbl-obj-array', collProp: 'products1' as const, chosenProp: 'chosenProducts1' as const }, { id: 'cbl-obj-array-matcher', collProp: 'products2' as const, chosenProp: 'chosenProducts2' as const }].map(({ id, collProp, chosenProp }) =>
+    $it(`binds an object array to checkbox-list - ${id}`, function({ host, ctx }) {
+      const app = getViewModel<App>(host);
+      const products = app[collProp];
+      const inputs: HTMLInputElement[] = toArray(host.querySelectorAll(`checkbox-list #${id} label input[type=checkbox]`));
+      const size = products.length;
+      assert.equal(inputs.length, size);
+
+      // assert radio buttons and selection
+      assert.equal(inputs[0].checked, true, 'checked0');
+
+      // assert if the choice is changed in VM, it is propagated to view
+      app[chosenProp].push(products[1]);
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.equal(inputs[0].checked, true, 'checked00');
+      assert.equal(inputs[1].checked, true, 'checked1');
+
+      // assert that when choice is changed from view, it is propagaetd to VM
+      inputs[0].click();
+      inputs[2].click();
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.equal(inputs[2].checked, true, 'checked2');
+      const actual = app[chosenProp].sort((pa: Product, pb: Product) => pa.id - pb.id);
+      if (id.includes('matcher')) {
+        assert.deepEqual(actual, [products[1], products[2]], 'expected change to porapagate to vm');
+      } else {
+        assert.equal(actual[0], products[1], 'expected change to porapagate to vm - 1');
+        assert.equal(actual[1], products[2], 'expected change to porapagate to vm - 2');
+      }
+    })
+  );
 });

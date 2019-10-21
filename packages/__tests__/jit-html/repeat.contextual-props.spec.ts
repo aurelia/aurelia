@@ -168,7 +168,19 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
         mutate(items: Map<string, ITestModel>) {
           items.clear();
         }
-      }
+      },
+      {
+        only: true,
+        title: `Map basic - with delete()`,
+        repeatExpression: `[itemName, item] of items`,
+        textExpression: `[\${item.name}] -- \${$index} -- \${$even}`,
+        getItems: () => new Map(createItems(10).map((item) => [item.name, item])),
+        mutate(items: Map<string, ITestModel>) {
+          for (let i = 0; 5 > i; ++i) {
+            items.delete(`item - ${i}`);
+          }
+        }
+      },
     ].reduce(
       (allMapCases, mapCaseConfig) => {
         return allMapCases.concat([

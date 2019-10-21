@@ -1217,15 +1217,21 @@ export class ForOfStatement implements IForOfStatement {
     this.assign = PLATFORM.noop as () => unknown;
     this.declaration = declaration;
     this.iterable = iterable;
-    this.evaluateDeclaration();
   }
 
   public declare(object: IIndexable, entry: IIndexable): void {
-    if (this.isKeyValue) {
-      object[this.key] = entry[0];
-      object[this.value] = entry[1];
-    } else {
-      object[this.local] = entry;
+    const declaration = this.declaration;
+    // todo: proper declaration/destructuring
+    if (declaration instanceof BindingIdentifier) {
+      object[declaration.name] = entry;
+    } else if (declaration instanceof ArrayBindingPattern) {
+      const elements = declaration.elements;
+      const keyDeclaration = elements[0] as AccessScopeExpression;
+      const valueDeclaration = elements[1] as AccessScopeExpression;
+
+      // todo: avoid accessing out of bound index
+      object[keyDeclaration.name] = entry[0];
+      object[valueDeclaration.name] = entry[1];
     }
   }
 

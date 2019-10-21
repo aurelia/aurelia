@@ -3,24 +3,11 @@ import {
   IContainer,
   IDefaultableInterfaceSymbol,
   inject,
-  PLATFORM,
   Registration,
   singleton,
   transient,
-  Metadata
 } from '@aurelia/kernel';
 import { _, assert, createSpy, ISpy } from '@aurelia/testing';
-
-function assertIsMutableArray(arr: any[], length: number): void {
-  assert.strictEqual(Array.isArray(arr), true, `Array.isArray(arr)`);
-  assert.strictEqual(arr instanceof Array, true, `arr instanceof Array`);
-  assert.notStrictEqual(arr, PLATFORM.emptyArray, `arr`);
-  assert.strictEqual(arr.length, length, `arr.length`);
-  arr.push(null);
-  assert.strictEqual(arr.length, length + 1, `arr.length`);
-  arr.pop();
-  assert.strictEqual(arr.length, length, `arr.length`);
-}
 
 function decorator(): ClassDecorator { return (target: any) => target; }
 

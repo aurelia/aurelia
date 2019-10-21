@@ -6,9 +6,7 @@ import {
   Interpolation,
   AccessScopeExpression,
   CustomElement,
-  PartialCustomElementDefinition,
   ITargetedInstruction,
-  BindingStrategy,
   HooksDefinition,
   BindingMode,
   BindingBehaviorExpression,
@@ -36,18 +34,12 @@ import {
 } from '@aurelia/testing';
 import {
   PLATFORM,
-  IRegistry,
-  Registration,
-  IContainer,
-  Key,
   Class,
-  kebabCase,
   resetId,
   nextId,
 } from '@aurelia/kernel';
 
 describe.skip('controller', function () {
-  const buildNotRequired = Object.freeze({ compiler: 'default', required: false });
   const allHooks = Object.freeze(new HooksDefinition({
     created: true,
     binding: true,
@@ -61,10 +53,6 @@ describe.skip('controller', function () {
     unbound: true,
   }));
   const noHooks = Object.freeze(new HooksDefinition({}));
-  const noDependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & IRegistry[];
-  const noSurrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[];
-  const noAliases = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[];
-  const noShadowOptions = null as { mode: 'closed' | 'open' };
 
   function addTracingHooks<TProto>(ctor: Class<TProto>): Class<TProto & {
     created(...args: any[]): void;

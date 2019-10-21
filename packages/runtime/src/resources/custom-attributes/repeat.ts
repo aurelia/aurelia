@@ -27,7 +27,6 @@ import { templateController } from '../custom-attribute';
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 
 const isMountedOrAttached = State.isMounted | State.isAttached;
-const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
 
 @templateController('repeat')
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> {

@@ -2,7 +2,6 @@ import {
   Constructable,
   DI,
   IContainer,
-  IRegistry,
   PLATFORM,
   Registration
 } from '@aurelia/kernel';

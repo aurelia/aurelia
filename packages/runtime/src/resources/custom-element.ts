@@ -10,7 +10,6 @@ import {
   PartialResourceDefinition,
   Key,
   ResourceDefinition,
-  firstDefined,
   mergeArrays,
   fromDefinitionOrDefault,
   pascalCase,

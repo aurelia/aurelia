@@ -48,24 +48,20 @@ describe('NodeSequenceFactory', function () {
           it(`should create a factory that returns the correct markup for "${markup}"`, function () {
             const factory = new NodeSequenceFactory(ctx.dom, markup);
             const view = factory.createNodeSequence();
-            if (markup.length === 0) {
-              assert.strictEqual(view, NodeSequence.empty, `view`);
-            } else {
-              const fragment = view['fragment'] as DocumentFragment;
-              let parsedMarkup = '';
-              const childCount = fragment.childNodes.length;
-              let i = 0;
-              while (i < childCount) {
-                const child = fragment.childNodes.item(i);
-                if (child['outerHTML']) {
-                  parsedMarkup += child['outerHTML'];
-                } else {
-                  parsedMarkup += child['textContent'];
-                }
-                i++;
+            const fragment = view['fragment'] as DocumentFragment;
+            let parsedMarkup = '';
+            const childCount = fragment.childNodes.length;
+            let i = 0;
+            while (i < childCount) {
+              const child = fragment.childNodes.item(i);
+              if (child['outerHTML']) {
+                parsedMarkup += child['outerHTML'];
+              } else {
+                parsedMarkup += child['textContent'];
               }
-              assert.strictEqual(parsedMarkup, markup, `parsedMarkup`);
+              i++;
             }
+            assert.strictEqual(parsedMarkup, markup, `parsedMarkup`);
           });
 
           it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, function () {
@@ -74,14 +70,8 @@ describe('NodeSequenceFactory', function () {
             const fragment2 = factory.createNodeSequence()['fragment'];
             const fragment3 = factory.createNodeSequence()['fragment'];
 
-            if (markup.length === 0) {
-              if (!(fragment1 == null && fragment3 === undefined)) {
-                throw new Error('Expected all fragments to be undefined');
-              }
-            } else {
-              if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
-                throw new Error('Expected all fragments to be different instances');
-              }
+            if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
+              throw new Error('Expected all fragments to be different instances');
             }
           });
         }

@@ -523,38 +523,49 @@ export interface NodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
 
+function returnEmptyNodeSequence() {
+  return NodeSequence.empty;
+}
+
 export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly dom: IDOM;
   private readonly deepClone!: boolean;
   private readonly node!: Node;
   private readonly Type!: Constructable<INodeSequence>;
 
-  public constructor(dom: IDOM, markupOrNode: string | Node) {
+  public constructor(dom: IDOM, markupOrNode: string | Node | null) {
     this.dom = dom;
-    const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
-    const childNodes = fragment.childNodes;
-    let target: ChildNode;
-    let text: ChildNode;
-    switch (childNodes.length) {
-      case 0:
-        this.createNodeSequence = () => NodeSequence.empty;
-        return;
-      case 2:
-        target = childNodes[0];
-        if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-          text = childNodes[1];
-          if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
-            this.deepClone = false;
-            this.node = text;
-            this.Type = TextNodeSequence;
-            return;
+
+    if (markupOrNode === null) {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      this.createNodeSequence = returnEmptyNodeSequence;
+    } else {
+      const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
+      const childNodes = fragment.childNodes;
+      let target: ChildNode;
+      let text: ChildNode;
+      switch (childNodes.length) {
+        case 0:
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          this.createNodeSequence = returnEmptyNodeSequence;
+          return;
+        case 2:
+          target = childNodes[0];
+          if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
+            text = childNodes[1];
+            if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
+              this.deepClone = false;
+              this.node = text;
+              this.Type = TextNodeSequence;
+              return;
+            }
           }
-        }
-      // falls through if not returned
-      default:
-        this.deepClone = true;
-        this.node = fragment;
-        this.Type = FragmentNodeSequence;
+        // falls through if not returned
+        default:
+          this.deepClone = true;
+          this.node = fragment;
+          this.Type = FragmentNodeSequence;
+      }
     }
   }
 
@@ -610,6 +621,6 @@ export class HTMLTemplateFactory implements ITemplateFactory {
   }
 
   public create(parentRenderContext: IRenderContext, definition: CustomElementDefinition): ITemplate {
-    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node), parentRenderContext);
+    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node | null), parentRenderContext);
   }
 }

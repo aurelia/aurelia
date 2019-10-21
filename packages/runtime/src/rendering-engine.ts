@@ -133,22 +133,6 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
   }
 }
 
-// This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-/** @internal */
-export const noViewTemplate: ITemplate = {
-  renderContext: (void 0)!,
-  dom: (void 0)!,
-  definition: (void 0)!,
-
-  render(viewModelOrController: IViewModel | IController): void {
-    const controller = viewModelOrController instanceof Controller ? viewModelOrController : (viewModelOrController as IViewModel).$controller;
-    (controller as Writable<IController>).nodes = NodeSequence.empty;
-    (controller as Writable<IController>).context = void 0;
-  }
-};
-
-const defaultCompilerName = 'default';
-
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
 }
@@ -288,30 +272,26 @@ export class RenderingEngine implements IRenderingEngine {
     parentContext: IContainer | IRenderContext,
     componentType?: CustomElementType
   ): ITemplate {
-    if (definition.template != void 0) {
-      const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
+    const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
 
-      if (definition.needsCompile) {
-        const compiledDefinitionKey = CustomElement.keyFrom(`${parentContext.path}:compiled-definition`);
+    if (definition.template != void 0 && definition.needsCompile) {
+      const compiledDefinitionKey = CustomElement.keyFrom(`${parentContext.path}:compiled-definition`);
 
-        let compiledDefinition = Metadata.getOwn(compiledDefinitionKey, definition) as CustomElementDefinition | undefined;
-        if (compiledDefinition === void 0) {
-          compiledDefinition = this.compiler.compile(
-            dom,
-            definition as PartialCustomElementDefinition,
-            renderContext.createRuntimeCompilationResources(),
-            ViewCompileFlags.surrogate,
-          );
-          Metadata.define(compiledDefinitionKey, compiledDefinition, definition);
-        }
-
-        return this.templateFactory.create(renderContext, compiledDefinition);
+      let compiledDefinition = Metadata.getOwn(compiledDefinitionKey, definition) as CustomElementDefinition | undefined;
+      if (compiledDefinition === void 0) {
+        compiledDefinition = this.compiler.compile(
+          dom,
+          definition as PartialCustomElementDefinition,
+          renderContext.createRuntimeCompilationResources(),
+          ViewCompileFlags.surrogate,
+        );
+        Metadata.define(compiledDefinitionKey, compiledDefinition, definition);
       }
 
-      return this.templateFactory.create(renderContext, definition);
+      return this.templateFactory.create(renderContext, compiledDefinition);
     }
 
-    return noViewTemplate;
+    return this.templateFactory.create(renderContext, definition);
   }
 }
 

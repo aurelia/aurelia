@@ -1,6 +1,7 @@
 import {
   IServiceLocator,
-  StrictPrimitive
+  StrictPrimitive,
+  IIndexable
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
@@ -229,6 +230,7 @@ export interface IForOfStatement extends IExpression {
   readonly declaration: BindingIdentifierOrPattern;
   readonly iterable: IsBindingBehavior;
 
+  declare(object: IIndexable, entry: IIndexable): void;
   count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number;
   iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
   bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;

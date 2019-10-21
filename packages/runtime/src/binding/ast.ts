@@ -1181,11 +1181,52 @@ export class ForOfStatement implements IForOfStatement {
   public readonly declaration: BindingIdentifierOrPattern;
   public readonly iterable: IsBindingBehavior;
 
+  /**
+   * The name to reference each item in the collection in each repeater view binding context,
+   * if the collection is an array, a number or a Set
+   *
+   * @internal
+   */
+  private local!: string;
+
+  /**
+   * When collection is a map, and destructuring syntax is used, and key variable declaration exists.
+   *
+   * The name to reference the key of each entry in the collection in each repeater view binding context,
+   *
+   * @internal
+   */
+  private key!: string;
+
+  /**
+   * When collection is a map, and destructuring syntax is used, and value variable declaration exists.
+   *
+   * The name to reference the value of each entry in the collection in each repeater view binding context,
+   *
+   * @internal
+   */
+  private value!: string;
+
+  /**
+   * @internal set during evaluate declaration
+   */
+  private isKeyValue!: boolean;
+
   public constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior) {
     this.$kind = ExpressionKind.ForOfStatement;
     this.assign = PLATFORM.noop as () => unknown;
     this.declaration = declaration;
     this.iterable = iterable;
+    this.evaluateDeclaration();
+  }
+
+  public declare(object: IIndexable, entry: IIndexable): void {
+    if (this.isKeyValue) {
+      object[this.key] = entry[0];
+      object[this.value] = entry[1];
+    } else {
+      object[this.local] = entry;
+    }
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
@@ -1235,6 +1276,20 @@ export class ForOfStatement implements IForOfStatement {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitForOfStatement(this);
+  }
+
+  private evaluateDeclaration(): void {
+    const declaration = (this.declaration.evaluate(LifecycleFlags.none, null!, null) as string).trim();
+    const len = declaration.length;
+    const isDestructuring = declaration.startsWith('[') && declaration.endsWith(']');
+    if (isDestructuring) {
+      const keyValue = declaration.slice(1, len - 1);
+      this.key = keyValue[0];
+      this.value = keyValue[1];
+    } else {
+      this.local = declaration;
+    }
+    this.isKeyValue = isDestructuring;
   }
 }
 

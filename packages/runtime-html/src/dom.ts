@@ -338,7 +338,6 @@ export class FragmentNodeSequence implements INodeSequence {
   public isMounted: boolean;
   public isLinked: boolean;
 
-  public dom: IDOM;
   public firstChild: Node;
   public lastChild: Node;
   public childNodes: Node[];
@@ -347,10 +346,12 @@ export class FragmentNodeSequence implements INodeSequence {
 
   private refNode?: Node;
 
-  private readonly fragment: DocumentFragment;
   private readonly targets: ArrayLike<Node>;
 
-  public constructor(dom: IDOM, fragment: DocumentFragment) {
+  public constructor(
+    public readonly dom: IDOM,
+    private readonly fragment: DocumentFragment,
+  ) {
     this.isMounted = false;
     this.isLinked = false;
 
@@ -523,54 +524,26 @@ export interface NodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
 
-function returnEmptyNodeSequence() {
-  return NodeSequence.empty;
-}
-
 export class NodeSequenceFactory implements NodeSequenceFactory {
-  private readonly dom: IDOM;
-  private readonly deepClone!: boolean;
-  private readonly node!: Node;
-  private readonly Type!: Constructable<INodeSequence>;
+  private readonly node: DocumentFragment | null;
 
-  public constructor(dom: IDOM, markupOrNode: string | Node | null) {
-    this.dom = dom;
-
+  public constructor(
+    private readonly dom: IDOM,
+    markupOrNode: string | Node | null,
+  ) {
     if (markupOrNode === null) {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      this.createNodeSequence = returnEmptyNodeSequence;
+      this.node = null;
     } else {
-      const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
-      const childNodes = fragment.childNodes;
-      let target: ChildNode;
-      let text: ChildNode;
-      switch (childNodes.length) {
-        case 0:
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          this.createNodeSequence = returnEmptyNodeSequence;
-          return;
-        case 2:
-          target = childNodes[0];
-          if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-            text = childNodes[1];
-            if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
-              this.deepClone = false;
-              this.node = text;
-              this.Type = TextNodeSequence;
-              return;
-            }
-          }
-        // falls through if not returned
-        default:
-          this.deepClone = true;
-          this.node = fragment;
-          this.Type = FragmentNodeSequence;
-      }
+      this.node = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
     }
   }
 
   public createNodeSequence(): INodeSequence {
-    return new this.Type(this.dom, this.node.cloneNode(this.deepClone));
+    if (this.node === null) {
+      return NodeSequence.empty;
+    }
+
+    return new FragmentNodeSequence(this.dom, this.node.cloneNode(true) as DocumentFragment);
   }
 }
 

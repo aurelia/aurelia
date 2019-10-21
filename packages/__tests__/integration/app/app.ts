@@ -47,7 +47,7 @@ export class App {
   public noDisplayValue: string = 'Don\'t care';
   public trueValue: string = 'Yes';
   public falseValue: string = 'No';
-
+  public hasAgreed: boolean;
   // #endregion
 
   public changeTexts() {

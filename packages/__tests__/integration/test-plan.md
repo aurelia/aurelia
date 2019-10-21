@@ -207,8 +207,8 @@ The update of the display is triggered every 2 seconds via a signal.
 ##### Edit form
 
 - [ ] checkbox:
-  - single boolean checkbox: `checked-observer` simple case
-  - collection of checkboxes:
+  - [x] single boolean checkbox: `checked-observer` simple case
+  - [ ] collection of checkboxes:
     - bound to array of models: `checked-observer` with collection as value
     - with custom matcher
 - [x] collection of radios:

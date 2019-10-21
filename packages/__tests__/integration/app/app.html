@@ -30,5 +30,10 @@
       >
     </radio-button-list>
     <tri-state-boolean value.two-way="likesCake" no-value-display.bind="noDisplayValue" true-display.bind="trueValue" false-display.bind="falseValue"></tri-state-boolean>
+
+    <label id='consent'>
+      <input type="checkbox" checked.two-way="hasAgreed">
+      I agree
+    </label>
   </div>
 </template>

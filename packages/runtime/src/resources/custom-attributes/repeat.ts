@@ -5,6 +5,7 @@ import {
   nextId,
   PLATFORM,
   Registration,
+  IIndexable,
 } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
@@ -98,7 +99,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public forOf!: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
-  public local!: string;
   public location: IRenderLocation<T>;
   public observer?: CollectionObserver;
   public renderable: IController<T>;
@@ -152,7 +152,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         break;
       }
     }
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
     this.normalizeToArray(flags);
     this.processViewsKeyed(void 0, flags);
     return this.task;
@@ -203,9 +202,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private processViewsKeyed(indexMap: IndexMap | undefined, flags: LF): void {
+    const $controller = this.$controller;
     const oldLength = this.views.length;
+
     if (indexMap === void 0) {
-      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      if (($controller.state & State.isBoundOrBinding) > 0) {
         this.detachViewsByRange(0, oldLength, flags);
         if (this.task.done) {
           this.task = this.unbindAndRemoveViewsByRange(0, oldLength, flags, false);
@@ -220,7 +221,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
 
-      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      if (($controller.state & State.isAttachedOrAttaching) > 0) {
         if (this.task.done) {
           this.attachViewsKeyed(flags);
         } else {
@@ -229,7 +230,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     } else {
       applyMutationsToIndices(indexMap);
-      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      if (($controller.state & State.isBoundOrBinding) > 0) {
         // first detach+unbind+(remove from array) the deleted view indices
         if (indexMap.deletedItems.length > 0) {
           indexMap.deletedItems.sort(compareNumber);
@@ -254,7 +255,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
 
-      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      if (($controller.state & State.isAttachedOrAttaching) > 0) {
         if (this.task.done) {
           this.sortViewsByKey(oldLength, indexMap, flags);
         } else {
@@ -301,22 +302,28 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
     const views = this.views;
-    this.$controller.lifecycle.detached.begin();
+    const detachedQueue = this.$controller.lifecycle.detached;
     let view: IController<T>;
+
+    detachedQueue.begin();
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
       view.release(flags);
       view.detach(flags);
     }
-    this.$controller.lifecycle.detached.end(flags);
+    detachedQueue.end(flags);
   }
 
   private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LF, adjustLength: boolean): ILifecycleTask {
     const views = this.views;
+    const unboundQueue = this.$controller.lifecycle.unbound;
+
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
-    this.$controller.lifecycle.unbound.begin();
     let view: IController<T>;
+
+    unboundQueue.begin();
+
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
       task = view.unbind(flags);
@@ -330,45 +337,51 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (adjustLength) {
-      this.views.length = iStart;
+      views.length = iStart;
     }
 
     if (tasks === undefined) {
-      this.$controller.lifecycle.unbound.end(flags);
+      unboundQueue.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      this.$controller.lifecycle.unbound.end,
-      this.$controller.lifecycle.unbound,
+      unboundQueue.end,
+      unboundQueue,
       flags,
     );
   }
 
   private detachViewsByKey(indexMap: IndexMap, flags: LF): void {
     const views = this.views;
-    this.$controller.lifecycle.detached.begin();
+    const detachedQueue = this.$controller.lifecycle.detached;
+
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
     let view: IController<T>;
+
+    detachedQueue.begin();
     for (let i = 0; i < deletedLen; ++i) {
       view = views[deleted[i]];
       view.release(flags);
       view.detach(flags);
     }
-    this.$controller.lifecycle.detached.end(flags);
+    detachedQueue.end(flags);
   }
 
   private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     const views = this.views;
+    const unboundQueue = this.$controller.lifecycle.unbound;
+
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
-    this.$controller.lifecycle.unbound.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
     let view: IController<T>;
     let i = 0;
+
+    unboundQueue.begin();
     for (; i < deletedLen; ++i) {
       view = views[deleted[i]];
       task = view.unbind(flags);
@@ -385,18 +398,18 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let j = 0;
     for (; i < deletedLen; ++i) {
       j = deleted[i] - i;
-      this.views.splice(j, 1);
+      views.splice(j, 1);
     }
 
     if (tasks === undefined) {
-      this.$controller.lifecycle.unbound.end(flags);
+      unboundQueue.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      this.$controller.lifecycle.unbound.end,
-      this.$controller.lifecycle.unbound,
+      unboundQueue.end,
+      unboundQueue,
       flags,
     );
   }
@@ -406,16 +419,17 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let task: ILifecycleTask;
     let view: IController<T>;
     let viewScope: IScope;
+    let viewBc: IIndexable;
 
     const $controller = this.$controller;
-    const lifecycle = $controller.lifecycle;
+    const boundQueue = $controller.lifecycle.bound;
     const parentScope = $controller.scope!;
+    const forOf = this.forOf;
 
-    lifecycle.bound.begin();
+    boundQueue.begin();
 
     const part = $controller.part;
     const factory = this.factory;
-    const local = this.local;
     const items = this.items;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
@@ -423,10 +437,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags);
       view.parent = $controller;
+      viewBc = BindingContext.create(flags);
+
+      forOf.declare(viewBc, item as IIndexable);
+
       viewScope = Scope.fromParent(
         flags,
         parentScope,
-        BindingContext.create(flags, local, item),
+        viewBc,
       );
 
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
@@ -446,14 +464,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     });
 
     if (tasks === undefined) {
-      lifecycle.bound.end(flags);
+      boundQueue.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      lifecycle.bound.end,
-      lifecycle.bound,
+      boundQueue.end,
+      boundQueue,
       flags,
     );
   }
@@ -463,17 +481,18 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let task: ILifecycleTask;
     let view: IController<T>;
     let viewScope: IScope;
+    let viewBc: IIndexable;
 
     const factory = this.factory;
     const views = this.views;
-    const local = this.local;
     const normalizedItems = this.normalizedItems!;
+    const forOf = this.forOf;
 
     const $controller = this.$controller;
-    const lifecycle = $controller.lifecycle;
+    const boundQueue = $controller.lifecycle.bound;
     const parentScope = $controller.scope!;
 
-    lifecycle.bound.begin();
+    boundQueue.begin();
 
     const part = $controller.part;
     const mapLen = indexMap.length;
@@ -483,10 +502,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
         view.parent = $controller;
+        viewBc = BindingContext.create(flags);
+
+        forOf.declare(viewBc, normalizedItems[i] as IIndexable);
+
         viewScope = Scope.fromParent(
           flags,
           parentScope,
-          BindingContext.create(flags, local, normalizedItems[i]),
+          viewBc,
         );
 
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, mapLen);
@@ -513,14 +536,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (tasks === undefined) {
-      lifecycle.bound.end(flags);
+      boundQueue.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      lifecycle.bound.end,
-      lifecycle.bound,
+      boundQueue.end,
+      boundQueue,
       flags,
     );
   }
@@ -556,16 +579,19 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private attachViewsKeyed(flags: LF): void {
+    const views = this.views;
+    const location = this.location;
+    const attachedQueue = this.$controller.lifecycle.attached;
     let view: IController<T>;
-    const { views, location } = this;
-    this.$controller.lifecycle.attached.begin();
+
+    attachedQueue.begin();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
       view.hold(location, MountStrategy.insertBefore);
       view.nodes!.unlink();
       view.attach(flags);
     }
-    this.$controller.lifecycle.attached.end(flags);
+    attachedQueue.end(flags);
   }
 
   private sortViewsByKey(oldLength: number, indexMap: IndexMap, flags: LF): void {
@@ -579,7 +605,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
-    this.$controller.lifecycle.attached.begin();
+    const attachedQueue = this.$controller.lifecycle.attached;
+
+    attachedQueue.begin();
 
     flags |= LF.reorderNodes;
 
@@ -611,7 +639,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
 
-    this.$controller.lifecycle.attached.end(flags);
+    attachedQueue.end(flags);
   }
 }
 

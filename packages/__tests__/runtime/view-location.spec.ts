@@ -1,4 +1,4 @@
-import { view, ViewLocator, ViewValueConverter } from '@aurelia/runtime';
+import { view, ViewLocator, ViewValueConverter, CustomElement, Views, CustomElementDefinition } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('the view value converter', function() {
@@ -32,8 +32,8 @@ describe('the view decorator', function() {
     @view(template)
     class MyModel {}
 
-    const associated = (MyModel as any).$views[0];
-    assert.equal(associated, template);
+    const [associated] = Views.get(MyModel);
+    assert.equal(associated.name, template.name);
   });
 
   it('can associate multiple views with a class', function() {
@@ -44,8 +44,10 @@ describe('the view decorator', function() {
     @view(template2)
     class MyModel {}
 
-    assert.includes((MyModel as any).$views, template1);
-    assert.includes((MyModel as any).$views, template2);
+    const [view2, view1] = Views.get(MyModel) as CustomElementDefinition[];
+
+    assert.includes(view1.name, template1.name);
+    assert.includes(view2.name, template2.name);
   });
 });
 
@@ -112,7 +114,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-1', template.name);
@@ -130,7 +132,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model, 'view-2');
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
@@ -148,7 +150,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('default-view', template.name);
@@ -175,12 +177,12 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model, selectView);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-2', template.name);
     assert.equal(receivedObject, model);
-    assert.equal(receivedViews, (MyModel as any).$views);
+    assert.equal(receivedViews, Views.get(MyModel));
   });
 
   it('can return a component based on a dynamic view when selector used with model without associated views', function() {
@@ -196,7 +198,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model, selectView);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal(template1.name, template.name);
@@ -213,7 +215,7 @@ describe('the view locator', function() {
     const model = new MyModel();
 
     const Component = locator.getViewComponentForObject(model);
-    const template = (Component as any).description;
+    const template = CustomElement.getDefinition(Component);
 
     assert.isCustomElementType(Component);
     assert.equal('view-1', template.name);

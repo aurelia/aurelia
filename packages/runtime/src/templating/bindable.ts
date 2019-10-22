@@ -1,39 +1,53 @@
 import {
   Constructable,
   kebabCase,
-  Reporter,
+  Metadata,
+  Protocol,
+  firstDefined,
+  getPrototypeChain,
+  Writable,
 } from '@aurelia/kernel';
-import {
-  BindableSource,
-  IBindableDescription,
-} from '../definitions';
 import {
   BindingMode,
 } from '../flags';
+
+export type PartialBindableDefinition = {
+  mode?: BindingMode;
+  callback?: string;
+  attribute?: string;
+  property?: string;
+  primary?: boolean;
+};
+
+type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
+  property: string;
+};
+
+type PartialBindableDefinitionPropertyOmitted = Omit<PartialBindableDefinition, 'property'>;
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
  *
  * @param config - The overrides
  */
-export function bindable(config?: BindableSource): BindableDecorator;
+export function bindable(config?: PartialBindableDefinitionPropertyOmitted): (target: {}, property: string) => void;
 /**
  * Decorator: Specifies a bindable property on a class.
  *
  * @param prop - The property name
  */
-export function bindable(prop: string): ClassDecorator;
+export function bindable(prop: string): (target: Constructable) => void;
 /**
  * Decorator: Specifies a bindable property on a class.
  *
  * @param target - The class
  * @param prop - The property name
  */
-export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
-export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T, prop?: string): void | BindableDecorator | ClassDecorator {
-  let config: IBindableDescription;
+export function bindable(target: {}, prop: string): void;
+export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?: string): void | ((target: {}, property: string) => void) | ((target: Constructable) => void) {
+  let config: PartialBindableDefinition;
 
-  const decorator = function decorate($target: T, $prop: string): void {
+  function decorator($target: {}, $prop: string): void {
     if (arguments.length > 1) {
       // Non invocation:
       // - @bindable
@@ -42,13 +56,16 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
       // - @bindable({...opts})
       config.property = $prop;
     }
-    Bindable.for($target.constructor as Partial<WithBindables>).add(config);
-  };
+
+    Metadata.define(Bindable.name, BindableDefinition.create($prop, config), $target.constructor, $prop);
+    Protocol.annotation.appendTo($target.constructor as Constructable, Bindable.keyFrom($prop));
+  }
+
   if (arguments.length > 1) {
     // Non invocation:
     // - @bindable
     config = {};
-    decorator(configOrTarget as T, prop!);
+    decorator(configOrTarget!, prop!);
     return;
   } else if (typeof configOrTarget === 'string') {
     // ClassDecorator
@@ -56,64 +73,229 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     // Direct call:
     // - @bindable('bar')(Foo)
     config = {};
-    return decorator as BindableDecorator;
+    return decorator;
   }
 
   // Invocation with or w/o opts:
   // - @bindable()
   // - @bindable({...opts})
-  config = (configOrTarget || {}) as IBindableDescription;
-  return decorator as BindableDecorator;
+  config = configOrTarget === void 0 ? {} : configOrTarget;
+  return decorator;
 }
 
-interface IFluentBindableBuilder {
-  add(config: IBindableDescription): IFluentBindableBuilder;
-  add(propertyName: string): IFluentBindableBuilder;
-  get(): Record<string, IBindableDescription>;
+function isBindableAnnotation(key: string): boolean {
+  return key.startsWith(Bindable.name);
 }
 
-export const Bindable = {
-  for<T extends Partial<WithBindables>>(obj: T): IFluentBindableBuilder {
-    const builder: IFluentBindableBuilder = {
-      add(nameOrConfig: string | IBindableDescription): typeof builder {
-        let description: IBindableDescription = (void 0)!;
-        if (nameOrConfig instanceof Object) {
-          description = nameOrConfig;
-        } else if (typeof nameOrConfig === 'string') {
-          description = {
-            property: nameOrConfig
-          };
-        }
-        const prop = description.property;
-        if (!prop) {
-          throw Reporter.error(0); // TODO: create error code (must provide a property name)
-        }
-        if (!description.attribute) {
-          description.attribute = kebabCase(prop);
-        }
-        if (!description.callback) {
-          description.callback = `${prop}Changed`;
-        }
-        if (description.mode === undefined) {
-          description.mode = BindingMode.toView;
-        }
-        (obj.bindables as Record<string, IBindableDescription>)[prop] = description;
-        return this;
-      },
-      get(): Record<string, IBindableDescription> {
-        return obj.bindables as Record<string, IBindableDescription>;
-      }
-    };
-    if (obj.bindables === undefined) {
-      obj.bindables = {};
-    } else if (Array.isArray(obj.bindables)) {
-      const props = obj.bindables;
-      obj.bindables = {};
-      props.forEach(builder.add);
-    }
-    return builder;
-  }
+type BFluent = {
+  add(config: PartialBindableDefinitionPropertyRequired): BFluent;
+  add(property: string): BFluent & B1234;
 };
 
-export type WithBindables = { bindables: Record<string, IBindableDescription> | string[] };
-export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string) => void;
+type B1<T = {}> = {
+  mode(mode: BindingMode): BFluent & T;
+};
+
+type B2<T = {}> = {
+  callback(callback: string): BFluent & T;
+};
+
+type B3<T = {}> = {
+  attribute(attribute: string): BFluent & T;
+};
+
+type B4<T = {}> = {
+  primary(): BFluent & T;
+};
+
+// An important self-imposed limitation for this to be viable (e.g. avoid exponential combination growth),
+// is to keep the fluent API invocation order in a single direction.
+type B34 = B4 & B3<B4>;
+type B234 = B34 & B2<B34>;
+type B1234 = B234 & B1<B234>;
+
+export const Bindable = {
+  name: Protocol.annotation.keyFor('bindable'),
+  keyFrom(name: string): string {
+    return `${Bindable.name}:${name}`;
+  },
+  from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
+    const bindables: Record<string, BindableDefinition> = {};
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
+
+    function addName(name: string): void {
+      bindables[name] = BindableDefinition.create(name);
+    }
+
+    function addDescription(name: string, def: PartialBindableDefinition): void {
+      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def);
+    }
+
+    function addList(maybeList: BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined): void {
+      if (isArray(maybeList)) {
+        maybeList.forEach(addName);
+      } else if (maybeList instanceof BindableDefinition) {
+        bindables[maybeList.property] = maybeList;
+      } else if (maybeList !== void 0) {
+        Object.keys(maybeList).forEach(name => addDescription(name, maybeList[name]));
+      }
+    }
+
+    bindableLists.forEach(addList);
+
+    return bindables;
+  },
+  for(Type: Constructable): BFluent {
+    let def: Writable<BindableDefinition>;
+
+    const builder: BFluent & B1234 = {
+      add(configOrProp: string | PartialBindableDefinitionPropertyRequired): BFluent & B1234 {
+        let prop: string;
+        let config: PartialBindableDefinitionPropertyRequired;
+        if (typeof configOrProp === 'string') {
+          prop = configOrProp;
+          config = { property: prop };
+        } else {
+          prop = configOrProp.property;
+          config = configOrProp;
+        }
+
+        def = BindableDefinition.create(prop, config) as Writable<BindableDefinition>;
+        if (!Metadata.hasOwn(Bindable.name, Type, prop)) {
+          Protocol.annotation.appendTo(Type, Bindable.keyFrom(prop));
+        }
+        Metadata.define(Bindable.name, def, Type, prop);
+
+        return builder;
+      },
+      mode(mode: BindingMode): BFluent & B1234 {
+        def.mode = mode;
+
+        return builder;
+      },
+      callback(callback: string): BFluent & B1234 {
+        def.callback = callback;
+
+        return builder;
+      },
+      attribute(attribute: string): BFluent & B1234 {
+        def.attribute = attribute;
+
+        return builder;
+      },
+      primary(): BFluent & B1234 {
+        def.primary = true;
+
+        return builder;
+      },
+    };
+
+    return builder;
+  },
+  getAll(Type: Constructable): readonly BindableDefinition[] {
+    const propStart = Bindable.name.length + 1;
+    const defs: BindableDefinition[] = [];
+    const prototypeChain = getPrototypeChain(Type);
+
+    let iProto = prototypeChain.length;
+    let iDefs = 0;
+    let keys: string[];
+    let keysLen: number;
+    let Class: Constructable;
+    while (--iProto >= 0) {
+      Class = prototypeChain[iProto];
+      keys = Protocol.annotation.getKeys(Class).filter(isBindableAnnotation);
+      keysLen = keys.length;
+      for (let i = 0; i < keysLen; ++i) {
+        defs[iDefs++] = Metadata.getOwn(Bindable.name, Class, keys[i].slice(propStart));
+      }
+    }
+    return defs;
+  },
+};
+
+export class BindableDefinition {
+  private constructor(
+    public readonly attribute: string,
+    public readonly callback: string,
+    public readonly mode: BindingMode,
+    public readonly primary: boolean,
+    public readonly property: string,
+  ) { }
+
+  public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
+    return new BindableDefinition(
+      firstDefined(def.attribute, kebabCase(prop)),
+      firstDefined(def.callback, `${prop}Changed`),
+      firstDefined(def.mode, BindingMode.toView),
+      firstDefined(def.primary, false),
+      firstDefined(def.property, prop),
+    );
+  }
+}
+
+/* eslint-disable @typescript-eslint/no-unused-vars,spaced-comment */
+/**
+ * This function serves two purposes:
+ * - A playground for contributors to try their changes to the APIs.
+ * - Cause the API surface to be properly type-checked and protected against accidental type regressions.
+ *
+ * It will be automatically removed by dead code elimination.
+ */
+function apiTypeCheck() {
+
+  @bindable('prop')
+  // > expected error - class decorator only accepts a string
+  //@bindable({})
+  class Foo {
+    @bindable
+    @bindable()
+    @bindable({})
+    // > expected error - 'property' does not exist on decorator input object
+    //@bindable({ property: 'prop' })
+    @bindable({ mode: BindingMode.twoWay })
+    @bindable({ callback: 'propChanged' })
+    @bindable({ attribute: 'prop' })
+    @bindable({ primary: true })
+    @bindable({ mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
+    public prop: unknown;
+  }
+
+  Bindable.for(Foo)
+    // > expected error - there is no add() function with only optional params on the fluent api
+    //.add()
+    // > expected error - 'property' is a required property on the fluent api
+    //.add({})
+    .add({ property: 'prop' })
+    .add({ property: 'prop', mode: BindingMode.twoWay })
+    .add({ property: 'prop', callback: 'propChanged' })
+    .add({ property: 'prop', attribute: 'prop' })
+    .add({ property: 'prop', primary: true })
+    .add({ property: 'prop', mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
+    .add('prop')
+    // > expected error - the add() method that accepts an object literal does not return a fluent api
+    //.add({ property: 'prop' }).mode(BindingMode.twoWay)
+    //.add({ property: 'prop' }).callback('propChanged')
+    //.add({ property: 'prop' }).attribute('prop')
+    //.add({ property: 'prop' }).primary()
+    // > expected error - fluent api methods can only be invoked once per bindable
+    //.add('prop').mode(BindingMode.twoWay).mode(BindingMode.twoWay)
+    //.add('prop').mode(BindingMode.twoWay).callback('propChanged').mode(BindingMode.twoWay)
+    //.add('prop').mode(BindingMode.twoWay).callback('propChanged').callback('propChanged') // etc
+    // > expected error - wrong invocation order
+    //.add('prop').callback('propChanged').mode(BindingMode.twoWay)
+    //.add('prop').primary().mode(BindingMode.twoWay)  // etc
+    .add('prop').mode(BindingMode.twoWay)
+    .add('prop').mode(BindingMode.twoWay).callback('propChanged')
+    .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop')
+    .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
+    .add('prop').callback('propChanged')
+    .add('prop').callback('propChanged').attribute('prop')
+    .add('prop').callback('propChanged').attribute('prop').primary()
+    .add('prop').attribute('prop')
+    .add('prop').attribute('prop').primary()
+    .add('prop').primary();
+}
+/* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */

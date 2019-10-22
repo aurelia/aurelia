@@ -1,7 +1,6 @@
-import { children, Aurelia, CustomElement } from '@aurelia/runtime';
+import { children, Aurelia, CustomElement, PartialChildrenDefinition } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 import { IContainer, PLATFORM } from '@aurelia/kernel';
-import { ChildrenObserverSource } from '@aurelia/runtime/dist/definitions';
 
 describe('ChildrenObserver', function() {
   describe('populates', function() {
@@ -33,7 +32,7 @@ describe('ChildrenObserver', function() {
       });
 
       assert.equal(viewModel.children.length, 1);
-      assert.equal(viewModel.children[0].tagName, ChildOne.description.name.toUpperCase());
+      assert.equal(viewModel.children[0].tagName, CustomElement.getDefinition(ChildOne).name.toUpperCase());
 
       au.stop();
     });
@@ -94,7 +93,7 @@ describe('ChildrenObserver', function() {
         map: (node) => node
       });
 
-      const tagName = ChildTwo.description.name.toUpperCase();
+      const tagName = CustomElement.getDefinition(ChildTwo).name.toUpperCase();
 
       assert.equal(viewModel.children.length, 1);
       assert.equal(viewModel.children[0].tagName, tagName);
@@ -118,7 +117,7 @@ describe('ChildrenObserver', function() {
     Promise.resolve().then(() => callback());
   }
 
-  function createAppAndStart(childrenOptions?: ChildrenObserverSource) {
+  function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {
     const ctx = TestContext.createHTMLTestContext();
     const { container } = ctx;
 
@@ -136,7 +135,7 @@ describe('ChildrenObserver', function() {
     );
 
     const au = new Aurelia(container);
-    const host = ctx.createElement(component.description.name);
+    const host = ctx.createElement(CustomElement.getDefinition(component).name);
 
     au.app({ host, component });
     au.start();
@@ -153,7 +152,7 @@ describe('ChildrenObserver', function() {
     };
   }
 
-  function defineAndRegisterElementWithChildren(container: IContainer, options?: ChildrenObserverSource) {
+  function defineAndRegisterElementWithChildren(container: IContainer, options?: PartialChildrenDefinition) {
     class ElementWithChildren {
       @children(options) public children;
       public childrenChangedCallCount = 0;

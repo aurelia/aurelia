@@ -4,7 +4,7 @@ import {
   AttributeInstruction
 } from '@aurelia/runtime';
 import { assert, setup } from '@aurelia/testing';
-import { IBindingCommand, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
+import { BindingCommandInstance, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
 
 describe('binding-commands', function () {
 
@@ -16,7 +16,7 @@ describe('binding-commands', function () {
 
     @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
-    class WootCommand implements IBindingCommand {
+    class WootCommand implements BindingCommandInstance {
       public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
       public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -26,7 +26,7 @@ describe('binding-commands', function () {
 
     @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
-    class WootCommand2 implements IBindingCommand {
+    class WootCommand2 implements BindingCommandInstance {
       public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
       public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {

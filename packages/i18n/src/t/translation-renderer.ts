@@ -1,11 +1,11 @@
 import {
   AttributePatternDefinition,
   AttrSyntax,
-  BindingCommandResource,
+  BindingCommand,
   BindingSymbol,
   getTarget,
   IAttributePattern,
-  IBindingCommand,
+  BindingCommandInstance,
   PlainAttributeSymbol
 } from '@aurelia/jit';
 import { IContainer, Registration } from '@aurelia/kernel';
@@ -63,7 +63,7 @@ export class TranslationBindingInstruction {
   }
 }
 
-export class TranslationBindingCommand implements IBindingCommand {
+export class TranslationBindingCommand implements BindingCommandInstance {
   /**
    * Enables aliases for translation/localization attribute.
    */
@@ -74,7 +74,7 @@ export class TranslationBindingCommand implements IBindingCommand {
     for (const alias of this.aliases) {
       // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
       // In this case, it probably has lesser or no significance as actual binding mode.
-      const key = BindingCommandResource.keyFrom(alias);
+      const key = BindingCommand.keyFrom(alias);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
     }
@@ -138,7 +138,7 @@ export class TranslationBindBindingInstruction {
   }
 }
 
-export class TranslationBindBindingCommand implements IBindingCommand {
+export class TranslationBindBindingCommand implements BindingCommandInstance {
   /**
    * Enables aliases for translation/localization attribute.
    */
@@ -149,7 +149,7 @@ export class TranslationBindBindingCommand implements IBindingCommand {
     for (const alias of this.aliases) {
       // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
       // In this case, it probably has lesser or no significance as actual binding mode.
-      const key = BindingCommandResource.keyFrom(`${alias}.bind`);
+      const key = BindingCommand.keyFrom(`${alias}.bind`);
       Registration.singleton(key, this).register(container);
       Registration.alias(key, this).register(container);
     }

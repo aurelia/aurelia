@@ -845,4 +845,18 @@ describe('defer registration', function() {
       );
     });
   });
+
+  it('can inject dependencies based on TS metadata', function () {
+    class Foo {}
+
+    class Bar {
+      public constructor(
+        public readonly foo: Foo
+      ) {}
+    }
+
+    const bar = DI.createContainer().get(Bar);
+
+    assert.instanceOf(bar.foo, Foo);
+  });
 });

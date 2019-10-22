@@ -19,7 +19,6 @@ export class TestExecutionContext {
 
 export async function startup() {
   const ctx = TestContext.createHTMLTestContext();
-  ctx.lifecycle.enableTimeslicing();
 
   const host = ctx.dom.createElement('div');
   ctx.doc.body.appendChild(host);

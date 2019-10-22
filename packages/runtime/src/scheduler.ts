@@ -42,11 +42,10 @@ export const globalClock = new Clock();
 
 export const enum TaskQueuePriority {
   microTask  = 0,
-  eventLoop  = 1,
-  render     = 2,
-  macroTask  = 3,
-  postRender = 4,
-  idle       = 5,
+  render     = 1,
+  macroTask  = 2,
+  postRender = 3,
+  idle       = 4,
 }
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
@@ -60,21 +59,18 @@ export interface IScheduler {
   queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): ITask<T>;
 
   getMicroTaskQueue(): ITaskQueue;
-  getEventLoopTaskQueue(): ITaskQueue;
   getRenderTaskQueue(): ITaskQueue;
   getMacroTaskQueue(): ITaskQueue;
   getPostRenderTaskQueue(): ITaskQueue;
   getIdleTaskQueue(): ITaskQueue;
 
   yieldMicroTask(): Promise<void>;
-  yieldEventLoopTask(): Promise<void>;
   yieldRenderTask(): Promise<void>;
   yieldMacroTask(): Promise<void>;
   yieldPostRenderTask(): Promise<void>;
   yieldIdleTask(): Promise<void>;
 
   queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
-  queueEventLoopTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
@@ -215,8 +211,8 @@ export class TaskQueue {
     if (this.processingSize > 0) {
       this.requestFlush();
     } else if (this.delayedSize > 0) {
-      if (this.priority <= TaskQueuePriority.eventLoop) {
-        // MicroTasks and EventLoop tasks are not clamped so we have to clamp them with setTimeout or they'll block forever
+      if (this.priority <= TaskQueuePriority.microTask) {
+        // MicroTasks are not clamped so we have to clamp them with setTimeout or they'll block forever
         this.scheduler.getTaskQueue(TaskQueuePriority.macroTask).queueTask(this.requestFlush);
       } else {
         // Otherwise just let this queue handle itself

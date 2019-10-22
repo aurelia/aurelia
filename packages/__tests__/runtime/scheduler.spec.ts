@@ -28,10 +28,6 @@ describe('Scheduler', function () {
       name: 'microTask',
     },
     {
-      priority: TaskQueuePriority.eventLoop,
-      name: 'eventLoop',
-    },
-    {
       priority: TaskQueuePriority.render,
       name: 'render',
     },

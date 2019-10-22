@@ -54,33 +54,6 @@ const createMicrotaskFlushRequestor = (function () {
   };
 })();
 
-const createPostMessageFlushRequestor = (function () {
-  let called = false;
-
-  return function (window: Window, flush: () => void) {
-    if (called) {
-      throw new Error('Cannot have more than one global PostMessageFlushRequestor');
-    }
-    called = true;
-
-    return (function ($window: Window, $flush: () => void) {
-      const handleMessage = function (event: MessageEvent) {
-        if (event.data === 'au-message' && event.source === $window) {
-          $flush();
-        }
-        // eslint-disable-next-line no-extra-bind
-      }.bind(void 0);
-
-      $window.addEventListener('message', handleMessage);
-
-      return function () {
-        $window.postMessage('au-message', $window.origin);
-        // eslint-disable-next-line no-extra-bind
-      }.bind(void 0);
-    })(window, flush);
-  };
-})();
-
 const createSetTimeoutFlushRequestor = (function () {
   let called = false;
 
@@ -302,7 +275,6 @@ const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
 export class JSDOMScheduler implements IScheduler {
   private readonly taskQueue: {
     [TaskQueuePriority.microTask]: TaskQueue;
-    [TaskQueuePriority.eventLoop]: TaskQueue;
     [TaskQueuePriority.render]: TaskQueue;
     [TaskQueuePriority.macroTask]: TaskQueue;
     [TaskQueuePriority.postRender]: TaskQueue;
@@ -311,7 +283,6 @@ export class JSDOMScheduler implements IScheduler {
 
   private readonly flush: {
     [TaskQueuePriority.microTask]: () => void;
-    [TaskQueuePriority.eventLoop]: () => void;
     [TaskQueuePriority.render]: {
       request: () => void;
       cancel: () => void;
@@ -332,7 +303,6 @@ export class JSDOMScheduler implements IScheduler {
 
   public constructor(@IClock clock: IClock, @IDOM dom: HTMLDOM) {
     const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
-    const eventLoopTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.eventLoop });
     const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });
     const macroTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask });
     const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
@@ -340,7 +310,6 @@ export class JSDOMScheduler implements IScheduler {
 
     this.taskQueue = [
       microTaskTaskQueue,
-      eventLoopTaskQueue,
       renderTaskQueue,
       macroTaskTaskQueue,
       postRenderTaskQueue,
@@ -350,7 +319,6 @@ export class JSDOMScheduler implements IScheduler {
     const wnd = dom.window;
     this.flush = [
       createMicrotaskFlushRequestor(wnd, microTaskTaskQueue.flush.bind(microTaskTaskQueue)),
-      createPostMessageFlushRequestor(wnd, eventLoopTaskQueue.flush.bind(eventLoopTaskQueue)),
       createRequestAnimationFrameFlushRequestor(wnd, renderTaskQueue.flush.bind(renderTaskQueue)),
       createPostRequestAnimationFrameFlushRequestor(wnd, postRenderTaskQueue.flush.bind(postRenderTaskQueue)),
       createSetTimeoutFlushRequestor(wnd, macroTaskTaskQueue.flush.bind(macroTaskTaskQueue)),
@@ -393,9 +361,6 @@ export class JSDOMScheduler implements IScheduler {
   public getMicroTaskQueue(): ITaskQueue {
     return this.taskQueue[TaskQueuePriority.microTask];
   }
-  public getEventLoopTaskQueue(): ITaskQueue {
-    return this.taskQueue[TaskQueuePriority.eventLoop];
-  }
   public getRenderTaskQueue(): ITaskQueue {
     return this.taskQueue[TaskQueuePriority.render];
   }
@@ -411,9 +376,6 @@ export class JSDOMScheduler implements IScheduler {
 
   public yieldMicroTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.microTask].yield();
-  }
-  public yieldEventLoopTask(): Promise<void> {
-    return this.taskQueue[TaskQueuePriority.eventLoop].yield();
   }
   public yieldRenderTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.render].yield();
@@ -431,9 +393,6 @@ export class JSDOMScheduler implements IScheduler {
   public queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
     return this.taskQueue[TaskQueuePriority.microTask].queueTask(callback, opts);
   }
-  public queueEventLoopTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
-    return this.taskQueue[TaskQueuePriority.eventLoop].queueTask(callback, opts);
-  }
   public queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
     return this.taskQueue[TaskQueuePriority.render].queueTask(callback, opts);
   }
@@ -450,7 +409,6 @@ export class JSDOMScheduler implements IScheduler {
   public requestFlush(taskQueue: TaskQueue): void {
     switch (taskQueue.priority) {
       case TaskQueuePriority.microTask:
-      case TaskQueuePriority.eventLoop:
         return this.flush[taskQueue.priority]();
       case TaskQueuePriority.render:
       case TaskQueuePriority.macroTask:
@@ -463,7 +421,6 @@ export class JSDOMScheduler implements IScheduler {
   public cancelFlush(taskQueue: TaskQueue): void {
     switch (taskQueue.priority) {
       case TaskQueuePriority.microTask:
-      case TaskQueuePriority.eventLoop:
         return;
       case TaskQueuePriority.render:
       case TaskQueuePriority.macroTask:

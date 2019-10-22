@@ -21,8 +21,6 @@ export class Clock implements IClock {
   public constructor(opts?: IClockSettings) {
     const { now, forceUpdateInterval } = { ...defaultClockSettings, ...opts };
 
-    let requests = 0;
-    let timestamp = now();
     this.now = function (highRes: boolean = false): number {
       // if (++requests === forceUpdateInterval || highRes) {
       //   requests = 0;
@@ -421,7 +419,7 @@ export class TaskQueue {
     const time = this.clock.now(true);
 
     // Add any delayed tasks whose delay have expired to the currently processing tasks
-    let delayedHead = this.delayedHead!;
+    const delayedHead = this.delayedHead!;
     if (delayedHead.queueTime <= time) {
       let delayedTail = delayedHead;
       let next = delayedTail.next;
@@ -485,7 +483,7 @@ export class Task<T = any> implements ITask {
 
   private _result: Promise<T> | undefined = void 0;
   public get result(): Promise<T> {
-    let result = this._result;
+    const result = this._result;
     if (result === void 0) {
       switch (this._status) {
         case 'pending': {

@@ -4,6 +4,7 @@ import { TextInput } from './text-input/text-input';
 import { RadioButtonList } from './radio-button-list/radio-button-list';
 import { TriStateBoolean } from './tri-state-boolean/tri-state-boolean';
 import { CheckboxList } from './checkbox-list/checkbox-list';
+import { Command } from './command/command';
 
 export const atoms = {
   register(container: IContainer) {
@@ -13,7 +14,8 @@ export const atoms = {
         TextInput,
         RadioButtonList,
         TriStateBoolean,
-        CheckboxList
+        CheckboxList,
+        Command
       );
   }
 };

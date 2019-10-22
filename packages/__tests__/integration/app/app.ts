@@ -58,9 +58,14 @@ export class App {
   public productMatcher: (a: Product, b: Product) => boolean = (a, b) => a.id === b.id && a.name === b.name;
   // #endregion
 
+  public somethingDone: boolean = false;
   public changeTexts() {
     this.text1 = 'newText1';
     this.text2 = 'newText2';
     this.text3 = 'newText3';
+  }
+
+  public doSomething() {
+    this.somethingDone = true;
   }
 }

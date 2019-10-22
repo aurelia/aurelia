@@ -623,4 +623,13 @@ describe('app', function() {
     inputs = getInputs();
     assert.equal(inputs.length, 0);
   });
+
+  $it(`binds an action to the command`, function({ host, ctx }) {
+    const app = getViewModel<App>(host);
+    assert.equal(app.somethingDone, false);
+
+    (host.querySelector('command button') as HTMLButtonElement).click();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(app.somethingDone, true);
+  });
 });

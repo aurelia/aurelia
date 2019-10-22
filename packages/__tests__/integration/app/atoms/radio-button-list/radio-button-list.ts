@@ -2,6 +2,14 @@
 import { bindable, customElement } from '@aurelia/runtime';
 import template from './radio-button-list.html';
 
+/**
+ * Potential test coverage targets:
+ * - `@aurelia/runtime`
+ *   - `map-observer`
+ * - `@aurelia/runtime-html`
+ *   - `checked-observer` (`checked` bind)
+ *   - `setter-observer` (`model` bind)
+ */
 @customElement({ name: 'radio-button-list', template })
 export class RadioButtonList {
   @bindable public group: string = 'choices';

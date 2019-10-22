@@ -3,7 +3,7 @@
 #### Bindings
 - [x]`call-binding`: `<el action.call="doSoemthing()"></el>`
 - [x] `interpolation-binding`: Evaluates interpolation expression.
-- `let-binding`: Local variable evaluated on runtime (new property added to VM).
+- [ ] `let-binding`: Local variable evaluated on runtime (new property added to VM).
 - [x] `property-binding`: Binds evaluated source expression to the VM properties or DOM attributes.
       Modes:
       - one time

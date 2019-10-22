@@ -4,8 +4,9 @@ import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } 
 import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
+import { LetDemoBoolean } from './app/molecules/let-demo-boolean/let-demo-boolean';
 
-describe('app', function() {
+describe.only('app', function() {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function() {
       const ctx = await startup();
@@ -631,5 +632,41 @@ describe('app', function() {
     (host.querySelector('command button') as HTMLButtonElement).click();
     ctx.lifecycle.processRAFQueue(undefined);
     assert.equal(app.somethingDone, true);
+  });
+
+  $it.only(`uses a let-demo-boolean to demonstrate let binding`, function({ host, ctx }) {
+    const demo = host.querySelector('let-demo-boolean');
+    const vm = getViewModel<LetDemoBoolean>(demo);
+
+    const and = demo.querySelector('#and');
+    const or = demo.querySelector('#or');
+    const xor = demo.querySelector('#xor');
+
+    // 00
+    assert.html.textContent(and, 'false', 'and1');
+    assert.html.textContent(or, 'false', 'or1');
+    assert.html.textContent(xor, 'false', 'xor1');
+
+    // 10
+    vm.a = true;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(and, 'false', 'and2');
+    assert.html.textContent(or, 'true', 'or2');
+    assert.html.textContent(xor, 'true', 'xor2');
+
+    // 11
+    debugger
+    vm.b = true;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(and, 'true', 'and3');
+    assert.html.textContent(or, 'true', 'or3');
+    assert.html.textContent(xor, 'false', 'xor3');
+
+    // 01
+    vm.a = false;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(and, 'false', 'and4');
+    assert.html.textContent(or, 'true', 'or4');
+    assert.html.textContent(xor, 'true', 'xor4');
   });
 });

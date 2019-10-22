@@ -1,4 +1,4 @@
-import { PLATFORM, DI, bound, IContainer, IResolver, Registration } from '@aurelia/kernel';
+import { PLATFORM, DI, bound, IContainer, IResolver, Registration, Writable } from '@aurelia/kernel';
 
 export interface IClockSettings {
   forceUpdateInterval?: number;
@@ -124,6 +124,10 @@ export type QueueTaskOptions = {
    * `TaskQueue` that is currently flushing. Otherwise, it will be run on the next tick.
    */
   preempt?: boolean;
+  /**
+   * If `true`, the task will be added back onto the queue after it finished running, indefinitely, until manually canceled.
+   */
+  persistent?: boolean;
 };
 
 export type QueueTaskTargetOptions = QueueTaskOptions & {
@@ -134,6 +138,7 @@ const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   delay: 0,
   preempt: false,
   priority: TaskQueuePriority.render,
+  persistent: false,
 };
 
 export interface ITaskQueue {
@@ -238,7 +243,7 @@ export class TaskQueue {
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
-    const { delay, preempt } = { ...defaultQueueTaskOptions, ...opts };
+    const { delay, preempt, persistent } = { ...defaultQueueTaskOptions, ...opts };
 
     if (preempt && delay > 0) {
       throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
@@ -249,7 +254,7 @@ export class TaskQueue {
     }
 
     const time = this.clock.now();
-    const task = new Task(this, time, time + delay, preempt, callback) as Task;
+    const task = new Task(this, time, time + delay, preempt, persistent, callback) as Task;
 
     if (preempt) {
       if (this.processingSize++ === 0) {
@@ -272,6 +277,29 @@ export class TaskQueue {
     }
 
     return task as Task<T>;
+  }
+
+  public requeueTask(task: Task): void {
+    task.resetTime(this.clock.now());
+    if (task.preempt) {
+      if (this.processingSize++ === 0) {
+        this.processingHead = this.processingTail = task;
+      } else {
+        this.processingTail = (task.prev = this.processingTail!).next = task;
+      }
+    } else if (task.createdTime === task.queueTime) {
+      if (this.pendingSize++ === 0) {
+        this.pendingHead = this.pendingTail = task;
+      } else {
+        this.pendingTail = (task.prev = this.pendingTail!).next = task;
+      }
+    } else {
+      if (this.delayedSize++ === 0) {
+        this.delayedHead = this.delayedTail = task;
+      } else {
+        this.delayedTail = (task.prev = this.delayedTail!).next = task;
+      }
+    }
   }
 
   public take(task: Task): void {
@@ -518,6 +546,7 @@ export class Task<T = any> implements ITask {
     public readonly createdTime: number,
     public readonly queueTime: number,
     public readonly preempt: boolean,
+    public readonly persistent: boolean,
     callback: TaskCallback<T>
   ) {
     this.priority = taskQueue.priority;
@@ -565,6 +594,16 @@ export class Task<T = any> implements ITask {
           throw err;
         }
       }
+
+      if (this.persistent) {
+        taskQueue.requeueTask(this);
+      }
     };
+  }
+
+  public resetTime(time: number): void {
+    const delay = this.queueTime - this.createdTime;
+    (this as Writable<this>).createdTime = time;
+    (this as Writable<this>).queueTime = time + delay;
   }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, createSpy, fail } from '@aurelia/testing';
+import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 
@@ -564,4 +564,63 @@ describe('app', function() {
       }
     })
   );
+  $it(`changes in array are reflected in checkbox-list`, function({ host, ctx }) {
+    const getInputs = () => toArray(host.querySelectorAll(`checkbox-list #cbl-obj-array label input[type=checkbox]`)) as HTMLInputElement[];
+    const app = getViewModel<App>(host);
+    const products = app.products1;
+    assert.equal(getInputs().length, products.length);
+
+    // splice
+    const newProduct1 = { id: 10, name: 'Mouse' };
+    products.splice(0, 1, newProduct1);
+    ctx.lifecycle.processRAFQueue(undefined);
+    let inputs: HTMLInputElement[] = getInputs();
+    assert.html.textContent(inputs[0].parentElement, `${newProduct1.id}-${newProduct1.name}`, 'incorrect label0');
+    assert.equal(inputs[0].checked, false, 'unchecked0');
+
+    // push
+    const newProduct2 = { id: 20, name: 'Keyboard' };
+    products.push(newProduct2);
+    ctx.lifecycle.processRAFQueue(undefined);
+    inputs = getInputs();
+    assert.html.textContent(inputs[products.length - 1].parentElement, `${newProduct2.id}-${newProduct2.name}`, 'incorrect label0');
+
+    // pop
+    products.pop();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(getInputs().length, products.length);
+
+    // shift
+    products.shift();
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.equal(getInputs().length, products.length);
+
+    // unshift
+    const newProducts = new Array(20).fill(0).map((_, i) => ({ id: i * 10, name: `foo${i + 1}` }));
+    products.unshift(...newProducts);
+    ctx.lifecycle.processRAFQueue(undefined);
+    inputs = getInputs();
+    for (let i = 0; i < 20; i++) {
+      assert.html.textContent(inputs[i].parentElement, `${newProducts[i].id}-${newProducts[i].name}`, `incorrect label${i+1}`);
+    }
+    assert.equal(inputs.length, products.length);
+
+    // sort
+    products.sort((pa, pb) => (pa.name < pb.name ? -1 : 1));
+    ctx.lifecycle.processRAFQueue(undefined);
+    inputs = getInputs();
+    assert.deepEqual(inputs.map(i => getVisibleText(undefined, i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
+
+    // reverse
+    products.reverse();
+    ctx.lifecycle.processRAFQueue(undefined);
+    inputs = getInputs();
+    assert.deepEqual(inputs.map(i => getVisibleText(undefined, i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
+
+    // clear
+    products.splice(0);
+    ctx.lifecycle.processRAFQueue(undefined);
+    inputs = getInputs();
+    assert.equal(inputs.length, 0);
+  });
 });

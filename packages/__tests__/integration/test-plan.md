@@ -28,7 +28,7 @@
   Captures the reference to DOM elements, CE, and CE VMs.
 
 #### Observers
-- [ ] `array-observer`: Observer for mutation in array
+- [x] `array-observer`: Observer for mutation in array
 - [ ] `collection-length-observer`: Observer for array length
 - [ ] `collection-size-observer`: Observer for set or map size
 - [x] `computed-observer`: Observer for computed properties
@@ -52,7 +52,7 @@
 
 #### Observation
 - [ ] `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
-- [ ] `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
+- [x] `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
 - [ ] `class-attribute-accessor`: manipulates class attributes for an element.
 - [ ] `data-attribute-observer`: observes non-class, and non-style HTML attributes.
   ```html
@@ -206,11 +206,11 @@ The update of the display is triggered every 2 seconds via a signal.
 
 ##### Edit form
 
-- [ ] checkbox:
+- [x] checkbox:
   - [x] single boolean checkbox: `checked-observer` simple case
   - [x] collection of checkboxes:
     - [x] bound to array of models: `checked-observer` with collection as value
-    - with custom matcher
+    - [x] with custom matcher
 - [x] collection of radios:
   - [x] simple id-value pair case
   - [x] bind model

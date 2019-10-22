@@ -171,6 +171,7 @@ export class TaskQueue {
 
   private readonly scheduler: IScheduler;
   private readonly clock: IClock;
+  private readonly reusables: Task[] = [];
 
   public get isEmpty(): boolean {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
@@ -280,7 +281,7 @@ export class TaskQueue {
   }
 
   public requeueTask(task: Task): void {
-    task.resetTime(this.clock.now());
+    task.reset(this.clock.now());
     if (task.preempt) {
       if (this.processingSize++ === 0) {
         this.processingHead = this.processingTail = task;
@@ -601,9 +602,10 @@ export class Task<T = any> implements ITask {
     };
   }
 
-  public resetTime(time: number): void {
+  public reset(time: number): void {
     const delay = this.queueTime - this.createdTime;
     (this as Writable<this>).createdTime = time;
     (this as Writable<this>).queueTime = time + delay;
+    this._status = 'pending';
   }
 }

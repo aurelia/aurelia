@@ -72,15 +72,15 @@ try {
 
           get immutableRerder() {
             return () => {
-              let counter = ++this.counter;
-              let max = COUNT + Math.round(Math.sin(counter / 90 * 2 * Math.PI) * COUNT * 0.5);
-              let cursors = [];
+              const counter = ++this.counter;
+              const max = COUNT + Math.round(Math.sin(counter / 90 * 2 * Math.PI) * COUNT * 0.5);
+              const cursors = [];
 
               for (let i = max; i--;) {
-                let f = i / max * LOOPS;
-                let θ = f * 2 * Math.PI;
-                let m = 20 + i * 2;
-                let hue = (f * 255 + counter * 10) % 255;
+                const f = i / max * LOOPS;
+                const θ = f * 2 * Math.PI;
+                const m = 20 + i * 2;
+                const hue = (f * 255 + counter * 10) % 255;
                 cursors[i] = {
                   big: this.big,
                   color: `hsl(${hue}, 100%, 50%)`,
@@ -96,10 +96,10 @@ try {
 
           get mutableRender() {
             return () => {
-              let counter = ++this.counter;
-              let max = COUNT + Math.round(Math.sin(counter / 90 * 2 * Math.PI) * COUNT * 0.5);
-              let oldCursors = this.cursors;
-              let cursors = [];
+              const counter = ++this.counter;
+              const max = COUNT + Math.round(Math.sin(counter / 90 * 2 * Math.PI) * COUNT * 0.5);
+              const oldCursors = this.cursors;
+              const cursors = [];
 
               if (oldCursors.length > max) {
                 oldCursors.splice(max);
@@ -110,10 +110,10 @@ try {
                * Instead, we carefully mutate the collection based on the value of max and LOOPS
                */
               for (let i = oldCursors.length; i < max; ++i) {
-                let f = i / max * LOOPS;
-                let θ = f * 2 * Math.PI;
-                let m = 20 + i * 2;
-                let hue = (f * 255 + counter * 10) % 255;
+                const f = i / max * LOOPS;
+                const θ = f * 2 * Math.PI;
+                const m = 20 + i * 2;
+                const hue = (f * 255 + counter * 10) % 255;
                 oldCursors.push({
                   big: this.big,
                   color: `hsl(${hue}, 100%, 50%)`,
@@ -123,10 +123,10 @@ try {
               }
 
               for (let i = max; i--;) {
-                let f = i / max * LOOPS;
-                let θ = f * 2 * Math.PI;
-                let m = 20 + i * 2;
-                let hue = (f * 255 + counter * 10) % 255;
+                const f = i / max * LOOPS;
+                const θ = f * 2 * Math.PI;
+                const m = 20 + i * 2;
+                const hue = (f * 255 + counter * 10) % 255;
                 Object.assign(oldCursors[i], {
                   big: this.big,
                   color: `hsl(${hue}, 100%, 50%)`,

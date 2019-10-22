@@ -58,6 +58,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
 describe(`ArrayObserver`, function () {
   let sut: ArrayObserver;
 
+  // eslint-disable-next-line mocha/no-hooks
   before(function () {
     disableArrayObservation();
     enableArrayObservation();

@@ -76,6 +76,12 @@ export {
 } from './resources/custom-attributes/focus';
 
 export {
+  Portal,
+  PortalTarget,
+  PortalLifecycleCallback
+} from './resources/custom-attributes/portal';
+
+export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';
@@ -98,6 +104,8 @@ export {
   AttributeBindingRendererRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
 
@@ -134,6 +142,8 @@ export {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction

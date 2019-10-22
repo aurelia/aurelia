@@ -853,6 +853,7 @@ describe('AST', function () {
 describe('AccessKeyedExpression', function () {
   let expression: AccessKeyedExpression;
 
+  // eslint-disable-next-line mocha/no-hooks
   before(function () {
     expression = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression('bar'));
   });
@@ -2026,7 +2027,7 @@ describe('BindingBehaviorExpression', function () {
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args);
 
       const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2043,7 +2044,7 @@ describe('BindingBehaviorExpression', function () {
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
       const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2066,7 +2067,7 @@ describe('BindingBehaviorExpression', function () {
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
       const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['binding-behavior:mock', mock]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2077,13 +2078,13 @@ describe('BindingBehaviorExpression', function () {
 
   const bindVariations: (($1: $1, $2: $2, $3: $3) => /* bind */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
-      assert.strictEqual(binding['binding-behavior:mock'], undefined, `binding['binding-behavior:mock']`);
+      assert.strictEqual(binding['au:resource:binding-behavior:mock'], undefined, `binding['au:resource:binding-behavior:mock']`);
 
       // act
       sut.bind(flags, scope, binding as any);
 
       // assert
-      assert.strictEqual(binding['binding-behavior:mock'], mock, `binding['binding-behavior:mock']`);
+      assert.strictEqual(binding['au:resource:binding-behavior:mock'], mock, `binding['au:resource:binding-behavior:mock']`);
       const expr = sut.expression as any as MockTracingExpression;
       const args = sut.args as any as MockTracingExpression[];
 
@@ -2215,13 +2216,13 @@ describe('BindingBehaviorExpression', function () {
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
-      assert.strictEqual(binding['binding-behavior:mock'], mock, `binding['binding-behavior:mock']`);
+      assert.strictEqual(binding['au:resource:binding-behavior:mock'], mock, `binding['au:resource:binding-behavior:mock']`);
 
       // act
       sut.unbind(flags, scope, binding as any);
 
       // assert
-      assert.strictEqual(binding['binding-behavior:mock'], void 0, `binding['binding-behavior:mock']`);
+      assert.strictEqual(binding['au:resource:binding-behavior:mock'], void 0, `binding['au:resource:binding-behavior:mock']`);
 
       assert.strictEqual(mock.calls.length, 2, `mock.calls.length`);
       assert.strictEqual(mock.calls[1].length, 4, `mock.calls[1].length`);
@@ -2292,7 +2293,7 @@ describe('ValueConverterExpression', function () {
       const methods = [];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2309,7 +2310,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2326,7 +2327,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2343,7 +2344,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView', 'fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2361,7 +2362,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView', 'fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2385,7 +2386,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView', 'fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['value-converter:mock', mock], [ISignaler, signaler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 

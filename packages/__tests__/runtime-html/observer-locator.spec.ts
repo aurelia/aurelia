@@ -7,7 +7,9 @@ import {
   PrimitiveObserver,
   PropertyAccessor,
   SetterObserver,
-  CollectionSizeObserver
+  CollectionSizeObserver,
+  computed,
+  GetterObserver
 } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
@@ -235,8 +237,9 @@ describe('ObserverLocator', function () {
                         function setter() { return; }
                         descriptor.set = setter;
                       }
+                      const proto = obj.constructor.prototype;
                       if (hasOverrides) {
-                        obj.constructor['computed'] = { isVolatile };
+                        computed({ volatile: isVolatile })(proto, 'foo');
                       }
                       Reflect.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
@@ -259,12 +262,17 @@ describe('ObserverLocator', function () {
                               assert.strictEqual(actual, dummyObserver, `actual`);
                             } else {
                               if (hasSetter) {
-                                assert.strictEqual(actual.constructor.name, CustomSetterObserver.name, `actual.constructor.name`);
+                                if(isVolatile){
+                                  assert.strictEqual(actual.constructor.name, GetterObserver.name, `actual.constructor.name`);
+                                } else {
+                                  assert.strictEqual(actual.constructor.name, CustomSetterObserver.name, `actual.constructor.name`);
+                                }
                               }
                             }
                           }
                         }
                       }
+                      delete proto.computed;
                     });
                   }
                 }

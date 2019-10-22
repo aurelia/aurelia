@@ -1,13 +1,13 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IRenderContext } from '@aurelia/runtime';
-import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
+import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 
 export class ViewportInstruction {
   public componentName: string | null = null;
-  public componentType: IRouteableComponentType | null = null;
+  public componentType: RouteableComponentType | null = null;
   public componentInstance: IRouteableComponent | null = null;
   public viewportName: string | null = null;
   public viewport: Viewport | null = null;
@@ -89,14 +89,14 @@ export class ViewportInstruction {
     return this.componentInstance !== null;
   }
 
-  public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
+  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
     }
     if (this.componentName !== null && typeof this.componentName === 'string') {
       const container = context.get(IContainer);
-      if (container !== null && container.has<IRouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
-        const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
+      if (container !== null && container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
+        const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
         if (resolver !== null && resolver.getFactory !== void 0) {
           const factory = resolver.getFactory(container);
           if (factory) {

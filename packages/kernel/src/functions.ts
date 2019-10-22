@@ -1,4 +1,5 @@
 import { PLATFORM } from './platform';
+import { Constructable } from './interfaces';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -190,6 +191,32 @@ export const camelCase = (function () {
 })();
 
 /**
+ * Efficiently convert a string to PascalCase.
+ *
+ * Non-alphanumeric characters are treated as separators.
+ *
+ * Primarily used by Aurelia to convert element names to class names for synthetic types.
+ *
+ * Results are cached.
+ */
+export const pascalCase = (function () {
+  const cache = Object.create(null) as Record<string, string | undefined>;
+
+  return function (input: string): string {
+    let output = cache[input];
+    if (output === void 0) {
+      output = camelCase(input);
+      if (output.length > 0) {
+        output = output[0].toUpperCase() + output.slice(1);
+      }
+      cache[input] = output;
+    }
+
+    return output;
+  };
+})();
+
+/**
  * Efficiently convert a string to kebab-case.
  *
  * Non-alphanumeric characters are treated as separators.
@@ -336,3 +363,72 @@ export function bound<T extends Function>(target: Object, key: string | symbol, 
     },
   };
 }
+
+export function mergeArrays<T>(...arrays: (readonly T[] | undefined)[]): T[] {
+  const result: T[] = [];
+  let k = 0;
+  const arraysLen = arrays.length;
+  let arrayLen = 0;
+  let array: readonly T[] | undefined;
+  for (let i = 0; i < arraysLen; ++i) {
+    array = arrays[i];
+    if (array !== void 0) {
+      arrayLen = array.length;
+      for (let j = 0; j < arrayLen; ++j) {
+        result[k++] = array[j];
+      }
+    }
+  }
+  return result;
+}
+
+export function mergeObjects<T extends object>(...objects: readonly (T | undefined)[]): T {
+  const result: T = {} as unknown as T;
+  const objectsLen = objects.length;
+  let object: T | undefined;
+  let key: keyof T;
+  for (let i = 0; i < objectsLen; ++i) {
+    object = objects[i];
+    if (object !== void 0) {
+      for (key in object) {
+        result[key] = object[key];
+      }
+    }
+  }
+  return result;
+}
+
+export function firstDefined<T>(...values: readonly (T | undefined)[]): T {
+  const len = values.length;
+  let value: T | undefined;
+  for (let i = 0; i < len; ++i) {
+    value = values[i];
+    if (value !== void 0) {
+      return value;
+    }
+  }
+  throw new Error(`No default value found`);
+}
+
+export const getPrototypeChain = (function () {
+  const functionPrototype = Function.prototype;
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const getPrototypeOf = Object.getPrototypeOf;
+
+  const cache = new WeakMap<Constructable, [Constructable, ...Constructable[]]>();
+  let proto = functionPrototype as Constructable;
+  let i = 0;
+  let chain: [Constructable, ...Constructable[]] | undefined = void 0;
+
+  return function <T extends Constructable>(Type: T): readonly [T, ...Constructable[]] {
+    chain = cache.get(Type);
+    if (chain === void 0) {
+      cache.set(Type, chain = [proto = Type]);
+      i = 0;
+      while ((proto = getPrototypeOf(proto)) !== functionPrototype) {
+        chain[++i] = proto;
+      }
+    }
+    return chain as [T, ...Constructable[]];
+  };
+})();

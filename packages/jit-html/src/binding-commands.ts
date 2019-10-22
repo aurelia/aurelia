@@ -2,7 +2,7 @@ import {
   bindingCommand,
   BindingSymbol,
   getTarget,
-  IBindingCommand,
+  BindingCommandInstance,
   PlainAttributeSymbol,
 } from '@aurelia/jit';
 import { BindingType, IsBindingBehavior, RefBindingInstruction } from '@aurelia/runtime';
@@ -18,7 +18,7 @@ import {
  * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
  */
 @bindingCommand('trigger')
-export class TriggerBindingCommand implements IBindingCommand {
+export class TriggerBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TriggerCommand = BindingType.TriggerCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
@@ -30,7 +30,7 @@ export class TriggerBindingCommand implements IBindingCommand {
  * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
  */
 @bindingCommand('delegate')
-export class DelegateBindingCommand implements IBindingCommand {
+export class DelegateBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.DelegateCommand = BindingType.DelegateCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
@@ -42,7 +42,7 @@ export class DelegateBindingCommand implements IBindingCommand {
  * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
  */
 @bindingCommand('capture')
-export class CaptureBindingCommand implements IBindingCommand {
+export class CaptureBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CaptureCommand = BindingType.CaptureCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
@@ -54,7 +54,7 @@ export class CaptureBindingCommand implements IBindingCommand {
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
  */
 @bindingCommand('attr')
-export class AttrBindingCommand implements IBindingCommand {
+export class AttrBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
@@ -67,7 +67,7 @@ export class AttrBindingCommand implements IBindingCommand {
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
  */
 @bindingCommand('style')
-export class StyleBindingCommand implements IBindingCommand {
+export class StyleBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
@@ -79,7 +79,7 @@ export class StyleBindingCommand implements IBindingCommand {
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
  */
 @bindingCommand('class')
-export class ClassBindingCommand implements IBindingCommand {
+export class ClassBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
@@ -91,7 +91,7 @@ export class ClassBindingCommand implements IBindingCommand {
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 @bindingCommand('ref')
-export class RefBindingCommand implements IBindingCommand {
+export class RefBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.IsProperty | BindingType.IgnoreCustomAttr = BindingType.IsProperty | BindingType.IgnoreCustomAttr;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction {

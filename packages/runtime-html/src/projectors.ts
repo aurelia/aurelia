@@ -13,7 +13,7 @@ import {
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
-  TemplateDefinition
+  CustomElementDefinition
 } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
@@ -28,7 +28,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
     return Registration.singleton(IProjectorLocator, this).register(container);
   }
 
-  public getElementProjector(dom: IDOM<Node>, $component: IController<Node>, host: CustomElementHost<HTMLElement>, def: TemplateDefinition): IElementProjector<Node> {
+  public getElementProjector(dom: IDOM<Node>, $component: IController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw Reporter.error(21);
@@ -55,7 +55,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   // eslint-disable-next-line @typescript-eslint/prefer-readonly
   private $controller: IController<Node>;
 
-  public constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  public constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: CustomElementDefinition) {
     this.dom = dom;
     this.host = host;
     this.$controller = $controller;

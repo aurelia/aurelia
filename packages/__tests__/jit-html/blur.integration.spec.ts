@@ -1,5 +1,5 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, CustomElement, CustomElementConstructor, CustomElementHost } from '@aurelia/runtime';
+import { Aurelia, CustomElement, CustomElementHost } from '@aurelia/runtime';
 import { Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
@@ -12,13 +12,6 @@ describe('blur.integration.spec.ts', function() {
   interface IApp {
     hasFocus: boolean;
   }
-
-  before(async function () {
-    await waitForFrames(2);
-  });
-  after(async function () {
-    await waitForFrames(2);
-  });
 
   describe('>> with mouse', function() {
     describe('>> Basic scenarios', function() {
@@ -323,7 +316,7 @@ describe('blur.integration.spec.ts', function() {
     app: Constructable<T>;
     assertFn: AssertionFn;
     getFocusable?: string | ((doc: Document) => HTMLElement);
-    dependencies?: CustomElementConstructor[];
+    dependencies?: Constructable[];
     title(...args: unknown[]): string;
   }
 

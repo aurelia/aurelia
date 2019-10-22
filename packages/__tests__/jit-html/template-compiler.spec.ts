@@ -22,15 +22,19 @@ import {
   DelegationStrategy,
   ForOfStatement,
   HydrateTemplateController,
-  IBindableDescription,
+  BindableDefinition,
   IDOM,
   IHydrateElementInstruction,
   IHydrateTemplateController,
   ITemplateCompiler,
-  ITemplateDefinition,
+  PartialCustomElementDefinition,
   PrimitiveLiteralExpression,
   TargetedInstructionType as TT,
-  IHydrateLetElementInstruction
+  IHydrateLetElementInstruction,
+  ITargetedInstruction,
+  PartialCustomAttributeDefinition,
+  CustomElementDefinition,
+  HooksDefinition
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -47,8 +51,6 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-const buildNotRequired = { required: false, compiler: 'default' };
-
 describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
@@ -56,6 +58,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let container: IContainer;
   let dom: IDOM;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     container = ctx.container;
@@ -86,7 +89,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           verifyInstructions(instructions, []);
           verifyInstructions(
             surrogates,
-            [{ toVerify: ['type', 'value', 'to'], type: HTT.setAttribute, value: 'h-100', to: 'class' }]
+            [{ toVerify: ['type', 'value'], type: HTT.setClassAttribute, value: 'h-100' }]
           );
         });
 
@@ -394,12 +397,12 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     }
 
     function compileWith(markup: string | Element, extraResources: any[] = []) {
-      extraResources.forEach(e => e.register(container));
-      const templateDefinition: ITemplateDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as ITemplateDefinition;
+      extraResources.forEach(e => container.register(e));
+      const templateDefinition: PartialCustomElementDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as PartialCustomElementDefinition;
       return sut.compile(dom, templateDefinition, resources);
     }
 
-    function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
+    function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
       assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
       for (let i = 0, ii = actual.length; i < ii; ++i) {
         const actualInst = actual[i];
@@ -424,6 +427,31 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     }
   });
 });
+
+function stringOrUnnamed(str: string | undefined): string {
+  if (str === void 0) {
+    return 'unnamed';
+  }
+  return str;
+}
+
+const defaultCustomElementDefinitionProperties = {
+  name: 'unnamed',
+  Type: class HTMLOnlyElement {},
+  aliases: [],
+  key: 'au:resource:custom-element:unnamed',
+  cache: 0,
+  dependencies: [],
+  bindables: {},
+  childrenObservers: {},
+  containerless: false,
+  isStrictBinding: false,
+  hasSlots: false,
+  shadowOptions: null,
+  strategy: 1,
+  surrogates: [],
+  hooks: HooksDefinition.none,
+};
 
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
@@ -471,25 +499,28 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       type: TT.hydrateTemplateController,
       res: target,
       def: {
-        name: target,
+        ...defaultCustomElementDefinitionProperties,
+        name: stringOrUnnamed(target),
+        key: `au:resource:custom-element:${stringOrUnnamed(target)}`,
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
-        build: buildNotRequired,
+        needsCompile: false,
         scopeParts: [],
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
     };
-    const input: ITemplateDefinition = {
+    const input: PartialCustomElementDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
-    } as unknown as ITemplateDefinition;
-    const output: ITemplateDefinition = {
+    } as unknown as PartialCustomElementDefinition;
+    const output: PartialCustomElementDefinition = {
+      ...defaultCustomElementDefinitionProperties,
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
-      build: buildNotRequired,
+      needsCompile: false,
       scopeParts: [],
-    } as unknown as ITemplateDefinition;
+    } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
     let compiledMarkup;
@@ -505,31 +536,44 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       type: TT.hydrateTemplateController,
       res: target,
       def: {
-        name: target,
+        ...defaultCustomElementDefinitionProperties,
+        name: stringOrUnnamed(target),
+        key: `au:resource:custom-element:${stringOrUnnamed(target)}`,
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
-        build: buildNotRequired,
+        needsCompile: false,
         scopeParts: [],
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
     };
     const rawMarkup = `<${tagName} ${attr}="${value || ''}">${childTpl || ''}</${tagName}>`;
-    const input: ITemplateDefinition = {
+    const input: PartialCustomElementDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
-    } as unknown as ITemplateDefinition;
-    const output: ITemplateDefinition = {
+    } as unknown as PartialCustomElementDefinition;
+    const output: PartialCustomElementDefinition = {
+      ...defaultCustomElementDefinitionProperties,
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]],
-      build: buildNotRequired,
+      needsCompile: false,
       scopeParts: [],
-    } as unknown as ITemplateDefinition;
+    } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
 }
 
-function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+function createCustomElement(
+  ctx: HTMLTestContext,
+  tagName: string,
+  finalize: boolean,
+  attributes: readonly [string, string][],
+  childInstructions: readonly any[],
+  siblingInstructions: readonly any[],
+  nestedElInstructions: readonly any[],
+  childOutput?,
+  childInput?,
+): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
   const instruction = {
     type: TT.hydrateElement,
     res: tagName,
@@ -539,21 +583,35 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
   const input = {
+    name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
   const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
+    ...defaultCustomElementDefinitionProperties,
+    name: 'unnamed',
+    key: 'au:resource:custom-element:unnamed',
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
-    build: buildNotRequired,
+    needsCompile: false,
     scopeParts: [],
   };
   return [input, output];
 }
 
-function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+function createCustomAttribute(
+  ctx: HTMLTestContext,
+  resName: string,
+  finalize: boolean,
+  attributes: readonly [string, string][],
+  childInstructions: readonly any[],
+  siblingInstructions: readonly any[],
+  nestedElInstructions: readonly any[],
+  childOutput?,
+  childInput?,
+): [PartialCustomAttributeDefinition, PartialCustomAttributeDefinition] {
   const instruction = {
     type: TT.hydrateAttribute,
     res: resName,
@@ -562,15 +620,19 @@ function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: 
   const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
   const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput && childInput.template) || ''}</div>`;
   const input = {
+    name: 'unnamed',
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
   const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
+    ...defaultCustomElementDefinitionProperties,
+    name: 'unnamed',
+    key: 'au:resource:custom-element:unnamed',
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
-    build: buildNotRequired,
+    needsCompile: false,
     scopeParts: [],
   };
   return [input, output];
@@ -585,7 +647,7 @@ const commandToMode = {
 
 const validCommands = ['bind', 'one-time', 'to-view', 'from-view', 'two-way', 'trigger', 'delegate', 'capture', 'call'];
 
-function createAttributeInstruction(bindableDescription: IBindableDescription | null, attributeName: string, attributeValue: string, isMulti: boolean) {
+function createAttributeInstruction(bindableDescription: BindableDefinition | null, attributeName: string, attributeValue: string, isMulti: boolean) {
   const parts = attributeName.split('.');
   const attr = parts[0];
   const cmd = parts.pop();
@@ -635,12 +697,12 @@ function createAttributeInstruction(bindableDescription: IBindableDescription | 
   }
 }
 
-type CTCResult = [ITemplateDefinition, ITemplateDefinition];
+type CTCResult = [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
-type Bindables = { [pdName: string]: IBindableDescription };
+type Bindables = { [pdName: string]: BindableDefinition };
 
 describe(`TemplateCompiler - combinations`, function () {
-  function setup(ctx: HTMLTestContext, ...globals: IRegistry[]) {
+  function setup(ctx: HTMLTestContext, ...globals: any[]) {
     const container = ctx.container;
     container.register(...globals);
     const sut = ctx.templateCompiler;
@@ -679,16 +741,17 @@ describe(`TemplateCompiler - combinations`, function () {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
       it(markup, function () {
-        const input: ITemplateDefinition = {
+        const input: PartialCustomElementDefinition = {
           template: markup,
           instructions: [],
           surrogates: [],
-        } as unknown as ITemplateDefinition;
+        } as unknown as PartialCustomElementDefinition;
         const expected = {
+          ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],
           surrogates: [],
-          build: buildNotRequired,
+          needsCompile: false,
           scopeParts: [],
         };
 
@@ -706,22 +769,22 @@ describe(`TemplateCompiler - combinations`, function () {
       [
         TestContext.createHTMLTestContext
       ],
-      // IAttributeDefinition.bindables
+      // PartialCustomAttributeDefinition.bindables
       [
         (ctx) => [undefined, undefined, 'value'],
-        (ctx) => [{}, undefined,  'value'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime } }, BindingMode.oneTime, 'bazBaz'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
-        (ctx) => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
-      ] as ((ctx: HTMLTestContext) => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[],
+        (ctx) => [{}, undefined,  'value'] as any,
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
+        (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
+      ] as ((ctx: HTMLTestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
       [
         (ctx) => ['foo',     '', class Foo {}],
         (ctx) => ['foo-foo', '', class FooFoo {}],
         (ctx) => ['foo',     'bar', class Foo {}],
         (ctx) => ['foo-foo', 'bar', class Foo {}]
       ] as ((ctx: HTMLTestContext) => [string, string, Constructable])[],
-      // IAttributeDefinition.defaultBindingMode
+      // PartialCustomAttributeDefinition.defaultBindingMode
       [
         (ctx) => undefined,
         (ctx) => BindingMode.oneTime,
@@ -736,7 +799,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
-      ] as ((ctx: HTMLTestContext, $1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
+      ] as ((ctx: HTMLTestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       if (childInstruction.mode !== undefined) {
         childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
@@ -745,21 +808,22 @@ describe(`TemplateCompiler - combinations`, function () {
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
-        const input: ITemplateDefinition = {
+        const input: PartialCustomElementDefinition = {
           template: markup,
           instructions: [],
           surrogates: [],
-        } as unknown as ITemplateDefinition;
+        } as unknown as PartialCustomElementDefinition;
         const instruction = {
           type: TT.hydrateAttribute,
           res: def.name,
           instructions: [childInstruction],
         };
         const expected = {
+          ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
           instructions: [[instruction]],
           surrogates: [],
-          build: buildNotRequired,
+          needsCompile: false,
           scopeParts: [],
         };
 
@@ -788,11 +852,11 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
       ] as ((ctx: HTMLTestContext, $1: string) => string)[],
       [
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   } })
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
+        (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   }) })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],
@@ -808,7 +872,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}.qux${cmd}`],
         (ctx, pdName, pdProp, bindables, [cmd]) => [null,              `${pdProp}Qux${cmd}`]
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [IBindableDescription, string])[]
+      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
@@ -819,7 +883,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
 
-        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [ITemplateDefinition, ITemplateDefinition];
+        const [input, output] = createCustomAttribute(ctx, 'asdf', true, [[attrName, attrValue]], [instruction], [], []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
         if (attrName.endsWith('.qux')) {
           let e;
@@ -1006,10 +1070,10 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)); }
       ] as ((ctx: HTMLTestContext, results: CTCResult[]) => void)[]
     ],                       (ctx, [[input1, output1], [input2, output2], [input3, output3]]) => {
-      const input: ITemplateDefinition = {
+      const input: PartialCustomElementDefinition = {
         template: `<div>${input1.template}${input2.template}${input3.template}</div>`,
         instructions: []
-      } as unknown as ITemplateDefinition;
+      } as unknown as PartialCustomElementDefinition;
 
       it(`${input.template}`, function () {
 
@@ -1021,9 +1085,10 @@ describe(`TemplateCompiler - combinations`, function () {
         );
 
         const output = {
+          ...defaultCustomElementDefinitionProperties,
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
-          build: buildNotRequired,
+          needsCompile: false,
           scopeParts: [],
         };
         // enableTracing();
@@ -1060,11 +1125,11 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp) => `${kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => string)[],
       [
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
-        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.default  }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
+        (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   }) })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],
@@ -1079,7 +1144,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[],
+      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [BindableDefinition, string])[],
       [
         (ctx) => `''`
       ] as ((ctx: HTMLTestContext) => string)[]
@@ -1096,7 +1161,7 @@ describe(`TemplateCompiler - combinations`, function () {
         const childInstructions = !!bindableDescription ? instructions : [];
         const siblingInstructions = !bindableDescription ? instructions : [];
 
-        const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []) as [ITemplateDefinition, ITemplateDefinition];
+        const [input, output] = createCustomElement(ctx, 'foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []) as [PartialCustomElementDefinition, PartialCustomElementDefinition];
 
         if (attrName.endsWith('.qux')) {
           let e;

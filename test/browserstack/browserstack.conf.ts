@@ -2,7 +2,7 @@
 import * as browserstack from 'browserstack-local';
 import { CIEnv } from '../../scripts/ci-env';
 
-declare var browser: any;
+declare const browser: any;
 
 const build = `e2e_${Date.now()}`;
 

@@ -11,8 +11,7 @@ import {
 import {
   HooksDefinition,
   ITargetedInstruction,
-  TemplateDefinition,
-  TemplatePartDefinitions,
+  PartialCustomElementDefinitionParts,
 } from './definitions';
 import {
   INode,
@@ -34,9 +33,8 @@ import {
 } from './observation';
 import {
   IElementProjector,
+  CustomElementDefinition,
 } from './resources/custom-element';
-
-const slice = Array.prototype.slice;
 
 export interface IBinding {
   readonly locator: IServiceLocator;
@@ -61,20 +59,20 @@ export interface IController<
 > {
   readonly id: number;
 
-  nextBound?: IController<T>;
-  nextUnbound?: IController<T>;
-  prevBound?: IController<T>;
-  prevUnbound?: IController<T>;
+  nextBound?: IController<T, C>;
+  nextUnbound?: IController<T, C>;
+  prevBound?: IController<T, C>;
+  prevUnbound?: IController<T, C>;
 
-  nextAttached?: IController<T>;
-  nextDetached?: IController<T>;
-  prevAttached?: IController<T>;
-  prevDetached?: IController<T>;
+  nextAttached?: IController<T, C>;
+  nextDetached?: IController<T, C>;
+  prevAttached?: IController<T, C>;
+  prevDetached?: IController<T, C>;
 
-  nextMount?: IController<T>;
-  nextUnmount?: IController<T>;
-  prevMount?: IController<T>;
-  prevUnmount?: IController<T>;
+  nextMount?: IController<T, C>;
+  nextUnmount?: IController<T, C>;
+  prevMount?: IController<T, C>;
+  prevUnmount?: IController<T, C>;
 
   readonly flags: LifecycleFlags;
   readonly viewCache?: IViewCache<T>;
@@ -107,7 +105,7 @@ export interface IController<
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;
-  hold(location: IRenderLocation<T>): void;
+  hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   release(flags: LifecycleFlags): boolean;
   bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
@@ -125,22 +123,30 @@ export interface IController<
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
 
+/**
+ * Describing characteristics of a mounting operation a controller will perform
+ */
+export const enum MountStrategy {
+  insertBefore = 1,
+  append = 2,
+}
+
 export interface IRenderContext<T extends INode = INode> extends IContainer {
   readonly parentId: number;
   render(
     flags: LifecycleFlags,
     renderable: IController<T>,
     targets: ArrayLike<object>,
-    templateDefinition: TemplateDefinition,
+    templateDefinition: CustomElementDefinition,
     host?: T,
-    parts?: TemplatePartDefinitions,
+    parts?: PartialCustomElementDefinitionParts,
   ): void;
   beginComponentOperation(
     renderable: IController<T>,
     target: object,
     instruction: ITargetedInstruction,
     factory?: IViewFactory<T> | null,
-    parts?: TemplatePartDefinitions,
+    parts?: PartialCustomElementDefinitionParts,
     location?: IRenderLocation<T>,
     locationIsContainer?: boolean,
   ): IDisposable;
@@ -156,9 +162,9 @@ export interface IViewCache<T extends INode = INode> {
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly parentContextId: number;
   readonly name: string;
-  readonly parts: TemplatePartDefinitions;
+  readonly parts: PartialCustomElementDefinitionParts;
   create(flags?: LifecycleFlags): IController<T>;
-  addParts(parts: TemplatePartDefinitions): void;
+  addParts(parts: PartialCustomElementDefinitionParts): void;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();

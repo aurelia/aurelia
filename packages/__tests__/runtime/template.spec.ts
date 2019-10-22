@@ -11,7 +11,7 @@ import {
   IRenderLocation,
   ITargetedInstruction,
   IViewFactory,
-  TemplateDefinition,
+  CustomElementDefinition,
   ViewFactory
 } from '@aurelia/runtime';
 import {
@@ -75,7 +75,7 @@ describe(`CompiledTemplate`, function () {
       const dom = container.get<AuDOM>(IDOM);
       const templateNode = AuNode.createTemplate().appendChild(AuNode.createText('foo'));
       const nsFactory = new AuNodeSequenceFactory(dom, templateNode);
-      const def = { template: templateNode, dependencies: [Foo, Bar] } as unknown as TemplateDefinition;
+      const def = { template: templateNode, dependencies: [Foo, Bar] } as unknown as CustomElementDefinition;
       const sut = new CompiledTemplate(dom, def, nsFactory, container as any);
 
       const nodes = sut.factory.createNodeSequence();

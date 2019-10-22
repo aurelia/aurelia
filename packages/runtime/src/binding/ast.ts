@@ -71,12 +71,10 @@ import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
-  BindingBehavior,
-  IBindingBehavior,
+  BindingBehavior, BindingBehaviorInstance,
 } from '../resources/binding-behavior';
 import {
-  IValueConverter,
-  ValueConverter,
+  ValueConverter, ValueConverterInstance,
 } from '../resources/value-converter';
 import { IConnectableBinding } from './connectable';
 
@@ -186,7 +184,7 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
     this.expression.connect(flags, scope, binding, part);
   }
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & { [key: string]: IBindingBehavior | undefined }): void {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined }): void {
     if (scope == null) {
       throw Reporter.error(RuntimeError.NilScope, this);
     }
@@ -201,7 +199,7 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
       this.expression.bind(flags, scope, binding);
     }
     const behaviorKey = this.behaviorKey;
-    const behavior = locator.get<IBindingBehavior>(behaviorKey);
+    const behavior = locator.get<BindingBehaviorInstance>(behaviorKey);
     if (!behavior) {
       throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
@@ -213,7 +211,7 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & { [key: string]: IBindingBehavior | undefined }): void {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined }): void {
     const behaviorKey = this.behaviorKey;
     if (binding[behaviorKey] !== void 0) {
       binding[behaviorKey]!.unbind(flags, scope, binding);
@@ -252,7 +250,7 @@ export class ValueConverterExpression implements IValueConverterExpression {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    const converter = locator.get<ValueConverterExpression & IValueConverter>(this.converterKey);
+    const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (!converter) {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
@@ -273,7 +271,7 @@ export class ValueConverterExpression implements IValueConverterExpression {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    const converter = locator.get<ValueConverterExpression & IValueConverter>(this.converterKey);
+    const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (!converter) {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
@@ -455,7 +453,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
-    let evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
     }

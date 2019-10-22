@@ -175,13 +175,13 @@ const benchSwapRows = new class extends Benchmark {
     await clickElementById(driver, 'run');
     await testElementLocatedByXpath(driver, "//tbody/tr[1]/td[2]/a");
     for (let i = 0; i <= config.WARMUP_COUNT; i++) {
-      let text = await getTextByXPath(driver, "//tbody/tr[2]/td[2]/a");
+      const text = await getTextByXPath(driver, "//tbody/tr[2]/td[2]/a");
       await clickElementById(driver, 'swaprows');
       await testTextContains(driver, "//tbody/tr[999]/td[2]/a", text);
     }
   }
   public async run(driver: WebDriver) {
-    let text = await getTextByXPath(driver, "//tbody/tr[2]/td[2]/a");
+    const text = await getTextByXPath(driver, "//tbody/tr[2]/td[2]/a");
     await clickElementById(driver, 'swaprows');
     await testTextContains(driver, "//tbody/tr[999]/td[2]/a", text);
   }

@@ -11,16 +11,19 @@ import {
   RuntimeCompilationResources,
   Transformer,
 } from '@aurelia/kernel';
-import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
+import { ITargetedInstruction, PartialCustomElementDefinitionParts } from './definitions';
 import { IDOM, INode, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
 import { IController, IRenderContext, IViewFactory } from './lifecycle';
 import { ExposedContext, IRenderer, IRenderingEngine } from './rendering-engine';
-import { ICustomElementType } from './resources/custom-element';
+import { CustomElementDefinition, CustomElementType, CustomElement } from './resources/custom-element';
 
 export class RenderContext implements IRenderContext {
   public get id(): number {
     return this.container.id;
+  }
+  public get path(): string {
+    return this.container.path;
   }
   public get parentId(): number {
     return this.parentContainer.id;
@@ -39,7 +42,7 @@ export class RenderContext implements IRenderContext {
     private readonly dom: IDOM,
     private readonly parentContainer: IContainer,
     private readonly dependencies: readonly Key[],
-    private readonly componentType?: ICustomElementType,
+    private readonly componentType?: CustomElementType,
   ) {
     const container = (
       this.container = parentContainer.createChild()
@@ -74,7 +77,7 @@ export class RenderContext implements IRenderContext {
 
     // If the element has a view, support Recursive Components by adding self to own view template container.
     if (componentType) {
-      componentType.register(container);
+      CustomElement.getDefinition(componentType).register(container);
     }
   }
 
@@ -109,7 +112,7 @@ export class RenderContext implements IRenderContext {
     return this.container.getResolver(key, autoRegister);
   }
 
-  public getFactory<T extends Constructable>(key: T): IFactory<T> {
+  public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
     return this.container.getFactory(key);
   }
 
@@ -121,19 +124,19 @@ export class RenderContext implements IRenderContext {
 
   public render(
     flags: LifecycleFlags,
-    renderable: IController,
+    controller: IController,
     targets: ArrayLike<INode>,
-    templateDefinition: TemplateDefinition,
+    definition: CustomElementDefinition,
     host?: INode,
-    parts?: TemplatePartDefinitions,
+    parts?: PartialCustomElementDefinitionParts,
   ): void {
     this.renderer.render(
       flags,
       this.dom,
       this,
-      renderable,
+      controller,
       targets,
-      templateDefinition,
+      definition,
       host,
       parts,
     );
@@ -144,7 +147,7 @@ export class RenderContext implements IRenderContext {
     target: INode,
     instruction: ITargetedInstruction,
     factory: IViewFactory | null,
-    parts?: TemplatePartDefinitions,
+    parts?: PartialCustomElementDefinitionParts,
     location?: IRenderLocation,
   ): IDisposable {
     this.renderableProvider.prepare(renderable);
@@ -179,7 +182,7 @@ export class RenderContext implements IRenderContext {
 export class ViewFactoryProvider implements IResolver {
   private factory!: IViewFactory | null;
 
-  public prepare(factory: IViewFactory, parts: TemplatePartDefinitions): void {
+  public prepare(factory: IViewFactory, parts: PartialCustomElementDefinitionParts): void {
     this.factory = factory;
     factory.addParts(parts);
   }

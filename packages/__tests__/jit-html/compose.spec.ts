@@ -12,7 +12,6 @@ import {
 import { RenderPlan } from '@aurelia/runtime-html';
 import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
 
-const build = { required: true, compiler: 'default' };
 const spec = 'compose';
 
 describe(spec, function () {
@@ -48,31 +47,31 @@ describe(spec, function () {
   const subjectSpecs: SubjectSpec[] = [
     {
       t: '1',
-      createSubject: () => ({ template: `<template>Hello!</template>`, build }),
+      createSubject: () => ({ template: `<template>Hello!</template>` }),
       expectedText: 'Hello!'
     },
     {
       t: '2',
-      createSubject: () => Promise.resolve({ template: `<template>Hello!</template>`, build }),
+      createSubject: () => Promise.resolve({ template: `<template>Hello!</template>` }),
       expectedText: 'Hello!'
     },
     {
       t: '3',
       createSubject: () => Promise.resolve().then(() => {
         return new Promise(resolve => {
-          setTimeout(() => { resolve({ template: `<template>Hello!</template>`, build }); }, 50);
+          setTimeout(() => { resolve({ template: `<template>Hello!</template>` }); }, 50);
         });
       }),
       expectedText: 'Hello!'
     },
     {
       t: '4',
-      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container),
+      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: `<template>Hello!</template>` }, ctx.container),
       expectedText: 'Hello!'
     },
     {
       t: '5',
-      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container).create(),
+      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).create(),
       expectedText: 'Hello!'
     },
     {

@@ -24,11 +24,11 @@ import {
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   IStylePropertyBindingInstruction,
-  ITextBindingInstruction
+  ITextBindingInstruction,
+  ISetClassAttributeInstruction,
+  ISetStyleAttributeInstruction
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
-
-const slice = Array.prototype.slice;
 
 @instructionRenderer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
@@ -91,6 +91,24 @@ export class SetAttributeRenderer implements IInstructionRenderer {
   }
 }
 
+@instructionRenderer(HTMLTargetedInstructionType.setClassAttribute)
+export class SetClassAttributeRenderer implements IInstructionRenderer {
+  public static readonly register: IRegistry['register'];
+
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
+    addClasses(target.classList, instruction.value);
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.setStyleAttribute)
+export class SetStyleAttributeRenderer implements IInstructionRenderer {
+  public static readonly register: IRegistry['register'];
+
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetStyleAttributeInstruction): void {
+    target.style.cssText += instruction.value;
+  }
+}
+
 @instructionRenderer(HTMLTargetedInstructionType.stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
@@ -138,5 +156,20 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
       context
     );
     addBinding(renderable, binding);
+  }
+}
+
+function addClasses(classList: DOMTokenList, className: string): void {
+  const len = className.length;
+  let start = 0;
+  for (let i = 0; i < len; ++i) {
+    if (className.charCodeAt(i) === 0x20) {
+      if (i !== start) {
+        classList.add(className.slice(start, i));
+      }
+      start = i + 1;
+    } else if (i + 1 === len) {
+      classList.add(className.slice(start));
+    }
   }
 }

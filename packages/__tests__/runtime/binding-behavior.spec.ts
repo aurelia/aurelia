@@ -5,6 +5,7 @@ import { assert } from '@aurelia/testing';
 describe(`@bindingBehavior('foo')`, function () {
   let container: IContainer;
 
+  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
   });
@@ -13,9 +14,9 @@ describe(`@bindingBehavior('foo')`, function () {
   class FooBindingBehavior { }
 
   it(`should define the binding behavior`, function () {
-    assert.strictEqual(FooBindingBehavior['kind'], BindingBehavior, `FooBindingBehavior['kind']`);
-    assert.strictEqual(FooBindingBehavior['description'].name, 'foo', `FooBindingBehavior['description'].name`);
-    FooBindingBehavior['register'](container);
+    const definition = BindingBehavior.getDefinition(FooBindingBehavior);
+    assert.strictEqual(definition.name, 'foo', `definition.name`);
+    definition.register(container);
     const instance = container.get(BindingBehavior.keyFrom('foo'));
     assert.instanceOf(instance, FooBindingBehavior, `instance`);
   });

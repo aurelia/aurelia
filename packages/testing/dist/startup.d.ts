@@ -12,9 +12,7 @@ export declare function setup<T>(template: string | Node, $class?: Constructable
     testHost: HTMLDivElement;
     appHost: HTMLElement;
     au: Aurelia<import("@aurelia/runtime").INode>;
-    component: T & import("@aurelia/runtime").IViewModel<import("@aurelia/runtime").INode> & {
-        constructor: unknown;
-    };
+    component: import("@aurelia/runtime").IViewModel<import("@aurelia/runtime").INode> & T;
     observerLocator: import("@aurelia/runtime").IObserverLocator;
     start: () => Promise<void>;
     tearDown: () => Promise<void>;

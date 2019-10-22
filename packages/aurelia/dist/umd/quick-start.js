@@ -42,11 +42,10 @@
             return createAurelia().register(...params);
         }
         app(config) {
-            const comp = config;
-            if (comp && comp.kind && comp.kind.name === 'custom-element') {
+            if (runtime_1.CustomElement.isType(config)) {
                 // Default to custom element element name
-                const elementName = comp.description && comp.description.name;
-                let host = document.querySelector(elementName);
+                const definition = runtime_1.CustomElement.getDefinition(config);
+                let host = document.querySelector(definition.name);
                 if (host === null) {
                     // When no target is found, default to body.
                     // For example, when user forgot to write <my-app></my-app> in html.
@@ -54,7 +53,7 @@
                 }
                 return super.app({
                     host: host,
-                    component: comp
+                    component: config
                 });
             }
             return super.app(config);

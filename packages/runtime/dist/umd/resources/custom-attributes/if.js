@@ -4,59 +4,31 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../definitions", "../../dom", "../../flags", "../../lifecycle", "../../lifecycle-task", "../../templating/bindable", "../custom-attribute"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../../dom", "../../lifecycle", "../../lifecycle-task", "../../templating/bindable", "../custom-attribute"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    const definitions_1 = require("../../definitions");
     const dom_1 = require("../../dom");
-    const flags_1 = require("../../flags");
     const lifecycle_1 = require("../../lifecycle");
     const lifecycle_task_1 = require("../../lifecycle-task");
     const bindable_1 = require("../../templating/bindable");
     const custom_attribute_1 = require("../custom-attribute");
-    class If {
+    let If = class If {
         constructor(ifFactory, location) {
-            this.$observers = Object.freeze({
-                value: this,
-            });
+            this.ifFactory = ifFactory;
+            this.location = location;
             this.id = kernel_1.nextId('au$component');
             this.elseFactory = void 0;
             this.elseView = void 0;
-            this.ifFactory = ifFactory;
             this.ifView = void 0;
-            this.location = location;
-            this.noProxy = true;
-            this.task = lifecycle_task_1.LifecycleTask.done;
             this.view = void 0;
-            this._value = false;
+            this.task = lifecycle_task_1.LifecycleTask.done;
+            this.value = false;
         }
-        get value() {
-            return this._value;
-        }
-        set value(newValue) {
-            const oldValue = this._value;
-            if (oldValue !== newValue) {
-                this._value = newValue;
-                this.valueChanged(newValue, oldValue, this.$controller.flags);
-            }
-        }
-        static register(container) {
-            container.register(kernel_1.Registration.transient('custom-attribute:if', this));
-            container.register(kernel_1.Registration.transient(this, this));
-        }
-        getValue() {
-            return this._value;
-        }
-        setValue(newValue, flags) {
-            const oldValue = this._value;
-            if (oldValue !== newValue) {
-                this._value = newValue;
-                this.valueChanged(newValue, oldValue, flags | this.$controller.flags);
-            }
-        }
+        ;
         binding(flags) {
             if (this.task.done) {
                 this.task = this.swap(this.value, flags);
@@ -192,25 +164,20 @@
                 this.view.attach(flags);
             }
         }
-    }
+    };
+    tslib_1.__decorate([
+        bindable_1.bindable
+    ], If.prototype, "value", void 0);
+    If = tslib_1.__decorate([
+        custom_attribute_1.templateController('if'),
+        tslib_1.__param(0, lifecycle_1.IViewFactory),
+        tslib_1.__param(1, dom_1.IRenderLocation)
+    ], If);
     exports.If = If;
-    If.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];
-    If.kind = custom_attribute_1.CustomAttribute;
-    If.description = Object.freeze({
-        name: 'if',
-        aliases: kernel_1.PLATFORM.emptyArray,
-        defaultBindingMode: flags_1.BindingMode.toView,
-        isTemplateController: true,
-        bindables: Object.freeze(bindable_1.Bindable.for({ bindables: ['value'] }).get()),
-        strategy: 1 /* getterSetter */,
-        hooks: Object.freeze(new definitions_1.HooksDefinition(If.prototype)),
-    });
-    class Else {
+    let Else = class Else {
         constructor(factory) {
             this.factory = factory;
-        }
-        static register(container) {
-            container.register(kernel_1.Registration.transient('custom-attribute:else', this));
+            this.id = kernel_1.nextId('au$component');
         }
         link(ifBehavior) {
             if (ifBehavior instanceof If) {
@@ -223,18 +190,11 @@
                 throw new Error(`Unsupported IfBehavior`); // TODO: create error code
             }
         }
-    }
-    exports.Else = Else;
-    Else.inject = [lifecycle_1.IViewFactory];
-    Else.kind = custom_attribute_1.CustomAttribute;
-    Else.description = {
-        name: 'else',
-        aliases: kernel_1.PLATFORM.emptyArray,
-        defaultBindingMode: flags_1.BindingMode.toView,
-        isTemplateController: true,
-        bindables: kernel_1.PLATFORM.emptyObject,
-        strategy: 1 /* getterSetter */,
-        hooks: definitions_1.HooksDefinition.none,
     };
+    Else = tslib_1.__decorate([
+        custom_attribute_1.templateController('else'),
+        tslib_1.__param(0, lifecycle_1.IViewFactory)
+    ], Else);
+    exports.Else = Else;
 });
 //# sourceMappingURL=if.js.map

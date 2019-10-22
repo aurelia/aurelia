@@ -73,26 +73,59 @@
             return controller;
         }
         addParts(parts) {
-            if (this.parts === kernel_1.PLATFORM.emptyObject) {
-                this.parts = { ...parts };
-            }
-            else {
-                Object.assign(this.parts, parts);
+            if (Object.keys(parts).length > 0) {
+                this.parts = { ...this.parts, ...parts };
             }
         }
     }
     exports.ViewFactory = ViewFactory;
     ViewFactory.maxCacheSize = 0xFFFF;
+    const seenViews = new WeakSet();
+    function notYetSeen($view) {
+        return !seenViews.has($view);
+    }
+    function toCustomElementDefinition($view) {
+        seenViews.add($view);
+        return custom_element_1.CustomElementDefinition.create($view);
+    }
+    exports.Views = {
+        name: kernel_1.Protocol.resource.keyFor('views'),
+        has(value) {
+            return typeof value === 'function' && (kernel_1.Metadata.hasOwn(exports.Views.name, value) || '$views' in value);
+        },
+        get(value) {
+            if (typeof value === 'function' && '$views' in value) {
+                // TODO: a `get` operation with side effects is not a good thing. Should refactor this to a proper resource kind.
+                const $views = value.$views;
+                const definitions = $views.filter(notYetSeen).map(toCustomElementDefinition);
+                for (const def of definitions) {
+                    exports.Views.add(value, def);
+                }
+            }
+            let views = kernel_1.Metadata.getOwn(exports.Views.name, value);
+            if (views === void 0) {
+                kernel_1.Metadata.define(exports.Views.name, views = [], value);
+            }
+            return views;
+        },
+        add(Type, partialDefinition) {
+            const definition = custom_element_1.CustomElementDefinition.create(partialDefinition);
+            let views = kernel_1.Metadata.getOwn(exports.Views.name, Type);
+            if (views === void 0) {
+                kernel_1.Metadata.define(exports.Views.name, views = [definition], Type);
+            }
+            else {
+                views.push(definition);
+            }
+            return views;
+        },
+    };
     function view(v) {
         return function (target) {
-            const views = target.$views || (target.$views = []);
-            views.push(v);
+            exports.Views.add(target, v);
         };
     }
     exports.view = view;
-    function hasAssociatedViews(object) {
-        return object && '$views' in object;
-    }
     exports.IViewLocator = kernel_1.DI.createInterface('IViewLocator')
         .noDefault();
     const lifecycleCallbacks = [
@@ -116,9 +149,7 @@
         }
         getViewComponentForObject(object, viewNameOrSelector) {
             if (object) {
-                const availableViews = hasAssociatedViews(object.constructor)
-                    ? object.constructor.$views
-                    : [];
+                const availableViews = exports.Views.has(object.constructor) ? exports.Views.get(object.constructor) : [];
                 const resolvedViewName = typeof viewNameOrSelector === 'function'
                     ? viewNameOrSelector(object, availableViews)
                     : this.getViewName(availableViews, viewNameOrSelector);
@@ -138,11 +169,11 @@
             }
             if (BoundComponent === void 0) {
                 const UnboundComponent = this.getOrCreateUnboundComponent(object, availableViews, resolvedViewName);
-                BoundComponent = class extends UnboundComponent {
+                BoundComponent = custom_element_1.CustomElement.define(custom_element_1.CustomElement.getDefinition(UnboundComponent), class extends UnboundComponent {
                     constructor() {
                         super(object);
                     }
-                };
+                });
                 lookup[resolvedViewName] = BoundComponent;
             }
             return BoundComponent;

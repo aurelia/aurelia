@@ -1,3 +1,4 @@
+import { Constructable } from './interfaces';
 /**
  * Efficiently determine whether the provided property key is numeric
  * (and thus could be an array indexer) or not.
@@ -31,6 +32,16 @@ export declare function isStringOrDate(value: unknown): value is string | Date;
  * Results are cached.
  */
 export declare const camelCase: (input: string) => string;
+/**
+ * Efficiently convert a string to PascalCase.
+ *
+ * Non-alphanumeric characters are treated as separators.
+ *
+ * Primarily used by Aurelia to convert element names to class names for synthetic types.
+ *
+ * Results are cached.
+ */
+export declare const pascalCase: (input: string) => string;
 /**
  * Efficiently convert a string to kebab-case.
  *
@@ -79,4 +90,8 @@ export declare function compareNumber(a: number, b: number): number;
  * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
  */
 export declare function mergeDistinct<T>(arr1: readonly T[] | T[] | null | undefined, arr2: readonly T[] | T[] | null | undefined, slice: boolean): T[];
+export declare function mergeArrays<T>(...arrays: (readonly T[] | undefined)[]): T[];
+export declare function mergeObjects<T extends object>(...objects: readonly (T | undefined)[]): T;
+export declare function firstDefined<T>(...values: readonly (T | undefined)[]): T;
+export declare const getPrototypeChain: <T extends Constructable<{}>>(Type: T) => readonly [T, ...Constructable<{}>[]];
 //# sourceMappingURL=functions.d.ts.map

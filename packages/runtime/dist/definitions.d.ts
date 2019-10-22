@@ -1,29 +1,7 @@
-import { Constructable, IResourceDefinition, Key, Omit, ResourceDescription, ResourcePartDescription, IContainer, IResourceKind } from '@aurelia/kernel';
+import { Constructable, ResourceDefinition, IContainer, IResourceKind } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { INode } from './dom';
-import { BindingMode, BindingStrategy } from './flags';
-import { IController, IViewModel } from './lifecycle';
-import { IElementProjector } from './resources/custom-element';
-export declare type IElementHydrationOptions = {
-    parts?: Record<string, TemplateDefinition>;
-};
-export declare type BindableSource = Omit<IBindableDescription, 'property'>;
-export interface IBindableDescription {
-    mode?: BindingMode;
-    callback?: string;
-    attribute?: string;
-    property?: string;
-    primary?: boolean;
-}
-export interface IChildrenObserverDescription<TNode extends INode = INode> {
-    callback?: string;
-    property?: string;
-    options?: MutationObserverInit;
-    query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
-    filter?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
-    map?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
-}
-export declare type ChildrenObserverSource = Omit<IChildrenObserverDescription, 'property'>;
+import { BindingMode } from './flags';
+import { PartialCustomElementDefinition, CustomElementDefinition } from './resources/custom-element';
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
  * into the `Renderer`.
@@ -46,40 +24,8 @@ export declare const enum TargetedInstructionType {
     refBinding = "rj",
     iteratorBinding = "rk"
 }
-export interface IBuildInstruction {
-    required: boolean;
-    compiler?: string;
-}
-export interface ITemplateDefinition extends IResourceDefinition {
-    cache?: '*' | number;
-    template?: unknown;
-    instructions?: ITargetedInstruction[][];
-    dependencies?: Key[];
-    build?: IBuildInstruction;
-    surrogates?: ITargetedInstruction[];
-    bindables?: Record<string, IBindableDescription> | string[];
-    childrenObservers?: Record<string, IChildrenObserverDescription>;
-    containerless?: boolean;
-    isStrictBinding?: boolean;
-    shadowOptions?: {
-        mode: 'open' | 'closed';
-    };
-    hasSlots?: boolean;
-    strategy?: BindingStrategy;
-    hooks?: Readonly<HooksDefinition>;
-    scopeParts?: readonly string[];
-}
-export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
-export declare type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;
-export declare type BindableDefinitions = Record<string, IBindableDescription>;
-export interface IAttributeDefinition extends IResourceDefinition {
-    defaultBindingMode?: BindingMode;
-    isTemplateController?: boolean;
-    bindables?: Record<string, IBindableDescription> | string[];
-    strategy?: BindingStrategy;
-    hooks?: Readonly<HooksDefinition>;
-}
-export declare type AttributeDefinition = Required<IAttributeDefinition>;
+export declare type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
+export declare type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
 export declare type InstructionTypeName = string;
 export declare const ITargetedInstruction: import("@aurelia/kernel").InterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
@@ -126,7 +72,7 @@ export interface IHydrateElementInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateElement;
     res: string;
     instructions: ITargetedInstruction[];
-    parts?: Record<string, ITemplateDefinition>;
+    parts?: Record<string, PartialCustomElementDefinition>;
 }
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateAttribute;
@@ -137,9 +83,9 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateTemplateController;
     res: string;
     instructions: ITargetedInstruction[];
-    def: ITemplateDefinition;
+    def: PartialCustomElementDefinition;
     link?: boolean;
-    parts?: Record<string, ITemplateDefinition>;
+    parts?: Record<string, PartialCustomElementDefinition>;
 }
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateLetElement;
@@ -166,20 +112,6 @@ export declare class HooksDefinition {
     readonly hasCaching: boolean;
     constructor(target: object);
 }
-export declare type CustomElementConstructor = Constructable & {
-    containerless?: TemplateDefinition['containerless'];
-    shadowOptions?: TemplateDefinition['shadowOptions'];
-    bindables?: TemplateDefinition['bindables'];
-    isStrictBinding?: TemplateDefinition['isStrictBinding'];
-    aliases?: string[];
-    childrenObservers?: TemplateDefinition['childrenObservers'];
-};
-export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: null, def: ITemplateDefinition): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | ITemplateDefinition): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: readonly (readonly ITargetedInstruction[])[] | null, dependencies?: readonly unknown[] | null, surrogates?: readonly ITargetedInstruction[] | null, containerless?: boolean | null, shadowOptions?: {
-    mode: 'open' | 'closed';
-} | null, hasSlots?: boolean | null, strategy?: BindingStrategy | null, childrenObservers?: Record<string, IChildrenObserverDescription> | null, aliases?: readonly string[] | null, isStrictBinding?: boolean | null): TemplateDefinition;
-export declare function alias(...aliases: string[]): (instance: Constructable<any>) => Constructable<any>;
-export declare function registerAliases<T, F>(aliases: string[], resource: IResourceKind<T, F>, key: string, container: IContainer): void;
+export declare function alias(...aliases: readonly string[]): (target: Constructable<{}>) => void;
+export declare function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer): void;
 //# sourceMappingURL=definitions.d.ts.map

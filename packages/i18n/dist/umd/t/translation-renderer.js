@@ -54,7 +54,7 @@
             for (const alias of this.aliases) {
                 // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
                 // In this case, it probably has lesser or no significance as actual binding mode.
-                const key = jit_1.BindingCommandResource.keyFrom(alias);
+                const key = jit_1.BindingCommand.keyFrom(alias);
                 kernel_1.Registration.singleton(key, this).register(container);
                 kernel_1.Registration.alias(key, this).register(container);
             }
@@ -126,7 +126,7 @@
             for (const alias of this.aliases) {
                 // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
                 // In this case, it probably has lesser or no significance as actual binding mode.
-                const key = jit_1.BindingCommandResource.keyFrom(`${alias}.bind`);
+                const key = jit_1.BindingCommand.keyFrom(`${alias}.bind`);
                 kernel_1.Registration.singleton(key, this).register(container);
                 kernel_1.Registration.alias(key, this).register(container);
             }

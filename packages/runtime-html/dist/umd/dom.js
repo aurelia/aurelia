@@ -165,80 +165,6 @@
     exports.HTMLDOM = HTMLDOM;
     const $DOM = runtime_1.DOM;
     exports.DOM = $DOM;
-    /**
-     * A specialized INodeSequence with optimizations for text (interpolation) bindings
-     * The contract of this INodeSequence is:
-     * - the previous element is an `au-m` node
-     * - text is the actual text node
-     */
-    /** @internal */
-    class TextNodeSequence {
-        constructor(dom, text) {
-            this.isMounted = false;
-            this.isLinked = false;
-            this.dom = dom;
-            this.firstChild = text;
-            this.lastChild = text;
-            this.childNodes = [text];
-            this.targets = [new AuMarker(text)];
-            this.next = void 0;
-            this.refNode = void 0;
-        }
-        findTargets() {
-            return this.targets;
-        }
-        insertBefore(refNode) {
-            if (this.isLinked && !!this.refNode) {
-                this.addToLinked();
-            }
-            else {
-                this.isMounted = true;
-                refNode.parentNode.insertBefore(this.firstChild, refNode);
-            }
-        }
-        appendTo(parent) {
-            if (this.isLinked && !!this.refNode) {
-                this.addToLinked();
-            }
-            else {
-                this.isMounted = true;
-                parent.appendChild(this.firstChild);
-            }
-        }
-        remove() {
-            this.isMounted = false;
-            this.firstChild.remove();
-        }
-        addToLinked() {
-            const refNode = this.refNode;
-            this.isMounted = true;
-            refNode.parentNode.insertBefore(this.firstChild, refNode);
-        }
-        unlink() {
-            this.isLinked = false;
-            this.next = void 0;
-            this.refNode = void 0;
-        }
-        link(next) {
-            this.isLinked = true;
-            if (this.dom.isRenderLocation(next)) {
-                this.refNode = next;
-            }
-            else {
-                this.next = next;
-                this.obtainRefNode();
-            }
-        }
-        obtainRefNode() {
-            if (this.next !== void 0) {
-                this.refNode = this.next.firstChild;
-            }
-            else {
-                this.refNode = void 0;
-            }
-        }
-    }
-    exports.TextNodeSequence = TextNodeSequence;
     /* eslint-enable @typescript-eslint/no-explicit-any */
     // This is the most common form of INodeSequence.
     // Every custom element or template controller whose node sequence is based on an HTML template
@@ -252,9 +178,10 @@
      */
     class FragmentNodeSequence {
         constructor(dom, fragment) {
+            this.dom = dom;
+            this.fragment = fragment;
             this.isMounted = false;
             this.isLinked = false;
-            this.dom = dom;
             this.fragment = fragment;
             const targetNodeList = fragment.querySelectorAll('.au');
             let i = 0;
@@ -402,34 +329,18 @@
     class NodeSequenceFactory {
         constructor(dom, markupOrNode) {
             this.dom = dom;
-            const fragment = dom.createDocumentFragment(markupOrNode);
-            const childNodes = fragment.childNodes;
-            let target;
-            let text;
-            switch (childNodes.length) {
-                case 0:
-                    this.createNodeSequence = () => runtime_1.NodeSequence.empty;
-                    return;
-                case 2:
-                    target = childNodes[0];
-                    if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-                        text = childNodes[1];
-                        if (text.nodeType === 3 /* Text */ && text.textContent.length === 0) {
-                            this.deepClone = false;
-                            this.node = text;
-                            this.Type = TextNodeSequence;
-                            return;
-                        }
-                    }
-                // falls through if not returned
-                default:
-                    this.deepClone = true;
-                    this.node = fragment;
-                    this.Type = FragmentNodeSequence;
+            if (markupOrNode === null) {
+                this.node = null;
+            }
+            else {
+                this.node = dom.createDocumentFragment(markupOrNode);
             }
         }
         createNodeSequence() {
-            return new this.Type(this.dom, this.node.cloneNode(this.deepClone));
+            if (this.node === null) {
+                return runtime_1.NodeSequence.empty;
+            }
+            return new FragmentNodeSequence(this.dom, this.node.cloneNode(true));
         }
     }
     exports.NodeSequenceFactory = NodeSequenceFactory;

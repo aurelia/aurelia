@@ -1,48 +1,26 @@
-import { compareNumber, nextId, PLATFORM, Registration, } from '@aurelia/kernel';
-import { HooksDefinition, } from '../../definitions';
+import { __decorate, __param } from "tslib";
+import { compareNumber, nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
-import { BindingMode, } from '../../flags';
-import { IController, IViewFactory, } from '../../lifecycle';
+import { IController, IViewFactory } from '../../lifecycle';
 import { AggregateContinuationTask, ContinuationTask, LifecycleTask, } from '../../lifecycle-task';
-import { applyMutationsToIndices, synchronizeIndices, } from '../../observation/array-observer';
+import { applyMutationsToIndices, synchronizeIndices } from '../../observation/array-observer';
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
-import { Bindable } from '../../templating/bindable';
-import { CustomAttribute, } from '../custom-attribute';
+import { bindable } from '../../templating/bindable';
+import { templateController } from '../custom-attribute';
 const isMountedOrAttached = 64 /* isMounted */ | 32 /* isAttached */;
-const isMountedOrAttachedOrAttaching = isMountedOrAttached | 8 /* isAttaching */;
-const isMountedOrAttachedOrDetaching = isMountedOrAttached | 16 /* isDetaching */;
-const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | 8 /* isAttaching */;
-export class Repeat {
+let Repeat = class Repeat {
     constructor(location, renderable, factory) {
-        this.$observers = Object.freeze({
-            items: this,
-        });
-        this.id = nextId('au$component');
-        this.factory = factory;
-        this.hasPendingInstanceMutation = false;
         this.location = location;
-        this.observer = void 0;
         this.renderable = renderable;
+        this.factory = factory;
+        this.id = nextId('au$component');
+        this.hasPendingInstanceMutation = false;
+        this.observer = void 0;
         this.views = [];
         this.key = void 0;
-        this.noProxy = true;
-        this.normalizedItems = void 0;
         this.task = LifecycleTask.done;
-    }
-    get items() {
-        return this._items;
-    }
-    set items(newValue) {
-        const oldValue = this._items;
-        if (oldValue !== newValue) {
-            this._items = newValue;
-            this.itemsChanged(this.$controller.flags);
-        }
-    }
-    static register(container) {
-        container.register(Registration.transient('custom-attribute:repeat', this));
-        container.register(Registration.transient(this, this));
+        this.normalizedItems = void 0;
     }
     binding(flags) {
         this.checkCollectionObserver(flags);
@@ -185,7 +163,7 @@ export class Repeat {
         }
     }
     normalizeToArray(flags) {
-        const items = this._items;
+        const items = this.items;
         if (items instanceof Array) {
             this.normalizedItems = items;
             return;
@@ -440,18 +418,17 @@ export class Repeat {
         }
         this.$controller.lifecycle.attached.end(flags);
     }
-}
-Repeat.inject = [IRenderLocation, IController, IViewFactory];
-Repeat.kind = CustomAttribute;
-Repeat.description = Object.freeze({
-    name: 'repeat',
-    aliases: PLATFORM.emptyArray,
-    defaultBindingMode: BindingMode.toView,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
-    strategy: 1 /* getterSetter */,
-    hooks: Object.freeze(new HooksDefinition(Repeat.prototype)),
-});
+};
+__decorate([
+    bindable
+], Repeat.prototype, "items", void 0);
+Repeat = __decorate([
+    templateController('repeat'),
+    __param(0, IRenderLocation),
+    __param(1, IController),
+    __param(2, IViewFactory)
+], Repeat);
+export { Repeat };
 let prevIndices;
 let tailIndices;
 let maxLen = 0;

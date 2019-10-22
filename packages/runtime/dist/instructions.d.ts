@@ -1,6 +1,7 @@
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, ITemplateDefinition, TargetedInstructionType } from './definitions';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, TargetedInstructionType, PartialCustomElementDefinitionParts } from './definitions';
 import { BindingMode } from './flags';
+import { PartialCustomElementDefinition } from './resources/custom-element';
 export declare class InterpolationInstruction implements IInterpolationInstruction {
     type: TargetedInstructionType.interpolation;
     from: string | IInterpolationExpression;
@@ -66,9 +67,9 @@ export declare class SetPropertyInstruction implements ISetPropertyInstruction {
 export declare class HydrateElementInstruction implements IHydrateElementInstruction {
     type: TargetedInstructionType.hydrateElement;
     instructions: ITargetedInstruction[];
-    parts?: Record<string, ITemplateDefinition>;
+    parts?: PartialCustomElementDefinitionParts;
     res: string;
-    constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, ITemplateDefinition>);
+    constructor(res: string, instructions: ITargetedInstruction[], parts?: PartialCustomElementDefinitionParts);
 }
 export declare class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
     type: TargetedInstructionType.hydrateAttribute;
@@ -78,12 +79,12 @@ export declare class HydrateAttributeInstruction implements IHydrateAttributeIns
 }
 export declare class HydrateTemplateController implements IHydrateTemplateController {
     type: TargetedInstructionType.hydrateTemplateController;
-    def: ITemplateDefinition;
+    def: PartialCustomElementDefinition;
     instructions: ITargetedInstruction[];
     link?: boolean;
-    parts?: Record<string, ITemplateDefinition>;
+    parts?: PartialCustomElementDefinitionParts;
     res: string;
-    constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean, parts?: Record<string, ITemplateDefinition>);
+    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean, parts?: PartialCustomElementDefinitionParts);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
     type: TargetedInstructionType.hydrateLetElement;

@@ -1,4 +1,4 @@
-import { AttrSyntax, BindingSymbol, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
 import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 export declare const TranslationParametersInstructionType = "tpt";
 declare const attribute = "t-params.bind";
@@ -12,7 +12,7 @@ export declare class TranslationParametersBindingInstruction {
     mode: BindingMode.toView;
     constructor(from: IsBindingBehavior, to: string);
 }
-export declare class TranslationParametersBindingCommand implements IBindingCommand {
+export declare class TranslationParametersBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.BindCommand;
     compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationParametersBindingInstruction;
 }

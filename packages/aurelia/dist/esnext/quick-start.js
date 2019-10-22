@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { DI } from '@aurelia/kernel';
-import { Aurelia as $Aurelia } from '@aurelia/runtime';
+import { Aurelia as $Aurelia, CustomElement } from '@aurelia/runtime';
 // TODO: SSR?? abstract HTMLElement and document.
 function createAurelia() {
     const au = new Aurelia();
@@ -31,11 +31,10 @@ export class Aurelia extends $Aurelia {
         return createAurelia().register(...params);
     }
     app(config) {
-        const comp = config;
-        if (comp && comp.kind && comp.kind.name === 'custom-element') {
+        if (CustomElement.isType(config)) {
             // Default to custom element element name
-            const elementName = comp.description && comp.description.name;
-            let host = document.querySelector(elementName);
+            const definition = CustomElement.getDefinition(config);
+            let host = document.querySelector(definition.name);
             if (host === null) {
                 // When no target is found, default to body.
                 // For example, when user forgot to write <my-app></my-app> in html.
@@ -43,7 +42,7 @@ export class Aurelia extends $Aurelia {
             }
             return super.app({
                 host: host,
-                component: comp
+                component: config
             });
         }
         return super.app(config);

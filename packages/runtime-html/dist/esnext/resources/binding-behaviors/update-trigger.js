@@ -1,7 +1,8 @@
+import { __decorate, __param } from "tslib";
 import { Reporter } from '@aurelia/kernel';
-import { BindingBehavior, BindingMode, IDOM, IObserverLocator } from '@aurelia/runtime';
+import { BindingMode, IDOM, IObserverLocator, bindingBehavior } from '@aurelia/runtime';
 import { EventSubscriber } from '../../observation/event-manager';
-export class UpdateTriggerBindingBehavior {
+let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
     constructor(observerLocator) {
         this.observerLocator = observerLocator;
     }
@@ -30,7 +31,10 @@ export class UpdateTriggerBindingBehavior {
         binding.targetObserver.handler = binding.targetObserver.originalHandler;
         binding.targetObserver.originalHandler = null;
     }
-}
-UpdateTriggerBindingBehavior.inject = [IObserverLocator];
-BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);
+};
+UpdateTriggerBindingBehavior = __decorate([
+    bindingBehavior('updateTrigger'),
+    __param(0, IObserverLocator)
+], UpdateTriggerBindingBehavior);
+export { UpdateTriggerBindingBehavior };
 //# sourceMappingURL=update-trigger.js.map

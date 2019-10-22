@@ -1,23 +1,21 @@
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const slice = Array.prototype.slice;
-// Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
-// https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
-// https://rbuckton.github.io/reflect-metadata/
-// As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
-if (!('getOwnMetadata' in Reflect)) {
-    /* eslint-disable @typescript-eslint/ban-types */
-    Reflect.getOwnMetadata = function (metadataKey, target) {
-        return target[metadataKey];
-    };
-    Reflect.metadata = function (metadataKey, metadataValue) {
-        return function (target) {
-            target[metadataKey] = metadataValue;
-        };
-    };
+import { Protocol } from './resource';
+import { Metadata } from './metadata';
+import { isNumeric } from './functions';
+function cloneArrayWithPossibleProps(source) {
+    const clone = source.slice();
+    const keys = Object.keys(source);
+    const len = keys.length;
+    let key;
+    for (let i = 0; i < len; ++i) {
+        key = keys[i];
+        if (!isNumeric(key)) {
+            clone[key] = source[key];
+        }
+    }
+    return clone;
 }
-const hasOwnProperty = PLATFORM.hasOwnProperty;
 export class DI {
     constructor() { return; }
     static createContainer(...params) {
@@ -28,27 +26,88 @@ export class DI {
             return new Container(null).register(...params);
         }
     }
-    static getDesignParamTypes(target) {
-        const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target);
-        if (paramTypes == null) {
-            return PLATFORM.emptyArray;
+    static getDesignParamtypes(Type) {
+        return Metadata.getOwn('design:paramtypes', Type);
+    }
+    static getAnnotationParamtypes(Type) {
+        const key = Protocol.annotation.keyFor('di:paramtypes');
+        return Metadata.getOwn(key, Type);
+    }
+    static getOrCreateAnnotationParamTypes(Type) {
+        const key = Protocol.annotation.keyFor('di:paramtypes');
+        let annotationParamtypes = Metadata.getOwn(key, Type);
+        if (annotationParamtypes === void 0) {
+            Metadata.define(key, annotationParamtypes = [], Type);
+            Protocol.annotation.appendTo(Type, key);
         }
-        return paramTypes;
+        return annotationParamtypes;
     }
     static getDependencies(Type) {
-        let dependencies;
-        if (Type.inject == null) {
-            dependencies = DI.getDesignParamTypes(Type);
-        }
-        else {
-            dependencies = [];
-            let ctor = Type;
-            while (typeof ctor === 'function') {
-                if (hasOwnProperty.call(ctor, 'inject')) {
-                    dependencies.push(...ctor.inject);
+        // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
+        // so be careful with making changes here as it can have a huge impact on complex end user apps.
+        // Preferably, only make changes to the dependency resolution process via a RFC.
+        const key = Protocol.annotation.keyFor('di:dependencies');
+        let dependencies = Metadata.getOwn(key, Type);
+        if (dependencies === void 0) {
+            // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
+            // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
+            // Non-zero constructor length + no paramtypes means emitDecoratorMetadata is off, or the class has no decorator.
+            // We're not doing anything with the above right now, but it's good to keep in mind for any future issues.
+            const inject = Type.inject;
+            if (inject === void 0) {
+                // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
+                const designParamtypes = DI.getDesignParamtypes(Type);
+                // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
+                const annotationParamtypes = DI.getAnnotationParamtypes(Type);
+                if (designParamtypes === void 0) {
+                    if (annotationParamtypes === void 0) {
+                        // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
+                        // there is no sound way to merge a type's deps with its prototype's deps
+                        const Proto = Object.getPrototypeOf(Type);
+                        if (typeof Proto === 'function' && Proto !== Function.prototype) {
+                            dependencies = cloneArrayWithPossibleProps(DI.getDependencies(Proto));
+                        }
+                        else {
+                            dependencies = [];
+                        }
+                    }
+                    else {
+                        // No design:paramtypes so just use the au:annotation:di:paramtypes
+                        dependencies = cloneArrayWithPossibleProps(annotationParamtypes);
+                    }
                 }
-                ctor = Object.getPrototypeOf(ctor);
+                else if (annotationParamtypes === void 0) {
+                    // No au:annotation:di:paramtypes so just use the design:paramtypes
+                    dependencies = cloneArrayWithPossibleProps(designParamtypes);
+                }
+                else {
+                    // We've got both, so merge them (in case of conflict on same index, au:annotation:di:paramtypes take precedence)
+                    dependencies = cloneArrayWithPossibleProps(designParamtypes);
+                    let len = annotationParamtypes.length;
+                    let auAnnotationParamtype;
+                    for (let i = 0; i < len; ++i) {
+                        auAnnotationParamtype = annotationParamtypes[i];
+                        if (auAnnotationParamtype !== void 0) {
+                            dependencies[i] = auAnnotationParamtype;
+                        }
+                    }
+                    const keys = Object.keys(annotationParamtypes);
+                    len = keys.length;
+                    let key;
+                    for (let i = 0; i < len; ++i) {
+                        key = keys[i];
+                        if (!isNumeric(key)) {
+                            dependencies[key] = annotationParamtypes[key];
+                        }
+                    }
+                }
             }
+            else {
+                // Ignore paramtypes if we have static inject
+                dependencies = cloneArrayWithPossibleProps(inject);
+            }
+            Metadata.define(key, dependencies, Type);
+            Protocol.annotation.appendTo(Type, key);
         }
         return dependencies;
     }
@@ -57,10 +116,8 @@ export class DI {
             if (target == null) {
                 throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
             }
-            if (target.inject == null) {
-                target.inject = [];
-            }
-            target.inject[index] = Interface;
+            const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+            annotationParamtypes[index] = Interface;
             return target;
         };
         Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
@@ -98,34 +155,38 @@ export class DI {
     static inject(...dependencies) {
         return function (target, key, descriptor) {
             if (typeof descriptor === 'number') { // It's a parameter decorator.
-                if (!hasOwnProperty.call(target, 'inject')) {
-                    const types = DI.getDesignParamTypes(target);
-                    target.inject = types.slice();
-                }
-                if (dependencies.length === 1) {
-                    // We know for sure that it's not void 0 due to the above check.
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    target.inject[descriptor] = dependencies[0];
+                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                const dep = dependencies[0];
+                if (dep !== void 0) {
+                    annotationParamtypes[descriptor] = dep;
                 }
             }
             else if (key) { // It's a property decorator. Not supported by the container without plugins.
-                const actualTarget = target.constructor;
-                if (actualTarget.inject == null) {
-                    actualTarget.inject = [];
+                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target.constructor);
+                const dep = dependencies[0];
+                if (dep !== void 0) {
+                    annotationParamtypes[key] = dep;
                 }
-                actualTarget.inject[key] = dependencies[0];
             }
             else if (descriptor) { // It's a function decorator (not a Class constructor)
                 const fn = descriptor.value;
-                fn.inject = dependencies;
+                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(fn);
+                let dep;
+                for (let i = 0; i < dependencies.length; ++i) {
+                    dep = dependencies[i];
+                    if (dep !== void 0) {
+                        annotationParamtypes[i] = dep;
+                    }
+                }
             }
             else { // It's a class decorator.
-                if (dependencies.length === 0) {
-                    const types = DI.getDesignParamTypes(target);
-                    target.inject = types.slice();
-                }
-                else {
-                    target.inject = dependencies;
+                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                let dep;
+                for (let i = 0; i < dependencies.length; ++i) {
+                    dep = dependencies[i];
+                    if (dep !== void 0) {
+                        annotationParamtypes[i] = dep;
+                    }
                 }
             }
         };
@@ -251,11 +312,17 @@ export class Resolver {
             case 1 /* singleton */: {
                 this.strategy = 0 /* instance */;
                 const factory = handler.getFactory(this.state);
-                return this.state = factory.construct(handler);
+                if (factory === null) {
+                    throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+                }
+                return this.state = factory.construct(requestor);
             }
             case 2 /* transient */: {
                 // Always create transients from the requesting container
                 const factory = handler.getFactory(this.state);
+                if (factory === null) {
+                    throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+                }
                 return factory.construct(requestor);
             }
             case 3 /* callback */:
@@ -293,11 +360,6 @@ export class Factory {
         this.dependencies = dependencies;
         this.transformers = null;
     }
-    static create(Type) {
-        const dependencies = DI.getDependencies(Type);
-        const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
-        return new Factory(Type, invoker, dependencies);
-    }
     construct(container, dynamicDependencies) {
         const transformers = this.transformers;
         let instance = dynamicDependencies !== void 0
@@ -319,6 +381,73 @@ export class Factory {
         return true;
     }
 }
+const createFactory = (function () {
+    function invokeWithDynamicDependencies(container, Type, staticDependencies, dynamicDependencies) {
+        let i = staticDependencies.length;
+        let args = new Array(i);
+        let lookup;
+        while (i-- > 0) {
+            lookup = staticDependencies[i];
+            if (lookup == null) {
+                throw Reporter.error(7, `Index ${i}.`);
+            }
+            else {
+                args[i] = container.get(lookup);
+            }
+        }
+        if (dynamicDependencies !== void 0) {
+            args = args.concat(dynamicDependencies);
+        }
+        return Reflect.construct(Type, args);
+    }
+    const classInvokers = [
+        {
+            invoke(container, Type) {
+                return new Type();
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
+            },
+            invokeWithDynamicDependencies
+        }
+    ];
+    const fallbackInvoker = {
+        invoke: invokeWithDynamicDependencies,
+        invokeWithDynamicDependencies
+    };
+    return function (Type) {
+        const dependencies = DI.getDependencies(Type);
+        const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
+        return new Factory(Type, invoker, dependencies);
+    };
+})();
 const containerResolver = {
     resolve(handler, requestor) {
         return requestor;
@@ -346,14 +475,14 @@ export class Container {
         this.id = nextContainerId();
         this.registerDepth = 0;
         if (parent === null) {
+            this.path = this.id.toString();
             this.root = this;
-            this.factories = new Map();
             this.resolvers = new Map();
             this.resourceResolvers = Object.create(null);
         }
         else {
+            this.path = `${parent.path}.${this.id}`;
             this.root = parent.root;
-            this.factories = new Map(parent.factories);
             this.resolvers = new Map();
             this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
         }
@@ -375,6 +504,19 @@ export class Container {
             current = params[i];
             if (isRegistry(current)) {
                 current.register(this);
+            }
+            else if (Protocol.resource.has(current)) {
+                const defs = Protocol.resource.getAll(current);
+                if (defs.length === 1) {
+                    // Fast path for the very common case
+                    defs[0].register(this);
+                }
+                else {
+                    const len = defs.length;
+                    for (let d = 0; d < len; ++d) {
+                        defs[d].register(this);
+                    }
+                }
             }
             else if (isClass(current)) {
                 Registration.singleton(current, current).register(this);
@@ -503,10 +645,12 @@ export class Container {
         }
         return PLATFORM.emptyArray;
     }
-    getFactory(key) {
-        let factory = this.factories.get(key);
-        if (factory == null) {
-            this.factories.set(key, factory = Factory.create(key));
+    getFactory(Type) {
+        const key = Protocol.annotation.keyFor('di:factory');
+        let factory = Metadata.getOwn(key, Type);
+        if (factory === void 0) {
+            Metadata.define(key, factory = createFactory(Type), Type);
+            Protocol.annotation.appendTo(Type, key);
         }
         return factory;
     }
@@ -517,7 +661,7 @@ export class Container {
         if (typeof keyAsValue !== 'function') {
             throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
         }
-        if (keyAsValue.register !== void 0) {
+        if (isRegistry(keyAsValue)) {
             const registrationResolver = keyAsValue.register(handler, keyAsValue);
             if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
                 const newResolver = handler.resolvers.get(keyAsValue);
@@ -528,9 +672,29 @@ export class Container {
             }
             return registrationResolver;
         }
-        const resolver = new Resolver(keyAsValue, 1 /* singleton */, keyAsValue);
-        handler.resolvers.set(keyAsValue, resolver);
-        return resolver;
+        else if (Protocol.resource.has(keyAsValue)) {
+            const defs = Protocol.resource.getAll(keyAsValue);
+            if (defs.length === 1) {
+                // Fast path for the very common case
+                defs[0].register(handler);
+            }
+            else {
+                const len = defs.length;
+                for (let d = 0; d < len; ++d) {
+                    defs[d].register(handler);
+                }
+            }
+            const newResolver = handler.resolvers.get(keyAsValue);
+            if (newResolver != void 0) {
+                return newResolver;
+            }
+            throw Reporter.error(40); // did not return a valid resolver from the static register method
+        }
+        else {
+            const resolver = new Resolver(keyAsValue, 1 /* singleton */, keyAsValue);
+            handler.resolvers.set(keyAsValue, resolver);
+            return resolver;
+        }
     }
 }
 /**
@@ -609,68 +773,5 @@ function buildAllResponse(resolver, handler, requestor) {
         return results;
     }
     return [resolver.resolve(handler, requestor)];
-}
-/** @internal */
-export const classInvokers = [
-    {
-        invoke(container, Type) {
-            return new Type();
-        },
-        invokeWithDynamicDependencies
-    },
-    {
-        invoke(container, Type, deps) {
-            return new Type(container.get(deps[0]));
-        },
-        invokeWithDynamicDependencies
-    },
-    {
-        invoke(container, Type, deps) {
-            return new Type(container.get(deps[0]), container.get(deps[1]));
-        },
-        invokeWithDynamicDependencies
-    },
-    {
-        invoke(container, Type, deps) {
-            return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
-        },
-        invokeWithDynamicDependencies
-    },
-    {
-        invoke(container, Type, deps) {
-            return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
-        },
-        invokeWithDynamicDependencies
-    },
-    {
-        invoke(container, Type, deps) {
-            return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
-        },
-        invokeWithDynamicDependencies
-    }
-];
-/** @internal */
-export const fallbackInvoker = {
-    invoke: invokeWithDynamicDependencies,
-    invokeWithDynamicDependencies
-};
-/** @internal */
-export function invokeWithDynamicDependencies(container, Type, staticDependencies, dynamicDependencies) {
-    let i = staticDependencies.length;
-    let args = new Array(i);
-    let lookup;
-    while (i--) {
-        lookup = staticDependencies[i];
-        if (lookup == null) {
-            throw Reporter.error(7, `Index ${i}.`);
-        }
-        else {
-            args[i] = container.get(lookup);
-        }
-    }
-    if (dynamicDependencies !== void 0) {
-        args = args.concat(dynamicDependencies);
-    }
-    return Reflect.construct(Type, args);
 }
 //# sourceMappingURL=di.js.map

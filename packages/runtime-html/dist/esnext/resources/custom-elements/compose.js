@@ -1,15 +1,20 @@
-import { nextId, PLATFORM, Registration, } from '@aurelia/kernel';
-import { Bindable, BindingMode, ContinuationTask, CustomElement, HooksDefinition, IController, IDOM, IRenderingEngine, ITargetedInstruction, LifecycleTask, PromiseTask, } from '@aurelia/runtime';
+import { __decorate, __param } from "tslib";
+import { nextId, PLATFORM, } from '@aurelia/kernel';
+import { BindingMode, ContinuationTask, IController, IDOM, IRenderingEngine, ITargetedInstruction, LifecycleTask, PromiseTask, bindable, customElement, } from '@aurelia/runtime';
 import { createElement, } from '../../create-element';
 const bindables = ['subject', 'composing'];
-export class Compose {
+let Compose = class Compose {
     constructor(dom, renderable, instruction, renderingEngine) {
+        this.dom = dom;
+        this.renderable = renderable;
+        this.instruction = instruction;
+        this.renderingEngine = renderingEngine;
         this.id = nextId('au$component');
         this.subject = void 0;
         this.composing = false;
-        this.dom = dom;
-        this.renderable = renderable;
-        this.renderingEngine = renderingEngine;
+        this.view = void 0;
+        this.task = LifecycleTask.done;
+        this.lastSubject = void 0;
         this.properties = instruction.instructions
             .filter((x) => !bindables.includes(x.to))
             .reduce((acc, item) => {
@@ -18,13 +23,6 @@ export class Compose {
             }
             return acc;
         }, {});
-        this.task = LifecycleTask.done;
-        this.lastSubject = void 0;
-        this.view = void 0;
-    }
-    static register(container) {
-        container.register(Registration.transient('custom-element:au-compose', this));
-        container.register(Registration.transient(this, this));
     }
     binding(flags) {
         if (this.task.done) {
@@ -183,33 +181,19 @@ export class Compose {
             ? PLATFORM.emptyArray
             : this.$controller.projector.children).createView(flags, this.renderingEngine, this.renderable.context);
     }
-}
-Compose.inject = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
-Compose.kind = CustomElement;
-Compose.description = Object.freeze({
-    name: 'au-compose',
-    template: null,
-    cache: 0,
-    build: Object.freeze({ compiler: 'default', required: false }),
-    bindables: Object.freeze({
-        subject: Bindable.for({ bindables: ['subject'] }).get().subject,
-        composing: {
-            ...Bindable.for({ bindables: ['composing'] }).get().composing,
-            mode: BindingMode.fromView,
-        },
-    }),
-    instructions: PLATFORM.emptyArray,
-    dependencies: PLATFORM.emptyArray,
-    surrogates: PLATFORM.emptyArray,
-    aliases: PLATFORM.emptyArray,
-    containerless: true,
-    isStrictBinding: true,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    shadowOptions: null,
-    hasSlots: false,
-    strategy: 1 /* getterSetter */,
-    hooks: Object.freeze(new HooksDefinition(Compose.prototype)),
-    scopeParts: PLATFORM.emptyArray,
-    childrenObservers: PLATFORM.emptyObject
-});
+};
+__decorate([
+    bindable
+], Compose.prototype, "subject", void 0);
+__decorate([
+    bindable({ mode: BindingMode.fromView })
+], Compose.prototype, "composing", void 0);
+Compose = __decorate([
+    customElement({ name: 'au-compose', template: null, containerless: true }),
+    __param(0, IDOM),
+    __param(1, IController),
+    __param(2, ITargetedInstruction),
+    __param(3, IRenderingEngine)
+], Compose);
+export { Compose };
 //# sourceMappingURL=compose.js.map

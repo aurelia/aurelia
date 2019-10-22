@@ -4,23 +4,28 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "../../create-element"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const create_element_1 = require("../../create-element");
     const bindables = ['subject', 'composing'];
-    class Compose {
+    let Compose = class Compose {
         constructor(dom, renderable, instruction, renderingEngine) {
+            this.dom = dom;
+            this.renderable = renderable;
+            this.instruction = instruction;
+            this.renderingEngine = renderingEngine;
             this.id = kernel_1.nextId('au$component');
             this.subject = void 0;
             this.composing = false;
-            this.dom = dom;
-            this.renderable = renderable;
-            this.renderingEngine = renderingEngine;
+            this.view = void 0;
+            this.task = runtime_1.LifecycleTask.done;
+            this.lastSubject = void 0;
             this.properties = instruction.instructions
                 .filter((x) => !bindables.includes(x.to))
                 .reduce((acc, item) => {
@@ -29,13 +34,6 @@
                 }
                 return acc;
             }, {});
-            this.task = runtime_1.LifecycleTask.done;
-            this.lastSubject = void 0;
-            this.view = void 0;
-        }
-        static register(container) {
-            container.register(kernel_1.Registration.transient('custom-element:au-compose', this));
-            container.register(kernel_1.Registration.transient(this, this));
         }
         binding(flags) {
             if (this.task.done) {
@@ -194,35 +192,20 @@
                 ? kernel_1.PLATFORM.emptyArray
                 : this.$controller.projector.children).createView(flags, this.renderingEngine, this.renderable.context);
         }
-    }
+    };
+    tslib_1.__decorate([
+        runtime_1.bindable
+    ], Compose.prototype, "subject", void 0);
+    tslib_1.__decorate([
+        runtime_1.bindable({ mode: runtime_1.BindingMode.fromView })
+    ], Compose.prototype, "composing", void 0);
+    Compose = tslib_1.__decorate([
+        runtime_1.customElement({ name: 'au-compose', template: null, containerless: true }),
+        tslib_1.__param(0, runtime_1.IDOM),
+        tslib_1.__param(1, runtime_1.IController),
+        tslib_1.__param(2, runtime_1.ITargetedInstruction),
+        tslib_1.__param(3, runtime_1.IRenderingEngine)
+    ], Compose);
     exports.Compose = Compose;
-    Compose.inject = [runtime_1.IDOM, runtime_1.IController, runtime_1.ITargetedInstruction, runtime_1.IRenderingEngine];
-    Compose.kind = runtime_1.CustomElement;
-    Compose.description = Object.freeze({
-        name: 'au-compose',
-        template: null,
-        cache: 0,
-        build: Object.freeze({ compiler: 'default', required: false }),
-        bindables: Object.freeze({
-            subject: runtime_1.Bindable.for({ bindables: ['subject'] }).get().subject,
-            composing: {
-                ...runtime_1.Bindable.for({ bindables: ['composing'] }).get().composing,
-                mode: runtime_1.BindingMode.fromView,
-            },
-        }),
-        instructions: kernel_1.PLATFORM.emptyArray,
-        dependencies: kernel_1.PLATFORM.emptyArray,
-        surrogates: kernel_1.PLATFORM.emptyArray,
-        aliases: kernel_1.PLATFORM.emptyArray,
-        containerless: true,
-        isStrictBinding: true,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        shadowOptions: null,
-        hasSlots: false,
-        strategy: 1 /* getterSetter */,
-        hooks: Object.freeze(new runtime_1.HooksDefinition(Compose.prototype)),
-        scopeParts: kernel_1.PLATFORM.emptyArray,
-        childrenObservers: kernel_1.PLATFORM.emptyObject
-    });
 });
 //# sourceMappingURL=compose.js.map

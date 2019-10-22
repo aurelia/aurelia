@@ -3,7 +3,7 @@ import { IActivator } from './activator';
 import { INode } from './dom';
 import { ILifecycle, } from './lifecycle';
 import { ContinuationTask, IStartTaskManager, LifecycleTask, } from './lifecycle-task';
-import { CustomElement } from './resources/custom-element';
+import { CustomElement, } from './resources/custom-element';
 import { Controller } from './templating/controller';
 export class CompositionRoot {
     constructor(config, container) {

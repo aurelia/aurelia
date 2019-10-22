@@ -16,10 +16,10 @@ export const ComponentAppellationResolver = {
             return component;
         }
         else if (ComponentAppellationResolver.isType(component)) {
-            return component.description.name;
+            return CustomElement.getDefinition(component).name;
         }
         else {
-            return component.constructor.description.name;
+            return ComponentAppellationResolver.getName(component.constructor);
         }
     },
     getType: function (component) {

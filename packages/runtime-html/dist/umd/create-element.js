@@ -12,7 +12,6 @@
     const runtime_1 = require("@aurelia/runtime");
     const definitions_1 = require("./definitions");
     const instructions_1 = require("./instructions");
-    const slice = Array.prototype.slice;
     function createElement(dom, tagOrType, props, children) {
         if (typeof tagOrType === 'string') {
             return createElementForTag(dom, tagOrType, props, children);
@@ -31,14 +30,20 @@
     class RenderPlan {
         constructor(dom, node, instructions, dependencies) {
             this.dom = dom;
-            this.dependencies = dependencies;
-            this.instructions = instructions;
             this.node = node;
+            this.instructions = instructions;
+            this.dependencies = dependencies;
             this.lazyDefinition = void 0;
         }
         get definition() {
             if (this.lazyDefinition === void 0) {
-                this.lazyDefinition = runtime_1.buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies);
+                this.lazyDefinition = runtime_1.CustomElementDefinition.create({
+                    name: runtime_1.CustomElement.generateName(),
+                    template: this.node,
+                    needsCompile: typeof this.node === 'string',
+                    instructions: this.instructions,
+                    dependencies: this.dependencies,
+                });
             }
             return this.lazyDefinition;
         }
@@ -88,12 +93,13 @@
         return new RenderPlan(dom, element, allInstructions, dependencies);
     }
     function createElementForType(dom, Type, props, children) {
-        const tagName = Type.description.name;
+        const definition = runtime_1.CustomElement.getDefinition(Type);
+        const tagName = definition.name;
         const instructions = [];
         const allInstructions = [instructions];
         const dependencies = [];
         const childInstructions = [];
-        const bindables = Type.description.bindables;
+        const bindables = definition.bindables;
         const element = dom.createElement(tagName);
         dom.makeTarget(element);
         if (!dependencies.includes(Type)) {

@@ -1,7 +1,7 @@
 import { IResourceDescriptions } from '@aurelia/kernel';
-import { AttributeDefinition, BindingMode, TemplateDefinition } from '@aurelia/runtime';
+import { CustomAttributeDefinition, BindingMode, CustomElementDefinition } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
-import { IBindingCommand } from './binding-command';
+import { BindingCommandInstance } from './binding-command';
 /**
  * A pre-processed piece of information about a defined bindable property on a custom
  * element or attribute, optimized for consumption by the template compiler.
@@ -54,7 +54,7 @@ export declare class ElementInfo {
      */
     bindables: Record<string, BindableInfo | undefined>;
     constructor(name: string, containerless: boolean);
-    static from(def: TemplateDefinition): ElementInfo;
+    static from(def: CustomElementDefinition): ElementInfo;
 }
 /**
  * Pre-processed information about a custom attribute resource, optimized
@@ -79,7 +79,7 @@ export declare class AttrInfo {
      */
     bindable: BindableInfo | null;
     constructor(name: string, isTemplateController: boolean);
-    static from(def: AttributeDefinition): AttrInfo;
+    static from(def: CustomAttributeDefinition): AttrInfo;
 }
 /**
  * A pre-processed piece of information about declared custom elements, attributes and
@@ -114,6 +114,6 @@ export declare class ResourceModel {
      *
      * @returns An instance of the command if it exists, or `null` if it does not exist.
      */
-    getBindingCommand(syntax: AttrSyntax, optional: boolean): IBindingCommand | null;
+    getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null;
 }
 //# sourceMappingURL=resource-model.d.ts.map

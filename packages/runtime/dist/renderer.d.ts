@@ -1,6 +1,6 @@
 import { Class, IRegistry } from '@aurelia/kernel';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, TemplatePartDefinitions } from './definitions';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, PartialCustomElementDefinitionParts } from './definitions';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { IBinding, IController, IRenderContext } from './lifecycle';
@@ -28,7 +28,7 @@ export declare class TemplateControllerRenderer implements IInstructionRenderer 
     private readonly renderingEngine;
     private readonly observerLocator;
     constructor(renderingEngine: IRenderingEngine, observerLocator: IObserverLocator);
-    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: PartialCustomElementDefinitionParts): void;
 }
 export declare class LetElementRenderer implements IInstructionRenderer {
     private readonly parser;

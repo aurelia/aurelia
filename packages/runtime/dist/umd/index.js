@@ -120,6 +120,7 @@
     var binding_behavior_1 = require("./resources/binding-behavior");
     exports.bindingBehavior = binding_behavior_1.bindingBehavior;
     exports.BindingBehavior = binding_behavior_1.BindingBehavior;
+    exports.BindingBehaviorDefinition = binding_behavior_1.BindingBehaviorDefinition;
     var binding_mode_1 = require("./resources/binding-behaviors/binding-mode");
     exports.BindingModeBehavior = binding_mode_1.BindingModeBehavior;
     exports.OneTimeBindingBehavior = binding_mode_1.OneTimeBindingBehavior;
@@ -137,6 +138,7 @@
     var custom_attribute_1 = require("./resources/custom-attribute");
     exports.customAttribute = custom_attribute_1.customAttribute;
     exports.CustomAttribute = custom_attribute_1.CustomAttribute;
+    exports.CustomAttributeDefinition = custom_attribute_1.CustomAttributeDefinition;
     exports.templateController = custom_attribute_1.templateController;
     var flags_1 = require("./resources/custom-attributes/flags");
     exports.FrequentMutations = flags_1.FrequentMutations;
@@ -155,11 +157,13 @@
     exports.containerless = custom_element_1.containerless;
     exports.customElement = custom_element_1.customElement;
     exports.CustomElement = custom_element_1.CustomElement;
+    exports.CustomElementDefinition = custom_element_1.CustomElementDefinition;
     exports.IProjectorLocator = custom_element_1.IProjectorLocator;
     exports.useShadowDOM = custom_element_1.useShadowDOM;
     var value_converter_1 = require("./resources/value-converter");
-    exports.valueConverter = value_converter_1.valueConverter;
     exports.ValueConverter = value_converter_1.ValueConverter;
+    exports.ValueConverterDefinition = value_converter_1.ValueConverterDefinition;
+    exports.valueConverter = value_converter_1.valueConverter;
     var sanitize_1 = require("./resources/value-converters/sanitize");
     exports.ISanitizer = sanitize_1.ISanitizer;
     exports.SanitizeValueConverter = sanitize_1.SanitizeValueConverter;
@@ -167,8 +171,11 @@
     exports.ViewValueConverter = view_1.ViewValueConverter;
     var bindable_1 = require("./templating/bindable");
     exports.bindable = bindable_1.bindable;
+    exports.BindableDefinition = bindable_1.BindableDefinition;
     exports.Bindable = bindable_1.Bindable;
     var children_1 = require("./templating/children");
+    exports.ChildrenDefinition = children_1.ChildrenDefinition;
+    exports.Children = children_1.Children;
     exports.children = children_1.children;
     // These exports are temporary until we have a proper way to unit test them
     var controller_1 = require("./templating/controller");
@@ -178,6 +185,7 @@
     exports.IViewLocator = view_2.IViewLocator;
     exports.ViewLocator = view_2.ViewLocator;
     exports.view = view_2.view;
+    exports.Views = view_2.Views;
     var aurelia_1 = require("./aurelia");
     exports.Aurelia = aurelia_1.Aurelia;
     exports.IDOMInitializer = aurelia_1.IDOMInitializer;
@@ -213,7 +221,6 @@
     exports.IRendererRegistration = configuration_1.IRendererRegistration;
     exports.RuntimeConfiguration = configuration_1.RuntimeConfiguration;
     var definitions_1 = require("./definitions");
-    exports.buildTemplateDefinition = definitions_1.buildTemplateDefinition;
     exports.HooksDefinition = definitions_1.HooksDefinition;
     exports.isTargetedInstruction = definitions_1.isTargetedInstruction;
     exports.ITargetedInstruction = definitions_1.ITargetedInstruction;

@@ -1,4 +1,10 @@
 import { Reporter as RuntimeReporter } from '@aurelia/kernel';
+function applyFormat(message, ...params) {
+    while (message.includes('%s')) {
+        message = message.replace('%s', String(params.shift()));
+    }
+    return message;
+}
 export const Reporter = {
     ...RuntimeReporter,
     get level() {
@@ -23,13 +29,14 @@ export const Reporter = {
                     console.warn(message, ...params);
                 }
                 break;
-            case 0 /* error */:
+            case 0 /* error */: {
                 throw this.error(code, ...params);
+            }
         }
     },
     error(code, ...params) {
         const info = getMessageInfoForCode(code);
-        const error = new Error(`Code ${code}: ${info.message}`);
+        const error = new Error(`Code ${code}: ${applyFormat(info.message, ...params)}`);
         error.data = params;
         return error;
     }
@@ -107,7 +114,7 @@ const codeLookup = {
     },
     16: {
         level: 0 /* error */,
-        message: 'Only one child observer per content view is supported for the life of the content view.'
+        message: 'A dependency registration is missing for the interface %s.'
     },
     17: {
         level: 0 /* error */,

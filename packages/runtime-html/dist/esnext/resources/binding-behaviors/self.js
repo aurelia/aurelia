@@ -1,5 +1,6 @@
+import { __decorate } from "tslib";
 import { Reporter } from '@aurelia/kernel';
-import { BindingBehavior } from '@aurelia/runtime';
+import { bindingBehavior } from '@aurelia/runtime';
 import { findOriginalEventTarget } from '../../observation/event-manager';
 /** @internal */
 export function handleSelfEvent(event) {
@@ -9,7 +10,7 @@ export function handleSelfEvent(event) {
     }
     return this.selfEventCallSource(event);
 }
-export class SelfBindingBehavior {
+let SelfBindingBehavior = class SelfBindingBehavior {
     bind(flags, scope, binding) {
         if (!binding.callSource || !binding.targetEvent) {
             throw Reporter.error(8);
@@ -21,6 +22,9 @@ export class SelfBindingBehavior {
         binding.callSource = binding.selfEventCallSource;
         binding.selfEventCallSource = null;
     }
-}
-BindingBehavior.define('self', SelfBindingBehavior);
+};
+SelfBindingBehavior = __decorate([
+    bindingBehavior('self')
+], SelfBindingBehavior);
+export { SelfBindingBehavior };
 //# sourceMappingURL=self.js.map

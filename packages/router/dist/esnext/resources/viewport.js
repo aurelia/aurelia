@@ -1,11 +1,10 @@
-import { __decorate } from "tslib";
-import { bindable, CustomElement, IDOM, INode, IRenderingEngine, RenderContext } from '@aurelia/runtime';
-import { IRouter, } from '../router';
-export class ViewportCustomElement {
-    constructor(router, element, renderingEngine) {
+import { __decorate, __param } from "tslib";
+import { bindable, INode, customElement, } from '@aurelia/runtime';
+import { IRouter } from '../router';
+let ViewportCustomElement = class ViewportCustomElement {
+    constructor(router, element) {
         this.router = router;
         this.element = element;
-        this.renderingEngine = renderingEngine;
         this.name = 'default';
         this.usedBy = '';
         this.default = '';
@@ -14,16 +13,6 @@ export class ViewportCustomElement {
         this.noHistory = false;
         this.stateful = false;
         this.viewport = null;
-    }
-    render(flags, host, parts, parentContext) {
-        const Type = this.constructor;
-        if (!parentContext) {
-            parentContext = this.$controller.context;
-        }
-        const dom = parentContext.get(IDOM);
-        const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-        template.renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
-        template.render(this, host, parts);
     }
     // public created(...rest): void {
     //   console.log('Created', rest);
@@ -110,8 +99,7 @@ export class ViewportCustomElement {
             await this.viewport.unbinding(flags);
         }
     }
-}
-ViewportCustomElement.inject = [IRouter, INode, IRenderingEngine];
+};
 __decorate([
     bindable
 ], ViewportCustomElement.prototype, "name", void 0);
@@ -133,6 +121,19 @@ __decorate([
 __decorate([
     bindable
 ], ViewportCustomElement.prototype, "stateful", void 0);
-// eslint-disable-next-line no-template-curly-in-string
-CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);
+ViewportCustomElement = __decorate([
+    customElement({
+        name: 'au-viewport',
+        template: `
+    <template>
+      <div class="viewport-header" style="display: none;">
+        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
+      </div>
+    </template>
+  `.replace(/\s+/g, '')
+    }),
+    __param(0, IRouter),
+    __param(1, INode)
+], ViewportCustomElement);
+export { ViewportCustomElement };
 //# sourceMappingURL=viewport.js.map

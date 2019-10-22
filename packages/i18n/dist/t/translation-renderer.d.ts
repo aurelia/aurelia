@@ -1,4 +1,4 @@
-import { AttributePatternDefinition, AttrSyntax, BindingSymbol, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttributePatternDefinition, AttrSyntax, BindingSymbol, IAttributePattern, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
 import { IContainer } from '@aurelia/kernel';
 import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 export declare const TranslationInstructionType = "tt";
@@ -19,7 +19,7 @@ export declare class TranslationBindingInstruction {
     mode: BindingMode.toView;
     constructor(from: IsBindingBehavior, to: string);
 }
-export declare class TranslationBindingCommand implements IBindingCommand {
+export declare class TranslationBindingCommand implements BindingCommandInstance {
     /**
      * Enables aliases for translation/localization attribute.
      */
@@ -52,7 +52,7 @@ export declare class TranslationBindBindingInstruction {
     mode: BindingMode.toView;
     constructor(from: IsBindingBehavior, to: string);
 }
-export declare class TranslationBindBindingCommand implements IBindingCommand {
+export declare class TranslationBindBindingCommand implements BindingCommandInstance {
     /**
      * Enables aliases for translation/localization attribute.
      */

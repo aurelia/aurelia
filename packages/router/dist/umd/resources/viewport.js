@@ -12,11 +12,10 @@
     const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
     const router_1 = require("../router");
-    class ViewportCustomElement {
-        constructor(router, element, renderingEngine) {
+    let ViewportCustomElement = class ViewportCustomElement {
+        constructor(router, element) {
             this.router = router;
             this.element = element;
-            this.renderingEngine = renderingEngine;
             this.name = 'default';
             this.usedBy = '';
             this.default = '';
@@ -25,16 +24,6 @@
             this.noHistory = false;
             this.stateful = false;
             this.viewport = null;
-        }
-        render(flags, host, parts, parentContext) {
-            const Type = this.constructor;
-            if (!parentContext) {
-                parentContext = this.$controller.context;
-            }
-            const dom = parentContext.get(runtime_1.IDOM);
-            const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-            template.renderContext = new runtime_1.RenderContext(dom, parentContext, Type.description.dependencies, Type);
-            template.render(this, host, parts);
         }
         // public created(...rest): void {
         //   console.log('Created', rest);
@@ -121,8 +110,7 @@
                 await this.viewport.unbinding(flags);
             }
         }
-    }
-    ViewportCustomElement.inject = [router_1.IRouter, runtime_1.INode, runtime_1.IRenderingEngine];
+    };
     tslib_1.__decorate([
         runtime_1.bindable
     ], ViewportCustomElement.prototype, "name", void 0);
@@ -144,8 +132,20 @@
     tslib_1.__decorate([
         runtime_1.bindable
     ], ViewportCustomElement.prototype, "stateful", void 0);
+    ViewportCustomElement = tslib_1.__decorate([
+        runtime_1.customElement({
+            name: 'au-viewport',
+            template: `
+    <template>
+      <div class="viewport-header" style="display: none;">
+        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
+      </div>
+    </template>
+  `.replace(/\s+/g, '')
+        }),
+        tslib_1.__param(0, router_1.IRouter),
+        tslib_1.__param(1, runtime_1.INode)
+    ], ViewportCustomElement);
     exports.ViewportCustomElement = ViewportCustomElement;
-    // eslint-disable-next-line no-template-curly-in-string
-    runtime_1.CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);
 });
 //# sourceMappingURL=viewport.js.map

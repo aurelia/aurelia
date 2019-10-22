@@ -27,10 +27,10 @@
                 return component;
             }
             else if (exports.ComponentAppellationResolver.isType(component)) {
-                return component.description.name;
+                return runtime_1.CustomElement.getDefinition(component).name;
             }
             else {
-                return component.constructor.description.name;
+                return exports.ComponentAppellationResolver.getName(component.constructor);
             }
         },
         getType: function (component) {

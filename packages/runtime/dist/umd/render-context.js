@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./rendering-engine"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./rendering-engine", "./resources/custom-element"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,6 +14,7 @@
     const dom_1 = require("./dom");
     const lifecycle_1 = require("./lifecycle");
     const rendering_engine_1 = require("./rendering-engine");
+    const custom_element_1 = require("./resources/custom-element");
     class RenderContext {
         constructor(dom, parentContainer, dependencies, componentType) {
             this.dom = dom;
@@ -37,11 +38,14 @@
             }
             // If the element has a view, support Recursive Components by adding self to own view template container.
             if (componentType) {
-                componentType.register(container);
+                custom_element_1.CustomElement.getDefinition(componentType).register(container);
             }
         }
         get id() {
             return this.container.id;
+        }
+        get path() {
+            return this.container.path;
         }
         get parentId() {
             return this.parentContainer.id;
@@ -77,8 +81,8 @@
             return this.container.createChild();
         }
         // #endregion
-        render(flags, renderable, targets, templateDefinition, host, parts) {
-            this.renderer.render(flags, this.dom, this, renderable, targets, templateDefinition, host, parts);
+        render(flags, controller, targets, definition, host, parts) {
+            this.renderer.render(flags, this.dom, this, controller, targets, definition, host, parts);
         }
         beginComponentOperation(renderable, target, instruction, factory, parts, location) {
             this.renderableProvider.prepare(renderable);

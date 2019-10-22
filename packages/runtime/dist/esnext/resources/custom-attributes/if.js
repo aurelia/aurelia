@@ -1,51 +1,23 @@
-import { nextId, PLATFORM, Registration } from '@aurelia/kernel';
-import { HooksDefinition } from '../../definitions';
+import { __decorate, __param } from "tslib";
+import { nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
-import { BindingMode } from '../../flags';
-import { IViewFactory, } from '../../lifecycle';
+import { IViewFactory } from '../../lifecycle';
 import { ContinuationTask, LifecycleTask, PromiseTask } from '../../lifecycle-task';
-import { Bindable } from '../../templating/bindable';
-import { CustomAttribute } from '../custom-attribute';
-export class If {
+import { bindable } from '../../templating/bindable';
+import { templateController } from '../custom-attribute';
+let If = class If {
     constructor(ifFactory, location) {
-        this.$observers = Object.freeze({
-            value: this,
-        });
+        this.ifFactory = ifFactory;
+        this.location = location;
         this.id = nextId('au$component');
         this.elseFactory = void 0;
         this.elseView = void 0;
-        this.ifFactory = ifFactory;
         this.ifView = void 0;
-        this.location = location;
-        this.noProxy = true;
-        this.task = LifecycleTask.done;
         this.view = void 0;
-        this._value = false;
+        this.task = LifecycleTask.done;
+        this.value = false;
     }
-    get value() {
-        return this._value;
-    }
-    set value(newValue) {
-        const oldValue = this._value;
-        if (oldValue !== newValue) {
-            this._value = newValue;
-            this.valueChanged(newValue, oldValue, this.$controller.flags);
-        }
-    }
-    static register(container) {
-        container.register(Registration.transient('custom-attribute:if', this));
-        container.register(Registration.transient(this, this));
-    }
-    getValue() {
-        return this._value;
-    }
-    setValue(newValue, flags) {
-        const oldValue = this._value;
-        if (oldValue !== newValue) {
-            this._value = newValue;
-            this.valueChanged(newValue, oldValue, flags | this.$controller.flags);
-        }
-    }
+    ;
     binding(flags) {
         if (this.task.done) {
             this.task = this.swap(this.value, flags);
@@ -181,24 +153,20 @@ export class If {
             this.view.attach(flags);
         }
     }
-}
-If.inject = [IViewFactory, IRenderLocation];
-If.kind = CustomAttribute;
-If.description = Object.freeze({
-    name: 'if',
-    aliases: PLATFORM.emptyArray,
-    defaultBindingMode: BindingMode.toView,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
-    strategy: 1 /* getterSetter */,
-    hooks: Object.freeze(new HooksDefinition(If.prototype)),
-});
-export class Else {
+};
+__decorate([
+    bindable
+], If.prototype, "value", void 0);
+If = __decorate([
+    templateController('if'),
+    __param(0, IViewFactory),
+    __param(1, IRenderLocation)
+], If);
+export { If };
+let Else = class Else {
     constructor(factory) {
         this.factory = factory;
-    }
-    static register(container) {
-        container.register(Registration.transient('custom-attribute:else', this));
+        this.id = nextId('au$component');
     }
     link(ifBehavior) {
         if (ifBehavior instanceof If) {
@@ -211,16 +179,10 @@ export class Else {
             throw new Error(`Unsupported IfBehavior`); // TODO: create error code
         }
     }
-}
-Else.inject = [IViewFactory];
-Else.kind = CustomAttribute;
-Else.description = {
-    name: 'else',
-    aliases: PLATFORM.emptyArray,
-    defaultBindingMode: BindingMode.toView,
-    isTemplateController: true,
-    bindables: PLATFORM.emptyObject,
-    strategy: 1 /* getterSetter */,
-    hooks: HooksDefinition.none,
 };
+Else = __decorate([
+    templateController('else'),
+    __param(0, IViewFactory)
+], Else);
+export { Else };
 //# sourceMappingURL=if.js.map

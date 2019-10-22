@@ -1,6 +1,6 @@
 import { AnyBindingExpression, IDOM, IInterpolationExpression, INode } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
-import { IBindingCommand } from './binding-command';
+import { BindingCommandInstance } from './binding-command';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 export declare const enum SymbolFlags {
     type = 511,
@@ -82,10 +82,10 @@ export declare class CustomAttributeSymbol {
  */
 export declare class PlainAttributeSymbol {
     syntax: AttrSyntax;
-    command: IBindingCommand | null;
+    command: BindingCommandInstance | null;
     expression: AnyBindingExpression | null;
     flags: SymbolFlags;
-    constructor(syntax: AttrSyntax, command: IBindingCommand | null, expression: AnyBindingExpression | null);
+    constructor(syntax: AttrSyntax, command: BindingCommandInstance | null, expression: AnyBindingExpression | null);
 }
 /**
  * Either an attribute on an custom element that maps to a declared bindable property of that element,
@@ -95,13 +95,13 @@ export declare class PlainAttributeSymbol {
  * This will always target a bindable property of a custom attribute or element;
  */
 export declare class BindingSymbol {
-    command: IBindingCommand | null;
+    command: BindingCommandInstance | null;
     bindable: BindableInfo;
     expression: AnyBindingExpression | null;
     rawValue: string;
     target: string;
     flags: SymbolFlags;
-    constructor(command: IBindingCommand | null, bindable: BindableInfo, expression: AnyBindingExpression | null, rawValue: string, target: string);
+    constructor(command: BindingCommandInstance | null, bindable: BindableInfo, expression: AnyBindingExpression | null, rawValue: string, target: string);
 }
 /**
  * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`

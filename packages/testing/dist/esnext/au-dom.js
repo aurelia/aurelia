@@ -1,7 +1,7 @@
 import { __decorate } from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration } from '@aurelia/kernel';
-import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
+import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler } from '@aurelia/runtime';
 const slice = Array.prototype.slice;
 export class AuNode {
     constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
@@ -514,7 +514,7 @@ AuTextRenderer = __decorate([
 export { AuTextRenderer };
 export const AuDOMConfiguration = {
     register(container) {
-        container.register(RuntimeConfiguration, AuTextRenderer, Registration.singleton(IDOM, AuDOM), Registration.singleton(IDOMInitializer, AuDOMInitializer), Registration.singleton(IProjectorLocator, AuProjectorLocator), Registration.singleton(ITargetAccessorLocator, AuObserverLocator), Registration.singleton(ITargetObserverLocator, AuObserverLocator), Registration.singleton(ITemplateFactory, AuTemplateFactory));
+        container.register(RuntimeConfiguration, AuTextRenderer, Registration.singleton(IDOM, AuDOM), Registration.singleton(IDOMInitializer, AuDOMInitializer), Registration.singleton(IProjectorLocator, AuProjectorLocator), Registration.singleton(ITargetAccessorLocator, AuObserverLocator), Registration.singleton(ITargetObserverLocator, AuObserverLocator), Registration.singleton(ITemplateFactory, AuTemplateFactory), Registration.instance(ITemplateCompiler, {}));
     },
     createContainer() {
         const container = DI.createContainer();
@@ -532,7 +532,7 @@ export const AuDOMTest = {
     },
     createTextDefinition(expression, name = `${expression}-text`) {
         return {
-            build: { required: false },
+            needsCompile: false,
             name,
             template: AuNode.createText().makeTarget(),
             instructions: [[new AuTextInstruction(parseExpression(expression))]]
@@ -540,7 +540,7 @@ export const AuDOMTest = {
     },
     createTemplateControllerDefinition(instruction, name = instruction.res) {
         return {
-            build: { required: false },
+            needsCompile: false,
             name,
             template: AuNode.createMarker(),
             instructions: [[instruction]]
@@ -552,7 +552,7 @@ export const AuDOMTest = {
             template.appendChild(AuNode.createMarker());
         });
         return {
-            build: { required: false },
+            needsCompile: false,
             name,
             template,
             instructions

@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRenderContext } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponent, IRouteableComponentType, ReentryBehavior } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export declare const enum ContentStatus {
@@ -40,7 +40,7 @@ export declare class ViewportContent {
     removeComponent(element: Element | null, stateful?: boolean): void;
     freeContent(element: Element | null, nextInstruction: INavigatorInstruction | null, cache: ViewportContent[], stateful?: boolean): Promise<void>;
     toComponentName(): string | null;
-    toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null;
+    toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null;
     toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null;
 }
 //# sourceMappingURL=viewport-content.d.ts.map

@@ -1,22 +1,36 @@
-import { Class, IResourceDefinition, IResourceKind, IResourceType } from '@aurelia/kernel';
+import { Constructable, IContainer, IResourceKind, ResourceType, ResourceDefinition, PartialResourceDefinition } from '@aurelia/kernel';
 import { BindingType, ITargetedInstruction } from '@aurelia/runtime';
 import { BindingSymbol, PlainAttributeSymbol } from './semantic-model';
-export interface IBindingCommand {
+export declare type PartialBindingCommandDefinition = PartialResourceDefinition<{
+    readonly type?: string | null;
+}>;
+export declare type BindingCommandInstance<T extends {} = {}> = {
     bindingType: BindingType;
     compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
-}
-declare type BindingCommandStaticProperties = Required<Pick<IBindingCommandDefinition, 'aliases'>>;
-export interface IBindingCommandDefinition extends IResourceDefinition {
-    type?: string | null;
-}
-export interface IBindingCommandType extends IResourceType<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>>, BindingCommandStaticProperties {
-}
-export interface IBindingCommandResource extends IResourceKind<IBindingCommandDefinition, IBindingCommand, Class<IBindingCommand>> {
-}
-declare type BindingCommandDecorator = <TProto, TClass>(target: Class<TProto, TClass> & Partial<IBindingCommandType>) => Class<TProto, TClass> & IBindingCommandType;
+} & T;
+export declare type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
+export declare type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
+    isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
+    define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
+    define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
+    define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
+    getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
+    annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
+    getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
+};
+export declare type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
 export declare function bindingCommand(name: string): BindingCommandDecorator;
-export declare function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
-export declare const BindingCommandResource: Readonly<IBindingCommandResource>;
+export declare function bindingCommand(definition: PartialBindingCommandDefinition): BindingCommandDecorator;
+export declare class BindingCommandDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, BindingCommandInstance> {
+    readonly Type: BindingCommandType<T>;
+    readonly name: string;
+    readonly aliases: readonly string[];
+    readonly key: string;
+    readonly type: string | null;
+    private constructor();
+    static create<T extends Constructable = Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: BindingCommandType<T>): BindingCommandDefinition<T>;
+    register(container: IContainer): void;
+}
+export declare const BindingCommand: BindingCommandKind;
 export declare function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string;
-export {};
 //# sourceMappingURL=binding-command.d.ts.map

@@ -212,7 +212,7 @@
             }
             let result = this.commandLookup[name];
             if (result === void 0) {
-                result = this.resources.create(binding_command_1.BindingCommandResource, name);
+                result = this.resources.create(binding_command_1.BindingCommand, name);
                 if (result === null) {
                     if (optional) {
                         return null;

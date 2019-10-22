@@ -98,7 +98,7 @@ export function stringifyInstructions(instruction, depth) {
 export function stringifyTemplateDefinition(def, depth) {
     const indent = ' '.repeat(depth);
     let output = indent;
-    output += `TemplateDefinition: ${def.name}\n`;
+    output += `CustomElementDefinition: ${def.name}\n`;
     output += stringifyDOM(def.template, depth + 1);
     output += `${indent} Instructions:\n`;
     def.instructions.forEach(row => {

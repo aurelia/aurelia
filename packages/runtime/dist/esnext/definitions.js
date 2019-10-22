@@ -1,6 +1,4 @@
-import { DI, PLATFORM, toArray, Registration } from '@aurelia/kernel';
-import { ensureValidStrategy } from './flags';
-import { Bindable } from './templating/bindable';
+import { DI, Registration, Metadata, Protocol, } from '@aurelia/kernel';
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
  * into the `Renderer`.
@@ -29,15 +27,6 @@ export function isTargetedInstruction(value) {
     const type = value.type;
     return typeof type === 'string' && type.length === 2;
 }
-/** @internal */
-export const buildRequired = Object.freeze({
-    required: true,
-    compiler: 'default'
-});
-const buildNotRequired = Object.freeze({
-    required: false,
-    compiler: 'default'
-});
 export class HooksDefinition {
     constructor(target) {
         this.hasRender = 'render' in target;
@@ -54,155 +43,17 @@ export class HooksDefinition {
     }
 }
 HooksDefinition.none = Object.freeze(new HooksDefinition({}));
-// Note: this is a little perf thing; having one predefined class with the properties always
-// assigned in the same order ensures the browser can keep reusing the same generated hidden
-// class
-class DefaultTemplateDefinition {
-    constructor() {
-        this.name = 'unnamed';
-        this.template = null;
-        this.isStrictBinding = false;
-        this.cache = 0;
-        this.build = buildNotRequired;
-        this.bindables = PLATFORM.emptyObject;
-        this.childrenObservers = PLATFORM.emptyObject;
-        this.instructions = PLATFORM.emptyArray;
-        this.dependencies = PLATFORM.emptyArray;
-        this.surrogates = PLATFORM.emptyArray;
-        this.aliases = PLATFORM.emptyArray;
-        this.containerless = false;
-        this.shadowOptions = null;
-        this.hasSlots = false;
-        this.strategy = 1 /* getterSetter */;
-        this.hooks = HooksDefinition.none;
-        this.scopeParts = PLATFORM.emptyArray;
-    }
-}
-const templateDefinitionAssignables = [
-    'name',
-    'template',
-    'cache',
-    'build',
-    'containerless',
-    'shadowOptions',
-    'isStrictBinding',
-    'hasSlots'
-];
-const templateDefinitionArrays = [
-    'instructions',
-    'dependencies',
-    'surrogates',
-    'aliases'
-];
-export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers, aliases, isStrictBinding) {
-    const def = new DefaultTemplateDefinition();
-    // all cases fall through intentionally
-    /* deepscan-disable */
-    const argLen = arguments.length;
-    switch (argLen) {
-        case 16: if (isStrictBinding != null)
-            def.isStrictBinding = isStrictBinding;
-        case 15: if (aliases != null)
-            def.aliases = toArray(aliases);
-        case 14: if (childrenObservers !== null)
-            def.childrenObservers = { ...childrenObservers };
-        case 13: if (strategy != null)
-            def.strategy = ensureValidStrategy(strategy);
-        case 12: if (hasSlots != null)
-            def.hasSlots = hasSlots;
-        case 11: if (shadowOptions != null)
-            def.shadowOptions = shadowOptions;
-        case 10: if (containerless != null)
-            def.containerless = containerless;
-        case 9: if (surrogates != null)
-            def.surrogates = toArray(surrogates);
-        case 8: if (dependencies != null)
-            def.dependencies = toArray(dependencies);
-        case 7: if (instructions != null)
-            def.instructions = toArray(instructions);
-        case 6: if (bindables != null)
-            def.bindables = { ...bindables };
-        case 5: if (build != null)
-            def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
-        case 4: if (cache != null)
-            def.cache = cache;
-        case 3: if (template != null)
-            def.template = template;
-        case 2:
-            if (ctor != null) {
-                if (ctor.bindables) {
-                    def.bindables = Bindable.for(ctor).get();
-                }
-                if (ctor.isStrictBinding) {
-                    def.isStrictBinding = ctor.isStrictBinding;
-                }
-                if (ctor.containerless) {
-                    def.containerless = ctor.containerless;
-                }
-                if (ctor.shadowOptions) {
-                    def.shadowOptions = ctor.shadowOptions;
-                }
-                if (ctor.childrenObservers) {
-                    def.childrenObservers = ctor.childrenObservers;
-                }
-                if (ctor.prototype) {
-                    def.hooks = new HooksDefinition(ctor.prototype);
-                }
-            }
-            if (typeof nameOrDef === 'string') {
-                if (nameOrDef.length > 0) {
-                    def.name = nameOrDef;
-                }
-            }
-            else if (nameOrDef != null) {
-                def.strategy = ensureValidStrategy(nameOrDef.strategy);
-                templateDefinitionAssignables.forEach(prop => {
-                    if (nameOrDef[prop]) {
-                        // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
-                        def[prop] = nameOrDef[prop];
-                    }
-                });
-                templateDefinitionArrays.forEach(prop => {
-                    if (nameOrDef[prop]) {
-                        // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
-                        def[prop] = toArray(nameOrDef[prop]);
-                    }
-                });
-                if (nameOrDef['bindables']) {
-                    if (def.bindables === PLATFORM.emptyObject) {
-                        def.bindables = Bindable.for(nameOrDef).get();
-                    }
-                    else {
-                        Object.assign(def.bindables, nameOrDef.bindables);
-                    }
-                }
-                if (nameOrDef['childrenObservers']) {
-                    if (def.childrenObservers === PLATFORM.emptyObject) {
-                        def.childrenObservers = { ...nameOrDef.childrenObservers };
-                    }
-                    else {
-                        Object.assign(def.childrenObservers, nameOrDef.childrenObservers);
-                    }
-                }
-            }
-    }
-    /* deepscan-enable */
-    // special handling for invocations that quack like a @customElement decorator
-    if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
-        def.build = buildRequired;
-    }
-    return def;
-}
-function aliasDecorator(target, ...aliases) {
-    if (target.aliases == null) {
-        target.aliases = aliases;
-        return target;
-    }
-    target.aliases.push(...aliases);
-    return target;
-}
 export function alias(...aliases) {
-    return (instance) => aliasDecorator(instance, ...aliases);
+    return function (target) {
+        const key = Protocol.annotation.keyFor('aliases');
+        const existing = Metadata.getOwn(key, target);
+        if (existing === void 0) {
+            Metadata.define(key, aliases, target);
+        }
+        else {
+            existing.push(...aliases);
+        }
+    };
 }
 export function registerAliases(aliases, resource, key, container) {
     for (let i = 0, ii = aliases.length; i < ii; ++i) {

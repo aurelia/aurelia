@@ -535,7 +535,7 @@
     exports.AuTextRenderer = AuTextRenderer;
     exports.AuDOMConfiguration = {
         register(container) {
-            container.register(runtime_1.RuntimeConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITemplateFactory, AuTemplateFactory));
+            container.register(runtime_1.RuntimeConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITemplateFactory, AuTemplateFactory), kernel_1.Registration.instance(runtime_1.ITemplateCompiler, {}));
         },
         createContainer() {
             const container = kernel_1.DI.createContainer();
@@ -553,7 +553,7 @@
         },
         createTextDefinition(expression, name = `${expression}-text`) {
             return {
-                build: { required: false },
+                needsCompile: false,
                 name,
                 template: AuNode.createText().makeTarget(),
                 instructions: [[new AuTextInstruction(jit_1.parseExpression(expression))]]
@@ -561,7 +561,7 @@
         },
         createTemplateControllerDefinition(instruction, name = instruction.res) {
             return {
-                build: { required: false },
+                needsCompile: false,
                 name,
                 template: AuNode.createMarker(),
                 instructions: [[instruction]]
@@ -573,7 +573,7 @@
                 template.appendChild(AuNode.createMarker());
             });
             return {
-                build: { required: false },
+                needsCompile: false,
                 name,
                 template,
                 instructions

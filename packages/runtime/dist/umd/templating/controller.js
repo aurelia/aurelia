@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../lifecycle", "../lifecycle-task", "../observation/binding-context", "../observation/proxy-observer", "../observation/self-observer", "../rendering-engine", "../resources/custom-element"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../lifecycle", "../lifecycle-task", "../observation/binding-context", "../observation/proxy-observer", "../observation/self-observer", "../rendering-engine", "../resources/custom-element", "../resources/custom-attribute"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -19,12 +19,17 @@
     const self_observer_1 = require("../observation/self-observer");
     const rendering_engine_1 = require("../rendering-engine");
     const custom_element_1 = require("../resources/custom-element");
-    function hasDescription(type) {
-        return type.description != void 0;
-    }
+    const custom_attribute_1 = require("../resources/custom-attribute");
     class Controller {
         // todo: refactor
-        constructor(flags, viewCache, lifecycle, viewModel, parentContext, host, options) {
+        constructor(vmKind, flags, viewCache, lifecycle, viewModel, parentContext, host, options) {
+            this.vmKind = vmKind;
+            this.flags = flags;
+            this.viewCache = viewCache;
+            this.lifecycle = lifecycle;
+            this.viewModel = viewModel;
+            this.parentContext = parentContext;
+            this.host = host;
             this.id = kernel_1.nextId('au$component');
             this.nextBound = void 0;
             this.nextUnbound = void 0;
@@ -38,124 +43,130 @@
             this.nextUnmount = void 0;
             this.prevMount = void 0;
             this.prevUnmount = void 0;
-            this.flags = flags;
-            this.viewCache = viewCache;
+            this.parent = void 0;
             this.bindings = void 0;
             this.controllers = void 0;
-            this.mountStrategy = 1 /* insertBefore */;
             this.state = 0 /* none */;
-            if (viewModel == void 0) {
-                if (viewCache == void 0) {
-                    // TODO: create error code
-                    throw new Error(`No IViewCache was provided when rendering a synthetic view.`);
+            this.mountStrategy = 1 /* insertBefore */;
+            switch (vmKind) {
+                case 2 /* synthetic */: {
+                    if (viewCache == void 0) {
+                        // TODO: create error code
+                        throw new Error(`No IViewCache was provided when rendering a synthetic view.`);
+                    }
+                    this.hooks = definitions_1.HooksDefinition.none;
+                    this.bindingContext = void 0; // stays undefined
+                    this.host = void 0; // stays undefined
+                    this.vmKind = 2 /* synthetic */;
+                    this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+                    this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
+                    this.scope = void 0; // will be populated during bindSynthetic()
+                    this.projector = void 0; // stays undefined
+                    this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+                    this.context = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+                    this.location = void 0; // should be set with `hold(location)` by the consumer
+                    break;
                 }
-                if (lifecycle == void 0) {
-                    // TODO: create error code
-                    throw new Error(`No ILifecycle was provided when rendering a synthetic view.`);
-                }
-                this.lifecycle = lifecycle;
-                this.hooks = definitions_1.HooksDefinition.none;
-                this.viewModel = void 0;
-                this.bindingContext = void 0; // stays undefined
-                this.host = void 0; // stays undefined
-                this.vmKind = 2 /* synthetic */;
-                this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-                this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
-                this.scope = void 0; // will be populated during bindSynthetic()
-                this.projector = void 0; // stays undefined
-                this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-                this.context = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-                this.location = void 0; // should be set with `hold(location)` by the consumer
-            }
-            else {
-                if (parentContext == void 0) {
-                    // TODO: create error code
-                    throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
-                }
-                this.lifecycle = parentContext.get(lifecycle_1.ILifecycle);
-                viewModel.$controller = this;
-                const Type = viewModel.constructor;
-                if (!hasDescription(Type)) {
-                    // TODO: create error code
-                    throw new Error(`The provided viewModel does not have a (valid) description.`);
-                }
-                const { description } = Type;
-                flags |= description.strategy;
-                createObservers(this, description, flags, viewModel);
-                this.hooks = description.hooks;
-                this.viewModel = viewModel;
-                this.bindingContext = getBindingContext(flags, viewModel);
-                this.host = host;
-                let instruction;
-                let parts;
-                let renderingEngine;
-                let template = void 0;
-                switch (Type.kind.name) {
-                    case 'custom-element':
-                        if (host == void 0) {
-                            // TODO: create error code
-                            throw new Error(`No host element was provided when rendering a custom element.`);
+                case 0 /* customElement */: {
+                    if (parentContext == void 0) {
+                        // TODO: create error code
+                        throw new Error(`No parentContext was provided when rendering a custom element.`);
+                    }
+                    if (viewModel == void 0) {
+                        // TODO: create error code
+                        throw new Error(`No viewModel was provided when rendering a custom elemen.`);
+                    }
+                    if (host == void 0) {
+                        // TODO: create error code
+                        throw new Error(`No host element was provided when rendering a custom element.`);
+                    }
+                    const Type = viewModel.constructor;
+                    const definition = custom_element_1.CustomElement.getDefinition(Type);
+                    flags |= definition.strategy;
+                    createObservers(this, definition, flags, viewModel);
+                    this.hooks = definition.hooks;
+                    this.bindingContext = getBindingContext(flags, viewModel);
+                    const renderingEngine = parentContext.get(rendering_engine_1.IRenderingEngine);
+                    let instruction;
+                    let parts;
+                    let template = void 0;
+                    if (this.hooks.hasRender) {
+                        const result = this.bindingContext.render(flags, host, options.parts == void 0
+                            ? kernel_1.PLATFORM.emptyObject
+                            : options.parts, parentContext);
+                        if (result != void 0 && 'getElementTemplate' in result) {
+                            template = result.getElementTemplate(renderingEngine, Type, parentContext);
                         }
-                        this.vmKind = 0 /* customElement */;
-                        renderingEngine = parentContext.get(rendering_engine_1.IRenderingEngine);
-                        if (this.hooks.hasRender) {
-                            const result = this.bindingContext.render(flags, host, options.parts == void 0
-                                ? kernel_1.PLATFORM.emptyObject
-                                : options.parts, parentContext);
-                            if (result != void 0 && 'getElementTemplate' in result) {
-                                template = result.getElementTemplate(renderingEngine, Type, parentContext);
+                    }
+                    else {
+                        template = renderingEngine.getElementTemplate(parentContext.get(dom_1.IDOM), definition, parentContext, Type);
+                    }
+                    if (template !== void 0) {
+                        if (template.definition == null ||
+                            template.definition.instructions.length === 0 ||
+                            template.definition.instructions[0].length === 0 ||
+                            (template.definition.instructions[0][0].parts == void 0)) {
+                            if (options.parts == void 0) {
+                                parts = kernel_1.PLATFORM.emptyObject;
+                            }
+                            else {
+                                parts = options.parts;
                             }
                         }
                         else {
-                            template = renderingEngine.getElementTemplate(parentContext.get(dom_1.IDOM), description, parentContext, Type);
-                        }
-                        if (template !== void 0) {
-                            if (template.definition == null ||
-                                template.definition.instructions.length === 0 ||
-                                template.definition.instructions[0].length === 0 ||
-                                (template.definition.instructions[0][0].parts == void 0)) {
-                                if (options.parts == void 0) {
-                                    parts = kernel_1.PLATFORM.emptyObject;
-                                }
-                                else {
-                                    parts = options.parts;
-                                }
+                            instruction = template.definition.instructions[0][0];
+                            if (options.parts == void 0) {
+                                parts = instruction.parts;
                             }
                             else {
-                                instruction = template.definition.instructions[0][0];
-                                if (options.parts == void 0) {
-                                    parts = instruction.parts;
-                                }
-                                else {
-                                    parts = { ...options.parts, ...instruction.parts };
-                                }
+                                parts = { ...options.parts, ...instruction.parts };
                             }
-                            template.render(this, host, parts);
                         }
-                        this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
-                        this.projector = parentContext.get(custom_element_1.IProjectorLocator).getElementProjector(parentContext.get(dom_1.IDOM), this, host, description);
-                        this.location = void 0;
-                        break;
-                    case 'custom-attribute':
-                        this.vmKind = 1 /* customAttribute */;
-                        this.scope = void 0;
-                        this.projector = void 0;
-                        this.nodes = void 0;
-                        this.context = void 0;
-                        this.location = void 0;
-                        break;
-                    default:
-                        throw new Error(`Invalid resource kind: '${Type.kind.name}'`);
+                        template.render(this, host, parts);
+                    }
+                    this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
+                    this.projector = parentContext.get(custom_element_1.IProjectorLocator).getElementProjector(parentContext.get(dom_1.IDOM), this, host, template !== void 0 ? template.definition : definition);
+                    this.location = void 0;
+                    viewModel.$controller = this;
+                    if (this.hooks.hasCreated) {
+                        this.bindingContext.created(flags);
+                    }
+                    break;
                 }
-                if (this.hooks.hasCreated) {
-                    this.bindingContext.created(flags);
+                case 1 /* customAttribute */: {
+                    if (parentContext == void 0) {
+                        // TODO: create error code
+                        throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
+                    }
+                    if (viewModel == void 0) {
+                        // TODO: create error code
+                        throw new Error(`No viewModel was provided when rendering a custom elemen.`);
+                    }
+                    const Type = viewModel.constructor;
+                    const definition = custom_attribute_1.CustomAttribute.getDefinition(Type);
+                    flags |= definition.strategy;
+                    createObservers(this, definition, flags, viewModel);
+                    this.hooks = definition.hooks;
+                    this.bindingContext = getBindingContext(flags, viewModel);
+                    this.scope = void 0;
+                    this.projector = void 0;
+                    this.nodes = void 0;
+                    this.context = void 0;
+                    this.location = void 0;
+                    viewModel.$controller = this;
+                    if (this.hooks.hasCreated) {
+                        this.bindingContext.created(flags);
+                    }
+                    break;
                 }
+                default:
+                    throw new Error(`Invalid ViewModelKind: ${vmKind}`);
             }
         }
         static forCustomElement(viewModel, parentContext, host, flags = 0 /* none */, options = kernel_1.PLATFORM.emptyObject) {
             let controller = Controller.lookup.get(viewModel);
             if (controller === void 0) {
-                controller = new Controller(flags, void 0, void 0, viewModel, parentContext, host, options);
+                controller = new Controller(0 /* customElement */, flags, void 0, parentContext.get(lifecycle_1.ILifecycle), viewModel, parentContext, host, options);
                 this.lookup.set(viewModel, controller);
             }
             return controller;
@@ -163,13 +174,13 @@
         static forCustomAttribute(viewModel, parentContext, flags = 0 /* none */) {
             let controller = Controller.lookup.get(viewModel);
             if (controller === void 0) {
-                controller = new Controller(flags | 4 /* isStrictBindingStrategy */, void 0, void 0, viewModel, parentContext, void 0, kernel_1.PLATFORM.emptyObject);
+                controller = new Controller(1 /* customAttribute */, flags | 4 /* isStrictBindingStrategy */, void 0, parentContext.get(lifecycle_1.ILifecycle), viewModel, parentContext, void 0, kernel_1.PLATFORM.emptyObject);
                 this.lookup.set(viewModel, controller);
             }
             return controller;
         }
         static forSyntheticView(viewCache, lifecycle, flags = 0 /* none */) {
-            return new Controller(flags, viewCache, lifecycle, void 0, void 0, void 0, kernel_1.PLATFORM.emptyObject);
+            return new Controller(2 /* synthetic */, flags, viewCache, lifecycle, void 0, void 0, void 0, kernel_1.PLATFORM.emptyObject);
         }
         lockScope(scope) {
             this.scope = scope;

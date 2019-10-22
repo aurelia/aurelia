@@ -120,7 +120,7 @@
     //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
     //   ): InstructionBuilder {
     //     let childInstructions: HTMLTargetedInstruction[];
-    //     let definition: ITemplateDefinition;
+    //     let definition: PartialCustomElementDefinition;
     //     if (insCbOrBuilder instanceof InstructionBuilder) {
     //       childInstructions = insCbOrBuilder.build();
     //     } else {
@@ -263,7 +263,7 @@
     //     this.templateBuilder.interpolation();
     //     return this.next();
     //   }
-    //   public build(): ITemplateDefinition {
+    //   public build(): PartialCustomElementDefinition {
     //     const { name, templateBuilder, instructions } = this;
     //     const definition = { name, template: templateBuilder.build(), instructions };
     //     this.name = null!;
@@ -289,7 +289,7 @@
     //   public static app<T extends object>(obj: T, defBuilder: DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
     //   public static app<T extends object>(obj: T, defCb: DefinitionCb): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
     //   public static app<T extends object>(obj: T, defCbOrBuilder: DefinitionCb | DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>> {
-    //     let definition: ITemplateDefinition;
+    //     let definition: PartialCustomElementDefinition;
     //     if (defCbOrBuilder instanceof DefinitionBuilder) {
     //       definition = defCbOrBuilder.build();
     //     } else {
@@ -432,18 +432,18 @@
     exports.createScopeForTest = createScopeForTest;
 });
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
-// export function createCustomAttribute(nameOrDef: string | IAttributeDefinition = 'foo') {
+// export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {
 //   const Type = customAttribute(nameOrDef)(defineComponentLifecycleMock());
 //   const sut: CustomAttribute = new (Type as any)();
 //   return { Type, sut };
 // }
-// export function createTemplateController(nameOrDef: string | IAttributeDefinition = 'foo') {
+// export function createTemplateController(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {
 //   const Type = templateController(nameOrDef)(defineComponentLifecycleMock());
 //   const sut: CustomAttribute = new (Type as any)();
 //   return { Type, sut };
 // }
 // export type CustomElement = Writable<IViewModel> & IComponentLifecycleMock;
-// export function createCustomElement(nameOrDef: string | ITemplateDefinition) {
+// export function createCustomElement(nameOrDef: string | PartialCustomElementDefinition) {
 //   if (arguments.length === 0) {
 //     nameOrDef = 'foo';
 //   }

@@ -1,4 +1,3 @@
-import { IRegistry, Key } from '@aurelia/kernel';
 import { IObserverLocator, IScope, LifecycleFlags, PropertyBinding } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { IEventSubscriber } from '../../observation/event-manager';
@@ -11,10 +10,8 @@ export declare type UpdateTriggerableBinding = PropertyBinding & {
     targetObserver: UpdateTriggerableObserver;
 };
 export declare class UpdateTriggerBindingBehavior {
-    static readonly inject: readonly Key[];
-    static register: IRegistry['register'];
-    persistentFlags: LifecycleFlags;
     private readonly observerLocator;
+    persistentFlags: LifecycleFlags;
     constructor(observerLocator: IObserverLocator);
     bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void;

@@ -57,10 +57,8 @@ export interface NodeSequenceFactory {
 }
 export declare class NodeSequenceFactory implements NodeSequenceFactory {
     private readonly dom;
-    private readonly deepClone;
     private readonly node;
-    private readonly Type;
-    constructor(dom: IDOM, markupOrNode: string | Node);
+    constructor(dom: IDOM, markupOrNode: string | Node | null);
 }
 export interface AuMarker extends INode {
 }

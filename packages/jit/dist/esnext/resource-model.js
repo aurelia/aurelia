@@ -1,6 +1,6 @@
 import { kebabCase, } from '@aurelia/kernel';
 import { BindingMode, CustomAttribute, CustomElement, } from '@aurelia/runtime';
-import { BindingCommandResource } from './binding-command';
+import { BindingCommand } from './binding-command';
 /**
  * A pre-processed piece of information about a defined bindable property on a custom
  * element or attribute, optimized for consumption by the template compiler.
@@ -198,7 +198,7 @@ export class ResourceModel {
         }
         let result = this.commandLookup[name];
         if (result === void 0) {
-            result = this.resources.create(BindingCommandResource, name);
+            result = this.resources.create(BindingCommand, name);
             if (result === null) {
                 if (optional) {
                     return null;

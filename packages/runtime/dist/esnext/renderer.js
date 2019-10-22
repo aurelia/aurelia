@@ -1,5 +1,5 @@
 import { __decorate, __param } from "tslib";
-import { all, Registration, Reporter, } from '@aurelia/kernel';
+import { all, Registration, Reporter, Metadata, } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
@@ -24,9 +24,13 @@ export function instructionRenderer(instructionType) {
         decoratedTarget.register = function register(container) {
             Registration.singleton(IInstructionRenderer, decoratedTarget).register(container);
         };
-        // copy over any static properties such as inject (set by preceding decorators)
+        // copy over any metadata such as annotations (set by preceding decorators) as well as static properties set by the user
         // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
         // the length (number of ctor arguments) is copied for the same reason
+        const metadataKeys = Metadata.getOwnKeys(target);
+        for (const key of metadataKeys) {
+            Metadata.define(key, Metadata.getOwn(key, target), decoratedTarget);
+        }
         const ownProperties = Object.getOwnPropertyDescriptors(target);
         Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
             Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);

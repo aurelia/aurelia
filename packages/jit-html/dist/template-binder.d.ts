@@ -22,6 +22,5 @@ export declare class TemplateBinder {
     private bindCustomAttribute;
     private bindMultiAttribute;
     private bindPlainAttribute;
-    private declareReplacePart;
 }
 //# sourceMappingURL=template-binder.d.ts.map

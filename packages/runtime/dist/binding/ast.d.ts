@@ -3,7 +3,7 @@ import { BinaryOperator, BindingIdentifierOrPattern, CallsFunction, Connects, Ha
 import { ExpressionKind, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
-import { IBindingBehavior } from '../resources/binding-behavior';
+import { BindingBehaviorInstance } from '../resources/binding-behavior';
 import { IConnectableBinding } from './connectable';
 export declare function connects(expr: IsExpressionOrStatement): expr is Connects;
 export declare function observes(expr: IsExpressionOrStatement): expr is Observes;
@@ -34,10 +34,10 @@ export declare class BindingBehaviorExpression implements IBindingBehaviorExpres
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void;
     bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & {
-        [key: string]: IBindingBehavior | undefined;
+        [key: string]: BindingBehaviorInstance | undefined;
     }): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & {
-        [key: string]: IBindingBehavior | undefined;
+        [key: string]: BindingBehaviorInstance | undefined;
     }): void;
     accept<T>(visitor: IVisitor<T>): T;
 }

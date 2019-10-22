@@ -1,13 +1,13 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRenderContext } from '@aurelia/runtime';
-import { ComponentAppellation, ComponentParameters, IRouteableComponent, IRouteableComponentType, ViewportHandle } from './interfaces';
+import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 export declare class ViewportInstruction {
     ownsScope: boolean;
     nextScopeInstructions: ViewportInstruction[] | null;
     componentName: string | null;
-    componentType: IRouteableComponentType | null;
+    componentType: RouteableComponentType | null;
     componentInstance: IRouteableComponent | null;
     viewportName: string | null;
     viewport: Viewport | null;
@@ -24,7 +24,7 @@ export declare class ViewportInstruction {
     isComponentName(): boolean;
     isComponentType(): boolean;
     isComponentInstance(): boolean;
-    toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null;
+    toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null;
     toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null;
     toViewportInstance(router: IRouter): Viewport | null;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;

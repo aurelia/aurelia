@@ -1,6 +1,6 @@
-import { DI, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { DI, PLATFORM, Registration, Reporter, Metadata, Protocol } from '@aurelia/kernel';
 import { Scope } from '../observation/binding-context';
-import { CustomElement } from '../resources/custom-element';
+import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 export class ViewFactory {
     constructor(name, template, lifecycle) {
@@ -62,23 +62,56 @@ export class ViewFactory {
         return controller;
     }
     addParts(parts) {
-        if (this.parts === PLATFORM.emptyObject) {
-            this.parts = { ...parts };
-        }
-        else {
-            Object.assign(this.parts, parts);
+        if (Object.keys(parts).length > 0) {
+            this.parts = { ...this.parts, ...parts };
         }
     }
 }
 ViewFactory.maxCacheSize = 0xFFFF;
+const seenViews = new WeakSet();
+function notYetSeen($view) {
+    return !seenViews.has($view);
+}
+function toCustomElementDefinition($view) {
+    seenViews.add($view);
+    return CustomElementDefinition.create($view);
+}
+export const Views = {
+    name: Protocol.resource.keyFor('views'),
+    has(value) {
+        return typeof value === 'function' && (Metadata.hasOwn(Views.name, value) || '$views' in value);
+    },
+    get(value) {
+        if (typeof value === 'function' && '$views' in value) {
+            // TODO: a `get` operation with side effects is not a good thing. Should refactor this to a proper resource kind.
+            const $views = value.$views;
+            const definitions = $views.filter(notYetSeen).map(toCustomElementDefinition);
+            for (const def of definitions) {
+                Views.add(value, def);
+            }
+        }
+        let views = Metadata.getOwn(Views.name, value);
+        if (views === void 0) {
+            Metadata.define(Views.name, views = [], value);
+        }
+        return views;
+    },
+    add(Type, partialDefinition) {
+        const definition = CustomElementDefinition.create(partialDefinition);
+        let views = Metadata.getOwn(Views.name, Type);
+        if (views === void 0) {
+            Metadata.define(Views.name, views = [definition], Type);
+        }
+        else {
+            views.push(definition);
+        }
+        return views;
+    },
+};
 export function view(v) {
     return function (target) {
-        const views = target.$views || (target.$views = []);
-        views.push(v);
+        Views.add(target, v);
     };
-}
-function hasAssociatedViews(object) {
-    return object && '$views' in object;
 }
 export const IViewLocator = DI.createInterface('IViewLocator')
     .noDefault();
@@ -103,9 +136,7 @@ export class ViewLocator {
     }
     getViewComponentForObject(object, viewNameOrSelector) {
         if (object) {
-            const availableViews = hasAssociatedViews(object.constructor)
-                ? object.constructor.$views
-                : [];
+            const availableViews = Views.has(object.constructor) ? Views.get(object.constructor) : [];
             const resolvedViewName = typeof viewNameOrSelector === 'function'
                 ? viewNameOrSelector(object, availableViews)
                 : this.getViewName(availableViews, viewNameOrSelector);
@@ -125,11 +156,11 @@ export class ViewLocator {
         }
         if (BoundComponent === void 0) {
             const UnboundComponent = this.getOrCreateUnboundComponent(object, availableViews, resolvedViewName);
-            BoundComponent = class extends UnboundComponent {
+            BoundComponent = CustomElement.define(CustomElement.getDefinition(UnboundComponent), class extends UnboundComponent {
                 constructor() {
                     super(object);
                 }
-            };
+            });
             lookup[resolvedViewName] = BoundComponent;
         }
         return BoundComponent;

@@ -1,5 +1,5 @@
 import { GuardIdentity, GuardTypes, IGuardOptions } from './guardian';
-import { GuardFunction, GuardTarget, INavigatorInstruction, IRouteableComponentType } from './interfaces';
+import { GuardFunction, GuardTarget, INavigatorInstruction, RouteableComponentType } from './interfaces';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export declare class Guard {
@@ -13,7 +13,7 @@ export declare class Guard {
     check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[];
 }
 declare class Target {
-    componentType: IRouteableComponentType | null;
+    componentType: RouteableComponentType | null;
     componentName: string | null;
     viewport: Viewport | null;
     viewportName: string | null;

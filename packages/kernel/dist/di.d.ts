@@ -30,15 +30,16 @@ export interface IServiceLocator {
     getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
 }
 export interface IRegistry {
-    register(container: IContainer, ...params: unknown[]): void;
+    register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 export interface IContainer extends IServiceLocator {
     readonly id: number;
+    readonly path: string;
     register(...params: any[]): IContainer;
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
-    getFactory<T extends Constructable>(key: T): IFactory<T>;
+    getFactory<T extends Constructable>(key: T): IFactory<T> | null;
     createChild(): IContainer;
 }
 export interface IResolverBuilder<K> {
@@ -59,7 +60,9 @@ export declare type Injectable<T = {}> = Constructable<T> & {
 export declare class DI {
     private constructor();
     static createContainer(...params: any[]): IContainer;
-    static getDesignParamTypes(target: Constructable): Key[];
+    static getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
+    static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
+    static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];
     static getDependencies(Type: Constructable | Injectable): Key[];
     static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K>;
     static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void;

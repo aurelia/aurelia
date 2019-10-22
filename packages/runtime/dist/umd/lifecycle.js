@@ -10,7 +10,6 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
-    const slice = Array.prototype.slice;
     var ViewModelKind;
     (function (ViewModelKind) {
         ViewModelKind[ViewModelKind["customElement"] = 0] = "customElement";

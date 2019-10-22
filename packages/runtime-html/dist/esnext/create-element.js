@@ -1,7 +1,6 @@
-import { buildTemplateDefinition, CustomElement, HydrateElementInstruction } from '@aurelia/runtime';
+import { CustomElement, HydrateElementInstruction, CustomElementDefinition } from '@aurelia/runtime';
 import { isHTMLTargetedInstruction } from './definitions';
 import { SetAttributeInstruction } from './instructions';
-const slice = Array.prototype.slice;
 export function createElement(dom, tagOrType, props, children) {
     if (typeof tagOrType === 'string') {
         return createElementForTag(dom, tagOrType, props, children);
@@ -19,14 +18,20 @@ export function createElement(dom, tagOrType, props, children) {
 export class RenderPlan {
     constructor(dom, node, instructions, dependencies) {
         this.dom = dom;
-        this.dependencies = dependencies;
-        this.instructions = instructions;
         this.node = node;
+        this.instructions = instructions;
+        this.dependencies = dependencies;
         this.lazyDefinition = void 0;
     }
     get definition() {
         if (this.lazyDefinition === void 0) {
-            this.lazyDefinition = buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies);
+            this.lazyDefinition = CustomElementDefinition.create({
+                name: CustomElement.generateName(),
+                template: this.node,
+                needsCompile: typeof this.node === 'string',
+                instructions: this.instructions,
+                dependencies: this.dependencies,
+            });
         }
         return this.lazyDefinition;
     }
@@ -75,12 +80,13 @@ function createElementForTag(dom, tagName, props, children) {
     return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 function createElementForType(dom, Type, props, children) {
-    const tagName = Type.description.name;
+    const definition = CustomElement.getDefinition(Type);
+    const tagName = definition.name;
     const instructions = [];
     const allInstructions = [instructions];
     const dependencies = [];
     const childInstructions = [];
-    const bindables = Type.description.bindables;
+    const bindables = definition.bindables;
     const element = dom.createElement(tagName);
     dom.makeTarget(element);
     if (!dependencies.includes(Type)) {

@@ -4,15 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../definitions", "../../dom", "../../flags", "../../lifecycle", "../../lifecycle-task", "../../observation/array-observer", "../../observation/binding-context", "../../observation/observer-locator", "../../templating/bindable", "../custom-attribute"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../../dom", "../../lifecycle", "../../lifecycle-task", "../../observation/array-observer", "../../observation/binding-context", "../../observation/observer-locator", "../../templating/bindable", "../custom-attribute"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    const definitions_1 = require("../../definitions");
     const dom_1 = require("../../dom");
-    const flags_1 = require("../../flags");
     const lifecycle_1 = require("../../lifecycle");
     const lifecycle_task_1 = require("../../lifecycle-task");
     const array_observer_1 = require("../../observation/array-observer");
@@ -21,39 +20,18 @@
     const bindable_1 = require("../../templating/bindable");
     const custom_attribute_1 = require("../custom-attribute");
     const isMountedOrAttached = 64 /* isMounted */ | 32 /* isAttached */;
-    const isMountedOrAttachedOrAttaching = isMountedOrAttached | 8 /* isAttaching */;
-    const isMountedOrAttachedOrDetaching = isMountedOrAttached | 16 /* isDetaching */;
-    const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | 8 /* isAttaching */;
-    class Repeat {
+    let Repeat = class Repeat {
         constructor(location, renderable, factory) {
-            this.$observers = Object.freeze({
-                items: this,
-            });
-            this.id = kernel_1.nextId('au$component');
-            this.factory = factory;
-            this.hasPendingInstanceMutation = false;
             this.location = location;
-            this.observer = void 0;
             this.renderable = renderable;
+            this.factory = factory;
+            this.id = kernel_1.nextId('au$component');
+            this.hasPendingInstanceMutation = false;
+            this.observer = void 0;
             this.views = [];
             this.key = void 0;
-            this.noProxy = true;
-            this.normalizedItems = void 0;
             this.task = lifecycle_task_1.LifecycleTask.done;
-        }
-        get items() {
-            return this._items;
-        }
-        set items(newValue) {
-            const oldValue = this._items;
-            if (oldValue !== newValue) {
-                this._items = newValue;
-                this.itemsChanged(this.$controller.flags);
-            }
-        }
-        static register(container) {
-            container.register(kernel_1.Registration.transient('custom-attribute:repeat', this));
-            container.register(kernel_1.Registration.transient(this, this));
+            this.normalizedItems = void 0;
         }
         binding(flags) {
             this.checkCollectionObserver(flags);
@@ -196,7 +174,7 @@
             }
         }
         normalizeToArray(flags) {
-            const items = this._items;
+            const items = this.items;
             if (items instanceof Array) {
                 this.normalizedItems = items;
                 return;
@@ -451,19 +429,17 @@
             }
             this.$controller.lifecycle.attached.end(flags);
         }
-    }
+    };
+    tslib_1.__decorate([
+        bindable_1.bindable
+    ], Repeat.prototype, "items", void 0);
+    Repeat = tslib_1.__decorate([
+        custom_attribute_1.templateController('repeat'),
+        tslib_1.__param(0, dom_1.IRenderLocation),
+        tslib_1.__param(1, lifecycle_1.IController),
+        tslib_1.__param(2, lifecycle_1.IViewFactory)
+    ], Repeat);
     exports.Repeat = Repeat;
-    Repeat.inject = [dom_1.IRenderLocation, lifecycle_1.IController, lifecycle_1.IViewFactory];
-    Repeat.kind = custom_attribute_1.CustomAttribute;
-    Repeat.description = Object.freeze({
-        name: 'repeat',
-        aliases: kernel_1.PLATFORM.emptyArray,
-        defaultBindingMode: flags_1.BindingMode.toView,
-        isTemplateController: true,
-        bindables: Object.freeze(bindable_1.Bindable.for({ bindables: ['items'] }).get()),
-        strategy: 1 /* getterSetter */,
-        hooks: Object.freeze(new definitions_1.HooksDefinition(Repeat.prototype)),
-    });
     let prevIndices;
     let tailIndices;
     let maxLen = 0;

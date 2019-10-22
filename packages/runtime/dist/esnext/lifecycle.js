@@ -1,5 +1,4 @@
 import { DI, PLATFORM, Registration, } from '@aurelia/kernel';
-const slice = Array.prototype.slice;
 export var ViewModelKind;
 (function (ViewModelKind) {
     ViewModelKind[ViewModelKind["customElement"] = 0] = "customElement";

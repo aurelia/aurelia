@@ -1,39 +1,64 @@
-import { Registration, PLATFORM } from '@aurelia/kernel';
+import { Registration, Metadata, Protocol, mergeArrays, firstDefined, } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
-export function valueConverter(nameOrDefinition) {
-    return target => ValueConverter.define(nameOrDefinition, target); // TODO: fix this at some point
+export function valueConverter(nameOrDef) {
+    return function (target) {
+        return ValueConverter.define(nameOrDef, target);
+    };
 }
-export const ValueConverter = Object.freeze({
-    name: 'value-converter',
+export class ValueConverterDefinition {
+    constructor(Type, name, aliases, key) {
+        this.Type = Type;
+        this.name = name;
+        this.aliases = aliases;
+        this.key = key;
+    }
+    static create(nameOrDef, Type) {
+        let name;
+        let def;
+        if (typeof nameOrDef === 'string') {
+            name = nameOrDef;
+            def = { name };
+        }
+        else {
+            name = nameOrDef.name;
+            def = nameOrDef;
+        }
+        return new ValueConverterDefinition(Type, firstDefined(ValueConverter.getAnnotation(Type, 'name'), name), mergeArrays(ValueConverter.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), ValueConverter.keyFrom(name));
+    }
+    register(container) {
+        const { Type, key, aliases } = this;
+        Registration.singleton(key, Type).register(container);
+        Registration.alias(key, Type).register(container);
+        registerAliases(aliases, ValueConverter, key, container);
+    }
+}
+export const ValueConverter = {
+    name: Protocol.resource.keyFor('value-converter'),
     keyFrom(name) {
         return `${ValueConverter.name}:${name}`;
     },
-    isType(Type) {
-        return Type.kind === ValueConverter;
+    isType(value) {
+        return typeof value === 'function' && Metadata.hasOwn(ValueConverter.name, value);
     },
-    define(nameOrDefinition, ctor) {
-        const Type = ctor;
-        const WritableType = Type;
-        const description = createCustomValueDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-        WritableType.kind = ValueConverter;
-        WritableType.description = description;
-        WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-        Type.register = function register(container) {
-            const aliases = description.aliases;
-            const key = ValueConverter.keyFrom(description.name);
-            Registration.singleton(key, this).register(container);
-            Registration.alias(key, this).register(container);
-            registerAliases([...aliases, ...this.aliases], ValueConverter, key, container);
-        };
-        return Type;
+    define(nameOrDef, Type) {
+        const definition = ValueConverterDefinition.create(nameOrDef, Type);
+        Metadata.define(ValueConverter.name, definition, definition.Type);
+        Metadata.define(ValueConverter.name, definition, definition);
+        Protocol.resource.appendTo(Type, ValueConverter.name);
+        return definition.Type;
     },
-});
-/** @internal */
-export function createCustomValueDescription(def, Type) {
-    const aliases = def.aliases;
-    return {
-        name: def.name,
-        aliases: aliases == null ? PLATFORM.emptyArray : aliases,
-    };
-}
+    getDefinition(Type) {
+        const def = Metadata.getOwn(ValueConverter.name, Type);
+        if (def === void 0) {
+            throw new Error(`No definition found for type ${Type.name}`);
+        }
+        return def;
+    },
+    annotate(Type, prop, value) {
+        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    },
+    getAnnotation(Type, prop) {
+        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+    },
+};
 //# sourceMappingURL=value-converter.js.map

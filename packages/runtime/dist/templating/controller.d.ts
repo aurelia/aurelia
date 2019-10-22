@@ -1,5 +1,5 @@
 import { IContainer, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { HooksDefinition, IElementHydrationOptions, TemplateDefinition } from '../definitions';
+import { HooksDefinition, PartialCustomElementDefinitionParts } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import { IBinding, IController, ILifecycle, IRenderContext, IViewCache, IViewModel, ViewModelKind, MountStrategy } from '../lifecycle';
@@ -11,7 +11,7 @@ interface IElementTemplateProvider {
     getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
 declare type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
-    render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
+    render(flags: LifecycleFlags, host: T, parts: PartialCustomElementDefinitionParts, parentContext: IServiceLocator): IElementTemplateProvider | void;
     created(flags: LifecycleFlags): void;
     binding(flags: LifecycleFlags): MaybePromiseOrTask;
     bound(flags: LifecycleFlags): void;
@@ -24,6 +24,13 @@ declare type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexab
     caching(flags: LifecycleFlags): void;
 }>;
 export declare class Controller<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> implements IController<T, C> {
+    readonly vmKind: ViewModelKind;
+    readonly flags: LifecycleFlags;
+    readonly viewCache: IViewCache<T> | undefined;
+    readonly lifecycle: ILifecycle;
+    readonly viewModel: C | undefined;
+    readonly parentContext: IContainer | IRenderContext<T> | undefined;
+    readonly host: T | undefined;
     private static readonly lookup;
     readonly id: number;
     nextBound?: Controller<T, C>;
@@ -38,18 +45,12 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     nextUnmount?: Controller<T, C>;
     prevMount?: Controller<T, C>;
     prevUnmount?: Controller<T, C>;
-    readonly flags: LifecycleFlags;
-    readonly viewCache?: IViewCache<T>;
     parent?: IController<T>;
     bindings?: IBinding[];
     controllers?: Controller<T, C>[];
     state: State;
-    readonly lifecycle: ILifecycle;
     readonly hooks: HooksDefinition;
-    readonly viewModel?: C;
     readonly bindingContext?: BindingContext<T, C>;
-    readonly host?: T;
-    readonly vmKind: ViewModelKind;
     scopeParts?: string[];
     isStrictBinding?: boolean;
     scope?: IScope;
@@ -59,8 +60,12 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     context?: IContainer | IRenderContext<T>;
     location?: IRenderLocation<T>;
     mountStrategy: MountStrategy;
-    constructor(flags: LifecycleFlags, viewCache: IViewCache<T> | undefined, lifecycle: ILifecycle | undefined, viewModel: C | undefined, parentContext: IContainer | IRenderContext<T> | undefined, host: T | undefined, options: Partial<IElementHydrationOptions>);
-    static forCustomElement<T extends INode = INode>(viewModel: object, parentContext: IContainer | IRenderContext<T>, host: T, flags?: LifecycleFlags, options?: IElementHydrationOptions): Controller<T>;
+    constructor(vmKind: ViewModelKind, flags: LifecycleFlags, viewCache: IViewCache<T> | undefined, lifecycle: ILifecycle, viewModel: C | undefined, parentContext: IContainer | IRenderContext<T> | undefined, host: T | undefined, options: {
+        parts?: PartialCustomElementDefinitionParts;
+    });
+    static forCustomElement<T extends INode = INode>(viewModel: object, parentContext: IContainer | IRenderContext<T>, host: T, flags?: LifecycleFlags, options?: {
+        parts?: PartialCustomElementDefinitionParts;
+    }): Controller<T>;
     static forCustomAttribute<T extends INode = INode>(viewModel: object, parentContext: IContainer | IRenderContext<T>, flags?: LifecycleFlags): Controller<T>;
     static forSyntheticView<T extends INode = INode>(viewCache: IViewCache<T>, lifecycle: ILifecycle, flags?: LifecycleFlags): Controller<T>;
     lockScope(scope: IScope): void;

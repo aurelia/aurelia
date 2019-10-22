@@ -25,7 +25,8 @@
     exports.RefAttributePattern = attribute_patterns_1.RefAttributePattern;
     var binding_command_1 = require("./binding-command");
     exports.bindingCommand = binding_command_1.bindingCommand;
-    exports.BindingCommandResource = binding_command_1.BindingCommandResource;
+    exports.BindingCommand = binding_command_1.BindingCommand;
+    exports.BindingCommandDefinition = binding_command_1.BindingCommandDefinition;
     exports.getTarget = binding_command_1.getTarget;
     var binding_commands_1 = require("./binding-commands");
     exports.CallBindingCommand = binding_commands_1.CallBindingCommand;

@@ -3,7 +3,7 @@ export { ILinkHandlerOptions, AnchorEventInfo, LinkHandler, } from './link-handl
 export { Guard, } from './guard';
 export { GuardTypes, GuardIdentity, IGuardOptions, Guardian, } from './guardian';
 export { InstructionResolver, } from './instruction-resolver';
-export { GuardFunction, GuardTarget, INavigatorInstruction, IRouteableComponent, IRouteableComponentType, IViewportInstruction, NavigationInstruction, ReentryBehavior, } from './interfaces';
+export { GuardFunction, GuardTarget, INavigatorInstruction, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ReentryBehavior, } from './interfaces';
 export { lifecycleLogger, LifecycleClass, } from './lifecycle-logger';
 export { INavRoute, Nav, } from './nav';
 export { NavRoute, } from './nav-route';

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./observation/subscriber-collection", "./render-context", "./resources/custom-element", "./templating/controller", "./templating/view"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./lifecycle", "./observation/subscriber-collection", "./render-context", "./resources/custom-element", "./templating/controller", "./templating/view"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,8 +12,6 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    const definitions_1 = require("./definitions");
-    const dom_1 = require("./dom");
     const lifecycle_1 = require("./lifecycle");
     const subscriber_collection_1 = require("./observation/subscriber-collection");
     const render_context_1 = require("./render-context");
@@ -29,10 +27,10 @@
     })(ViewCompileFlags = exports.ViewCompileFlags || (exports.ViewCompileFlags = {}));
     exports.ITemplateFactory = kernel_1.DI.createInterface('ITemplateFactory').noDefault();
     // This is the main implementation of ITemplate.
-    // It is used to create instances of IController based on a compiled TemplateDefinition.
+    // It is used to create instances of IController based on a compiled CustomElementDefinition.
     // TemplateDefinitions are hand-coded today, but will ultimately be the output of the
     // TemplateCompiler either through a JIT or AOT process.
-    // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
+    // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a CustomElementDefinition
     // and create instances of it on demand.
     class CompiledTemplate {
         constructor(dom, definition, factory, renderContext) {
@@ -57,92 +55,86 @@
         }
     }
     exports.CompiledTemplate = CompiledTemplate;
-    // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-    /** @internal */
-    exports.noViewTemplate = {
-        renderContext: (void 0),
-        dom: (void 0),
-        definition: (void 0),
-        render(viewModelOrController) {
-            const controller = viewModelOrController instanceof controller_1.Controller ? viewModelOrController : viewModelOrController.$controller;
-            controller.nodes = dom_1.NodeSequence.empty;
-            controller.context = void 0;
-        }
-    };
-    const defaultCompilerName = 'default';
     exports.IInstructionRenderer = kernel_1.DI.createInterface('IInstructionRenderer').noDefault();
     exports.IRenderer = kernel_1.DI.createInterface('IRenderer').noDefault();
     exports.IRenderingEngine = kernel_1.DI.createInterface('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
     /** @internal */
-    class RenderingEngine {
-        constructor(container, templateFactory, lifecycle, templateCompilers) {
+    let RenderingEngine = class RenderingEngine {
+        constructor(container, templateFactory, lifecycle, compiler) {
             this.container = container;
             this.templateFactory = templateFactory;
-            this.viewFactoryLookup = new Map();
-            this.validSourceLookup = new Map();
             this.lifecycle = lifecycle;
-            this.templateLookup = new Map();
-            this.compilers = templateCompilers.reduce((acc, item) => {
-                acc[item.name] = item;
-                return acc;
-            }, Object.create(null));
+            this.compiler = compiler;
         }
         getElementTemplate(dom, definition, parentContext, componentType) {
             if (definition == void 0) {
                 return void 0;
             }
-            let found = this.templateLookup.get(definition);
-            if (!found) {
-                found = this.templateFromSource(dom, definition, parentContext, componentType);
-                this.templateLookup.set(definition, found);
+            if (parentContext == void 0) {
+                parentContext = this.container;
             }
-            return found;
+            return this.templateFromSource(dom, definition, parentContext, componentType);
         }
-        getViewFactory(dom, definition, parentContext) {
-            if (definition == void 0) {
+        getViewFactory(dom, partialDefinition, parentContext) {
+            if (partialDefinition == void 0) {
                 throw new Error(`No definition provided`); // TODO: create error code
             }
-            let validSource = this.validSourceLookup.get(definition);
-            if (validSource === void 0) {
-                validSource = definitions_1.buildTemplateDefinition(null, definition);
-                this.validSourceLookup.set(definition, validSource);
+            let definition;
+            if (partialDefinition instanceof custom_element_1.CustomElementDefinition) {
+                definition = partialDefinition;
             }
-            let factoryRecord = this.viewFactoryLookup.get(validSource);
-            if (factoryRecord === void 0) {
-                factoryRecord = Object.create(null);
-                this.viewFactoryLookup.set(validSource, factoryRecord);
+            else if (kernel_1.Metadata.hasOwn(custom_element_1.CustomElement.name, partialDefinition)) {
+                definition = kernel_1.Metadata.getOwn(custom_element_1.CustomElement.name, partialDefinition);
             }
-            const parentContextId = parentContext === void 0 ? 0 : parentContext.id;
-            let factory = factoryRecord[parentContextId];
+            else {
+                definition = custom_element_1.CustomElementDefinition.create(partialDefinition);
+                // Make sure the full definition can be retrieved both from the partialDefinition as well as its dynamically created class
+                kernel_1.Metadata.define(custom_element_1.CustomElement.name, definition, partialDefinition);
+                kernel_1.Metadata.define(custom_element_1.CustomElement.name, definition, definition.Type);
+            }
+            if (parentContext == void 0) {
+                parentContext = this.container;
+            }
+            const factorykey = custom_element_1.CustomElement.keyFrom(`${parentContext.path}:factory`);
+            let factory = kernel_1.Metadata.getOwn(factorykey, definition);
             if (factory === void 0) {
-                const template = this.templateFromSource(dom, validSource, parentContext, void 0);
-                factory = new view_1.ViewFactory(validSource.name, template, this.lifecycle);
-                factory.setCacheSize(validSource.cache, true);
-                factoryRecord[parentContextId] = factory;
+                const template = this.templateFromSource(dom, definition, parentContext, void 0);
+                factory = new view_1.ViewFactory(definition.name, template, this.lifecycle);
+                factory.setCacheSize(definition.cache, true);
+                kernel_1.Metadata.define(factorykey, factory, definition);
             }
             return factory;
         }
         templateFromSource(dom, definition, parentContext, componentType) {
-            if (parentContext == void 0) {
-                parentContext = this.container;
+            const templateKey = custom_element_1.CustomElement.keyFrom(`${parentContext.path}:template`);
+            let template = kernel_1.Metadata.getOwn(templateKey, definition);
+            if (template === void 0) {
+                template = this.templateFromSourceCore(dom, definition, parentContext, componentType);
+                kernel_1.Metadata.define(templateKey, template, definition);
             }
-            if (definition.template != void 0) {
-                const renderContext = new render_context_1.RenderContext(dom, parentContext, definition.dependencies, componentType);
-                if (definition.build.required) {
-                    const compilerName = definition.build.compiler || defaultCompilerName;
-                    const compiler = this.compilers[compilerName];
-                    if (compiler === undefined) {
-                        throw kernel_1.Reporter.error(20, compilerName);
-                    }
-                    definition = compiler.compile(dom, definition, renderContext.createRuntimeCompilationResources(), ViewCompileFlags.surrogate);
-                }
-                return this.templateFactory.create(renderContext, definition);
-            }
-            return exports.noViewTemplate;
+            return template;
         }
-    }
+        templateFromSourceCore(dom, definition, parentContext, componentType) {
+            const renderContext = new render_context_1.RenderContext(dom, parentContext, definition.dependencies, componentType);
+            if (definition.template != void 0 && definition.needsCompile) {
+                const compiledDefinitionKey = custom_element_1.CustomElement.keyFrom(`${parentContext.path}:compiled-definition`);
+                let compiledDefinition = kernel_1.Metadata.getOwn(compiledDefinitionKey, definition);
+                if (compiledDefinition === void 0) {
+                    compiledDefinition = this.compiler.compile(dom, definition, renderContext.createRuntimeCompilationResources(), ViewCompileFlags.surrogate);
+                    kernel_1.Metadata.define(compiledDefinitionKey, compiledDefinition, definition);
+                }
+                return this.templateFactory.create(renderContext, compiledDefinition);
+            }
+            return this.templateFactory.create(renderContext, definition);
+        }
+    };
+    RenderingEngine = tslib_1.__decorate([
+        tslib_1.__param(0, kernel_1.IContainer),
+        tslib_1.__param(1, exports.ITemplateFactory),
+        tslib_1.__param(2, lifecycle_1.ILifecycle),
+        tslib_1.__param(3, exports.ITemplateCompiler)
+    ], RenderingEngine);
     exports.RenderingEngine = RenderingEngine;
-    RenderingEngine.inject = [kernel_1.IContainer, exports.ITemplateFactory, lifecycle_1.ILifecycle, kernel_1.all(exports.ITemplateCompiler)];
     /** @internal */
     let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         constructor(controller, viewModel, flags, propertyName, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
@@ -198,6 +190,15 @@
         subscriber_collection_1.subscriberCollection()
     ], ChildrenObserver);
     exports.ChildrenObserver = ChildrenObserver;
+    function defaultChildQuery(projector) {
+        return projector.children;
+    }
+    function defaultChildFilter(node, controller, viewModel) {
+        return !!viewModel;
+    }
+    function defaultChildMap(node, controller, viewModel) {
+        return viewModel;
+    }
     /** @internal */
     function filterChildren(projector, query, filter, map) {
         const nodes = query(projector);
@@ -213,14 +214,5 @@
         return children;
     }
     exports.filterChildren = filterChildren;
-    function defaultChildQuery(projector) {
-        return projector.children;
-    }
-    function defaultChildFilter(node, controller, viewModel) {
-        return !!viewModel;
-    }
-    function defaultChildMap(node, controller, viewModel) {
-        return viewModel;
-    }
 });
 //# sourceMappingURL=rendering-engine.js.map

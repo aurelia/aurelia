@@ -1,5 +1,5 @@
 import { __decorate, __param } from "tslib";
-import { AttrSyntax, BindingCommandResource, getTarget, IAttributePattern } from '@aurelia/jit';
+import { AttrSyntax, BindingCommand, getTarget, IAttributePattern } from '@aurelia/jit';
 import { Registration } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, instructionRenderer, IObserverLocator } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
@@ -41,7 +41,7 @@ export class TranslationBindingCommand {
         for (const alias of this.aliases) {
             // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
             // In this case, it probably has lesser or no significance as actual binding mode.
-            const key = BindingCommandResource.keyFrom(alias);
+            const key = BindingCommand.keyFrom(alias);
             Registration.singleton(key, this).register(container);
             Registration.alias(key, this).register(container);
         }
@@ -110,7 +110,7 @@ export class TranslationBindBindingCommand {
         for (const alias of this.aliases) {
             // `.bind` is directly used here as pattern to replicate the vCurrent syntax.
             // In this case, it probably has lesser or no significance as actual binding mode.
-            const key = BindingCommandResource.keyFrom(`${alias}.bind`);
+            const key = BindingCommand.keyFrom(`${alias}.bind`);
             Registration.singleton(key, this).register(container);
             Registration.alias(key, this).register(container);
         }

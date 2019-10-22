@@ -1,10 +1,10 @@
 import { IContainer, IDisposable, IIndexable, IResolver, IServiceLocator } from '@aurelia/kernel';
-import { HooksDefinition, ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
+import { HooksDefinition, ITargetedInstruction, PartialCustomElementDefinitionParts } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { LifecycleFlags, State } from './flags';
 import { ILifecycleTask, MaybePromiseOrTask } from './lifecycle-task';
 import { IBatchable, IBindingTargetAccessor, IScope } from './observation';
-import { IElementProjector } from './resources/custom-element';
+import { IElementProjector, CustomElementDefinition } from './resources/custom-element';
 export interface IBinding {
     readonly locator: IServiceLocator;
     readonly $scope?: IScope;
@@ -20,18 +20,18 @@ export declare const enum ViewModelKind {
 }
 export interface IController<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> {
     readonly id: number;
-    nextBound?: IController<T>;
-    nextUnbound?: IController<T>;
-    prevBound?: IController<T>;
-    prevUnbound?: IController<T>;
-    nextAttached?: IController<T>;
-    nextDetached?: IController<T>;
-    prevAttached?: IController<T>;
-    prevDetached?: IController<T>;
-    nextMount?: IController<T>;
-    nextUnmount?: IController<T>;
-    prevMount?: IController<T>;
-    prevUnmount?: IController<T>;
+    nextBound?: IController<T, C>;
+    nextUnbound?: IController<T, C>;
+    prevBound?: IController<T, C>;
+    prevUnbound?: IController<T, C>;
+    nextAttached?: IController<T, C>;
+    nextDetached?: IController<T, C>;
+    prevAttached?: IController<T, C>;
+    prevDetached?: IController<T, C>;
+    nextMount?: IController<T, C>;
+    nextUnmount?: IController<T, C>;
+    prevMount?: IController<T, C>;
+    prevUnmount?: IController<T, C>;
     readonly flags: LifecycleFlags;
     readonly viewCache?: IViewCache<T>;
     parent?: IController<T>;
@@ -78,8 +78,8 @@ export declare const enum MountStrategy {
 }
 export interface IRenderContext<T extends INode = INode> extends IContainer {
     readonly parentId: number;
-    render(flags: LifecycleFlags, renderable: IController<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
-    beginComponentOperation(renderable: IController<T>, target: object, instruction: ITargetedInstruction, factory?: IViewFactory<T> | null, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
+    render(flags: LifecycleFlags, renderable: IController<T>, targets: ArrayLike<object>, templateDefinition: CustomElementDefinition, host?: T, parts?: PartialCustomElementDefinitionParts): void;
+    beginComponentOperation(renderable: IController<T>, target: object, instruction: ITargetedInstruction, factory?: IViewFactory<T> | null, parts?: PartialCustomElementDefinitionParts, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 export interface IViewCache<T extends INode = INode> {
     readonly isCaching: boolean;
@@ -90,9 +90,9 @@ export interface IViewCache<T extends INode = INode> {
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly parentContextId: number;
     readonly name: string;
-    readonly parts: TemplatePartDefinitions;
+    readonly parts: PartialCustomElementDefinitionParts;
     create(flags?: LifecycleFlags): IController<T>;
-    addParts(parts: TemplatePartDefinitions): void;
+    addParts(parts: PartialCustomElementDefinitionParts): void;
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory<INode>>;
 /**

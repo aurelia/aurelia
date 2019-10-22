@@ -3,6 +3,7 @@ import { ITargetedInstruction } from './definitions';
 import { IDOM, IRenderLocation } from './dom';
 import { IController, IViewFactory } from './lifecycle';
 import { IRenderer, IRenderingEngine } from './rendering-engine';
+import { CustomElement } from './resources/custom-element';
 export class RenderContext {
     constructor(dom, parentContainer, dependencies, componentType) {
         this.dom = dom;
@@ -26,11 +27,14 @@ export class RenderContext {
         }
         // If the element has a view, support Recursive Components by adding self to own view template container.
         if (componentType) {
-            componentType.register(container);
+            CustomElement.getDefinition(componentType).register(container);
         }
     }
     get id() {
         return this.container.id;
+    }
+    get path() {
+        return this.container.path;
     }
     get parentId() {
         return this.parentContainer.id;
@@ -66,8 +70,8 @@ export class RenderContext {
         return this.container.createChild();
     }
     // #endregion
-    render(flags, renderable, targets, templateDefinition, host, parts) {
-        this.renderer.render(flags, this.dom, this, renderable, targets, templateDefinition, host, parts);
+    render(flags, controller, targets, definition, host, parts) {
+        this.renderer.render(flags, this.dom, this, controller, targets, definition, host, parts);
     }
     beginComponentOperation(renderable, target, instruction, factory, parts, location) {
         this.renderableProvider.prepare(renderable);

@@ -1,52 +1,78 @@
-import { PLATFORM, Registration, } from '@aurelia/kernel';
-import { HooksDefinition, registerAliases } from '../definitions';
-import { BindingMode, ensureValidStrategy, } from '../flags';
+import { Registration, Protocol, Metadata, mergeArrays, firstDefined, } from '@aurelia/kernel';
+import { HooksDefinition, registerAliases, } from '../definitions';
+import { BindingMode, } from '../flags';
 import { Bindable } from '../templating/bindable';
-export function customAttribute(nameOrDefinition) {
-    return target => CustomAttribute.define(nameOrDefinition, target); // TODO: fix this at some point
+export function customAttribute(nameOrDef) {
+    return function (target) {
+        return CustomAttribute.define(nameOrDef, target);
+    };
 }
-export function templateController(nameOrDefinition) {
-    return target => CustomAttribute.define(typeof nameOrDefinition === 'string'
-        ? { isTemplateController: true, name: nameOrDefinition }
-        : { isTemplateController: true, ...nameOrDefinition }, target); // TODO: fix this at some point
+export function templateController(nameOrDef) {
+    return function (target) {
+        return CustomAttribute.define(typeof nameOrDef === 'string'
+            ? { isTemplateController: true, name: nameOrDef }
+            : { isTemplateController: true, ...nameOrDef }, target);
+    };
 }
-export const CustomAttribute = Object.freeze({
-    name: 'custom-attribute',
+export class CustomAttributeDefinition {
+    constructor(Type, name, aliases, key, defaultBindingMode, isTemplateController, bindables, strategy, hooks) {
+        this.Type = Type;
+        this.name = name;
+        this.aliases = aliases;
+        this.key = key;
+        this.defaultBindingMode = defaultBindingMode;
+        this.isTemplateController = isTemplateController;
+        this.bindables = bindables;
+        this.strategy = strategy;
+        this.hooks = hooks;
+    }
+    static create(nameOrDef, Type) {
+        let name;
+        let def;
+        if (typeof nameOrDef === 'string') {
+            name = nameOrDef;
+            def = { name };
+        }
+        else {
+            name = nameOrDef.name;
+            def = nameOrDef;
+        }
+        return new CustomAttributeDefinition(Type, firstDefined(CustomAttribute.getAnnotation(Type, 'name'), name), mergeArrays(CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), CustomAttribute.keyFrom(name), firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView), firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), firstDefined(CustomAttribute.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, 1 /* getterSetter */), firstDefined(CustomAttribute.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)));
+    }
+    register(container) {
+        const { Type, key, aliases } = this;
+        Registration.transient(key, Type).register(container);
+        Registration.alias(key, Type).register(container);
+        registerAliases(aliases, CustomAttribute, key, container);
+    }
+}
+export const CustomAttribute = {
+    name: Protocol.resource.keyFor('custom-attribute'),
     keyFrom(name) {
         return `${CustomAttribute.name}:${name}`;
     },
-    isType(Type) {
-        return Type.kind === CustomAttribute;
+    isType(value) {
+        return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
     },
-    define(nameOrDefinition, ctor) {
-        const Type = ctor;
-        const WritableType = Type;
-        const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-        WritableType.kind = CustomAttribute;
-        WritableType.description = description;
-        WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-        Type.register = function register(container) {
-            const aliases = description.aliases;
-            const key = CustomAttribute.keyFrom(description.name);
-            Registration.transient(key, this).register(container);
-            Registration.alias(key, this).register(container);
-            registerAliases([...aliases, ...this.aliases], CustomAttribute, key, container);
-        };
-        return Type;
+    define(nameOrDef, Type) {
+        const definition = CustomAttributeDefinition.create(nameOrDef, Type);
+        Metadata.define(CustomAttribute.name, definition, definition.Type);
+        Metadata.define(CustomAttribute.name, definition, definition);
+        Protocol.resource.appendTo(Type, CustomAttribute.name);
+        return definition.Type;
     },
-});
-/** @internal */
-export function createCustomAttributeDescription(def, Type) {
-    const aliases = def.aliases;
-    const defaultBindingMode = def.defaultBindingMode;
-    return {
-        name: def.name,
-        aliases: aliases == null ? PLATFORM.emptyArray : aliases,
-        defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
-        isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-        bindables: { ...Bindable.for(Type).get(), ...Bindable.for(def).get() },
-        strategy: ensureValidStrategy(def.strategy),
-        hooks: new HooksDefinition(Type.prototype)
-    };
-}
+    getDefinition(Type) {
+        const def = Metadata.getOwn(CustomAttribute.name, Type);
+        if (def === void 0) {
+            throw new Error(`No definition found for type ${Type.name}`);
+        }
+        return def;
+    },
+    annotate(Type, prop, value) {
+        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    },
+    getAnnotation(Type, prop) {
+        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+    },
+};
 //# sourceMappingURL=custom-attribute.js.map

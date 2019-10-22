@@ -222,8 +222,8 @@
             /* manifestRoot       */ manifestRoot, 
             /* parentManifestRoot */ parentManifestRoot, 
             /* partName           */ partName);
-            if (manifestRoot !== null && manifestRoot.isContainerless) {
-                node.parentNode.replaceChild(manifestRoot.marker, node);
+            if (manifestRoot === manifest && manifest.isContainerless) {
+                node.parentNode.replaceChild(manifest.marker, node);
             }
             else if (manifest.isTarget) {
                 node.classList.add('au');
@@ -257,10 +257,6 @@
             // If there are no template controllers or replaces, it is always the manifest itself.
             // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
             let manifestProxy = manifest;
-            const replacePart = this.declareReplacePart(
-            /* node               */ node, 
-            /* manifestRoot       */ manifestRoot, 
-            /* parentManifestRoot */ parentManifestRoot);
             let previousController = (void 0);
             let currentController = (void 0);
             const attributes = node.attributes;
@@ -326,21 +322,19 @@
                 }
             }
             processTemplateControllers(this.dom, manifestProxy, manifest);
-            if (replacePart === null) {
+            let replace = node.getAttribute('replace');
+            if (replace === '' || replace === null && manifestRoot !== null && manifestRoot.isContainerless) {
+                replace = 'default';
+            }
+            const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+            if (replace === null || partOwner === null) {
                 // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
                 parentManifest.childNodes.push(manifestProxy);
             }
             else {
-                // if the current manifest is also the manifestRoot, it means the replace sits on a custom
-                // element, so add the part to the parent wrapping custom element instead
-                const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
-                // Tried a replace part with place to put it (process normal)
-                if (partOwner === null) {
-                    parentManifest.childNodes.push(manifestProxy);
-                    return;
-                }
                 // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
                 // instead of to the childNodes
+                const replacePart = new semantic_model_1.ReplacePartSymbol(replace);
                 replacePart.parent = parentManifest;
                 replacePart.template = manifestProxy;
                 partOwner.parts.push(replacePart);
@@ -482,7 +476,7 @@
                         attrValue = value.slice(start);
                     }
                     const attrSyntax = this.attrParser.parse(attrName, attrValue);
-                    const attrTarget = attrSyntax.target;
+                    const attrTarget = kernel_1.camelCase(attrSyntax.target);
                     const command = this.resources.getBindingCommand(attrSyntax, false);
                     const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                     const expr = this.exprParser.parse(attrValue, bindingType);
@@ -549,30 +543,6 @@
                 // if it's an interpolation, clear the attribute value
                 attr.value = '';
             }
-        }
-        declareReplacePart(node, manifestRoot, parentManifestRoot) {
-            const name = node.getAttribute('replace');
-            if (name === null) {
-                let root = null;
-                if (manifestRoot !== null
-                    && (manifestRoot.flags & 16 /* isCustomElement */) > 0
-                    && manifestRoot.isContainerless) {
-                    root = manifestRoot;
-                }
-                else if (parentManifestRoot !== null
-                    && (parentManifestRoot.flags & 16 /* isCustomElement */) > 0
-                    && parentManifestRoot.isContainerless) {
-                    root = parentManifestRoot;
-                }
-                if (root !== null) {
-                    const physicalNode = root.physicalNode;
-                    if (physicalNode.childElementCount === 1) {
-                        return new semantic_model_1.ReplacePartSymbol('default');
-                    }
-                }
-                return null;
-            }
-            return new semantic_model_1.ReplacePartSymbol(name === '' ? 'default' : name);
         }
     }
     exports.TemplateBinder = TemplateBinder;

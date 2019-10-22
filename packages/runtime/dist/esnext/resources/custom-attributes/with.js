@@ -1,35 +1,19 @@
-import { nextId, PLATFORM, Registration } from '@aurelia/kernel';
-import { HooksDefinition } from '../../definitions';
+import { __decorate, __param } from "tslib";
+import { nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
-import { BindingMode } from '../../flags';
 import { IViewFactory } from '../../lifecycle';
+import { templateController } from '../custom-attribute';
+import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
-import { Bindable } from '../../templating/bindable';
-import { CustomAttribute } from '../custom-attribute';
-export class With {
+let With = class With {
     constructor(factory, location) {
-        this.$observers = Object.freeze({
-            value: this,
-        });
+        this.factory = factory;
+        this.location = location;
+        this.id = nextId('au$component');
         this.id = nextId('au$component');
         this.factory = factory;
         this.view = this.factory.create();
         this.view.hold(location, 1 /* insertBefore */);
-        this._value = void 0;
-    }
-    get value() {
-        return this._value;
-    }
-    set value(newValue) {
-        const oldValue = this._value;
-        if (oldValue !== newValue) {
-            this._value = newValue;
-            this.valueChanged(newValue, oldValue, 0 /* none */);
-        }
-    }
-    static register(container) {
-        container.register(Registration.transient('custom-attribute:with', this));
-        container.register(Registration.transient(this, this));
     }
     valueChanged(newValue, oldValue, flags) {
         if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
@@ -54,16 +38,14 @@ export class With {
         const scope = Scope.fromParent(flags, this.$controller.scope, this.value === void 0 ? {} : this.value);
         this.view.bind(flags, scope, this.$controller.part);
     }
-}
-With.inject = [IViewFactory, IRenderLocation];
-With.kind = CustomAttribute;
-With.description = Object.freeze({
-    name: 'with',
-    aliases: PLATFORM.emptyArray,
-    defaultBindingMode: BindingMode.toView,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
-    strategy: 1 /* getterSetter */,
-    hooks: Object.freeze(new HooksDefinition(With.prototype)),
-});
+};
+__decorate([
+    bindable
+], With.prototype, "value", void 0);
+With = __decorate([
+    templateController('with'),
+    __param(0, IViewFactory),
+    __param(1, IRenderLocation)
+], With);
+export { With };
 //# sourceMappingURL=with.js.map

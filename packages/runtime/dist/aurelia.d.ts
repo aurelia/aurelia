@@ -1,4 +1,4 @@
-import { IContainer, IRegistry } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import { IDOM, INode } from './dom';
 import { BindingStrategy } from './flags';
@@ -44,7 +44,7 @@ export declare class Aurelia<TNode extends INode = INode> {
     private _root?;
     private next?;
     constructor(container?: IContainer);
-    register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this;
+    register(...params: any[]): this;
     app(config: ISinglePageApp<TNode>): this;
     start(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     stop(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;

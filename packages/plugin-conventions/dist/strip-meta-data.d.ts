@@ -1,10 +1,10 @@
-import { IBindableDescription } from '@aurelia/runtime';
+import { PartialBindableDefinition } from '@aurelia/runtime';
 interface IStrippedHtml {
     html: string;
     deps: string[];
     shadowMode: 'open' | 'closed' | null;
     containerless: boolean;
-    bindables: Record<string, IBindableDescription>;
+    bindables: Record<string, PartialBindableDefinition>;
     aliases: string[];
 }
 export declare function stripMetaData(rawHtml: string): IStrippedHtml;

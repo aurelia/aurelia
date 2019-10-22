@@ -1,39 +1,64 @@
-import { Registration, PLATFORM } from '@aurelia/kernel';
+import { Registration, Metadata, Protocol, mergeArrays, firstDefined, } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
-export function bindingBehavior(nameOrDefinition) {
-    return target => BindingBehavior.define(nameOrDefinition, target); // TODO: fix this at some point
+export function bindingBehavior(nameOrDef) {
+    return function (target) {
+        return BindingBehavior.define(nameOrDef, target);
+    };
 }
-export const BindingBehavior = Object.freeze({
-    name: 'binding-behavior',
+export class BindingBehaviorDefinition {
+    constructor(Type, name, aliases, key) {
+        this.Type = Type;
+        this.name = name;
+        this.aliases = aliases;
+        this.key = key;
+    }
+    static create(nameOrDef, Type) {
+        let name;
+        let def;
+        if (typeof nameOrDef === 'string') {
+            name = nameOrDef;
+            def = { name };
+        }
+        else {
+            name = nameOrDef.name;
+            def = nameOrDef;
+        }
+        return new BindingBehaviorDefinition(Type, firstDefined(BindingBehavior.getAnnotation(Type, 'name'), name), mergeArrays(BindingBehavior.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), BindingBehavior.keyFrom(name));
+    }
+    register(container) {
+        const { Type, key, aliases } = this;
+        Registration.singleton(key, Type).register(container);
+        Registration.alias(key, Type).register(container);
+        registerAliases(aliases, BindingBehavior, key, container);
+    }
+}
+export const BindingBehavior = {
+    name: Protocol.resource.keyFor('binding-behavior'),
     keyFrom(name) {
         return `${BindingBehavior.name}:${name}`;
     },
-    isType(Type) {
-        return Type.kind === BindingBehavior;
+    isType(value) {
+        return typeof value === 'function' && Metadata.hasOwn(BindingBehavior.name, value);
     },
-    define(nameOrDefinition, ctor) {
-        const Type = ctor;
-        const WritableType = Type;
-        const description = createBindingBehaviorDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-        WritableType.kind = BindingBehavior;
-        WritableType.description = description;
-        WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-        Type.register = function register(container) {
-            const aliases = description.aliases;
-            const key = BindingBehavior.keyFrom(description.name);
-            Registration.singleton(key, this).register(container);
-            Registration.alias(key, this).register(container);
-            registerAliases([...aliases, ...this.aliases], BindingBehavior, key, container);
-        };
-        return Type;
+    define(nameOrDef, Type) {
+        const definition = BindingBehaviorDefinition.create(nameOrDef, Type);
+        Metadata.define(BindingBehavior.name, definition, definition.Type);
+        Metadata.define(BindingBehavior.name, definition, definition);
+        Protocol.resource.appendTo(Type, BindingBehavior.name);
+        return definition.Type;
     },
-});
-/** @internal */
-export function createBindingBehaviorDescription(def, Type) {
-    const aliases = def.aliases;
-    return {
-        name: def.name,
-        aliases: aliases == null ? PLATFORM.emptyArray : aliases,
-    };
-}
+    getDefinition(Type) {
+        const def = Metadata.getOwn(BindingBehavior.name, Type);
+        if (def === void 0) {
+            throw new Error(`No definition found for type ${Type.name}`);
+        }
+        return def;
+    },
+    annotate(Type, prop, value) {
+        Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+    },
+    getAnnotation(Type, prop) {
+        return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+    },
+};
 //# sourceMappingURL=binding-behavior.js.map

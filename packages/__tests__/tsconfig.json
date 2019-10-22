@@ -2,6 +2,7 @@
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
     "declarationDir": "dist",
     "outDir": "dist/esnext",
     "lib": ["esnext", "dom"],

@@ -1,32 +1,25 @@
 import {
-  Key,
-  Writable
-} from '@aurelia/kernel';
-import {
   bindable,
-  CustomElement,
   IController,
-  ICustomElementType,
-  IDOM,
   INode,
   IRenderContext,
-  IRenderingEngine,
-  ITemplate,
   LifecycleFlags,
-  RenderContext,
-  TemplateDefinition
+  customElement,
 } from '@aurelia/runtime';
-import {
-  IRouter,
-} from '../router';
-import {
-  IViewportOptions,
-  Viewport
-} from '../viewport';
+import { IRouter } from '../router';
+import { IViewportOptions, Viewport } from '../viewport';
 
+@customElement({
+  name: 'au-viewport',
+  template: `
+    <template>
+      <div class="viewport-header" style="display: none;">
+        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
+      </div>
+    </template>
+  `.replace(/\s+/g, '')
+})
 export class ViewportCustomElement {
-  public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
-
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -40,20 +33,9 @@ export class ViewportCustomElement {
   public $controller!: IController; // This is set by the controller after this instance is constructed
 
   public constructor(
-    private readonly router: IRouter,
-    private readonly element: Element, private readonly renderingEngine: IRenderingEngine
-  ) { }
-
-  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
-    const Type = this.constructor as ICustomElementType;
-    if (!parentContext) {
-      parentContext = this.$controller.context as IRenderContext;
-    }
-    const dom = parentContext.get(IDOM);
-    const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type) as ITemplate;
-    (template as Writable<ITemplate>).renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
-    template.render(this, host, parts);
-  }
+    @IRouter private readonly router: IRouter,
+    @INode private readonly element: Element,
+  ) {}
 
   // public created(...rest): void {
   //   console.log('Created', rest);
@@ -147,5 +129,4 @@ export class ViewportCustomElement {
     }
   }
 }
-// eslint-disable-next-line no-template-curly-in-string
-CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);
+

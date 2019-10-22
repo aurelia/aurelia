@@ -29,7 +29,7 @@ export {
   GuardTarget,
   INavigatorInstruction,
   IRouteableComponent,
-  IRouteableComponentType,
+  RouteableComponentType,
   IViewportInstruction,
   NavigationInstruction,
   ReentryBehavior,

@@ -1,5 +1,5 @@
 import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingInstruction, TranslationBindBindingRenderer, TranslationBinding, TranslationBindingCommand, TranslationBindingInstruction, TranslationBindingRenderer, TranslationBindInstructionType, TranslationInstructionType } from '@aurelia/i18n';
-import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
 import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
@@ -74,7 +74,7 @@ describe('TranslationBindingCommand', function () {
     return aliases.reduce(
       (acc: TranslationBindingCommand[], alias) => {
         acc.push(
-          container.get<TranslationBindingCommand>(BindingCommandResource.keyFrom(alias)),
+          container.get<TranslationBindingCommand>(BindingCommand.keyFrom(alias)),
         );
         return acc;
       },
@@ -243,7 +243,7 @@ describe('TranslationBindBindingCommand', function () {
     return aliases.reduce(
       (acc: TranslationBindBindingCommand[], alias) => {
         acc.push(
-          container.get<TranslationBindBindingCommand>(BindingCommandResource.keyFrom(`${alias}.bind`)),
+          container.get<TranslationBindBindingCommand>(BindingCommand.keyFrom(`${alias}.bind`)),
         );
         return acc;
       },

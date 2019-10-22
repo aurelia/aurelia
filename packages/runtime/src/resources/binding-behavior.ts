@@ -1,76 +1,117 @@
 import {
-  Class,
   Constructable,
   IContainer,
-  IResourceDefinition,
+  ResourceDefinition,
   IResourceKind,
-  IResourceType,
+  ResourceType,
   Registration,
-  Writable,
-  PLATFORM
+  Metadata,
+  Protocol,
+  PartialResourceDefinition,
+  mergeArrays,
+  firstDefined,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { IBinding } from '../lifecycle';
-import { IScope } from '../observation';
 import { registerAliases } from '../definitions';
+import { LifecycleFlags } from '../flags';
+import { IScope } from '../observation';
+import { IBinding } from '../lifecycle';
 
-export interface IBindingBehavior<T = any[]> {
+export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
+
+export type BindingBehaviorInstance<T extends {} = {}> = {
   bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
-}
+} & T;
 
-export interface IBindingBehaviorDefinition extends IResourceDefinition {
-}
+export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
+export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
+  isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
+  define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
+  getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
+  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void;
+  getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K];
+};
 
-type BindingBehaviorStaticProperties = Required<Pick<IBindingBehaviorDefinition, 'aliases'>>;
-export interface IBindingBehaviorType<C extends Constructable = Constructable> extends IResourceType<IBindingBehaviorDefinition, InstanceType<C> & IBindingBehavior>, BindingBehaviorStaticProperties { }
+export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
 
-export interface IBindingBehaviorResource extends
-  IResourceKind<IBindingBehaviorDefinition, IBindingBehavior, Class<IBindingBehavior>> {
-}
-
-export function bindingBehavior(definition: IBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(definition: PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator;
-export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
-  return target => BindingBehavior.define(nameOrDefinition, target) as any; // TODO: fix this at some point
-}
-
-export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze({
-  name: 'binding-behavior',
-  keyFrom(name: string): string {
-    return `${BindingBehavior.name}:${name}`;
-  },
-  isType<T>(Type: T & Partial<IBindingBehaviorType>): Type is T & IBindingBehaviorType {
-    return Type.kind === BindingBehavior;
-  },
-  define<T extends Constructable = Constructable>(nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T> {
-    const Type = ctor as T & IBindingBehaviorType<T>;
-    const WritableType = Type as T & Writable<IBindingBehaviorType<T>>;
-    const description = createBindingBehaviorDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-
-    WritableType.kind = BindingBehavior;
-    WritableType.description = description;
-    WritableType.aliases = Type.aliases == null ? PLATFORM.emptyArray : Type.aliases;
-    Type.register = function register(container: IContainer): void {
-      const aliases = description.aliases;
-      const key = BindingBehavior.keyFrom(description.name);
-      Registration.singleton(key, this).register(container);
-      Registration.alias(key, this).register(container);
-      registerAliases([...aliases, ...this.aliases], BindingBehavior, key, container);
-    };
-
-    return Type;
-  },
-});
-
-/** @internal */
-export function createBindingBehaviorDescription(def: IBindingBehaviorDefinition, Type: IBindingBehaviorType): Required<IBindingBehaviorDefinition> {
-  const aliases = def.aliases;
-  return {
-    name: def.name,
-    aliases: aliases == null ? PLATFORM.emptyArray : aliases,
+export function bindingBehavior(nameOrDef: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
+export function bindingBehavior(nameOrDef: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator {
+  return function (target) {
+    return BindingBehavior.define(nameOrDef, target);
   };
 }
 
-export type BindingBehaviorDecorator = <T extends Constructable>(target: T) => T & IBindingBehaviorType<T>;
+export class BindingBehaviorDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, BindingBehaviorInstance> {
+  private constructor(
+    public readonly Type: BindingBehaviorType<T>,
+    public readonly name: string,
+    public readonly aliases: readonly string[],
+    public readonly key: string,
+  ) {}
+
+  public static create<T extends Constructable = Constructable>(
+    nameOrDef: string | PartialBindingBehaviorDefinition,
+    Type: BindingBehaviorType<T>,
+  ): BindingBehaviorDefinition<T> {
+
+    let name: string;
+    let def: PartialBindingBehaviorDefinition;
+    if (typeof nameOrDef === 'string') {
+      name = nameOrDef;
+      def = { name };
+    } else {
+      name = nameOrDef.name;
+      def = nameOrDef;
+    }
+
+    return new BindingBehaviorDefinition(
+      Type,
+      firstDefined(BindingBehavior.getAnnotation(Type, 'name'), name),
+      mergeArrays(BindingBehavior.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      BindingBehavior.keyFrom(name),
+    );
+  }
+
+  public register(container: IContainer): void {
+    const { Type, key, aliases } = this;
+    Registration.singleton(key, Type).register(container);
+    Registration.alias(key, Type).register(container);
+    registerAliases(aliases, BindingBehavior, key, container);
+  }
+}
+
+export const BindingBehavior: BindingBehaviorKind = {
+  name: Protocol.resource.keyFor('binding-behavior'),
+  keyFrom(name: string): string {
+    return `${BindingBehavior.name}:${name}`;
+  },
+  isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
+    return typeof value === 'function' && Metadata.hasOwn(BindingBehavior.name, value);
+  },
+  define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
+    const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
+    Metadata.define(BindingBehavior.name, definition, definition.Type);
+    Metadata.define(BindingBehavior.name, definition, definition);
+    Protocol.resource.appendTo(Type, BindingBehavior.name);
+
+    return definition.Type as BindingBehaviorType<T>;
+  },
+  getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
+    const def = Metadata.getOwn(BindingBehavior.name, Type);
+    if (def === void 0) {
+      throw new Error(`No definition found for type ${Type.name}`);
+    }
+
+    return def;
+  },
+  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void {
+    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+  },
+  getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K] {
+    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+  },
+};

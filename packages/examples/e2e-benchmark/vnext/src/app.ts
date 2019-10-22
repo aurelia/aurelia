@@ -33,13 +33,6 @@ class Todo {
     </div>
   </template>
   `,
-  build: {
-    required: true,
-    compiler: 'default'
-  },
-  instructions: [],
-  surrogates: [],
-  dependencies: []
 })
 export class App {
   public log: boolean = false;

@@ -2,7 +2,6 @@ import {
   Constructable,
   DI,
   IContainer,
-  IRegistry,
   PLATFORM,
   Registration
 } from '@aurelia/kernel';
@@ -29,7 +28,6 @@ import {
 import { ExposedContext } from './rendering-engine';
 import {
   CustomElement,
-  ICustomElementType
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 
@@ -157,7 +155,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   private create(): void {
     const config = this.config;
-    this.viewModel = CustomElement.isType(config.component as ICustomElementType)
+    this.viewModel = CustomElement.isType(config.component as Constructable)
       ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 
@@ -218,7 +216,7 @@ export class Aurelia<TNode extends INode = INode> {
     Registration.instance(Aurelia, this).register(container);
   }
 
-  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
+  public register(...params: any[]): this {
     this.container.register(...params);
     return this;
   }

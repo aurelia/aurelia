@@ -3,15 +3,15 @@ import {
   kebabCase,
 } from '@aurelia/kernel';
 import {
-  AttributeDefinition,
+  CustomAttributeDefinition,
   BindingMode,
   CustomAttribute,
   CustomElement,
-  IBindableDescription,
-  TemplateDefinition,
+  BindableDefinition,
+  CustomElementDefinition,
 } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
-import { BindingCommandResource, IBindingCommand } from './binding-command';
+import { BindingCommand, BindingCommandInstance } from './binding-command';
 
 /**
  * A pre-processed piece of information about a defined bindable property on a custom
@@ -54,12 +54,12 @@ export class ElementInfo {
     public containerless: boolean,
   ) {}
 
-  public static from(def: TemplateDefinition): ElementInfo {
+  public static from(def: CustomElementDefinition): ElementInfo {
     const info = new ElementInfo(def.name, def.containerless);
-    const bindables = def.bindables as Record<string, IBindableDescription>;
+    const bindables = def.bindables;
     const defaultBindingMode = BindingMode.toView;
 
-    let bindable: IBindableDescription;
+    let bindable: BindableDefinition;
     let prop: string;
     let attr: string;
     let mode: BindingMode;
@@ -114,14 +114,14 @@ export class AttrInfo {
     public isTemplateController: boolean,
   ) {}
 
-  public static from(def: AttributeDefinition): AttrInfo {
+  public static from(def: CustomAttributeDefinition): AttrInfo {
     const info = new AttrInfo(def.name, def.isTemplateController);
-    const bindables = def.bindables as Record<string, IBindableDescription>;
+    const bindables = def.bindables;
     const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
       ? def.defaultBindingMode
       : BindingMode.toView;
 
-    let bindable: IBindableDescription;
+    let bindable: BindableDefinition;
     let prop: string;
     let mode: BindingMode;
     let hasPrimary: boolean = false;
@@ -168,7 +168,7 @@ export class AttrInfo {
 export class ResourceModel {
   private readonly elementLookup: Record<string, ElementInfo | null | undefined> = Object.create(null);
   private readonly attributeLookup: Record<string, AttrInfo | null | undefined> = Object.create(null);
-  private readonly commandLookup: Record<string, IBindingCommand | null | undefined> = Object.create(null);
+  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = Object.create(null);
 
   public constructor(
     private readonly resources: IResourceDescriptions,
@@ -184,7 +184,7 @@ export class ResourceModel {
   public getElementInfo(name: string): ElementInfo | null {
     let result = this.elementLookup[name];
     if (result === void 0) {
-      const def = this.resources.find(CustomElement, name);
+      const def = this.resources.find(CustomElement, name) as unknown as CustomElementDefinition;
       this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
     }
     return result;
@@ -200,7 +200,7 @@ export class ResourceModel {
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
     let result = this.attributeLookup[syntax.target];
     if (result === void 0) {
-      const def = this.resources.find(CustomAttribute, syntax.target);
+      const def = this.resources.find(CustomAttribute, syntax.target) as unknown as CustomAttributeDefinition;
       this.attributeLookup[syntax.target] = result = def === null ? null : AttrInfo.from(def);
     }
     return result;
@@ -213,14 +213,14 @@ export class ResourceModel {
    *
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
-  public getBindingCommand(syntax: AttrSyntax, optional: boolean): IBindingCommand | null {
+  public getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
     const name = syntax.command;
     if (name === null) {
       return null;
     }
     let result = this.commandLookup[name];
     if (result === void 0) {
-      result = this.resources.create(BindingCommandResource, name);
+      result = this.resources.create(BindingCommand, name) as BindingCommandInstance;
       if (result === null) {
         if (optional) {
           return null;

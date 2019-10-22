@@ -1,5 +1,4 @@
 import {
-  Constructable,
   IContainer,
   IResolver,
   Key,
@@ -19,7 +18,7 @@ import {
   ITemplate,
   ITemplateFactory,
   NodeSequence,
-  TemplateDefinition
+  CustomElementDefinition
 } from '@aurelia/runtime';
 
 export const enum NodeType {
@@ -228,100 +227,6 @@ export class HTMLDOM implements IDOM {
 const $DOM = DOM as unknown as HTMLDOM;
 export { $DOM as DOM };
 
-/**
- * A specialized INodeSequence with optimizations for text (interpolation) bindings
- * The contract of this INodeSequence is:
- * - the previous element is an `au-m` node
- * - text is the actual text node
- */
-/** @internal */
-export class TextNodeSequence implements INodeSequence {
-  public isMounted: boolean;
-  public isLinked: boolean;
-
-  public dom: HTMLDOM;
-  public firstChild: Text;
-  public lastChild: Text;
-  public childNodes: Text[];
-
-  public next?: INodeSequence<Node>;
-
-  private refNode?: Node;
-
-  private readonly targets: [Node];
-
-  public constructor(dom: HTMLDOM, text: Text) {
-    this.isMounted = false;
-    this.isLinked = false;
-
-    this.dom = dom;
-    this.firstChild = text;
-    this.lastChild = text;
-    this.childNodes = [text];
-    this.targets = [new AuMarker(text) as unknown as Node];
-
-    this.next = void 0;
-
-    this.refNode = void 0;
-  }
-
-  public findTargets(): ArrayLike<Node> {
-    return this.targets;
-  }
-
-  public insertBefore(refNode: Node): void {
-    if (this.isLinked && !!this.refNode) {
-      this.addToLinked();
-    } else {
-      this.isMounted = true;
-      refNode.parentNode!.insertBefore(this.firstChild, refNode);
-    }
-  }
-
-  public appendTo(parent: Node): void {
-    if (this.isLinked && !!this.refNode) {
-      this.addToLinked();
-    } else {
-      this.isMounted = true;
-      parent.appendChild(this.firstChild);
-    }
-  }
-
-  public remove(): void {
-    this.isMounted = false;
-    this.firstChild.remove();
-  }
-
-  public addToLinked(): void {
-    const refNode = this.refNode!;
-    this.isMounted = true;
-    refNode.parentNode!.insertBefore(this.firstChild, refNode);
-  }
-
-  public unlink(): void {
-    this.isLinked = false;
-    this.next = void 0;
-    this.refNode = void 0;
-  }
-
-  public link(next: INodeSequence<Node> | (IRenderLocation & Comment) | undefined): void {
-    this.isLinked = true;
-    if (this.dom.isRenderLocation(next)) {
-      this.refNode = next;
-    } else {
-      this.next = next;
-      this.obtainRefNode();
-    }
-  }
-
-  private obtainRefNode(): void {
-    if (this.next !== void 0) {
-      this.refNode = this.next.firstChild;
-    } else {
-      this.refNode = void 0;
-    }
-  }
-}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 // This is the most common form of INodeSequence.
@@ -338,7 +243,6 @@ export class FragmentNodeSequence implements INodeSequence {
   public isMounted: boolean;
   public isLinked: boolean;
 
-  public dom: IDOM;
   public firstChild: Node;
   public lastChild: Node;
   public childNodes: Node[];
@@ -347,14 +251,15 @@ export class FragmentNodeSequence implements INodeSequence {
 
   private refNode?: Node;
 
-  private readonly fragment: DocumentFragment;
   private readonly targets: ArrayLike<Node>;
 
-  public constructor(dom: IDOM, fragment: DocumentFragment) {
+  public constructor(
+    public readonly dom: IDOM,
+    private readonly fragment: DocumentFragment,
+  ) {
     this.isMounted = false;
     this.isLinked = false;
 
-    this.dom = dom;
     this.fragment = fragment;
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
@@ -524,42 +429,25 @@ export interface NodeSequenceFactory {
 }
 
 export class NodeSequenceFactory implements NodeSequenceFactory {
-  private readonly dom: IDOM;
-  private readonly deepClone!: boolean;
-  private readonly node!: Node;
-  private readonly Type!: Constructable<INodeSequence>;
+  private readonly node: DocumentFragment | null;
 
-  public constructor(dom: IDOM, markupOrNode: string | Node) {
-    this.dom = dom;
-    const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
-    const childNodes = fragment.childNodes;
-    let target: ChildNode;
-    let text: ChildNode;
-    switch (childNodes.length) {
-      case 0:
-        this.createNodeSequence = () => NodeSequence.empty;
-        return;
-      case 2:
-        target = childNodes[0];
-        if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-          text = childNodes[1];
-          if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
-            this.deepClone = false;
-            this.node = text;
-            this.Type = TextNodeSequence;
-            return;
-          }
-        }
-      // falls through if not returned
-      default:
-        this.deepClone = true;
-        this.node = fragment;
-        this.Type = FragmentNodeSequence;
+  public constructor(
+    private readonly dom: IDOM,
+    markupOrNode: string | Node | null,
+  ) {
+    if (markupOrNode === null) {
+      this.node = null;
+    } else {
+      this.node = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
     }
   }
 
   public createNodeSequence(): INodeSequence {
-    return new this.Type(this.dom, this.node.cloneNode(this.deepClone));
+    if (this.node === null) {
+      return NodeSequence.empty;
+    }
+
+    return new FragmentNodeSequence(this.dom, this.node.cloneNode(true) as DocumentFragment);
   }
 }
 
@@ -609,7 +497,7 @@ export class HTMLTemplateFactory implements ITemplateFactory {
     return Registration.singleton(ITemplateFactory, this).register(container);
   }
 
-  public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {
-    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node), parentRenderContext);
+  public create(parentRenderContext: IRenderContext, definition: CustomElementDefinition): ITemplate {
+    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node | null), parentRenderContext);
   }
 }

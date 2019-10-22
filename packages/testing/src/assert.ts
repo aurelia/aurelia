@@ -56,7 +56,7 @@ import { DOM } from '@aurelia/runtime-html';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
-type ErrorMatcher = string | Error | RegExp;
+type ErrorMatcher = string | Error | RegExp | Function;
 
 const noException = Symbol('noException');
 

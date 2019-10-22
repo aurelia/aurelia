@@ -5,7 +5,7 @@ import {
   AttrSyntax,
   BindableInfo,
   IAttributeParser,
-  IBindingCommand,
+  BindingCommandInstance,
   ResourceModel,
   SymbolFlags,
   Char,
@@ -279,8 +279,8 @@ export class TemplateBinder {
       /* partName           */ partName,
     );
 
-    if (manifestRoot !== null && manifestRoot.isContainerless) {
-      node.parentNode!.replaceChild(manifestRoot.marker, node);
+    if (manifestRoot === manifest && manifest.isContainerless) {
+      node.parentNode!.replaceChild(manifest.marker, node);
     } else if (manifest.isTarget) {
       node.classList.add('au');
     }
@@ -328,12 +328,6 @@ export class TemplateBinder {
     // If there are no template controllers or replaces, it is always the manifest itself.
     // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
     let manifestProxy: ParentNodeSymbol = manifest;
-
-    const replacePart = this.declareReplacePart(
-      /* node               */ node,
-      /* manifestRoot       */ manifestRoot,
-      /* parentManifestRoot */ parentManifestRoot,
-    );
 
     let previousController: TemplateControllerSymbol = (void 0)!;
     let currentController: TemplateControllerSymbol = (void 0)!;
@@ -412,26 +406,23 @@ export class TemplateBinder {
     }
     processTemplateControllers(this.dom, manifestProxy, manifest);
 
-    if (replacePart === null) {
+    let replace = node.getAttribute('replace');
+    if (replace === '' || replace === null && manifestRoot !== null && manifestRoot.isContainerless) {
+      replace = 'default';
+    }
+
+    const partOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+
+    if (replace === null || partOwner === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
     } else {
-
-      // if the current manifest is also the manifestRoot, it means the replace sits on a custom
-      // element, so add the part to the parent wrapping custom element instead
-      const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
-
-      // Tried a replace part with place to put it (process normal)
-      if (partOwner === null) {
-        parentManifest.childNodes.push(manifestProxy);
-        return;
-      }
-
       // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
       // instead of to the childNodes
+      const replacePart = new ReplacePartSymbol(replace);
       replacePart.parent = parentManifest;
       replacePart.template = manifestProxy;
-      partOwner.parts.push(replacePart);
+      partOwner!.parts.push(replacePart);
 
       if (parentManifest.templateController != null) {
         parentManifest.templateController.parts.push(replacePart);
@@ -561,7 +552,7 @@ export class TemplateBinder {
   private bindCustomAttribute(
     attrSyntax: AttrSyntax,
     attrInfo: AttrInfo,
-    command: IBindingCommand | null,
+    command: BindingCommandInstance | null,
     manifest: ElementSymbol,
   ): void {
     let symbol: CustomAttributeSymbol;
@@ -631,7 +622,7 @@ export class TemplateBinder {
         }
 
         const attrSyntax = this.attrParser.parse(attrName, attrValue);
-        const attrTarget = attrSyntax.target;
+        const attrTarget = camelCase(attrSyntax.target);
         const command = this.resources.getBindingCommand(attrSyntax, false);
         const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
         const expr = this.exprParser.parse(attrValue, bindingType);
@@ -706,38 +697,5 @@ export class TemplateBinder {
       // if it's an interpolation, clear the attribute value
       attr.value = '';
     }
-  }
-
-  private declareReplacePart(
-    node: HTMLTemplateElement | HTMLElement,
-    manifestRoot: CustomElementSymbol | null,
-    parentManifestRoot: CustomElementSymbol | null,
-  ): ReplacePartSymbol | null {
-    const name = node.getAttribute('replace');
-    if (name === null) {
-      let root: CustomElementSymbol | null = null;
-      if (
-        manifestRoot !== null
-        && (manifestRoot.flags & SymbolFlags.isCustomElement) > 0
-        && manifestRoot.isContainerless
-      ) {
-        root = manifestRoot;
-      } else if (
-        parentManifestRoot !== null
-        && (parentManifestRoot.flags & SymbolFlags.isCustomElement) > 0
-        && parentManifestRoot.isContainerless
-      ) {
-        root = parentManifestRoot;
-      }
-
-      if (root !== null) {
-        const physicalNode = root.physicalNode as typeof node;
-        if (physicalNode.childElementCount === 1) {
-          return new ReplacePartSymbol('default');
-        }
-      }
-      return null;
-    }
-    return new ReplacePartSymbol(name === '' ? 'default' : name);
   }
 }

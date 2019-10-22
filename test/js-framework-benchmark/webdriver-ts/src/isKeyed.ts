@@ -4,7 +4,7 @@ import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './c
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import * as R from 'ramda';
 // necessary to launch without specifiying a path
-var chromedriver: any = require('chromedriver');
+const chromedriver: any = require('chromedriver');
 
 const args = yargs(process.argv)
   .usage("$0 [--framework Framework1 Framework2 ...] [--benchmark Benchmark1 Benchmark2 ...]")

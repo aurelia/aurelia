@@ -58,7 +58,6 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
   const el = DOM.createElement(name === 'let$' ? 'let' : name);
   if (attrs != null) {
     let value: string | string[];
-    let len: number;
     for (const attr in attrs) {
       value = attrs[attr];
       // if attr is class or its alias
@@ -96,7 +95,6 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
             el.setAttribute(`${parts[0]}.trigger`, value);
           }
         } else {
-          const len = attr.length;
           const parts = attr.split('$');
           if (parts.length === 1) {
             el.setAttribute(kebabCase(attr), value);

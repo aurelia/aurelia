@@ -1,8 +1,8 @@
-var _ = require('lodash');
-var exec = require('child_process').execSync;
-var fs = require('fs');
-var path = require('path');
-var yargs = require('yargs');
+const _ = require('lodash');
+const exec = require('child_process').execSync;
+const fs = require('fs');
+const path = require('path');
+const yargs = require('yargs');
 
 const args = yargs(process.argv)
   .usage("npm run build [-- [--check] [--skipIrrelevant] [--restartWith] [--benchmarks_only]]")
@@ -13,26 +13,26 @@ const args = yargs(process.argv)
   .string('restartWith')
   .argv;
 
-var referenceBranch = "origin/master";
+const referenceBranch = "origin/master";
 
-var restartWithFramework = args.restartWith || '';
+const restartWithFramework = args.restartWith || '';
 
-var core = args.benchmarks_only ? [] : ["webdriver-ts", "webdriver-ts-results"].map(f => ["", f]);
+const core = args.benchmarks_only ? [] : ["webdriver-ts", "webdriver-ts-results"].map(f => ["", f]);
 
-var frameworks = [].concat(
+const frameworks = [].concat(
   fs.readdirSync('./frameworks/keyed').map(f => ['frameworks/keyed/', f]),
   /* fs.readdirSync('./frameworks/non-keyed').map(f => ['frameworks/non-keyed/', f]) */);
 
 console.log(frameworks);
 
-var notRestarter = ([_, name]) => !name.startsWith(restartWithFramework || undefined);
-var [skippable, buildable] = !restartWithFramework
+const notRestarter = ([_, name]) => !name.startsWith(restartWithFramework || undefined);
+const [skippable, buildable] = !restartWithFramework
   ? [[],
     frameworks]
   : [_.takeWhile(frameworks, notRestarter),
     _.dropWhile(frameworks, notRestarter)];
 
-var relevant = args.skipIrrelevant && !_.some(core, isDifferent)
+const relevant = args.skipIrrelevant && !_.some(core, isDifferent)
   ? _.filter(buildable, isDifferent)
   : buildable;
 
@@ -54,7 +54,7 @@ _.each([].concat(relevant, core), function([dir,name]) {
   }
 });
 
-var testable = args.check ? relevant : [];
+const testable = args.check ? relevant : [];
 _.each(testable, function([dir,name]) {
   const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {

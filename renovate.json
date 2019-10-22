@@ -41,6 +41,10 @@
       "allowedVersions": "~4.1.0"
     },
     {
+      "packageNames": ["http-server"],
+      "allowedVersions": "0.9.0"
+    },
+    {
       "packageNames": ["mocha"],
       "allowedVersions": "~6.1.4"
     },

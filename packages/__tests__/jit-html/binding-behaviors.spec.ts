@@ -4,7 +4,7 @@ import {
   customAttribute,
   INode,
   bindingBehavior,
-  IBindingBehavior,
+  BindingBehaviorInstance,
   LifecycleFlags,
   IScope,
   IBinding,
@@ -12,7 +12,7 @@ import {
 } from '@aurelia/runtime';
 import { assert, setup } from '@aurelia/testing';
 
-describe('value-converters', function () {
+describe('binding-behaviors', function () {
   // custom elements
   describe('01. Aliases', function () {
 
@@ -25,7 +25,7 @@ describe('value-converters', function () {
 
     @bindingBehavior({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
-    class WootBehavior implements IBindingBehavior<() => void> {
+    class WootBehavior implements BindingBehaviorInstance {
       public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void): void {
         func(binding.target[binding.targetProperty]);
       }
@@ -36,7 +36,7 @@ describe('value-converters', function () {
 
     @bindingBehavior({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
-    class WootBehavior2 implements IBindingBehavior<() => void> {
+    class WootBehavior2 implements BindingBehaviorInstance {
       public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void, func2: (param: string) => void): void {
         func2(binding.target[binding.targetProperty]);
       }

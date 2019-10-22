@@ -1,7 +1,7 @@
 import {
   CustomElement,
   HydrateElementInstruction,
-  ICustomElementType,
+  CustomElementType,
   INode,
   TargetedInstruction,
   TargetedInstructionType
@@ -119,13 +119,14 @@ describe(`createElement() creates element based on type`, function () {
     [
       () => CustomElement.define({ name: 'foo' }, class Foo {}),
       () => CustomElement.define({ name: 'foo', bindables: { foo: {} } }, class Foo {})
-    ] as (() => ICustomElementType)[]
+    ] as (() => CustomElementType)[]
   ],
-  (createType: () => ICustomElementType) => {
+  (createType: () => CustomElementType) => {
     describe(_`type=${createType()}`, function () {
       it(`translates raw object properties to attributes`, function () {
         const ctx = TestContext.createHTMLTestContext();
         const type = createType();
+        const definition = CustomElement.getDefinition(type);
         const actual = sut(ctx.dom, type, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
@@ -137,12 +138,12 @@ describe(`createElement() creates element based on type`, function () {
         assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
         assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
         assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
-        assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
+        assert.strictEqual(instruction.res, definition.name, `instruction.res`);
         assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
         assert.strictEqual(instruction.instructions[0].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[0].type`);
         assert.strictEqual(instruction.instructions[0]['to'], 'title', `instruction.instructions[0]['to']`);
         assert.strictEqual(instruction.instructions[0]['value'], 'asdf', `instruction.instructions[0]['value']`);
-        if (type.description.bindables['foo']) {
+        if (definition.bindables['foo']) {
           assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setProperty, `instruction.instructions[1].type`);
         } else {
           assert.strictEqual(instruction.instructions[1].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[1].type`);
@@ -191,6 +192,7 @@ describe(`createElement() creates element based on type`, function () {
         t => {
           it(`understands targeted instruction type=${t}`, function () {
             const type = createType();
+            const definition = CustomElement.getDefinition(type);
             const ctx = TestContext.createHTMLTestContext();
             const actual = sut(ctx.dom, type, { prop: { type: t } as unknown as string|HTMLTargetedInstruction});
 
@@ -200,7 +202,7 @@ describe(`createElement() creates element based on type`, function () {
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
             assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
             assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
-            assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
+            assert.strictEqual(instruction.res, definition.name, `instruction.res`);
             assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
             assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
             assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
@@ -224,6 +226,7 @@ describe(`createElement() creates element based on type`, function () {
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
           const type = createType();
+          const definition = CustomElement.getDefinition(type);
           const actual = sut(ctx.dom, type, null, children);
 
           const node = actual['node'] as Element;
@@ -232,7 +235,7 @@ describe(`createElement() creates element based on type`, function () {
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
           assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
-          assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
+          assert.strictEqual(instruction.res, definition.name, `instruction.res`);
           assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
           assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
 

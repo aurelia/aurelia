@@ -30,7 +30,7 @@ describe('local dependency inheritance', function () {
   function verifyResourceRegistrations(container: IContainer, ...keys: any[]) {
     for (const key of keys) {
       verifyResourceRegistration(container, key);
-      verifyResourceRegistration(container, CustomElement.keyFrom(key.description.name));
+      verifyResourceRegistration(container, CustomElement.getDefinition(key).key);
     }
   }
 

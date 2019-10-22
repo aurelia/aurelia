@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, TaskQueuePriority, TaskQueue, IClock, TaskCallback, QueueTaskOptions, Task, DOM, ITaskQueue, ITask } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, TaskQueuePriority, TaskQueue, IClock, TaskCallback, QueueTaskOptions, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 
 // Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
@@ -320,7 +320,7 @@ const createRequestIdleCallbackFlushRequestor = (function () {
   };
 })();
 
-const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
+const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   delay: 0,
   preempt: false,
   priority: TaskQueuePriority.render,
@@ -412,7 +412,7 @@ export class BrowserScheduler implements IScheduler {
     return this.taskQueue[priority].yield();
   }
 
-  public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
+  public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): Task<T> {
     const { delay, preempt, priority } = { ...defaultQueueTaskOptions, ...opts };
     return this.taskQueue[priority].queueTask(callback, { delay, preempt });
   }

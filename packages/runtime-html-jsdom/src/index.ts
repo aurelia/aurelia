@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration, PLATFORM } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
@@ -293,7 +293,7 @@ const createRequestIdleCallbackFlushRequestor = (function () {
   };
 })();
 
-const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
+const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   delay: 0,
   preempt: false,
   priority: TaskQueuePriority.render,
@@ -385,7 +385,7 @@ export class JSDOMScheduler implements IScheduler {
     return this.taskQueue[priority].yield();
   }
 
-  public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
+  public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): Task<T> {
     const { delay, preempt, priority } = { ...defaultQueueTaskOptions, ...opts };
     return this.taskQueue[priority].queueTask(callback, { delay, preempt });
   }

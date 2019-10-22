@@ -1,11 +1,11 @@
 import { TestContext, assert } from '@aurelia/testing';
-import { TaskQueuePriority, QueueTaskOptions } from '@aurelia/runtime';
+import { TaskQueuePriority, QueueTaskTargetOptions } from '@aurelia/runtime';
 
-describe.only('Scheduler', function () {
+describe('Scheduler', function () {
   // There is only ever one global scheduler, so we might as well store it here instead of initializing all extra boilerplate each test
   const sut = TestContext.createHTMLTestContext().scheduler;
 
-  function queueRecursive(opts: QueueTaskOptions, count: number, cb: () => void) {
+  function queueRecursive(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
     function $queue() {
       cb();
       if (--count > 0) {
@@ -16,7 +16,7 @@ describe.only('Scheduler', function () {
     sut.queueTask($queue, opts);
   }
 
-  function queueSequential(opts: QueueTaskOptions, count: number, cb: () => void) {
+  function queueSequential(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
     while (count-- > 0) {
       sut.queueTask(cb, opts);
     }

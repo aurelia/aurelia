@@ -297,6 +297,7 @@ export {
   TaskQueue,
   TaskQueuePriority,
   TaskStatus,
+  QueueTaskTargetOptions,
 } from './scheduler';
 
 export {

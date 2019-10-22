@@ -35,6 +35,15 @@
                 return `${propertyKey}`;
         }
     }
+    function toPropertyKey(propertyKey) {
+        switch (typeof propertyKey) {
+            case 'string':
+            case 'symbol':
+                return propertyKey;
+            default:
+                return `${propertyKey}`;
+        }
+    }
     function ensurePropertyKeyOrUndefined(propertyKey) {
         switch (typeof propertyKey) {
             case 'undefined':
@@ -289,6 +298,59 @@
         return decorator;
     }
     exports.metadata = metadata;
+    function decorate(decorators, target, propertyKey, attributes) {
+        if (propertyKey !== void 0) {
+            if (!Array.isArray(decorators)) {
+                throw new TypeError();
+            }
+            if (typeof target !== 'object' || target === null) {
+                throw new TypeError();
+            }
+            if ((typeof attributes !== 'object' || attributes === null) && typeof attributes !== 'function' && attributes !== null && attributes !== void 0) {
+                throw new TypeError();
+            }
+            if (attributes === null) {
+                attributes = void 0;
+            }
+            propertyKey = toPropertyKey(propertyKey);
+            return DecorateProperty(decorators, target, propertyKey, attributes);
+        }
+        else {
+            if (!Array.isArray(decorators)) {
+                throw new TypeError();
+            }
+            if (typeof target !== 'function') {
+                throw new TypeError();
+            }
+            return DecorateConstructor(decorators, target);
+        }
+    }
+    function DecorateConstructor(decorators, target) {
+        for (let i = decorators.length - 1; i >= 0; --i) {
+            const decorator = decorators[i];
+            const decorated = decorator(target);
+            if (decorated !== void 0 && decorated !== null) {
+                if (typeof decorated !== 'function') {
+                    throw new TypeError();
+                }
+                target = decorated;
+            }
+        }
+        return target;
+    }
+    function DecorateProperty(decorators, target, propertyKey, descriptor) {
+        for (let i = decorators.length - 1; i >= 0; --i) {
+            const decorator = decorators[i];
+            const decorated = decorator(target, propertyKey, descriptor);
+            if (decorated !== void 0 && decorated !== null) {
+                if ((typeof decorated !== 'object' || decorated === null) && typeof decorated !== 'function') {
+                    throw new TypeError();
+                }
+                descriptor = decorated;
+            }
+        }
+        return descriptor;
+    }
     function $define(metadataKey, metadataValue, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         // 2. Return ? target.[[DefineMetadata]](metadataKey, metadataValue, propertyKey).
@@ -349,6 +411,8 @@
         });
     }
     def(Metadata, '$Internal', metadataInternalSlot);
+    const hasMetadata = 'metadata' in Reflect;
+    const hasDecorate = 'decorate' in Reflect;
     const hasDefineMetadata = 'defineMetadata' in Reflect;
     const hasHasMetadata = 'hasMetadata' in Reflect;
     const hasHasOwnMetadata = 'hasOwnMetadata' in Reflect;
@@ -357,7 +421,9 @@
     const hasGetMetadataKeys = 'getMetadataKeys' in Reflect;
     const hasGetOwnMetadataKeys = 'getOwnMetadataKeys' in Reflect;
     const hasDeleteMetadata = 'deleteMetadata' in Reflect;
-    const hasSome = (hasDefineMetadata ||
+    const hasSome = (hasMetadata ||
+        hasDecorate ||
+        hasDefineMetadata ||
         hasHasMetadata ||
         hasHasOwnMetadata ||
         hasGetMetadata ||
@@ -365,7 +431,9 @@
         hasGetMetadataKeys ||
         hasGetOwnMetadataKeys ||
         hasDeleteMetadata);
-    const hasAll = (hasDefineMetadata &&
+    const hasAll = (hasMetadata &&
+        hasDecorate &&
+        hasDefineMetadata &&
         hasHasMetadata &&
         hasHasOwnMetadata &&
         hasGetMetadata &&
@@ -380,6 +448,12 @@
         /* eslint-disable no-console, no-undef, @typescript-eslint/ban-ts-ignore */
         // @ts-ignore
         console.warn('Partial existing Reflect.metadata polyfill found. Working environment cannot be guaranteed. Please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario.');
+    }
+    if (!hasMetadata) {
+        def(Reflect, 'metadata', metadata);
+    }
+    if (!hasDecorate) {
+        def(Reflect, 'decorate', decorate);
     }
     if (!hasDefineMetadata) {
         def(Reflect, 'defineMetadata', $define);

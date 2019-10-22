@@ -61,6 +61,10 @@ export {
   WritableKeys,
 } from './interfaces';
 export {
+  metadata,
+  Metadata,
+} from './metadata';
+export {
   relativeToFile,
   join,
   buildQueryString,
@@ -80,13 +84,16 @@ export {
   Profiler
 } from './profiler';
 export {
-  IResourceDefinition,
   IResourceDescriptions,
   IResourceKind,
-  IResourceType,
-  ResourceDescription,
-  ResourcePartDescription,
-  RuntimeCompilationResources
+  PartialResourceDefinition,
+  Protocol,
+  ResourceDefinition,
+  ResourceType,
+  RuntimeCompilationResources,
+  fromAnnotationOrDefinitionOrTypeOrDefault,
+  fromAnnotationOrTypeOrDefault,
+  fromDefinitionOrDefault,
 } from './resource';
 export {
   EventAggregator,
@@ -97,6 +104,7 @@ export {
   isNumeric,
   camelCase,
   kebabCase,
+  pascalCase,
   toArray,
   nextId,
   resetId,
@@ -104,4 +112,8 @@ export {
   mergeDistinct,
   isNumberOrBigInt,
   isStringOrDate,
+  mergeArrays,
+  mergeObjects,
+  firstDefined,
+  getPrototypeChain,
 } from './functions';

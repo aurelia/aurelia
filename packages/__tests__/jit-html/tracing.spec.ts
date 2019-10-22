@@ -37,7 +37,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$01 text$03 _', function () {
     const { au, host } = setup();
@@ -46,7 +46,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$02 text$01 _', function () {
     const { au, host } = setup();
@@ -54,7 +54,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$02 text$03 _', function () {
     const { au, host } = setup();
@@ -63,7 +63,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$03 text$03 _', function () {
     const { au, host } = setup();
@@ -79,7 +79,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$04 text$03 _', function () {
     const { au, host } = setup();
@@ -95,7 +95,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$05 text$03 _', function () {
     const { au, host } = setup();
@@ -112,7 +112,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$06 text$03 _', function () {
     const { au, host } = setup();
@@ -129,7 +129,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$07 text$03 _', function () {
     const { au, host } = setup();
@@ -146,7 +146,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$08 text$03 _', function () {
     const { au, host } = setup();
@@ -163,7 +163,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$09 text$03 _', function () {
     const { au, host } = setup();
@@ -180,7 +180,7 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$10 text$03 _', function () {
     const { au, host } = setup();
@@ -197,6 +197,6 @@ describe.skip('tracing', function () {
     });
     const component = new App();
     au.app({ host, component });
-    verify(au, host, 'a', App.description);
+    verify(au, host, 'a', CustomElement.getDefinition(App));
   });
 });

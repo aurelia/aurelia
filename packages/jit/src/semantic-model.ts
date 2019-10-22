@@ -1,6 +1,6 @@
 import { AnyBindingExpression, IDOM, IInterpolationExpression, INode } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
-import { IBindingCommand } from './binding-command';
+import { BindingCommandInstance } from './binding-command';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 
 export const enum SymbolFlags {
@@ -179,7 +179,7 @@ export class PlainAttributeSymbol {
 
   public constructor(
     public syntax: AttrSyntax,
-    public command: IBindingCommand | null,
+    public command: BindingCommandInstance | null,
     public expression: AnyBindingExpression | null
   ) {}
 }
@@ -195,7 +195,7 @@ export class BindingSymbol {
   public flags: SymbolFlags = SymbolFlags.isBinding;
 
   public constructor(
-    public command: IBindingCommand | null,
+    public command: BindingCommandInstance | null,
     public bindable: BindableInfo,
     public expression: AnyBindingExpression | null,
     public rawValue: string,

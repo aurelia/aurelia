@@ -1,4 +1,4 @@
-import { ITemplateDefinition, TargetedInstructionType } from '@aurelia/runtime';
+import { PartialCustomElementDefinition, TargetedInstructionType } from '@aurelia/runtime';
 import { HTMLTargetedInstruction, HTMLTargetedInstructionType, NodeType } from '@aurelia/runtime-html';
 
 export function stringifyDOM(node: Node, depth: number): string {
@@ -100,11 +100,11 @@ export function stringifyInstructions(instruction: HTMLTargetedInstruction, dept
   return output;
 }
 
-export function stringifyTemplateDefinition(def: ITemplateDefinition, depth: number): string {
+export function stringifyTemplateDefinition(def: PartialCustomElementDefinition, depth: number): string {
   const indent = ' '.repeat(depth);
   let output = indent;
 
-  output += `TemplateDefinition: ${def.name}\n`;
+  output += `CustomElementDefinition: ${def.name}\n`;
   output += stringifyDOM(def.template as Node, depth + 1);
   output += `${indent} Instructions:\n`;
   def.instructions!.forEach(row => {

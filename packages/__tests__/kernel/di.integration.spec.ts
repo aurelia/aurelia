@@ -845,4 +845,22 @@ describe('defer registration', function() {
       );
     });
   });
+
+  // TODO: fix test setup for emitDecoratorMetadata
+  // it('can inject dependencies based on TS metadata', function () {
+  //   const deco: ClassDecorator = function (target) { return target; };
+
+  //   class Foo {}
+
+  //   @deco
+  //   class Bar {
+  //     public constructor(
+  //       public readonly foo: Foo
+  //     ) {}
+  //   }
+
+  //   const bar = DI.createContainer().get(Bar);
+
+  //   assert.instanceOf(bar.foo, Foo);
+  // });
 });

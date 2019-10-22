@@ -408,7 +408,6 @@ export class TemplateBinder {
 
     const partOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
 
-
     if (replace === null || partOwner === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);

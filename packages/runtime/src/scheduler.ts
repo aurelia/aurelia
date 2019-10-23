@@ -545,7 +545,7 @@ export interface ITask<T = any> {
   readonly status: TaskStatus;
   readonly priority: TaskQueuePriority;
   run(): void;
-  cancel(): void;
+  cancel(): boolean;
 }
 
 let id: number = 0;
@@ -630,25 +630,27 @@ export class Task<T = any> implements ITask {
     }
   }
 
-  public cancel(): void {
-    if (this._status !== 'pending') {
-      throw new Error(`Cannot cancel task in ${this._status} state`);
+  public cancel(): boolean {
+    if (this._status === 'pending') {
+      const taskQueue = this.taskQueue;
+      const reject = this.reject;
+
+      taskQueue.remove(this);
+
+      if (taskQueue.isEmpty) {
+        taskQueue.cancel();
+      }
+
+      this._status = 'canceled';
+
+      if (reject !== void 0) {
+        reject(new TaskAbortError(this));
+      }
+
+      return true;
     }
 
-    const taskQueue = this.taskQueue;
-    const reject = this.reject;
-
-    taskQueue.remove(this);
-
-    if (taskQueue.isEmpty) {
-      taskQueue.cancel();
-    }
-
-    this._status = 'canceled';
-
-    if (reject !== void 0) {
-      reject(new TaskAbortError(this));
-    }
+    return false;
   }
 
   public reset(time: number): void {

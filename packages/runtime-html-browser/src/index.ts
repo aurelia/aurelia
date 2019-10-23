@@ -324,6 +324,8 @@ const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   delay: 0,
   preempt: false,
   priority: TaskQueuePriority.render,
+  reusable: true,
+  persistent: false,
 };
 
 export class BrowserScheduler implements IScheduler {

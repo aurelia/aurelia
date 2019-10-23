@@ -209,15 +209,7 @@ export class TaskQueue {
     }
 
     while (this.processingSize > 0) {
-      const task = this.processingHead!;
-
-      if (this.processingSize-- === 1) {
-        this.processingHead = this.processingTail = void 0;
-      } else {
-        (this.processingHead = this.processingHead!.next!).prev = void 0;
-      }
-
-      task.run();
+      this.processingHead!.run();
     }
 
     if (this.pendingSize > 0) {
@@ -254,6 +246,7 @@ export class TaskQueue {
     if (this.yieldPromise === void 0) {
       this.yieldPromise = createPromise();
     }
+
     return this.yieldPromise;
   }
 
@@ -284,11 +277,7 @@ export class TaskQueue {
         taskPool[index] = (void 0)!;
         this.taskPoolSize = index;
 
-        task.createdTime = time;
-        task.queueTime = time + delay;
-        task.preempt = preempt;
-        task.persistent = persistent;
-        task.callback = callback;
+        task.reuse(time, delay, preempt, persistent, callback);
       } else {
         task = new Task(this, time, time + delay, preempt, persistent, reusable, callback);
       }
@@ -340,22 +329,17 @@ export class TaskQueue {
   }
 
   public remove<T = any>(task: Task<T>): void {
-    if (task.next !== void 0) {
-      task.next.prev = task.prev;
-    }
-    if (task.prev !== void 0) {
-      task.prev.next = task.next;
-    }
-
     if (task.preempt) {
       // Fast path - preempt task can only ever end up in the processing queue
       this.removeFromProcessing(task);
+
       return;
     }
 
     if (task.queueTime > this.clock.now()) {
       // Fast path - task with queueTime in the future can only ever be in the delayed queue
       this.removeFromDelayed(task);
+
       return;
     }
 
@@ -364,6 +348,7 @@ export class TaskQueue {
     while (cur !== void 0) {
       if (cur === task) {
         this.removeFromProcessing(task);
+
         return;
       }
       cur = cur.next;
@@ -373,6 +358,7 @@ export class TaskQueue {
     while (cur !== void 0) {
       if (cur === task) {
         this.removeFromPending(task);
+
         return;
       }
       cur = cur.next;
@@ -382,27 +368,41 @@ export class TaskQueue {
     while (cur !== void 0) {
       if (cur === task) {
         this.removeFromDelayed(task);
+
         return;
       }
       cur = cur.next;
     }
+
+    throw new Error(`Task #${task.id} could not be found`);
   }
 
   private finish(task: Task): void {
-    if (task.persistent) {
+    if (task.next !== void 0) {
+      task.next.prev = task.prev;
+    }
+    if (task.prev !== void 0) {
+      task.prev.next = task.next;
+    }
+
+    if (task.persistent && task.status === 'completed') {
       task.reset(this.clock.now());
 
       if (task.createdTime === task.queueTime) {
         if (this.pendingSize++ === 0) {
           this.pendingHead = this.pendingTail = task;
+          task.prev = task.next = void 0;
         } else {
           this.pendingTail = (task.prev = this.pendingTail!).next = task;
+          task.next = void 0;
         }
       } else {
         if (this.delayedSize++ === 0) {
           this.delayedHead = this.delayedTail = task;
+          task.prev = task.next = void 0;
         } else {
           this.delayedTail = (task.prev = this.delayedTail!).next = task;
+          task.next = void 0;
         }
       }
     } else {
@@ -421,6 +421,8 @@ export class TaskQueue {
     if (this.processingTail === task) {
       this.processingTail = task.prev;
     }
+
+    --this.processingSize;
 
     this.finish(task);
   }
@@ -632,6 +634,7 @@ export class Task<T = any> implements ITask {
 
   public cancel(): boolean {
     if (this._status === 'pending') {
+
       const taskQueue = this.taskQueue;
       const reject = this.reject;
 
@@ -660,7 +663,25 @@ export class Task<T = any> implements ITask {
     this._status = 'pending';
   }
 
+  public reuse(
+    time: number,
+    delay: number,
+    preempt: boolean,
+    persistent: boolean,
+    callback: TaskCallback<T>,
+  ): void {
+    this.createdTime = time;
+    this.queueTime = time + delay;
+    this.preempt = preempt;
+    this.persistent = persistent;
+    this.callback = callback;
+    this._status = 'pending';
+  }
+
   public dispose(): void {
+    this.prev = void 0;
+    this.next = void 0;
+
     this.callback = (void 0)!;
     this.resolve = void 0;
     this.reject = void 0;

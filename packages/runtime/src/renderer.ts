@@ -239,7 +239,10 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    getTarget(target)[instruction.to as keyof object] = (instruction.value === '' ? true : instruction.value) as never; // Yeah, yeah..
+    context
+      .get(IObserverLocator)
+      .getObserver(flags, target.bindingContext!, instruction.to)
+      .setValue(instruction.value === '' ? true : instruction.value, flags | LifecycleFlags.fromBind);
   }
 }
 

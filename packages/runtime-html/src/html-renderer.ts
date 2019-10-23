@@ -159,6 +159,7 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
   }
 }
 
+// http://jsben.ch/7n5Kt
 function addClasses(classList: DOMTokenList, className: string): void {
   const len = className.length;
   let start = 0;

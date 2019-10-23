@@ -634,7 +634,7 @@ describe.only('app', function() {
     assert.equal(app.somethingDone, true);
   });
 
-  $it.only(`uses a let-demo-boolean to demonstrate let binding`, function({ host, ctx }) {
+  $it(`uses a let-demo-boolean to demonstrate let binding`, function({ host, ctx }) {
     const demo = host.querySelector('let-demo-boolean');
     const vm = getViewModel<LetDemoBoolean>(demo);
 
@@ -655,7 +655,6 @@ describe.only('app', function() {
     assert.html.textContent(xor, 'true', 'xor2');
 
     // 11
-    debugger
     vm.b = true;
     ctx.lifecycle.processRAFQueue(undefined);
     assert.html.textContent(and, 'true', 'and3');

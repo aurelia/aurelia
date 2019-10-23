@@ -1,5 +1,5 @@
 import { Key, Reporter } from '@aurelia/kernel';
-import { IDOM, ILifecycle } from '@aurelia/runtime';
+import { IDOM, ILifecycle, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { Queue, QueueItem } from './queue';
@@ -40,7 +40,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private forwardedState: ForwardedState = {};
 
   public constructor(
-    public readonly lifecycle: ILifecycle,
+    public readonly scheduler: IScheduler,
     dom: HTMLDOM
   ) {
     this.window = dom.window;
@@ -58,7 +58,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
   }
 

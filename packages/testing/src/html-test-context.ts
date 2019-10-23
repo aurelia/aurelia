@@ -68,7 +68,7 @@ export class HTMLTestContext {
     }
     return this._observerLocator;
   }
-  public get lifecycle(): ILifecycle & { flushCount?: number } {
+  public get lifecycle(): ILifecycle {
     if (this._lifecycle === void 0) {
       this._lifecycle = this.container.get(ILifecycle);
     }

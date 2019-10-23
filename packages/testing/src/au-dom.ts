@@ -55,6 +55,7 @@ import {
   ITemplateCompiler,
   IScheduler
 } from '@aurelia/runtime';
+import { TestContext } from './html-test-context';
 
 const slice = Array.prototype.slice;
 
@@ -688,8 +689,10 @@ export const AuDOMConfiguration = {
     );
   },
   createContainer(): IContainer {
+    const scheduler = TestContext.createHTMLTestContext().scheduler;
     const container = DI.createContainer();
     container.register(AuDOMConfiguration);
+    Registration.instance(IScheduler, scheduler).register(container);
     return container;
   }
 };

@@ -183,7 +183,7 @@ describe('interpolation', function () {
       await tearDown();
     });
     it(`${x.it} change tests work`, async function () {
-      const { tearDown, appHost, lifecycle, component } = setup(`<template>${x.interpolation}</template>`, x.app);
+      const { tearDown, appHost, scheduler, component } = setup(`<template>${x.interpolation}</template>`, x.app);
       if (x.changeFnc !== undefined) {
         const val = x.changeFnc(component.value);
         if (val != null) {
@@ -197,7 +197,7 @@ describe('interpolation', function () {
       } else {
         component.value = (component.value || 0) + 1;
       }
-      lifecycle.processRAFQueue(LifecycleFlags.none);
+      scheduler.getRenderTaskQueue().flush();
       assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange && x.expectedValueAfterChange.toString()) || (x.expected as any + 1).toString(), `host.textContent`);
       await tearDown();
     });

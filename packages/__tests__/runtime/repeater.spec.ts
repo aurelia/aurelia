@@ -21,6 +21,7 @@ import {
   Scope,
   ViewFactory,
   Controller,
+  IScheduler,
 } from '@aurelia/runtime';
 import {
   AuDOM,
@@ -583,6 +584,7 @@ describe(`Repeat`, function () {
         const dom = container.get<AuDOM>(IDOM);
         const observerLocator = container.get(IObserverLocator);
         const lifecycle = container.get(ILifecycle);
+        const scheduler = container.get(IScheduler);
 
         const location = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
@@ -653,7 +655,7 @@ describe(`Repeat`, function () {
         const expectedText2 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          lifecycle.processRAFQueue(baseFlags);
+          scheduler.getRenderTaskQueue().flush();
 
           assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
         } else {
@@ -704,7 +706,7 @@ describe(`Repeat`, function () {
         const expectedText4 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          lifecycle.processRAFQueue(baseFlags);
+          scheduler.getRenderTaskQueue().flush();
 
           assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
         } else {

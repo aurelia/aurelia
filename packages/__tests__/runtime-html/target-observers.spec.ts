@@ -1,4 +1,4 @@
-import { ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { IScheduler, LifecycleFlags } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
   ClassAttributeAccessor,
@@ -23,15 +23,15 @@ function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) 
 
 function setup() {
   const ctx = TestContext.createHTMLTestContext();
-  const { container, lifecycle, observerLocator } = ctx;
+  const { container, scheduler, observerLocator } = ctx;
 
-  return { ctx, container, lifecycle, observerLocator };
+  return { ctx, container, scheduler, observerLocator };
 }
 
 describe('AttributeNSAccessor', function () {
   let sut: AttributeNSAccessor;
   let el: HTMLElement;
-  let lifecycle: ILifecycle;
+  let scheduler: IScheduler;
 
   const tests = [
     { name: 'href', value: '#shape1' },
@@ -45,10 +45,10 @@ describe('AttributeNSAccessor', function () {
   describe('getValue()', function () {
     for (const { name, value } of tests) {
       it(`returns ${value} for xlink:${name}`, function () {
-        const { ctx, lifecycle: $lifecycle } = setup();
-        lifecycle = $lifecycle;
+        const { ctx, scheduler: $scheduler } = setup();
+        scheduler = $scheduler;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         let actual = sut.getValue();
         assert.strictEqual(actual, null, `actual`);
@@ -67,16 +67,16 @@ describe('AttributeNSAccessor', function () {
       it(`sets xlink:${name} only after flushing RAF`, function () {
         const ctx = TestContext.createHTMLTestContext();
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        const { lifecycle: $lifecycle } = setup();
-        lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
+        const { scheduler: $scheduler } = setup();
+        scheduler = $scheduler;
+        sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.none);
         assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
         assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), value, `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
 
-        lifecycle.processRAFQueue(LifecycleFlags.none);
+        scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) after flush`);
 
         sut.unbind(LifecycleFlags.none);
@@ -89,9 +89,9 @@ describe('AttributeNSAccessor', function () {
       it(`sets xlink:${name} immediately`, function () {
         const ctx = TestContext.createHTMLTestContext();
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        const { lifecycle: $lifecycle } = setup();
-        lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
+        const { scheduler: $scheduler } = setup();
+        scheduler = $scheduler;
+        sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.fromBind);
@@ -108,7 +108,7 @@ describe('AttributeNSAccessor', function () {
 describe('DataAttributeAccessor', function () {
   let sut: DataAttributeAccessor;
   let el: HTMLElement;
-  let lifecycle: ILifecycle;
+  let scheduler: IScheduler;
 
   const valueArr = [undefined, null, '', 'foo'];
   describe('getValue()', function () {
@@ -117,9 +117,9 @@ describe('DataAttributeAccessor', function () {
         it(`returns "${value}" for attribute "${name}"`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
-          const { lifecycle: $lifecycle } = setup();
-          lifecycle = $lifecycle;
-          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
+          const { scheduler: $scheduler } = setup();
+          scheduler = $scheduler;
+          sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
 
           let actual = sut.getValue();
           assert.strictEqual(actual, null, `actual`);
@@ -140,17 +140,17 @@ describe('DataAttributeAccessor', function () {
         it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div></div>`);
-          const { lifecycle: $lifecycle } = setup();
-          lifecycle = $lifecycle;
+          const { scheduler: $scheduler } = setup();
+          scheduler = $scheduler;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
+          sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.none);
           assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
           assert.strictEqual(el.outerHTML, '<div></div>', `el.outerHTML before flush`);
 
-          lifecycle.processRAFQueue(LifecycleFlags.none);
+          scheduler.getRenderTaskQueue().flush();
           assert.strictEqual(el.outerHTML, expected, `el.outerHTML after flush`);
 
           sut.unbind(LifecycleFlags.none);
@@ -165,10 +165,10 @@ describe('DataAttributeAccessor', function () {
         it(`sets attribute "${name}" to "${value}" immediately`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div></div>`);
-          const { lifecycle: $lifecycle } = setup();
-          lifecycle = $lifecycle;
+          const { scheduler: $scheduler } = setup();
+          scheduler = $scheduler;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
+          sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.fromBind);
@@ -194,7 +194,7 @@ describe('StyleAccessor', function () {
 
   let sut: StyleAttributeAccessor;
   let el: HTMLElement;
-  let lifecycle: ILifecycle;
+  let scheduler: IScheduler;
 
   // TODO: this is just quick-n-dirty; remove redundant tests and add missing tests
   for (const propName of propNames) {
@@ -204,9 +204,9 @@ describe('StyleAccessor', function () {
     it(`setValue - style="${rule}" flags.none`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
-      const { lifecycle: $lifecycle } = setup();
-      lifecycle = $lifecycle;
-      sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
+      const { scheduler: $scheduler } = setup();
+      scheduler = $scheduler;
+      sut = new StyleAttributeAccessor(scheduler, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -217,7 +217,7 @@ describe('StyleAccessor', function () {
         `setPropertySpy.calls`,
       );
 
-      lifecycle.processRAFQueue(LifecycleFlags.none);
+      scheduler.getRenderTaskQueue().flush();
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [
@@ -237,9 +237,9 @@ describe('StyleAccessor', function () {
     it(`setValue - style="${rule}" flags.fromBind`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
-      const { lifecycle: $lifecycle } = setup();
-      lifecycle = $lifecycle;
-      sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
+      const { scheduler: $scheduler } = setup();
+      scheduler = $scheduler;
+      sut = new StyleAttributeAccessor(scheduler, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -379,7 +379,7 @@ describe('StyleAccessor', function () {
     it(title, function () {
       const ctx = TestContext.createHTMLTestContext();
       const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
-      const sut = new StyleAttributeAccessor(ctx.lifecycle, LifecycleFlags.none, el);
+      const sut = new StyleAttributeAccessor(ctx.scheduler, LifecycleFlags.none, el);
       sut.setValue(input, LifecycleFlags.fromBind);
 
       const actual = sut.getValue();
@@ -445,28 +445,28 @@ describe('ClassAccessor', function () {
         const ctx = TestContext.createHTMLTestContext();
         const el = ctx.createElementFromMarkup(markup);
         const initialClassList = el.classList.toString();
-        const { lifecycle } = ctx;
-        const sut = new ClassAttributeAccessor(lifecycle, LifecycleFlags.none, el);
+        const { scheduler } = ctx;
+        const sut = new ClassAttributeAccessor(scheduler, LifecycleFlags.none, el);
         sut.bind(LifecycleFlags.none);
 
         function tearDown() {
-          lifecycle.processRAFQueue(LifecycleFlags.none);
+          scheduler.getRenderTaskQueue().flush();
           sut.unbind(LifecycleFlags.none);
         }
 
-        return { sut, el, initialClassList, lifecycle, tearDown };
+        return { sut, el, initialClassList, scheduler, tearDown };
       }
 
       describe('with flags.none', function () {
 
         it(`setValue("${classList}") updates ${markup} flags.none`, function () {
-          const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+          const { sut, el, initialClassList, scheduler, tearDown } = setup();
 
           sut.setValue(classList, LifecycleFlags.none);
 
           assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString() === initialClassList`);
 
-          lifecycle.processRAFQueue(LifecycleFlags.none);
+          scheduler.getRenderTaskQueue().flush();
 
           const updatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ').filter(x => x)) {
@@ -481,18 +481,18 @@ describe('ClassAccessor', function () {
 
         for (const secondClassList of secondClassListArr) {
           it(`setValue("${secondClassList}") updates already-updated ${markup} flags.none`, function () {
-            const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+            const { sut, el, initialClassList, scheduler, tearDown } = setup();
 
             sut.setValue(classList, LifecycleFlags.none);
 
-            lifecycle.processRAFQueue(LifecycleFlags.none);
+            scheduler.getRenderTaskQueue().flush();
 
             const updatedClassList = el.classList.toString();
 
             sut.setValue(secondClassList, LifecycleFlags.none);
             assert.strictEqual(el.classList.toString(), updatedClassList, `el.classList.toString()`);
 
-            lifecycle.processRAFQueue(LifecycleFlags.none);
+            scheduler.getRenderTaskQueue().flush();
 
             const secondUpdatedClassList = el.classList.toString();
             assertClassChanges(initialClassList, classList, secondClassList, secondUpdatedClassList);

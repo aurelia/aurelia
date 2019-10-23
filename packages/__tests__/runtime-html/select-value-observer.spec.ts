@@ -8,7 +8,7 @@ type Anything = any;
 describe('SelectValueObserver', function () {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const ctx = TestContext.createHTMLTestContext();
-    const { dom, lifecycle, observerLocator } = ctx;
+    const { dom, lifecycle, observerLocator, scheduler } = ctx;
 
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
@@ -16,7 +16,7 @@ describe('SelectValueObserver', function () {
     const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
     sut.setValue(initialValue, LF.fromBind);
 
-    return { ctx, lifecycle, el, sut, dom };
+    return { ctx, lifecycle, el, sut, dom, scheduler };
   }
 
   describe('setValue()', function () {
@@ -27,7 +27,7 @@ describe('SelectValueObserver', function () {
       for (const initial of initialArr) {
         for (const next of nextArr) {
           it(`sets 'value' from "${initial}" to "${next}"`, function () {
-            const { lifecycle, el, sut } = createFixture(initial, values);
+            const { lifecycle, el, sut, scheduler } = createFixture(initial, values);
 
             assert.strictEqual(el.value, initial, `el.value`);
 
@@ -35,7 +35,7 @@ describe('SelectValueObserver', function () {
 
             el.options.item(values.indexOf(next)).selected = true;
 
-            lifecycle.processRAFQueue(LF.none);
+            scheduler.getRenderTaskQueue().flush();
             assert.strictEqual(el.value, next, `el.value`);
 
             sut.unbind(LF.none);

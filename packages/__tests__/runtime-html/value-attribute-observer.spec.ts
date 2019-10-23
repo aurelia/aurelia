@@ -21,7 +21,7 @@ describe.skip('ValueAttributeObserver', function () {
     describe(`setValue() - type="${inputType}"`, function () {
       function setup(hasSubscriber: boolean) {
         const ctx = TestContext.createHTMLTestContext();
-        const { container, lifecycle, observerLocator } = ctx;
+        const { container, lifecycle, observerLocator, scheduler } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
@@ -33,7 +33,7 @@ describe.skip('ValueAttributeObserver', function () {
           sut.subscribe(subscriber);
         }
 
-        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber };
+        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
       }
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
@@ -46,7 +46,7 @@ describe.skip('ValueAttributeObserver', function () {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
-              const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber);
+              const { ctx, sut, lifecycle, el, subscriber, scheduler } = setup(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
@@ -56,8 +56,8 @@ describe.skip('ValueAttributeObserver', function () {
               let callCount = 0;
 
               sut.setValue(valueBefore, LF.none);
-              assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-              lifecycle.processRAFQueue(LF.none);
+              // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
+              scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
               assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
@@ -72,8 +72,8 @@ describe.skip('ValueAttributeObserver', function () {
               }
 
               sut.setValue(valueAfter, LF.none);
-              assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-              lifecycle.processRAFQueue(LF.none);
+              // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
+              scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
               assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2',);
               if (hasSubscriber && changeCountAfter) {

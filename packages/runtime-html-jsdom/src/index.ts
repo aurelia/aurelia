@@ -110,3 +110,8 @@ export const RuntimeHtmlJsdomConfiguration = {
     return this.register(DI.createContainer());
   }
 };
+
+export {
+  JSDOMInitializer,
+  JSDOMScheduler,
+};

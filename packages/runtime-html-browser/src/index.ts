@@ -104,3 +104,8 @@ export const RuntimeHtmlBrowserConfiguration = {
     return this.register(DI.createContainer());
   }
 };
+
+export {
+  BrowserDOMInitializer,
+  BrowserScheduler,
+};

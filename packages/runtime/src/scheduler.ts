@@ -117,17 +117,29 @@ export type QueueTaskOptions = {
    *
    * NOTE: just like `setTimeout`, there is no guarantee that the task will actually run
    * after the specified delay. It is merely a *minimum* delay.
+   *
+   * Defaults to `0`
    */
   delay?: number;
   /**
    * If `true`, the task will be run synchronously if it is the same priority as the
    * `TaskQueue` that is currently flushing. Otherwise, it will be run on the next tick.
+   *
+   * Defaults to `false`
    */
   preempt?: boolean;
   /**
    * If `true`, the task will be added back onto the queue after it finished running, indefinitely, until manually canceled.
+   *
+   * Defaults to `false`
    */
   persistent?: boolean;
+  /**
+   * If `true`, the task will be kept in-memory after finishing, so that it can be reused for future tasks for efficiency.
+   *
+   * Defaults to `true`
+   */
+  reusable?: boolean;
 };
 
 export type QueueTaskTargetOptions = QueueTaskOptions & {
@@ -139,6 +151,7 @@ const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   preempt: false,
   priority: TaskQueuePriority.render,
   persistent: false,
+  reusable: true,
 };
 
 export interface ITaskQueue {
@@ -171,7 +184,8 @@ export class TaskQueue {
 
   private readonly scheduler: IScheduler;
   private readonly clock: IClock;
-  private readonly reusables: Task[] = [];
+  private readonly taskPool: Task[] = [];
+  private taskPoolSize: number = 0;
 
   public get isEmpty(): boolean {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
@@ -244,10 +258,15 @@ export class TaskQueue {
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
-    const { delay, preempt, persistent } = { ...defaultQueueTaskOptions, ...opts };
+    const { delay, preempt, persistent, reusable } = { ...defaultQueueTaskOptions, ...opts };
 
-    if (preempt && delay > 0) {
-      throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
+    if (preempt) {
+      if (delay > 0) {
+        throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
+      }
+      if (persistent) {
+        throw new Error(`Invalid arguments: preempt cannot be combined with persistent`);
+      }
     }
 
     if (this.processingSize === 0) {
@@ -255,7 +274,27 @@ export class TaskQueue {
     }
 
     const time = this.clock.now();
-    const task = new Task(this, time, time + delay, preempt, persistent, callback) as Task;
+
+    let task: Task<T>;
+    if (reusable) {
+      const taskPool = this.taskPool;
+      const index = this.taskPoolSize - 1;
+      if (index >= 0) {
+        task = taskPool[index];
+        taskPool[index] = (void 0)!;
+        this.taskPoolSize = index;
+
+        task.createdTime = time;
+        task.queueTime = time + delay;
+        task.preempt = preempt;
+        task.persistent = persistent;
+        task.callback = callback;
+      } else {
+        task = new Task(this, time, time + delay, preempt, persistent, reusable, callback);
+      }
+    } else {
+      task = new Task(this, time, time + delay, preempt, persistent, reusable, callback);
+    }
 
     if (preempt) {
       if (this.processingSize++ === 0) {
@@ -277,30 +316,7 @@ export class TaskQueue {
       }
     }
 
-    return task as Task<T>;
-  }
-
-  public requeueTask(task: Task): void {
-    task.reset(this.clock.now());
-    if (task.preempt) {
-      if (this.processingSize++ === 0) {
-        this.processingHead = this.processingTail = task;
-      } else {
-        this.processingTail = (task.prev = this.processingTail!).next = task;
-      }
-    } else if (task.createdTime === task.queueTime) {
-      if (this.pendingSize++ === 0) {
-        this.pendingHead = this.pendingTail = task;
-      } else {
-        this.pendingTail = (task.prev = this.pendingTail!).next = task;
-      }
-    } else {
-      if (this.delayedSize++ === 0) {
-        this.delayedHead = this.delayedTail = task;
-      } else {
-        this.delayedTail = (task.prev = this.delayedTail!).next = task;
-      }
-    }
+    return task;
   }
 
   public take(task: Task): void {
@@ -372,6 +388,32 @@ export class TaskQueue {
     }
   }
 
+  private finish(task: Task): void {
+    if (task.persistent) {
+      task.reset(this.clock.now());
+
+      if (task.createdTime === task.queueTime) {
+        if (this.pendingSize++ === 0) {
+          this.pendingHead = this.pendingTail = task;
+        } else {
+          this.pendingTail = (task.prev = this.pendingTail!).next = task;
+        }
+      } else {
+        if (this.delayedSize++ === 0) {
+          this.delayedHead = this.delayedTail = task;
+        } else {
+          this.delayedTail = (task.prev = this.delayedTail!).next = task;
+        }
+      }
+    } else {
+      task.dispose();
+
+      if (task.reusable) {
+        this.taskPool[this.taskPoolSize++] = task;
+      }
+    }
+  }
+
   private removeFromProcessing(task: Task): void {
     if (this.processingHead === task) {
       this.processingHead = task.next;
@@ -379,6 +421,8 @@ export class TaskQueue {
     if (this.processingTail === task) {
       this.processingTail = task.prev;
     }
+
+    this.finish(task);
   }
 
   private removeFromPending(task: Task): void {
@@ -390,6 +434,8 @@ export class TaskQueue {
     }
 
     --this.pendingSize;
+
+    this.finish(task);
   }
 
   private removeFromDelayed(task: Task): void {
@@ -401,6 +447,8 @@ export class TaskQueue {
     }
 
     --this.delayedSize;
+
+    this.finish(task);
   }
 
   private addToProcessing(task: Task): void {
@@ -532,80 +580,88 @@ export class Task<T = any> implements ITask {
     return result!;
   }
 
-  private _status: TaskStatus;
+  private _status: TaskStatus = 'pending';
   public get status(): TaskStatus {
     return this._status;
   }
-
-  public cancel: () => void;
-  public run: () => void;
 
   public readonly priority: TaskQueuePriority;
 
   public constructor(
     public readonly taskQueue: TaskQueue,
-    public readonly createdTime: number,
-    public readonly queueTime: number,
-    public readonly preempt: boolean,
-    public readonly persistent: boolean,
-    callback: TaskCallback<T>
+    public createdTime: number,
+    public queueTime: number,
+    public preempt: boolean,
+    public persistent: boolean,
+    public readonly reusable: boolean,
+    public callback: TaskCallback<T>
   ) {
     this.priority = taskQueue.priority;
-    this._status = 'pending';
+  }
 
-    this.cancel = () => {
-      if (this._status !== 'pending') {
-        throw new Error(`Cannot cancel task in ${this._status} state`);
+  public run(): void {
+    if (this._status !== 'pending') {
+      throw new Error(`Cannot run task in ${this._status} state`);
+    }
+
+    const taskQueue = this.taskQueue;
+    const callback = this.callback;
+    const resolve = this.resolve;
+    const reject = this.reject;
+
+    taskQueue.remove(this);
+
+    this._status = 'running';
+
+    try {
+      const ret = callback();
+
+      this._status = 'completed';
+
+      if (resolve !== void 0) {
+        resolve(ret);
       }
-
-      taskQueue.remove(this);
-
-      if (taskQueue.isEmpty) {
-        taskQueue.cancel();
+    } catch (err) {
+      if (reject !== void 0) {
+        reject(err);
+      } else {
+        throw err;
       }
+    }
+  }
 
-      this._status = 'canceled';
+  public cancel(): void {
+    if (this._status !== 'pending') {
+      throw new Error(`Cannot cancel task in ${this._status} state`);
+    }
 
-      if (this.reject !== void 0) {
-        this.reject(new TaskAbortError(this));
-      }
-    };
+    const taskQueue = this.taskQueue;
+    const reject = this.reject;
 
-    this.run = () => {
-      if (this._status !== 'pending') {
-        throw new Error(`Cannot run task in ${this._status} state`);
-      }
+    taskQueue.remove(this);
 
-      taskQueue.remove(this);
+    if (taskQueue.isEmpty) {
+      taskQueue.cancel();
+    }
 
-      this._status = 'running';
+    this._status = 'canceled';
 
-      try {
-        const ret = callback();
-
-        this._status = 'completed';
-
-        if (this.resolve !== void 0) {
-          this.resolve(ret);
-        }
-      } catch (err) {
-        if (this.reject !== void 0) {
-          this.reject(err);
-        } else {
-          throw err;
-        }
-      }
-
-      if (this.persistent) {
-        taskQueue.requeueTask(this);
-      }
-    };
+    if (reject !== void 0) {
+      reject(new TaskAbortError(this));
+    }
   }
 
   public reset(time: number): void {
     const delay = this.queueTime - this.createdTime;
-    (this as Writable<this>).createdTime = time;
-    (this as Writable<this>).queueTime = time + delay;
+    this.createdTime = time;
+    this.queueTime = time + delay;
     this._status = 'pending';
+  }
+
+  public dispose(): void {
+    this.callback = (void 0)!;
+    this.resolve = void 0;
+    this.reject = void 0;
+    this._result = void 0;
   }
 }

@@ -1,8 +1,8 @@
 import {
   IAccessor,
-  ILifecycle,
   LifecycleFlags,
-  Priority,
+  IScheduler,
+  ITask,
 } from '@aurelia/runtime';
 
 /**
@@ -10,38 +10,21 @@ import {
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
  */
 export class AttributeNSAccessor implements IAccessor<string | null> {
-  public readonly lifecycle: ILifecycle;
-
-  public readonly obj: HTMLElement;
-  public readonly propertyKey: string;
-  public currentValue: string | null;
-  public oldValue: string | null;
+  public currentValue: string | null = null;
+  public oldValue: string | null = null;
 
   public readonly persistentFlags: LifecycleFlags;
 
-  public readonly namespace: string;
-
-  public hasChanges: boolean;
-  public priority: Priority;
+  public hasChanges: boolean = false;
+  public task: ITask | null = null;
 
   public constructor(
-    lifecycle: ILifecycle,
+    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    obj: HTMLElement,
-    propertyKey: string,
-    namespace: string,
+    public readonly obj: HTMLElement,
+    public readonly propertyKey: string,
+    public readonly namespace: string,
   ) {
-    this.lifecycle = lifecycle;
-
-    this.obj = obj;
-    this.propertyKey = propertyKey;
-    this.currentValue = null;
-    this.oldValue = null;
-
-    this.namespace = namespace;
-
-    this.hasChanges = false;
-    this.priority = Priority.propagate;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -53,13 +36,13 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushRAF(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+      this.flushChanges(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
     }
   }
 
-  public flushRAF(flags: LifecycleFlags): void {
+  public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue } = this;
@@ -74,14 +57,18 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
 
   public bind(flags: LifecycleFlags): void {
     if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+      if (this.task !== null) {
+        this.task.cancel();
+      }
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     }
     this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
   }
 
   public unbind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
     }
   }
 }

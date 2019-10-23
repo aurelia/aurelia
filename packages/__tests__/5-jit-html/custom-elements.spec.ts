@@ -4,7 +4,6 @@ import {
   CustomElement,
   LifecycleFlags,
   alias,
-  CustomAttribute,
   CustomElementHost
 } from '@aurelia/runtime';
 import { TestConfiguration, assert, setup } from '@aurelia/testing';

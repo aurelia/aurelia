@@ -28,6 +28,16 @@ function toPropertyKeyOrUndefined(propertyKey: any): undefined | string | symbol
   }
 }
 
+function toPropertyKey(propertyKey: any): string | symbol {
+  switch (typeof propertyKey) {
+    case 'string':
+    case 'symbol':
+      return propertyKey;
+    default:
+      return `${propertyKey}`;
+  }
+}
+
 function ensurePropertyKeyOrUndefined(propertyKey: any): undefined | string | symbol {
   switch (typeof propertyKey) {
     case 'undefined':
@@ -359,6 +369,74 @@ function metadata(metadataKey: any, metadataValue: any) {
   }
 
   return decorator;
+}
+
+function decorate(
+  decorators: (ClassDecorator | PropertyDecorator | MethodDecorator)[],
+  target: any,
+  propertyKey?: string | symbol,
+  attributes?: PropertyDescriptor | null,
+): PropertyDescriptor | Function | undefined {
+  if (propertyKey !== void 0) {
+    if (!Array.isArray(decorators)) {
+      throw new TypeError();
+    }
+    if (typeof target !== 'object' || target === null) {
+      throw new TypeError();
+    }
+    if ((typeof attributes !== 'object' || attributes === null) && typeof attributes !== 'function' && attributes !== null && attributes !== void 0) {
+      throw new TypeError();
+    }
+    if (attributes === null) {
+      attributes = void 0;
+    }
+    propertyKey = toPropertyKey(propertyKey);
+    return DecorateProperty(decorators as (MethodDecorator | PropertyDecorator)[], target, propertyKey, attributes);
+  } else {
+    if (!Array.isArray(decorators)) {
+      throw new TypeError();
+    }
+    if (typeof target !== 'function') {
+      throw new TypeError();
+    }
+    return DecorateConstructor(decorators as ClassDecorator[], target);
+  }
+}
+
+function DecorateConstructor(
+  decorators: ClassDecorator[],
+  target: Function,
+): Function {
+  for (let i = decorators.length - 1; i >= 0; --i) {
+    const decorator = decorators[i];
+    const decorated = decorator(target);
+    if (decorated !== void 0 && decorated !== null) {
+      if (typeof decorated !== 'function') {
+        throw new TypeError();
+      }
+      target = decorated;
+    }
+  }
+  return target;
+}
+
+function DecorateProperty(
+  decorators: (MethodDecorator | PropertyDecorator)[],
+  target: any,
+  propertyKey: string | symbol,
+  descriptor: PropertyDescriptor | undefined,
+): PropertyDescriptor | undefined {
+  for (let i = decorators.length - 1; i >= 0; --i) {
+    const decorator = decorators[i];
+    const decorated = decorator(target, propertyKey, descriptor!);
+    if (decorated !== void 0 && decorated !== null) {
+      if ((typeof decorated !== 'object' || decorated === null) && typeof decorated !== 'function') {
+        throw new TypeError();
+      }
+      descriptor = decorated;
+    }
+  }
+  return descriptor;
 }
 
 // 4.1.3 Reflect.defineMetadata(metadataKey, metadataValue, target [, propertyKey])
@@ -844,6 +922,8 @@ function def(obj: object, key: string, value: unknown): void {
 
 def(Metadata, '$Internal', metadataInternalSlot);
 
+const hasMetadata = 'metadata' in Reflect;
+const hasDecorate = 'decorate' in Reflect;
 const hasDefineMetadata = 'defineMetadata' in Reflect;
 const hasHasMetadata = 'hasMetadata' in Reflect;
 const hasHasOwnMetadata = 'hasOwnMetadata' in Reflect;
@@ -853,6 +933,8 @@ const hasGetMetadataKeys = 'getMetadataKeys' in Reflect;
 const hasGetOwnMetadataKeys = 'getOwnMetadataKeys' in Reflect;
 const hasDeleteMetadata = 'deleteMetadata' in Reflect;
 const hasSome = (
+  hasMetadata ||
+  hasDecorate ||
   hasDefineMetadata ||
   hasHasMetadata ||
   hasHasOwnMetadata ||
@@ -863,6 +945,8 @@ const hasSome = (
   hasDeleteMetadata
 );
 const hasAll = (
+  hasMetadata &&
+  hasDecorate &&
   hasDefineMetadata &&
   hasHasMetadata &&
   hasHasOwnMetadata &&
@@ -882,6 +966,12 @@ if (hasSome && !hasAll) {
   console.warn('Partial existing Reflect.metadata polyfill found. Working environment cannot be guaranteed. Please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario.');
 }
 
+if (!hasMetadata) {
+  def(Reflect, 'metadata', metadata);
+}
+if (!hasDecorate) {
+  def(Reflect, 'decorate', decorate);
+}
 if (!hasDefineMetadata) {
   def(Reflect, 'defineMetadata', $define);
 }

@@ -4,11 +4,6 @@ import template from './user-preference.html';
 import { trace } from '@aurelia/testing';
 import { callCollection } from '../../debug';
 
-@customElement({ name: 'user-preference', template })
-export class UserPreference {
-  @bindable public user: User;
-}
-
 export class TestArray extends Array {
   public indeterminate: string = 'test';
   public constructor(...args: any[]) {
@@ -75,4 +70,9 @@ export class User {
   public set locationVolatile(value: string) {
     this.country = value;
   }
+}
+
+@customElement({ name: 'user-preference', template })
+export class UserPreference {
+  @bindable public user: User;
 }

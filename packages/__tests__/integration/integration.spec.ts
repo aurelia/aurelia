@@ -4,7 +4,7 @@ import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } 
 import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
-import { LetDemoBoolean } from './app/molecules/let-demo-boolean/let-demo-boolean';
+import { LetDemo } from './app/molecules/let-demo/let-demo';
 
 describe.only('app', function() {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
@@ -602,7 +602,7 @@ describe.only('app', function() {
     ctx.lifecycle.processRAFQueue(undefined);
     inputs = getInputs();
     for (let i = 0; i < 20; i++) {
-      assert.html.textContent(inputs[i].parentElement, `${newProducts[i].id}-${newProducts[i].name}`, `incorrect label${i+1}`);
+      assert.html.textContent(inputs[i].parentElement, `${newProducts[i].id}-${newProducts[i].name}`, `incorrect label${i + 1}`);
     }
     assert.equal(inputs.length, products.length);
 
@@ -634,25 +634,37 @@ describe.only('app', function() {
     assert.equal(app.somethingDone, true);
   });
 
-  $it(`uses a let-demo-boolean to demonstrate let binding`, function({ host, ctx }) {
-    const demo = host.querySelector('let-demo-boolean');
-    const vm = getViewModel<LetDemoBoolean>(demo);
+  $it(`uses a let-demo`, function({ host, ctx }) {
+    const demo = host.querySelector('let-demo');
+    const vm = getViewModel<LetDemo>(demo);
 
+    const not = demo.querySelector('#not');
     const and = demo.querySelector('#and');
     const or = demo.querySelector('#or');
     const xor = demo.querySelector('#xor');
+    const xnor = demo.querySelector('#xnor');
+    const xorLoose = demo.querySelector('#xor-loose');
+    const xnorLoose = demo.querySelector('#xnor-loose');
 
     // 00
+    assert.html.textContent(not, 'true', 'not1');
     assert.html.textContent(and, 'false', 'and1');
     assert.html.textContent(or, 'false', 'or1');
     assert.html.textContent(xor, 'false', 'xor1');
+    assert.html.textContent(xnor, 'true', 'xnor1');
+    assert.html.textContent(xorLoose, 'false', 'xorLoose1');
+    assert.html.textContent(xnorLoose, 'true', 'xnorLoose1');
 
     // 10
     vm.a = true;
     ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(not, 'false', 'not2');
     assert.html.textContent(and, 'false', 'and2');
     assert.html.textContent(or, 'true', 'or2');
     assert.html.textContent(xor, 'true', 'xor2');
+    assert.html.textContent(xnor, 'false', 'xnor2');
+    assert.html.textContent(xorLoose, 'true', 'xorLoose2');
+    assert.html.textContent(xnorLoose, 'false', 'xnorLoose2');
 
     // 11
     vm.b = true;
@@ -660,6 +672,9 @@ describe.only('app', function() {
     assert.html.textContent(and, 'true', 'and3');
     assert.html.textContent(or, 'true', 'or3');
     assert.html.textContent(xor, 'false', 'xor3');
+    assert.html.textContent(xnor, 'true', 'xnor3');
+    assert.html.textContent(xorLoose, 'false', 'xorLoose3');
+    assert.html.textContent(xnorLoose, 'true', 'xnorLoose3');
 
     // 01
     vm.a = false;
@@ -667,5 +682,29 @@ describe.only('app', function() {
     assert.html.textContent(and, 'false', 'and4');
     assert.html.textContent(or, 'true', 'or4');
     assert.html.textContent(xor, 'true', 'xor4');
+    assert.html.textContent(xnor, 'false', 'xnor4');
+    assert.html.textContent(xorLoose, 'true', 'xorLoose4');
+    assert.html.textContent(xnorLoose, 'false', 'xnorLoose4');
+
+    const ecYSq = demo.querySelector('#ecysq');
+    const ecY = demo.querySelector('#ecy');
+    const linex = demo.querySelector('#linex');
+
+    const { line, ec } = vm;
+    const getEcYSqNum = () => Math.pow(ec.x, 3) - ec.a * ec.x + ec.b;
+    const getEcYsq = () => getEcYSqNum().toString();
+    const getEcY = () => Math.sqrt(getEcYSqNum()).toString();
+    const getLinex = () => ((line.y - line.intercept) / line.slope).toString();
+
+    assert.html.textContent(ecYSq, getEcYsq(), 'ecysq1');
+    assert.html.textContent(ecY, getEcY(), 'ecy1');
+    assert.html.textContent(linex, getLinex(), 'linex1');
+
+    line.slope = 4;
+    ec.a = 10;
+    ctx.lifecycle.processRAFQueue(undefined);
+    assert.html.textContent(ecYSq, getEcYsq(), 'ecysq2');
+    assert.html.textContent(ecY, getEcY(), 'ecy2');
+    assert.html.textContent(linex, getLinex(), 'linex2');
   });
 });

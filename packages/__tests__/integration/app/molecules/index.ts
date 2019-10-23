@@ -4,7 +4,7 @@ import { LaptopSpecsViewer } from './specs-viewer/laptop-specs-viewer';
 import { SpecsViewer, ViewerValueConverter } from './specs-viewer/specs-viewer';
 import { ThingViewer } from './specs-viewer/thing-viewer';
 import { UserPreference } from './user-preference/user-preference';
-import { LetDemoBoolean } from './let-demo-boolean/let-demo-boolean';
+import { LetDemo, SqrtValueConverter } from './let-demo/let-demo';
 
 export const molecules = {
   register(container: IContainer) {
@@ -18,7 +18,8 @@ export const molecules = {
 
         UserPreference,
 
-        LetDemoBoolean
+        LetDemo,
+        SqrtValueConverter
       );
   }
 };

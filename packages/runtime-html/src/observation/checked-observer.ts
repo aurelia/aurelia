@@ -65,7 +65,10 @@ export class CheckedObserver implements IAccessor<unknown> {
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushChanges(flags);
     } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
   }
 
@@ -111,7 +114,10 @@ export class CheckedObserver implements IAccessor<unknown> {
       this.hasChanges = true;
     }
     if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
     this.callSubscribers(currentValue, oldValue, flags);
   }

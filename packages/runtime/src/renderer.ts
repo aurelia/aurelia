@@ -56,6 +56,7 @@ import {
 import {
   Controller,
 } from './templating/controller';
+import { SelfObserver } from './observation/self-observer';
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -239,10 +240,10 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    context
+    const observer = context
       .get(IObserverLocator)
-      .getObserver(flags, target.bindingContext!, instruction.to)
-      .setValue(instruction.value === '' ? true : instruction.value, flags | LifecycleFlags.fromBind);
+      .getObserver(flags, target.bindingContext!, instruction.to) as SelfObserver;
+    observer.currentValue = instruction.value === '' ? true : instruction.value;
   }
 }
 

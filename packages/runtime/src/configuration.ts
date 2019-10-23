@@ -26,7 +26,6 @@ import {
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
-import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
@@ -82,7 +81,6 @@ export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as un
 export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
 export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
 export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
-export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as unknown as IRegistry;
 
 /**
  * Default resources:
@@ -106,7 +104,6 @@ export const DefaultResources = [
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
-  PriorityBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration
 ];

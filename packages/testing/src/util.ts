@@ -570,9 +570,7 @@ export function createSpy<
     }
 
     Reflect.defineProperty(instanceOrInnerFn, key, {
-      enumerable: descriptor.enumerable,
-      writable: descriptor.writable,
-      configurable: descriptor.configurable,
+      ...descriptor,
       value: $spy,
     });
   }

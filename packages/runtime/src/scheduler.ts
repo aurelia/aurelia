@@ -108,7 +108,7 @@ export const enum TaskQueuePriority {
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
 
-export type TaskCallback<T = any> = () => T;
+export type TaskCallback<T = any> = (delta: number) => T;
 
 export const IScheduler = DI.createInterface<IScheduler>('IScheduler').noDefault();
 export interface IScheduler {
@@ -246,6 +246,7 @@ export class TaskQueue {
   private readonly clock: IClock;
   private readonly taskPool: Task[] = [];
   private taskPoolSize: number = 0;
+  private lastRequest: number = 0;
 
   public get isEmpty(): boolean {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
@@ -260,7 +261,8 @@ export class TaskQueue {
   public flush(): void {
     enter(this, 'flush');
 
-    this.clock.now(true);
+    const now = this.clock.now(true);
+    const delta = now - this.lastRequest;
     this.flushRequested = false;
 
     if (this.pendingSize > 0) {
@@ -271,7 +273,7 @@ export class TaskQueue {
     }
 
     while (this.processingSize > 0) {
-      this.processingHead!.run();
+      this.processingHead!.run(delta);
     }
 
     if (this.pendingSize > 0) {
@@ -671,6 +673,7 @@ export class TaskQueue {
 
     if (!this.flushRequested) {
       this.flushRequested = true;
+      this.lastRequest = this.clock.now(true);
       this.scheduler.requestFlush(this);
     }
 
@@ -688,7 +691,7 @@ export interface ITask<T = any> {
   readonly result: Promise<T>;
   readonly status: TaskStatus;
   readonly priority: TaskQueuePriority;
-  run(): void;
+  run(delta: number): void;
   cancel(): boolean;
 }
 
@@ -745,7 +748,7 @@ export class Task<T = any> implements ITask {
     this.priority = taskQueue.priority;
   }
 
-  public run(): void {
+  public run(delta: number): void {
     enter(this, 'run');
 
     if (this._status !== 'pending') {
@@ -765,7 +768,7 @@ export class Task<T = any> implements ITask {
     this._status = 'running';
 
     try {
-      const ret = callback();
+      const ret = callback(delta);
 
       this._status = 'completed';
 

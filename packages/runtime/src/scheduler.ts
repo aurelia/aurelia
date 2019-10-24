@@ -292,10 +292,44 @@ export class TaskQueue {
         // Otherwise just let this queue handle itself
         this.requestFlush();
       }
-    } else if (this.yieldPromise !== void 0) {
-      const p = this.yieldPromise;
-      this.yieldPromise = void 0;
-      p.resolve();
+    }
+
+    if (this.yieldPromise !== void 0) {
+      let noMoreFiniteWork = true;
+      let cur = this.processingHead;
+      while (cur !== void 0) {
+        if (!cur.persistent) {
+          noMoreFiniteWork = false;
+          break;
+        }
+        cur = cur.next;
+      }
+      if (noMoreFiniteWork) {
+        cur = this.pendingHead;
+        while (cur !== void 0) {
+          if (!cur.persistent) {
+            noMoreFiniteWork = false;
+            break;
+          }
+          cur = cur.next;
+        }
+      }
+      if (noMoreFiniteWork) {
+        cur = this.delayedHead;
+        while (cur !== void 0) {
+          if (!cur.persistent) {
+            noMoreFiniteWork = false;
+            break;
+          }
+          cur = cur.next;
+        }
+      }
+
+      if (noMoreFiniteWork) {
+        const p = this.yieldPromise;
+        this.yieldPromise = void 0;
+        p.resolve();
+      }
     }
 
     leave(this, 'flush');

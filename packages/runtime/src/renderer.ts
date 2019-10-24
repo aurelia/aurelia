@@ -8,6 +8,7 @@ import {
   Registration,
   Reporter,
   Metadata,
+  IIndexable,
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
 import { CallBinding } from './binding/call-binding';
@@ -56,7 +57,7 @@ import {
 import {
   Controller,
 } from './templating/controller';
-import { SelfObserver } from './observation/self-observer';
+import { ObserversLookup } from './observation';
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -240,10 +241,12 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    const observer = context
-      .get(IObserverLocator)
-      .getObserver(flags, target.bindingContext!, instruction.to) as SelfObserver;
-    observer.currentValue = instruction.value === '' ? true : instruction.value;
+    const obj = getTarget(target) as IIndexable & { $observers: ObserversLookup };
+    if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+      obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
+    } else {
+      obj[instruction.to] = instruction.value;
+    }
   }
 }
 

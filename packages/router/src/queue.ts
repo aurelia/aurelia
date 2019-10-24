@@ -46,7 +46,7 @@ export class Queue<T> {
     }
     this.scheduler = options.scheduler;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-    this.task = this.scheduler.queuePostRenderTask(this.dequeue, { persistent: true });
+    this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
   }
   public deactivate(): void {
     if (!this.isActive) {

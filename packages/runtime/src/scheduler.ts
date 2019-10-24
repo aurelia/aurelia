@@ -263,6 +263,11 @@ export class TaskQueue {
   public flush(): void {
     enter(this, 'flush');
 
+    if (this.microTaskRequestFlushTask !== null) {
+      this.microTaskRequestFlushTask.cancel();
+      this.microTaskRequestFlushTask = null;
+    }
+
     const now = this.clock.now(true);
     const delta = now - this.lastRequest;
     this.flushRequested = false;
@@ -288,10 +293,8 @@ export class TaskQueue {
       this.requestFlush();
     } else if (this.delayedSize > 0) {
       if (this.priority <= TaskQueuePriority.microTask) {
-        if (this.microTaskRequestFlushTask === null) {
-          // MicroTasks are not clamped so we have to clamp them with setTimeout or they'll block forever
-          this.microTaskRequestFlushTask = this.scheduler.getTaskQueue(TaskQueuePriority.macroTask).queueTask(this.requestFlush);
-        }
+        // MicroTasks are not clamped so we have to clamp them with setTimeout or they'll block forever
+        this.microTaskRequestFlushTask = this.scheduler.getTaskQueue(TaskQueuePriority.macroTask).queueTask(this.requestFlush);
       } else {
         // Otherwise just let this queue handle itself
         this.requestFlush();
@@ -341,6 +344,11 @@ export class TaskQueue {
 
   public cancel(): void {
     enter(this, 'cancel');
+
+    if (this.microTaskRequestFlushTask !== null) {
+      this.microTaskRequestFlushTask.cancel();
+      this.microTaskRequestFlushTask = null;
+    }
 
     this.scheduler.cancelFlush(this);
     this.flushRequested = false;

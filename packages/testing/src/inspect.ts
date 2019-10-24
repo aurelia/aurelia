@@ -299,7 +299,7 @@ export class AssertionError extends Error {
   public code: string;
   public actual: any;
   public expected: any;
-  public operator: keyof IOperatorText;
+  public operator!: keyof IOperatorText;
   public generatedMessage: boolean;
 
   public constructor(options: IAssertionErrorOpts) {
@@ -314,7 +314,7 @@ export class AssertionError extends Error {
     const limit = Error.stackTraceLimit;
     Error.stackTraceLimit = 0;
 
-    const prefix = message == null ? '' : `${message} - `;
+    let prefix = message == null ? '' : `${message} - `;
 
     if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
       super(`${prefix}${createErrDiff(actual, expected, operator)}`);
@@ -323,7 +323,8 @@ export class AssertionError extends Error {
       || operator === 'notStrictEqual'
     ) {
       let base = operatorText[operator];
-      const res = inspectValue(actual).split('\n');
+      // eslint-disable-next-line prefer-const
+      let res = inspectValue(actual).split('\n');
       if (
         operator === 'notStrictEqual'
         && isObject(actual)
@@ -365,6 +366,11 @@ export class AssertionError extends Error {
         } else {
           other = ` ${operator} ${other}`;
         }
+      }
+      if (!operator) {
+        other = '';
+        res = '';
+        prefix = prefix.slice(0, -3);
       }
       super(`${prefix}${res}${other}`);
     }

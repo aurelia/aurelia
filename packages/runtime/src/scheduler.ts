@@ -38,9 +38,10 @@ const {
       const queue = round(obj['queueTime']);
       const preempt = obj['preempt'];
       const reusable = obj['reusable'];
+      const persistent = obj['persistent'];
       const status = obj['_status'];
 
-      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} reusable=${reusable} status=${status}`;
+      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status}`;
       console.log(`${prefix}[T.${method}] ${info}`);
     }
   }
@@ -339,6 +340,7 @@ export class TaskQueue {
     enter(this, 'cancel');
 
     this.scheduler.cancelFlush(this);
+    this.flushRequested = false;
 
     leave(this, 'cancel');
   }
@@ -372,6 +374,9 @@ export class TaskQueue {
       if (persistent) {
         throw new Error(`Invalid arguments: preempt cannot be combined with persistent`);
       }
+    }
+    if (persistent && this.priority === TaskQueuePriority.microTask) {
+      throw new Error(`Invalid arguments: cannot queue persistent tasks on the micro task queue`);
     }
 
     if (this.processingSize === 0) {
@@ -791,7 +796,11 @@ export class Task<T = any> implements ITask {
       throw new Error(`Cannot run task in ${this._status} state`);
     }
 
+    // this.persistent could be changed while the task is running (this can only be done by the task itself if canceled, and is a valid way of stopping a loop)
+    // so we deliberately reference this.persistent instead of the local variable, but we keep it around to know whether the task *was* persistent before running it,
+    // so we can set the correct cancelation state.
     const persistent = this.persistent;
+    const reusable = this.reusable;
     const taskQueue = this.taskQueue;
     const callback = this.callback;
     const resolve = this.resolve;
@@ -804,14 +813,17 @@ export class Task<T = any> implements ITask {
     try {
       const ret = callback(delta);
 
-      this._status = 'completed';
+      if (this.persistent) {
+        taskQueue.resetPersistentTask(this);
+      } else if (persistent) {
+        // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+        this._status = 'canceled';
+      } else {
+        this._status = 'completed';
+      }
 
       if (resolve !== void 0) {
         resolve(ret);
-      }
-
-      if (persistent) {
-        taskQueue.resetPersistentTask(this);
       }
     } catch (err) {
       if (reject !== void 0) {
@@ -820,9 +832,12 @@ export class Task<T = any> implements ITask {
         throw err;
       }
     } finally {
-      if (!persistent) {
+      if (!this.persistent) {
         this.dispose();
-        taskQueue.returnToPool(this);
+
+        if (reusable) {
+          taskQueue.returnToPool(this);
+        }
       }
 
       leave(this, 'run finally');
@@ -835,6 +850,7 @@ export class Task<T = any> implements ITask {
     if (this._status === 'pending') {
 
       const taskQueue = this.taskQueue;
+      const reusable = this.reusable;
       const reject = this.reject;
 
       taskQueue.remove(this);
@@ -850,9 +866,18 @@ export class Task<T = any> implements ITask {
       }
 
       this.dispose();
-      taskQueue.returnToPool(this);
 
-      leave(this, 'cancel true');
+      if (reusable) {
+        taskQueue.returnToPool(this);
+      }
+
+      leave(this, 'cancel true =pending');
+
+      return true;
+    } else if (this._status === 'running' && this.persistent) {
+      this.persistent = false;
+
+      leave(this, 'cancel true =running+persistent');
 
       return true;
     }
@@ -869,6 +894,10 @@ export class Task<T = any> implements ITask {
     this.createdTime = time;
     this.queueTime = time + delay;
     this._status = 'pending';
+
+    this.resolve = void 0;
+    this.reject = void 0;
+    this._result = void 0;
 
     leave(this, 'reset');
   }

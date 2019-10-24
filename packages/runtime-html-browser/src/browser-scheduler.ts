@@ -410,8 +410,8 @@ export class BrowserScheduler implements IScheduler {
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): Task<T> {
-    const { delay, preempt, priority } = { ...defaultQueueTaskOptions, ...opts };
-    return this.taskQueue[priority].queueTask(callback, { delay, preempt });
+    const { delay, preempt, priority, persistent, reusable } = { ...defaultQueueTaskOptions, ...opts };
+    return this.taskQueue[priority].queueTask(callback, { delay, preempt, persistent, reusable });
   }
 
   public getMicroTaskQueue(): ITaskQueue {

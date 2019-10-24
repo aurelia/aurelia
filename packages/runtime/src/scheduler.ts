@@ -248,6 +248,7 @@ export class TaskQueue {
   private readonly taskPool: Task[] = [];
   private taskPoolSize: number = 0;
   private lastRequest: number = 0;
+  private microTaskRequestFlushTask: ITask | null = null;
 
   public get isEmpty(): boolean {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
@@ -287,8 +288,10 @@ export class TaskQueue {
       this.requestFlush();
     } else if (this.delayedSize > 0) {
       if (this.priority <= TaskQueuePriority.microTask) {
-        // MicroTasks are not clamped so we have to clamp them with setTimeout or they'll block forever
-        this.scheduler.getTaskQueue(TaskQueuePriority.macroTask).queueTask(this.requestFlush);
+        if (this.microTaskRequestFlushTask === null) {
+          // MicroTasks are not clamped so we have to clamp them with setTimeout or they'll block forever
+          this.microTaskRequestFlushTask = this.scheduler.getTaskQueue(TaskQueuePriority.macroTask).queueTask(this.requestFlush);
+        }
       } else {
         // Otherwise just let this queue handle itself
         this.requestFlush();
@@ -709,6 +712,11 @@ export class TaskQueue {
   @bound
   private requestFlush(): void {
     enter(this, 'requestFlush');
+
+    if (this.microTaskRequestFlushTask !== null) {
+      this.microTaskRequestFlushTask.cancel();
+      this.microTaskRequestFlushTask = null;
+    }
 
     if (!this.flushRequested) {
       this.flushRequested = true;

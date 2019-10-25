@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
-import { ILifecycle, Priority } from './lifecycle';
+import { ILifecycle } from './lifecycle';
 
 /** @internal */
 export const enum SubscriberFlags {
@@ -204,7 +204,6 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
   IPropertyChangeTracker<TObj, TProp> {
-  priority?: Priority;
   bind?(flags: LifecycleFlags): void;
   unbind?(flags: LifecycleFlags): void;
 }

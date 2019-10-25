@@ -29,7 +29,7 @@ describe('BrowserNavigator', function () {
 
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
-    const { lifecycle, dom } = ctx;
+    const { lifecycle, scheduler, dom } = ctx;
     // const originalWnd = ctx.wnd;
 
     // const mockWnd = new MockWindow(originalWnd, originalWnd.history, originalWnd.location);
@@ -38,8 +38,7 @@ describe('BrowserNavigator', function () {
 
     // (DOM as Writable<typeof DOM>).window = mockWnd;
 
-    lifecycle.startTicking();
-    const sut = new BrowserNavigator(lifecycle, dom);
+    const sut = new BrowserNavigator(scheduler, dom);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = sut.handlePopstate;
     sut.history = mockBrowserHistoryLocation as any;
@@ -47,7 +46,6 @@ describe('BrowserNavigator', function () {
 
     function tearDown() {
       // (DOM as Writable<typeof DOM>).window = originalWnd;
-      lifecycle.stopTicking();
     }
 
     callbackCount = 0;

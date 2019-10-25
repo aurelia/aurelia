@@ -6,6 +6,9 @@ import {
   JitHtmlJsdomConfiguration
 } from '@aurelia/jit-html-jsdom';
 import {
+  JSDOMScheduler
+} from '@aurelia/runtime-html-jsdom';
+import {
   Reporter,
   LogLevel,
 } from '@aurelia/kernel';
@@ -14,11 +17,12 @@ import { JSDOM } from 'jsdom';
 Reporter.level = LogLevel.error;
 
 function createJSDOMTestContext(): HTMLTestContext {
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
+  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 
   return HTMLTestContext.create(
     JitHtmlJsdomConfiguration,
     jsdom.window,
+    JSDOMScheduler,
     jsdom.window.UIEvent,
     jsdom.window.Event,
     jsdom.window.CustomEvent,

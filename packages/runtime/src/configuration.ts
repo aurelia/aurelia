@@ -26,26 +26,24 @@ import {
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
-import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
-import {
-  Else,
-  If
-} from './resources/custom-attributes/if';
+import { Else, If } from './resources/custom-attributes/if';
 import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
+import { Clock } from './scheduler';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
 export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
 export const IViewLocatorRegistration = ViewLocator as IRegistry;
+export const IClockRegistration = Clock as IRegistry;
 
 /**
  * Default implementations for the following interfaces:
@@ -54,13 +52,16 @@ export const IViewLocatorRegistration = ViewLocator as IRegistry;
  * - `IRenderer`
  * - `IStartTaskManager`
  * - `IViewLocator`
+ * - `IClockRegistration`
+ * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
   IStartTaskManagerRegistration,
-  IViewLocatorRegistration
+  IViewLocatorRegistration,
+  IClockRegistration,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
@@ -80,7 +81,6 @@ export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as un
 export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
 export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
 export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
-export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as unknown as IRegistry;
 
 /**
  * Default resources:
@@ -104,7 +104,6 @@ export const DefaultResources = [
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
-  PriorityBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration
 ];

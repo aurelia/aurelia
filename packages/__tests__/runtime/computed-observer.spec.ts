@@ -9,7 +9,8 @@ import {
   LifecycleFlags as LF,
   RuntimeConfiguration,
   ComputedOverrides,
-  createComputedObserver
+  createComputedObserver,
+  IScheduler
 } from '@aurelia/runtime';
 import {
   disableTracing,
@@ -31,8 +32,9 @@ describe.skip('ComputedObserver', function () {
     const locator = container.get(IObserverLocator);
     const dirtyChecker = container.get(IDirtyChecker);
     const lifecycle = container.get(ILifecycle);
+    const scheduler = container.get(IScheduler);
 
-    return { container, locator, dirtyChecker, lifecycle };
+    return { container, locator, dirtyChecker, lifecycle, scheduler };
   }
 
   interface Spec {
@@ -265,7 +267,7 @@ describe.skip('ComputedObserver', function () {
   if (typeof document !== 'undefined') {
     it(`complex nested dependencies`, function () {
       this.timeout(30000);
-      const { locator, dirtyChecker, lifecycle } = setup();
+      const { locator, dirtyChecker, lifecycle, scheduler } = setup();
 
       class Foo {
         public array1: unknown[];
@@ -383,17 +385,17 @@ describe.skip('ComputedObserver', function () {
       let i = 0;
       for (const foo of [child1, child2, parent]) {
         foo.array1.push(i);
-        lifecycle.processRAFQueue(0);
+        scheduler.getRenderTaskQueue().flush();
         verifyCalled(1, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.map1.set(i, i);
-        lifecycle.processRAFQueue(0);
+        scheduler.getRenderTaskQueue().flush();
         verifyCalled(1, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.set1.add(i);
-        lifecycle.processRAFQueue(0);
+        scheduler.getRenderTaskQueue().flush();
         verifyCalled(1, ++i);
       }
       for (const foo of [child1, child2, parent]) {
@@ -404,17 +406,17 @@ describe.skip('ComputedObserver', function () {
 
       for (const foo of [child1, child2, parent]) {
         foo.array2.push(i);
-        lifecycle.processRAFQueue(0);
+        scheduler.getRenderTaskQueue().flush();
         verifyCalled(0, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.map2.set(i, i);
-        lifecycle.processRAFQueue(0);
+        scheduler.getRenderTaskQueue().flush();
         verifyCalled(0, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.set2.add(i);
-        lifecycle.processRAFQueue(0);
+        scheduler.getRenderTaskQueue().flush();
         verifyCalled(0, ++i);
       }
       for (const foo of [child1, child2, parent]) {

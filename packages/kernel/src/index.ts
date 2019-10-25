@@ -112,6 +112,7 @@ export {
   mergeDistinct,
   isNumberOrBigInt,
   isStringOrDate,
+  bound,
   mergeArrays,
   mergeObjects,
   firstDefined,

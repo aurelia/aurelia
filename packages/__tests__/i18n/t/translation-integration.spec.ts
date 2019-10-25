@@ -576,7 +576,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]pre;[append]post';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
     });
@@ -596,7 +596,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
       app.keyExpr = '[prepend]preHtml;[append]postHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
     });
@@ -616,7 +616,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]preHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
     });
@@ -636,7 +636,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[append]postHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
     });
@@ -656,7 +656,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[html]midHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
     });
@@ -779,7 +779,7 @@ describe('translation-integration', function () {
       const { de, container, ctx } = await setup(host, new App());
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'custom-message div', de.simple.text);
     });
@@ -838,7 +838,7 @@ describe('translation-integration', function () {
       const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', de.simple.text);
     });
   });
@@ -896,7 +896,7 @@ describe('translation-integration', function () {
       const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', de.simple.text);
     });
@@ -952,7 +952,7 @@ describe('translation-integration', function () {
       const { i18n, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '20.8.2019');
     });
 
@@ -966,7 +966,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
 
       app.dt = new Date(2019, 7, 21);
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '8/21/2019');
     });
   });
@@ -1021,7 +1021,7 @@ describe('translation-integration', function () {
       const { i18n, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '20.8.2019');
     });
 
@@ -1035,7 +1035,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
 
       app.dt = new Date(2019, 7, 21);
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '8/21/2019');
     });
   });
@@ -1105,7 +1105,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { ctx, i18n } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
@@ -1118,7 +1118,7 @@ describe('translation-integration', function () {
       const app = new App();
       const { ctx } = await setup(host, app);
       app.num = 123456789.21;
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123,456,789.21');
     });
@@ -1189,7 +1189,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { ctx, i18n } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
@@ -1202,7 +1202,7 @@ describe('translation-integration', function () {
       const app = new App();
       const { ctx } = await setup(host, app);
       app.num = 123456789.21;
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123,456,789.21');
     });
@@ -1288,7 +1288,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { i18n, ctx } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
@@ -1308,7 +1308,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '5 hours ago');
     });
@@ -1330,7 +1330,7 @@ describe('translation-integration', function () {
           },
           3000);
       });
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '3 seconds ago');
     });
@@ -1411,7 +1411,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { i18n, ctx } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
@@ -1431,7 +1431,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '5 hours ago');
     });
@@ -1453,7 +1453,7 @@ describe('translation-integration', function () {
           },
           3000);
       });
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '3 seconds ago');
     });

@@ -50,6 +50,7 @@ import {
   TargetedInstructionType,
   templateController,
   ToViewBindingInstruction,
+  IScheduler,
 } from '@aurelia/runtime';
 // import {
 //   HTMLTargetedInstruction,
@@ -502,10 +503,14 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
       return false;
     }
   };
+  const dummyScheduler: any = {
+
+  };
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
   container.register(IObserverLocatorRegistration);
+  Registration.instance(IScheduler, dummyScheduler).register(container);
   return container.get(IObserverLocator);
 }
 

@@ -210,9 +210,6 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
-  PriorityBindingBehavior,
-} from './resources/binding-behaviors/priority';
-export {
   SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
@@ -284,6 +281,23 @@ export {
 } from './resources/value-converters/view';
 
 export {
+  Clock,
+  IClock,
+  IClockSettings,
+  IScheduler,
+  ITask,
+  ITaskQueue,
+  QueueTaskOptions,
+  Task,
+  TaskAbortError,
+  TaskCallback,
+  TaskQueue,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskTargetOptions,
+} from './scheduler';
+
+export {
   bindable,
   PartialBindableDefinition,
   BindableDefinition,
@@ -328,7 +342,6 @@ export {
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
-  PriorityBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
@@ -418,7 +431,6 @@ export {
   IViewCache,
   IViewFactory,
   MountStrategy,
-  Priority,
 } from './lifecycle';
 export {
   PromiseOrTask,

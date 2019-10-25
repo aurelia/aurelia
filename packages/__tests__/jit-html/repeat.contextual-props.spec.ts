@@ -378,7 +378,6 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
           const App = CustomElement.define({ name: `app`, template, strategy: bindingStrategy }, Root);
           const au = new Aurelia(ctx.container);
-          const lifeCycle = ctx.container.get(ILifecycle);
 
           body = ctx.doc.body;
           host = body.appendChild(ctx.createElement(`app`));
@@ -411,7 +410,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
           try {
             mutate(component.items, component);
-            lifeCycle.processRAFQueue(LifecycleFlags.none);
+            ctx.scheduler.getRenderTaskQueue().flush();
 
             assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 

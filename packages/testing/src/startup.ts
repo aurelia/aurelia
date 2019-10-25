@@ -8,7 +8,7 @@ export function setup<T>(template: string | Node,
   autoStart: boolean = true,
   ctx: HTMLTestContext = TestContext.createHTMLTestContext(),
 ) {
-  const { container, lifecycle, observerLocator } = ctx;
+  const { container, lifecycle, scheduler, observerLocator } = ctx;
   container.register(...registrations);
   const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
   const host = root.appendChild(ctx.createElement('app'));
@@ -28,6 +28,7 @@ export function setup<T>(template: string | Node,
     host: ctx.doc.firstElementChild,
     container,
     lifecycle,
+    scheduler,
     testHost: root,
     appHost: host,
     au,

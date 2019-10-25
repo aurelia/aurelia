@@ -156,7 +156,7 @@ describe.skip('controller', function () {
     resetId('au$component');
 
     const ctx = TestContext.createHTMLTestContext();
-    const { container, lifecycle, dom } = ctx;
+    const { container, lifecycle, dom, scheduler } = ctx;
     const templateFactory = container.get(ITemplateFactory);
     const renderContext = new RenderContext(dom, container, null);
     const $loc = h('div');
@@ -171,6 +171,7 @@ describe.skip('controller', function () {
       ctx,
       calls,
       container,
+      scheduler,
       lifecycle,
       dom,
       templateFactory,
@@ -207,6 +208,7 @@ describe.skip('controller', function () {
     it(`correctly executes 1 CustomElement lifecycles`, function () {
       const {
         lifecycle,
+        scheduler,
         container,
         host,
         calls,
@@ -273,7 +275,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '', '4');
 
-      lifecycle.processRAFQueue(flags);
+      scheduler.getRenderTaskQueue().flush();
 
       assert.deepStrictEqual(
         calls,
@@ -299,7 +301,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '1', '8');
 
-      lifecycle.processRAFQueue(flags);
+      scheduler.getRenderTaskQueue().flush();
 
       assert.deepStrictEqual(
         calls,
@@ -334,6 +336,7 @@ describe.skip('controller', function () {
     it(`correctly executes 1-1 CustomElement+if lifecycles`, function () {
       const {
         lifecycle,
+        scheduler,
         container,
         host,
         calls,
@@ -535,7 +538,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '', '4');
 
-      lifecycle.processRAFQueue(flags);
+      scheduler.getRenderTaskQueue().flush();
 
       assert.deepStrictEqual(
         calls,
@@ -613,7 +616,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '16', '8');
 
-      lifecycle.processRAFQueue(flags);
+      scheduler.getRenderTaskQueue().flush();
 
       assert.deepStrictEqual(
         calls,
@@ -727,6 +730,7 @@ describe.skip('controller', function () {
     it(`correctly executes 1-1 CustomElement+if with bindables lifecycles`, function () {
       const {
         lifecycle,
+        scheduler,
         container,
         host,
         calls,
@@ -936,7 +940,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '', '4');
 
-      lifecycle.processRAFQueue(flags);
+      scheduler.getRenderTaskQueue().flush();
 
       assert.deepStrictEqual(
         calls,
@@ -1014,7 +1018,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, 'hihi', '8');
 
-      lifecycle.processRAFQueue(flags);
+      scheduler.getRenderTaskQueue().flush();
 
       assert.deepStrictEqual(
         calls,

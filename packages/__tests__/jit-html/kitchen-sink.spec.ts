@@ -48,7 +48,7 @@ describe(spec, function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const signaler = ctx.container.get(ISignaler);
-    const lifecycle = ctx.lifecycle;
+    const scheduler = ctx.scheduler;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -62,7 +62,7 @@ describe(spec, function () {
 
     items[0] = 2;
 
-    lifecycle.processRAFQueue(LifecycleFlags.none);
+    scheduler.getRenderTaskQueue().flush();
 
     assert.strictEqual(host.textContent, '012', `host.textContent`);
 
@@ -84,7 +84,7 @@ describe(spec, function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const signaler = ctx.container.get(ISignaler);
-    const lifecycle = ctx.lifecycle;
+    const scheduler = ctx.scheduler;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -98,7 +98,7 @@ describe(spec, function () {
 
     items[0] = 2;
 
-    lifecycle.processRAFQueue(LifecycleFlags.none);
+    scheduler.getRenderTaskQueue().flush();
 
     assert.strictEqual(host.textContent, '012', `host.textContent`);
 
@@ -241,7 +241,7 @@ describe('dependency injection', function () {
 //     );
 //     const component = new App();
 
-//     const lifecycle = container.get(ILifecycle);
+//     const scheduler = container.get(ILifecycle);
 //     const re = container.get(IRenderingEngine);
 //     const pl = container.get(IProjectorLocator);
 
@@ -267,7 +267,7 @@ describe('dependency injection', function () {
 //     const container = AuDOMConfiguration.createContainer();
 //     const dom = container.get<AuDOM>(IDOM);
 //     const observerLocator = container.get(IObserverLocator);
-//     const lifecycle = container.get(ILifecycle);
+//     const scheduler = container.get(ILifecycle);
 
 //     const location = AuNode.createRenderLocation();
 //     const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
@@ -307,10 +307,10 @@ describe('dependency injection', function () {
 //       }
 //     };
 
-//     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
-//     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
+//     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, scheduler);
+//     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, scheduler);
 
-//     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
+//     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(scheduler));
 //     const elseSut = new Else<AuNode>(elseFactory);
 //     elseSut.link(sut);
 
@@ -318,10 +318,10 @@ describe('dependency injection', function () {
 //     (elseSut as Writable<Else>).$scope = null;
 
 //     const ifBehavior = RuntimeBehavior.create(If);
-//     ifBehavior.applyTo(sut, lifecycle);
+//     ifBehavior.applyTo(sut, scheduler);
 
 //     const elseBehavior = RuntimeBehavior.create(Else);
-//     elseBehavior.applyTo(elseSut, lifecycle);
+//     elseBehavior.applyTo(elseSut, scheduler);
 
 //     let firstBindInitialNodesText: string;
 //     let firstBindFinalNodesText: string;

@@ -1,42 +1,28 @@
 import {
   IAccessor,
-  ILifecycle,
   LifecycleFlags,
-  Priority,
+  IScheduler,
+  ITask,
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
 
 export class StyleAttributeAccessor implements IAccessor<unknown> {
-  public readonly lifecycle: ILifecycle;
-
-  public readonly obj: HTMLElement;
-  public currentValue: unknown;
-  public oldValue: unknown;
+  public currentValue: unknown = '';
+  public oldValue: unknown = '';
 
   public readonly persistentFlags: LifecycleFlags;
 
-  public styles: Record<string, number>;
-  public version: number;
+  public styles: Record<string, number> = {};
+  public version: number = 0;
 
-  public hasChanges: boolean;
-  public priority: Priority;
+  public hasChanges: boolean = false;
+  public task: ITask | null = null;
 
   public constructor(
-    lifecycle: ILifecycle,
+    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    obj: HTMLElement,
+    public readonly obj: HTMLElement,
   ) {
-    this.lifecycle = lifecycle;
-
-    this.obj = obj;
-    this.currentValue = '';
-    this.oldValue = '';
-
-    this.styles = {};
-    this.version = 0;
-
-    this.hasChanges = false;
-    this.priority = Priority.propagate;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -48,9 +34,12 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushRAF(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+      this.flushChanges(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
   }
 
@@ -116,7 +105,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     return PLATFORM.emptyArray;
   }
 
-  public flushRAF(flags: LifecycleFlags): void {
+  public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue } = this;
@@ -167,14 +156,18 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
   public bind(flags: LifecycleFlags): void {
     if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+      if (this.task !== null) {
+        this.task.cancel();
+      }
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     }
     this.oldValue = this.currentValue = this.obj.style.cssText;
   }
 
   public unbind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
     }
   }
 }

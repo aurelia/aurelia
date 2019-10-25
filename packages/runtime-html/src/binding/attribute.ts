@@ -1,8 +1,29 @@
-import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, connectable, ExpressionKind, hasBind, hasUnbind, IBindingTargetObserver, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
-import { AttributeObserver } from '../observation/element-attribute-observer';
-
-const slice = Array.prototype.slice;
+import {
+  IServiceLocator,
+  Reporter,
+} from '@aurelia/kernel';
+import {
+  AccessorOrObserver,
+  BindingMode,
+  connectable,
+  ExpressionKind,
+  hasBind,
+  hasUnbind,
+  IBindingTargetObserver,
+  IConnectableBinding,
+  IForOfStatement,
+  IObserverLocator,
+  IPartialConnectableBinding,
+  IsBindingBehavior,
+  IScope,
+  LifecycleFlags,
+  State,
+  IScheduler,
+} from '@aurelia/runtime';
+import {
+  AttributeObserver,
+  IHtmlElement,
+} from '../observation/element-attribute-observer';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -19,51 +40,37 @@ export interface AttributeBinding extends IConnectableBinding {}
 export class AttributeBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State;
-  public $lifecycle: ILifecycle;
+  public $scheduler: IScheduler;
   public $scope: IScope;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IsBindingBehavior | IForOfStatement;
-  public target: Element;
-  public targetAttribute: string;
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
    */
-  public targetProperty: string;
 
   public targetObserver!: AccessorOrObserver;
 
   public persistentFlags: LifecycleFlags;
 
   public constructor(
-    sourceExpression: IsBindingBehavior | IForOfStatement,
-    target: Element,
+    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public target: Element,
     // some attributes may have inner structure
     // such as class -> collection of class names
     // such as style -> collection of style rules
     //
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-    targetAttribute: string,
-    targetKey: string,
-    mode: BindingMode,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator
+    public targetAttribute: string,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator
   ) {
     connectable.assignIdTo(this);
     this.$state = State.none;
-    this.$lifecycle = locator.get(ILifecycle);
+    this.$scheduler = locator.get(IScheduler);
     this.$scope = null!;
 
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.targetAttribute = targetAttribute;
-    this.targetProperty = targetKey;
     this.persistentFlags = LifecycleFlags.none;
   }
 
@@ -141,10 +148,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
-        this.$lifecycle,
+        this.$scheduler,
         flags,
         this.observerLocator,
-        this.target,
+        this.target as IHtmlElement,
         this.targetProperty,
         this.targetAttribute,
       );

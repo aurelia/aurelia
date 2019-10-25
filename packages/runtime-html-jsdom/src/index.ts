@@ -1,7 +1,8 @@
 import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, DOM } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
+import { JSDOMScheduler } from './jsdom-scheduler';
 
 class JSDOMInitializer implements IDOMInitializer {
   public static readonly inject: readonly Key[] = [IContainer];
@@ -11,7 +12,7 @@ class JSDOMInitializer implements IDOMInitializer {
 
   public constructor(container: IContainer) {
     this.container = container;
-    this.jsdom = new JSDOM();
+    this.jsdom = new JSDOM('', { pretendToBeVisual: true });
   }
 
   public static register(container: IContainer): IResolver<IDOMInitializer> {
@@ -65,18 +66,27 @@ class JSDOMInitializer implements IDOMInitializer {
       );
     }
     Registration.instance(IDOM, dom).register(this.container);
+
+    if (DOM.scheduler === void 0) {
+      this.container.register(JSDOMScheduler);
+    } else {
+      Registration.instance(IScheduler, DOM.scheduler).register(this.container);
+    }
+
     return dom;
   }
 }
 
 export const IDOMInitializerRegistration = JSDOMInitializer as IRegistry;
+export const IJSDOMSchedulerRegistration = JSDOMScheduler as IRegistry;
 
 /**
  * Default HTML-specific, jsdom-specific implementations for the following interfaces:
  * - `IDOMInitializer`
  */
 export const DefaultComponents = [
-  IDOMInitializerRegistration
+  IDOMInitializerRegistration,
+  IJSDOMSchedulerRegistration,
 ];
 
 /**
@@ -99,4 +109,9 @@ export const RuntimeHtmlJsdomConfiguration = {
   createContainer(): IContainer {
     return this.register(DI.createContainer());
   }
+};
+
+export {
+  JSDOMInitializer,
+  JSDOMScheduler,
 };

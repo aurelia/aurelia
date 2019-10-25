@@ -211,7 +211,7 @@ describe('replaceable', function () {
 
     component.show = true;
 
-    ctx.lifecycle.processRAFQueue(LF.none);
+    ctx.scheduler.getRenderTaskQueue().flush();
 
     assert.strictEqual(host.textContent, 'def', `host.textContent`);
   });

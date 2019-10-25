@@ -538,7 +538,7 @@ export function createSpy<
     }
 
     // Already wrapped, restore first
-    if (Reflect.has(descriptor.value, 'restore')) {
+    if (descriptor.value !== null && (typeof descriptor.value === 'object' || typeof descriptor.value === 'function') && typeof descriptor.value.restore === 'function') {
       (descriptor.value as ISpy).restore();
       descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;
     }

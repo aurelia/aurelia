@@ -90,6 +90,10 @@ export declare function compareNumber(a: number, b: number): number;
  * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
  */
 export declare function mergeDistinct<T>(arr1: readonly T[] | T[] | null | undefined, arr2: readonly T[] | T[] | null | undefined, slice: boolean): T[];
+/**
+ * Decorator. (lazily) bind the method to the class instance on first call.
+ */
+export declare function bound<T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
 export declare function mergeArrays<T>(...arrays: (readonly T[] | undefined)[]): T[];
 export declare function mergeObjects<T extends object>(...objects: readonly (T | undefined)[]): T;
 export declare function firstDefined<T>(...values: readonly (T | undefined)[]): T;

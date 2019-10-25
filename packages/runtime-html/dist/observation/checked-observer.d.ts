@@ -1,4 +1,4 @@
-import { CollectionKind, IAccessor, ICollectionObserver, ILifecycle, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, Priority, SetterObserver } from '@aurelia/runtime';
+import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, SetterObserver, IScheduler, ITask } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 export interface IInputElement extends HTMLInputElement {
@@ -13,7 +13,7 @@ declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface CheckedObserver extends ISubscriberCollection {
 }
 export declare class CheckedObserver implements IAccessor<unknown> {
-    readonly lifecycle: ILifecycle;
+    readonly scheduler: IScheduler;
     readonly observerLocator: IObserverLocator;
     readonly handler: IEventSubscriber;
     readonly obj: IInputElement;
@@ -21,13 +21,13 @@ export declare class CheckedObserver implements IAccessor<unknown> {
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    priority: Priority;
+    task: ITask | null;
     arrayObserver?: ICollectionObserver<CollectionKind.array>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, observerLocator: IObserverLocator, handler: IEventSubscriber, obj: IInputElement);
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, observerLocator: IObserverLocator, handler: IEventSubscriber, obj: IInputElement);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
+    flushChanges(flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     synchronizeElement(): void;

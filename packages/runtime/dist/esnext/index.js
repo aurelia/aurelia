@@ -25,7 +25,6 @@ export { subscriberCollection, collectionSubscriberCollection, proxySubscriberCo
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, } from './resources/binding-behavior';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 export { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
-export { PriorityBindingBehavior, } from './resources/binding-behaviors/priority';
 export { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 export { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 export { customAttribute, CustomAttribute, CustomAttributeDefinition, templateController, } from './resources/custom-attribute';
@@ -38,18 +37,19 @@ export { containerless, customElement, CustomElement, CustomElementDefinition, I
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter } from './resources/value-converters/sanitize';
 export { ViewValueConverter } from './resources/value-converters/view';
+export { Clock, IClock, IScheduler, Task, TaskAbortError, TaskQueue, TaskQueuePriority, } from './scheduler';
 export { bindable, BindableDefinition, Bindable, } from './templating/bindable';
 export { ChildrenDefinition, Children, children, } from './templating/children';
 // These exports are temporary until we have a proper way to unit test them
 export { Controller, } from './templating/controller';
 export { ViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view';
 export { Aurelia, IDOMInitializer, CompositionRoot, } from './aurelia';
-export { IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, PriorityBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, IObserverLocatorRegistration, ILifecycleRegistration, IRendererRegistration, RuntimeConfiguration } from './configuration';
+export { IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, IObserverLocatorRegistration, ILifecycleRegistration, IRendererRegistration, RuntimeConfiguration } from './configuration';
 export { HooksDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, alias, registerAliases } from './definitions';
 export { DOM, INode, IRenderLocation, IDOM, NodeSequence } from './dom';
 export { BindingMode, BindingStrategy, ExpressionKind, Hooks, LifecycleFlags, State } from './flags';
 export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from './instructions';
-export { ViewModelKind, ILifecycle, IController, IViewFactory, MountStrategy, Priority, } from './lifecycle';
+export { ViewModelKind, ILifecycle, IController, IViewFactory, MountStrategy, } from './lifecycle';
 export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';

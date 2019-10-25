@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../lifecycle", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./proxy-observer", "./set-observer", "./setter-observer"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./proxy-observer", "./set-observer", "./setter-observer", "../scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("../lifecycle");
     const array_observer_1 = require("./array-observer");
@@ -20,6 +21,7 @@
     const proxy_observer_1 = require("./proxy-observer");
     const set_observer_1 = require("./set-observer");
     const setter_observer_1 = require("./setter-observer");
+    const scheduler_1 = require("../scheduler");
     const toStringTag = Object.prototype.toString;
     exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator').noDefault();
     exports.ITargetObserverLocator = kernel_1.DI.createInterface('ITargetObserverLocator').noDefault();
@@ -34,13 +36,14 @@
         return pd;
     }
     /** @internal */
-    class ObserverLocator {
-        constructor(lifecycle, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
-            this.adapters = [];
-            this.dirtyChecker = dirtyChecker;
+    let ObserverLocator = class ObserverLocator {
+        constructor(lifecycle, scheduler, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
             this.lifecycle = lifecycle;
+            this.scheduler = scheduler;
+            this.dirtyChecker = dirtyChecker;
             this.targetObserverLocator = targetObserverLocator;
             this.targetAccessorLocator = targetAccessorLocator;
+            this.adapters = [];
         }
         static register(container) {
             return kernel_1.Registration.singleton(exports.IObserverLocator, this).register(container);
@@ -73,7 +76,7 @@
                 if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
                     return this.getObserver(flags, obj, propertyName);
                 }
-                return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
+                return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, propertyName);
             }
             if (flags & 2 /* proxyStrategy */) {
                 return proxy_observer_1.ProxyObserver.getOrCreate(obj, propertyName);
@@ -120,7 +123,7 @@
             }
             let isNode = false;
             if (this.targetObserverLocator.handles(flags, obj)) {
-                const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
+                const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, propertyName);
                 if (observer != null) {
                     return observer;
                 }
@@ -162,9 +165,15 @@
             }
             return new setter_observer_1.SetterObserver(this.lifecycle, flags, obj, propertyName);
         }
-    }
+    };
+    ObserverLocator = tslib_1.__decorate([
+        tslib_1.__param(0, lifecycle_1.ILifecycle),
+        tslib_1.__param(1, scheduler_1.IScheduler),
+        tslib_1.__param(2, dirty_checker_1.IDirtyChecker),
+        tslib_1.__param(3, exports.ITargetObserverLocator),
+        tslib_1.__param(4, exports.ITargetAccessorLocator)
+    ], ObserverLocator);
     exports.ObserverLocator = ObserverLocator;
-    ObserverLocator.inject = [lifecycle_1.ILifecycle, dirty_checker_1.IDirtyChecker, exports.ITargetObserverLocator, exports.ITargetAccessorLocator];
     function getCollectionObserver(flags, lifecycle, collection) {
         // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
         // when we ask for getCollectionObserver

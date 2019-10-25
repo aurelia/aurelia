@@ -30,6 +30,7 @@ const niDOM = {
 };
 export const DOM = {
     ...niDOM,
+    scheduler: (void 0),
     get isInitialized() {
         return Reflect.get(this, '$initialized') === true;
     },

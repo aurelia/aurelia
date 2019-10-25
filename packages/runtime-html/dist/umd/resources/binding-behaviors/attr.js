@@ -14,7 +14,7 @@
     const data_attribute_accessor_1 = require("../../observation/data-attribute-accessor");
     let AttrBindingBehavior = class AttrBindingBehavior {
         bind(flags, scope, binding) {
-            binding.targetObserver = new data_attribute_accessor_1.DataAttributeAccessor(binding.locator.get(runtime_1.ILifecycle), flags, binding.target, binding.targetProperty);
+            binding.targetObserver = new data_attribute_accessor_1.DataAttributeAccessor(binding.locator.get(runtime_1.IScheduler), flags, binding.target, binding.targetProperty);
         }
         unbind(flags, scope, binding) {
             return;

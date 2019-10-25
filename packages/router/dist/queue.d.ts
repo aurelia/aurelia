@@ -1,11 +1,11 @@
-import { ILifecycle } from '@aurelia/runtime';
+import { IScheduler } from '@aurelia/runtime';
 export interface QueueItem<T> {
     resolve?: ((value: void | PromiseLike<void>) => void);
     reject?: ((value: void | PromiseLike<void>) => void);
     cost?: number;
 }
 export interface IQueueOptions {
-    lifecycle: ILifecycle;
+    scheduler: IScheduler;
     allowedExecutionCostWithinTick: number;
 }
 /**
@@ -19,12 +19,13 @@ export interface IQueueOptions {
  */
 export declare class Queue<T> {
     private readonly callback;
-    isActive: boolean;
+    readonly isActive: boolean;
     readonly pending: QueueItem<T>[];
     processing: QueueItem<T> | null;
     allowedExecutionCostWithinTick: number | null;
     currentExecutionCostInCurrentTick: number;
-    private lifecycle;
+    private scheduler;
+    private task;
     constructor(callback: (item: QueueItem<T>) => void);
     readonly length: number;
     activate(options: IQueueOptions): void;

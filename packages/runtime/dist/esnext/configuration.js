@@ -5,7 +5,6 @@ import { ObserverLocator } from './observation/observer-locator';
 import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, Renderer, SetPropertyRenderer, TemplateControllerRenderer } from './renderer';
 import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
-import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
@@ -16,11 +15,13 @@ import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
+import { Clock } from './scheduler';
 export const IObserverLocatorRegistration = ObserverLocator;
 export const ILifecycleRegistration = Lifecycle;
 export const IRendererRegistration = Renderer;
 export const IStartTaskManagerRegistration = StartTaskManager;
 export const IViewLocatorRegistration = ViewLocator;
+export const IClockRegistration = Clock;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
@@ -28,13 +29,16 @@ export const IViewLocatorRegistration = ViewLocator;
  * - `IRenderer`
  * - `IStartTaskManager`
  * - `IViewLocator`
+ * - `IClockRegistration`
+ * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
     IObserverLocatorRegistration,
     ILifecycleRegistration,
     IRendererRegistration,
     IStartTaskManagerRegistration,
-    IViewLocatorRegistration
+    IViewLocatorRegistration,
+    IClockRegistration,
 ];
 export const FrequentMutationsRegistration = FrequentMutations;
 export const InfrequentMutationsRegistration = InfrequentMutations;
@@ -53,7 +57,6 @@ export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
 export const SignalBindingBehaviorRegistration = SignalBindingBehavior;
 export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
 export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
-export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior;
 /**
  * Default resources:
  * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
@@ -76,7 +79,6 @@ export const DefaultResources = [
     ToViewBindingBehaviorRegistration,
     FromViewBindingBehaviorRegistration,
     SignalBindingBehaviorRegistration,
-    PriorityBindingBehaviorRegistration,
     ThrottleBindingBehaviorRegistration,
     TwoWayBindingBehaviorRegistration
 ];

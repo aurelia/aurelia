@@ -1,29 +1,29 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State, IScheduler } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 export declare class AttributeBinding implements IPartialConnectableBinding {
-    id: number;
-    $state: State;
-    $lifecycle: ILifecycle;
-    $scope: IScope;
-    part?: string;
-    locator: IServiceLocator;
-    mode: BindingMode;
-    observerLocator: IObserverLocator;
     sourceExpression: IsBindingBehavior | IForOfStatement;
     target: Element;
     targetAttribute: string;
+    targetProperty: string;
+    mode: BindingMode;
+    observerLocator: IObserverLocator;
+    locator: IServiceLocator;
+    id: number;
+    $state: State;
+    $scheduler: IScheduler;
+    $scope: IScope;
+    part?: string;
     /**
      * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
      */
-    targetProperty: string;
     targetObserver: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
-    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: Element, targetAttribute: string, targetKey: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: Element, targetAttribute: string, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;

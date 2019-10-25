@@ -1,9 +1,9 @@
 import { __decorate } from "tslib";
-import { ILifecycle, bindingBehavior } from '@aurelia/runtime';
+import { bindingBehavior, IScheduler } from '@aurelia/runtime';
 import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
 let AttrBindingBehavior = class AttrBindingBehavior {
     bind(flags, scope, binding) {
-        binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), flags, binding.target, binding.targetProperty);
+        binding.targetObserver = new DataAttributeAccessor(binding.locator.get(IScheduler), flags, binding.target, binding.targetProperty);
     }
     unbind(flags, scope, binding) {
         return;

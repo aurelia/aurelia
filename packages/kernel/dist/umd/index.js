@@ -58,6 +58,7 @@
     exports.mergeDistinct = functions_1.mergeDistinct;
     exports.isNumberOrBigInt = functions_1.isNumberOrBigInt;
     exports.isStringOrDate = functions_1.isStringOrDate;
+    exports.bound = functions_1.bound;
     exports.mergeArrays = functions_1.mergeArrays;
     exports.mergeObjects = functions_1.mergeObjects;
     exports.firstDefined = functions_1.firstDefined;

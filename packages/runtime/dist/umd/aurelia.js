@@ -113,12 +113,6 @@
                 ? this.container.get(config.component)
                 : config.component;
             this.controller = controller_1.Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);
-            if (config.enableTimeSlicing === true) {
-                this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
-            }
-            else {
-                this.lifecycle.disableTimeslicing();
-            }
         }
     }
     exports.CompositionRoot = CompositionRoot;

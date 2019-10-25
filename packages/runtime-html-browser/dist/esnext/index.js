@@ -1,6 +1,7 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, IScheduler, DOM } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
+import { BrowserScheduler } from './browser-scheduler';
 class BrowserDOMInitializer {
     constructor(container) {
         this.container = container;
@@ -28,17 +29,25 @@ class BrowserDOMInitializer {
             dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
         }
         Registration.instance(IDOM, dom).register(this.container);
+        if (DOM.scheduler === void 0) {
+            this.container.register(BrowserScheduler);
+        }
+        else {
+            Registration.instance(IScheduler, DOM.scheduler).register(this.container);
+        }
         return dom;
     }
 }
 BrowserDOMInitializer.inject = [IContainer];
 export const IDOMInitializerRegistration = BrowserDOMInitializer;
+export const IBrowserSchedulerRegistration = BrowserScheduler;
 /**
  * Default HTML-specific, browser-specific implementations for the following interfaces:
  * - `IDOMInitializer`
  */
 export const DefaultComponents = [
-    IDOMInitializerRegistration
+    IDOMInitializerRegistration,
+    IBrowserSchedulerRegistration,
 ];
 /**
  * A DI configuration object containing html-specific, browser-specific registrations:
@@ -61,4 +70,5 @@ export const RuntimeHtmlBrowserConfiguration = {
         return this.register(DI.createContainer());
     }
 };
+export { BrowserDOMInitializer, BrowserScheduler, };
 //# sourceMappingURL=index.js.map

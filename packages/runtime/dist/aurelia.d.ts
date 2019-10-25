@@ -5,8 +5,6 @@ import { BindingStrategy } from './flags';
 import { IController, IHydratedViewModel, ILifecycle } from './lifecycle';
 import { ILifecycleTask } from './lifecycle-task';
 export interface ISinglePageApp<THost extends INode = INode> {
-    enableTimeSlicing?: boolean;
-    adaptiveTimeSlicing?: boolean;
     strategy?: BindingStrategy;
     dom?: IDOM;
     host: THost;

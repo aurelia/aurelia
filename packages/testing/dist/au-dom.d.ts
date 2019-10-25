@@ -1,5 +1,5 @@
 import { IContainer, IResolver, Key } from '@aurelia/kernel';
-import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IController, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderContext, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, ITemplate, ITemplateFactory, LetElementInstruction, LifecycleFlags, TargetedInstruction, CustomElementDefinition } from '@aurelia/runtime';
+import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IController, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderContext, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, ITemplate, ITemplateFactory, LetElementInstruction, LifecycleFlags, TargetedInstruction, CustomElementDefinition, IScheduler } from '@aurelia/runtime';
 export declare class AuNode implements INode {
     readonly nodeName: string;
     readonly isWrapper: boolean;
@@ -108,9 +108,9 @@ export declare class AuTemplateFactory implements ITemplateFactory<AuNode> {
     create(parentRenderContext: IRenderContext<AuNode>, definition: CustomElementDefinition): ITemplate<AuNode>;
 }
 export declare class AuObserverLocator implements ITargetAccessorLocator, ITargetObserverLocator {
-    getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
+    getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
     overridesAccessor(obj: unknown, propertyName: string): boolean;
-    getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
+    getAccessor(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
     handles(obj: unknown): boolean;
 }
 export declare class AuTextInstruction implements ITargetedInstruction {

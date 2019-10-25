@@ -4,17 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./queue"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "./queue"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const queue_1 = require("./queue");
-    class BrowserNavigator {
-        constructor(lifecycle, dom) {
-            this.lifecycle = lifecycle;
+    let BrowserNavigator = class BrowserNavigator {
+        constructor(scheduler, dom) {
+            this.scheduler = scheduler;
             this.allowedExecutionCostWithinTick = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
             this.isActive = false;
             this.options = {
@@ -58,7 +59,7 @@
             if (options.useUrlFragmentHash != void 0) {
                 this.options.useUrlFragmentHash = options.useUrlFragmentHash;
             }
-            this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+            this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
             this.window.addEventListener('popstate', this.handlePopstate);
         }
         deactivate() {
@@ -163,8 +164,11 @@
             promises.push(this.pendingCalls.enqueue(calls, costs)[0]);
             return promises[0];
         }
-    }
+    };
+    BrowserNavigator = tslib_1.__decorate([
+        tslib_1.__param(0, runtime_1.IScheduler),
+        tslib_1.__param(1, runtime_1.IDOM)
+    ], BrowserNavigator);
     exports.BrowserNavigator = BrowserNavigator;
-    BrowserNavigator.inject = [runtime_1.ILifecycle, runtime_1.IDOM];
 });
 //# sourceMappingURL=browser-navigator.js.map

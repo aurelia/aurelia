@@ -1,13 +1,11 @@
-import { Key } from '@aurelia/kernel';
-import { ILifecycle } from '@aurelia/runtime';
+import { IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
     useUrlFragmentHash?: boolean;
 }
 export declare class BrowserNavigator implements INavigatorStore, INavigatorViewer {
-    readonly lifecycle: ILifecycle;
-    static readonly inject: readonly Key[];
+    readonly scheduler: IScheduler;
     window: Window;
     history: History;
     location: Location;
@@ -16,7 +14,7 @@ export declare class BrowserNavigator implements INavigatorStore, INavigatorView
     private isActive;
     private options;
     private forwardedState;
-    constructor(lifecycle: ILifecycle, dom: HTMLDOM);
+    constructor(scheduler: IScheduler, dom: HTMLDOM);
     activate(options: IBrowserNavigatorOptions): void;
     deactivate(): void;
     readonly length: number;

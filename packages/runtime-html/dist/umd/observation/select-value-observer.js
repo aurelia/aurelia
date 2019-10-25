@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/runtime", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
+    const kernel_1 = require("@aurelia/kernel");
     const childObserverOptions = {
         childList: true,
         subtree: true,
@@ -20,19 +21,18 @@
         return a === b;
     }
     let SelectValueObserver = class SelectValueObserver {
-        constructor(lifecycle, flags, observerLocator, dom, handler, obj) {
-            this.lifecycle = lifecycle;
+        constructor(scheduler, flags, observerLocator, dom, handler, obj) {
+            this.scheduler = scheduler;
             this.observerLocator = observerLocator;
             this.dom = dom;
-            this.obj = obj;
             this.handler = handler;
+            this.obj = obj;
             this.currentValue = void 0;
             this.oldValue = void 0;
             this.hasChanges = false;
-            this.priority = 12288 /* propagate */;
+            this.task = null;
             this.arrayObserver = void 0;
             this.nodeObserver = void 0;
-            this.handleNodeChange = this.handleNodeChange.bind(this);
             this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
         }
         getValue() {
@@ -42,13 +42,16 @@
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
             if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
-                this.flushRAF(flags);
+                this.flushChanges(flags);
             }
-            else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+            else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+                this.task = this.scheduler.queueRenderTask(() => {
+                    this.flushChanges(flags);
+                    this.task = null;
+                });
             }
         }
-        flushRAF(flags) {
+        flushChanges(flags) {
             if (this.hasChanges) {
                 this.hasChanges = false;
                 const { currentValue } = this;
@@ -76,8 +79,11 @@
             else {
                 this.hasChanges = true;
             }
-            if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+            if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+                this.task = this.scheduler.queueRenderTask(() => {
+                    this.flushChanges(flags);
+                    this.task = null;
+                });
             }
             this.callSubscribers(this.currentValue, this.oldValue, flags);
         }
@@ -88,8 +94,11 @@
             else {
                 this.hasChanges = true;
             }
-            if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+            if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+                this.task = this.scheduler.queueRenderTask(() => {
+                    this.flushChanges(flags);
+                    this.task = null;
+                });
             }
             this.callSubscribers(newValue, previousValue, flags);
         }
@@ -217,14 +226,18 @@
         bind(flags) {
             this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange, childObserverOptions);
             if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
-                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+                if (this.task !== null) {
+                    this.task.cancel();
+                }
+                this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
             }
         }
         unbind(flags) {
             this.nodeObserver.disconnect();
             this.nodeObserver = null;
-            if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
-                this.lifecycle.dequeueRAF(this.flushRAF, this);
+            if (this.task !== null) {
+                this.task.cancel();
+                this.task = null;
             }
             if (this.arrayObserver) {
                 this.arrayObserver.unsubscribeFromCollection(this);
@@ -251,6 +264,9 @@
             }
         }
     };
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], SelectValueObserver.prototype, "handleNodeChange", null);
     SelectValueObserver = tslib_1.__decorate([
         runtime_1.subscriberCollection()
     ], SelectValueObserver);

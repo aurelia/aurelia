@@ -1,4 +1,4 @@
-import { CollectionKind, IAccessor, ICollectionObserver, IDOM, ILifecycle, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, Priority } from '@aurelia/runtime';
+import { CollectionKind, IAccessor, ICollectionObserver, IDOM, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface ISelectElement extends HTMLSelectElement {
@@ -11,7 +11,7 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends ISubscriberCollection {
 }
 export declare class SelectValueObserver implements IAccessor<unknown> {
-    readonly lifecycle: ILifecycle;
+    readonly scheduler: IScheduler;
     readonly observerLocator: IObserverLocator;
     readonly dom: IDOM;
     readonly handler: IEventSubscriber;
@@ -20,13 +20,13 @@ export declare class SelectValueObserver implements IAccessor<unknown> {
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    priority: Priority;
+    task: ITask | null;
     arrayObserver?: ICollectionObserver<CollectionKind.array>;
     nodeObserver?: MutationObserver;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, observerLocator: IObserverLocator, dom: IDOM, handler: IEventSubscriber, obj: ISelectElement);
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, observerLocator: IObserverLocator, dom: IDOM, handler: IEventSubscriber, obj: ISelectElement);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
+    flushChanges(flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     notify(flags: LifecycleFlags): void;

@@ -13,7 +13,6 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const element_attribute_observer_1 = require("../observation/element-attribute-observer");
-    const slice = Array.prototype.slice;
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
     const { oneTime, toView, fromView } = runtime_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
@@ -28,18 +27,18 @@
         // such as style -> collection of style rules
         //
         // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-        targetAttribute, targetKey, mode, observerLocator, locator) {
-            runtime_1.connectable.assignIdTo(this);
-            this.$state = 0 /* none */;
-            this.$lifecycle = locator.get(runtime_1.ILifecycle);
-            this.$scope = null;
-            this.locator = locator;
-            this.mode = mode;
-            this.observerLocator = observerLocator;
+        targetAttribute, targetProperty, mode, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetAttribute = targetAttribute;
-            this.targetProperty = targetKey;
+            this.targetProperty = targetProperty;
+            this.mode = mode;
+            this.observerLocator = observerLocator;
+            this.locator = locator;
+            runtime_1.connectable.assignIdTo(this);
+            this.$state = 0 /* none */;
+            this.$scheduler = locator.get(runtime_1.IScheduler);
+            this.$scope = null;
             this.persistentFlags = 0 /* none */;
         }
         updateTarget(value, flags) {
@@ -103,7 +102,7 @@
             }
             let targetObserver = this.targetObserver;
             if (!targetObserver) {
-                targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$lifecycle, flags, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
+                targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$scheduler, flags, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
             }
             if (targetObserver.bind) {
                 targetObserver.bind(flags);

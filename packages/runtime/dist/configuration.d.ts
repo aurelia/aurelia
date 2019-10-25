@@ -4,6 +4,7 @@ export declare const ILifecycleRegistration: IRegistry;
 export declare const IRendererRegistration: IRegistry;
 export declare const IStartTaskManagerRegistration: IRegistry;
 export declare const IViewLocatorRegistration: IRegistry;
+export declare const IClockRegistration: IRegistry;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
@@ -11,6 +12,8 @@ export declare const IViewLocatorRegistration: IRegistry;
  * - `IRenderer`
  * - `IStartTaskManager`
  * - `IViewLocator`
+ * - `IClockRegistration`
+ * - `ISchedulerRegistration`
  */
 export declare const DefaultComponents: IRegistry[];
 export declare const FrequentMutationsRegistration: IRegistry;
@@ -30,7 +33,6 @@ export declare const FromViewBindingBehaviorRegistration: IRegistry;
 export declare const SignalBindingBehaviorRegistration: IRegistry;
 export declare const ThrottleBindingBehaviorRegistration: IRegistry;
 export declare const TwoWayBindingBehaviorRegistration: IRegistry;
-export declare const PriorityBindingBehaviorRegistration: IRegistry;
 /**
  * Default resources:
  * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)

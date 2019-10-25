@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "./subscriber-collection"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./subscriber-collection", "../scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    const lifecycle_1 = require("../lifecycle");
     const subscriber_collection_1 = require("./subscriber-collection");
+    const scheduler_1 = require("../scheduler");
     exports.IDirtyChecker = kernel_1.DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
     exports.DirtyCheckSettings = {
         /**
@@ -54,11 +54,12 @@
         }
     };
     /** @internal */
-    class DirtyChecker {
-        constructor(lifecycle) {
+    let DirtyChecker = class DirtyChecker {
+        constructor(scheduler) {
+            this.scheduler = scheduler;
+            this.task = null;
             this.elapsedFrames = 0;
             this.tracked = [];
-            this.lifecycle = lifecycle;
         }
         createProperty(obj, propertyName) {
             if (exports.DirtyCheckSettings.throw) {
@@ -72,13 +73,14 @@
         addProperty(property) {
             this.tracked.push(property);
             if (this.tracked.length === 1) {
-                this.lifecycle.enqueueRAF(this.check, this, 4096 /* low */);
+                this.task = this.scheduler.queueIdleTask(() => this.check(), { persistent: true });
             }
         }
         removeProperty(property) {
             this.tracked.splice(this.tracked.indexOf(property), 1);
             if (this.tracked.length === 0) {
-                this.lifecycle.dequeueRAF(this.check, this);
+                this.task.cancel();
+                this.task = null;
             }
         }
         check(delta) {
@@ -100,10 +102,11 @@
                 }
             }
         }
-    }
+    };
+    DirtyChecker = tslib_1.__decorate([
+        tslib_1.__param(0, scheduler_1.IScheduler)
+    ], DirtyChecker);
     exports.DirtyChecker = DirtyChecker;
-    DirtyChecker.inject = [lifecycle_1.ILifecycle];
-    const slice = Array.prototype.slice;
     let DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
             this.obj = obj;

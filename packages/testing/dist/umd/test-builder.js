@@ -416,10 +416,12 @@
                 return false;
             }
         };
+        const dummyScheduler = {};
         kernel_1.Registration.instance(runtime_1.IDirtyChecker, null).register(container);
         kernel_1.Registration.instance(runtime_1.ITargetObserverLocator, dummyLocator).register(container);
         kernel_1.Registration.instance(runtime_1.ITargetAccessorLocator, dummyLocator).register(container);
         container.register(runtime_1.IObserverLocatorRegistration);
+        kernel_1.Registration.instance(runtime_1.IScheduler, dummyScheduler).register(container);
         return container.get(runtime_1.IObserverLocator);
     }
     exports.createObserverLocator = createObserverLocator;

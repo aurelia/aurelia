@@ -1,3 +1,5 @@
+import { __decorate } from "tslib";
+import { bound } from '@aurelia/kernel';
 /**
  * A first-in-first-out queue that only processes the next queued item
  * when the current one has been resolved or rejected. Sends queued items
@@ -10,12 +12,15 @@
 export class Queue {
     constructor(callback) {
         this.callback = callback;
-        this.isActive = false;
         this.pending = [];
         this.processing = null;
         this.allowedExecutionCostWithinTick = null;
         this.currentExecutionCostInCurrentTick = 0;
-        this.lifecycle = null;
+        this.scheduler = null;
+        this.task = null;
+    }
+    get isActive() {
+        return this.task !== null;
     }
     get length() {
         return this.pending.length;
@@ -24,19 +29,18 @@ export class Queue {
         if (this.isActive) {
             throw new Error('Queue has already been activated');
         }
-        this.isActive = true;
-        this.lifecycle = options.lifecycle;
+        this.scheduler = options.scheduler;
         this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-        this.lifecycle.enqueueRAF(this.dequeue, this, 32768 /* preempt */);
+        this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
     }
     deactivate() {
         if (!this.isActive) {
             throw new Error('Queue has not been activated');
         }
-        this.lifecycle.dequeueRAF(this.dequeue, this);
+        this.task.cancel();
+        this.task = null;
         this.allowedExecutionCostWithinTick = null;
         this.clear();
-        this.isActive = false;
     }
     enqueue(itemOrItems, costOrCosts) {
         const list = Array.isArray(itemOrItems);
@@ -88,4 +92,7 @@ export class Queue {
         this.pending.splice(0, this.pending.length);
     }
 }
+__decorate([
+    bound
+], Queue.prototype, "dequeue", null);
 //# sourceMappingURL=queue.js.map

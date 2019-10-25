@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime", "./html-test-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     const jit_1 = require("@aurelia/jit");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const html_test_context_1 = require("./html-test-context");
     const slice = Array.prototype.slice;
     class AuNode {
         constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
@@ -487,13 +488,13 @@
     exports.AuTemplateFactory = AuTemplateFactory;
     AuTemplateFactory.inject = [runtime_1.IDOM];
     class AuObserverLocator {
-        getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
+        getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
             return null;
         }
         overridesAccessor(obj, propertyName) {
             return false;
         }
-        getAccessor(flags, lifecycle, obj, propertyName) {
+        getAccessor(flags, scheduler, lifecycle, obj, propertyName) {
             return null;
         }
         handles(obj) {
@@ -538,8 +539,10 @@
             container.register(runtime_1.RuntimeConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITemplateFactory, AuTemplateFactory), kernel_1.Registration.instance(runtime_1.ITemplateCompiler, {}));
         },
         createContainer() {
+            const scheduler = html_test_context_1.TestContext.createHTMLTestContext().scheduler;
             const container = kernel_1.DI.createContainer();
             container.register(exports.AuDOMConfiguration);
+            kernel_1.Registration.instance(runtime_1.IScheduler, scheduler).register(container);
             return container;
         }
     };

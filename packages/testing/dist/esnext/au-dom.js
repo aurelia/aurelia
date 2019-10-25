@@ -1,7 +1,8 @@
 import { __decorate } from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration } from '@aurelia/kernel';
-import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler } from '@aurelia/runtime';
+import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
+import { TestContext } from './html-test-context';
 const slice = Array.prototype.slice;
 export class AuNode {
     constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
@@ -468,13 +469,13 @@ export class AuTemplateFactory {
 }
 AuTemplateFactory.inject = [IDOM];
 export class AuObserverLocator {
-    getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
+    getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
         return null;
     }
     overridesAccessor(obj, propertyName) {
         return false;
     }
-    getAccessor(flags, lifecycle, obj, propertyName) {
+    getAccessor(flags, scheduler, lifecycle, obj, propertyName) {
         return null;
     }
     handles(obj) {
@@ -517,8 +518,10 @@ export const AuDOMConfiguration = {
         container.register(RuntimeConfiguration, AuTextRenderer, Registration.singleton(IDOM, AuDOM), Registration.singleton(IDOMInitializer, AuDOMInitializer), Registration.singleton(IProjectorLocator, AuProjectorLocator), Registration.singleton(ITargetAccessorLocator, AuObserverLocator), Registration.singleton(ITargetObserverLocator, AuObserverLocator), Registration.singleton(ITemplateFactory, AuTemplateFactory), Registration.instance(ITemplateCompiler, {}));
     },
     createContainer() {
+        const scheduler = TestContext.createHTMLTestContext().scheduler;
         const container = DI.createContainer();
         container.register(AuDOMConfiguration);
+        Registration.instance(IScheduler, scheduler).register(container);
         return container;
     }
 };

@@ -1,5 +1,5 @@
 import { DI, Registration, } from '@aurelia/kernel';
-import { IDirtyChecker, ILifecycleRegistration, IObserverLocator, IObserverLocatorRegistration, ITargetAccessorLocator, ITargetObserverLocator, OverrideContext, Scope, } from '@aurelia/runtime';
+import { IDirtyChecker, ILifecycleRegistration, IObserverLocator, IObserverLocatorRegistration, ITargetAccessorLocator, ITargetObserverLocator, OverrideContext, Scope, IScheduler, } from '@aurelia/runtime';
 // import {
 //   HTMLTargetedInstruction,
 //   NodeSequenceFactory,
@@ -405,10 +405,12 @@ export function createObserverLocator(containerOrLifecycle) {
             return false;
         }
     };
+    const dummyScheduler = {};
     Registration.instance(IDirtyChecker, null).register(container);
     Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
     Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
     container.register(IObserverLocatorRegistration);
+    Registration.instance(IScheduler, dummyScheduler).register(container);
     return container.get(IObserverLocator);
 }
 export function createScopeForTest(bindingContext = {}, parentBindingContext) {

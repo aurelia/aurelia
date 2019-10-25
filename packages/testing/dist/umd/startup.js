@@ -12,7 +12,7 @@
     const runtime_1 = require("@aurelia/runtime");
     const html_test_context_1 = require("./html-test-context");
     function setup(template, $class, registrations = [], autoStart = true, ctx = html_test_context_1.TestContext.createHTMLTestContext()) {
-        const { container, lifecycle, observerLocator } = ctx;
+        const { container, lifecycle, scheduler, observerLocator } = ctx;
         container.register(...registrations);
         const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
         const host = root.appendChild(ctx.createElement('app'));
@@ -31,6 +31,7 @@
             host: ctx.doc.firstElementChild,
             container,
             lifecycle,
+            scheduler,
             testHost: root,
             appHost: host,
             au,

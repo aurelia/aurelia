@@ -14,9 +14,10 @@
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     class HTMLTestContext {
-        constructor(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
+        constructor(config, wnd, Scheduler, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
             this.config = config;
             this.wnd = wnd;
+            this.Scheduler = Scheduler;
             this.UIEvent = UIEventType;
             this.Event = EventType;
             this.CustomEvent = CustomEventType;
@@ -30,6 +31,7 @@
             this.doc = wnd.document;
             this.dom = new runtime_html_1.HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
             this._container = void 0;
+            this._scheduler = void 0;
             this._templateCompiler = void 0;
             this._observerLocator = void 0;
             this._lifecycle = void 0;
@@ -43,12 +45,19 @@
                 this._container = kernel_1.DI.createContainer(this.config);
                 kernel_1.Registration.instance(runtime_1.IDOM, this.dom).register(this._container);
                 kernel_1.Registration.instance(HTMLTestContext, this).register(this._container);
+                this._container.register(this.Scheduler);
                 this._container.register(debug_1.DebugConfiguration);
             }
             return this._container;
         }
+        get scheduler() {
+            if (this._scheduler === void 0) {
+                this._scheduler = this.container.register(this.Scheduler).get(runtime_1.IScheduler);
+            }
+            return this._scheduler;
+        }
         get templateCompiler() {
-            if (this._templateCompiler == void 0) {
+            if (this._templateCompiler === void 0) {
                 this._templateCompiler = this.container.get(runtime_1.ITemplateCompiler);
             }
             return this._templateCompiler;
@@ -89,8 +98,8 @@
             }
             return this._domParser;
         }
-        static create(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
-            return new HTMLTestContext(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType);
+        static create(config, wnd, Scheduler, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
+            return new HTMLTestContext(config, wnd, Scheduler, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType);
         }
         createElementFromMarkup(markup) {
             this.domParser.innerHTML = markup;

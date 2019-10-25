@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, ILifecycle, ISubscriber, ISubscriberCollection, LifecycleFlags, Priority } from '@aurelia/runtime';
+import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 export interface ValueAttributeObserver extends ISubscriberCollection {
 }
@@ -7,7 +7,7 @@ export interface ValueAttributeObserver extends ISubscriberCollection {
  * Observer for non-radio, non-checkbox input.
  */
 export declare class ValueAttributeObserver implements IAccessor<unknown> {
-    readonly lifecycle: ILifecycle;
+    readonly scheduler: IScheduler;
     readonly handler: IEventSubscriber;
     readonly obj: Node & IIndexable;
     readonly propertyKey: string;
@@ -15,11 +15,11 @@ export declare class ValueAttributeObserver implements IAccessor<unknown> {
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    priority: Priority;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, handler: IEventSubscriber, obj: Node, propertyKey: string);
+    task: ITask | null;
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, handler: IEventSubscriber, obj: Node & IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
+    flushChanges(flags: LifecycleFlags): void;
     handleEvent(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;

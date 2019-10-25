@@ -1,7 +1,7 @@
-import { __decorate } from "tslib";
+import { __decorate, __param } from "tslib";
 import { DI, Reporter } from '@aurelia/kernel';
-import { ILifecycle } from '../lifecycle';
 import { subscriberCollection } from './subscriber-collection';
+import { IScheduler } from '../scheduler';
 export const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 export const DirtyCheckSettings = {
     /**
@@ -43,11 +43,12 @@ export const DirtyCheckSettings = {
     }
 };
 /** @internal */
-export class DirtyChecker {
-    constructor(lifecycle) {
+let DirtyChecker = class DirtyChecker {
+    constructor(scheduler) {
+        this.scheduler = scheduler;
+        this.task = null;
         this.elapsedFrames = 0;
         this.tracked = [];
-        this.lifecycle = lifecycle;
     }
     createProperty(obj, propertyName) {
         if (DirtyCheckSettings.throw) {
@@ -61,13 +62,14 @@ export class DirtyChecker {
     addProperty(property) {
         this.tracked.push(property);
         if (this.tracked.length === 1) {
-            this.lifecycle.enqueueRAF(this.check, this, 4096 /* low */);
+            this.task = this.scheduler.queueIdleTask(() => this.check(), { persistent: true });
         }
     }
     removeProperty(property) {
         this.tracked.splice(this.tracked.indexOf(property), 1);
         if (this.tracked.length === 0) {
-            this.lifecycle.dequeueRAF(this.check, this);
+            this.task.cancel();
+            this.task = null;
         }
     }
     check(delta) {
@@ -89,9 +91,11 @@ export class DirtyChecker {
             }
         }
     }
-}
-DirtyChecker.inject = [ILifecycle];
-const slice = Array.prototype.slice;
+};
+DirtyChecker = __decorate([
+    __param(0, IScheduler)
+], DirtyChecker);
+export { DirtyChecker };
 let DirtyCheckProperty = class DirtyCheckProperty {
     constructor(dirtyChecker, obj, propertyKey) {
         this.obj = obj;

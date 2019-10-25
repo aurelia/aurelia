@@ -1,4 +1,4 @@
-import { IAccessor, ILifecycle, LifecycleFlags, Priority } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
 /**
  * Attribute accessor for HTML elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
@@ -7,18 +7,18 @@ import { IAccessor, ILifecycle, LifecycleFlags, Priority } from '@aurelia/runtim
  * @see ElementPropertyAccessor
  */
 export declare class DataAttributeAccessor implements IAccessor<string | null> {
-    readonly lifecycle: ILifecycle;
+    readonly scheduler: IScheduler;
     readonly obj: HTMLElement;
     readonly propertyKey: string;
     currentValue: string | null;
     oldValue: string | null;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    priority: Priority;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: HTMLElement, propertyKey: string);
+    task: ITask | null;
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, obj: HTMLElement, propertyKey: string);
     getValue(): string | null;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
+    flushChanges(flags: LifecycleFlags): void;
     bind(flags: LifecycleFlags): void;
     unbind(flags: LifecycleFlags): void;
 }

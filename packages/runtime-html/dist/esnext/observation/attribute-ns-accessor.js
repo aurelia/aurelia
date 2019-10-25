@@ -3,15 +3,15 @@
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
  */
 export class AttributeNSAccessor {
-    constructor(lifecycle, flags, obj, propertyKey, namespace) {
-        this.lifecycle = lifecycle;
+    constructor(scheduler, flags, obj, propertyKey, namespace) {
+        this.scheduler = scheduler;
         this.obj = obj;
         this.propertyKey = propertyKey;
+        this.namespace = namespace;
         this.currentValue = null;
         this.oldValue = null;
-        this.namespace = namespace;
         this.hasChanges = false;
-        this.priority = 12288 /* propagate */;
+        this.task = null;
         this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
     }
     getValue() {
@@ -21,13 +21,16 @@ export class AttributeNSAccessor {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
         if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
-            this.flushRAF(flags);
+            this.flushChanges(flags);
         }
-        else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+        else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+            this.task = this.scheduler.queueRenderTask(() => {
+                this.flushChanges(flags);
+                this.task = null;
+            });
         }
     }
-    flushRAF(flags) {
+    flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
             const { currentValue } = this;
@@ -42,13 +45,17 @@ export class AttributeNSAccessor {
     }
     bind(flags) {
         if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            if (this.task !== null) {
+                this.task.cancel();
+            }
+            this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
         }
         this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
     }
     unbind(flags) {
-        if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.dequeueRAF(this.flushRAF, this);
+        if (this.task !== null) {
+            this.task.cancel();
+            this.task = null;
         }
     }
 }

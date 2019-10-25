@@ -1,5 +1,6 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
 import { IController } from './lifecycle';
+import { IScheduler } from './scheduler';
 export interface INode extends Object {
     $au?: Record<string, IController<this>>;
 }
@@ -67,6 +68,7 @@ export interface IDOM<T extends INode = INode> {
 }
 export declare const DOM: IDOM & {
     readonly isInitialized: boolean;
+    readonly scheduler: IScheduler;
     initialize(dom: IDOM): void;
     destroy(): void;
 };

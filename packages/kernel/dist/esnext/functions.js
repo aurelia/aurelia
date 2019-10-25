@@ -287,12 +287,34 @@ export function mergeDistinct(arr1, arr2, slice) {
     let item;
     while (len2-- > 0) {
         item = arr2[len2];
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (lookup[item] === void 0) {
             arr3.push(item);
             lookup[item] = true;
         }
     }
     return arr3;
+}
+/**
+ * Decorator. (lazily) bind the method to the class instance on first call.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function bound(target, key, descriptor) {
+    return {
+        configurable: true,
+        enumerable: descriptor.enumerable,
+        get() {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            const boundFn = descriptor.value.bind(this);
+            Reflect.defineProperty(this, key, {
+                value: boundFn,
+                writable: true,
+                configurable: true,
+                enumerable: descriptor.enumerable,
+            });
+            return boundFn;
+        },
+    };
 }
 export function mergeArrays(...arrays) {
     const result = [];

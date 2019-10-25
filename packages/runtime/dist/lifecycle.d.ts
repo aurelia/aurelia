@@ -115,11 +115,6 @@ export interface IHydratedViewModel<T extends INode = INode> extends IViewModel<
     readonly $controller: IController<T, this>;
 }
 export interface ILifecycle {
-    readonly FPS: number;
-    readonly nextFrame: Promise<number>;
-    minFPS: number;
-    maxFPS: number;
-    readonly isFlushingRAF: boolean;
     readonly batch: IAutoProcessingQueue<IBatchable>;
     readonly mount: IProcessingQueue<IController>;
     readonly unmount: IProcessingQueue<IController>;
@@ -127,42 +122,6 @@ export interface ILifecycle {
     readonly unbound: IAutoProcessingQueue<IController>;
     readonly attached: IAutoProcessingQueue<IController>;
     readonly detached: IAutoProcessingQueue<IController>;
-    enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
-    enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
-    dequeueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown): void;
-    dequeueRAF(cb: () => void, context?: unknown): void;
-    processRAFQueue(flags: LifecycleFlags, timestamp?: number): void;
-    startTicking(): void;
-    stopTicking(): void;
-    enableTimeslicing(adaptive?: boolean): void;
-    disableTimeslicing(): void;
-}
-declare class LinkedCallback {
-    cb?: (flags: LifecycleFlags) => void;
-    context?: unknown;
-    priority: Priority;
-    once: boolean;
-    next?: LinkedCallback;
-    prev?: LinkedCallback;
-    unlinked: boolean;
-    readonly first: LinkedCallback;
-    readonly last: LinkedCallback;
-    constructor(cb?: (() => void) | ((flags: LifecycleFlags) => void), context?: unknown, priority?: Priority, once?: boolean);
-    equals(fn: (() => void) | ((flags: LifecycleFlags) => void), context?: unknown): boolean;
-    call(flags: LifecycleFlags): LinkedCallback | undefined;
-    rotate(): void;
-    link(prev: LinkedCallback): void;
-    unlink(removeNext?: boolean): LinkedCallback | undefined;
-}
-export declare const enum Priority {
-    preempt = 32768,
-    high = 28672,
-    bind = 24576,
-    attach = 20480,
-    normal = 16384,
-    propagate = 12288,
-    connect = 8192,
-    low = 4096
 }
 export declare const ILifecycle: import("@aurelia/kernel").InterfaceSymbol<ILifecycle>;
 export interface IProcessingQueue<T> {
@@ -258,13 +217,7 @@ export declare class BatchQueue implements IAutoProcessingQueue<IBatchable> {
     remove(requestor: IBatchable): void;
     process(flags: LifecycleFlags): void;
 }
-export declare class Lifecycle {
-    rafHead: LinkedCallback;
-    rafTail: LinkedCallback;
-    isFlushingRAF: boolean;
-    rafRequestId: number;
-    rafStartTime: number;
-    isTicking: boolean;
+export declare class Lifecycle implements ILifecycle {
     readonly batch: IAutoProcessingQueue<IBatchable>;
     readonly mount: IProcessingQueue<IController>;
     readonly unmount: IProcessingQueue<IController>;
@@ -272,31 +225,7 @@ export declare class Lifecycle {
     readonly unbound: IAutoProcessingQueue<IController>;
     readonly attached: IAutoProcessingQueue<IController>;
     readonly detached: IAutoProcessingQueue<IController>;
-    minFrameDuration: number;
-    maxFrameDuration: number;
-    prevFrameDuration: number;
-    readonly FPS: number;
-    minFPS: number;
-    maxFPS: number;
-    currentTick: number;
-    nextFrame: Promise<number>;
-    resolveNextFrame: (timestamp: number) => void;
-    timeslicingEnabled: boolean;
-    adaptiveTimeslicing: boolean;
-    frameDurationFactor: number;
-    pendingChanges: number;
-    private readonly tick;
     constructor();
     static register(container: IContainer): IResolver<ILifecycle>;
-    startTicking(): void;
-    stopTicking(): void;
-    enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
-    enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
-    dequeueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown): void;
-    dequeueRAF(cb: () => void, context?: unknown): void;
-    processRAFQueue(flags: LifecycleFlags, timestamp?: number): void;
-    enableTimeslicing(adaptive?: boolean): void;
-    disableTimeslicing(): void;
 }
-export {};
 //# sourceMappingURL=lifecycle.d.ts.map

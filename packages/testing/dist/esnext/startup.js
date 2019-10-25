@@ -1,7 +1,7 @@
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 export function setup(template, $class, registrations = [], autoStart = true, ctx = TestContext.createHTMLTestContext()) {
-    const { container, lifecycle, observerLocator } = ctx;
+    const { container, lifecycle, scheduler, observerLocator } = ctx;
     container.register(...registrations);
     const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
     const host = root.appendChild(ctx.createElement('app'));
@@ -20,6 +20,7 @@ export function setup(template, $class, registrations = [], autoStart = true, ct
         host: ctx.doc.firstElementChild,
         container,
         lifecycle,
+        scheduler,
         testHost: root,
         appHost: host,
         au,

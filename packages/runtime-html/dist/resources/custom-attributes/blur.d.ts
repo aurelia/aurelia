@@ -1,13 +1,13 @@
-import { ILifecycle } from '@aurelia/runtime';
+import { IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 declare const unset: unique symbol;
 export declare class BlurManager {
     readonly dom: HTMLDOM;
-    readonly lifecycle: ILifecycle;
+    readonly scheduler: IScheduler;
     private readonly blurs;
     private readonly handler;
     private constructor();
-    static createFor(dom: HTMLDOM, lifecycle: ILifecycle): BlurManager;
+    static createFor(dom: HTMLDOM, scheduler: IScheduler): BlurManager;
     register(blur: Blur): void;
     unregister(blur: Blur): void;
     private addListeners;
@@ -43,7 +43,7 @@ export declare class Blur {
      * Determine from which node/ nodes, search for elements
      */
     linkingContext: string | Element | null;
-    constructor(element: HTMLElement, dom: HTMLDOM, lifecycle: ILifecycle);
+    constructor(element: HTMLElement, dom: HTMLDOM, scheduler: IScheduler);
     attached(): void;
     detaching(): void;
     handleEventTarget(target: EventTarget): void;

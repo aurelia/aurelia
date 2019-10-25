@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
-import { ILifecycle, Priority } from './lifecycle';
+import { ILifecycle } from './lifecycle';
 export declare enum DelegationStrategy {
     none = 0,
     capturing = 1,
@@ -123,7 +123,6 @@ export interface IAccessor<TValue = unknown> {
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */
 export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue = unknown> extends IAccessor<TValue>, IPropertyChangeTracker<TObj, TProp> {
-    priority?: Priority;
     bind?(flags: LifecycleFlags): void;
     unbind?(flags: LifecycleFlags): void;
 }

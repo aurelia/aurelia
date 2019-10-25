@@ -1,9 +1,10 @@
+import { __decorate, __param } from "tslib";
 import { Reporter } from '@aurelia/kernel';
-import { IDOM, ILifecycle } from '@aurelia/runtime';
+import { IDOM, IScheduler } from '@aurelia/runtime';
 import { Queue } from './queue';
-export class BrowserNavigator {
-    constructor(lifecycle, dom) {
-        this.lifecycle = lifecycle;
+let BrowserNavigator = class BrowserNavigator {
+    constructor(scheduler, dom) {
+        this.scheduler = scheduler;
         this.allowedExecutionCostWithinTick = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
         this.isActive = false;
         this.options = {
@@ -47,7 +48,7 @@ export class BrowserNavigator {
         if (options.useUrlFragmentHash != void 0) {
             this.options.useUrlFragmentHash = options.useUrlFragmentHash;
         }
-        this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+        this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
         this.window.addEventListener('popstate', this.handlePopstate);
     }
     deactivate() {
@@ -152,6 +153,10 @@ export class BrowserNavigator {
         promises.push(this.pendingCalls.enqueue(calls, costs)[0]);
         return promises[0];
     }
-}
-BrowserNavigator.inject = [ILifecycle, IDOM];
+};
+BrowserNavigator = __decorate([
+    __param(0, IScheduler),
+    __param(1, IDOM)
+], BrowserNavigator);
+export { BrowserNavigator };
 //# sourceMappingURL=browser-navigator.js.map

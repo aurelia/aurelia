@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/self-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine", "./render-context"], factory);
+        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/self-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine", "./render-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -129,8 +129,6 @@
     exports.TwoWayBindingBehavior = binding_mode_1.TwoWayBindingBehavior;
     var debounce_1 = require("./resources/binding-behaviors/debounce");
     exports.DebounceBindingBehavior = debounce_1.DebounceBindingBehavior;
-    var priority_1 = require("./resources/binding-behaviors/priority");
-    exports.PriorityBindingBehavior = priority_1.PriorityBindingBehavior;
     var signals_1 = require("./resources/binding-behaviors/signals");
     exports.SignalBindingBehavior = signals_1.SignalBindingBehavior;
     var throttle_1 = require("./resources/binding-behaviors/throttle");
@@ -169,6 +167,14 @@
     exports.SanitizeValueConverter = sanitize_1.SanitizeValueConverter;
     var view_1 = require("./resources/value-converters/view");
     exports.ViewValueConverter = view_1.ViewValueConverter;
+    var scheduler_1 = require("./scheduler");
+    exports.Clock = scheduler_1.Clock;
+    exports.IClock = scheduler_1.IClock;
+    exports.IScheduler = scheduler_1.IScheduler;
+    exports.Task = scheduler_1.Task;
+    exports.TaskAbortError = scheduler_1.TaskAbortError;
+    exports.TaskQueue = scheduler_1.TaskQueue;
+    exports.TaskQueuePriority = scheduler_1.TaskQueuePriority;
     var bindable_1 = require("./templating/bindable");
     exports.bindable = bindable_1.bindable;
     exports.BindableDefinition = bindable_1.BindableDefinition;
@@ -201,7 +207,6 @@
     exports.OneTimeBindingBehaviorRegistration = configuration_1.OneTimeBindingBehaviorRegistration;
     exports.ToViewBindingBehaviorRegistration = configuration_1.ToViewBindingBehaviorRegistration;
     exports.FromViewBindingBehaviorRegistration = configuration_1.FromViewBindingBehaviorRegistration;
-    exports.PriorityBindingBehaviorRegistration = configuration_1.PriorityBindingBehaviorRegistration;
     exports.SignalBindingBehaviorRegistration = configuration_1.SignalBindingBehaviorRegistration;
     exports.ThrottleBindingBehaviorRegistration = configuration_1.ThrottleBindingBehaviorRegistration;
     exports.TwoWayBindingBehaviorRegistration = configuration_1.TwoWayBindingBehaviorRegistration;
@@ -261,7 +266,6 @@
     exports.IController = lifecycle_1.IController;
     exports.IViewFactory = lifecycle_1.IViewFactory;
     exports.MountStrategy = lifecycle_1.MountStrategy;
-    exports.Priority = lifecycle_1.Priority;
     var lifecycle_task_1 = require("./lifecycle-task");
     exports.AggregateContinuationTask = lifecycle_task_1.AggregateContinuationTask;
     exports.TerminalTask = lifecycle_task_1.TerminalTask;

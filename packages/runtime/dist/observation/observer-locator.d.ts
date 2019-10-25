@@ -1,6 +1,7 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservedArray, IObservedMap, IObservedSet } from '../observation';
+import { IScheduler } from '../scheduler';
 export interface IObjectObservationAdapter {
     getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
@@ -14,13 +15,13 @@ export interface IObserverLocator {
 }
 export declare const IObserverLocator: import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>;
 export interface ITargetObserverLocator {
-    getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
+    getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
     overridesAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): boolean;
     handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export declare const ITargetObserverLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetObserverLocator>;
 export interface ITargetAccessorLocator {
-    getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
+    getAccessor(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
     handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export declare const ITargetAccessorLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetAccessorLocator>;

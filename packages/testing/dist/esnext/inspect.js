@@ -131,14 +131,15 @@ export class AssertionError extends Error {
         const { actual, expected, message, operator, stackStartFn } = options;
         const limit = Error.stackTraceLimit;
         Error.stackTraceLimit = 0;
-        const prefix = message == null ? '' : `${message} - `;
+        let prefix = message == null ? '' : `${message} - `;
         if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
             super(`${prefix}${createErrDiff(actual, expected, operator)}`);
         }
         else if (operator === 'notDeepStrictEqual'
             || operator === 'notStrictEqual') {
             let base = operatorText[operator];
-            const res = inspectValue(actual).split('\n');
+            // eslint-disable-next-line prefer-const
+            let res = inspectValue(actual).split('\n');
             if (operator === 'notStrictEqual'
                 && isObject(actual)) {
                 base = operatorText.notStrictEqualObject;
@@ -180,6 +181,11 @@ export class AssertionError extends Error {
                 else {
                     other = ` ${operator} ${other}`;
                 }
+            }
+            if (!operator) {
+                other = '';
+                res = '';
+                prefix = prefix.slice(0, -3);
             }
             super(`${prefix}${res}${other}`);
         }

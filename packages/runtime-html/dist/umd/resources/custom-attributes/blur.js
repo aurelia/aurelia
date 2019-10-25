@@ -26,16 +26,15 @@
     // to avoid polluting the document properties
     const blurDocMap = new WeakMap();
     class BlurManager {
-        constructor(dom, lifecycle) {
+        constructor(dom, scheduler) {
             this.dom = dom;
-            this.lifecycle = lifecycle;
-            blurDocMap.set(dom.document, this);
-            this.dom = dom;
+            this.scheduler = scheduler;
             this.blurs = [];
+            blurDocMap.set(dom.document, this);
             this.handler = createHandler(this, this.blurs);
         }
-        static createFor(dom, lifecycle) {
-            return blurDocMap.get(dom.document) || new BlurManager(dom, lifecycle);
+        static createFor(dom, scheduler) {
+            return blurDocMap.get(dom.document) || new BlurManager(dom, scheduler);
         }
         register(blur) {
             const blurs = this.blurs;
@@ -82,7 +81,7 @@
     }
     exports.BlurManager = BlurManager;
     let Blur = class Blur {
-        constructor(element, dom, lifecycle) {
+        constructor(element, dom, scheduler) {
             this.element = element;
             this.dom = dom;
             /**
@@ -95,7 +94,7 @@
             this.searchSubTree = true;
             this.linkingContext = null;
             this.value = unset;
-            this.manager = BlurManager.createFor(dom, lifecycle);
+            this.manager = BlurManager.createFor(dom, scheduler);
         }
         attached() {
             this.manager.register(this);
@@ -214,7 +213,7 @@
         runtime_1.customAttribute('blur'),
         tslib_1.__param(0, runtime_1.INode),
         tslib_1.__param(1, runtime_1.IDOM),
-        tslib_1.__param(2, runtime_1.ILifecycle)
+        tslib_1.__param(2, runtime_1.IScheduler)
     ], Blur);
     exports.Blur = Blur;
     const containsElementOrShadowRoot = (container, target) => {
@@ -263,7 +262,7 @@
         };
         const markChecked = () => {
             hasChecked = true;
-            manager.lifecycle.enqueueRAF(revertCheckage, void 0, 32768 /* preempt */, true);
+            manager.scheduler.queueRenderTask(revertCheckage, { preempt: true });
         };
         const handleMousedown = (e) => {
             if (!hasChecked) {

@@ -1,3 +1,4 @@
+import { __decorate, __param } from "tslib";
 import { DI, Registration, Reporter, } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { getArrayObserver } from './array-observer';
@@ -9,6 +10,7 @@ import { PropertyAccessor } from './property-accessor';
 import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
+import { IScheduler } from '../scheduler';
 const toStringTag = Object.prototype.toString;
 export const IObserverLocator = DI.createInterface('IObserverLocator').noDefault();
 export const ITargetObserverLocator = DI.createInterface('ITargetObserverLocator').noDefault();
@@ -23,13 +25,14 @@ function getPropertyDescriptor(subject, name) {
     return pd;
 }
 /** @internal */
-export class ObserverLocator {
-    constructor(lifecycle, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
-        this.adapters = [];
-        this.dirtyChecker = dirtyChecker;
+let ObserverLocator = class ObserverLocator {
+    constructor(lifecycle, scheduler, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
         this.lifecycle = lifecycle;
+        this.scheduler = scheduler;
+        this.dirtyChecker = dirtyChecker;
         this.targetObserverLocator = targetObserverLocator;
         this.targetAccessorLocator = targetAccessorLocator;
+        this.adapters = [];
     }
     static register(container) {
         return Registration.singleton(IObserverLocator, this).register(container);
@@ -62,7 +65,7 @@ export class ObserverLocator {
             if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
                 return this.getObserver(flags, obj, propertyName);
             }
-            return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
+            return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, propertyName);
         }
         if (flags & 2 /* proxyStrategy */) {
             return ProxyObserver.getOrCreate(obj, propertyName);
@@ -109,7 +112,7 @@ export class ObserverLocator {
         }
         let isNode = false;
         if (this.targetObserverLocator.handles(flags, obj)) {
-            const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
+            const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, propertyName);
             if (observer != null) {
                 return observer;
             }
@@ -151,8 +154,15 @@ export class ObserverLocator {
         }
         return new SetterObserver(this.lifecycle, flags, obj, propertyName);
     }
-}
-ObserverLocator.inject = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+};
+ObserverLocator = __decorate([
+    __param(0, ILifecycle),
+    __param(1, IScheduler),
+    __param(2, IDirtyChecker),
+    __param(3, ITargetObserverLocator),
+    __param(4, ITargetAccessorLocator)
+], ObserverLocator);
+export { ObserverLocator };
 export function getCollectionObserver(flags, lifecycle, collection) {
     // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
     // when we ask for getCollectionObserver

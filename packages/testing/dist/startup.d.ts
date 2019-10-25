@@ -6,9 +6,8 @@ export declare function setup<T>(template: string | Node, $class?: Constructable
     ctx: HTMLTestContext;
     host: Element | null;
     container: import("@aurelia/kernel").IContainer;
-    lifecycle: import("@aurelia/runtime").ILifecycle & {
-        flushCount?: number | undefined;
-    };
+    lifecycle: import("@aurelia/runtime").ILifecycle;
+    scheduler: import("@aurelia/runtime").IScheduler;
     testHost: HTMLDivElement;
     appHost: HTMLElement;
     au: Aurelia<import("@aurelia/runtime").INode>;

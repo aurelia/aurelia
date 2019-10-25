@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, ILifecycle, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, Priority } from '@aurelia/runtime';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
 export interface IHtmlElement extends HTMLElement {
     $mObserver: MutationObserver;
     $eMObservers: Set<ElementMutationSubscription>;
@@ -14,7 +14,7 @@ export interface AttributeObserver extends IBindingTargetObserver<IHtmlElement, 
  * TODO: handle SVG/attributes with namespace
  */
 export declare class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
-    readonly lifecycle: ILifecycle;
+    readonly scheduler: IScheduler;
     readonly observerLocator: IObserverLocator;
     readonly obj: IHtmlElement;
     readonly propertyKey: string;
@@ -23,11 +23,11 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    priority: Priority;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, observerLocator: IObserverLocator, element: Element, propertyKey: string, targetAttribute: string);
+    task: ITask | null;
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, observerLocator: IObserverLocator, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
+    flushChanges(flags: LifecycleFlags): void;
     handleMutation(mutationRecords: MutationRecord[]): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;

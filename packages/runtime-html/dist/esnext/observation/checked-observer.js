@@ -4,15 +4,15 @@ function defaultMatcher(a, b) {
     return a === b;
 }
 let CheckedObserver = class CheckedObserver {
-    constructor(lifecycle, flags, observerLocator, handler, obj) {
-        this.lifecycle = lifecycle;
+    constructor(scheduler, flags, observerLocator, handler, obj) {
+        this.scheduler = scheduler;
         this.observerLocator = observerLocator;
         this.handler = handler;
         this.obj = obj;
         this.currentValue = void 0;
         this.oldValue = void 0;
         this.hasChanges = false;
-        this.priority = 12288 /* propagate */;
+        this.task = null;
         this.arrayObserver = void 0;
         this.valueObserver = void 0;
         this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
@@ -24,13 +24,16 @@ let CheckedObserver = class CheckedObserver {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
         if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
-            this.flushRAF(flags);
+            this.flushChanges(flags);
         }
-        else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+        else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+            this.task = this.scheduler.queueRenderTask(() => {
+                this.flushChanges(flags);
+                this.task = null;
+            });
         }
     }
-    flushRAF(flags) {
+    flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
             const { currentValue } = this;
@@ -68,8 +71,11 @@ let CheckedObserver = class CheckedObserver {
         else {
             this.hasChanges = true;
         }
-        if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+        if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+            this.task = this.scheduler.queueRenderTask(() => {
+                this.flushChanges(flags);
+                this.task = null;
+            });
         }
         this.callSubscribers(currentValue, oldValue, flags);
     }
@@ -80,8 +86,8 @@ let CheckedObserver = class CheckedObserver {
         else {
             this.hasChanges = true;
         }
-        if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+        if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+            this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
         }
         this.callSubscribers(newValue, previousValue, flags);
     }
@@ -135,7 +141,10 @@ let CheckedObserver = class CheckedObserver {
     }
     bind(flags) {
         if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            if (this.task !== null) {
+                this.task.cancel();
+            }
+            this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
         }
         this.currentValue = this.obj.checked;
     }
@@ -147,8 +156,9 @@ let CheckedObserver = class CheckedObserver {
         if (this.valueObserver !== void 0) {
             this.valueObserver.unsubscribe(this);
         }
-        if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
-            this.lifecycle.dequeueRAF(this.flushRAF, this);
+        if (this.task !== null) {
+            this.task.cancel();
+            this.task = null;
         }
     }
     subscribe(subscriber) {

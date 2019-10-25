@@ -102,12 +102,6 @@ export class CompositionRoot {
             ? this.container.get(config.component)
             : config.component;
         this.controller = Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);
-        if (config.enableTimeSlicing === true) {
-            this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
-        }
-        else {
-            this.lifecycle.disableTimeslicing();
-        }
     }
 }
 export class Aurelia {

@@ -4,11 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
+    const kernel_1 = require("@aurelia/kernel");
     /**
      * A first-in-first-out queue that only processes the next queued item
      * when the current one has been resolved or rejected. Sends queued items
@@ -21,12 +23,15 @@
     class Queue {
         constructor(callback) {
             this.callback = callback;
-            this.isActive = false;
             this.pending = [];
             this.processing = null;
             this.allowedExecutionCostWithinTick = null;
             this.currentExecutionCostInCurrentTick = 0;
-            this.lifecycle = null;
+            this.scheduler = null;
+            this.task = null;
+        }
+        get isActive() {
+            return this.task !== null;
         }
         get length() {
             return this.pending.length;
@@ -35,19 +40,18 @@
             if (this.isActive) {
                 throw new Error('Queue has already been activated');
             }
-            this.isActive = true;
-            this.lifecycle = options.lifecycle;
+            this.scheduler = options.scheduler;
             this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-            this.lifecycle.enqueueRAF(this.dequeue, this, 32768 /* preempt */);
+            this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
         }
         deactivate() {
             if (!this.isActive) {
                 throw new Error('Queue has not been activated');
             }
-            this.lifecycle.dequeueRAF(this.dequeue, this);
+            this.task.cancel();
+            this.task = null;
             this.allowedExecutionCostWithinTick = null;
             this.clear();
-            this.isActive = false;
         }
         enqueue(itemOrItems, costOrCosts) {
             const list = Array.isArray(itemOrItems);
@@ -99,6 +103,9 @@
             this.pending.splice(0, this.pending.length);
         }
     }
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], Queue.prototype, "dequeue", null);
     exports.Queue = Queue;
 });
 //# sourceMappingURL=queue.js.map

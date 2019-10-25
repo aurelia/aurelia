@@ -64,6 +64,7 @@ declare const assert: Readonly<{
     match: typeof match;
     notMatch: typeof notMatch;
     visibleTextEqual: typeof visibleTextEqual;
+    isSchedulerEmpty: () => void;
     isCustomElementType: typeof isCustomElementType;
     isCustomAttributeType: typeof isCustomAttributeType;
     strict: {

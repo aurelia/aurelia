@@ -1,11 +1,5 @@
 export interface IPerformance {
   now(): number;
-  mark(name: string): void;
-  measure(name: string, start?: string, end?: string): void;
-  getEntriesByName(name: string): IPerformanceEntry[];
-  getEntriesByType(type: string): IPerformanceEntry[];
-  clearMarks(name?: string): void;
-  clearMeasures(name?: string): void;
 }
 
 export interface IPerformanceEntry {
@@ -43,15 +37,6 @@ export interface IWindowOrWorkerGlobalScope {
   readonly performance: IPerformance;
   readonly localStorage?: IStorage;
   readonly Intl: typeof Intl;
-
-  clearInterval(handle?: number): void;
-  clearTimeout(handle?: number): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-  requestAnimationFrame(callback: IFrameRequestCallback): number;
-  cancelAnimationFrame(handle: number): void;
 }
 
 export interface IFrameRequestCallback {

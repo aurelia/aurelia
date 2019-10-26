@@ -133,7 +133,7 @@ export const DebugTracer: typeof Tracer = {
   }
 };
 
-const defaultOptions: ILiveLoggingOptions = Object.freeze({
+const defaultOptions: ILiveLoggingOptions = {
   rendering: true,
   binding: true,
   observation: true,
@@ -142,7 +142,7 @@ const defaultOptions: ILiveLoggingOptions = Object.freeze({
   di: true,
   lifecycle: true,
   jit: true
-});
+};
 
 /**
  * Writes out each trace info item as they are traced.

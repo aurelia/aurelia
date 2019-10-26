@@ -152,7 +152,7 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
 }
 
 export class HooksDefinition {
-  public static readonly none: Readonly<HooksDefinition> = Object.freeze(new HooksDefinition({}));
+  public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
   public readonly hasRender: boolean;
   public readonly hasCreated: boolean;

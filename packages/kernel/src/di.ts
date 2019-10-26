@@ -971,7 +971,7 @@ export class ParameterizedRegistry implements IRegistry {
   }
 }
 
-export const Registration = Object.freeze({
+export const Registration = {
   instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
   },
@@ -990,7 +990,7 @@ export const Registration = Object.freeze({
   defer(key: Key, ...params: unknown[]): IRegistry {
     return new ParameterizedRegistry(key, params);
   }
-});
+};
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
   private instance: Resolved<K> | null = null;

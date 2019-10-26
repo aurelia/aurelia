@@ -83,7 +83,7 @@ const baseCase = (function () {
   }
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = Object.freeze(Object.assign(Object.create(null) as {}, {
+  const isDigit = Object.assign(Object.create(null) as {}, {
     '0': true,
     '1': true,
     '2': true,
@@ -94,7 +94,7 @@ const baseCase = (function () {
     '7': true,
     '8': true,
     '9': true,
-  } as Record<string, true | undefined>));
+  } as Record<string, true | undefined>);
 
   function charToKind(char: string): CharKind {
     if (char === '') {

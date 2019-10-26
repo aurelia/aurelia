@@ -4,9 +4,12 @@ import { Camera, Zoom } from './molecules/specs-viewer/camera-specs-viewer';
 import { Laptop, Storage } from './molecules/specs-viewer/laptop-specs-viewer';
 import { User } from './molecules/user-preference/user-preference';
 import { Thing } from './molecules/specs-viewer/thing-viewer';
+import { SelectOption } from './atoms/select-dropdown/select-dropdown';
 
 type Contact = { number: number; type: string };
 export type Product = { id: number; name: string };
+
+type Item = { id: number; name: string };
 
 @customElement({ name: 'app', template })
 export class App {
@@ -59,6 +62,24 @@ export class App {
   // #endregion
 
   public somethingDone: boolean = false;
+
+  // #region select
+  public items1: SelectOption[] = [{ id: 0, displayText: 'Motherboard' }, { id: 1, displayText: 'CPU' }, { id: 2, displayText: 'Memory' }];
+  public selectedItem1: number = 0;
+  public items2: SelectOption[] = this.items1.map(({ id, displayText: name }) => ({ id: { id, name }, displayText: name }));
+  public selectedItem2: Item = this.items2[0].id;
+  public items3: SelectOption[] = this.items2.slice(0);
+  public selectedItem3: Item = { id: 0, name: 'Motherboard' };
+  public optionMatcher: (a: Item, b: Item) => boolean = (a, b) => !!a && !!b && a.id === b.id;
+  public items4: SelectOption[] = this.items1.map(({ id, displayText }) => ({ id: id.toString(), displayText }));
+  public selectedItem4: Item = this.items4[0].id;
+
+  public selectedItems1: number[] = [0];
+  public selectedItems2: Item[] = [this.items2[0].id];
+  public selectedItems3: Item[] = [{ id: 0, name: 'Motherboard' }];
+  public selectedItems4: Item[] = [this.items4[0].id];
+  // #endregion
+
   public changeTexts() {
     this.text1 = 'newText1';
     this.text2 = 'newText2';

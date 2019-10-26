@@ -3,7 +3,7 @@
 #### Bindings
 - [x]`call-binding`: `<el action.call="doSoemthing()"></el>`
 - [x] `interpolation-binding`: Evaluates interpolation expression.
-- [ ] `let-binding`: Local variable evaluated on runtime (new property added to VM).
+- [x] `let-binding`: Local variable evaluated on runtime (new property added to VM).
 - [x] `property-binding`: Binds evaluated source expression to the VM properties or DOM attributes.
       Modes:
       - one time
@@ -51,7 +51,7 @@
   <div background.style="bg">
   ```
 - [x] `element-property-accessor`: handles mutation of other attributes via VM properties.
-- [ ] `select-value-observer`: handles selection of options in `<select>` element.
+- [x] `select-value-observer`: handles selection of options in `<select>` element.
 - [ ] `style-attribute-accessor`: inline style accessor
 - [x] `value-attribute-observer`: observer for `[value]` (input)
 
@@ -204,17 +204,16 @@ The update of the display is triggered every 2 seconds via a signal.
   - [x] bind matcher
   - [x] bind boolean
 - card selector: displays a list of cards and applies a special css class and inline style (I know this is hypothetical, just grouping this here) on the selected card. Should cover `class-attribute-accessor`, `style-attribute-accessor`, and `element-attribute-observer`. Additionally, it applies a `src` attribute on the card images which should cover `data-attribute-accessor`.
-- `<select>`
-  - single select
-    - simple id-value pair case
-    - bind model
-    - bind matcher
-    - bind boolean
-  - multi-select
-    - simple id-value pair case
-    - bind model
-    - bind matcher
-    - bind boolean
+- [x] `<select>`
+  - [x] single select
+    - [x] simple id-value pair case
+    - [x] bind model
+    - [x] bind matcher
+    ~~- bind boolean~~
+  - [x] multi-select
+    - [x] simple id-value pair case
+    - [x] bind model
+    - [x] bind matcher
 
 ##### Specs viewer
 **Postponed**

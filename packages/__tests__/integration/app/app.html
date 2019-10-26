@@ -42,5 +42,16 @@
 
     <command name="do something" action.call="doSomething()"></command>
     <let-demo></let-demo>
+
+    <select-dropdown
+      options1.bind="items1" selection1.two-way="selectedItem1"
+      options2.bind="items2" selection2.two-way="selectedItem2"
+      options3.bind="items3" selection3.two-way="selectedItem3" matcher.bind="optionMatcher"
+      options4.bind="items4" selection4.two-way="selectedItem4"
+      selections1.two-way="selectedItems1"
+      selections2.two-way="selectedItems2"
+      selections3.two-way="selectedItems3"
+      selections4.two-way="selectedItems4"
+    ></select-dropdown>
   </div>
 </template>

@@ -707,4 +707,116 @@ describe.only('app', function() {
     assert.html.textContent(ecY, getEcY(), 'ecy2');
     assert.html.textContent(linex, getLinex(), 'linex2');
   });
+
+  [
+    {
+      id: 1,
+      title: `binds number-string object array to select-dropdwon`,
+      collProp: 'items1' as const,
+      chosenProp: 'selectedItem1' as const
+    },
+    {
+      id: 2,
+      title: `binds object-string object array to select-dropdwon`,
+      collProp: 'items2' as const,
+      chosenProp: 'selectedItem2' as const
+    },
+    {
+      id: 3,
+      title: `binds object-string object array with matcher to select-dropdwon`,
+      collProp: 'items3' as const,
+      chosenProp: 'selectedItem3' as const
+    },
+    {
+      id: 4,
+      title: `binds string-string array to select-dropdwon`,
+      collProp: 'items4' as const,
+      chosenProp: 'selectedItem4' as const
+    }
+  ].map(({ id, title, collProp, chosenProp }) =>
+    $it.only(title, function({ host, ctx }) {
+      const app = getViewModel<App>(host);
+      const items = app[collProp];
+      const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);
+      const options: HTMLOptionElement[] = toArray(select.querySelectorAll('option'));
+      const size = items.length;
+
+      // initial
+      assert.equal(options.length, size + 1);
+      assert.equal(options[1].selected, true, 'option0');
+
+      // assert if the choice is changed in VM, it is propagated to view
+      app[chosenProp] = items[1].id;
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.equal(options[2].selected, true, 'option1');
+
+      // assert that when choice is changed from view, it is propagaetd to VM
+      [options[2].selected, options[3].selected] = [false, true];
+      select.dispatchEvent(new Event('change'));
+      ctx.lifecycle.processRAFQueue(undefined);
+      if (title.includes('matcher')) {
+        assert.deepEqual(app[chosenProp], items[2].id, 'selectedProp');
+      } else {
+        assert.equal(app[chosenProp], items[2].id, 'selectedProp');
+      }
+    })
+  );
+
+  [
+    {
+      id: 11,
+      title: `binds number-string object array to select-dropdwon - multiple`,
+      collProp: 'items1' as const,
+      chosenProp: 'selectedItems1' as const
+    },
+    {
+      id: 21,
+      title: `binds object-string object array to select-dropdwon - multiple`,
+      collProp: 'items2' as const,
+      chosenProp: 'selectedItems2' as const
+    },
+    {
+      id: 31,
+      title: `binds object-string object array with matcher to select-dropdwon - multiple`,
+      collProp: 'items3' as const,
+      chosenProp: 'selectedItems3' as const
+    },
+    {
+      id: 41,
+      title: `binds string-string array to select-dropdwon - multiple`,
+      collProp: 'items4' as const,
+      chosenProp: 'selectedItems4' as const
+    }
+  ].map(({ id, title, collProp, chosenProp }) =>
+    $it.only(title, function({ host, ctx }) {
+      const app = getViewModel<App>(host);
+      const items = app[collProp];
+      const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);
+      const options: HTMLOptionElement[] = toArray(select.querySelectorAll('option'));
+      const size = items.length;
+
+      // initial
+      assert.equal(options.length, size + 1);
+      assert.equal(options[1].selected, true, 'option10');
+
+      // assert if the choice is changed in VM, it is propagated to view
+      app[chosenProp].push(items[1].id);
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.equal(options[1].selected, true, 'option11');
+      assert.equal(options[2].selected, true, 'option21');
+
+      // assert that when choice is changed from view, it is propagaetd to VM
+      options[3].selected = true;
+      select.dispatchEvent(new Event('change'));
+      ctx.lifecycle.processRAFQueue(undefined);
+      assert.equal(options[1].selected, true, 'option13');
+      assert.equal(options[2].selected, true, 'option23');
+      assert.equal(options[3].selected, true, 'option33');
+      if (title.includes('matcher')) {
+        assert.deepEqual(app[chosenProp], items.map(i => i.id), 'selectedProp');
+      } else {
+        assert.equal(items.every((item, i) => Object.is(item.id, app[chosenProp][i])), true);
+      }
+    })
+  );
 });

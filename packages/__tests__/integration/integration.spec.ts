@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
-import { toArray } from '@aurelia/kernel';
+import { toArray, PLATFORM } from '@aurelia/kernel';
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
@@ -300,7 +300,8 @@ describe('app', function () {
     const newValue = 'foo';
     user.arr.indeterminate = newValue;
 
-    await scheduler.yieldAll();
+    // await `DirtyCheckSettings.framesPerCheck` frames (yieldAll only awaits one persistent loop)
+    await scheduler.yieldAll(DirtyCheckSettings.framesPerCheck);
     assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
     assert.equal(flushSpy.calls.length, 1);
   });

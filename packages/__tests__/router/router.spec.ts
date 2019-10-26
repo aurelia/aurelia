@@ -387,8 +387,9 @@ describe('Router', function () {
     assert.includes(host.textContent, 'foo', `host.textContent`);
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
-    await wait(100);
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await tearDown();
@@ -425,7 +426,7 @@ describe('Router', function () {
       public constructor() { this['IdName'] = IdName; }
     }
 
-    const { host, router, container, tearDown } = await setup({ useHref: false }, App);
+    const { host, router, container, tearDown, scheduler } = await setup({ useHref: false }, App);
 
     container.register(IdName);
 
@@ -434,8 +435,9 @@ describe('Router', function () {
       console.log('link', test);
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
-      await wait(100);
-      await waitForNavigation(router);
+
+      await scheduler.yieldAll();
+
       assert.includes(host.textContent, '|id-name|', `host.textContent`);
       assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
 
@@ -696,21 +698,23 @@ describe('Router', function () {
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
-    await Promise.resolve();
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
-    await Promise.resolve();
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
-    await Promise.resolve();
-    await wait(0);
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
@@ -730,8 +734,9 @@ describe('Router', function () {
       assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
       (host as any).getElementsByTagName('INPUT')[0].click();
-      await Promise.resolve();
-      await waitForNavigation(router);
+
+      await scheduler.yieldAll();
+
       assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
       assert.includes(host.textContent, 'garply', `host.textContent`);
 
@@ -764,9 +769,9 @@ describe('Router', function () {
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
-    await Promise.resolve();
-    await wait();
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
@@ -863,7 +868,9 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await $goto('bar@left', router, scheduler);
@@ -1140,11 +1147,4 @@ const wait = async (time = 500) => {
   await new Promise((resolve) => {
     setTimeout(resolve, time);
   });
-};
-
-const waitForNavigation = async (router) => {
-  let guard = 100;
-  while (router.processingNavigation && guard--) {
-    await wait(100);
-  }
 };

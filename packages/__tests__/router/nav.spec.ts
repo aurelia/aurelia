@@ -51,13 +51,17 @@ describe('Nav', function () {
       ctx.doc.body.removeChild(host);
     }
 
-    return { au, container, host, router, ctx, tearDown };
+    const scheduler = ctx.scheduler;
+
+    return { au, container, host, router, ctx, tearDown, scheduler };
   }
 
   it('generates nav with a link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown } = await setup('foo');
-    await waitForNavigation(router);
+    const { host, router, tearDown, scheduler } = await setup('foo');
+
+    await scheduler.yieldAll();
+
     assert.includes(host.innerHTML, 'foo', `host.innerHTML`);
     assert.includes(host.innerHTML, 'Bar', `host.innerHTML`);
     assert.includes(host.innerHTML, 'href="bar"', `host.innerHTML`);
@@ -67,9 +71,11 @@ describe('Nav', function () {
 
   it('generates nav with an active link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown } = await setup('bar');
+    const { host, router, tearDown, scheduler } = await setup('bar');
     router.activeComponents = [new ViewportInstruction('baz', 'main-viewport')];
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     // assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
     await tearDown();
@@ -77,25 +83,14 @@ describe('Nav', function () {
 
   it('generates nav with child links', async function () {
     this.timeout(5000);
-    const { host, router, tearDown } = await setup('qux');
+    const { host, router, tearDown, scheduler } = await setup('qux');
     router.activeComponents =[new ViewportInstruction('baz', 'main-viewport')];
-    await waitForNavigation(router);
+
+    await scheduler.yieldAll();
+
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-level-1', `host.innerHTML`);
     await tearDown();
   });
 });
-
-const wait = async (time = 500) => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, time);
-  });
-};
-
-const waitForNavigation = async (router) => {
-  let guard = 1000;
-  while (router.processingNavigation && guard--) {
-    await wait(0);
-  }
-};

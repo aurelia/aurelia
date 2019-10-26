@@ -1,4 +1,4 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Key, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -35,8 +35,6 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
 export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> = DI.createInterface<ITemplateElementFactory>('ITemplateElementFactory').noDefault();
 
-const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
-
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 /**
@@ -45,13 +43,11 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
  * @internal
  */
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
-  public static readonly inject: readonly Key[] = [IDOM];
-
-  private readonly dom: IDOM;
   private template: HTMLTemplateElement;
 
-  public constructor(dom: IDOM) {
-    this.dom = dom;
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+  ) {
     this.template = dom.createTemplate() as HTMLTemplateElement;
   }
 

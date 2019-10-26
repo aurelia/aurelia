@@ -44,11 +44,9 @@ export interface IResourceDescriptions {
 }
 
 export class RuntimeCompilationResources implements IResourceDescriptions {
-  private readonly context: IContainer;
-
-  public constructor(context: IContainer) {
-    this.context = context;
-  }
+  public constructor(
+    private readonly context: IContainer,
+  ) {}
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
     const key = kind.keyFrom(name);

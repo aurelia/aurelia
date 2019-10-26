@@ -20,25 +20,17 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return this.template.renderContext.parentId;
   }
 
-  public isCaching: boolean;
-  public name: string;
-  public parts: PartialCustomElementDefinitionParts;
+  public isCaching: boolean = false;
+  public parts: PartialCustomElementDefinitionParts = PLATFORM.emptyObject;
 
-  private cache: IController<T>[];
-  private cacheSize: number;
-  private readonly lifecycle: ILifecycle;
-  private readonly template: ITemplate<T>;
+  private cache: IController<T>[] = null!;
+  private cacheSize: number = -1;
 
-  public constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
-    this.isCaching = false;
-
-    this.cacheSize = -1;
-    this.cache = null!;
-    this.lifecycle = lifecycle;
-    this.name = name;
-    this.template = template;
-    this.parts = PLATFORM.emptyObject;
-  }
+  public constructor(
+    public name: string,
+    private readonly template: ITemplate<T>,
+    private readonly lifecycle: ILifecycle,
+  ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {

@@ -38,8 +38,10 @@ export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  public constructor(public from: IsBindingBehavior, public to: string) {
-  }
+  public constructor(
+    public from: IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 @bindingCommand(attribute)

@@ -17,29 +17,21 @@ import {
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
-const slice = Array.prototype.slice;
-
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
-  public $state: State;
+  public $state: State = State.none;
   public $scope?: IScope;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
   public constructor(
-    sourceExpression: IsBindingBehavior,
+    public sourceExpression: IsBindingBehavior,
     target: object,
     targetProperty: string,
     observerLocator: IObserverLocator,
-    locator: IServiceLocator,
+    public locator: IServiceLocator,
   ) {
-    this.$state = State.none;
-
-    this.locator = locator;
-    this.sourceExpression = sourceExpression;
     this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);
   }
 

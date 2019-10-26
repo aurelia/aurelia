@@ -6,7 +6,9 @@ import { Signals, ValueConverters } from '../utils';
 export class RelativeTimeValueConverter {
   public readonly signals: string[] = [Signals.I18N_SIGNAL, Signals.RT_SIGNAL];
 
-  public constructor(@I18N private readonly i18n: I18N) { }
+  public constructor(
+    @I18N private readonly i18n: I18N,
+  ) {}
 
   public toView(value: unknown, options?: Intl.RelativeTimeFormatOptions, locale?: string) {
 

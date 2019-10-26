@@ -455,14 +455,11 @@ export const enum ResolverStrategy {
 
 /** @internal */
 export class Resolver implements IResolver, IRegistration {
-  public key: Key;
-  public strategy: ResolverStrategy;
-  public state: any;
-  public constructor(key: Key, strategy: ResolverStrategy, state: any) {
-    this.key = key;
-    this.strategy = strategy;
-    this.state = state;
-  }
+  public constructor(
+    public key: Key,
+    public strategy: ResolverStrategy,
+    public state: any,
+  ) {}
 
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this.key, this);
@@ -530,17 +527,13 @@ export interface IInvoker<T extends Constructable = any> {
 
 /** @internal */
 export class Factory<T extends Constructable = any> implements IFactory<T> {
-  public Type: T;
-  private readonly invoker: IInvoker;
-  private readonly dependencies: Key[];
-  private transformers: ((instance: any) => any)[] | null;
+  private transformers: ((instance: any) => any)[] | null = null;
 
-  public constructor(Type: T, invoker: IInvoker, dependencies: Key[]) {
-    this.Type = Type;
-    this.invoker = invoker;
-    this.dependencies = dependencies;
-    this.transformers = null;
-  }
+  public constructor(
+    public Type: T,
+    private readonly invoker: IInvoker,
+    private readonly dependencies: Key[],
+  ) {}
 
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
     const transformers = this.transformers;
@@ -703,8 +696,9 @@ export class Container implements IContainer {
 
   private readonly resourceResolvers: Record<string, IResolver | undefined>;
 
-  public constructor(private readonly parent: Container | null) {
-
+  public constructor(
+    private readonly parent: Container | null,
+  ) {
     if (parent === null) {
       this.path = this.id.toString();
       this.root = this;
@@ -999,11 +993,7 @@ export const Registration = Object.freeze({
 });
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
-  private instance: Resolved<K> | null;
-
-  public constructor() {
-    this.instance = null;
-  }
+  private instance: Resolved<K> | null = null;
 
   public prepare(instance: Resolved<K>): void {
     this.instance = instance;

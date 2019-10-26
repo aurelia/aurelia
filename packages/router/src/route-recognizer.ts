@@ -152,7 +152,7 @@ export class DynamicSegment {
   public constructor(
     public name: string,
     public optional: boolean
-  ) { }
+  ) {}
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     callback(new CharSpec('/', null, true));
@@ -211,13 +211,9 @@ export type Segment = StaticSegment | DynamicSegment | StarSegment | EpsilonSegm
  * Class that parses route patterns and matches path strings.
  */
 export class RouteRecognizer {
-  public rootState: State;
+  public rootState: State = new State();
   public names: Record<string, RouteGenerator> = {};
   public routes: Map<RouteHandler, RouteGenerator> = new Map();
-
-  public constructor() {
-    this.rootState = new State();
-  }
 
   /**
    * Parse a route pattern and add it to the collection of recognized routes.

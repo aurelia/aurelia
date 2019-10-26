@@ -1,4 +1,4 @@
-import { IIndexable, Key } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { IDOM } from '@aurelia/runtime';
 import { DOM, HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
@@ -11,8 +11,6 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  * An HTTP client based on the Fetch API.
  */
 export class HttpClient {
-  public static readonly inject: readonly Key[] = [IDOM];
-
   /**
    * The current number of active requests.
    * Requests being processed by interceptors are considered active.
@@ -44,11 +42,12 @@ export class HttpClient {
    */
   public interceptors: Interceptor[];
 
-  private readonly dom: HTMLDOM;
   /**
    * Creates an instance of HttpClient.
    */
-  public constructor(dom: HTMLDOM) {
+  public constructor(
+    @IDOM private readonly dom: HTMLDOM,
+  ) {
     if (dom.window.fetch === undefined) {
       throw new Error('HttpClient requires a Fetch API implementation, but the current environment doesn\'t support it. You may need to load a polyfill such as https://github.com/github/fetch');
     }

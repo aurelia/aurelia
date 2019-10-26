@@ -13,51 +13,27 @@ import {
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
-const slice = Array.prototype.slice;
-
 export interface Listener extends IConnectableBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */
 export class Listener implements IBinding {
-  public dom: IDOM;
-
-  public $state: State;
+  public $state: State = State.none;
   public $scope!: IScope;
   public part?: string;
 
-  public delegationStrategy: DelegationStrategy;
-  public locator: IServiceLocator;
-  public preventDefault: boolean;
-  public sourceExpression: IsBindingBehavior;
-  public target: Node;
-  public targetEvent: string;
-
-  private readonly eventManager: IEventManager;
   private handler!: IDisposable;
 
   public constructor(
-    dom: IDOM,
-    targetEvent: string,
-    delegationStrategy: DelegationStrategy,
-    sourceExpression: IsBindingBehavior,
-    target: Node,
-    preventDefault: boolean,
-    eventManager: IEventManager,
-    locator: IServiceLocator
-  ) {
-    this.dom = dom;
-    this.$state = State.none;
-
-    this.delegationStrategy = delegationStrategy;
-    this.locator = locator;
-    this.preventDefault = preventDefault;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.targetEvent = targetEvent;
-
-    this.eventManager = eventManager;
-  }
+    public dom: IDOM,
+    public targetEvent: string,
+    public delegationStrategy: DelegationStrategy,
+    public sourceExpression: IsBindingBehavior,
+    public target: Node,
+    public preventDefault: boolean,
+    public eventManager: IEventManager,
+    public locator: IServiceLocator
+  ) {}
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;

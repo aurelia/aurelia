@@ -62,7 +62,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public constructor(
     public readonly target: HTMLElement,
     public observerLocator: IObserverLocator,
-    public locator: IServiceLocator
+    public locator: IServiceLocator,
   ) {
     this.$state = State.none;
     this.i18n = this.locator.get(I18N);

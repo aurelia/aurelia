@@ -12,33 +12,19 @@ export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
  */
 @subscriberCollection()
 export class SetterObserver {
-  public readonly lifecycle: ILifecycle;
-
-  public readonly obj: IIndexable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
+  public currentValue: unknown = void 0;
+  public oldValue: unknown = void 0;
 
   public readonly persistentFlags: LifecycleFlags;
-  public inBatch: boolean;
-  public observing: boolean;
+  public inBatch: boolean = false;
+  public observing: boolean = false;
 
   public constructor(
-    lifecycle: ILifecycle,
+    public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    obj: object,
-    propertyKey: string,
+    public readonly obj: IIndexable,
+    public readonly propertyKey: string,
   ) {
-    this.lifecycle = lifecycle;
-
-    this.obj = obj as IIndexable;
-    this.propertyKey = propertyKey;
-    this.currentValue = void 0;
-    this.oldValue = void 0;
-
-    this.inBatch = false;
-
-    this.observing = false;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 

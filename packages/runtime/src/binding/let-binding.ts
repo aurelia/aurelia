@@ -22,45 +22,27 @@ import {
   IPartialConnectableBinding,
 } from './connectable';
 
-const slice = Array.prototype.slice;
-
 export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
   public id!: number;
-  public $state: State;
+  public $state: State = State.none;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope;
+  public $scope?: IScope = void 0;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IExpression;
-  public target: (IObservable & IIndexable) | null;
-  public targetProperty: string;
-
-  private readonly toBindingContext: boolean;
+  public target: (IObservable & IIndexable) | null = null;
 
   public constructor(
-    sourceExpression: IExpression,
-    targetProperty: string,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator,
-    toBindingContext: boolean = false,
+    public sourceExpression: IExpression,
+    public targetProperty: string,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
+    private readonly toBindingContext: boolean = false,
   ) {
     connectable.assignIdTo(this);
-    this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = void 0;
-
-    this.locator = locator;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = null;
-    this.targetProperty = targetProperty;
-
-    this.toBindingContext = toBindingContext;
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

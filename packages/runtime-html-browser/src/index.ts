@@ -1,16 +1,12 @@
-import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, DOM  } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { BrowserScheduler } from './browser-scheduler';
 
 class BrowserDOMInitializer implements IDOMInitializer {
-  public static readonly inject: readonly Key[] = [IContainer];
-
-  private readonly container: IContainer;
-
-  public constructor(container: IContainer) {
-    this.container = container;
-  }
+  public constructor(
+    @IContainer private readonly container: IContainer,
+  ) {}
 
   public static register(container: IContainer): IResolver<IDOMInitializer> {
     return Registration.singleton(IDOMInitializer, this).register(container);

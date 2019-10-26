@@ -595,6 +595,8 @@ workflows:
           from: $CIRCLE_TAG
           to: release
           channel: latest
+          push: true
+          merge_topic: false
 
   # Asks for manual approval and then publishes from the release branch to npm@latest
   # Triggered by push to release branch

@@ -375,10 +375,16 @@ jobs:
         type: string
       branch:
         type: string
+      swap:
+        type: boolean
+        default: false
     steps:
       - checkout
-      - run: git checkout << parameters.branch >>
-      - run: git pull
+      - when:
+          condition: << parameters.swap >>
+          steps:
+            - run: git checkout << parameters.branch >>
+            - run: git pull
       - run: npm ci --ignore-scripts
       - run:
           name: "Authenticate with registry"
@@ -608,7 +614,9 @@ workflows:
           type: approval
       - publish_npm:
           <<: *filter_only_release
-          requires:
-            - request_publish_latest
           channel: latest
           branch: release
+          swap: false
+          requires:
+            - request_publish_latest
+

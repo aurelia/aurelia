@@ -278,45 +278,31 @@ describe('app', function () {
     // asser disable
     DirtyCheckSettings.disabled = true;
     isDirtySpy.reset();
-    await scheduler.queueMacroTask(
-      () => {
-        assert.equal(isDirtySpy.calls.length, 0);
-      },
-      { delay: 300 }
-    ).result;
+
+    await scheduler.yieldAll();
+    assert.equal(isDirtySpy.calls.length, 0);
+
     DirtyCheckSettings.disabled = false;
 
     // assert rate
-    let prevCallCount: number;
-    await scheduler.queueMacroTask(
-      () => {
-        prevCallCount = isDirtySpy.calls.length;
-      },
-      { delay: 300 }
-    ).result;
+    await scheduler.yieldAll();
+    const prevCallCount = isDirtySpy.calls.length;
 
     isDirtySpy.reset();
     DirtyCheckSettings.framesPerCheck = 2;
 
-    await scheduler.queueMacroTask(
-      () => {
-        assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
-      },
-      { delay: 300 }
-    ).result;
+    await scheduler.yieldAll();
+    assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
     DirtyCheckSettings.resetToDefault();
 
     // assert flush
     const flushSpy = createSpy(dirtyCheckProperty, 'flush', true);
     const newValue = 'foo';
     user.arr.indeterminate = newValue;
-    await scheduler.queueMacroTask(
-      () => {
-        assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
-        assert.equal(flushSpy.calls.length, 1);
-      },
-      { delay: 300 }
-    ).result;
+
+    await scheduler.yieldAll();
+    assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
+    assert.equal(flushSpy.calls.length, 1);
   });
 
   $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model`, function ({ host, ctx }) {

@@ -1,6 +1,6 @@
+/* eslint-disable jsdoc/check-indentation */
 import { customElement, bindable } from '@aurelia/runtime';
 import * as template from './tri-state-boolean.html';
-
 
 /**
  * Potential test coverage targets:

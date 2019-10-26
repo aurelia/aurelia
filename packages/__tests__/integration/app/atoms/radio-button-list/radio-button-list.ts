@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable jsdoc/check-indentation */
 import { bindable, customElement } from '@aurelia/runtime';
 import template from './radio-button-list.html';
 

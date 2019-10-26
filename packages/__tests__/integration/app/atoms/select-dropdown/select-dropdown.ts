@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import { customElement, bindable } from '@aurelia/runtime';
 import * as template from './select-dropdown.html';
 

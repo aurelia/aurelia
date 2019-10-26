@@ -1,16 +1,28 @@
+/* eslint-disable jsdoc/check-indentation */
 import { computed, customElement, bindable } from '@aurelia/runtime';
 import template from './user-preference.html';
 import { trace } from '@aurelia/testing';
 import { callCollection } from '../../debug';
 
-@customElement({ name: 'user-preference', template })
-export class UserPreference {
-  @bindable public user: User;
+export class TestArray extends Array {
+  public indeterminate: string = 'test';
+  public constructor(...args: any[]) {
+    super(...args);
+    Object.setPrototypeOf(this, TestArray.prototype);
+  }
 }
 
+/**
+ * Potential test coverage targets:
+ * - `@aurelia/runtime`
+ *   - Observers
+ *     - `computed-observer`
+ *     - `dirty-checker`
+ */
 @trace(callCollection)
 export class User {
 
+  public arr: TestArray;
   public constructor(
     public firstName: string,
     public lastName: string,
@@ -19,7 +31,9 @@ export class User {
     public organization: string,
     public city: string,
     public country: string
-  ) { }
+  ) {
+    this.arr = new TestArray();
+  }
 
   @computed({ static: true })
   public get fullNameStatic() {
@@ -56,4 +70,9 @@ export class User {
   public set locationVolatile(value: string) {
     this.country = value;
   }
+}
+
+@customElement({ name: 'user-preference', template })
+export class UserPreference {
+  @bindable public user: User;
 }

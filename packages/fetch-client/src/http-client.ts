@@ -1,6 +1,6 @@
-import { IIndexable, Key, PLATFORM } from '@aurelia/kernel';
-import { DOM, IDOM } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { IIndexable, Key } from '@aurelia/kernel';
+import { IDOM } from '@aurelia/runtime';
+import { DOM, HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
@@ -279,7 +279,7 @@ export class HttpClient {
     this.isRequesting = !!(++this.activeRequestCount);
     if (this.isRequesting) {
       const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-      PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+      DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
     }
   }
 
@@ -287,7 +287,7 @@ export class HttpClient {
     this.isRequesting = !!(--this.activeRequestCount);
     if (!this.isRequesting) {
       const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-      PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+      DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
     }
   }
 

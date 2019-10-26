@@ -71,7 +71,7 @@ const {
   };
 })();
 
-export const IClock = DI.createInterface<IClock>('IClock').noDefault();
+export const IClock = DI.createInterface<IClock>('IClock').withDefault(x => x.instance(globalClock));
 export interface IClock {
   now(highRes?: boolean): number;
 }

@@ -1,4 +1,4 @@
-import { PLATFORM } from '@aurelia/kernel';
+import { DOM } from '@aurelia/runtime-html';
 export const retryStrategy = {
     fixed: 0,
     incremental: 1,
@@ -69,7 +69,7 @@ export class RetryInterceptor {
                     if (doRetry) {
                         retryConfig.counter++;
                         const delay = calculateDelay(retryConfig);
-                        return new Promise((resolve) => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+                        return new Promise((resolve) => DOM.window.setTimeout(resolve, !isNaN(delay) ? delay : 0))
                             .then(() => {
                             const newRequest = requestClone.clone();
                             if (typeof (retryConfig.beforeRetry) === 'function') {

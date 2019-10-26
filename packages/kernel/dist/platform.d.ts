@@ -1,4 +1,4 @@
-import { IPerformance, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
+import { IPerformance, IWindowOrWorkerGlobalScope } from './interfaces';
 interface IPlatform extends IPerformance {
     /**
      * `true` if there is a `window` variable in the global scope with a `document` property.
@@ -33,12 +33,6 @@ interface IPlatform extends IPerformance {
         });
     };
     noop(): void;
-    requestAnimationFrame(callback: (time: number) => void): number;
-    cancelAnimationFrame(handle: number): void;
-    clearInterval(handle?: number): void;
-    clearTimeout(handle?: number): void;
-    setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-    setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
     /**
      * Restore the global `PLATFORM` object to its original state as it was immediately after module initialization.
      * Useful for when you need to stub out one or more of its methods in a unit test.

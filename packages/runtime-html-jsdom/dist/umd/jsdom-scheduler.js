@@ -319,6 +319,14 @@
         yieldIdleTask() {
             return this.taskQueue[4 /* idle */].yield();
         }
+        yieldAll() {
+            return Promise.resolve()
+                .then(this.yieldIdleTask)
+                .then(this.yieldPostRenderTask)
+                .then(this.yieldMacroTask)
+                .then(this.yieldRenderTask)
+                .then(this.yieldMicroTask);
+        }
         queueMicroTask(callback, opts) {
             return this.taskQueue[0 /* microTask */].queueTask(callback, opts);
         }
@@ -357,6 +365,24 @@
             }
         }
     };
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], JSDOMScheduler.prototype, "yieldMicroTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], JSDOMScheduler.prototype, "yieldRenderTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], JSDOMScheduler.prototype, "yieldMacroTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], JSDOMScheduler.prototype, "yieldPostRenderTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], JSDOMScheduler.prototype, "yieldIdleTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], JSDOMScheduler.prototype, "yieldAll", null);
     JSDOMScheduler = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IClock), tslib_1.__param(1, runtime_1.IDOM)
     ], JSDOMScheduler);

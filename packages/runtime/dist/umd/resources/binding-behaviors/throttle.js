@@ -4,73 +4,65 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "../../binding/property-binding", "../../flags", "../binding-behavior"], factory);
+        define(["require", "exports", "tslib", "../binding-behavior", "../../scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    const kernel_1 = require("@aurelia/kernel");
-    const property_binding_1 = require("../../binding/property-binding");
-    const flags_1 = require("../../flags");
     const binding_behavior_1 = require("../binding-behavior");
-    /** @internal */
-    function throttle(newValue) {
-        const state = this.throttleState;
-        const elapsed = +new Date() - state.last;
-        if (elapsed >= state.delay) {
-            kernel_1.PLATFORM.global.clearTimeout(state.timeoutId);
-            state.timeoutId = -1;
-            state.last = +new Date();
-            this.throttledMethod(newValue);
-            return;
-        }
-        state.newValue = newValue;
-        if (state.timeoutId === -1) {
-            const timeoutId = kernel_1.PLATFORM.global.setTimeout(() => {
-                state.timeoutId = -1;
-                state.last = +new Date();
-                this.throttledMethod(state.newValue);
-            }, state.delay - elapsed);
-            state.timeoutId = timeoutId;
-        }
-    }
-    exports.throttle = throttle;
-    let ThrottleBindingBehavior = class ThrottleBindingBehavior {
-        bind(flags, scope, binding, delay = 200) {
-            let methodToThrottle;
-            if (binding instanceof property_binding_1.PropertyBinding) {
-                if (binding.mode === flags_1.BindingMode.twoWay) {
-                    methodToThrottle = 'updateSource';
+    const scheduler_1 = require("../../scheduler");
+    class Throttler {
+        constructor(binding, delay) {
+            this.binding = binding;
+            const clock = binding.locator.get(scheduler_1.IClock);
+            const taskQueue = binding.locator.get(scheduler_1.IScheduler).getPostRenderTaskQueue();
+            const taskQueueOpts = { delay };
+            const methodName = this.methodName = 'callSource' in binding ? 'callSource' : 'handleChange';
+            let task = null;
+            let lastCall = 0;
+            let nextDelay = 0;
+            const originalHandler = this.originalHandler = binding[methodName];
+            this.wrappedHandler = (...args) => {
+                nextDelay = lastCall + delay - clock.now();
+                if (nextDelay > 0) {
+                    if (task !== null) {
+                        task.cancel();
+                    }
+                    taskQueueOpts.delay = nextDelay;
+                    task = taskQueue.queueTask(() => {
+                        lastCall = clock.now();
+                        originalHandler.call(binding, ...args);
+                    }, taskQueueOpts);
                 }
                 else {
-                    methodToThrottle = 'updateTarget';
+                    lastCall = clock.now();
+                    originalHandler.call(binding, ...args);
                 }
-            }
-            else {
-                methodToThrottle = 'callSource';
-            }
-            // stash the original method and it's name.
-            // note: a generic name like "originalMethod" is not used to avoid collisions
-            // with other binding behavior types.
-            binding.throttledMethod = binding[methodToThrottle];
-            binding.throttledMethod.originalName = methodToThrottle;
-            // replace the original method with the throttling version.
-            binding[methodToThrottle] = throttle;
-            // create the throttle state.
-            binding.throttleState = {
-                delay: delay,
-                last: 0,
-                timeoutId: -1
             };
         }
+        start() {
+            this.binding[this.methodName] = this.wrappedHandler;
+        }
+        stop() {
+            this.binding[this.methodName] = this.originalHandler;
+        }
+    }
+    const lookup = new WeakMap();
+    let ThrottleBindingBehavior = class ThrottleBindingBehavior {
+        bind(flags, scope, binding, delay = 200) {
+            let throttler = lookup.get(binding);
+            if (throttler === void 0) {
+                throttler = new Throttler(binding, delay);
+                lookup.set(binding, throttler);
+            }
+            throttler.start();
+        }
         unbind(flags, scope, binding) {
-            // restore the state of the binding.
-            const methodToRestore = binding.throttledMethod.originalName;
-            binding[methodToRestore] = binding.throttledMethod;
-            binding.throttledMethod = null;
-            kernel_1.PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
-            binding.throttleState = null;
+            // The binding exists so it can't have been garbage-collected and a binding can only unbind if it was bound first,
+            // so we know for sure the throttler exists in the lookup.
+            const throttler = lookup.get(binding);
+            throttler.stop();
         }
     };
     ThrottleBindingBehavior = tslib_1.__decorate([

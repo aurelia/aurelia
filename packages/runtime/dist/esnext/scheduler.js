@@ -53,7 +53,7 @@ const { enter, leave, trace, } = (function () {
         trace: $trace,
     };
 })();
-export const IClock = DI.createInterface('IClock').noDefault();
+export const IClock = DI.createInterface('IClock').withDefault(x => x.instance(globalClock));
 export class Clock {
     constructor(opts) {
         const { now, forceUpdateInterval } = { ...defaultClockSettings, ...opts };

@@ -1,5 +1,5 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { DOM, IDOM } from '@aurelia/runtime';
+import { IDOM } from '@aurelia/runtime';
+import { DOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { RetryInterceptor } from './retry-interceptor';
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
@@ -221,14 +221,14 @@ export class HttpClient {
         this.isRequesting = !!(++this.activeRequestCount);
         if (this.isRequesting) {
             const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-            PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+            DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
         }
     }
     trackRequestEnd() {
         this.isRequesting = !!(--this.activeRequestCount);
         if (!this.isRequesting) {
             const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-            PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+            DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
         }
     }
     processRequest(request, interceptors) {

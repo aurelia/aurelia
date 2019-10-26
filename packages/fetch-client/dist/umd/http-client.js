@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./http-client-configuration", "./retry-interceptor"], factory);
+        define(["require", "exports", "@aurelia/runtime", "@aurelia/runtime-html", "./http-client-configuration", "./retry-interceptor"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const runtime_html_1 = require("@aurelia/runtime-html");
     const http_client_configuration_1 = require("./http-client-configuration");
     const retry_interceptor_1 = require("./retry-interceptor");
     const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
@@ -231,15 +231,15 @@
         trackRequestStart() {
             this.isRequesting = !!(++this.activeRequestCount);
             if (this.isRequesting) {
-                const evt = runtime_1.DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-                kernel_1.PLATFORM.setTimeout(() => { runtime_1.DOM.dispatchEvent(evt); }, 1);
+                const evt = runtime_html_1.DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
+                runtime_html_1.DOM.window.setTimeout(() => { runtime_html_1.DOM.dispatchEvent(evt); }, 1);
             }
         }
         trackRequestEnd() {
             this.isRequesting = !!(--this.activeRequestCount);
             if (!this.isRequesting) {
-                const evt = runtime_1.DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-                kernel_1.PLATFORM.setTimeout(() => { runtime_1.DOM.dispatchEvent(evt); }, 1);
+                const evt = runtime_html_1.DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
+                runtime_html_1.DOM.window.setTimeout(() => { runtime_html_1.DOM.dispatchEvent(evt); }, 1);
             }
         }
         processRequest(request, interceptors) {

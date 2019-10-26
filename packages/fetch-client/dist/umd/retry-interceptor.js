@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel"], factory);
+        define(["require", "exports", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
+    const runtime_html_1 = require("@aurelia/runtime-html");
     exports.retryStrategy = {
         fixed: 0,
         incremental: 1,
@@ -80,7 +80,7 @@
                         if (doRetry) {
                             retryConfig.counter++;
                             const delay = calculateDelay(retryConfig);
-                            return new Promise((resolve) => kernel_1.PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+                            return new Promise((resolve) => runtime_html_1.DOM.window.setTimeout(resolve, !isNaN(delay) ? delay : 0))
                                 .then(() => {
                                 const newRequest = requestClone.clone();
                                 if (typeof (retryConfig.beforeRetry) === 'function') {

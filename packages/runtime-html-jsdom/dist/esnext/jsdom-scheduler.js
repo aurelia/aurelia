@@ -1,5 +1,5 @@
 import { __decorate, __param } from "tslib";
-import { PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueue, IClock, DOM } from '@aurelia/runtime';
 function createNextTickFlushRequestor(flush) {
     return (function ($flush) {
@@ -308,6 +308,14 @@ let JSDOMScheduler = class JSDOMScheduler {
     yieldIdleTask() {
         return this.taskQueue[4 /* idle */].yield();
     }
+    yieldAll() {
+        return Promise.resolve()
+            .then(this.yieldIdleTask)
+            .then(this.yieldPostRenderTask)
+            .then(this.yieldMacroTask)
+            .then(this.yieldRenderTask)
+            .then(this.yieldMicroTask);
+    }
     queueMicroTask(callback, opts) {
         return this.taskQueue[0 /* microTask */].queueTask(callback, opts);
     }
@@ -346,6 +354,24 @@ let JSDOMScheduler = class JSDOMScheduler {
         }
     }
 };
+__decorate([
+    bound
+], JSDOMScheduler.prototype, "yieldMicroTask", null);
+__decorate([
+    bound
+], JSDOMScheduler.prototype, "yieldRenderTask", null);
+__decorate([
+    bound
+], JSDOMScheduler.prototype, "yieldMacroTask", null);
+__decorate([
+    bound
+], JSDOMScheduler.prototype, "yieldPostRenderTask", null);
+__decorate([
+    bound
+], JSDOMScheduler.prototype, "yieldIdleTask", null);
+__decorate([
+    bound
+], JSDOMScheduler.prototype, "yieldAll", null);
 JSDOMScheduler = __decorate([
     __param(0, IClock), __param(1, IDOM)
 ], JSDOMScheduler);

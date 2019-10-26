@@ -19,6 +19,7 @@ export declare class BrowserScheduler implements IScheduler {
     yieldMacroTask(): Promise<void>;
     yieldPostRenderTask(): Promise<void>;
     yieldIdleTask(): Promise<void>;
+    yieldAll(): Promise<void>;
     queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;

@@ -1,4 +1,5 @@
 import { __decorate, __param } from "tslib";
+import { bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueue, IClock, DOM } from '@aurelia/runtime';
 // Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
 // Just want to start off with something as robust as possible, add many tests first so that we're sure it all works, etc.
@@ -356,6 +357,18 @@ let BrowserScheduler = class BrowserScheduler {
     yieldIdleTask() {
         return this.taskQueue[4 /* idle */].yield();
     }
+    yieldAll() {
+        // Yield sequentially from "large" to "small" so that any smaller tasks initiated by larger tasks are also still awaited,
+        // as well as guaranteeing a single round of persistent tasks from each queue.
+        // Don't change the order or into parallel, without thoroughly testing the ramifications on persistent and recursively queued tasks.
+        // These aspects are currently relatively poorly tested.
+        return Promise.resolve()
+            .then(this.yieldIdleTask)
+            .then(this.yieldPostRenderTask)
+            .then(this.yieldMacroTask)
+            .then(this.yieldRenderTask)
+            .then(this.yieldMicroTask);
+    }
     queueMicroTask(callback, opts) {
         return this.taskQueue[0 /* microTask */].queueTask(callback, opts);
     }
@@ -394,6 +407,24 @@ let BrowserScheduler = class BrowserScheduler {
         }
     }
 };
+__decorate([
+    bound
+], BrowserScheduler.prototype, "yieldMicroTask", null);
+__decorate([
+    bound
+], BrowserScheduler.prototype, "yieldRenderTask", null);
+__decorate([
+    bound
+], BrowserScheduler.prototype, "yieldMacroTask", null);
+__decorate([
+    bound
+], BrowserScheduler.prototype, "yieldPostRenderTask", null);
+__decorate([
+    bound
+], BrowserScheduler.prototype, "yieldIdleTask", null);
+__decorate([
+    bound
+], BrowserScheduler.prototype, "yieldAll", null);
 BrowserScheduler = __decorate([
     __param(0, IClock), __param(1, IDOM)
 ], BrowserScheduler);

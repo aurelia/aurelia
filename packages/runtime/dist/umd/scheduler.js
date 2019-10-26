@@ -64,7 +64,7 @@
             trace: $trace,
         };
     })();
-    exports.IClock = kernel_1.DI.createInterface('IClock').noDefault();
+    exports.IClock = kernel_1.DI.createInterface('IClock').withDefault(x => x.instance(exports.globalClock));
     class Clock {
         constructor(opts) {
             const { now, forceUpdateInterval } = { ...defaultClockSettings, ...opts };

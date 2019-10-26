@@ -1,72 +1,45 @@
 import { __decorate } from "tslib";
-import { PLATFORM } from '@aurelia/kernel';
-import { PropertyBinding } from '../../binding/property-binding';
-import { BindingMode } from '../../flags';
 import { bindingBehavior } from '../binding-behavior';
-const unset = {};
-/** @internal */
-export function debounceCallSource(newValue, oldValue, flags) {
-    const state = this.debounceState;
-    PLATFORM.global.clearTimeout(state.timeoutId);
-    state.timeoutId = PLATFORM.global.setTimeout(() => { this.debouncedMethod(newValue, oldValue, flags); }, state.delay);
-}
-/** @internal */
-export function debounceCall(newValue, oldValue, flags) {
-    const state = this.debounceState;
-    PLATFORM.global.clearTimeout(state.timeoutId);
-    if (!(flags & state.callContextToDebounce)) {
-        state.oldValue = unset;
-        this.debouncedMethod(newValue, oldValue, flags);
-        return;
-    }
-    if (state.oldValue === unset) {
-        state.oldValue = oldValue;
-    }
-    const timeoutId = PLATFORM.global.setTimeout(() => {
-        const ov = state.oldValue;
-        state.oldValue = unset;
-        this.debouncedMethod(newValue, ov, flags);
-    }, state.delay);
-    state.timeoutId = timeoutId;
-}
-const fromView = BindingMode.fromView;
-let DebounceBindingBehavior = class DebounceBindingBehavior {
-    bind(flags, scope, binding, delay = 200) {
-        let methodToDebounce;
-        let callContextToDebounce;
-        let debouncer;
-        if (binding instanceof PropertyBinding) {
-            methodToDebounce = 'handleChange';
-            debouncer = debounceCall;
-            callContextToDebounce = binding.mode & fromView ? 32 /* updateSourceExpression */ : 16 /* updateTargetInstance */;
-        }
-        else {
-            methodToDebounce = 'callSource';
-            debouncer = debounceCallSource;
-            callContextToDebounce = 16 /* updateTargetInstance */;
-        }
-        // stash the original method and it's name.
-        // note: a generic name like "originalMethod" is not used to avoid collisions
-        // with other binding behavior types.
-        binding.debouncedMethod = binding[methodToDebounce];
-        binding.debouncedMethod.originalName = methodToDebounce;
-        // replace the original method with the debouncing version.
-        binding[methodToDebounce] = debouncer;
-        // create the debounce state.
-        binding.debounceState = {
-            callContextToDebounce,
-            delay,
-            timeoutId: 0,
-            oldValue: unset
+import { IScheduler } from '../../scheduler';
+class Debouncer {
+    constructor(binding, delay) {
+        this.binding = binding;
+        const taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
+        const taskQueueOpts = { delay };
+        // TODO: expose binding API that tells the outside what method name is the primary change handler
+        // Or expose some kind of `decorate` or `applyBehavior` api. This monkey patching is bad and needs to go.
+        const methodName = this.methodName = 'callSource' in binding ? 'callSource' : 'handleChange';
+        let task = null;
+        const originalHandler = this.originalHandler = binding[methodName];
+        this.wrappedHandler = (...args) => {
+            if (task !== null) {
+                task.cancel();
+            }
+            task = taskQueue.queueTask(() => originalHandler.call(binding, ...args), taskQueueOpts);
         };
     }
+    start() {
+        this.binding[this.methodName] = this.wrappedHandler;
+    }
+    stop() {
+        this.binding[this.methodName] = this.originalHandler;
+    }
+}
+const lookup = new WeakMap();
+let DebounceBindingBehavior = class DebounceBindingBehavior {
+    bind(flags, scope, binding, delay = 200) {
+        let debouncer = lookup.get(binding);
+        if (debouncer === void 0) {
+            debouncer = new Debouncer(binding, delay);
+            lookup.set(binding, debouncer);
+        }
+        debouncer.start();
+    }
     unbind(flags, scope, binding) {
-        // restore the state of the binding.
-        const methodToRestore = binding.debouncedMethod.originalName;
-        binding[methodToRestore] = binding.debouncedMethod;
-        binding.debouncedMethod = null;
-        PLATFORM.global.clearTimeout(binding.debounceState.timeoutId);
-        binding.debounceState = null;
+        // The binding exists so it can't have been garbage-collected and a binding can only unbind if it was bound first,
+        // so we know for sure the debouncer exists in the lookup.
+        const debouncer = lookup.get(binding);
+        debouncer.stop();
     }
 };
 DebounceBindingBehavior = __decorate([

@@ -4,12 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
+    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     // Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
     // Just want to start off with something as robust as possible, add many tests first so that we're sure it all works, etc.
@@ -367,6 +368,18 @@
         yieldIdleTask() {
             return this.taskQueue[4 /* idle */].yield();
         }
+        yieldAll() {
+            // Yield sequentially from "large" to "small" so that any smaller tasks initiated by larger tasks are also still awaited,
+            // as well as guaranteeing a single round of persistent tasks from each queue.
+            // Don't change the order or into parallel, without thoroughly testing the ramifications on persistent and recursively queued tasks.
+            // These aspects are currently relatively poorly tested.
+            return Promise.resolve()
+                .then(this.yieldIdleTask)
+                .then(this.yieldPostRenderTask)
+                .then(this.yieldMacroTask)
+                .then(this.yieldRenderTask)
+                .then(this.yieldMicroTask);
+        }
         queueMicroTask(callback, opts) {
             return this.taskQueue[0 /* microTask */].queueTask(callback, opts);
         }
@@ -405,6 +418,24 @@
             }
         }
     };
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], BrowserScheduler.prototype, "yieldMicroTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], BrowserScheduler.prototype, "yieldRenderTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], BrowserScheduler.prototype, "yieldMacroTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], BrowserScheduler.prototype, "yieldPostRenderTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], BrowserScheduler.prototype, "yieldIdleTask", null);
+    tslib_1.__decorate([
+        kernel_1.bound
+    ], BrowserScheduler.prototype, "yieldAll", null);
     BrowserScheduler = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IClock), tslib_1.__param(1, runtime_1.IDOM)
     ], BrowserScheduler);

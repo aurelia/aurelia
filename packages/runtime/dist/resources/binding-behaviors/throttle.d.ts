@@ -1,19 +1,17 @@
 import { LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-export declare type ThrottleableBinding = IBinding & {
-    throttledMethod: ((value: unknown) => unknown) & {
-        originalName: string;
-    };
-    throttleState: {
-        delay: number;
-        timeoutId: number;
-        last: number;
-        newValue?: unknown;
-    };
-};
-export declare class ThrottleBindingBehavior {
-    bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay?: number): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void;
+interface ICallSource {
+    callSource(arg: object): void;
 }
+interface IHandleChange {
+    handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+}
+interface IThrottleableBinding extends ICallSource, IHandleChange, IBinding {
+}
+export declare class ThrottleBindingBehavior {
+    bind(flags: LifecycleFlags, scope: IScope, binding: IThrottleableBinding, delay?: number): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: IThrottleableBinding): void;
+}
+export {};
 //# sourceMappingURL=throttle.d.ts.map

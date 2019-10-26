@@ -8,6 +8,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Features:
 
+* **scheduler:** add repeat parameter to yieldAll for dirty checker etc ([9f24306](https://github.com/aurelia/aurelia/commit/9f24306))
 * **scheduler:** add yieldAll api ([f39c640](https://github.com/aurelia/aurelia/commit/f39c640))
 * **scheduler:** add delta time param ([cf00768](https://github.com/aurelia/aurelia/commit/cf00768))
 * **scheduler:** add support for persistent tasks ([f152a4a](https://github.com/aurelia/aurelia/commit/f152a4a))

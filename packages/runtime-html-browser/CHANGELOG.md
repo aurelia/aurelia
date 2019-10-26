@@ -8,6 +8,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Features:
 
+* **scheduler:** add repeat parameter to yieldAll for dirty checker etc ([9f24306](https://github.com/aurelia/aurelia/commit/9f24306))
 * **scheduler:** add yieldAll api ([f39c640](https://github.com/aurelia/aurelia/commit/f39c640))
 * **scheduler:** add shims and initializers ([341dd69](https://github.com/aurelia/aurelia/commit/341dd69))
 * **runtime-html-browser:** add customevent constructor to instantiation ([c2b5630](https://github.com/aurelia/aurelia/commit/c2b5630))

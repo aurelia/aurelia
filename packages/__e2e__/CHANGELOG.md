@@ -6,10 +6,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 
-**Note:** Version bump only for package @aurelia/dialog
+### Bug Fixes:
 
-<a name="0.3.0"></a>
-# 0.3.0 (2018-10-12)
-
-**Note:** Version bump only for package @aurelia/dialog
+* **i18n:** i18n interface ([1635784](https://github.com/aurelia/aurelia/commit/1635784))
 

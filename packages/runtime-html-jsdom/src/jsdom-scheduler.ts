@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { IContainer, PLATFORM, bound } from '@aurelia/kernel';
 import { IDOM, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
@@ -396,13 +397,14 @@ export class JSDOMScheduler implements IScheduler {
     return this.taskQueue[TaskQueuePriority.idle].yield();
   }
   @bound
-  public yieldAll(): Promise<void> {
-    return Promise.resolve()
-      .then(this.yieldIdleTask)
-      .then(this.yieldPostRenderTask)
-      .then(this.yieldMacroTask)
-      .then(this.yieldRenderTask)
-      .then(this.yieldMicroTask);
+  public async yieldAll(repeat: number = 1): Promise<void> {
+    while (repeat-- > 0) {
+      await this.yieldIdleTask();
+      await this.yieldPostRenderTask();
+      await this.yieldMacroTask();
+      await this.yieldRenderTask();
+      await this.yieldMicroTask();
+    }
   }
 
   public queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {

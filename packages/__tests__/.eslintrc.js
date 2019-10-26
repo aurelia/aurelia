@@ -37,7 +37,7 @@ module.exports = {
     'mocha/no-synchronous-tests': 'off'
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
-    files: ['jit-html/generated/**'],
+    files: ['5-jit-html/generated/**'],
     rules: {
       '@typescript-eslint/quotes': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',

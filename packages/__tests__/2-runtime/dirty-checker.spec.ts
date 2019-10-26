@@ -16,7 +16,7 @@ describe('DirtyChecker', function () {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
-    const taskQueue = ctx.container.get(IScheduler).getIdleTaskQueue();
+    const taskQueue = ctx.container.get(IScheduler).getRenderTaskQueue();
 
     return { dirtyChecker, taskQueue };
   }

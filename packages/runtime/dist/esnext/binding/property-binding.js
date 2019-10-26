@@ -4,7 +4,6 @@ import { BindingMode, } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { hasBind, hasUnbind, } from './ast';
 import { connectable, } from './connectable';
-const slice = Array.prototype.slice;
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak

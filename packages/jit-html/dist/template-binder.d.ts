@@ -16,6 +16,7 @@ export declare class TemplateBinder {
     private bindManifest;
     private bindLetElement;
     private bindAttributes;
+    private ensureAttributeOrder;
     private bindChildNodes;
     private bindText;
     private declareTemplateController;

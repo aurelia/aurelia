@@ -1,4 +1,5 @@
 import { __decorate, __param } from "tslib";
+/* eslint-disable no-await-in-loop */
 import { bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueue, IClock, DOM } from '@aurelia/runtime';
 // Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
@@ -358,17 +359,18 @@ let BrowserScheduler = class BrowserScheduler {
     yieldIdleTask() {
         return this.taskQueue[4 /* idle */].yield();
     }
-    yieldAll() {
+    async yieldAll(repeat = 1) {
         // Yield sequentially from "large" to "small" so that any smaller tasks initiated by larger tasks are also still awaited,
         // as well as guaranteeing a single round of persistent tasks from each queue.
         // Don't change the order or into parallel, without thoroughly testing the ramifications on persistent and recursively queued tasks.
         // These aspects are currently relatively poorly tested.
-        return Promise.resolve()
-            .then(this.yieldIdleTask)
-            .then(this.yieldPostRenderTask)
-            .then(this.yieldMacroTask)
-            .then(this.yieldRenderTask)
-            .then(this.yieldMicroTask);
+        while (repeat-- > 0) {
+            await this.yieldIdleTask();
+            await this.yieldPostRenderTask();
+            await this.yieldMacroTask();
+            await this.yieldRenderTask();
+            await this.yieldMicroTask();
+        }
     }
     queueMicroTask(callback, opts) {
         return this.taskQueue[0 /* microTask */].queueTask(callback, opts);

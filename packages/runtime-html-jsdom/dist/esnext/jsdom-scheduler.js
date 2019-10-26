@@ -1,4 +1,5 @@
 import { __decorate, __param } from "tslib";
+/* eslint-disable no-await-in-loop */
 import { PLATFORM, bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueue, IClock, DOM } from '@aurelia/runtime';
 function createNextTickFlushRequestor(flush) {
@@ -308,13 +309,14 @@ let JSDOMScheduler = class JSDOMScheduler {
     yieldIdleTask() {
         return this.taskQueue[4 /* idle */].yield();
     }
-    yieldAll() {
-        return Promise.resolve()
-            .then(this.yieldIdleTask)
-            .then(this.yieldPostRenderTask)
-            .then(this.yieldMacroTask)
-            .then(this.yieldRenderTask)
-            .then(this.yieldMicroTask);
+    async yieldAll(repeat = 1) {
+        while (repeat-- > 0) {
+            await this.yieldIdleTask();
+            await this.yieldPostRenderTask();
+            await this.yieldMacroTask();
+            await this.yieldRenderTask();
+            await this.yieldMicroTask();
+        }
     }
     queueMicroTask(callback, opts) {
         return this.taskQueue[0 /* microTask */].queueTask(callback, opts);

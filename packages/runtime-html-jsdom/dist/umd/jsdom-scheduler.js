@@ -10,6 +10,7 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
+    /* eslint-disable no-await-in-loop */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     function createNextTickFlushRequestor(flush) {
@@ -319,13 +320,14 @@
         yieldIdleTask() {
             return this.taskQueue[4 /* idle */].yield();
         }
-        yieldAll() {
-            return Promise.resolve()
-                .then(this.yieldIdleTask)
-                .then(this.yieldPostRenderTask)
-                .then(this.yieldMacroTask)
-                .then(this.yieldRenderTask)
-                .then(this.yieldMicroTask);
+        async yieldAll(repeat = 1) {
+            while (repeat-- > 0) {
+                await this.yieldIdleTask();
+                await this.yieldPostRenderTask();
+                await this.yieldMacroTask();
+                await this.yieldRenderTask();
+                await this.yieldMicroTask();
+            }
         }
         queueMicroTask(callback, opts) {
             return this.taskQueue[0 /* microTask */].queueTask(callback, opts);

@@ -541,11 +541,7 @@ export class BinaryExpression {
         throw Reporter.error(208 /* UnknownOperator */, this);
     }
     connect(flags, scope, binding, part) {
-        const left = this.left.evaluate(flags, scope, null, part);
         this.left.connect(flags, scope, binding, part);
-        if (this.operation === '&&' && !left || this.operation === '||' && left) {
-            return;
-        }
         this.right.connect(flags, scope, binding, part);
     }
     ['&&'](f, s, l, p) {

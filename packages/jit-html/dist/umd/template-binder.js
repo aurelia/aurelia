@@ -321,6 +321,12 @@
                     /* manifest   */ manifest);
                 }
             }
+            if (node.tagName === 'INPUT') {
+                const type = node.type;
+                if (type === 'checkbox' || type === 'radio') {
+                    this.ensureAttributeOrder(manifest);
+                }
+            }
             processTemplateControllers(this.dom, manifestProxy, manifest);
             let replace = node.getAttribute('replace');
             if (replace === '' || replace === null && manifestRoot !== null && manifestRoot.isContainerless) {
@@ -342,6 +348,31 @@
                     parentManifest.templateController.parts.push(replacePart);
                 }
                 processReplacePart(this.dom, replacePart, manifestProxy);
+            }
+        }
+        // TODO: refactor to use render priority slots (this logic shouldn't be in the template binder)
+        ensureAttributeOrder(manifest) {
+            // swap the order of checked and model/value attribute, so that the required observers are prepared for checked-observer
+            const attributes = manifest.plainAttributes;
+            let modelOrValueIndex = void 0;
+            let checkedIndex = void 0;
+            let found = 0;
+            for (let i = 0; i < attributes.length && found < 3; i++) {
+                switch (attributes[i].syntax.target) {
+                    case 'model':
+                    case 'value':
+                    case 'matcher':
+                        modelOrValueIndex = i;
+                        found++;
+                        break;
+                    case 'checked':
+                        checkedIndex = i;
+                        found++;
+                        break;
+                }
+            }
+            if (checkedIndex !== void 0 && modelOrValueIndex !== void 0 && checkedIndex < modelOrValueIndex) {
+                [attributes[modelOrValueIndex], attributes[checkedIndex]] = [attributes[checkedIndex], attributes[modelOrValueIndex]];
             }
         }
         bindChildNodes(node, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {

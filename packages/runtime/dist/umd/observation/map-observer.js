@@ -33,6 +33,7 @@
                 $set.call($this, key, value);
                 return this;
             }
+            const oldValue = $this.get(key);
             const oldSize = $this.size;
             $set.call($this, key, value);
             const newSize = $this.size;
@@ -40,8 +41,10 @@
                 let i = 0;
                 for (const entry of $this.entries()) {
                     if (entry[0] === key) {
-                        if (entry[1] !== value) {
+                        if (entry[1] !== oldValue) {
+                            o.indexMap.deletedItems.push(o.indexMap[i]);
                             o.indexMap[i] = -2;
+                            o.notify();
                         }
                         return this;
                     }

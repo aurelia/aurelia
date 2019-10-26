@@ -15,7 +15,6 @@
     const lifecycle_1 = require("../lifecycle");
     const ast_1 = require("./ast");
     const connectable_1 = require("./connectable");
-    const slice = Array.prototype.slice;
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
     const { oneTime, toView, fromView } = flags_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak

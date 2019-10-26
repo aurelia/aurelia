@@ -38,14 +38,14 @@ export class App {
   public chosenContact2: number = 9087654321;
   public contacts3: Contact[] = Array.from(this.contacts1).map(([number, type]) => ({ number, type }));
   public chosenContact3: Contact = this.contacts3[0];
-  public contacts4: Contact[] = this.contacts3.slice(0);
+  public contacts4: Contact[] = this.contacts3.slice();
   public chosenContact4: Contact = { number: 123456790, type: 'mobile' };
-  public contacts5: Contact[] = this.contacts3.slice(0);
+  public contacts5: Contact[] = this.contacts3.slice();
   public chosenContact5: Contact = { number: 123456790, type: 'mobile' };
   public matcher: (a: Contact, b: Contact) => boolean = (a: Contact, b: Contact) => a.type === b.type && a.number === b.number;
   public contacts6: string[] = this.contacts5.map(({ number, type }) => `${number}-${type}`);
   public chosenContact6: string = this.contacts6[0];
-  public contacts7: string[] = this.contacts6.slice(0);
+  public contacts7: string[] = this.contacts6.slice();
   public chosenContact7: string = this.contacts7[0];
   public likesCake: boolean;
   public noDisplayValue: string = "Don't care";
@@ -56,7 +56,7 @@ export class App {
 
   public products1: Product[] = [{ id: 0, name: 'Motherboard' }, { id: 1, name: 'CPU' }, { id: 2, name: 'Memory' }];
   public chosenProducts1: Product[] = [this.products1[0]];
-  public products2: Product[] = this.products1.slice(0);
+  public products2: Product[] = this.products1.slice();
   public chosenProducts2: Product[] = [{ id: 0, name: 'Motherboard' }];
   public productMatcher: (a: Product, b: Product) => boolean = (a, b) => a.id === b.id && a.name === b.name;
   // #endregion
@@ -68,7 +68,7 @@ export class App {
   public selectedItem1: number = 0;
   public items2: SelectOption[] = this.items1.map(({ id, displayText: name }) => ({ id: { id, name }, displayText: name }));
   public selectedItem2: Item = this.items2[0].id;
-  public items3: SelectOption[] = this.items2.slice(0);
+  public items3: SelectOption[] = this.items2.slice();
   public selectedItem3: Item = { id: 0, name: 'Motherboard' };
   public optionMatcher: (a: Item, b: Item) => boolean = (a, b) => !!a && !!b && a.id === b.id;
   public items4: SelectOption[] = this.items1.map(({ id, displayText }) => ({ id: id.toString(), displayText }));

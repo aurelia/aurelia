@@ -6,9 +6,9 @@ import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 
-describe('app', function() {
+describe.only('app', function () {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    return async function() {
+    return async function () {
       const ctx = await startup();
       try {
         await testFunction(ctx);
@@ -22,10 +22,10 @@ describe('app', function() {
   function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     it(title, createTestFunction(testFunction));
   }
-  $it.skip = function(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     it.skip(title, createTestFunction(testFunction));
   };
-  $it.only = function(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     it.only(title, createTestFunction(testFunction));
   };
 
@@ -42,13 +42,8 @@ describe('app', function() {
       assert.equal(recentCalls.has(expectedCall), false, `${message || ''} not expected ${expectedCall}`);
     }
   }
-  function wait(ms = 300) {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
-  }
 
-  $it('has some readonly texts with different binding modes', function({ host }) {
+  $it('has some readonly texts with different binding modes', function ({ host }) {
     for (let i = 0; i < 4; i++) {
       const selector = `read-only-text#text${i}`;
       assert.html.textContent(selector, `text${i}`, `incorrect text for ${selector}`, host);
@@ -56,7 +51,7 @@ describe('app', function() {
   });
 
   $it('changes in bound VM properties are correctly reflected in the read-only-texts', function ({ host, ctx }) {
-    (host.querySelector('button#staticTextChanger') as unknown as HTMLButtonElement).click();
+    ((host.querySelector('button#staticTextChanger') as unknown) as HTMLButtonElement).click();
     ctx.scheduler.getRenderTaskQueue().flush();
 
     assert.html.textContent('read-only-text#text0', 'text0', 'incorrect text for read-only-text#text0', host);
@@ -65,7 +60,7 @@ describe('app', function() {
     assert.html.textContent('read-only-text#text3', 'newText3', 'incorrect text for read-only-text#text3', host);
   });
 
-  $it('has some textual inputs with different binding modes', function({ host }) {
+  $it('has some textual inputs with different binding modes', function ({ host }) {
     const _static: HTMLInputElement = host.querySelector('#input-static input');
     const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
     const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
@@ -85,7 +80,7 @@ describe('app', function() {
     assert.html.value(blurredInputFv, '');
   });
 
-  $it('binds interpolated string to read-only-texts', function({ host, ctx }) {
+  $it('binds interpolated string to read-only-texts', function ({ host, ctx }) {
     const el = host.querySelector('#interpolated-text');
     const vm = getViewModel<App>(host);
     assert.html.textContent(el, `interpolated: ${vm.text4}${vm.text5}`, `incorrect text`);
@@ -102,7 +97,7 @@ describe('app', function() {
     assert.html.textContent(el, `interpolated: ${text1}${text2}`, `incorrect text - change2`, host);
   });
 
-  $it('changes in the text-input are reflected correctly as per binding mode', function({ host, ctx }) {
+  $it('changes in the text-input are reflected correctly as per binding mode', function ({ host, ctx }) {
     const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
     const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
     const toView: HTMLInputElement = host.querySelector('#input-to-view input');
@@ -131,7 +126,7 @@ describe('app', function() {
     assert.equal(vm.inputFromView, newInputs[3]);
   });
 
-  $it('changes in the vm property are reflected in text-inputs correctly as per binding mode', function({ host, ctx }) {
+  $it('changes in the vm property are reflected in text-inputs correctly as per binding mode', function ({ host, ctx }) {
     const newInputs = new Array(4).fill(0).map((_, i) => `new input ${i + 1}`);
     const vm = getViewModel<App>(host);
     vm.inputOneTime = newInputs[0];
@@ -152,7 +147,7 @@ describe('app', function() {
     assert.html.value(fromView, '');
   });
 
-  $it('changes in the text-input are reflected correctly according to update-trigger event', function({ host, ctx }) {
+  $it('changes in the text-input are reflected correctly according to update-trigger event', function ({ host, ctx }) {
     const twoWay: HTMLInputElement = host.querySelector('#blurred-input-two-way input');
     const fromView: HTMLInputElement = host.querySelector('#blurred-input-from-view input');
 
@@ -179,7 +174,7 @@ describe('app', function() {
     assert.equal(vm.inputBlrFv, newInputFv);
   });
 
-  $it.skip("uses specs-viewer to 'compose' display for heterogenous collection of things", function({ host }) {
+  $it.skip("uses specs-viewer to 'compose' display for heterogenous collection of things", function ({ host }) {
     const specsViewer = host.querySelector('specs-viewer');
     assert.notEqual(specsViewer, null);
     console.log(specsViewer.outerHTML);
@@ -189,7 +184,7 @@ describe('app', function() {
     assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
   });
 
-  $it("uses a user preference control that 'computes' the full name of the user correctly - static", function({ host, ctx, callCollection: { calls } }) {
+  $it("uses a user preference control that 'computes' the full name of the user correctly - static", function ({ host, ctx, callCollection: { calls } }) {
     const { user } = getViewModel<App>(host);
 
     const userPref = host.querySelector('user-preference');
@@ -234,7 +229,7 @@ describe('app', function() {
     assertCalls(calls, index, user, ['get fullNameStatic', 'get fullNameNonStatic'], ['get fullNameWrongStatic']);
   });
 
-  $it("uses a user preference control that 'computes' the organization of the user correctly - volatile", function({ host, ctx, callCollection: { calls } }) {
+  $it("uses a user preference control that 'computes' the organization of the user correctly - volatile", function ({ host, ctx, callCollection: { calls } }) {
     const { user } = getViewModel<App>(host);
 
     const userPref = host.querySelector('user-preference');
@@ -268,7 +263,7 @@ describe('app', function() {
     assertCalls(calls, index, user, ['get locationVolatile'], ['get roleNonVolatile']);
   });
 
-  $it('uses a user preference control gets dirty checked for non-configurable property', async function({ host, ctx: { lifecycle, container } }) {
+  $it('uses a user preference control gets dirty checked for non-configurable property', async function ({ host, ctx: { scheduler, lifecycle, container } }) {
     const { user } = getViewModel<App>(host);
     const userPref = host.querySelector('user-preference');
     const indeterminate = userPref.querySelector('#indeterminate');
@@ -283,39 +278,48 @@ describe('app', function() {
     // asser disable
     DirtyCheckSettings.disabled = true;
     isDirtySpy.reset();
-    await wait();
-    assert.equal(isDirtySpy.calls.length, 0);
+    await scheduler.queueMacroTask(
+      () => {
+        assert.equal(isDirtySpy.calls.length, 0);
+      },
+      { delay: 300 }
+    ).result;
     DirtyCheckSettings.disabled = false;
-    // DirtyCheckSettings.resetToDefault();
 
     // assert rate
-    // disabling the fps check due to intermittent failure
-    // lifecycle.enqueueRAF(() => {
-    //   /* noop */
-    // });
-    // lifecycle.processRAFQueue(undefined);
-    // const fps = lifecycle.FPS;
-    await wait();
-    const prevCallCount = isDirtySpy.calls.length;
-    // assert.lessThanOrEqualTo(prevCallCount, (fps / DirtyCheckSettings.framesPerCheck) * (3 / 10));
+    let prevCallCount: number;
+    await scheduler.queueMacroTask(
+      () => {
+        prevCallCount = isDirtySpy.calls.length;
+      },
+      { delay: 300 }
+    ).result;
 
     isDirtySpy.reset();
     DirtyCheckSettings.framesPerCheck = 2;
 
-    await wait();
-    assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
+    await scheduler.queueMacroTask(
+      () => {
+        assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
+      },
+      { delay: 300 }
+    ).result;
     DirtyCheckSettings.resetToDefault();
 
     // assert flush
     const flushSpy = createSpy(dirtyCheckProperty, 'flush', true);
     const newValue = 'foo';
     user.arr.indeterminate = newValue;
-    await wait();
-    assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
-    assert.equal(flushSpy.calls.length, 1);
+    await scheduler.queueMacroTask(
+      () => {
+        assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
+        assert.equal(flushSpy.calls.length, 1);
+      },
+      { delay: 300 }
+    ).result;
   });
 
-  $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model`, function({ host, ctx }) {
+  $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model`, function ({ host, ctx }) {
     const app = getViewModel<App>(host);
     const contacts = app.contacts1;
     const contactsArr = Array.from(contacts);
@@ -385,7 +389,7 @@ describe('app', function() {
     assert.equal(labels.length, 0, `expected no label ${rbl.outerHTML}`);
   });
 
-  $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked`, function({ host, ctx }) {
+  $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked`, function ({ host, ctx }) {
     const app = getViewModel<App>(host);
     const contacts = app.contacts2;
     const contactsArr = Array.from(contacts);
@@ -427,7 +431,7 @@ describe('app', function() {
     { id: 'rbl-obj-array-matcher', collProp: 'contacts4' as const, chosenProp: 'chosenContact4' as const },
     { id: 'rbl-obj-array-matcher-order', collProp: 'contacts5' as const, chosenProp: 'chosenContact5' as const }
   ].map(({ id, collProp, chosenProp }) =>
-    $it(`binds an object array to radio-button-list - ${id}`, function({ host, ctx }) {
+    $it(`binds an object array to radio-button-list - ${id}`, function ({ host, ctx }) {
       const app = getViewModel<App>(host);
       const contacts = app[collProp];
       const rbl = host.querySelector(`radio-button-list #${id}`);
@@ -463,7 +467,7 @@ describe('app', function() {
   );
 
   [{ id: 'rbl-string-array', collProp: 'contacts6' as const, chosenProp: 'chosenContact6' as const }, { id: 'rbl-string-array-order', collProp: 'contacts7' as const, chosenProp: 'chosenContact7' as const }].map(({ id, collProp, chosenProp }) =>
-    $it(`binds a string array to radio-button-list - ${id}`, function({ host, ctx }) {
+    $it(`binds a string array to radio-button-list - ${id}`, function ({ host, ctx }) {
       const app = getViewModel<App>(host);
       const contacts = app[collProp];
       const rbl = host.querySelector(`radio-button-list #${id}`);
@@ -493,7 +497,7 @@ describe('app', function() {
     })
   );
 
-  $it(`uses a tri-state-boolean`, function({ host, ctx }) {
+  $it(`uses a tri-state-boolean`, function ({ host, ctx }) {
     const app = getViewModel<App>(host);
     const tsb = host.querySelector(`tri-state-boolean`);
     const labels = toArray(tsb.querySelectorAll('label'));
@@ -518,7 +522,7 @@ describe('app', function() {
     assert.equal(app.likesCake, false, 'expected change to porapagate to vm');
   });
 
-  $it(`uses a checkbox to bind boolean consent property`, function({ host, ctx }) {
+  $it(`uses a checkbox to bind boolean consent property`, function ({ host, ctx }) {
     const app = getViewModel<App>(host);
     assert.equal(app.hasAgreed, undefined);
 
@@ -535,7 +539,7 @@ describe('app', function() {
   });
 
   [{ id: 'cbl-obj-array', collProp: 'products1' as const, chosenProp: 'chosenProducts1' as const }, { id: 'cbl-obj-array-matcher', collProp: 'products2' as const, chosenProp: 'chosenProducts2' as const }].map(({ id, collProp, chosenProp }) =>
-    $it(`binds an object array to checkbox-list - ${id}`, function({ host, ctx }) {
+    $it(`binds an object array to checkbox-list - ${id}`, function ({ host, ctx }) {
       const app = getViewModel<App>(host);
       const products = app[collProp];
       const inputs: HTMLInputElement[] = toArray(host.querySelectorAll(`checkbox-list #${id} label input[type=checkbox]`));
@@ -565,7 +569,7 @@ describe('app', function() {
       }
     })
   );
-  $it(`changes in array are reflected in checkbox-list`, function({ host, ctx }) {
+  $it(`changes in array are reflected in checkbox-list`, function ({ host, ctx }) {
     const getInputs = () => toArray(host.querySelectorAll(`checkbox-list #cbl-obj-array label input[type=checkbox]`)) as HTMLInputElement[];
     const app = getViewModel<App>(host);
     const products = app.products1;
@@ -625,7 +629,7 @@ describe('app', function() {
     assert.equal(inputs.length, 0);
   });
 
-  $it(`binds an action to the command`, function({ host, ctx }) {
+  $it(`binds an action to the command`, function ({ host, ctx }) {
     const app = getViewModel<App>(host);
     assert.equal(app.somethingDone, false);
 
@@ -634,7 +638,7 @@ describe('app', function() {
     assert.equal(app.somethingDone, true);
   });
 
-  $it(`uses a let-demo`, function({ host, ctx }) {
+  $it(`uses a let-demo`, function ({ host, ctx }) {
     const demo = host.querySelector('let-demo');
     const vm = getViewModel<LetDemo>(demo);
 
@@ -734,7 +738,7 @@ describe('app', function() {
       chosenProp: 'selectedItem4' as const
     }
   ].map(({ id, title, collProp, chosenProp }) =>
-    $it(title, function({ host, ctx }) {
+    $it(title, function ({ host, ctx }) {
       const app = getViewModel<App>(host);
       const items = app[collProp];
       const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);
@@ -788,7 +792,7 @@ describe('app', function() {
       chosenProp: 'selectedItems4' as const
     }
   ].map(({ id, title, collProp, chosenProp }) =>
-    $it(title, function({ host, ctx }) {
+    $it(title, function ({ host, ctx }) {
       const app = getViewModel<App>(host);
       const items = app[collProp];
       const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);

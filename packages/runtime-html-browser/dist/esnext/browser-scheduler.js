@@ -224,6 +224,7 @@ const createRequestIdleCallbackFlushRequestor = (function () {
         const hasNative = window.requestIdleCallback !== void 0 && window.requestIdleCallback.toString().includes('[native code]');
         return (function ($window, $flush) {
             let handle = -1;
+            const options = { timeout: 1000 }; // TODO: make this configurable
             const callFlush = function () {
                 if (handle > -1) {
                     handle = -1;
@@ -249,7 +250,7 @@ const createRequestIdleCallbackFlushRequestor = (function () {
             const request = hasNative
                 ? function () {
                     if (handle === -1) {
-                        handle = $window.requestIdleCallback(callFlush);
+                        handle = $window.requestIdleCallback(callFlush, options);
                     }
                     // eslint-disable-next-line no-extra-bind
                 }.bind(void 0)

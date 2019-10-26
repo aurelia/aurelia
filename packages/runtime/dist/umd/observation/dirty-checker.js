@@ -73,7 +73,7 @@
         addProperty(property) {
             this.tracked.push(property);
             if (this.tracked.length === 1) {
-                this.task = this.scheduler.queueIdleTask(() => this.check(), { persistent: true });
+                this.task = this.scheduler.queueRenderTask(() => this.check(), { persistent: true });
             }
         }
         removeProperty(property) {

@@ -7,73 +7,51 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
-    "lint":
-      "eslint --cache --ext .js,.ts .",
-    "test-node":
-      "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --opts mocha.opts --reporter min --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/**/*.spec.js --exclude dist/esnext/__tests__/integration/**/*.spec.js",
-    "test-node:kernel":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/1-kernel/**/*.spec.js --watch",
-    "test-node:runtime":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/2-runtime/**/*.spec.js --watch",
-    "test-node:runtime-html":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js --watch",
-    "test-node:jit":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/4-jit/**/*.spec.js --watch",
-    "test-node:jit-html":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/5-jit-html/**/*.spec.js --watch",
-    "test-node:plugin-conventions":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-conventions/**/*.spec.js --watch",
-    "test-node:plugin-gulp":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-gulp/**/*.spec.js --watch",
-    "test-node:webpack-loader":
-      "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/webpack-loader/**/*.spec.js --watch",
-    "test-chrome":
-      "karma start karma.conf.js --browsers=ChromeHeadlessOpt --single-run --coverage",
-    "test-firefox":
-      "karma start karma.conf.js --browsers=FirefoxHeadless --single-run --coverage",
-    "test-node:verbose":
-      "mocha --opts mocha.opts --reporter spec --bail setup-node.ts runtime/**/*.spec.ts",
-    "test-node:watch":
-      "npm run test-node -- --watch --watch-extensions ts",
-    "test-chrome:watch":
-      "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html",
-    "test-chrome:watch:verbose":
-      "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html --reporter=mocha",
-    "test-chrome:verbose":
-      "karma start karma.conf.js --browsers=ChromeHeadlessOpt --single-run --coverage --reporter=mocha",
-    "test-chrome:debugger":
-      "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js,html",
-    "test-chrome:debugger:verbose":
-      "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
-    "copy-html":
-      "node tasks/copy-html --verbose",
-    "build":
-      "concurrently \"tsc -b\" \"npm:copy-html\"",
-    "dev":
-      "concurrently \"tsc -b -w --preserveWatchOutput\" \"npm run copy-html -- --watch\""
+    "lint": "eslint --cache --ext .js,.ts .",
+    "test-node": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --opts mocha.opts --reporter min --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/**/*.spec.js --exclude dist/esnext/__tests__/integration/**/*.spec.js",
+    "test-node:kernel": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/1-kernel/**/*.spec.js --watch",
+    "test-node:runtime": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/2-runtime/**/*.spec.js --watch",
+    "test-node:runtime-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js --watch",
+    "test-node:jit": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/4-jit/**/*.spec.js --watch",
+    "test-node:jit-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/5-jit-html/**/*.spec.js --watch",
+    "test-node:plugin-conventions": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-conventions/**/*.spec.js --watch",
+    "test-node:plugin-gulp": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-gulp/**/*.spec.js --watch",
+    "test-node:webpack-loader": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/webpack-loader/**/*.spec.js --watch",
+    "test-chrome": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --single-run --coverage",
+    "test-firefox": "karma start karma.conf.js --browsers=FirefoxHeadless --single-run --coverage",
+    "test-node:verbose": "mocha --opts mocha.opts --reporter spec --bail setup-node.ts runtime/**/*.spec.ts",
+    "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
+    "test-chrome:watch": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html",
+    "test-chrome:watch:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js,html --reporter=mocha",
+    "test-chrome:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --single-run --coverage --reporter=mocha",
+    "test-chrome:debugger": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js,html",
+    "test-chrome:debugger:verbose": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
+    "copy-html": "node tasks/copy-html --verbose",
+    "build": "concurrently \"tsc -b\" \"npm:copy-html\"",
+    "dev": "concurrently \"tsc -b -w --preserveWatchOutput\" \"npm run copy-html -- --watch\""
   },
   "dependencies": {
-    "@aurelia/aot": "0.4.0-dev.201910260709",
-    "@aurelia/debug": "0.4.0-dev.201910260709",
-    "@aurelia/dialog": "0.4.0-dev.201910260709",
-    "@aurelia/fetch-client": "0.4.0-dev.201910260709",
-    "@aurelia/i18n": "0.4.0-dev.201910260709",
-    "@aurelia/jit-html-browser": "0.4.0-dev.201910260709",
-    "@aurelia/jit-html-jsdom": "0.4.0-dev.201910260709",
-    "@aurelia/jit-html": "0.4.0-dev.201910260709",
-    "@aurelia/jit": "0.4.0-dev.201910260709",
-    "@aurelia/kernel": "0.4.0-dev.201910260709",
-    "@aurelia/plugin-conventions": "0.4.0-dev.201910260709",
-    "@aurelia/plugin-gulp": "0.4.0-dev.201910260709",
-    "@aurelia/router": "0.4.0-dev.201910260709",
-    "@aurelia/runtime-html-browser": "0.4.0-dev.201910260709",
-    "@aurelia/runtime-html-jsdom": "0.4.0-dev.201910260709",
-    "@aurelia/runtime-html": "0.4.0-dev.201910260709",
-    "@aurelia/runtime": "0.4.0-dev.201910260709",
-    "@aurelia/store": "0.4.0-dev.201910260709",
-    "@aurelia/testing": "0.4.0-dev.201910260709",
-    "@aurelia/validation": "0.4.0-dev.201910260709",
-    "@aurelia/webpack-loader": "0.4.0-dev.201910260709",
+    "@aurelia/aot": "0.4.0-dev.201910261201",
+    "@aurelia/debug": "0.4.0-dev.201910261201",
+    "@aurelia/dialog": "0.4.0-dev.201910261201",
+    "@aurelia/fetch-client": "0.4.0-dev.201910261201",
+    "@aurelia/i18n": "0.4.0-dev.201910261201",
+    "@aurelia/jit-html-browser": "0.4.0-dev.201910261201",
+    "@aurelia/jit-html-jsdom": "0.4.0-dev.201910261201",
+    "@aurelia/jit-html": "0.4.0-dev.201910261201",
+    "@aurelia/jit": "0.4.0-dev.201910261201",
+    "@aurelia/kernel": "0.4.0-dev.201910261201",
+    "@aurelia/plugin-conventions": "0.4.0-dev.201910261201",
+    "@aurelia/plugin-gulp": "0.4.0-dev.201910261201",
+    "@aurelia/router": "0.4.0-dev.201910261201",
+    "@aurelia/runtime-html-browser": "0.4.0-dev.201910261201",
+    "@aurelia/runtime-html-jsdom": "0.4.0-dev.201910261201",
+    "@aurelia/runtime-html": "0.4.0-dev.201910261201",
+    "@aurelia/runtime": "0.4.0-dev.201910261201",
+    "@aurelia/store": "0.4.0-dev.201910261201",
+    "@aurelia/testing": "0.4.0-dev.201910261201",
+    "@aurelia/validation": "0.4.0-dev.201910261201",
+    "@aurelia/webpack-loader": "0.4.0-dev.201910261201",
     "i18next": "^17.0.0",
     "jsdom": "^15.1.1",
     "vinyl": "^2.2.0"
@@ -122,5 +100,5 @@
   },
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
-  "version": "0.4.0-dev.201910260709"
+  "version": "0.4.0-dev.201910261201"
 }

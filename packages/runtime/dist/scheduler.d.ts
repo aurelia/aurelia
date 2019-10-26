@@ -139,7 +139,7 @@ export interface ITask<T = any> {
     readonly result: Promise<T>;
     readonly status: TaskStatus;
     readonly priority: TaskQueuePriority;
-    run(delta: number): void;
+    run(): void;
     cancel(): boolean;
 }
 export declare class Task<T = any> implements ITask {
@@ -161,7 +161,7 @@ export declare class Task<T = any> implements ITask {
     readonly status: TaskStatus;
     readonly priority: TaskQueuePriority;
     constructor(taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, reusable: boolean, callback: TaskCallback<T>);
-    run(delta: number): void;
+    run(): void;
     cancel(): boolean;
     reset(time: number): void;
     reuse(time: number, delay: number, preempt: boolean, persistent: boolean, callback: TaskCallback<T>): void;

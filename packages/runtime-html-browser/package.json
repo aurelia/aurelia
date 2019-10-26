@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime-html-browser",
-  "version": "0.4.0-dev.201910260709",
+  "version": "0.4.0-dev.201910261201",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,9 +36,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201910260709",
-    "@aurelia/runtime": "0.4.0-dev.201910260709",
-    "@aurelia/runtime-html": "0.4.0-dev.201910260709"
+    "@aurelia/kernel": "0.4.0-dev.201910261201",
+    "@aurelia/runtime": "0.4.0-dev.201910261201",
+    "@aurelia/runtime-html": "0.4.0-dev.201910261201"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

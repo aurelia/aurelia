@@ -133,8 +133,7 @@ export class TaskQueue {
             this.microTaskRequestFlushTask.cancel();
             this.microTaskRequestFlushTask = null;
         }
-        const now = this.clock.now(true);
-        const delta = now - this.lastRequest;
+        this.clock.now(true);
         this.flushRequested = false;
         if (this.pendingSize > 0) {
             this.movePendingToProcessing();
@@ -143,7 +142,7 @@ export class TaskQueue {
             this.moveDelayedToProcessing();
         }
         while (this.processingSize > 0) {
-            this.processingHead.run(delta);
+            this.processingHead.run();
         }
         if (this.pendingSize > 0) {
             this.movePendingToProcessing();
@@ -573,7 +572,7 @@ export class Task {
     get status() {
         return this._status;
     }
-    run(delta) {
+    run() {
         enter(this, 'run');
         if (this._status !== 'pending') {
             leave(this, 'run error');
@@ -588,10 +587,11 @@ export class Task {
         const callback = this.callback;
         const resolve = this.resolve;
         const reject = this.reject;
+        const createdTime = this.createdTime;
         taskQueue.remove(this);
         this._status = 'running';
         try {
-            const ret = callback(delta);
+            const ret = callback(globalClock.now() - createdTime);
             if (this.persistent) {
                 taskQueue.resetPersistentTask(this);
             }

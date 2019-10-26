@@ -206,7 +206,6 @@ export {
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
 export {
-  DebounceableBinding,
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
@@ -214,7 +213,6 @@ export {
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
 export {
-  ThrottleableBinding,
   ThrottleBindingBehavior
 } from './resources/binding-behaviors/throttle';
 

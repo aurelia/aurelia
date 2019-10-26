@@ -153,7 +153,13 @@ let SetPropertyRenderer =
 /** @internal */
 class SetPropertyRenderer {
     render(flags, dom, context, renderable, target, instruction) {
-        getTarget(target)[instruction.to] = (instruction.value === '' ? true : instruction.value); // Yeah, yeah..
+        const obj = getTarget(target);
+        if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+            obj.$observers[instruction.to].setValue(instruction.value, 4096 /* fromBind */);
+        }
+        else {
+            obj[instruction.to] = instruction.value;
+        }
     }
 };
 SetPropertyRenderer = __decorate([

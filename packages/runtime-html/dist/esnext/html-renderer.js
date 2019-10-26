@@ -119,6 +119,7 @@ AttributeBindingRenderer = __decorate([
     /** @internal */
 ], AttributeBindingRenderer);
 export { AttributeBindingRenderer };
+// http://jsben.ch/7n5Kt
 function addClasses(classList, className) {
     const len = className.length;
     let start = 0;

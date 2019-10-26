@@ -202,7 +202,7 @@ describe('replaceable', function () {
             `0-item-0. Message: Aurelia.1-item-1. Message: Aurelia.`,
             async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia.',
@@ -226,7 +226,7 @@ describe('replaceable', function () {
             `0-item-0. Message: Aurelia.1-item-1. Message: Aurelia.`,
             async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia.',
@@ -257,7 +257,7 @@ describe('replaceable', function () {
             `0-item-0.1-item-1.0-item-0.1-item-1.`,
             async (ctx, host, app, foo) => {
               foo.items = createItems(3, 'ITEM');
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(
                 host.textContent,
                 `0-ITEM-0.1-ITEM-1.2-ITEM-2.`.repeat(3),
@@ -265,19 +265,19 @@ describe('replaceable', function () {
               );
 
               foo.items = [];
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '', 'host.textContent@[]');
 
               foo.items.push(...createItems(1));
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '0-item-0.', 'host.textContent@[1]');
 
               foo.items.push(...createItems(2).slice(1));
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '0-item-0.1-item-1.'.repeat(2), 'host.textContent@[1]');
 
               foo.items.sort((i1, i2) => i1.idx > i2.idx ? -1 : 1);
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '1-item-1.0-item-0.'.repeat(2), 'host.textContent@[0🔁1]');
             }
           ],
@@ -302,7 +302,7 @@ describe('replaceable', function () {
             `0-item-0.1-item-1.0-item-0.1-item-1.`,
             async (ctx, host, app, foo) => {
               foo.items = createItems(3, 'ITEM');
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(
                 host.textContent,
                 `0-ITEM-0.1-ITEM-1.2-ITEM-2.`.repeat(3),
@@ -310,19 +310,19 @@ describe('replaceable', function () {
               );
 
               foo.items = [];
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '', 'host.textContent@[]');
 
               foo.items.push(...createItems(1));
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '0-item-0.', 'host.textContent@[1]');
 
               foo.items.push(...createItems(2).slice(1));
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '0-item-0.1-item-1.'.repeat(2), 'host.textContent@[1]');
 
               foo.items.sort((i1, i2) => i1.idx > i2.idx ? -1 : 1);
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(host.textContent, '1-item-1.0-item-0.'.repeat(2), 'host.textContent@[0🔁1]');
             }
           ]

@@ -6,6 +6,7 @@ import {
   IContainer,
   IRegistry,
   Registration,
+  Constructable,
 } from '@aurelia/kernel';
 import {
   IDOM,
@@ -15,6 +16,7 @@ import {
   IRenderer,
   IRenderingEngine,
   ITemplateCompiler,
+  IScheduler,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -43,12 +45,19 @@ export class HTMLTestContext {
       this._container = DI.createContainer(this.config);
       Registration.instance(IDOM, this.dom).register(this._container);
       Registration.instance(HTMLTestContext, this).register(this._container);
+      this._container.register(this.Scheduler);
       this._container.register(DebugConfiguration);
     }
     return this._container;
   }
+  public get scheduler(): IScheduler {
+    if (this._scheduler === void 0) {
+      this._scheduler = this.container.register(this.Scheduler).get(IScheduler);
+    }
+    return this._scheduler;
+  }
   public get templateCompiler(): ITemplateCompiler {
-    if (this._templateCompiler == void 0) {
+    if (this._templateCompiler === void 0) {
       this._templateCompiler = this.container.get(ITemplateCompiler);
     }
     return this._templateCompiler;
@@ -59,7 +68,7 @@ export class HTMLTestContext {
     }
     return this._observerLocator;
   }
-  public get lifecycle(): ILifecycle & { flushCount?: number } {
+  public get lifecycle(): ILifecycle {
     if (this._lifecycle === void 0) {
       this._lifecycle = this.container.get(ILifecycle);
     }
@@ -91,6 +100,7 @@ export class HTMLTestContext {
   }
 
   private _container?: IContainer;
+  private _scheduler?: IScheduler;
   private _templateCompiler?: ITemplateCompiler;
   private _observerLocator?: IObserverLocator;
   private _lifecycle?: ILifecycle;
@@ -99,9 +109,12 @@ export class HTMLTestContext {
   private _renderingEngine?: IRenderingEngine;
   private _domParser?: HTMLDivElement;
 
+  private readonly Scheduler: Constructable<IScheduler>;
+
   private constructor(
     config: IRegistry,
     wnd: Window,
+    Scheduler: Constructable<IScheduler>,
     UIEventType: typeof UIEvent,
     EventType: typeof Event,
     CustomEventType: typeof CustomEvent,
@@ -117,6 +130,7 @@ export class HTMLTestContext {
   ) {
     this.config = config;
     this.wnd = wnd;
+    this.Scheduler = Scheduler;
     this.UIEvent = UIEventType;
     this.Event = EventType;
     this.CustomEvent = CustomEventType;
@@ -130,6 +144,7 @@ export class HTMLTestContext {
     this.doc = wnd.document;
     this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
     this._container = void 0;
+    this._scheduler = void 0;
     this._templateCompiler = void 0;
     this._observerLocator = void 0;
     this._lifecycle = void 0;
@@ -142,6 +157,7 @@ export class HTMLTestContext {
   public static create(
     config: IRegistry,
     wnd: Window,
+    Scheduler: Constructable<IScheduler>,
     UIEventType: typeof UIEvent,
     EventType: typeof Event,
     CustomEventType: typeof CustomEvent,
@@ -158,6 +174,7 @@ export class HTMLTestContext {
     return new HTMLTestContext(
       config,
       wnd,
+      Scheduler,
       UIEventType,
       EventType,
       CustomEventType,

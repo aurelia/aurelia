@@ -3,9 +3,8 @@ import {
   bindable,
   customAttribute,
   IDOM,
-  ILifecycle,
   INode,
-  Priority
+  IScheduler
 } from '@aurelia/runtime';
 import { HTMLDOM, NodeType } from '../../dom';
 
@@ -25,22 +24,19 @@ const defaultBubbleEventInit: AddEventListenerOptions = {
 const blurDocMap = new WeakMap<Document, BlurManager>();
 
 export class BlurManager {
-
-  private readonly blurs: Blur[];
+  private readonly blurs: Blur[] = [];
   private readonly handler: EventListenerObject;
 
   private constructor(
     public readonly dom: HTMLDOM,
-    public readonly lifecycle: ILifecycle
+    public readonly scheduler: IScheduler,
   ) {
     blurDocMap.set(dom.document, this);
-    this.dom = dom;
-    this.blurs = [];
     this.handler = createHandler(this, this.blurs);
   }
 
-  public static createFor(dom: HTMLDOM, lifecycle: ILifecycle): BlurManager {
-    return blurDocMap.get(dom.document) || new BlurManager(dom, lifecycle);
+  public static createFor(dom: HTMLDOM, scheduler: IScheduler): BlurManager {
+    return blurDocMap.get(dom.document) || new BlurManager(dom, scheduler);
   }
 
   public register(blur: Blur): void {
@@ -143,7 +139,7 @@ export class Blur {
   public constructor(
     @INode private readonly element: HTMLElement,
     @IDOM private readonly dom: HTMLDOM,
-    @ILifecycle lifecycle: ILifecycle
+    @IScheduler scheduler: IScheduler
   ) {
     /**
      * By default, the behavior should be least surprise possible, that:
@@ -155,7 +151,7 @@ export class Blur {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.createFor(dom, lifecycle);
+    this.manager = BlurManager.createFor(dom, scheduler);
   }
 
   public attached(): void {
@@ -318,7 +314,7 @@ const createHandler = (
   };
   const markChecked = () => {
     hasChecked = true;
-    manager.lifecycle.enqueueRAF(revertCheckage, void 0, Priority.preempt, true);
+    manager.scheduler.queueRenderTask(revertCheckage, { preempt: true });
   };
 
   const handleMousedown = (e: MouseEvent): void => {

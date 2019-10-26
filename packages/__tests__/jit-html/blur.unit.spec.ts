@@ -442,7 +442,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
               ? host.querySelector(blurHost)
               : blurHost,
             ctx.dom,
-            ctx.container.get(ILifecycle)
+            ctx.scheduler,
           );
           sut.linkedWith = linkedWith;
           sut.linkingContext = linkingContext;
@@ -467,7 +467,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
     const target = ctx.doc.body.appendChild(ctx.createElement('div'));
-    const sut = new Blur(target, ctx.dom, ctx.container.get(ILifecycle));
+    const sut = new Blur(target, ctx.dom, ctx.scheduler);
     return { ctx, target, sut, dispose: () => { target.remove(); } };
   }
 

@@ -202,7 +202,7 @@ describe('replaceable', function () {
             `0-item-0. Message: Aurelia.`,
             async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.',
@@ -226,7 +226,7 @@ describe('replaceable', function () {
             `0-item-0. Message: Aurelia.`,
             async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              ctx.lifecycle.processRAFQueue(LF.none);
+              ctx.scheduler.getRenderTaskQueue().flush();
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.',
@@ -255,7 +255,7 @@ describe('replaceable', function () {
           //   `0-item-0.`,
           //   async (ctx, host, app, foo) => {
           //     foo.items = createItems(3, 'ITEM');
-          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     ctx.scheduler.getRenderTaskQueue().flush();
           //     assert.strictEqual(
           //       host.textContent,
           //       `0-ITEM-0`,
@@ -263,7 +263,7 @@ describe('replaceable', function () {
           //     );
 
           //     foo.items = [];
-          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     ctx.scheduler.getRenderTaskQueue().flush();
           //     assert.strictEqual(
           //       host.textContent,
           //       '',
@@ -290,7 +290,7 @@ describe('replaceable', function () {
           //   `0-item-0.`,
           //   async (ctx, host, app, foo) => {
           //     foo.items = createItems(3, 'ITEM');
-          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     ctx.scheduler.getRenderTaskQueue().flush();
           //     assert.strictEqual(
           //       host.textContent,
           //       `0-ITEM-0.`,
@@ -298,7 +298,7 @@ describe('replaceable', function () {
           //     );
 
           //     foo.items = [];
-          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     ctx.scheduler.getRenderTaskQueue().flush();
           //     assert.strictEqual(host.textContent, '', 'host.textContent@[]');
           //   }
           // ]

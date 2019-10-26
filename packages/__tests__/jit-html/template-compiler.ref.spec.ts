@@ -348,7 +348,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
         comp.renderDiv = true;
-        ctx.lifecycle.processRAFQueue(0);
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },
@@ -505,14 +505,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         if (body) {
           body.focus();
         }
-        await waitForFrames(2);
       }
     });
   }
 });
-
-async function waitForFrames(frameCount: number): Promise<void> {
-  while (frameCount-- > 0) {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  }
-}

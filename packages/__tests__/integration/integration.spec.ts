@@ -55,9 +55,9 @@ describe.only('app', function() {
     }
   });
 
-  $it('changes in bound VM properties are correctly reflected in the read-only-texts', function({ host, ctx }) {
-    ((host.querySelector('button#staticTextChanger') as unknown) as HTMLButtonElement).click();
-    ctx.lifecycle.processRAFQueue(undefined);
+  $it('changes in bound VM properties are correctly reflected in the read-only-texts', function ({ host, ctx }) {
+    (host.querySelector('button#staticTextChanger') as unknown as HTMLButtonElement).click();
+    ctx.scheduler.getRenderTaskQueue().flush();
 
     assert.html.textContent('read-only-text#text0', 'text0', 'incorrect text for read-only-text#text0', host);
     assert.html.textContent('read-only-text#text1', 'text1', 'incorrect text for read-only-text#text1', host);
@@ -122,7 +122,7 @@ describe.only('app', function() {
     fromView.value = newInputs[3];
     fromView.dispatchEvent(new Event('change'));
 
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
 
     const vm = getViewModel<App>(host);
     assert.equal(vm.inputOneTime, 'input1');
@@ -139,7 +139,7 @@ describe.only('app', function() {
     vm.inputToView = newInputs[2];
     vm.inputFromView = newInputs[3];
 
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
 
     const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
     const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
@@ -166,14 +166,14 @@ describe.only('app', function() {
     twoWay.dispatchEvent(new Event('change'));
     fromView.value = newInputFv;
     fromView.dispatchEvent(new Event('change'));
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
 
     assert.notEqual(vm.inputBlrTw, newInputTw);
     assert.notEqual(vm.inputBlrFv, newInputFv);
 
     twoWay.dispatchEvent(new Event('blur'));
     fromView.dispatchEvent(new Event('blur'));
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
 
     assert.equal(vm.inputBlrTw, newInputTw);
     assert.equal(vm.inputBlrFv, newInputFv);
@@ -206,9 +206,10 @@ describe.only('app', function() {
     const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['fullNameStatic', 'fullNameNonStatic', 'fullNameWrongStatic'].includes(prop.propertyKey));
     assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
 
+
     let index = calls.length;
     user.firstName = 'Jane';
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
     assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
     assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic - fname');
@@ -217,7 +218,7 @@ describe.only('app', function() {
 
     index = calls.length;
     user.age = 10;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
     assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
     assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - age');
@@ -226,7 +227,7 @@ describe.only('app', function() {
 
     index = calls.length;
     user.lastName = 'Smith';
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
     assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
     assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - lname');
@@ -252,7 +253,7 @@ describe.only('app', function() {
     let index = calls.length;
     user.roleNonVolatile = 'Role2';
     user.locationVolatile = 'Country2';
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
     assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
     assert.greaterThan(calls.length, index);
@@ -261,7 +262,7 @@ describe.only('app', function() {
     index = calls.length;
     user.organization = 'Org2';
     user.city = 'City2';
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
     assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
     assert.greaterThan(calls.length, index);

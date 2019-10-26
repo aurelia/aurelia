@@ -47,7 +47,7 @@ describe('custom-elements', function () {
 
   // <let/>
   it('03.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
+    const { tearDown, scheduler, appHost, component } = setup(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
       class { public static isStrictBinding: boolean = true; public firstName?: string = undefined; public lastName?: string = undefined; });
     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
@@ -55,7 +55,7 @@ describe('custom-elements', function () {
     component.lastName = 'go';
 
     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
-    lifecycle.processRAFQueue(LifecycleFlags.none);
+    scheduler.getRenderTaskQueue().flush();
 
     assert.strictEqual(appHost.textContent, 'bi go', `host.textContent`);
 
@@ -65,13 +65,13 @@ describe('custom-elements', function () {
 
   // //<let [to-binding-context] />
   it('04.', async function () {
-    const { tearDown, lifecycle, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
+    const { tearDown, scheduler, appHost, component } = setup<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
       class implements Person { public static isStrictBinding: boolean = true; });
     component.firstName = 'bi';
     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
     component.lastName = 'go';
     assert.strictEqual(component.fullName, 'bi go', `component.fullName`);
-    lifecycle.processRAFQueue(LifecycleFlags.none);
+    scheduler.getRenderTaskQueue().flush();
     assert.strictEqual(appHost.textContent, 'bi go', `host.textContent`);
     await tearDown();
 
@@ -174,7 +174,7 @@ describe('custom-elements', function () {
     }
 
     const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
-    const { lifecycle, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value: string = 'w00t'; }, [...resources, TestConfiguration]);
+    const { scheduler, component, appHost, tearDown } = setup(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value: string = 'w00t'; }, [...resources, TestConfiguration]);
 
     assert.strictEqual(boundCalls, 5, `boundCalls`);
 
@@ -184,7 +184,7 @@ describe('custom-elements', function () {
     component.value = 'w00t00t';
     assert.strictEqual(current.value, 'w00t00t', `current.value`);
     assert.strictEqual(appHost.textContent, 'w00t'.repeat(6), `host.textContent`);
-    lifecycle.processRAFQueue(LifecycleFlags.none);
+    scheduler.getRenderTaskQueue().flush();
     assert.strictEqual(appHost.textContent, 'w00t00t'.repeat(6), `host.textContent`);
     await tearDown();
 

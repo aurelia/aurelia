@@ -32,8 +32,6 @@ import {
 import { Controller } from './templating/controller';
 
 export interface ISinglePageApp<THost extends INode = INode> {
-  enableTimeSlicing?: boolean;
-  adaptiveTimeSlicing?: boolean;
   strategy?: BindingStrategy;
   dom?: IDOM;
   host: THost;
@@ -165,11 +163,6 @@ export class CompositionRoot<T extends INode = INode> {
       this.host,
       this.strategy as number,
     );
-    if (config.enableTimeSlicing === true) {
-      this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
-    } else {
-      this.lifecycle.disableTimeslicing();
-    }
   }
 }
 

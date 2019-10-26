@@ -52,8 +52,10 @@ import {
   TargetedInstruction,
   CustomElementDefinition,
   ToViewBindingInstruction,
-  ITemplateCompiler
+  ITemplateCompiler,
+  IScheduler
 } from '@aurelia/runtime';
+import { TestContext } from './html-test-context';
 
 const slice = Array.prototype.slice;
 
@@ -625,13 +627,13 @@ export class AuTemplateFactory implements ITemplateFactory<AuNode> {
 }
 
 export class AuObserverLocator implements ITargetAccessorLocator, ITargetObserverLocator {
-  public getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
+  public getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
     return null!;
   }
   public overridesAccessor(obj: unknown, propertyName: string): boolean {
     return false;
   }
-  public getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor {
     return null!;
   }
   public handles(obj: unknown): boolean {
@@ -687,8 +689,10 @@ export const AuDOMConfiguration = {
     );
   },
   createContainer(): IContainer {
+    const scheduler = TestContext.createHTMLTestContext().scheduler;
     const container = DI.createContainer();
     container.register(AuDOMConfiguration);
+    Registration.instance(IScheduler, scheduler).register(container);
     return container;
   }
 };

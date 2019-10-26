@@ -22,7 +22,7 @@ import {
 } from './util';
 
 function outFile(suffix: string): string {
-  return join(`${project.path}`, 'packages', '__tests__', 'jit-html', 'generated', `template-compiler.${suffix}.spec.ts`);
+  return join(`${project.path}`, 'packages', '__tests__', '5-jit-html', 'generated', `template-compiler.${suffix}.spec.ts`);
 }
 
 interface Identifiable {

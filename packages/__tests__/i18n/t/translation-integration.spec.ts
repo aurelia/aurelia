@@ -1314,6 +1314,8 @@ describe('translation-integration', function () {
     });
 
     it('updates formatted value if rt_signal', async function () {
+      this.timeout(10000);
+
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         public dt: Date = new Date();
@@ -1322,17 +1324,12 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const app = new App();
       const { ctx } = await setup(host, app);
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            resolve();
-          },
-          3000);
-      });
-      ctx.scheduler.getRenderTaskQueue().flush();
 
-      assertTextContent(host, 'span', '3 seconds ago');
+      await ctx.scheduler.queueMacroTask(delta => {
+        ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
+      }, { delay: 3000 }).result;
     });
   });
 
@@ -1437,6 +1434,8 @@ describe('translation-integration', function () {
     });
 
     it('updates formatted value if rt_signal', async function () {
+      this.timeout(10000);
+
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         public dt: Date = new Date();
@@ -1445,17 +1444,12 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const app = new App();
       const { ctx } = await setup(host, app);
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            resolve();
-          },
-          3000);
-      });
-      ctx.scheduler.getRenderTaskQueue().flush();
 
-      assertTextContent(host, 'span', '3 seconds ago');
+      await ctx.scheduler.queueMacroTask(delta => {
+        ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
+      }, { delay: 3000 }).result;
     });
   });
 

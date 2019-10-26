@@ -253,7 +253,7 @@ const createPostRequestAnimationFrameFlushRequestor = (function () {
 })();
 
 type WindowWithIdleCallback = Window & {
-  requestIdleCallback?(cb: () => void): number;
+  requestIdleCallback?(cb: () => void, options?: { timeout: number }): number;
   cancelIdleCallback?(handle: number): void;
 };
 
@@ -270,6 +270,8 @@ const createRequestIdleCallbackFlushRequestor = (function () {
 
     return (function ($window: WindowWithIdleCallback, $flush: () => void) {
       let handle = -1;
+
+      const options = { timeout: 1000 }; // TODO: make this configurable
 
       const callFlush = function () {
         if (handle > -1) {
@@ -298,7 +300,7 @@ const createRequestIdleCallbackFlushRequestor = (function () {
       const request = hasNative
         ? function () {
           if (handle === -1) {
-            handle = $window.requestIdleCallback!(callFlush);
+            handle = $window.requestIdleCallback!(callFlush, options);
           }
           // eslint-disable-next-line no-extra-bind
         }.bind(void 0)

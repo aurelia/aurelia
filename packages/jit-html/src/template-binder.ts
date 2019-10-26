@@ -432,6 +432,7 @@ export class TemplateBinder {
     }
   }
 
+  // TODO: refactor to use render priority slots (this logic shouldn't be in the template binder)
   private ensureAttributeOrder(manifest: ElementSymbol) {
     // swap the order of checked and model/value attribute, so that the required observers are prepared for checked-observer
     const attributes = manifest.plainAttributes;

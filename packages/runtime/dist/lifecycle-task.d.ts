@@ -54,7 +54,6 @@ export interface IStartTaskManager {
 }
 export declare class StartTaskManager implements IStartTaskManager {
     private readonly locator;
-    static readonly inject: readonly Key[];
     constructor(locator: IServiceLocator);
     static register(container: IContainer): IResolver<IStartTaskManager>;
     runBeforeCreate(locator?: IServiceLocator): ILifecycleTask;

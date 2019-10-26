@@ -4,25 +4,25 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
     // "semantic error TS2742 The inferred type of 'ITemplateElementFactory' cannot be named without a reference to '@aurelia/jit/node_modules/@aurelia/kernel'. This is likely not portable. A type annotation is necessary"
     // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
     exports.ITemplateElementFactory = kernel_1.DI.createInterface('ITemplateElementFactory').noDefault();
-    const { enter, leave } = kernel_1.Profiler.createTimer('TemplateElementFactory');
     const markupCache = {};
     /**
      * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
      *
      * @internal
      */
-    class HTMLTemplateElementFactory {
+    let HTMLTemplateElementFactory = class HTMLTemplateElementFactory {
         constructor(dom) {
             this.dom = dom;
             this.template = dom.createTemplate();
@@ -66,8 +66,10 @@
             }
             return input;
         }
-    }
+    };
+    HTMLTemplateElementFactory = tslib_1.__decorate([
+        tslib_1.__param(0, runtime_1.IDOM)
+    ], HTMLTemplateElementFactory);
     exports.HTMLTemplateElementFactory = HTMLTemplateElementFactory;
-    HTMLTemplateElementFactory.inject = [runtime_1.IDOM];
 });
 //# sourceMappingURL=template-element-factory.js.map

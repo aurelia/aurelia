@@ -10,19 +10,21 @@ const { oneTime, toView, fromView } = BindingMode;
 const toViewOrOneTime = toView | oneTime;
 let PropertyBinding = class PropertyBinding {
     constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
-        connectable.assignIdTo(this);
-        this.$state = 0 /* none */;
-        this.$lifecycle = locator.get(ILifecycle);
-        this.$scope = void 0;
-        this.locator = locator;
-        this.mode = mode;
-        this.observerLocator = observerLocator;
         this.sourceExpression = sourceExpression;
         this.target = target;
         this.targetProperty = targetProperty;
+        this.mode = mode;
+        this.observerLocator = observerLocator;
+        this.locator = locator;
+        this.$state = 0 /* none */;
+        this.$scope = void 0;
         this.targetObserver = void 0;
         this.persistentFlags = 0 /* none */;
+        connectable.assignIdTo(this);
+        this.$lifecycle = locator.get(ILifecycle);
     }
+    ;
+    ;
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
         this.targetObserver.setValue(value, flags);

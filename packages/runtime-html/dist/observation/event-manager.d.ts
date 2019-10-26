@@ -8,9 +8,9 @@ export interface IManagedEvent extends Event {
 }
 export declare class ListenerTracker {
     private readonly dom;
-    private readonly capture;
     private readonly eventName;
     private readonly listener;
+    private readonly capture;
     private count;
     constructor(dom: IDOM, eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean);
     increment(): void;
@@ -34,10 +34,10 @@ export declare class DelegateOrCaptureSubscription implements IDisposable {
  * Enable dispose() pattern for addEventListener for `trigger`
  */
 export declare class TriggerSubscription implements IDisposable {
+    private readonly dom;
     target: Node;
     targetEvent: string;
     callback: EventListenerOrEventListenerObject;
-    private readonly dom;
     constructor(dom: IDOM, target: Node, targetEvent: string, callback: EventListenerOrEventListenerObject);
     dispose(): void;
 }

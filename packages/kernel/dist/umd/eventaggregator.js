@@ -15,7 +15,11 @@
      * Represents a handler for an EventAggregator event.
      */
     class Handler {
-        constructor(messageType, callback) {
+        constructor(
+        /** @internal */
+        messageType, 
+        /** @internal */
+        callback) {
             this.messageType = messageType;
             this.callback = callback;
         }
@@ -46,11 +50,10 @@
      * Enables loosely coupled publish/subscribe messaging.
      */
     class EventAggregator {
-        /**
-         * Creates an instance of the EventAggregator class.
-         */
         constructor() {
+            /** @internal */
             this.eventLookup = {};
+            /** @internal */
             this.messageHandlers = [];
         }
         publish(channelOrInstance, data) {

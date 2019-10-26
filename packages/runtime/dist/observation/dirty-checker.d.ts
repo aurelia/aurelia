@@ -44,11 +44,11 @@ export declare const DirtyCheckSettings: {
 export interface DirtyCheckProperty extends IBindingTargetObserver {
 }
 export declare class DirtyCheckProperty implements DirtyCheckProperty {
-    obj: IObservable & IIndexable;
-    oldValue: unknown;
-    propertyKey: string;
     private readonly dirtyChecker;
-    constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string);
+    obj: IObservable & IIndexable;
+    propertyKey: string;
+    oldValue: unknown;
+    constructor(dirtyChecker: IDirtyChecker, obj: IObservable & IIndexable, propertyKey: string);
     isDirty(): boolean;
     flush(flags: LifecycleFlags): void;
     subscribe(subscriber: ISubscriber): void;

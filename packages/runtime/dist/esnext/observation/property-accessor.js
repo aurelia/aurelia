@@ -1,4 +1,3 @@
-const slice = Array.prototype.slice;
 export class PropertyAccessor {
     constructor(obj, propertyKey) {
         this.obj = obj;

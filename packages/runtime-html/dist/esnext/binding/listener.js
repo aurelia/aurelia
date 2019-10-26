@@ -1,19 +1,18 @@
 import { hasBind, hasUnbind } from '@aurelia/runtime';
-const slice = Array.prototype.slice;
 /**
  * Listener binding. Handle event binding between view and view model
  */
 export class Listener {
     constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
         this.dom = dom;
-        this.$state = 0 /* none */;
+        this.targetEvent = targetEvent;
         this.delegationStrategy = delegationStrategy;
-        this.locator = locator;
-        this.preventDefault = preventDefault;
         this.sourceExpression = sourceExpression;
         this.target = target;
-        this.targetEvent = targetEvent;
+        this.preventDefault = preventDefault;
         this.eventManager = eventManager;
+        this.locator = locator;
+        this.$state = 0 /* none */;
     }
     callSource(event) {
         const overrideContext = this.$scope.overrideContext;

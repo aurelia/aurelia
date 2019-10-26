@@ -10,14 +10,13 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const ast_1 = require("./ast");
-    const slice = Array.prototype.slice;
     class RefBinding {
         constructor(sourceExpression, target, locator) {
-            this.$state = 0 /* none */;
-            this.$scope = void 0;
-            this.locator = locator;
             this.sourceExpression = sourceExpression;
             this.target = target;
+            this.locator = locator;
+            this.$state = 0 /* none */;
+            this.$scope = void 0;
         }
         $bind(flags, scope, part) {
             if (this.$state & 4 /* isBound */) {

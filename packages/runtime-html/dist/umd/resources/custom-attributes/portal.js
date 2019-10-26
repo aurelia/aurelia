@@ -27,13 +27,13 @@
             this.originalLoc = originalLoc;
             this.dom = dom;
             this.id = kernel_1.nextId('au$component');
+            this.strict = false;
+            this.task = runtime_1.LifecycleTask.done;
             // to make the shape of this object consistent.
             // todo: is this necessary
             this.currentTarget = dom.createElement('div');
-            this.task = runtime_1.LifecycleTask.done;
             this.view = this.factory.create();
             this.view.hold(originalLoc, 1 /* insertBefore */);
-            this.strict = false;
         }
         binding(flags) {
             if (this.callbackContext == null) {

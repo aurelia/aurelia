@@ -717,7 +717,7 @@ export class ParameterizedRegistry {
         }
     }
 }
-export const Registration = Object.freeze({
+export const Registration = {
     instance(key, value) {
         return new Resolver(key, 0 /* instance */, value);
     },
@@ -736,7 +736,7 @@ export const Registration = Object.freeze({
     defer(key, ...params) {
         return new ParameterizedRegistry(key, params);
     }
-});
+};
 export class InstanceProvider {
     constructor() {
         this.instance = null;

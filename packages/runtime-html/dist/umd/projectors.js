@@ -37,10 +37,12 @@
     const childObserverOptions = { childList: true };
     /** @internal */
     class ShadowDOMProjector {
-        constructor(dom, $controller, host, definition) {
+        constructor(dom, 
+        // eslint-disable-next-line @typescript-eslint/prefer-readonly
+        $controller, host, definition) {
             this.dom = dom;
-            this.host = host;
             this.$controller = $controller;
+            this.host = host;
             let shadowOptions;
             if (definition.shadowOptions instanceof Object &&
                 'mode' in definition.shadowOptions) {
@@ -112,7 +114,7 @@
     class HostProjector {
         constructor($controller, host) {
             this.host = host;
-            this.host.$controller = $controller;
+            host.$controller = $controller;
         }
         get children() {
             return this.host.childNodes;

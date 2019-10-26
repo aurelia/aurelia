@@ -1,4 +1,3 @@
-import { Key } from '@aurelia/kernel';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor } from './interfaces';
@@ -6,7 +5,7 @@ import { Interceptor } from './interfaces';
  * An HTTP client based on the Fetch API.
  */
 export declare class HttpClient {
-    static readonly inject: readonly Key[];
+    private readonly dom;
     /**
      * The current number of active requests.
      * Requests being processed by interceptors are considered active.
@@ -32,7 +31,6 @@ export declare class HttpClient {
      * The interceptors to be run during requests.
      */
     interceptors: Interceptor[];
-    private readonly dom;
     /**
      * Creates an instance of HttpClient.
      */

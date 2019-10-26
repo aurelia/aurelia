@@ -12,7 +12,6 @@
     const kernel_1 = require("@aurelia/kernel");
     const proxy_observer_1 = require("./proxy-observer");
     const setter_observer_1 = require("./setter-observer");
-    const slice = Array.prototype.slice;
     var RuntimeError;
     (function (RuntimeError) {
         RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";

@@ -4,17 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "./browser-scheduler"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "./browser-scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const browser_scheduler_1 = require("./browser-scheduler");
     exports.BrowserScheduler = browser_scheduler_1.BrowserScheduler;
-    class BrowserDOMInitializer {
+    let BrowserDOMInitializer = class BrowserDOMInitializer {
         constructor(container) {
             this.container = container;
         }
@@ -49,9 +50,11 @@
             }
             return dom;
         }
-    }
+    };
+    BrowserDOMInitializer = tslib_1.__decorate([
+        tslib_1.__param(0, kernel_1.IContainer)
+    ], BrowserDOMInitializer);
     exports.BrowserDOMInitializer = BrowserDOMInitializer;
-    BrowserDOMInitializer.inject = [kernel_1.IContainer];
     exports.IDOMInitializerRegistration = BrowserDOMInitializer;
     exports.IBrowserSchedulerRegistration = browser_scheduler_1.BrowserScheduler;
     /**

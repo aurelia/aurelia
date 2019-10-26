@@ -4,13 +4,13 @@ import { CustomElement, CustomElementDefinition } from '../resources/custom-elem
 import { Controller } from './controller';
 export class ViewFactory {
     constructor(name, template, lifecycle) {
-        this.isCaching = false;
-        this.cacheSize = -1;
-        this.cache = null;
-        this.lifecycle = lifecycle;
         this.name = name;
         this.template = template;
+        this.lifecycle = lifecycle;
+        this.isCaching = false;
         this.parts = PLATFORM.emptyObject;
+        this.cache = null;
+        this.cacheSize = -1;
     }
     get parentContextId() {
         return this.template.renderContext.parentId;

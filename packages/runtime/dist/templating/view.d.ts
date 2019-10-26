@@ -6,15 +6,15 @@ import { ITemplate } from '../rendering-engine';
 import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { PartialCustomElementDefinitionParts } from '../definitions';
 export declare class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
+    name: string;
+    private readonly template;
+    private readonly lifecycle;
     static maxCacheSize: number;
     readonly parentContextId: number;
     isCaching: boolean;
-    name: string;
     parts: PartialCustomElementDefinitionParts;
     private cache;
     private cacheSize;
-    private readonly lifecycle;
-    private readonly template;
     constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle);
     setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
     canReturnToCache(controller: IController<T>): boolean;

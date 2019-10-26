@@ -58,8 +58,8 @@ export class CharSpec {
 }
 export class Interpretation {
     constructor() {
-        this._pattern = '';
         this.parts = PLATFORM.emptyArray;
+        this._pattern = '';
         this.currentRecord = {};
         this.partsRecord = {};
     }
@@ -111,8 +111,8 @@ export class State {
         this.charSpec = charSpec;
         this.nextStates = [];
         this.types = null;
-        this.patterns = patterns;
         this.isEndpoint = false;
+        this.patterns = patterns;
     }
     get pattern() {
         return this.isEndpoint ? this.patterns[0] : null;
@@ -177,6 +177,7 @@ export class State {
 /** @internal */
 export class StaticSegment {
     constructor(text) {
+        this.text = text;
         this.text = text;
         const len = this.len = text.length;
         const specs = this.specs = [];

@@ -189,6 +189,7 @@ export declare class DetachedQueue implements IAutoProcessingQueue<IController> 
 }
 export declare class MountQueue implements IProcessingQueue<IController> {
     readonly lifecycle: ILifecycle;
+    depth: number;
     head?: IController;
     tail?: IController;
     constructor(lifecycle: ILifecycle);
@@ -225,7 +226,6 @@ export declare class Lifecycle implements ILifecycle {
     readonly unbound: IAutoProcessingQueue<IController>;
     readonly attached: IAutoProcessingQueue<IController>;
     readonly detached: IAutoProcessingQueue<IController>;
-    constructor();
     static register(container: IContainer): IResolver<ILifecycle>;
 }
 //# sourceMappingURL=lifecycle.d.ts.map

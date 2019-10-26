@@ -35,11 +35,11 @@
             this.mode = mode;
             this.observerLocator = observerLocator;
             this.locator = locator;
-            runtime_1.connectable.assignIdTo(this);
             this.$state = 0 /* none */;
-            this.$scheduler = locator.get(runtime_1.IScheduler);
             this.$scope = null;
             this.persistentFlags = 0 /* none */;
+            runtime_1.connectable.assignIdTo(this);
+            this.$scheduler = locator.get(runtime_1.IScheduler);
         }
         updateTarget(value, flags) {
             flags |= this.persistentFlags;

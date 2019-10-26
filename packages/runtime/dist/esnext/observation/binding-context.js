@@ -1,7 +1,6 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
-const slice = Array.prototype.slice;
 var RuntimeError;
 (function (RuntimeError) {
     RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";

@@ -2,19 +2,18 @@ import { __decorate } from "tslib";
 import { Reporter, } from '@aurelia/kernel';
 import { ILifecycle, } from '../lifecycle';
 import { connectable, } from './connectable';
-const slice = Array.prototype.slice;
 let LetBinding = class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
-        connectable.assignIdTo(this);
-        this.$state = 0 /* none */;
-        this.$lifecycle = locator.get(ILifecycle);
-        this.$scope = void 0;
-        this.locator = locator;
-        this.observerLocator = observerLocator;
         this.sourceExpression = sourceExpression;
-        this.target = null;
         this.targetProperty = targetProperty;
+        this.observerLocator = observerLocator;
+        this.locator = locator;
         this.toBindingContext = toBindingContext;
+        this.$state = 0 /* none */;
+        this.$scope = void 0;
+        this.target = null;
+        connectable.assignIdTo(this);
+        this.$lifecycle = locator.get(ILifecycle);
     }
     handleChange(_newValue, _previousValue, flags) {
         if (!(this.$state & 4 /* isBound */)) {

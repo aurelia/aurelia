@@ -76,10 +76,10 @@
     class ListenerTracker {
         constructor(dom, eventName, listener, capture) {
             this.dom = dom;
-            this.capture = capture;
-            this.count = 0;
             this.eventName = eventName;
             this.listener = listener;
+            this.capture = capture;
+            this.count = 0;
         }
         increment() {
             this.count++;
@@ -166,8 +166,6 @@
     /** @internal */
     class EventManager {
         constructor() {
-            this.delegatedHandlers = {};
-            this.capturedHandlers = {};
             this.delegatedHandlers = {};
             this.capturedHandlers = {};
         }

@@ -37,10 +37,12 @@
             runtime_1.addBinding(renderable, binding);
         }
     };
-    TextBindingRenderer.inject = [runtime_1.IExpressionParser, runtime_1.IObserverLocator];
     TextBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer("ha" /* textBinding */)
         /** @internal */
+        ,
+        tslib_1.__param(0, runtime_1.IExpressionParser),
+        tslib_1.__param(1, runtime_1.IObserverLocator)
     ], TextBindingRenderer);
     exports.TextBindingRenderer = TextBindingRenderer;
     let ListenerBindingRenderer = 
@@ -56,10 +58,12 @@
             runtime_1.addBinding(renderable, binding);
         }
     };
-    ListenerBindingRenderer.inject = [runtime_1.IExpressionParser, event_manager_1.IEventManager];
     ListenerBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer("hb" /* listenerBinding */)
         /** @internal */
+        ,
+        tslib_1.__param(0, runtime_1.IExpressionParser),
+        tslib_1.__param(1, event_manager_1.IEventManager)
     ], ListenerBindingRenderer);
     exports.ListenerBindingRenderer = ListenerBindingRenderer;
     let SetAttributeRenderer = 
@@ -105,10 +109,12 @@
             runtime_1.addBinding(renderable, binding);
         }
     };
-    StylePropertyBindingRenderer.inject = [runtime_1.IExpressionParser, runtime_1.IObserverLocator];
     StylePropertyBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer("hd" /* stylePropertyBinding */)
         /** @internal */
+        ,
+        tslib_1.__param(0, runtime_1.IExpressionParser),
+        tslib_1.__param(1, runtime_1.IObserverLocator)
     ], StylePropertyBindingRenderer);
     exports.StylePropertyBindingRenderer = StylePropertyBindingRenderer;
     let AttributeBindingRenderer = 
@@ -124,10 +130,12 @@
             runtime_1.addBinding(renderable, binding);
         }
     };
-    AttributeBindingRenderer.inject = [runtime_1.IExpressionParser, runtime_1.IObserverLocator];
     AttributeBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer("hc" /* attributeBinding */)
         /** @internal */
+        ,
+        tslib_1.__param(0, runtime_1.IExpressionParser),
+        tslib_1.__param(1, runtime_1.IObserverLocator)
     ], AttributeBindingRenderer);
     exports.AttributeBindingRenderer = AttributeBindingRenderer;
     // http://jsben.ch/7n5Kt

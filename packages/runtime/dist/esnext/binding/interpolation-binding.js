@@ -4,14 +4,14 @@ import { connectable, } from './connectable';
 const { toView, oneTime } = BindingMode;
 export class MultiInterpolationBinding {
     constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
-        this.$state = 0 /* none */;
-        this.$scope = void 0;
-        this.interpolation = interpolation;
-        this.locator = locator;
-        this.mode = mode;
         this.observerLocator = observerLocator;
+        this.interpolation = interpolation;
         this.target = target;
         this.targetProperty = targetProperty;
+        this.mode = mode;
+        this.locator = locator;
+        this.$state = 0 /* none */;
+        this.$scope = void 0;
         // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
         // value converters and binding behaviors.
         // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
@@ -22,6 +22,7 @@ export class MultiInterpolationBinding {
             parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
         }
     }
+    ;
     $bind(flags, scope, part) {
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
@@ -51,16 +52,16 @@ export class MultiInterpolationBinding {
 }
 let InterpolationBinding = class InterpolationBinding {
     constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
-        connectable.assignIdTo(this);
-        this.$state = 0 /* none */;
-        this.interpolation = interpolation;
-        this.isFirst = isFirst;
-        this.mode = mode;
-        this.locator = locator;
-        this.observerLocator = observerLocator;
         this.sourceExpression = sourceExpression;
+        this.interpolation = interpolation;
         this.target = target;
         this.targetProperty = targetProperty;
+        this.mode = mode;
+        this.observerLocator = observerLocator;
+        this.locator = locator;
+        this.isFirst = isFirst;
+        this.$state = 0 /* none */;
+        connectable.assignIdTo(this);
         this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
     }
     updateTarget(value, flags) {

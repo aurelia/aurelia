@@ -70,8 +70,8 @@
     exports.CharSpec = CharSpec;
     class Interpretation {
         constructor() {
-            this._pattern = '';
             this.parts = kernel_1.PLATFORM.emptyArray;
+            this._pattern = '';
             this.currentRecord = {};
             this.partsRecord = {};
         }
@@ -124,8 +124,8 @@
             this.charSpec = charSpec;
             this.nextStates = [];
             this.types = null;
-            this.patterns = patterns;
             this.isEndpoint = false;
+            this.patterns = patterns;
         }
         get pattern() {
             return this.isEndpoint ? this.patterns[0] : null;
@@ -191,6 +191,7 @@
     /** @internal */
     class StaticSegment {
         constructor(text) {
+            this.text = text;
             this.text = text;
             const len = this.len = text.length;
             const specs = this.specs = [];

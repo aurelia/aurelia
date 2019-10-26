@@ -8,16 +8,16 @@ export interface Listener extends IConnectableBinding {
  */
 export declare class Listener implements IBinding {
     dom: IDOM;
+    targetEvent: string;
+    delegationStrategy: DelegationStrategy;
+    sourceExpression: IsBindingBehavior;
+    target: Node;
+    preventDefault: boolean;
+    eventManager: IEventManager;
+    locator: IServiceLocator;
     $state: State;
     $scope: IScope;
     part?: string;
-    delegationStrategy: DelegationStrategy;
-    locator: IServiceLocator;
-    preventDefault: boolean;
-    sourceExpression: IsBindingBehavior;
-    target: Node;
-    targetEvent: string;
-    private readonly eventManager;
     private handler;
     constructor(dom: IDOM, targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: Node, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator);
     callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']>;

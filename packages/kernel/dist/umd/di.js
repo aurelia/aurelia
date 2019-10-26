@@ -735,7 +735,7 @@
         }
     }
     exports.ParameterizedRegistry = ParameterizedRegistry;
-    exports.Registration = Object.freeze({
+    exports.Registration = {
         instance(key, value) {
             return new Resolver(key, 0 /* instance */, value);
         },
@@ -754,7 +754,7 @@
         defer(key, ...params) {
             return new ParameterizedRegistry(key, params);
         }
-    });
+    };
     class InstanceProvider {
         constructor() {
             this.instance = null;

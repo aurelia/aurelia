@@ -440,7 +440,8 @@
         kernel_1.bound
     ], BrowserScheduler.prototype, "yieldAll", null);
     BrowserScheduler = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IClock), tslib_1.__param(1, runtime_1.IDOM)
+        tslib_1.__param(0, runtime_1.IClock),
+        tslib_1.__param(1, runtime_1.IDOM)
     ], BrowserScheduler);
     exports.BrowserScheduler = BrowserScheduler;
 });

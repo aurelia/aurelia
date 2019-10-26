@@ -64,10 +64,10 @@ function handleDelegatedEvent(event) {
 export class ListenerTracker {
     constructor(dom, eventName, listener, capture) {
         this.dom = dom;
-        this.capture = capture;
-        this.count = 0;
         this.eventName = eventName;
         this.listener = listener;
+        this.capture = capture;
+        this.count = 0;
     }
     increment() {
         this.count++;
@@ -150,8 +150,6 @@ export const IEventManager = DI.createInterface('IEventManager').withDefault(x =
 /** @internal */
 export class EventManager {
     constructor() {
-        this.delegatedHandlers = {};
-        this.capturedHandlers = {};
         this.delegatedHandlers = {};
         this.capturedHandlers = {};
     }

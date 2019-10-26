@@ -18,14 +18,14 @@ export declare const enum NodeType {
  * IDOM implementation for Html.
  */
 export declare class HTMLDOM implements IDOM {
+    readonly window: Window;
+    readonly document: Document;
     readonly Node: typeof Node;
     readonly Element: typeof Element;
     readonly HTMLElement: typeof HTMLElement;
     readonly CustomEvent: typeof CustomEvent;
     readonly CSSStyleSheet: typeof CSSStyleSheet;
     readonly ShadowRoot: typeof ShadowRoot;
-    readonly window: Window;
-    readonly document: Document;
     constructor(window: Window, document: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement, TCustomEvent: typeof CustomEvent, TCSSStyleSheet: typeof CSSStyleSheet, TShadowRoot: typeof ShadowRoot);
     static register(container: IContainer): IResolver<IDOM>;
     addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void;

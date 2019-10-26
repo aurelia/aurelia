@@ -137,17 +137,17 @@
     exports.RenderingEngine = RenderingEngine;
     /** @internal */
     let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
-        constructor(controller, viewModel, flags, propertyName, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
-            this.propertyKey = propertyName;
-            this.obj = viewModel;
-            this.callback = viewModel[cbName];
+        constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
+            this.controller = controller;
+            this.obj = obj;
+            this.propertyKey = propertyKey;
             this.query = query;
             this.filter = filter;
             this.map = map;
             this.options = options;
-            this.children = (void 0);
-            this.controller = controller;
             this.observing = false;
+            this.children = (void 0);
+            this.callback = obj[cbName];
             this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
             this.createGetterSetter();
         }

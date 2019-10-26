@@ -4,10 +4,10 @@ declare type Indexable = Record<string | number, unknown>;
 export interface ProxySubscriberCollection extends IPropertyObserver<Indexable, string> {
 }
 export declare class ProxySubscriberCollection<TObj extends object = object> implements ProxySubscriberCollection<TObj> {
-    inBatch: boolean;
     readonly proxy: IProxy<TObj>;
     readonly raw: TObj;
     readonly key: string | number;
+    inBatch: boolean;
     constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number);
     setValue(value: unknown, flags?: LifecycleFlags): void;
     getValue(): unknown;

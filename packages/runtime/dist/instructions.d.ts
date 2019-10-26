@@ -1,55 +1,55 @@
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, TargetedInstructionType, PartialCustomElementDefinitionParts } from './definitions';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, TargetedInstructionType } from './definitions';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition } from './resources/custom-element';
 export declare class InterpolationInstruction implements IInterpolationInstruction {
-    type: TargetedInstructionType.interpolation;
     from: string | IInterpolationExpression;
     to: string;
+    type: TargetedInstructionType.interpolation;
     constructor(from: string | IInterpolationExpression, to: string);
 }
 export declare class OneTimeBindingInstruction implements IPropertyBindingInstruction {
-    type: TargetedInstructionType.propertyBinding;
     from: string | IsBindingBehavior;
+    to: string;
+    type: TargetedInstructionType.propertyBinding;
     mode: BindingMode.oneTime;
     oneTime: true;
-    to: string;
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class ToViewBindingInstruction implements IPropertyBindingInstruction {
-    type: TargetedInstructionType.propertyBinding;
     from: string | IsBindingBehavior;
+    to: string;
+    type: TargetedInstructionType.propertyBinding;
     mode: BindingMode.toView;
     oneTime: false;
-    to: string;
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class FromViewBindingInstruction implements IPropertyBindingInstruction {
-    type: TargetedInstructionType.propertyBinding;
     from: string | IsBindingBehavior;
+    to: string;
+    type: TargetedInstructionType.propertyBinding;
     mode: BindingMode.fromView;
     oneTime: false;
-    to: string;
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class TwoWayBindingInstruction implements IPropertyBindingInstruction {
-    type: TargetedInstructionType.propertyBinding;
     from: string | IsBindingBehavior;
+    to: string;
+    type: TargetedInstructionType.propertyBinding;
     mode: BindingMode.twoWay;
     oneTime: false;
-    to: string;
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class IteratorBindingInstruction implements IIteratorBindingInstruction {
-    type: TargetedInstructionType.iteratorBinding;
     from: string | IForOfStatement;
     to: string;
+    type: TargetedInstructionType.iteratorBinding;
     constructor(from: string | IForOfStatement, to: string);
 }
 export declare class CallBindingInstruction implements ICallBindingInstruction {
-    type: TargetedInstructionType.callBinding;
     from: string | IsBindingBehavior;
     to: string;
+    type: TargetedInstructionType.callBinding;
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class RefBindingInstruction implements IRefBindingInstruction {
@@ -59,43 +59,115 @@ export declare class RefBindingInstruction implements IRefBindingInstruction {
     constructor(from: string | IsBindingBehavior, to: string);
 }
 export declare class SetPropertyInstruction implements ISetPropertyInstruction {
-    type: TargetedInstructionType.setProperty;
-    to: string;
     value: unknown;
+    to: string;
+    type: TargetedInstructionType.setProperty;
     constructor(value: unknown, to: string);
 }
 export declare class HydrateElementInstruction implements IHydrateElementInstruction {
-    type: TargetedInstructionType.hydrateElement;
-    instructions: ITargetedInstruction[];
-    parts?: PartialCustomElementDefinitionParts;
     res: string;
-    constructor(res: string, instructions: ITargetedInstruction[], parts?: PartialCustomElementDefinitionParts);
+    instructions: ITargetedInstruction[];
+    parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
+        readonly cache?: number | "*" | undefined;
+        readonly template?: unknown;
+        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
+        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly needsCompile?: boolean | undefined;
+        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
+        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
+        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
+        readonly containerless?: boolean | undefined;
+        readonly isStrictBinding?: boolean | undefined;
+        readonly shadowOptions?: {
+            mode: "open" | "closed";
+        } | null | undefined;
+        readonly hasSlots?: boolean | undefined;
+        readonly strategy?: import("./flags").BindingStrategy | undefined;
+        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
+        readonly scopeParts?: readonly string[] | undefined;
+    }>> | undefined;
+    type: TargetedInstructionType.hydrateElement;
+    constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
+        readonly cache?: number | "*" | undefined;
+        readonly template?: unknown;
+        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
+        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly needsCompile?: boolean | undefined;
+        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
+        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
+        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
+        readonly containerless?: boolean | undefined;
+        readonly isStrictBinding?: boolean | undefined;
+        readonly shadowOptions?: {
+            mode: "open" | "closed";
+        } | null | undefined;
+        readonly hasSlots?: boolean | undefined;
+        readonly strategy?: import("./flags").BindingStrategy | undefined;
+        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
+        readonly scopeParts?: readonly string[] | undefined;
+    }>> | undefined);
 }
 export declare class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
-    type: TargetedInstructionType.hydrateAttribute;
-    instructions: ITargetedInstruction[];
     res: string;
+    instructions: ITargetedInstruction[];
+    type: TargetedInstructionType.hydrateAttribute;
     constructor(res: string, instructions: ITargetedInstruction[]);
 }
 export declare class HydrateTemplateController implements IHydrateTemplateController {
-    type: TargetedInstructionType.hydrateTemplateController;
     def: PartialCustomElementDefinition;
-    instructions: ITargetedInstruction[];
-    link?: boolean;
-    parts?: PartialCustomElementDefinitionParts;
     res: string;
-    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean, parts?: PartialCustomElementDefinitionParts);
+    instructions: ITargetedInstruction[];
+    link?: boolean | undefined;
+    parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
+        readonly cache?: number | "*" | undefined;
+        readonly template?: unknown;
+        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
+        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly needsCompile?: boolean | undefined;
+        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
+        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
+        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
+        readonly containerless?: boolean | undefined;
+        readonly isStrictBinding?: boolean | undefined;
+        readonly shadowOptions?: {
+            mode: "open" | "closed";
+        } | null | undefined;
+        readonly hasSlots?: boolean | undefined;
+        readonly strategy?: import("./flags").BindingStrategy | undefined;
+        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
+        readonly scopeParts?: readonly string[] | undefined;
+    }>> | undefined;
+    type: TargetedInstructionType.hydrateTemplateController;
+    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean | undefined, parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
+        readonly cache?: number | "*" | undefined;
+        readonly template?: unknown;
+        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
+        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly needsCompile?: boolean | undefined;
+        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
+        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
+        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
+        readonly containerless?: boolean | undefined;
+        readonly isStrictBinding?: boolean | undefined;
+        readonly shadowOptions?: {
+            mode: "open" | "closed";
+        } | null | undefined;
+        readonly hasSlots?: boolean | undefined;
+        readonly strategy?: import("./flags").BindingStrategy | undefined;
+        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
+        readonly scopeParts?: readonly string[] | undefined;
+    }>> | undefined);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
-    type: TargetedInstructionType.hydrateLetElement;
     instructions: ILetBindingInstruction[];
     toBindingContext: boolean;
+    type: TargetedInstructionType.hydrateLetElement;
     constructor(instructions: ILetBindingInstruction[], toBindingContext: boolean);
 }
 export declare class LetBindingInstruction implements ILetBindingInstruction {
-    type: TargetedInstructionType.letBinding;
     from: string | IsBindingBehavior | IInterpolationExpression;
     to: string;
+    type: TargetedInstructionType.letBinding;
     constructor(from: string | IsBindingBehavior | IInterpolationExpression, to: string);
 }
 //# sourceMappingURL=instructions.d.ts.map

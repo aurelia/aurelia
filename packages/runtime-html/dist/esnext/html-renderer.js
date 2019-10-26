@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __param } from "tslib";
 import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -26,10 +26,12 @@ class TextBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-TextBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 TextBindingRenderer = __decorate([
     instructionRenderer("ha" /* textBinding */)
     /** @internal */
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], TextBindingRenderer);
 export { TextBindingRenderer };
 let ListenerBindingRenderer = 
@@ -45,10 +47,12 @@ class ListenerBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-ListenerBindingRenderer.inject = [IExpressionParser, IEventManager];
 ListenerBindingRenderer = __decorate([
     instructionRenderer("hb" /* listenerBinding */)
     /** @internal */
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IEventManager)
 ], ListenerBindingRenderer);
 export { ListenerBindingRenderer };
 let SetAttributeRenderer = 
@@ -94,10 +98,12 @@ class StylePropertyBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 StylePropertyBindingRenderer = __decorate([
     instructionRenderer("hd" /* stylePropertyBinding */)
     /** @internal */
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], StylePropertyBindingRenderer);
 export { StylePropertyBindingRenderer };
 let AttributeBindingRenderer = 
@@ -113,10 +119,12 @@ class AttributeBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-AttributeBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 AttributeBindingRenderer = __decorate([
     instructionRenderer("hc" /* attributeBinding */)
     /** @internal */
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator)
 ], AttributeBindingRenderer);
 export { AttributeBindingRenderer };
 // http://jsben.ch/7n5Kt

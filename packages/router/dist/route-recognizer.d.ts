@@ -90,7 +90,6 @@ export declare class RouteRecognizer {
     rootState: State;
     names: Record<string, RouteGenerator>;
     routes: Map<RouteHandler, RouteGenerator>;
-    constructor();
     /**
      * Parse a route pattern and add it to the collection of recognized routes.
      *

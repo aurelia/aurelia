@@ -1,7 +1,6 @@
-import { Profiler, Reporter } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, CustomExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression } from '@aurelia/runtime';
 import { unescapeCode } from './common';
-const { enter, leave } = Profiler.createTimer('ExpressionParser');
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
@@ -11,15 +10,15 @@ const $parent = AccessThisExpression.$parent;
 /** @internal */
 export class ParserState {
     constructor(input) {
+        this.input = input;
         this.index = 0;
         this.startIndex = 0;
         this.lastIndex = 0;
-        this.input = input;
-        this.length = input.length;
         this.currentToken = 1572864 /* EOF */;
         this.tokenValue = '';
-        this.currentChar = input.charCodeAt(0);
         this.assignable = true;
+        this.length = input.length;
+        this.currentChar = input.charCodeAt(0);
     }
     get tokenRaw() {
         return this.input.slice(this.startIndex, this.index);

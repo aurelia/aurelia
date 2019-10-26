@@ -397,7 +397,6 @@
         }
     }
     exports.disableArrayObservation = disableArrayObservation;
-    const slice = Array.prototype.slice;
     let ArrayObserver = class ArrayObserver {
         constructor(flags, lifecycle, array) {
             if (!enableArrayObservationCalled) {

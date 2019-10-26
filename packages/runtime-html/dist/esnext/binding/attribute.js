@@ -24,11 +24,11 @@ let AttributeBinding = class AttributeBinding {
         this.mode = mode;
         this.observerLocator = observerLocator;
         this.locator = locator;
-        connectable.assignIdTo(this);
         this.$state = 0 /* none */;
-        this.$scheduler = locator.get(IScheduler);
         this.$scope = null;
         this.persistentFlags = 0 /* none */;
+        connectable.assignIdTo(this);
+        this.$scheduler = locator.get(IScheduler);
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;

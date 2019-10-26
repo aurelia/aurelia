@@ -51,7 +51,7 @@
     }
     exports.instructionRenderer = instructionRenderer;
     /* @internal */
-    class Renderer {
+    let Renderer = class Renderer {
         constructor(instructionRenderers) {
             const record = this.instructionRenderers = {};
             instructionRenderers.forEach(item => {
@@ -94,9 +94,11 @@
                 }
             }
         }
-    }
+    };
+    Renderer = tslib_1.__decorate([
+        tslib_1.__param(0, kernel_1.all(rendering_engine_1.IInstructionRenderer))
+    ], Renderer);
     exports.Renderer = Renderer;
-    Renderer.inject = [kernel_1.all(rendering_engine_1.IInstructionRenderer)];
     function ensureExpression(parser, srcOrExpr, bindingType) {
         if (typeof srcOrExpr === 'string') {
             return parser.parse(srcOrExpr, bindingType);

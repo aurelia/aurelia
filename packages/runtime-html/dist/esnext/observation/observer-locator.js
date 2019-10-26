@@ -112,7 +112,7 @@ TargetObserverLocator = __decorate([
     __param(1, ISVGAnalyzer)
 ], TargetObserverLocator);
 export { TargetObserverLocator };
-export class TargetAccessorLocator {
+let TargetAccessorLocator = class TargetAccessorLocator {
     constructor(dom, svgAnalyzer) {
         this.dom = dom;
         this.svgAnalyzer = svgAnalyzer;
@@ -151,8 +151,12 @@ export class TargetAccessorLocator {
     handles(flags, obj) {
         return this.dom.isNodeInstance(obj);
     }
-}
-TargetAccessorLocator.inject = [IDOM, ISVGAnalyzer];
+};
+TargetAccessorLocator = __decorate([
+    __param(0, IDOM),
+    __param(1, ISVGAnalyzer)
+], TargetAccessorLocator);
+export { TargetAccessorLocator };
 const IsDataAttribute = {};
 function isDataAttribute(obj, propertyName, svgAnalyzer) {
     if (IsDataAttribute[propertyName] === true) {

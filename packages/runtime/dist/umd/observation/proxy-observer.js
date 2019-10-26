@@ -13,14 +13,13 @@
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const subscriber_collection_1 = require("./subscriber-collection");
-    const slice = Array.prototype.slice;
     const lookup = new WeakMap();
     let ProxySubscriberCollection = class ProxySubscriberCollection {
         constructor(proxy, raw, key) {
-            this.inBatch = false;
+            this.proxy = proxy;
             this.raw = raw;
             this.key = key;
-            this.proxy = proxy;
+            this.inBatch = false;
             this.subscribe = this.addSubscriber;
             this.unsubscribe = this.removeSubscriber;
             if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties

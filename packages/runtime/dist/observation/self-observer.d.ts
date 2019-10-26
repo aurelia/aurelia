@@ -14,7 +14,7 @@ export declare class SelfObserver {
     inBatch: boolean;
     observing: boolean;
     private readonly callback?;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: object, propertyName: string, cbName: string);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IIndexable, propertyKey: string, cbName: string);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;

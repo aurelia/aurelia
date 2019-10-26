@@ -55,7 +55,7 @@
         }
     }
     exports.HooksDefinition = HooksDefinition;
-    HooksDefinition.none = Object.freeze(new HooksDefinition({}));
+    HooksDefinition.none = new HooksDefinition({});
     function alias(...aliases) {
         return function (target) {
             const key = kernel_1.Protocol.annotation.keyFor('aliases');

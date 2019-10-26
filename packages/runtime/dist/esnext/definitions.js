@@ -42,7 +42,7 @@ export class HooksDefinition {
         this.hasCaching = 'caching' in target;
     }
 }
-HooksDefinition.none = Object.freeze(new HooksDefinition({}));
+HooksDefinition.none = new HooksDefinition({});
 export function alias(...aliases) {
     return function (target) {
         const key = Protocol.annotation.keyFor('aliases');

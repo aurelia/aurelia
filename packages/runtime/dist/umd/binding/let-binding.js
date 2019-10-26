@@ -13,19 +13,18 @@
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("../lifecycle");
     const connectable_1 = require("./connectable");
-    const slice = Array.prototype.slice;
     let LetBinding = class LetBinding {
         constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
-            connectable_1.connectable.assignIdTo(this);
-            this.$state = 0 /* none */;
-            this.$lifecycle = locator.get(lifecycle_1.ILifecycle);
-            this.$scope = void 0;
-            this.locator = locator;
-            this.observerLocator = observerLocator;
             this.sourceExpression = sourceExpression;
-            this.target = null;
             this.targetProperty = targetProperty;
+            this.observerLocator = observerLocator;
+            this.locator = locator;
             this.toBindingContext = toBindingContext;
+            this.$state = 0 /* none */;
+            this.$scope = void 0;
+            this.target = null;
+            connectable_1.connectable.assignIdTo(this);
+            this.$lifecycle = locator.get(lifecycle_1.ILifecycle);
         }
         handleChange(_newValue, _previousValue, flags) {
             if (!(this.$state & 4 /* isBound */)) {

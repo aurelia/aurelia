@@ -77,7 +77,7 @@ const baseCase = (function () {
         CharKind[CharKind["lower"] = 3] = "lower";
     })(CharKind || (CharKind = {}));
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const isDigit = Object.freeze(Object.assign(Object.create(null), {
+    const isDigit = Object.assign(Object.create(null), {
         '0': true,
         '1': true,
         '2': true,
@@ -88,7 +88,7 @@ const baseCase = (function () {
         '7': true,
         '8': true,
         '9': true,
-    }));
+    });
     function charToKind(char) {
         if (char === '') {
             // We get this if we do charAt() with an index out of range

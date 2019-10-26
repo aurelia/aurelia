@@ -177,9 +177,9 @@
      */
     class RouteRecognizer {
         constructor() {
+            this.rootState = new State();
             this.names = {};
             this.routes = new Map();
-            this.rootState = new State();
         }
         /**
          * Parse a route pattern and add it to the collection of recognized routes.

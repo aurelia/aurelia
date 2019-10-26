@@ -1,10 +1,9 @@
 import { hasBind, hasUnbind, } from './ast';
-const slice = Array.prototype.slice;
 export class CallBinding {
     constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
-        this.$state = 0 /* none */;
-        this.locator = locator;
         this.sourceExpression = sourceExpression;
+        this.locator = locator;
+        this.$state = 0 /* none */;
         this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
     }
     callSource(args) {

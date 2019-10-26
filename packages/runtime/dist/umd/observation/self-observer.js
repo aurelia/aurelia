@@ -15,28 +15,29 @@
     const proxy_observer_1 = require("./proxy-observer");
     const subscriber_collection_1 = require("./subscriber-collection");
     let SelfObserver = SelfObserver_1 = class SelfObserver {
-        constructor(lifecycle, flags, obj, propertyName, cbName) {
+        constructor(lifecycle, flags, obj, propertyKey, cbName) {
             this.lifecycle = lifecycle;
+            this.obj = obj;
+            this.propertyKey = propertyKey;
+            this.currentValue = void 0;
+            this.oldValue = void 0;
+            this.inBatch = false;
             let isProxy = false;
             if (proxy_observer_1.ProxyObserver.isProxy(obj)) {
                 isProxy = true;
-                obj.$observer.subscribe(this, propertyName);
+                obj.$observer.subscribe(this, propertyKey);
                 this.obj = obj.$raw;
             }
             else {
                 this.obj = obj;
             }
-            this.propertyKey = propertyName;
-            this.currentValue = void 0;
-            this.oldValue = void 0;
-            this.inBatch = false;
             this.callback = this.obj[cbName];
             if (this.callback === void 0) {
                 this.observing = false;
             }
             else {
                 this.observing = true;
-                this.currentValue = this.obj[this.propertyKey];
+                this.currentValue = obj[propertyKey];
                 if (!isProxy) {
                     this.createGetterSetter();
                 }

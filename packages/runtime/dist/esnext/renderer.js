@@ -39,7 +39,7 @@ export function instructionRenderer(instructionType) {
     };
 }
 /* @internal */
-export class Renderer {
+let Renderer = class Renderer {
     constructor(instructionRenderers) {
         const record = this.instructionRenderers = {};
         instructionRenderers.forEach(item => {
@@ -82,8 +82,11 @@ export class Renderer {
             }
         }
     }
-}
-Renderer.inject = [all(IInstructionRenderer)];
+};
+Renderer = __decorate([
+    __param(0, all(IInstructionRenderer))
+], Renderer);
+export { Renderer };
 export function ensureExpression(parser, srcOrExpr, bindingType) {
     if (typeof srcOrExpr === 'string') {
         return parser.parse(srcOrExpr, bindingType);

@@ -10,12 +10,11 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const ast_1 = require("./ast");
-    const slice = Array.prototype.slice;
     class CallBinding {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
-            this.$state = 0 /* none */;
-            this.locator = locator;
             this.sourceExpression = sourceExpression;
+            this.locator = locator;
+            this.$state = 0 /* none */;
             this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
         }
         callSource(args) {

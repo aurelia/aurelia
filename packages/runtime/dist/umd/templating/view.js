@@ -15,13 +15,13 @@
     const controller_1 = require("./controller");
     class ViewFactory {
         constructor(name, template, lifecycle) {
-            this.isCaching = false;
-            this.cacheSize = -1;
-            this.cache = null;
-            this.lifecycle = lifecycle;
             this.name = name;
             this.template = template;
+            this.lifecycle = lifecycle;
+            this.isCaching = false;
             this.parts = kernel_1.PLATFORM.emptyObject;
+            this.cache = null;
+            this.cacheSize = -1;
         }
         get parentContextId() {
             return this.template.renderContext.parentId;

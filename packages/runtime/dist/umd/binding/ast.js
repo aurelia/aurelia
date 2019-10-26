@@ -109,11 +109,11 @@
     exports.CustomExpression = CustomExpression;
     class BindingBehaviorExpression {
         constructor(expression, name, args) {
-            this.$kind = 38962 /* BindingBehavior */;
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.behaviorKey = binding_behavior_1.BindingBehavior.keyFrom(this.name);
+            this.$kind = 38962 /* BindingBehavior */;
+            this.behaviorKey = binding_behavior_1.BindingBehavior.keyFrom(name);
         }
         evaluate(flags, scope, locator, part) {
             return this.expression.evaluate(flags, scope, locator, part);
@@ -173,11 +173,11 @@
     exports.BindingBehaviorExpression = BindingBehaviorExpression;
     class ValueConverterExpression {
         constructor(expression, name, args) {
-            this.$kind = 36913 /* ValueConverter */;
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.converterKey = value_converter_1.ValueConverter.keyFrom(this.name);
+            this.$kind = 36913 /* ValueConverter */;
+            this.converterKey = value_converter_1.ValueConverter.keyFrom(name);
         }
         evaluate(flags, scope, locator, part) {
             if (!locator) {
@@ -260,9 +260,9 @@
     exports.ValueConverterExpression = ValueConverterExpression;
     class AssignExpression {
         constructor(target, value) {
-            this.$kind = 8208 /* Assign */;
             this.target = target;
             this.value = value;
+            this.$kind = 8208 /* Assign */;
         }
         evaluate(flags, scope, locator, part) {
             return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator), part);
@@ -281,16 +281,18 @@
     exports.AssignExpression = AssignExpression;
     class ConditionalExpression {
         constructor(condition, yes, no) {
-            this.$kind = 63 /* Conditional */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.condition = condition;
             this.yes = yes;
             this.no = no;
+            this.$kind = 63 /* Conditional */;
         }
         evaluate(flags, scope, locator, part) {
             return (!!this.condition.evaluate(flags, scope, locator, part))
                 ? this.yes.evaluate(flags, scope, locator, part)
                 : this.no.evaluate(flags, scope, locator, part);
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             const condition = this.condition;
@@ -310,10 +312,8 @@
     exports.ConditionalExpression = ConditionalExpression;
     class AccessThisExpression {
         constructor(ancestor = 0) {
-            this.$kind = 1793 /* AccessThis */;
-            this.assign = kernel_1.PLATFORM.noop;
-            this.connect = kernel_1.PLATFORM.noop;
             this.ancestor = ancestor;
+            this.$kind = 1793 /* AccessThis */;
         }
         evaluate(flags, scope, locator, part) {
             if (scope == null) {
@@ -337,6 +337,12 @@
             }
             return i < 1 && oc ? oc.bindingContext : void 0;
         }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
+        }
+        connect(flags, scope, binding, part) {
+            return;
+        }
         accept(visitor) {
             return visitor.visitAccessThis(this);
         }
@@ -346,9 +352,9 @@
     AccessThisExpression.$parent = new AccessThisExpression(1);
     class AccessScopeExpression {
         constructor(name, ancestor = 0) {
-            this.$kind = 10082 /* AccessScope */;
             this.name = name;
             this.ancestor = ancestor;
+            this.$kind = 10082 /* AccessScope */;
         }
         evaluate(flags, scope, locator, part) {
             const obj = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
@@ -382,9 +388,9 @@
     exports.AccessScopeExpression = AccessScopeExpression;
     class AccessMemberExpression {
         constructor(object, name) {
-            this.$kind = 9323 /* AccessMember */;
             this.object = object;
             this.name = name;
+            this.$kind = 9323 /* AccessMember */;
         }
         evaluate(flags, scope, locator, part) {
             const instance = this.object.evaluate(flags, scope, locator, part);
@@ -424,9 +430,9 @@
     exports.AccessMemberExpression = AccessMemberExpression;
     class AccessKeyedExpression {
         constructor(object, key) {
-            this.$kind = 9324 /* AccessKeyed */;
             this.object = object;
             this.key = key;
+            this.$kind = 9324 /* AccessKeyed */;
         }
         evaluate(flags, scope, locator, part) {
             const instance = this.object.evaluate(flags, scope, locator, part);
@@ -469,11 +475,10 @@
     exports.AccessKeyedExpression = AccessKeyedExpression;
     class CallScopeExpression {
         constructor(name, args, ancestor = 0) {
-            this.$kind = 1448 /* CallScope */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.name = name;
             this.args = args;
             this.ancestor = ancestor;
+            this.$kind = 1448 /* CallScope */;
         }
         evaluate(flags, scope, locator, part) {
             const args = evalList(flags, scope, locator, this.args, part);
@@ -482,6 +487,9 @@
             if (func) {
                 return func.apply(context, args);
             }
+            return void 0;
+        }
+        assign(flags, scope, locator, obj, part) {
             return void 0;
         }
         connect(flags, scope, binding, part) {
@@ -497,11 +505,10 @@
     exports.CallScopeExpression = CallScopeExpression;
     class CallMemberExpression {
         constructor(object, name, args) {
-            this.$kind = 1161 /* CallMember */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.object = object;
             this.name = name;
             this.args = args;
+            this.$kind = 1161 /* CallMember */;
         }
         evaluate(flags, scope, locator, part) {
             const instance = this.object.evaluate(flags, scope, locator, part);
@@ -510,6 +517,9 @@
             if (func) {
                 return func.apply(instance, args);
             }
+            return void 0;
+        }
+        assign(flags, scope, locator, obj, part) {
             return void 0;
         }
         connect(flags, scope, binding, part) {
@@ -531,10 +541,9 @@
     exports.CallMemberExpression = CallMemberExpression;
     class CallFunctionExpression {
         constructor(func, args) {
-            this.$kind = 1162 /* CallFunction */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.func = func;
             this.args = args;
+            this.$kind = 1162 /* CallFunction */;
         }
         evaluate(flags, scope, locator, part) {
             const func = this.func.evaluate(flags, scope, locator, part);
@@ -545,6 +554,9 @@
                 return void 0;
             }
             throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             const func = this.func.evaluate(flags, scope, null, part);
@@ -563,11 +575,10 @@
     exports.CallFunctionExpression = CallFunctionExpression;
     class BinaryExpression {
         constructor(operation, left, right) {
-            this.$kind = 46 /* Binary */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.operation = operation;
             this.left = left;
             this.right = right;
+            this.$kind = 46 /* Binary */;
             // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
             // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
             // work to do; we can do this because the operation can't change after it's parsed
@@ -575,6 +586,9 @@
         }
         evaluate(flags, scope, locator, part) {
             throw kernel_1.Reporter.error(208 /* UnknownOperator */, this);
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             this.left.connect(flags, scope, binding, part);
@@ -668,15 +682,17 @@
     exports.BinaryExpression = BinaryExpression;
     class UnaryExpression {
         constructor(operation, expression) {
-            this.$kind = 39 /* Unary */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.operation = operation;
             this.expression = expression;
+            this.$kind = 39 /* Unary */;
             // see Binary (we're doing the same thing here)
             this.evaluate = this[operation];
         }
         evaluate(flags, scope, locator, part) {
             throw kernel_1.Reporter.error(208 /* UnknownOperator */, this);
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             this.expression.connect(flags, scope, binding, part);
@@ -703,13 +719,17 @@
     exports.UnaryExpression = UnaryExpression;
     class PrimitiveLiteralExpression {
         constructor(value) {
-            this.$kind = 17925 /* PrimitiveLiteral */;
-            this.assign = kernel_1.PLATFORM.noop;
-            this.connect = kernel_1.PLATFORM.noop;
             this.value = value;
+            this.$kind = 17925 /* PrimitiveLiteral */;
         }
         evaluate(flags, scope, locator, part) {
             return this.value;
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
+        }
+        connect(flags, scope, binding, part) {
+            return;
         }
         accept(visitor) {
             return visitor.visitPrimitiveLiteral(this);
@@ -723,9 +743,8 @@
     PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
     class HtmlLiteralExpression {
         constructor(parts) {
-            this.$kind = 51 /* HtmlLiteral */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.parts = parts;
+            this.$kind = 51 /* HtmlLiteral */;
         }
         evaluate(flags, scope, locator, part) {
             const elements = this.parts;
@@ -740,6 +759,9 @@
             }
             return result;
         }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
+        }
         connect(flags, scope, binding, part) {
             for (let i = 0, ii = this.parts.length; i < ii; ++i) {
                 this.parts[i].connect(flags, scope, binding, part);
@@ -752,9 +774,8 @@
     exports.HtmlLiteralExpression = HtmlLiteralExpression;
     class ArrayLiteralExpression {
         constructor(elements) {
-            this.$kind = 17955 /* ArrayLiteral */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.elements = elements;
+            this.$kind = 17955 /* ArrayLiteral */;
         }
         evaluate(flags, scope, locator, part) {
             const elements = this.elements;
@@ -764,6 +785,9 @@
                 result[i] = elements[i].evaluate(flags, scope, locator, part);
             }
             return result;
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             const elements = this.elements;
@@ -779,10 +803,9 @@
     ArrayLiteralExpression.$empty = new ArrayLiteralExpression(kernel_1.PLATFORM.emptyArray);
     class ObjectLiteralExpression {
         constructor(keys, values) {
-            this.$kind = 17956 /* ObjectLiteral */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.keys = keys;
             this.values = values;
+            this.$kind = 17956 /* ObjectLiteral */;
         }
         evaluate(flags, scope, locator, part) {
             const instance = {};
@@ -792,6 +815,9 @@
                 instance[keys[i]] = values[i].evaluate(flags, scope, locator, part);
             }
             return instance;
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             const keys = this.keys;
@@ -807,11 +833,10 @@
     exports.ObjectLiteralExpression = ObjectLiteralExpression;
     ObjectLiteralExpression.$empty = new ObjectLiteralExpression(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
     class TemplateExpression {
-        constructor(cooked, expressions) {
-            this.$kind = 17958 /* Template */;
-            this.assign = kernel_1.PLATFORM.noop;
+        constructor(cooked, expressions = kernel_1.PLATFORM.emptyArray) {
             this.cooked = cooked;
-            this.expressions = expressions === void 0 ? kernel_1.PLATFORM.emptyArray : expressions;
+            this.expressions = expressions;
+            this.$kind = 17958 /* Template */;
         }
         evaluate(flags, scope, locator, part) {
             const expressions = this.expressions;
@@ -822,6 +847,9 @@
                 result += cooked[i + 1];
             }
             return result;
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             const expressions = this.expressions;
@@ -837,13 +865,12 @@
     exports.TemplateExpression = TemplateExpression;
     TemplateExpression.$empty = new TemplateExpression(['']);
     class TaggedTemplateExpression {
-        constructor(cooked, raw, func, expressions) {
-            this.$kind = 1197 /* TaggedTemplate */;
-            this.assign = kernel_1.PLATFORM.noop;
+        constructor(cooked, raw, func, expressions = kernel_1.PLATFORM.emptyArray) {
             this.cooked = cooked;
-            this.cooked.raw = raw;
             this.func = func;
-            this.expressions = expressions === void 0 ? kernel_1.PLATFORM.emptyArray : expressions;
+            this.expressions = expressions;
+            this.$kind = 1197 /* TaggedTemplate */;
+            cooked.raw = raw;
         }
         evaluate(flags, scope, locator, part) {
             const expressions = this.expressions;
@@ -857,6 +884,9 @@
                 throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
             }
             return func(this.cooked, ...results);
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             const expressions = this.expressions;
@@ -873,8 +903,8 @@
     class ArrayBindingPattern {
         // We'll either have elements, or keys+values, but never all 3
         constructor(elements) {
-            this.$kind = 65556 /* ArrayBindingPattern */;
             this.elements = elements;
+            this.$kind = 65556 /* ArrayBindingPattern */;
         }
         evaluate(flags, scope, locator, part) {
             // TODO
@@ -895,9 +925,9 @@
     class ObjectBindingPattern {
         // We'll either have elements, or keys+values, but never all 3
         constructor(keys, values) {
-            this.$kind = 65557 /* ObjectBindingPattern */;
             this.keys = keys;
             this.values = values;
+            this.$kind = 65557 /* ObjectBindingPattern */;
         }
         evaluate(flags, scope, locator, part) {
             // TODO
@@ -917,8 +947,8 @@
     exports.ObjectBindingPattern = ObjectBindingPattern;
     class BindingIdentifier {
         constructor(name) {
-            this.$kind = 65558 /* BindingIdentifier */;
             this.name = name;
+            this.$kind = 65558 /* BindingIdentifier */;
         }
         evaluate(flags, scope, locator, part) {
             return this.name;
@@ -936,13 +966,15 @@
     // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
     class ForOfStatement {
         constructor(declaration, iterable) {
-            this.$kind = 6199 /* ForOfStatement */;
-            this.assign = kernel_1.PLATFORM.noop;
             this.declaration = declaration;
             this.iterable = iterable;
+            this.$kind = 6199 /* ForOfStatement */;
         }
         evaluate(flags, scope, locator, part) {
             return this.iterable.evaluate(flags, scope, locator, part);
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         count(flags, result) {
             switch (toStringTag.call(result)) {
@@ -991,13 +1023,12 @@
     * but this class might be a candidate for removal if it turns out it does provide all we need
     */
     class Interpolation {
-        constructor(parts, expressions) {
-            this.$kind = 24 /* Interpolation */;
-            this.assign = kernel_1.PLATFORM.noop;
+        constructor(parts, expressions = kernel_1.PLATFORM.emptyArray) {
             this.parts = parts;
-            this.expressions = expressions === void 0 ? kernel_1.PLATFORM.emptyArray : expressions;
-            this.isMulti = this.expressions.length > 1;
-            this.firstExpression = this.expressions[0];
+            this.expressions = expressions;
+            this.$kind = 24 /* Interpolation */;
+            this.isMulti = expressions.length > 1;
+            this.firstExpression = expressions[0];
         }
         evaluate(flags, scope, locator, part) {
             if (this.isMulti) {
@@ -1014,6 +1045,9 @@
                 const parts = this.parts;
                 return parts[0] + this.firstExpression.evaluate(flags, scope, locator, part) + parts[1];
             }
+        }
+        assign(flags, scope, locator, obj, part) {
+            return void 0;
         }
         connect(flags, scope, binding, part) {
             return;

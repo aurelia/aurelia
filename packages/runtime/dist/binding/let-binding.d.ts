@@ -8,17 +8,17 @@ import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface LetBinding extends IConnectableBinding {
 }
 export declare class LetBinding implements IPartialConnectableBinding {
+    sourceExpression: IExpression;
+    targetProperty: string;
+    observerLocator: IObserverLocator;
+    locator: IServiceLocator;
+    private readonly toBindingContext;
     id: number;
     $state: State;
     $lifecycle: ILifecycle;
     $scope?: IScope;
     part?: string;
-    locator: IServiceLocator;
-    observerLocator: IObserverLocator;
-    sourceExpression: IExpression;
     target: (IObservable & IIndexable) | null;
-    targetProperty: string;
-    private readonly toBindingContext;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toBindingContext?: boolean);
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;

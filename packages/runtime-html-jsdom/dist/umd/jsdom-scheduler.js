@@ -386,7 +386,8 @@
         kernel_1.bound
     ], JSDOMScheduler.prototype, "yieldAll", null);
     JSDOMScheduler = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IClock), tslib_1.__param(1, runtime_1.IDOM)
+        tslib_1.__param(0, runtime_1.IClock),
+        tslib_1.__param(1, runtime_1.IDOM)
     ], JSDOMScheduler);
     exports.JSDOMScheduler = JSDOMScheduler;
 });

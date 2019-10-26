@@ -1,6 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import { IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber } from '../observation';
 import { IObserverLocator } from './observer-locator';
 export interface ComputedOverrides {
@@ -16,11 +15,11 @@ export interface CustomSetterObserver extends IBindingTargetObserver {
 export declare class CustomSetterObserver implements CustomSetterObserver {
     readonly obj: IObservable & IIndexable;
     readonly propertyKey: string;
+    private readonly descriptor;
     currentValue: unknown;
     oldValue: unknown;
-    private readonly descriptor;
     private observing;
-    constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor);
+    constructor(obj: IObservable & IIndexable, propertyKey: string, descriptor: PropertyDescriptor);
     setValue(newValue: unknown): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
@@ -29,18 +28,18 @@ export declare class CustomSetterObserver implements CustomSetterObserver {
 export interface GetterObserver extends IBindingTargetObserver {
 }
 export declare class GetterObserver implements GetterObserver {
+    private readonly overrides;
     readonly obj: IObservable;
     readonly propertyKey: string;
+    private readonly descriptor;
     currentValue: unknown;
     oldValue: unknown;
     private readonly proxy;
     private readonly propertyDeps;
     private readonly collectionDeps;
-    private readonly overrides;
-    private readonly descriptor;
     private subscriberCount;
     private isCollecting;
-    constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle);
+    constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator);
     addPropertyDep(subscribable: ISubscribable): void;
     addCollectionDep(subscribable: ICollectionSubscribable): void;
     getValue(): unknown;

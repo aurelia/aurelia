@@ -12,7 +12,6 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const common_1 = require("./common");
-    const { enter, leave } = kernel_1.Profiler.createTimer('ExpressionParser');
     const $false = runtime_1.PrimitiveLiteralExpression.$false;
     const $true = runtime_1.PrimitiveLiteralExpression.$true;
     const $null = runtime_1.PrimitiveLiteralExpression.$null;
@@ -22,15 +21,15 @@
     /** @internal */
     class ParserState {
         constructor(input) {
+            this.input = input;
             this.index = 0;
             this.startIndex = 0;
             this.lastIndex = 0;
-            this.input = input;
-            this.length = input.length;
             this.currentToken = 1572864 /* EOF */;
             this.tokenValue = '';
-            this.currentChar = input.charCodeAt(0);
             this.assignable = true;
+            this.length = input.length;
+            this.currentChar = input.charCodeAt(0);
         }
         get tokenRaw() {
             return this.input.slice(this.startIndex, this.index);

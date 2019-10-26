@@ -16,13 +16,13 @@ let Portal = class Portal {
         this.originalLoc = originalLoc;
         this.dom = dom;
         this.id = nextId('au$component');
+        this.strict = false;
+        this.task = LifecycleTask.done;
         // to make the shape of this object consistent.
         // todo: is this necessary
         this.currentTarget = dom.createElement('div');
-        this.task = LifecycleTask.done;
         this.view = this.factory.create();
         this.view.hold(originalLoc, 1 /* insertBefore */);
-        this.strict = false;
     }
     binding(flags) {
         if (this.callbackContext == null) {

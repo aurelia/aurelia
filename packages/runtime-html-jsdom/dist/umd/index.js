@@ -4,18 +4,19 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "jsdom", "./jsdom-scheduler"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "jsdom", "./jsdom-scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const jsdom_1 = require("jsdom");
     const jsdom_scheduler_1 = require("./jsdom-scheduler");
     exports.JSDOMScheduler = jsdom_scheduler_1.JSDOMScheduler;
-    class JSDOMInitializer {
+    let JSDOMInitializer = class JSDOMInitializer {
         constructor(container) {
             this.container = container;
             this.jsdom = new jsdom_1.JSDOM('', { pretendToBeVisual: true });
@@ -54,9 +55,11 @@
             }
             return dom;
         }
-    }
+    };
+    JSDOMInitializer = tslib_1.__decorate([
+        tslib_1.__param(0, kernel_1.IContainer)
+    ], JSDOMInitializer);
     exports.JSDOMInitializer = JSDOMInitializer;
-    JSDOMInitializer.inject = [kernel_1.IContainer];
     exports.IDOMInitializerRegistration = JSDOMInitializer;
     exports.IJSDOMSchedulerRegistration = jsdom_scheduler_1.JSDOMScheduler;
     /**

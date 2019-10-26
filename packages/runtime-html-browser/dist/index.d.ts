@@ -1,8 +1,7 @@
-import { IContainer, IRegistry, IResolver, Key } from '@aurelia/kernel';
+import { IContainer, IRegistry, IResolver } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BrowserScheduler } from './browser-scheduler';
 declare class BrowserDOMInitializer implements IDOMInitializer {
-    static readonly inject: readonly Key[];
     private readonly container;
     constructor(container: IContainer);
     static register(container: IContainer): IResolver<IDOMInitializer>;

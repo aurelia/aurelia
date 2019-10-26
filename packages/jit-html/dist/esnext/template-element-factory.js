@@ -1,17 +1,17 @@
-import { DI, Profiler, Registration } from '@aurelia/kernel';
+import { __decorate, __param } from "tslib";
+import { DI, Registration } from '@aurelia/kernel';
 import { IDOM } from '@aurelia/runtime';
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
 // "semantic error TS2742 The inferred type of 'ITemplateElementFactory' cannot be named without a reference to '@aurelia/jit/node_modules/@aurelia/kernel'. This is likely not portable. A type annotation is necessary"
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
 export const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory').noDefault();
-const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
 const markupCache = {};
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
  *
  * @internal
  */
-export class HTMLTemplateElementFactory {
+let HTMLTemplateElementFactory = class HTMLTemplateElementFactory {
     constructor(dom) {
         this.dom = dom;
         this.template = dom.createTemplate();
@@ -55,6 +55,9 @@ export class HTMLTemplateElementFactory {
         }
         return input;
     }
-}
-HTMLTemplateElementFactory.inject = [IDOM];
+};
+HTMLTemplateElementFactory = __decorate([
+    __param(0, IDOM)
+], HTMLTemplateElementFactory);
+export { HTMLTemplateElementFactory };
 //# sourceMappingURL=template-element-factory.js.map

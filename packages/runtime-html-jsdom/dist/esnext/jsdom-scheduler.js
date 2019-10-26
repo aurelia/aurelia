@@ -375,7 +375,8 @@ __decorate([
     bound
 ], JSDOMScheduler.prototype, "yieldAll", null);
 JSDOMScheduler = __decorate([
-    __param(0, IClock), __param(1, IDOM)
+    __param(0, IClock),
+    __param(1, IDOM)
 ], JSDOMScheduler);
 export { JSDOMScheduler };
 //# sourceMappingURL=jsdom-scheduler.js.map

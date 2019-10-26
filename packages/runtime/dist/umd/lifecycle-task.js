@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     exports.LifecycleTask = {
         done: {
@@ -126,7 +127,7 @@
         }
     };
     exports.IStartTaskManager = kernel_1.DI.createInterface('IStartTaskManager').noDefault();
-    class StartTaskManager {
+    let StartTaskManager = class StartTaskManager {
         constructor(locator) {
             this.locator = locator;
         }
@@ -155,14 +156,16 @@
             }
             return new AggregateTerminalTask(tasks);
         }
-    }
+    };
+    StartTaskManager = tslib_1.__decorate([
+        tslib_1.__param(0, kernel_1.IServiceLocator)
+    ], StartTaskManager);
     exports.StartTaskManager = StartTaskManager;
-    StartTaskManager.inject = [kernel_1.IServiceLocator];
     class PromiseTask {
         constructor(promise, next, context, ...args) {
             this.done = false;
-            this.isCancelled = false;
             this.hasStarted = false;
+            this.isCancelled = false;
             this.promise = promise.then(value => {
                 if (this.isCancelled === true) {
                     return;

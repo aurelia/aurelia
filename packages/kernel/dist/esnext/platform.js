@@ -66,7 +66,7 @@ const $now = (function () {
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const emptyArray = Object.freeze([]);
 const emptyObject = Object.freeze({});
-const $PLATFORM = Object.freeze({
+const $PLATFORM = {
     /**
      * `true` if there is a `window` variable in the global scope with a `document` property.
      *
@@ -97,6 +97,6 @@ const $PLATFORM = Object.freeze({
     restore() {
         Object.assign(PLATFORM, $PLATFORM);
     },
-});
+};
 export const PLATFORM = { ...$PLATFORM };
 //# sourceMappingURL=platform.js.map

@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     var NodeType;
@@ -26,9 +27,6 @@
         NodeType[NodeType["DocumentFragment"] = 11] = "DocumentFragment";
         NodeType[NodeType["Notation"] = 12] = "Notation";
     })(NodeType = exports.NodeType || (exports.NodeType = {}));
-    function isRenderLocation(node) {
-        return node.textContent === 'au-end';
-    }
     /**
      * IDOM implementation for Html.
      */
@@ -182,7 +180,8 @@
             this.fragment = fragment;
             this.isMounted = false;
             this.isLinked = false;
-            this.fragment = fragment;
+            this.next = void 0;
+            this.refNode = void 0;
             const targetNodeList = fragment.querySelectorAll('.au');
             let i = 0;
             let ii = targetNodeList.length;
@@ -213,8 +212,6 @@
             }
             this.firstChild = fragment.firstChild;
             this.lastChild = fragment.lastChild;
-            this.next = void 0;
-            this.refNode = void 0;
         }
         findTargets() {
             return this.targets;
@@ -346,8 +343,8 @@
     exports.NodeSequenceFactory = NodeSequenceFactory;
     /** @internal */
     class AuMarker {
-        constructor(next) {
-            this.nextSibling = next;
+        constructor(nextSibling) {
+            this.nextSibling = nextSibling;
             this.textContent = '';
         }
         get parentNode() {
@@ -363,7 +360,7 @@
         proto.nodeType = 1 /* Element */;
     })(AuMarker.prototype);
     /** @internal */
-    class HTMLTemplateFactory {
+    let HTMLTemplateFactory = class HTMLTemplateFactory {
         constructor(dom) {
             this.dom = dom;
         }
@@ -373,8 +370,10 @@
         create(parentRenderContext, definition) {
             return new runtime_1.CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
         }
-    }
+    };
+    HTMLTemplateFactory = tslib_1.__decorate([
+        tslib_1.__param(0, runtime_1.IDOM)
+    ], HTMLTemplateFactory);
     exports.HTMLTemplateFactory = HTMLTemplateFactory;
-    HTMLTemplateFactory.inject = [runtime_1.IDOM];
 });
 //# sourceMappingURL=dom.js.map

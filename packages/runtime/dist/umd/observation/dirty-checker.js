@@ -57,9 +57,9 @@
     let DirtyChecker = class DirtyChecker {
         constructor(scheduler) {
             this.scheduler = scheduler;
+            this.tracked = [];
             this.task = null;
             this.elapsedFrames = 0;
-            this.tracked = [];
         }
         createProperty(obj, propertyName) {
             if (exports.DirtyCheckSettings.throw) {
@@ -109,9 +109,9 @@
     exports.DirtyChecker = DirtyChecker;
     let DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
+            this.dirtyChecker = dirtyChecker;
             this.obj = obj;
             this.propertyKey = propertyKey;
-            this.dirtyChecker = dirtyChecker;
         }
         isDirty() {
             return this.oldValue !== this.obj[this.propertyKey];

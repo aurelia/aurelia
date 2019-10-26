@@ -18,8 +18,9 @@
         constructor(element, dom) {
             this.element = element;
             this.dom = dom;
-            this.element = element;
-            this.dom = dom;
+            /**
+             * Indicates whether `apply` should be called when `attached` callback is invoked
+             */
             this.needsApply = false;
         }
         binding() {

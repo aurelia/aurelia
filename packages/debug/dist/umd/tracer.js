@@ -22,6 +22,9 @@
         constructor(objName, methodName, params) {
             this.objName = objName;
             this.methodName = methodName;
+            this.params = params;
+            this.objName = objName;
+            this.methodName = methodName;
             this.depth = TraceInfo.stack.length;
             this.params = params;
             this.next = marker;
@@ -128,7 +131,7 @@
             this.liveWriter = null;
         }
     };
-    const defaultOptions = Object.freeze({
+    const defaultOptions = {
         rendering: true,
         binding: true,
         observation: true,
@@ -137,7 +140,7 @@
         di: true,
         lifecycle: true,
         jit: true
-    });
+    };
     function enableLiveLogging(optionsOrWriter) {
         this.liveLoggingEnabled = true;
         if (optionsOrWriter && 'write' in optionsOrWriter) {

@@ -429,7 +429,8 @@ __decorate([
     bound
 ], BrowserScheduler.prototype, "yieldAll", null);
 BrowserScheduler = __decorate([
-    __param(0, IClock), __param(1, IDOM)
+    __param(0, IClock),
+    __param(1, IDOM)
 ], BrowserScheduler);
 export { BrowserScheduler };
 //# sourceMappingURL=browser-scheduler.js.map

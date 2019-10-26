@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "@aurelia/runtime-html", "./http-client-configuration", "./retry-interceptor"], factory);
+        define(["require", "exports", "tslib", "@aurelia/runtime", "@aurelia/runtime-html", "./http-client-configuration", "./retry-interceptor"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const http_client_configuration_1 = require("./http-client-configuration");
@@ -17,11 +18,12 @@
     /**
      * An HTTP client based on the Fetch API.
      */
-    class HttpClient {
+    let HttpClient = class HttpClient {
         /**
          * Creates an instance of HttpClient.
          */
         constructor(dom) {
+            this.dom = dom;
             if (dom.window.fetch === undefined) {
                 throw new Error('HttpClient requires a Fetch API implementation, but the current environment doesn\'t support it. You may need to load a polyfill such as https://github.com/github/fetch');
             }
@@ -267,9 +269,11 @@
             }
             return this.fetch(input, init);
         }
-    }
+    };
+    HttpClient = tslib_1.__decorate([
+        tslib_1.__param(0, runtime_1.IDOM)
+    ], HttpClient);
     exports.HttpClient = HttpClient;
-    HttpClient.inject = [runtime_1.IDOM];
     function parseHeaderValues(headers) {
         const parsedHeaders = {};
         const $headers = headers !== undefined ? headers : {};

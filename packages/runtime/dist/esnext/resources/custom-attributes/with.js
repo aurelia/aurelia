@@ -11,7 +11,6 @@ let With = class With {
         this.location = location;
         this.id = nextId('au$component');
         this.id = nextId('au$component');
-        this.factory = factory;
         this.view = this.factory.create();
         this.view.hold(location, 1 /* insertBefore */);
     }

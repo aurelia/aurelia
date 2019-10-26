@@ -1,3 +1,4 @@
+import { __decorate, __param } from "tslib";
 import { DI, IServiceLocator, Registration, } from '@aurelia/kernel';
 export const LifecycleTask = {
     done: {
@@ -115,7 +116,7 @@ export const StartTask = class $StartTask {
     }
 };
 export const IStartTaskManager = DI.createInterface('IStartTaskManager').noDefault();
-export class StartTaskManager {
+let StartTaskManager = class StartTaskManager {
     constructor(locator) {
         this.locator = locator;
     }
@@ -144,13 +145,16 @@ export class StartTaskManager {
         }
         return new AggregateTerminalTask(tasks);
     }
-}
-StartTaskManager.inject = [IServiceLocator];
+};
+StartTaskManager = __decorate([
+    __param(0, IServiceLocator)
+], StartTaskManager);
+export { StartTaskManager };
 export class PromiseTask {
     constructor(promise, next, context, ...args) {
         this.done = false;
-        this.isCancelled = false;
         this.hasStarted = false;
+        this.isCancelled = false;
         this.promise = promise.then(value => {
             if (this.isCancelled === true) {
                 return;

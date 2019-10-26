@@ -7,11 +7,11 @@ import { IConnectableBinding } from './connectable';
 export interface CallBinding extends IConnectableBinding {
 }
 export declare class CallBinding {
+    sourceExpression: IsBindingBehavior;
+    locator: IServiceLocator;
     $state: State;
     $scope?: IScope;
     part?: string;
-    locator: IServiceLocator;
-    sourceExpression: IsBindingBehavior;
     targetObserver: IAccessor;
     constructor(sourceExpression: IsBindingBehavior, target: object, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator);
     callSource(args: object): unknown;

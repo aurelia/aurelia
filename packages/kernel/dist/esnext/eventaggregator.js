@@ -4,7 +4,11 @@ import { Reporter } from './reporter';
  * Represents a handler for an EventAggregator event.
  */
 class Handler {
-    constructor(messageType, callback) {
+    constructor(
+    /** @internal */
+    messageType, 
+    /** @internal */
+    callback) {
         this.messageType = messageType;
         this.callback = callback;
     }
@@ -35,11 +39,10 @@ export const IEventAggregator = DI.createInterface('IEventAggregator').withDefau
  * Enables loosely coupled publish/subscribe messaging.
  */
 export class EventAggregator {
-    /**
-     * Creates an instance of the EventAggregator class.
-     */
     constructor() {
+        /** @internal */
         this.eventLookup = {};
+        /** @internal */
         this.messageHandlers = [];
     }
     publish(channelOrInstance, data) {

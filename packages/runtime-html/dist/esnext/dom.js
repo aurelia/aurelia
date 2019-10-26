@@ -1,3 +1,4 @@
+import { __decorate, __param } from "tslib";
 import { PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { CompiledTemplate, DOM, IDOM, INode, ITemplateFactory, NodeSequence } from '@aurelia/runtime';
 export var NodeType;
@@ -15,9 +16,6 @@ export var NodeType;
     NodeType[NodeType["DocumentFragment"] = 11] = "DocumentFragment";
     NodeType[NodeType["Notation"] = 12] = "Notation";
 })(NodeType || (NodeType = {}));
-function isRenderLocation(node) {
-    return node.textContent === 'au-end';
-}
 /**
  * IDOM implementation for Html.
  */
@@ -170,7 +168,8 @@ export class FragmentNodeSequence {
         this.fragment = fragment;
         this.isMounted = false;
         this.isLinked = false;
-        this.fragment = fragment;
+        this.next = void 0;
+        this.refNode = void 0;
         const targetNodeList = fragment.querySelectorAll('.au');
         let i = 0;
         let ii = targetNodeList.length;
@@ -201,8 +200,6 @@ export class FragmentNodeSequence {
         }
         this.firstChild = fragment.firstChild;
         this.lastChild = fragment.lastChild;
-        this.next = void 0;
-        this.refNode = void 0;
     }
     findTargets() {
         return this.targets;
@@ -332,8 +329,8 @@ export class NodeSequenceFactory {
 }
 /** @internal */
 export class AuMarker {
-    constructor(next) {
-        this.nextSibling = next;
+    constructor(nextSibling) {
+        this.nextSibling = nextSibling;
         this.textContent = '';
     }
     get parentNode() {
@@ -348,7 +345,7 @@ export class AuMarker {
     proto.nodeType = 1 /* Element */;
 })(AuMarker.prototype);
 /** @internal */
-export class HTMLTemplateFactory {
+let HTMLTemplateFactory = class HTMLTemplateFactory {
     constructor(dom) {
         this.dom = dom;
     }
@@ -358,6 +355,9 @@ export class HTMLTemplateFactory {
     create(parentRenderContext, definition) {
         return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
     }
-}
-HTMLTemplateFactory.inject = [IDOM];
+};
+HTMLTemplateFactory = __decorate([
+    __param(0, IDOM)
+], HTMLTemplateFactory);
+export { HTMLTemplateFactory };
 //# sourceMappingURL=dom.js.map

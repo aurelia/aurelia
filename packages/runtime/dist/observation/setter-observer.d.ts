@@ -17,7 +17,7 @@ export declare class SetterObserver {
     readonly persistentFlags: LifecycleFlags;
     inBatch: boolean;
     observing: boolean;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: object, propertyKey: string);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushBatch(flags: LifecycleFlags): void;

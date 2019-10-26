@@ -19,10 +19,6 @@ export interface IEventAggregator {
  */
 export declare class EventAggregator implements IEventAggregator {
     /**
-     * Creates an instance of the EventAggregator class.
-     */
-    constructor();
-    /**
      * Publishes a message.
      *
      * @param channel - The channel to publish to.

@@ -10,7 +10,6 @@ export declare class Interpretation {
     private _pattern;
     private readonly currentRecord;
     private readonly partsRecord;
-    constructor();
     append(pattern: string, ch: string): void;
     next(pattern: string): void;
 }

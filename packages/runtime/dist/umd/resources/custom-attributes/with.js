@@ -22,7 +22,6 @@
             this.location = location;
             this.id = kernel_1.nextId('au$component');
             this.id = kernel_1.nextId('au$component');
-            this.factory = factory;
             this.view = this.factory.create();
             this.view.hold(location, 1 /* insertBefore */);
         }

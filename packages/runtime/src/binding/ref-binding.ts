@@ -9,7 +9,6 @@ import {
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
-  IObservable,
   IScope,
 } from '../observation';
 import {
@@ -18,30 +17,17 @@ import {
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
-const slice = Array.prototype.slice;
-
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
-  public $state: State;
-  public $scope?: IScope;
+  public $state: State = State.none;
+  public $scope?: IScope = void 0;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public sourceExpression: IsBindingBehavior;
-  public target: IObservable;
-
   public constructor(
-    sourceExpression: IsBindingBehavior,
-    target: object,
-    locator: IServiceLocator,
-  ) {
-    this.$state = State.none;
-    this.$scope = void 0;
-
-    this.locator = locator;
-    this.sourceExpression = sourceExpression;
-    this.target = target as IObservable;
-  }
+    public sourceExpression: IsBindingBehavior,
+    public target: object,
+    public locator: IServiceLocator,
+  ) {}
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (this.$state & State.isBound) {

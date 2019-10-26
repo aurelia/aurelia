@@ -1,4 +1,5 @@
 import { BindingBehaviorExpression, IBinding, IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
+import { Writable } from '@aurelia/kernel';
 
 export const enum Signals {
   I18N_EA_CHANNEL = 'i18n:locale:changed',
@@ -23,6 +24,6 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
 
   if (!(expression instanceof ValueConverterExpression)) {
     const vcExpression = new ValueConverterExpression(expression as IsValueConverter, name, binding.sourceExpression.args);
-    binding.sourceExpression.expression = vcExpression;
+    (binding.sourceExpression as Writable<BindingBehaviorExpression>).expression = vcExpression;
   }
 }

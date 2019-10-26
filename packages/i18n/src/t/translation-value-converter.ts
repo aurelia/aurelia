@@ -7,7 +7,9 @@ import { Signals, ValueConverters } from '../utils';
 export class TranslationValueConverter {
   public readonly signals: string[] = [Signals.I18N_SIGNAL];
 
-  public constructor(@I18N private readonly i18n: I18N) { }
+  public constructor(
+    @I18N private readonly i18n: I18N,
+  ) {}
 
   public toView(value: string, options?: i18next.TOptions) {
     return this.i18n.tr(value, options);

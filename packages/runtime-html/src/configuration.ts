@@ -63,13 +63,13 @@ export const DefaultResources = [
   BlurRegistration
 ];
 
-export const ListenerBindingRendererRegistration = ListenerBindingRenderer as IRegistry;
-export const AttributeBindingRendererRegistration = AttributeBindingRenderer as IRegistry;
-export const SetAttributeRendererRegistration = SetAttributeRenderer as IRegistry;
-export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as IRegistry;
-export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as IRegistry;
-export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as IRegistry;
-export const TextBindingRendererRegistration = TextBindingRenderer as IRegistry;
+export const ListenerBindingRendererRegistration = ListenerBindingRenderer as unknown as IRegistry;
+export const AttributeBindingRendererRegistration = AttributeBindingRenderer as unknown as IRegistry;
+export const SetAttributeRendererRegistration = SetAttributeRenderer as unknown as IRegistry;
+export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as unknown as IRegistry;
+export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
+export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
+export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
 
 /**
  * Default HTML-specfic (but environment-agnostic) renderers for:

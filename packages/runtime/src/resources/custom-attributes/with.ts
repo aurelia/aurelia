@@ -22,7 +22,6 @@ export class With<T extends INode = INode> {
   ) {
     this.id = nextId('au$component');
 
-    this.factory = factory;
     this.view = this.factory.create();
     this.view.hold(location, MountStrategy.insertBefore);
   }

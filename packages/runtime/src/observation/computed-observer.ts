@@ -13,8 +13,6 @@ import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
 
-const slice = Array.prototype.slice;
-
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
   static?: boolean;
@@ -70,11 +68,11 @@ export function createComputedObserver(
 
     if (descriptor.set) {
       if (overrides.volatile) {
-        return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+        return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
       }
       return new CustomSetterObserver(instance, propertyName, descriptor);
     }
-    return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+    return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
   }
   throw Reporter.error(18, propertyName);
 }
@@ -84,21 +82,16 @@ export interface CustomSetterObserver extends IBindingTargetObserver { }
 // Used when the getter is dependent solely on changes that happen within the setter.
 @subscriberCollection()
 export class CustomSetterObserver implements CustomSetterObserver {
-  public readonly obj: IObservable & IIndexable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
+  public currentValue: unknown = void 0;
+  public oldValue: unknown = void 0;
 
-  private readonly descriptor: PropertyDescriptor;
-  private observing: boolean;
+  private observing: boolean = false;
 
-  public constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
-    this.obj = obj;
-    this.propertyKey = propertyKey;
-    this.currentValue = this.oldValue = undefined;
-    this.descriptor = descriptor;
-    this.observing = false;
-  }
+  public constructor(
+    public readonly obj: IObservable & IIndexable,
+    public readonly propertyKey: string,
+    private readonly descriptor: PropertyDescriptor,
+  ) {}
 
   public setValue(newValue: unknown): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -136,30 +129,23 @@ export interface GetterObserver extends IBindingTargetObserver { }
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
 @subscriberCollection()
 export class GetterObserver implements GetterObserver {
-  public readonly obj: IObservable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
+  public currentValue: unknown = void 0;
+  public oldValue: unknown = void 0;
 
   private readonly proxy: ProxyHandler<object>;
-  private readonly propertyDeps: ISubscribable[];
-  private readonly collectionDeps: ICollectionSubscribable[];
-  private readonly overrides: ComputedOverrides;
-  private readonly descriptor: PropertyDescriptor;
-  private subscriberCount: number;
-  private isCollecting: boolean;
+  private readonly propertyDeps: ISubscribable[] = [];
+  private readonly collectionDeps: ICollectionSubscribable[] = [];
+  private subscriberCount: number = 0;
+  private isCollecting: boolean = false;
 
-  public constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
-    this.obj = obj;
-    this.propertyKey = propertyKey;
-    this.isCollecting = false;
-    this.currentValue = this.oldValue = undefined;
-
-    this.propertyDeps = [];
-    this.collectionDeps = [];
-    this.overrides = overrides;
-    this.subscriberCount = 0;
-    this.descriptor = descriptor;
+  public constructor(
+    flags: LifecycleFlags,
+    private readonly overrides: ComputedOverrides,
+    public readonly obj: IObservable,
+    public readonly propertyKey: string,
+    private readonly descriptor: PropertyDescriptor,
+    observerLocator: IObserverLocator,
+  ) {
     this.proxy = new Proxy(obj, createGetterTraps(flags, observerLocator, this));
 
     const get = (): unknown => this.getValue();

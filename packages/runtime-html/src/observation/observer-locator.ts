@@ -1,5 +1,5 @@
 
-import { IContainer, IResolver, Key, Registration, IIndexable } from '@aurelia/kernel';
+import { IContainer, IResolver, Registration, IIndexable } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -117,7 +117,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
       case 'css':
         return new StyleAttributeAccessor(scheduler, flags, obj as HTMLElement);
       case 'model':
-        return new SetterObserver(lifecycle, flags, obj, propertyName);
+        return new SetterObserver(lifecycle, flags, obj as Node & IIndexable, propertyName);
       case 'role':
         return new DataAttributeAccessor(scheduler, flags, obj as HTMLElement, propertyName);
       default:
@@ -142,15 +142,10 @@ export class TargetObserverLocator implements ITargetObserverLocator {
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public static readonly inject: readonly Key[] = [IDOM, ISVGAnalyzer];
-
-  private readonly dom: IDOM;
-  private readonly svgAnalyzer: ISVGAnalyzer;
-
-  public constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
-    this.dom = dom;
-    this.svgAnalyzer = svgAnalyzer;
-  }
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
+  ) {}
 
   public static register(container: IContainer): IResolver<ITargetAccessorLocator> {
     return Registration.singleton(ITargetAccessorLocator, this).register(container);

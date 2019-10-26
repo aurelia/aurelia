@@ -11,7 +11,6 @@ import {
 import { IBinding } from '../lifecycle';
 import {
   IBindingTargetAccessor,
-  IObservable,
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
@@ -24,36 +23,20 @@ import {
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $state: State;
-  public $scope?: IScope;
+  public $state: State = State.none;;
+  public $scope?: IScope = void 0;
   public part?: string;
 
-  public interpolation: IInterpolationExpression;
-  public observerLocator: IObserverLocator;
-  public locator: IServiceLocator;
-  public mode: BindingMode;
   public parts: InterpolationBinding[];
-  public target: IObservable;
-  public targetProperty: string;
 
   public constructor(
-    observerLocator: IObserverLocator,
-    interpolation: IInterpolationExpression,
-    target: object,
-    targetProperty: string,
-    mode: BindingMode,
-    locator: IServiceLocator,
+    public observerLocator: IObserverLocator,
+    public interpolation: IInterpolationExpression,
+    public target: object,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public locator: IServiceLocator,
   ) {
-    this.$state = State.none;
-    this.$scope = void 0;
-
-    this.interpolation = interpolation;
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.target = target as IObservable;
-    this.targetProperty = targetProperty;
-
     // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
     // value converters and binding behaviors.
     // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
@@ -102,40 +85,21 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $scope?: IScope;
   public part?: string;
-  public $state: State;
-
-  public interpolation: IInterpolationExpression;
-  public isFirst: boolean;
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IExpression;
-  public target: IObservable;
-  public targetProperty: string;
+  public $state: State = State.none;
 
   public targetObserver: IBindingTargetAccessor;
 
   public constructor(
-    sourceExpression: IExpression,
-    interpolation: IInterpolationExpression,
-    target: object,
-    targetProperty: string,
-    mode: BindingMode,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator,
-    isFirst: boolean,
+    public sourceExpression: IExpression,
+    public interpolation: IInterpolationExpression,
+    public target: object,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
+    public isFirst: boolean,
   ) {
     connectable.assignIdTo(this);
-    this.$state = State.none;
-
-    this.interpolation = interpolation;
-    this.isFirst = isFirst;
-    this.mode = mode;
-    this.locator = locator;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target as IObservable;
-    this.targetProperty = targetProperty;
 
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
   }

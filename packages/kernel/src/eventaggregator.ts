@@ -6,15 +6,12 @@ import { Reporter } from './reporter';
  * Represents a handler for an EventAggregator event.
  */
 class Handler {
-  /** @internal */
-  public readonly messageType: Constructable;
-  /** @internal */
-  public readonly callback: EventAggregatorCallback;
-
-  public constructor(messageType: Constructable, callback: EventAggregatorCallback) {
-    this.messageType = messageType;
-    this.callback = callback;
-  }
+  public constructor(
+    /** @internal */
+    public readonly messageType: Constructable,
+    /** @internal */
+    public readonly callback: EventAggregatorCallback,
+  ) {}
 
   public handle(message: InstanceType<Constructable>): void {
     if (message instanceof this.messageType) {
@@ -62,17 +59,9 @@ export interface IEventAggregator {
  */
 export class EventAggregator implements IEventAggregator {
   /** @internal */
-  public readonly eventLookup: Record<string, EventAggregatorCallback[]>;
+  public readonly eventLookup: Record<string, EventAggregatorCallback[]> = {};
   /** @internal */
-  public readonly messageHandlers: Handler[];
-
-  /**
-   * Creates an instance of the EventAggregator class.
-   */
-  public constructor() {
-    this.eventLookup = {};
-    this.messageHandlers = [];
-  }
+  public readonly messageHandlers: Handler[] = [];
 
   /**
    * Publishes a message.

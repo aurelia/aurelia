@@ -12,8 +12,6 @@ import {
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
 
-const slice = Array.prototype.slice;
-
 const enum RuntimeError {
   NilScope = 250,
   NilOverrideContext = 252,

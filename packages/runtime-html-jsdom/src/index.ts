@@ -1,17 +1,15 @@
-import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, DOM } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 import { JSDOMScheduler } from './jsdom-scheduler';
 
 class JSDOMInitializer implements IDOMInitializer {
-  public static readonly inject: readonly Key[] = [IContainer];
-
-  private readonly container: IContainer;
   private readonly jsdom: JSDOM;
 
-  public constructor(container: IContainer) {
-    this.container = container;
+  public constructor(
+    @IContainer private readonly container: IContainer,
+  ) {
     this.jsdom = new JSDOM('', { pretendToBeVisual: true });
   }
 

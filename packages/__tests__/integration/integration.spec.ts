@@ -6,7 +6,7 @@ import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 
-describe.only('app', function() {
+describe('app', function() {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function() {
       const ctx = await startup();
@@ -94,11 +94,11 @@ describe.only('app', function() {
       text2 = 'world';
 
     vm.text4 = text1;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(el, `interpolated: ${text1}${vm.text5}`, `incorrect text - change1`, host);
 
     vm.text5 = text2;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(el, `interpolated: ${text1}${text2}`, `incorrect text - change2`, host);
   });
 
@@ -205,7 +205,6 @@ describe.only('app', function() {
     const dirtyChecker = ctx.container.get(IDirtyChecker);
     const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['fullNameStatic', 'fullNameNonStatic', 'fullNameWrongStatic'].includes(prop.propertyKey));
     assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
-
 
     let index = calls.length;
     user.firstName = 'Jane';
@@ -340,7 +339,7 @@ describe.only('app', function() {
 
     // assert if the choice is changed in VM, it is propagated to view
     app.chosenContact1 = contactsArr[0][0];
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
     assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -348,7 +347,7 @@ describe.only('app', function() {
     const lastIndex = size - 1;
     const lastChoice = labels[lastIndex];
     lastChoice.click();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
     assert.equal(app.chosenContact1, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
 
@@ -357,7 +356,7 @@ describe.only('app', function() {
     const newContacts = [[111, 'home2'], [222, 'work2']] as const;
     contacts.set(...newContacts[0]);
     contacts.set(...newContacts[1]);
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     labels = toArray(rbl.querySelectorAll('label'));
     size = contacts.size;
     assert.equal(labels.length, size);
@@ -366,22 +365,22 @@ describe.only('app', function() {
 
     // change value of existing key - last
     contacts.set(222, 'work3');
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(rbl.querySelector('label:last-of-type'), 'work3', 'incorrect text');
     // change value of existing key - middle
     contacts.set(111, 'home3');
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(rbl.querySelector(`label:nth-of-type(${size - 1})`), 'home3', 'incorrect text');
 
     // delete single item
     contacts.delete(111);
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     labels = toArray(rbl.querySelectorAll('label'));
     assert.equal(labels.length, size - 1);
 
     // clear map
     contacts.clear();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     labels = toArray(rbl.querySelectorAll('label'));
     assert.equal(labels.length, 0, `expected no label ${rbl.outerHTML}`);
   });
@@ -410,7 +409,7 @@ describe.only('app', function() {
 
     // assert if the choice is changed in VM, it is propagated to view
     app.chosenContact2 = contactsArr[0][0];
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
     assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -418,7 +417,7 @@ describe.only('app', function() {
     const lastIndex = size - 1;
     const lastChoice = labels[lastIndex];
     lastChoice.click();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
     assert.equal(app.chosenContact2, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
   });
@@ -445,7 +444,7 @@ describe.only('app', function() {
 
       // assert if the choice is changed in VM, it is propagated to view
       app[chosenProp] = contacts[1];
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
       assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -453,7 +452,7 @@ describe.only('app', function() {
       const lastIndex = size - 1;
       const lastChoice = labels[lastIndex];
       lastChoice.click();
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
       if (id.includes('matcher')) {
         assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
@@ -480,7 +479,7 @@ describe.only('app', function() {
 
       // assert if the choice is changed in VM, it is propagated to view
       app[chosenProp] = contacts[1];
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
       assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -488,7 +487,7 @@ describe.only('app', function() {
       const lastIndex = size - 1;
       const lastChoice = labels[lastIndex];
       lastChoice.click();
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
       assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
     })
@@ -509,12 +508,12 @@ describe.only('app', function() {
 
     // assert if the choice is changed in VM, it is propagated to view
     app.likesCake = true;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(labels[1].querySelector('input').checked, true, `should have been checked for true`);
 
     // assert that when choice is changed from view, it is propagaetd to VM
     labels[2].click();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(labels[2].querySelector('input').checked, true, `should have been checked for false`);
     assert.equal(app.likesCake, false, 'expected change to porapagate to vm');
   });
@@ -527,11 +526,11 @@ describe.only('app', function() {
     assert.equal(consent.checked, false, 'unchecked1');
 
     consent.click();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(app.hasAgreed, true, 'checked');
 
     app.hasAgreed = false;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(consent.checked, false, 'unchecked2');
   });
 
@@ -548,14 +547,14 @@ describe.only('app', function() {
 
       // assert if the choice is changed in VM, it is propagated to view
       app[chosenProp].push(products[1]);
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(inputs[0].checked, true, 'checked00');
       assert.equal(inputs[1].checked, true, 'checked1');
 
       // assert that when choice is changed from view, it is propagaetd to VM
       inputs[0].click();
       inputs[2].click();
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(inputs[2].checked, true, 'checked2');
       const actual = app[chosenProp].sort((pa: Product, pb: Product) => pa.id - pb.id);
       if (id.includes('matcher')) {
@@ -575,7 +574,7 @@ describe.only('app', function() {
     // splice
     const newProduct1 = { id: 10, name: 'Mouse' };
     products.splice(0, 1, newProduct1);
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     let inputs: HTMLInputElement[] = getInputs();
     assert.html.textContent(inputs[0].parentElement, `${newProduct1.id}-${newProduct1.name}`, 'incorrect label0');
     assert.equal(inputs[0].checked, false, 'unchecked0');
@@ -583,24 +582,24 @@ describe.only('app', function() {
     // push
     const newProduct2 = { id: 20, name: 'Keyboard' };
     products.push(newProduct2);
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     inputs = getInputs();
     assert.html.textContent(inputs[products.length - 1].parentElement, `${newProduct2.id}-${newProduct2.name}`, 'incorrect label0');
 
     // pop
     products.pop();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(getInputs().length, products.length);
 
     // shift
     products.shift();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(getInputs().length, products.length);
 
     // unshift
     const newProducts = new Array(20).fill(0).map((_, i) => ({ id: i * 10, name: `foo${i + 1}` }));
     products.unshift(...newProducts);
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     inputs = getInputs();
     for (let i = 0; i < 20; i++) {
       assert.html.textContent(inputs[i].parentElement, `${newProducts[i].id}-${newProducts[i].name}`, `incorrect label${i + 1}`);
@@ -609,19 +608,19 @@ describe.only('app', function() {
 
     // sort
     products.sort((pa, pb) => (pa.name < pb.name ? -1 : 1));
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     inputs = getInputs();
     assert.deepEqual(inputs.map(i => getVisibleText(undefined, i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
 
     // reverse
     products.reverse();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     inputs = getInputs();
     assert.deepEqual(inputs.map(i => getVisibleText(undefined, i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
 
     // clear
     products.splice(0);
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     inputs = getInputs();
     assert.equal(inputs.length, 0);
   });
@@ -631,7 +630,7 @@ describe.only('app', function() {
     assert.equal(app.somethingDone, false);
 
     (host.querySelector('command button') as HTMLButtonElement).click();
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(app.somethingDone, true);
   });
 
@@ -658,7 +657,7 @@ describe.only('app', function() {
 
     // 10
     vm.a = true;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(not, 'false', 'not2');
     assert.html.textContent(and, 'false', 'and2');
     assert.html.textContent(or, 'true', 'or2');
@@ -669,7 +668,7 @@ describe.only('app', function() {
 
     // 11
     vm.b = true;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(and, 'true', 'and3');
     assert.html.textContent(or, 'true', 'or3');
     assert.html.textContent(xor, 'false', 'xor3');
@@ -679,7 +678,7 @@ describe.only('app', function() {
 
     // 01
     vm.a = false;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(and, 'false', 'and4');
     assert.html.textContent(or, 'true', 'or4');
     assert.html.textContent(xor, 'true', 'xor4');
@@ -703,7 +702,7 @@ describe.only('app', function() {
 
     line.slope = 4;
     ec.a = 10;
-    ctx.lifecycle.processRAFQueue(undefined);
+    ctx.scheduler.getRenderTaskQueue().flush();
     assert.html.textContent(ecYSq, getEcYsq(), 'ecysq2');
     assert.html.textContent(ecY, getEcY(), 'ecy2');
     assert.html.textContent(linex, getLinex(), 'linex2');
@@ -735,7 +734,7 @@ describe.only('app', function() {
       chosenProp: 'selectedItem4' as const
     }
   ].map(({ id, title, collProp, chosenProp }) =>
-    $it.only(title, function({ host, ctx }) {
+    $it(title, function({ host, ctx }) {
       const app = getViewModel<App>(host);
       const items = app[collProp];
       const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);
@@ -748,13 +747,13 @@ describe.only('app', function() {
 
       // assert if the choice is changed in VM, it is propagated to view
       app[chosenProp] = items[1].id;
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(options[2].selected, true, 'option1');
 
       // assert that when choice is changed from view, it is propagaetd to VM
       [options[2].selected, options[3].selected] = [false, true];
       select.dispatchEvent(new Event('change'));
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       if (title.includes('matcher')) {
         assert.deepEqual(app[chosenProp], items[2].id, 'selectedProp');
       } else {
@@ -789,7 +788,7 @@ describe.only('app', function() {
       chosenProp: 'selectedItems4' as const
     }
   ].map(({ id, title, collProp, chosenProp }) =>
-    $it.only(title, function({ host, ctx }) {
+    $it(title, function({ host, ctx }) {
       const app = getViewModel<App>(host);
       const items = app[collProp];
       const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);
@@ -802,14 +801,14 @@ describe.only('app', function() {
 
       // assert if the choice is changed in VM, it is propagated to view
       app[chosenProp].push(items[1].id);
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(options[1].selected, true, 'option11');
       assert.equal(options[2].selected, true, 'option21');
 
       // assert that when choice is changed from view, it is propagaetd to VM
       options[3].selected = true;
       select.dispatchEvent(new Event('change'));
-      ctx.lifecycle.processRAFQueue(undefined);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assert.equal(options[1].selected, true, 'option13');
       assert.equal(options[2].selected, true, 'option23');
       assert.equal(options[3].selected, true, 'option33');

@@ -371,11 +371,11 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
     for (const bindingStrategy of [BindingStrategy.getterSetter, BindingStrategy.proxies]) {
 
       suit(title, async function(): Promise<void> {
+        const ctx = TestContext.createHTMLTestContext();
+
         let body: HTMLElement;
         let host: HTMLElement;
         try {
-          const ctx = TestContext.createHTMLTestContext();
-
           const App = CustomElement.define({ name: `app`, template, strategy: bindingStrategy }, Root);
           const au = new Aurelia(ctx.container);
 
@@ -431,7 +431,6 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
           if (body) {
             body.focus();
           }
-          await waitForFrames(2);
         }
       });
     }
@@ -483,9 +482,3 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
     return item1.value < item2.value ? 1 : -1;
   }
 });
-
-async function waitForFrames(frameCount: number): Promise<void> {
-  while (frameCount-- > 0) {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  }
-}

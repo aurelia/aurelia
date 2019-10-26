@@ -74,24 +74,6 @@ describe(`The PLATFORM object`, function () {
     assert.greaterThanOrEqualTo($5, $4, `$5`);
   });
 
-  it(`requestAnimationFrame() resolves after microtasks`, function(done) {
-    let rafResolved = false;
-    let promiseResolved = false;
-    PLATFORM.requestAnimationFrame(() => {
-      rafResolved = true;
-      assert.strictEqual(promiseResolved, true, `promiseResolved`);
-      done();
-    });
-    Promise.resolve().then(() => {
-      Promise.resolve().then(() => {
-        Promise.resolve().then(() => {
-          assert.strictEqual(rafResolved, false, `rafResolved`);
-          promiseResolved = true;
-        }).catch(error => { throw error; });
-      }).catch(error => { throw error; });
-    }).catch(error => { throw error; });
-  });
-
   describe(`camelCase()`, function () {
     for (const [input, expected] of stringCases) {
       it(`${input} -> ${expected}`, function () {

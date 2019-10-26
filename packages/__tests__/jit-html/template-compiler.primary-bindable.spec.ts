@@ -481,7 +481,6 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         if (body) {
           body.focus();
         }
-        await waitForFrames(2);
       }
     });
   }
@@ -638,9 +637,3 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     });
   });
 });
-
-async function waitForFrames(frameCount: number): Promise<void> {
-  while (frameCount-- > 0) {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  }
-}

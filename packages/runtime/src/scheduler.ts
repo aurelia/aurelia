@@ -71,7 +71,7 @@ const {
   };
 })();
 
-export const IClock = DI.createInterface<IClock>('IClock').noDefault();
+export const IClock = DI.createInterface<IClock>('IClock').withDefault(x => x.instance(globalClock));
 export interface IClock {
   now(highRes?: boolean): number;
 }
@@ -128,6 +128,7 @@ export interface IScheduler {
   yieldMacroTask(): Promise<void>;
   yieldPostRenderTask(): Promise<void>;
   yieldIdleTask(): Promise<void>;
+  yieldAll(): Promise<void>;
 
   queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;

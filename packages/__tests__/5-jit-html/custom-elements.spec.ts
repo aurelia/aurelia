@@ -3,7 +3,8 @@ import {
   customElement,
   CustomElement,
   LifecycleFlags,
-  alias
+  alias,
+  CustomElementHost
 } from '@aurelia/runtime';
 import { TestConfiguration, assert, setup } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
@@ -393,5 +394,68 @@ describe('custom-elements', function () {
       await options.tearDown();
     });
 
+  });
+
+  describe('08. Change Handler', function() {
+    interface IChangeHandlerTestViewModel {
+      prop: any;
+      propChangedCallCount: number;
+      propChanged(newValue: any): void;
+    }
+
+    @customElement({
+      name: 'foo',
+      template: ''
+    })
+    class Foo implements IChangeHandlerTestViewModel {
+      @bindable()
+      public prop: any;
+      public propChangedCallCount: number = 0;
+      public propChanged(): void {
+        this.propChangedCallCount++;
+      }
+    }
+
+    it('does not invoke change handler when starts with plain usage', function() {
+      const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
+      assert.strictEqual(fooVm.propChangedCallCount, 0);
+      fooVm.prop = '5';
+      assert.strictEqual(fooVm.propChangedCallCount, 1);
+      tearDown();
+    });
+
+    it('does not invoke chane handler when starts with commands', function() {
+      const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
+      assert.strictEqual(fooVm.propChangedCallCount, 0);
+      fooVm.prop = '5';
+      assert.strictEqual(fooVm.propChangedCallCount, 1);
+      tearDown();
+    });
+
+    it('does not invoke chane handler when starts with interpolation', function() {
+      const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
+      assert.strictEqual(fooVm.propChangedCallCount, 0);
+      fooVm.prop = '5';
+      assert.strictEqual(fooVm.propChangedCallCount, 1);
+      tearDown();
+    });
+
+    it('does not invoke chane handler when starts with two way binding', function() {
+      const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
+      assert.strictEqual(fooVm.propChangedCallCount, 0);
+      fooVm.prop = '5';
+      assert.strictEqual(fooVm.propChangedCallCount, 1);
+      tearDown();
+    });
+
+    function setupChangeHandlerTest(template: string) {
+      const options = setup(template, app, [Foo]);
+      const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
+      const fooVm = fooEl.$controller.viewModel as Foo;
+      return {
+        fooVm: fooVm,
+        tearDown: () => options.au.stop()
+      };
+    }
   });
 });

@@ -133,6 +133,9 @@ commands:
       merge_topic:
         type: boolean
         default: true
+      bump_version:
+        type: boolean
+        default: true
     steps:
       - run: set -o pipefail && ./node_modules/.bin/lerna clean -y
       - run: set -o pipefail && git add packages/*/dist --force && git status
@@ -150,7 +153,10 @@ commands:
       - run: set -o pipefail && git checkout stash -- . && git status
       - run: set -o pipefail && git add packages/*/dist --force && git status
       - run: set -o pipefail && npm run change-package-refs:release
-      - run: set -o pipefail && npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
+      - when:
+          condition: << parameters.bump_version >>
+          steps:
+            - run: set -o pipefail && npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - run: set -o pipefail && git add . && git status
       - run: set -o pipefail && git commit --allow-empty -m "<< parameters.message >>" && git status
 
@@ -284,6 +290,9 @@ jobs:
       merge_topic:
         type: boolean
         default: true
+      bump_version:
+        type: boolean
+        default: true
     steps:
       - checkout_install_bootstrap
       - run: set -o pipefail && npm run build:release
@@ -295,6 +304,7 @@ jobs:
           to: << parameters.to >>
           channel: << parameters.channel >>
           merge_topic: << parameters.merge_topic >>
+          bump_version: << parameters.bump_version >>
       - when:
           condition: << parameters.push >>
           steps:
@@ -603,6 +613,7 @@ workflows:
           channel: latest
           push: true
           merge_topic: false
+          bump_version: false
 
   # Asks for manual approval and then publishes from the release branch to npm@latest
   # Triggered by push to release branch

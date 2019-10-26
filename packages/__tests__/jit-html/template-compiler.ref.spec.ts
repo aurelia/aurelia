@@ -505,14 +505,7 @@ describe('templating-compiler.ref.spec.ts', function() {
         if (body) {
           body.focus();
         }
-        await waitForFrames(2);
       }
     });
   }
 });
-
-async function waitForFrames(frameCount: number): Promise<void> {
-  while (frameCount-- > 0) {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  }
-}

@@ -71,7 +71,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.blur, 1);
 
         comp.hasFocus = true;
-        await waitForFrames(1);
+        await ctx.scheduler.yieldRenderTask();
         assert.strictEqual(ctx.doc.activeElement, host);
         assert.equal(comp.focus, 2);
         const div = host.querySelector('div');
@@ -165,10 +165,10 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       assertFn: async (ctx, host, comp: { hasFocus: boolean }) => {
         assert.equal(comp.hasFocus, undefined, 'should have worked and had focus===undefined initially');
         host.querySelector('input').focus();
-        await waitForFrames(1);
+        await ctx.scheduler.yieldRenderTask();
         assert.equal(comp.hasFocus, undefined, 'focusing input should not have changed "hasFocus"');
         host.querySelector('input').blur();
-        await waitForFrames(1);
+        await ctx.scheduler.yieldRenderTask();
         assert.equal(comp.hasFocus, true, 'should have worked and had focus===true after blurred');
       }
     },
@@ -182,7 +182,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.focusCount, undefined);
         assert.equal(comp.blurCount, undefined);
         host.querySelector('input').focus();
-        await waitForFrames(1);
+        await ctx.scheduler.yieldRenderTask();
         assert.equal(comp.hasFocus, true, 'focusing input should have changed "hasFocus"');
         assert.equal(comp.focusCount, 1);
         assert.equal(comp.blurCount, undefined);
@@ -228,7 +228,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.notStrictEqual(div, null);
         div.dispatchEvent(new ctx.CustomEvent('if'));
         assert.strictEqual(comp.hello, true);
-        await waitForFrames(1);
+        await ctx.scheduler.yieldRenderTask();
         assert.strictEqual(host.querySelector('div'), null);
       }
     },
@@ -329,7 +329,6 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         ctx.container.register(...resources);
         const au = new Aurelia(ctx.container);
         au.app({ host, component: comp });
-        await waitForFrames(1);
         await au.start().wait();
 
         await assertFn(ctx, host, comp);
@@ -342,7 +341,6 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         if (body) {
           body.focus();
         }
-        await waitForFrames(2);
       }
     });
   });
@@ -351,10 +349,4 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 interface IExpectedInstruction {
   toVerify: string[];
   [prop: string]: any;
-}
-
-async function waitForFrames(frameCount: number): Promise<void> {
-  while (frameCount-- > 0) {
-    await new Promise(PLATFORM.requestAnimationFrame);
-  }
 }

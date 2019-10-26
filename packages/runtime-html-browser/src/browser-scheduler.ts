@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueuePriority, TaskQueue, IClock, TaskCallback, QueueTaskOptions, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 
@@ -430,20 +430,38 @@ export class BrowserScheduler implements IScheduler {
     return this.taskQueue[TaskQueuePriority.idle];
   }
 
+  @bound
   public yieldMicroTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.microTask].yield();
   }
+  @bound
   public yieldRenderTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.render].yield();
   }
+  @bound
   public yieldMacroTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.macroTask].yield();
   }
+  @bound
   public yieldPostRenderTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.postRender].yield();
   }
+  @bound
   public yieldIdleTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.idle].yield();
+  }
+  @bound
+  public yieldAll(): Promise<void> {
+    // Yield sequentially from "large" to "small" so that any smaller tasks initiated by larger tasks are also still awaited,
+    // as well as guaranteeing a single round of persistent tasks from each queue.
+    // Don't change the order or into parallel, without thoroughly testing the ramifications on persistent and recursively queued tasks.
+    // These aspects are currently relatively poorly tested.
+    return Promise.resolve()
+      .then(this.yieldIdleTask)
+      .then(this.yieldPostRenderTask)
+      .then(this.yieldMacroTask)
+      .then(this.yieldRenderTask)
+      .then(this.yieldMicroTask);
   }
 
   public queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {

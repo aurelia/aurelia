@@ -1,42 +1,29 @@
 ### `@aurelia/runtime`
 
 #### Bindings
-- `call-binding`
-
-  Assigns the result of the method call to the attribute.
-
-  ```html
-  <el attr="func()"></el>
-  ```
-- `interpolation-binding`
-
-  Evaluates interpolation expression.
-- `let-binding`
-
-  Local variable evaluated on runtime (new property added to VM).
-- `property-binding`
-
-  Binds evaluated source expression to the VM properties or DOM attributes.
-
-  Modes:
-  - one time
-  - to view
-  - from view
-  - two way
-- `ref-binding`
+- [x]`call-binding`: `<el action.call="doSoemthing()"></el>`
+- [x] `interpolation-binding`: Evaluates interpolation expression.
+- [x] `let-binding`: Local variable evaluated on runtime (new property added to VM).
+- [x] `property-binding`: Binds evaluated source expression to the VM properties or DOM attributes.
+      Modes:
+      - one time
+      - to view
+      - from view
+      - two way
+- [ ] `ref-binding`
 
   Captures the reference to DOM elements, CE, and CE VMs.
 
 #### Observers
-- `array-observer`: Observer for mutation in array
-- `collection-length-observer`: Observer for array length
-- `collection-size-observer`: Observer for set or map size
-- `computed-observer`: Observer for computed properties
-- `map-observer`: Observer for mutation in Map
-- `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
-- `self-observer`: utilized for `@bindable`s with change handler
-- `set-observer`: Observer for mutation in Set
-- `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
+- [x] `array-observer`: Observer for mutation in array
+- [ ] `collection-length-observer`: Observer for array length
+- [ ] `collection-size-observer`: Observer for set or map size
+- [x] `computed-observer`: Observer for computed properties
+- [x] `map-observer`: Observer for mutation in Map
+- [ ] `proxy-observer`: Observer for the mutation of object property value when proxy strategy is used (TODO: have a CE for testing that utilizes proxy strategy)
+- [ ] `self-observer`: utilized for `@bindable`s with change handler
+- [ ] `set-observer`: Observer for mutation in Set
+- [x] `setter-observer`: Observer for the mutation of object property value when getter-setter strategy is used (default strategy, therefore no special CE will be required)
 
 #### Binding behaviors
 - `debounce`: delays change
@@ -51,21 +38,22 @@
 - `listener`: handle event binding between view and view model
 
 #### Observation
-- `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
-- `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
-- `class-attribute-accessor`: manipulates class attributes for an element.
-- `data-attribute-observer`: observes non-class, and non-style HTML attributes.
+- [ ] `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
+- [x] `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
+- [ ] `class-attribute-accessor`: manipulates class attributes for an element.
+- [ ] `data-attribute-observer`: observes non-class, and non-style HTML attributes.
   ```html
   <div aria-disabled.attr="disabled">
   ```
-- `element-attribute-observer`: handles mutation of `style` and `class` attributes via VM properties.
+- [ ] `element-attribute-observer`: handles mutation of `style` and `class` attributes via VM properties.
   ```html
   <div selected.class="selected">
   <div background.style="bg">
   ```
-- `element-property-accessor`: handles mutation of other attributes via VM properties.
-- `select-value-observer`: handles selection of options in `<select>` element.
-- `style-attribute-accessor`: inline style accessor
+- [x] `element-property-accessor`: handles mutation of other attributes via VM properties.
+- [x] `select-value-observer`: handles selection of options in `<select>` element.
+- [ ] `style-attribute-accessor`: inline style accessor
+- [x] `value-attribute-observer`: observer for `[value]` (input)
 
 #### Binding behaviors
 - `attr`: wrapper for data attribute observer.
@@ -94,10 +82,10 @@ ${value}
 **Potential coverage targets**
 
 - interpolation binding
-- call-binding (with the help of a higher-level CE that binds the value using a method call)
+- ~~call-binding (with the help of a higher-level CE that binds the value using a method call)~~
 - i18n (maybe later)
 - `setter-observer`
-- `attribute` binding
+- ~~`attribute` binding~~
 - `ElementPropertyAccessor` (for `textContent`)
 
 ##### Text input
@@ -139,8 +127,6 @@ Displays a list of supported locales, and enable selection.
 
 **Potential coverage targets**
 
-- `one-time` binding mode
-- `to-view` binding mode
 - `computed-observer` (`dirty-checker` transitive dep) via a `User` class which has a computed `fullName` property. An instance of `User` is bound to this control
 - `map-observer` via locales dialog + non real life actions of adding and removing locales
 
@@ -207,28 +193,27 @@ The update of the display is triggered every 2 seconds via a signal.
 
 ##### Edit form
 
-- checkbox:
-  - single boolean checkbox: `checked-observer` simple case
-  - collection of checkboxes:
-    - bound to array of models: `checked-observer` with collection as value
-    - with custom matcher
-- collection of radios:
-  - simple id-value pair case
-  - bind model
-  - bind matcher
-  - bind boolean
+- [x] checkbox:
+  - [x] single boolean checkbox: `checked-observer` simple case
+  - [x] collection of checkboxes:
+    - [x] bound to array of models: `checked-observer` with collection as value
+    - [x] with custom matcher
+- [x] collection of radios:
+  - [x] simple id-value pair case
+  - [x] bind model
+  - [x] bind matcher
+  - [x] bind boolean
 - card selector: displays a list of cards and applies a special css class and inline style (I know this is hypothetical, just grouping this here) on the selected card. Should cover `class-attribute-accessor`, `style-attribute-accessor`, and `element-attribute-observer`. Additionally, it applies a `src` attribute on the card images which should cover `data-attribute-accessor`.
-- `<select>`
-  - single select
-    - simple id-value pair case
-    - bind model
-    - bind matcher
-    - bind boolean
-  - multi-select
-    - simple id-value pair case
-    - bind model
-    - bind matcher
-    - bind boolean
+- [x] `<select>`
+  - [x] single select
+    - [x] simple id-value pair case
+    - [x] bind model
+    - [x] bind matcher
+    ~~- bind boolean~~
+  - [x] multi-select
+    - [x] simple id-value pair case
+    - [x] bind model
+    - [x] bind matcher
 
 ##### Specs viewer
 **Postponed**

@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { IContainer, bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueuePriority, TaskQueue, IClock, TaskCallback, QueueTaskOptions, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
@@ -453,17 +454,18 @@ export class BrowserScheduler implements IScheduler {
     return this.taskQueue[TaskQueuePriority.idle].yield();
   }
   @bound
-  public yieldAll(): Promise<void> {
+  public async yieldAll(repeat: number = 1): Promise<void> {
     // Yield sequentially from "large" to "small" so that any smaller tasks initiated by larger tasks are also still awaited,
     // as well as guaranteeing a single round of persistent tasks from each queue.
     // Don't change the order or into parallel, without thoroughly testing the ramifications on persistent and recursively queued tasks.
     // These aspects are currently relatively poorly tested.
-    return Promise.resolve()
-      .then(this.yieldIdleTask)
-      .then(this.yieldPostRenderTask)
-      .then(this.yieldMacroTask)
-      .then(this.yieldRenderTask)
-      .then(this.yieldMicroTask);
+    while (repeat-- > 0) {
+      await this.yieldIdleTask();
+      await this.yieldPostRenderTask();
+      await this.yieldMacroTask();
+      await this.yieldRenderTask();
+      await this.yieldMicroTask();
+    }
   }
 
   public queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {

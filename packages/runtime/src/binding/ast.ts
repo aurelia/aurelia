@@ -729,11 +729,7 @@ export class BinaryExpression implements IBinaryExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
-    const left = this.left.evaluate(flags, scope, null, part);
     this.left.connect(flags, scope, binding, part);
-    if (this.operation === '&&' && !left || this.operation === '||' && left) {
-      return;
-    }
     this.right.connect(flags, scope, binding, part);
   }
 

@@ -3,6 +3,54 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.4.0"></a>
+# 0.4.0 (2019-10-26)
+
+### Features:
+
+* **all:** add tracer argument stringification and improve tracing ([5ccdc42](https://github.com/aurelia/aurelia/commit/5ccdc42))
+* **kernel,debug:** add a simple tracer implementation ([89bc436](https://github.com/aurelia/aurelia/commit/89bc436))
+
+
+### Bug Fixes:
+
+* **reporter:** use correct message for code 16 and apply format variables to error msg ([1c8bdb1](https://github.com/aurelia/aurelia/commit/1c8bdb1))
+* **runtime:** cleanup unused flags to get the highest flag no to SMI again ([4bc20d3](https://github.com/aurelia/aurelia/commit/4bc20d3))
+* **debug:** add missing error codes and fix a few reporting issues ([25148d0](https://github.com/aurelia/aurelia/commit/25148d0))
+* **debug:** add fromTick to stringifyLifecycleFlags ([8502236](https://github.com/aurelia/aurelia/commit/8502236))
+* **tracer:** fix symbols ([760bcf9](https://github.com/aurelia/aurelia/commit/760bcf9))
+
+
+### Performance Improvements:
+
+* **all): add sideEffect:** false for better tree shaking ([59b5e55](https://github.com/aurelia/aurelia/commit/59b5e55))
+
+
+### Refactorings:
+
+* **debug:** rename Tracer to DebugTracer ([a6c28b3](https://github.com/aurelia/aurelia/commit/a6c28b3))
+* **binding:** rename bindings ([35d4dff](https://github.com/aurelia/aurelia/commit/35d4dff))
+* **ast:** add -Expression suffix to AST expression classes ([0870538](https://github.com/aurelia/aurelia/commit/0870538))
+* **observation:** cleanup unused flags and remove decorator layer for the time being ([a16863b](https://github.com/aurelia/aurelia/commit/a16863b))
+* **runtime:** encapsulate lifecycle behavior in controller class ([4c12498](https://github.com/aurelia/aurelia/commit/4c12498))
+* **all:** break out patch mode for now ([e173d0c](https://github.com/aurelia/aurelia/commit/e173d0c))
+* **all:** more loosening up of null/undefined ([6794c30](https://github.com/aurelia/aurelia/commit/6794c30))
+* **all:** loosen up null/undefined ([40bc93a](https://github.com/aurelia/aurelia/commit/40bc93a))
+* **runtime:** fix binding and observation strict types ([b01d69a](https://github.com/aurelia/aurelia/commit/b01d69a))
+* **runtime:** remove/cleanup more flags ([71b598b](https://github.com/aurelia/aurelia/commit/71b598b))
+* **runtime:** remove connect-queue ([b827710](https://github.com/aurelia/aurelia/commit/b827710))
+* **tracer:** implement bbosman's suggestion for _ctorName ([9068c03](https://github.com/aurelia/aurelia/commit/9068c03))
+* **debug:** use Reporter for the trace writer ([ee6a45d](https://github.com/aurelia/aurelia/commit/ee6a45d))
+* **runtime:** support bindable array ([943eed0](https://github.com/aurelia/aurelia/commit/943eed0))
+* **all:** consolidate binding mechanisms into BindingStrategy enum ([d319ba8](https://github.com/aurelia/aurelia/commit/d319ba8))
+* **all:** split traceInfo.name up in objName and methodName ([2cdc203](https://github.com/aurelia/aurelia/commit/2cdc203))
+* **debug:** put tracer in separate file ([2a169a1](https://github.com/aurelia/aurelia/commit/2a169a1))
+* **debug:** explicitly export non-internal stuff ([840fe57](https://github.com/aurelia/aurelia/commit/840fe57))
+* ***:** standardise on "as" type casts ([d0933b8](https://github.com/aurelia/aurelia/commit/d0933b8))
+* ***:** partially revert renames due to no-reserved-keywords ([87501c1](https://github.com/aurelia/aurelia/commit/87501c1))
+* ***:** remove no-reserved-keywords suppressions and fix most of them ([579c606](https://github.com/aurelia/aurelia/commit/579c606))
+* ***:** fix errors and warnings reported by "lgtm" ([c77b12c](https://github.com/aurelia/aurelia/commit/c77b12c))
+
 <a name="0.3.0"></a>
 # 0.3.0 (2018-10-12)
 

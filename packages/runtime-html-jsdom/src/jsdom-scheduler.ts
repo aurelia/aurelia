@@ -1,4 +1,4 @@
-import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { IContainer, PLATFORM, bound } from '@aurelia/kernel';
 import { IDOM, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 
@@ -375,20 +375,34 @@ export class JSDOMScheduler implements IScheduler {
     return this.taskQueue[TaskQueuePriority.idle];
   }
 
+  @bound
   public yieldMicroTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.microTask].yield();
   }
+  @bound
   public yieldRenderTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.render].yield();
   }
+  @bound
   public yieldMacroTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.macroTask].yield();
   }
+  @bound
   public yieldPostRenderTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.postRender].yield();
   }
+  @bound
   public yieldIdleTask(): Promise<void> {
     return this.taskQueue[TaskQueuePriority.idle].yield();
+  }
+  @bound
+  public yieldAll(): Promise<void> {
+    return Promise.resolve()
+      .then(this.yieldIdleTask)
+      .then(this.yieldPostRenderTask)
+      .then(this.yieldMacroTask)
+      .then(this.yieldRenderTask)
+      .then(this.yieldMicroTask);
   }
 
   public queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {

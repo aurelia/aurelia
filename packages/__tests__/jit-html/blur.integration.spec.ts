@@ -41,22 +41,27 @@ describe('blur.integration.spec.ts', function() {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'component.hasFocus');
-            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, true, 'window@mousedown -> Shoulda leave "hasFocus" alone as window is not listened to.');
-            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda set "hasFocus" to false when mousedown on doc body.');
-            await waitForFrames(1);
 
             const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, '+ button@mousedown -> Shoulda set "hasFocus" to false when clicking element outside.');
           }
         },
@@ -74,22 +79,27 @@ describe('blur.integration.spec.ts', function() {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'document@mousedown -> Shoulda set "hasFocus" to false when mousedown on document.');
-            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, true, 'window@mousedown -> It should have been true. Ignore interaction out of document.');
-            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda been false. Interacted inside doc, outside element.');
-            await waitForFrames(1);
 
             const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, '+ button@mousedown -> Shoulda been false. Interacted outside element.');
           }
         }
@@ -106,7 +116,6 @@ describe('blur.integration.spec.ts', function() {
             await assertFn(ctx, testHost, component, null);
             // test cases could be sharing the same context document
             // so wait a bit before running the next test
-            await waitForFrames(2);
             await dispose();
           });
         }
@@ -142,36 +151,42 @@ describe('blur.integration.spec.ts', function() {
 
             input.blur();
             dispatchEventWith(ctx, input, EVENTS.Blur, false);
-            await waitForFrames(1);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.notEqual(input, ctx.doc.activeElement, 'child > input !== doc.activeElement');
             assert.equal(component.hasFocus, false, 'child > input@blur');
-            await waitForFrames(1);
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'document@mousedown');
-            await waitForFrames(1);
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'window@mousedown');
-            await waitForFrames(1);
+            await ctx.scheduler.yieldRenderTask();
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, 'document.body@mousedown');
-            await waitForFrames(1);
 
             const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
+            await ctx.scheduler.yieldRenderTask();
+
             assert.equal(component.hasFocus, false, '+ button@mousedown');
-            await waitForFrames(1);
 
             // this is quite convoluted
             // and failing unexpectedly, commented out for good
             component.hasFocus = true;
             input.focus();
             dispatchEventWith(ctx, input, EVENTS.Focus, false);
+            await ctx.scheduler.yieldRenderTask();
             // assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement (2)');
             // child input got focus
             // 1. blur got triggered -> hasFocus to false
@@ -199,7 +214,6 @@ describe('blur.integration.spec.ts', function() {
               )
             );
             await assertFn(ctx, testHost, component, null);
-            await waitForFrames(2);
             await dispose();
           });
         }
@@ -264,12 +278,11 @@ describe('blur.integration.spec.ts', function() {
           assert.equal(ceA.hasFocus, false, '<ce-a/>.hasFocus should have been false?');
           assert.equal(ceB.hasFocus, false, '<ce-b/>.hasFocus should have been false?');
 
-          await waitForFrames(1);
-
           ceA.hasFocus = true;
           dispatchEventWith(ctx, $ceA.shadowRoot.querySelector('button'), EVENTS.MouseDown);
+          await ctx.scheduler.yieldRenderTask();
+
           assert.equal(ceA.hasFocus, true, '<ce-a/>.hasFocus should have been true?');
-          await waitForFrames(1);
 
           $ceA.dispatchEvent(mockComposedEvent({
             ctx,
@@ -277,6 +290,7 @@ describe('blur.integration.spec.ts', function() {
             target: $ceA,
             composedPath: [$ceA.shadowRoot.querySelector('p')]
           }));
+          await ctx.scheduler.yieldRenderTask();
 
           assert.equal(ceA.hasFocus, false, '<ce-a/>.hasFocus should have been false?');
           assert.equal(ceB.hasFocus, false, '<ce-b/>.hasFocus should have been false?');
@@ -296,7 +310,6 @@ describe('blur.integration.spec.ts', function() {
           await assertFn(ctx, testHost, component, testHost);
           // test cases could be sharing the same context document
           // so wait a bit before running the next test
-          await waitForFrames(2);
           await dispose();
         });
       }
@@ -321,7 +334,6 @@ describe('blur.integration.spec.ts', function() {
   }
 
   async function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
-    await waitForFrames(1);
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
@@ -334,7 +346,6 @@ describe('blur.integration.spec.ts', function() {
 
     au.app({ host: appHost, component });
     await au.start().wait();
-    await waitForFrames(2);
 
     return {
       ctx: ctx,
@@ -347,7 +358,6 @@ describe('blur.integration.spec.ts', function() {
       observerLocator,
       dispose: async () => {
         await au.stop().wait();
-        await waitForFrames(2);
         testHost.remove();
       }
     };
@@ -368,12 +378,6 @@ describe('blur.integration.spec.ts', function() {
 
   function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {
     target.dispatchEvent(new ctx.Event(name, { bubbles }));
-  }
-
-  async function waitForFrames(frameCount: number): Promise<void> {
-    while (frameCount-- > 0) {
-      await new Promise(PLATFORM.requestAnimationFrame);
-    }
   }
 
   type TemplateFn = (focusAttrBindingCommand: string) => string;

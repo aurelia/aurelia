@@ -1,86 +1,87 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { PropertyBinding } from '../../binding/property-binding';
-import { BindingMode, LifecycleFlags } from '../../flags';
+import { LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
 import { bindingBehavior } from '../binding-behavior';
+import { ITask, IScheduler, IClock} from '../../scheduler';
 
-export type ThrottleableBinding = IBinding & {
-  throttledMethod: ((value: unknown) => unknown) & { originalName: string };
-  throttleState: {
-    delay: number;
-    timeoutId: number;
-    last: number;
-    newValue?: unknown;
-  };
-};
-
-/** @internal */
-export function throttle(this: ThrottleableBinding, newValue: unknown): void {
-  const state = this.throttleState;
-  const elapsed = +new Date() - state.last;
-
-  if (elapsed >= state.delay) {
-    PLATFORM.global.clearTimeout(state.timeoutId);
-    state.timeoutId = -1;
-    state.last = +new Date();
-    this.throttledMethod(newValue);
-    return;
-  }
-
-  state.newValue = newValue;
-
-  if (state.timeoutId === -1) {
-    const timeoutId = PLATFORM.global.setTimeout(
-      () => {
-        state.timeoutId = -1;
-        state.last = +new Date();
-        this.throttledMethod(state.newValue);
-      },
-      state.delay - elapsed
-    );
-    state.timeoutId = timeoutId;
-  }
+interface ICallSource {
+  callSource(arg: object): void;
 }
 
-@bindingBehavior('throttle')
-export class ThrottleBindingBehavior {
-  public bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay: number = 200): void {
-    let methodToThrottle: string;
+interface IHandleChange {
+  handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+}
 
-    if (binding instanceof PropertyBinding) {
-      if (binding.mode === BindingMode.twoWay) {
-        methodToThrottle = 'updateSource';
+interface IThrottleableBinding extends ICallSource, IHandleChange, IBinding {}
+
+type Func = (...args: unknown[]) => void;
+
+class Throttler {
+  private readonly originalHandler: Func;
+  private readonly wrappedHandler: Func;
+  private readonly methodName: 'callSource' | 'handleChange';
+
+  public constructor(
+    private readonly binding: IThrottleableBinding,
+    delay: number,
+  ) {
+    const clock = binding.locator.get(IClock);
+    const taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
+    const taskQueueOpts = { delay };
+    const methodName = this.methodName = 'callSource' in binding ? 'callSource' : 'handleChange';
+    let task: ITask | null = null;
+
+    let lastCall = 0;
+    let nextDelay = 0;
+
+    const originalHandler = this.originalHandler = binding[methodName] as Func;
+    this.wrappedHandler = (...args: unknown[]): void => {
+      nextDelay = lastCall + delay - clock.now();
+
+      if (nextDelay > 0) {
+        if (task !== null) {
+          task.cancel();
+        }
+
+        taskQueueOpts.delay = nextDelay;
+        task = taskQueue.queueTask(() => {
+          lastCall = clock.now();
+          originalHandler.call(binding, ...args);
+        }, taskQueueOpts);
       } else {
-        methodToThrottle = 'updateTarget';
+        lastCall = clock.now();
+        originalHandler.call(binding, ...args);
       }
-    } else {
-      methodToThrottle = 'callSource';
-    }
-
-    // stash the original method and it's name.
-    // note: a generic name like "originalMethod" is not used to avoid collisions
-    // with other binding behavior types.
-    binding.throttledMethod = binding[methodToThrottle as keyof ThrottleableBinding] as ThrottleableBinding['throttledMethod'];
-    binding.throttledMethod.originalName = methodToThrottle;
-
-    // replace the original method with the throttling version.
-    (binding as typeof binding & { [key: string]: typeof throttle})[methodToThrottle] = throttle as ThrottleableBinding['throttledMethod'];
-
-    // create the throttle state.
-    binding.throttleState = {
-      delay: delay,
-      last: 0,
-      timeoutId: -1
     };
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void {
-    // restore the state of the binding.
-    const methodToRestore = binding.throttledMethod.originalName;
-    (binding as typeof binding & { [key: string]: ThrottleableBinding['throttledMethod'] })[methodToRestore] = binding.throttledMethod;
-    binding.throttledMethod = null!;
-    PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
-    binding.throttleState = null!;
+  public start(): void {
+    this.binding[this.methodName] = this.wrappedHandler;
+  }
+
+  public stop(): void {
+    this.binding[this.methodName] = this.originalHandler;
+  }
+}
+
+const lookup = new WeakMap<IBinding, Throttler>();
+
+@bindingBehavior('throttle')
+export class ThrottleBindingBehavior {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: IThrottleableBinding, delay: number = 200): void {
+    let throttler = lookup.get(binding);
+    if (throttler === void 0) {
+      throttler = new Throttler(binding, delay);
+      lookup.set(binding, throttler);
+    }
+
+    throttler.start();
+  }
+
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: IThrottleableBinding): void {
+    // The binding exists so it can't have been garbage-collected and a binding can only unbind if it was bound first,
+    // so we know for sure the throttler exists in the lookup.
+    const throttler = lookup.get(binding)!;
+    throttler.stop();
   }
 }

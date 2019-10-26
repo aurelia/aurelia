@@ -269,7 +269,7 @@ describe('focus.spec.ts', function() {
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          await waitForFrames(1);
+          await ctx.scheduler.yieldRenderTask();
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }
@@ -323,7 +323,6 @@ describe('focus.spec.ts', function() {
           assert.equal(activeElement, focusable, '@setup -> document.activeElement === focusable');
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
           await assertionFn(ctx, testHost, component, focusable);
-          await waitForFrames(1);
           await dispose();
         });
       }
@@ -391,12 +390,6 @@ describe('focus.spec.ts', function() {
     }
     customElements.define(name, CustomEl);
     return CustomEl;
-  }
-
-  async function waitForFrames(frameCount: number): Promise<void> {
-    while (frameCount-- >= 0) {
-      await new Promise(PLATFORM.requestAnimationFrame);
-    }
   }
 
   function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {

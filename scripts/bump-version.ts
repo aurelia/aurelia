@@ -48,13 +48,15 @@ function parseArgs(): {tag: string; suffix: string} {
 
 (async function (): Promise<void> {
   const { tag, suffix } = parseArgs();
-  const { major, minor, patch } = getCurrentVersion();
-  const bump = await getRecommendedVersionBump();
-  const newVersion = getNewVersion(major, minor, patch, tag, bump, suffix);
-  if (tag === 'dev') {
-    await updateDependencyVersions(newVersion);
+  if (Boolean(tag)) {
+    const { major, minor, patch } = getCurrentVersion();
+    const bump = await getRecommendedVersionBump();
+    const newVersion = getNewVersion(major, minor, patch, tag, bump, suffix);
+    if (tag === 'dev') {
+      await updateDependencyVersions(newVersion);
+    }
+    log('Done.');
   }
-  log('Done.');
 })().catch(err => {
   log.error(err);
   process.exit(1);

@@ -18,18 +18,14 @@ export interface ICharSpec {
 
 /** @internal */
 export class CharSpec implements ICharSpec {
-  public chars: string;
-  public repeat: boolean;
-  public isSymbol: boolean;
-  public isInverted: boolean;
-
   public has: (char: string) => boolean;
 
-  public constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
-    this.chars = chars;
-    this.repeat = repeat;
-    this.isSymbol = isSymbol;
-    this.isInverted = isInverted;
+  public constructor(
+    public chars: string,
+    public repeat: boolean,
+    public isSymbol: boolean,
+    public isInverted: boolean,
+  ) {
     if (isInverted) {
       switch (chars.length) {
         case 0:
@@ -88,7 +84,7 @@ export class CharSpec implements ICharSpec {
 }
 
 export class Interpretation {
-  public parts: readonly string[];
+  public parts: readonly string[] = PLATFORM.emptyArray;
   public get pattern(): string | null {
     const value = this._pattern;
     if (value === '') {
@@ -106,16 +102,9 @@ export class Interpretation {
       this.parts = this.partsRecord[value];
     }
   }
-  private _pattern: string;
-  private readonly currentRecord: Record<string, string>;
-  private readonly partsRecord: Record<string, string[]>;
-
-  public constructor() {
-    this._pattern = '';
-    this.parts = PLATFORM.emptyArray;
-    this.currentRecord = {};
-    this.partsRecord = {};
-  }
+  private _pattern: string = '';
+  private readonly currentRecord: Record<string, string> = {};
+  private readonly partsRecord: Record<string, string[]> = {};
 
   public append(pattern: string, ch: string): void {
     const { currentRecord } = this;
@@ -142,21 +131,19 @@ export class Interpretation {
 
 /** @internal */
 export class State {
-  public charSpec: ICharSpec;
-  public nextStates: State[];
-  public types: SegmentTypes | null;
+  public nextStates: State[] = [];
+  public types: SegmentTypes | null = null;
   public patterns: string[];
-  public isEndpoint: boolean;
+  public isEndpoint: boolean = false;
   public get pattern(): string | null {
     return this.isEndpoint ? this.patterns[0] : null;
   }
 
-  public constructor(charSpec: ICharSpec, ...patterns: string[]) {
-    this.charSpec = charSpec;
-    this.nextStates = [];
-    this.types = null;
+  public constructor(
+    public charSpec: ICharSpec,
+    ...patterns: string[]
+  ) {
     this.patterns = patterns;
-    this.isEndpoint = false;
   }
 
   public findChild(charSpec: ICharSpec): State {
@@ -226,11 +213,12 @@ export interface ISegment {
 
 /** @internal */
 export class StaticSegment implements ISegment {
-  public text: string;
   private readonly len: number;
   private readonly specs: CharSpec[];
 
-  public constructor(text: string) {
+  public constructor(
+    public text: string,
+  ) {
     this.text = text;
     const len = this.len = text.length;
     const specs = this.specs = [] as CharSpec[];
@@ -249,11 +237,10 @@ export class StaticSegment implements ISegment {
 
 /** @internal */
 export class DynamicSegment implements ISegment {
-  public text: string;
+  public text: string = 'PART';
   private readonly spec: CharSpec;
 
   public constructor(symbols: string) {
-    this.text = 'PART';
     this.spec = new CharSpec(symbols, true, false, true);
   }
 
@@ -264,11 +251,11 @@ export class DynamicSegment implements ISegment {
 
 /** @internal */
 export class SymbolSegment implements ISegment {
-  public text: string;
   private readonly spec: CharSpec;
 
-  public constructor(text: string) {
-    this.text = text;
+  public constructor(
+    public text: string,
+  ) {
     this.spec = new CharSpec(text, false, true, false);
   }
 
@@ -279,15 +266,9 @@ export class SymbolSegment implements ISegment {
 
 /** @internal */
 export class SegmentTypes {
-  public statics: number;
-  public dynamics: number;
-  public symbols: number;
-
-  public constructor() {
-    this.statics = 0;
-    this.dynamics = 0;
-    this.symbols = 0;
-  }
+  public statics: number = 0;
+  public dynamics: number = 0;
+  public symbols: number = 0;
 }
 
 export interface ISyntaxInterpreter {
@@ -301,13 +282,8 @@ export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISynta
 
 /** @internal */
 export class SyntaxInterpreter {
-  public rootState: State;
-  private readonly initialStates: State[];
-
-  public constructor() {
-    this.rootState = new State(null!);
-    this.initialStates = [this.rootState];
-  }
+  public rootState: State = new State(null!);
+  private readonly initialStates: State[] = [this.rootState];
 
   public add(def: AttributePatternDefinition): void;
   public add(defs: AttributePatternDefinition[]): void;

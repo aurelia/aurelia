@@ -1,4 +1,4 @@
-import { all, DI, Key, Profiler } from '@aurelia/kernel';
+import { all, DI } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 
@@ -8,19 +8,16 @@ export interface IAttributeParser {
 
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 
-const { enter, leave } = Profiler.createTimer('AttributeParser');
-
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  public static readonly inject: readonly Key[] = [ISyntaxInterpreter, all(IAttributePattern)];
-
-  private readonly interpreter: ISyntaxInterpreter;
-  private readonly cache: Record<string, Interpretation>;
+  private readonly cache: Record<string, Interpretation> = {};
   private readonly patterns: Record<string, IAttributePatternHandler>;
 
-  public constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]) {
+  public constructor(
+    @ISyntaxInterpreter private readonly interpreter: ISyntaxInterpreter,
+    @all(IAttributePattern) attrPatterns: IAttributePattern[],
+  ) {
     this.interpreter = interpreter;
-    this.cache = {};
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
       const defs = attrPattern.$patternDefs;

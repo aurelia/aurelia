@@ -1,11 +1,9 @@
 import {
-  all,
   DI,
   IContainer,
   IDisposable,
   IIndexable,
   IResourceDescriptions,
-  Key,
   Reporter,
   Writable,
   Metadata,
@@ -19,7 +17,6 @@ import {
   IDOM,
   INode,
   INodeSequenceFactory,
-  NodeSequence,
 } from './dom';
 import { LifecycleFlags } from './flags';
 import {
@@ -304,39 +301,23 @@ export interface ChildrenObserver extends
 /** @internal */
 @subscriberCollection()
 export class ChildrenObserver {
-  public readonly propertyKey: string;
-  public readonly obj: IIndexable;
-  public observing: boolean;
+  public observing: boolean = false;
 
-  private readonly controller: IController;
-  private readonly filter: typeof defaultChildFilter;
-  private readonly map: typeof defaultChildMap;
-  private readonly query: typeof defaultChildQuery;
-  private readonly options?: MutationObserverInit;
   private readonly callback: () => void;
-  private children: any[];
+  private children: any[] = (void 0)!;
 
   public constructor(
-    controller: IController,
-    viewModel: any,
+    private readonly controller: IController,
+    public readonly obj: IIndexable,
     flags: LifecycleFlags,
-    propertyName: string,
+    public readonly propertyKey: string,
     cbName: string,
-    query = defaultChildQuery,
-    filter = defaultChildFilter,
-    map = defaultChildMap,
-    options?: MutationObserverInit
+    private readonly query = defaultChildQuery,
+    private readonly filter = defaultChildFilter,
+    private readonly map = defaultChildMap,
+    private readonly options?: MutationObserverInit
   ) {
-    this.propertyKey = propertyName;
-    this.obj = viewModel;
-    this.callback = viewModel[cbName] as typeof ChildrenObserver.prototype.callback;
-    this.query = query;
-    this.filter = filter;
-    this.map = map;
-    this.options = options;
-    this.children = (void 0)!;
-    this.controller = controller;
-    this.observing = false;
+    this.callback = obj[cbName] as typeof ChildrenObserver.prototype.callback;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.createGetterSetter();
   }

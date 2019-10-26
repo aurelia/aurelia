@@ -21,7 +21,7 @@ export class Focus {
   /**
    * Indicates whether `apply` should be called when `attached` callback is invoked
    */
-  private needsApply: boolean;
+  private needsApply: boolean = false;
 
   // This is set by the controller after this instance is constructed
   private readonly $controller!: IController;
@@ -29,11 +29,7 @@ export class Focus {
   public constructor(
     @INode private readonly element: HTMLElement,
     @IDOM private readonly dom: HTMLDOM
-  ) {
-    this.element = element;
-    this.dom = dom;
-    this.needsApply = false;
-  }
+  ) {}
 
   public binding(): void {
     this.valueChanged();

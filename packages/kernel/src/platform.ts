@@ -92,7 +92,7 @@ const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
 const emptyArray = Object.freeze([]) as unknown as any[];
 const emptyObject = Object.freeze({}) as any;
 
-const $PLATFORM = Object.freeze({
+const $PLATFORM = {
   /**
    * `true` if there is a `window` variable in the global scope with a `document` property.
    *
@@ -127,7 +127,7 @@ const $PLATFORM = Object.freeze({
   restore(): void {
     Object.assign(PLATFORM, $PLATFORM);
   },
-});
+};
 
 interface IPlatform extends IPerformance {
   /**

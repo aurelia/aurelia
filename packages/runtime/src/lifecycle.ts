@@ -5,7 +5,6 @@ import {
   IIndexable,
   IResolver,
   IServiceLocator,
-  PLATFORM,
   Registration,
 } from '@aurelia/kernel';
 import {
@@ -219,21 +218,14 @@ export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
 }
 
 export class BoundQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -303,21 +295,14 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class UnboundQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -387,21 +372,14 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class AttachedQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -473,21 +451,14 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class DetachedQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -559,17 +530,14 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class MountQueue implements IProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public head?: IController;
-  public tail?: IController;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public add(controller: IController): void {
     if ((controller.state & State.inUnmountQueue) > 0) {
@@ -627,17 +595,12 @@ export class MountQueue implements IProcessingQueue<IController> {
 }
 
 export class UnmountQueue implements IProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public add(controller: IController): void {
     if ((controller.state & State.inMountQueue) > 0) {
@@ -694,17 +657,12 @@ export class UnmountQueue implements IProcessingQueue<IController> {
 }
 
 export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
-  public readonly lifecycle: ILifecycle;
+  public queue: IBatchable[] = [];
+  public depth: number = 0;
 
-  public queue: IBatchable[];
-  public depth: number;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.queue = [];
-    this.depth = 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -750,29 +708,16 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
 }
 
 export class Lifecycle implements ILifecycle {
-  public readonly batch: IAutoProcessingQueue<IBatchable>;
+  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
 
-  public readonly mount: IProcessingQueue<IController>;
-  public readonly unmount: IProcessingQueue<IController>;
+  public readonly mount: IProcessingQueue<IController> = new MountQueue(this);
+  public readonly unmount: IProcessingQueue<IController> = new UnmountQueue(this);
 
-  public readonly bound: IAutoProcessingQueue<IController>;
-  public readonly unbound: IAutoProcessingQueue<IController>;
+  public readonly bound: IAutoProcessingQueue<IController> = new BoundQueue(this);
+  public readonly unbound: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
-  public readonly attached: IAutoProcessingQueue<IController>;
-  public readonly detached: IAutoProcessingQueue<IController>;
-
-  public constructor() {
-    this.batch = new BatchQueue(this);
-
-    this.mount = new MountQueue(this);
-    this.unmount = new UnmountQueue(this);
-
-    this.bound = new BoundQueue(this);
-    this.unbound = new UnboundQueue(this);
-
-    this.attached = new AttachedQueue(this);
-    this.detached = new DetachedQueue(this);
-  }
+  public readonly attached: IAutoProcessingQueue<IController> = new AttachedQueue(this);
+  public readonly detached: IAutoProcessingQueue<IController> = new DetachedQueue(this);
 
   public static register(container: IContainer): IResolver<ILifecycle> {
     return Registration.singleton(ILifecycle, this).register(container);

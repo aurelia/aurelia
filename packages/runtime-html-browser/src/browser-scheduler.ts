@@ -360,7 +360,10 @@ export class BrowserScheduler implements IScheduler {
     };
   };
 
-  public constructor(@IClock clock: IClock, @IDOM dom: HTMLDOM) {
+  public constructor(
+    @IClock clock: IClock,
+    @IDOM dom: HTMLDOM,
+  ) {
     const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
     const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });
     const macroTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask });

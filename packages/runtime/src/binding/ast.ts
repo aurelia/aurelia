@@ -150,7 +150,9 @@ const enum RuntimeError {
 }
 
 export class CustomExpression {
-  public constructor(public readonly value: string) { }
+  public constructor(
+    public readonly value: string,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
     return this.value;
@@ -158,18 +160,15 @@ export class CustomExpression {
 }
 
 export class BindingBehaviorExpression implements IBindingBehaviorExpression {
-  public readonly $kind: ExpressionKind.BindingBehavior;
-  public expression: IsBindingBehavior;
-  public readonly name: string;
-  public readonly args: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.BindingBehavior = ExpressionKind.BindingBehavior;
   public readonly behaviorKey: string;
 
-  public constructor(expression: IsBindingBehavior, name: string, args: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.BindingBehavior;
-    this.expression = expression;
-    this.name = name;
-    this.args = args;
-    this.behaviorKey = BindingBehavior.keyFrom(this.name);
+  public constructor(
+    public readonly expression: IsBindingBehavior,
+    public readonly name: string,
+    public readonly args: readonly IsAssign[],
+  ) {
+    this.behaviorKey = BindingBehavior.keyFrom(name);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
@@ -232,18 +231,15 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
 }
 
 export class ValueConverterExpression implements IValueConverterExpression {
-  public readonly $kind: ExpressionKind.ValueConverter;
-  public readonly expression: IsValueConverter;
-  public readonly name: string;
-  public readonly args: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.ValueConverter = ExpressionKind.ValueConverter;
   public readonly converterKey: string;
 
-  public constructor(expression: IsValueConverter, name: string, args: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.ValueConverter;
-    this.expression = expression;
-    this.name = name;
-    this.args = args;
-    this.converterKey = ValueConverter.keyFrom(this.name);
+  public constructor(
+    public readonly expression: IsValueConverter,
+    public readonly name: string,
+    public readonly args: readonly IsAssign[],
+  ) {
+    this.converterKey = ValueConverter.keyFrom(name);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
@@ -330,15 +326,12 @@ export class ValueConverterExpression implements IValueConverterExpression {
 }
 
 export class AssignExpression implements IAssignExpression {
-  public readonly $kind: ExpressionKind.Assign;
-  public readonly target: IsAssignable;
-  public readonly value: IsAssign;
+  public readonly $kind: ExpressionKind.Assign = ExpressionKind.Assign;
 
-  public constructor(target: IsAssignable, value: IsAssign) {
-    this.$kind = ExpressionKind.Assign;
-    this.target = target;
-    this.value = value;
-  }
+  public constructor(
+    public readonly target: IsAssignable,
+    public readonly value: IsAssign,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator), part);
@@ -359,24 +352,22 @@ export class AssignExpression implements IAssignExpression {
 }
 
 export class ConditionalExpression implements IConditionalExpression {
-  public readonly $kind: ExpressionKind.Conditional;
-  public assign: IExpression['assign'];
-  public readonly condition: IsBinary;
-  public readonly yes: IsAssign;
-  public readonly no: IsAssign;
+  public readonly $kind: ExpressionKind.Conditional = ExpressionKind.Conditional;
 
-  public constructor(condition: IsBinary, yes: IsAssign, no: IsAssign) {
-    this.$kind = ExpressionKind.Conditional;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.condition = condition;
-    this.yes = yes;
-    this.no = no;
-  }
+  public constructor(
+    public readonly condition: IsBinary,
+    public readonly yes: IsAssign,
+    public readonly no: IsAssign,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     return (!!this.condition.evaluate(flags, scope, locator, part))
       ? this.yes.evaluate(flags, scope, locator, part)
       : this.no.evaluate(flags, scope, locator, part);
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -398,17 +389,11 @@ export class ConditionalExpression implements IConditionalExpression {
 export class AccessThisExpression implements IAccessThisExpression {
   public static readonly $this: AccessThisExpression = new AccessThisExpression(0);
   public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
-  public readonly $kind: ExpressionKind.AccessThis;
-  public assign: IExpression['assign'];
-  public connect: IExpression['connect'];
-  public readonly ancestor: number;
+  public readonly $kind: ExpressionKind.AccessThis = ExpressionKind.AccessThis;
 
-  public constructor(ancestor: number = 0) {
-    this.$kind = ExpressionKind.AccessThis;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.connect = PLATFORM.noop;
-    this.ancestor = ancestor;
-  }
+  public constructor(
+    public readonly ancestor: number = 0,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | undefined {
     if (scope == null) {
@@ -435,21 +420,26 @@ export class AccessThisExpression implements IAccessThisExpression {
     return i < 1 && oc ? oc.bindingContext : void 0;
   }
 
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
+  }
+
+  public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
+    return;
+  }
+
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessThis(this);
   }
 }
 
 export class AccessScopeExpression implements IAccessScopeExpression {
-  public readonly $kind: ExpressionKind.AccessScope;
-  public readonly name: string;
-  public readonly ancestor: number;
+  public readonly $kind: ExpressionKind.AccessScope = ExpressionKind.AccessScope;
 
-  public constructor(name: string, ancestor: number = 0) {
-    this.$kind = ExpressionKind.AccessScope;
-    this.name = name;
-    this.ancestor = ancestor;
-  }
+  public constructor(
+    public readonly name: string,
+    public readonly ancestor: number = 0,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
@@ -484,15 +474,12 @@ export class AccessScopeExpression implements IAccessScopeExpression {
 }
 
 export class AccessMemberExpression implements IAccessMemberExpression {
-  public readonly $kind: ExpressionKind.AccessMember;
-  public readonly object: IsLeftHandSide;
-  public readonly name: string;
+  public readonly $kind: ExpressionKind.AccessMember = ExpressionKind.AccessMember;
 
-  public constructor(object: IsLeftHandSide, name: string) {
-    this.$kind = ExpressionKind.AccessMember;
-    this.object = object;
-    this.name = name;
-  }
+  public constructor(
+    public readonly object: IsLeftHandSide,
+    public readonly name: string,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
@@ -532,15 +519,12 @@ export class AccessMemberExpression implements IAccessMemberExpression {
 }
 
 export class AccessKeyedExpression implements IAccessKeyedExpression {
-  public readonly $kind: ExpressionKind.AccessKeyed;
-  public readonly object: IsLeftHandSide;
-  public readonly key: IsAssign;
+  public readonly $kind: ExpressionKind.AccessKeyed = ExpressionKind.AccessKeyed;
 
-  public constructor(object: IsLeftHandSide, key: IsAssign) {
-    this.$kind = ExpressionKind.AccessKeyed;
-    this.object = object;
-    this.key = key;
-  }
+  public constructor(
+    public readonly object: IsLeftHandSide,
+    public readonly key: IsAssign,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
@@ -585,19 +569,13 @@ export class AccessKeyedExpression implements IAccessKeyedExpression {
 }
 
 export class CallScopeExpression implements ICallScopeExpression {
-  public readonly $kind: ExpressionKind.CallScope;
-  public assign: IExpression['assign'];
-  public readonly name: string;
-  public readonly args: readonly IsAssign[];
-  public readonly ancestor: number;
+  public readonly $kind: ExpressionKind.CallScope = ExpressionKind.CallScope;
 
-  public constructor(name: string, args: readonly IsAssign[], ancestor: number = 0) {
-    this.$kind = ExpressionKind.CallScope;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.name = name;
-    this.args = args;
-    this.ancestor = ancestor;
-  }
+  public constructor(
+    public readonly name: string,
+    public readonly args: readonly IsAssign[],
+    public readonly ancestor: number = 0,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, part?: string): unknown {
     const args = evalList(flags, scope, locator, this.args, part);
@@ -606,6 +584,10 @@ export class CallScopeExpression implements ICallScopeExpression {
     if (func) {
       return func.apply(context, args as unknown[]);
     }
+    return void 0;
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
     return void 0;
   }
 
@@ -622,19 +604,13 @@ export class CallScopeExpression implements ICallScopeExpression {
 }
 
 export class CallMemberExpression implements ICallMemberExpression {
-  public readonly $kind: ExpressionKind.CallMember;
-  public assign: IExpression['assign'];
-  public readonly object: IsLeftHandSide;
-  public readonly name: string;
-  public readonly args: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.CallMember = ExpressionKind.CallMember;
 
-  public constructor(object: IsLeftHandSide, name: string, args: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.CallMember;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.object = object;
-    this.name = name;
-    this.args = args;
-  }
+  public constructor(
+    public readonly object: IsLeftHandSide,
+    public readonly name: string,
+    public readonly args: readonly IsAssign[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
@@ -643,6 +619,10 @@ export class CallMemberExpression implements ICallMemberExpression {
     if (func) {
       return func.apply(instance, args as unknown[]);
     }
+    return void 0;
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
     return void 0;
   }
 
@@ -665,17 +645,12 @@ export class CallMemberExpression implements ICallMemberExpression {
 }
 
 export class CallFunctionExpression implements ICallFunctionExpression {
-  public readonly $kind: ExpressionKind.CallFunction;
-  public assign: IExpression['assign'];
-  public readonly func: IsLeftHandSide;
-  public readonly args: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.CallFunction = ExpressionKind.CallFunction;
 
-  public constructor(func: IsLeftHandSide, args: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.CallFunction;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.func = func;
-    this.args = args;
-  }
+  public constructor(
+    public readonly func: IsLeftHandSide,
+    public readonly args: readonly IsAssign[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const func = this.func.evaluate(flags, scope, locator, part);
@@ -686,6 +661,10 @@ export class CallFunctionExpression implements ICallFunctionExpression {
       return void 0;
     }
     throw Reporter.error(RuntimeError.NotAFunction, this);
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -705,19 +684,13 @@ export class CallFunctionExpression implements ICallFunctionExpression {
 }
 
 export class BinaryExpression implements IBinaryExpression {
-  public readonly $kind: ExpressionKind.Binary;
-  public assign: IExpression['assign'];
-  public readonly operation: BinaryOperator;
-  public readonly left: IsBinary;
-  public readonly right: IsBinary;
+  public readonly $kind: ExpressionKind.Binary = ExpressionKind.Binary;
 
-  public constructor(operation: BinaryOperator, left: IsBinary, right: IsBinary) {
-    this.$kind = ExpressionKind.Binary;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.operation = operation;
-    this.left = left;
-    this.right = right;
-
+  public constructor(
+    public readonly operation: BinaryOperator,
+    public readonly left: IsBinary,
+    public readonly right: IsBinary,
+  ) {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
     // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
     // work to do; we can do this because the operation can't change after it's parsed
@@ -726,6 +699,10 @@ export class BinaryExpression implements IBinaryExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     throw Reporter.error(RuntimeError.UnknownOperator, this);
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -824,23 +801,22 @@ export class BinaryExpression implements IBinaryExpression {
 }
 
 export class UnaryExpression implements IUnaryExpression {
-  public readonly $kind: ExpressionKind.Unary;
-  public assign: IExpression['assign'];
-  public readonly operation: UnaryOperator;
-  public readonly expression: IsLeftHandSide;
+  public readonly $kind: ExpressionKind.Unary = ExpressionKind.Unary;
 
-  public constructor(operation: UnaryOperator, expression: IsLeftHandSide) {
-    this.$kind = ExpressionKind.Unary;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.operation = operation;
-    this.expression = expression;
-
+  public constructor(
+    public readonly operation: UnaryOperator,
+    public readonly expression: IsLeftHandSide,
+  ) {
     // see Binary (we're doing the same thing here)
     this.evaluate = this[operation] as IExpression['evaluate'];
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     throw Reporter.error(RuntimeError.UnknownOperator, this);
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -873,20 +849,22 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
   public static readonly $true: PrimitiveLiteralExpression<true> = new PrimitiveLiteralExpression<true>(true);
   public static readonly $false: PrimitiveLiteralExpression<false> = new PrimitiveLiteralExpression<false>(false);
   public static readonly $empty: PrimitiveLiteralExpression<string> = new PrimitiveLiteralExpression<''>('');
-  public readonly $kind: ExpressionKind.PrimitiveLiteral;
-  public connect: IExpression['connect'];
-  public assign: IExpression['assign'];
-  public readonly value: TValue;
+  public readonly $kind: ExpressionKind.PrimitiveLiteral = ExpressionKind.PrimitiveLiteral;
 
-  public constructor(value: TValue) {
-    this.$kind = ExpressionKind.PrimitiveLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.connect = PLATFORM.noop;
-    this.value = value;
-  }
+  public constructor(
+    public readonly value: TValue,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): TValue {
     return this.value;
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
+  }
+
+  public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
+    return;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -895,15 +873,11 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
 }
 
 export class HtmlLiteralExpression implements IHtmlLiteralExpression {
-  public readonly $kind: ExpressionKind.HtmlLiteral;
-  public assign: IExpression['assign'];
-  public readonly parts: readonly HtmlLiteralExpression[];
+  public readonly $kind: ExpressionKind.HtmlLiteral = ExpressionKind.HtmlLiteral;
 
-  public constructor(parts: readonly HtmlLiteralExpression[]) {
-    this.$kind = ExpressionKind.HtmlLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.parts = parts;
-  }
+  public constructor(
+    public readonly parts: readonly HtmlLiteralExpression[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
     const elements = this.parts;
@@ -919,6 +893,10 @@ export class HtmlLiteralExpression implements IHtmlLiteralExpression {
     return result;
   }
 
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
+  }
+
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
     for (let i = 0, ii = this.parts.length; i < ii; ++i) {
       this.parts[i].connect(flags, scope, binding, part);
@@ -932,15 +910,11 @@ export class HtmlLiteralExpression implements IHtmlLiteralExpression {
 
 export class ArrayLiteralExpression implements IArrayLiteralExpression {
   public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
-  public readonly $kind: ExpressionKind.ArrayLiteral;
-  public assign: IExpression['assign'];
-  public readonly elements: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.ArrayLiteral = ExpressionKind.ArrayLiteral;
 
-  public constructor(elements: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.ArrayLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.elements = elements;
-  }
+  public constructor(
+    public readonly elements: readonly IsAssign[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): readonly unknown[] {
     const elements = this.elements;
@@ -950,6 +924,10 @@ export class ArrayLiteralExpression implements IArrayLiteralExpression {
       result[i] = elements[i].evaluate(flags, scope, locator, part);
     }
     return result;
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -966,17 +944,12 @@ export class ArrayLiteralExpression implements IArrayLiteralExpression {
 
 export class ObjectLiteralExpression implements IObjectLiteralExpression {
   public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
-  public readonly $kind: ExpressionKind.ObjectLiteral;
-  public assign: IExpression['assign'];
-  public readonly keys: readonly (number | string)[];
-  public readonly values: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.ObjectLiteral = ExpressionKind.ObjectLiteral;
 
-  public constructor(keys: readonly (number | string)[], values: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.ObjectLiteral;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.keys = keys;
-    this.values = values;
-  }
+  public constructor(
+    public readonly keys: readonly (number | string)[],
+    public readonly values: readonly IsAssign[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): Record<string, unknown> {
     const instance: Record<string, unknown> = {};
@@ -986,6 +959,10 @@ export class ObjectLiteralExpression implements IObjectLiteralExpression {
       instance[keys[i]] = values[i].evaluate(flags, scope, locator, part);
     }
     return instance;
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -1003,17 +980,12 @@ export class ObjectLiteralExpression implements IObjectLiteralExpression {
 
 export class TemplateExpression implements ITemplateExpression {
   public static readonly $empty: TemplateExpression = new TemplateExpression(['']);
-  public readonly $kind: ExpressionKind.Template;
-  public assign: IExpression['assign'];
-  public readonly cooked: readonly string[];
-  public readonly expressions: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.Template = ExpressionKind.Template;
 
-  public constructor(cooked: readonly string[], expressions?: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.Template;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.cooked = cooked;
-    this.expressions = expressions === void 0 ? PLATFORM.emptyArray : expressions;
-  }
+  public constructor(
+    public readonly cooked: readonly string[],
+    public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
     const expressions = this.expressions;
@@ -1024,6 +996,10 @@ export class TemplateExpression implements ITemplateExpression {
       result += cooked[i + 1];
     }
     return result;
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
@@ -1040,19 +1016,15 @@ export class TemplateExpression implements ITemplateExpression {
 }
 
 export class TaggedTemplateExpression implements ITaggedTemplateExpression {
-  public readonly $kind: ExpressionKind.TaggedTemplate;
-  public assign: IExpression['assign'];
-  public readonly cooked: readonly string[] & { raw?: readonly string[] };
-  public readonly func: IsLeftHandSide;
-  public readonly expressions: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.TaggedTemplate = ExpressionKind.TaggedTemplate;
 
-  public constructor(cooked: readonly string[] & { raw?: readonly string[] }, raw: readonly string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.TaggedTemplate;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.cooked = cooked;
-    this.cooked.raw = raw;
-    this.func = func;
-    this.expressions = expressions === void 0 ? PLATFORM.emptyArray : expressions;
+  public constructor(
+    public readonly cooked: readonly string[] & { raw?: readonly string[] },
+    raw: readonly string[],
+    public readonly func: IsLeftHandSide,
+    public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
+  ) {
+    cooked.raw = raw;
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
@@ -1069,6 +1041,10 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
     return func(this.cooked, ...results);
   }
 
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
+  }
+
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
@@ -1083,14 +1059,12 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
 }
 
 export class ArrayBindingPattern implements IArrayBindingPattern {
-  public readonly $kind: ExpressionKind.ArrayBindingPattern;
-  public readonly elements: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.ArrayBindingPattern = ExpressionKind.ArrayBindingPattern;
 
   // We'll either have elements, or keys+values, but never all 3
-  public constructor(elements: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.ArrayBindingPattern;
-    this.elements = elements;
-  }
+  public constructor(
+    public readonly elements: readonly IsAssign[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     // TODO
@@ -1112,16 +1086,13 @@ export class ArrayBindingPattern implements IArrayBindingPattern {
 }
 
 export class ObjectBindingPattern implements IObjectBindingPattern {
-  public readonly $kind: ExpressionKind.ObjectBindingPattern;
-  public readonly keys: readonly (string | number)[];
-  public readonly values: readonly IsAssign[];
+  public readonly $kind: ExpressionKind.ObjectBindingPattern = ExpressionKind.ObjectBindingPattern;
 
   // We'll either have elements, or keys+values, but never all 3
-  public constructor(keys: readonly (string | number)[], values: readonly IsAssign[]) {
-    this.$kind = ExpressionKind.ObjectBindingPattern;
-    this.keys = keys;
-    this.values = values;
-  }
+  public constructor(
+    public readonly keys: readonly (string | number)[],
+    public readonly values: readonly IsAssign[],
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     // TODO
@@ -1143,13 +1114,11 @@ export class ObjectBindingPattern implements IObjectBindingPattern {
 }
 
 export class BindingIdentifier implements IBindingIdentifier {
-  public readonly $kind: ExpressionKind.BindingIdentifier;
-  public readonly name: string;
+  public readonly $kind: ExpressionKind.BindingIdentifier = ExpressionKind.BindingIdentifier;
 
-  public constructor(name: string) {
-    this.$kind = ExpressionKind.BindingIdentifier;
-    this.name = name;
-  }
+  public constructor(
+    public readonly name: string,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, part?: string): string {
     return this.name;
@@ -1170,20 +1139,19 @@ const toStringTag = Object.prototype.toString as {
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement implements IForOfStatement {
-  public readonly $kind: ExpressionKind.ForOfStatement;
-  public assign: IExpression['assign'];
-  public readonly declaration: BindingIdentifierOrPattern;
-  public readonly iterable: IsBindingBehavior;
+  public readonly $kind: ExpressionKind.ForOfStatement = ExpressionKind.ForOfStatement;
 
-  public constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior) {
-    this.$kind = ExpressionKind.ForOfStatement;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.declaration = declaration;
-    this.iterable = iterable;
-  }
+  public constructor(
+    public readonly declaration: BindingIdentifierOrPattern,
+    public readonly iterable: IsBindingBehavior,
+  ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     return this.iterable.evaluate(flags, scope, locator, part);
+  }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
   }
 
   public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
@@ -1238,19 +1206,16 @@ export class ForOfStatement implements IForOfStatement {
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
 export class Interpolation implements IInterpolationExpression {
-  public readonly $kind: ExpressionKind.Interpolation;
-  public assign: IExpression['assign'];
-  public readonly parts: readonly string[];
-  public readonly expressions: readonly IsBindingBehavior[];
+  public readonly $kind: ExpressionKind.Interpolation = ExpressionKind.Interpolation;
   public readonly isMulti: boolean;
   public readonly firstExpression: IsBindingBehavior;
-  public constructor(parts: readonly string[], expressions?: readonly IsBindingBehavior[]) {
-    this.$kind = ExpressionKind.Interpolation;
-    this.assign = PLATFORM.noop as () => unknown;
-    this.parts = parts;
-    this.expressions = expressions === void 0 ? PLATFORM.emptyArray : expressions;
-    this.isMulti = this.expressions.length > 1;
-    this.firstExpression = this.expressions[0];
+
+  public constructor(
+    public readonly parts: readonly string[],
+    public readonly expressions: readonly IsBindingBehavior[] = PLATFORM.emptyArray,
+  ) {
+    this.isMulti = expressions.length > 1;
+    this.firstExpression = expressions[0];
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
@@ -1268,6 +1233,11 @@ export class Interpolation implements IInterpolationExpression {
       return parts[0] + this.firstExpression.evaluate(flags, scope, locator, part) + parts[1];
     }
   }
+
+  public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable, part?: string): unknown {
+    return void 0;
+  }
+
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
     return;
   }

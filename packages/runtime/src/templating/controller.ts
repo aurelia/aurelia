@@ -1012,7 +1012,7 @@ function createObservers(
       observers[name] = new SelfObserver(
         lifecycle,
         flags,
-        useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance,
+        useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
         name,
         bindables[name].callback
       );
@@ -1034,7 +1034,7 @@ function createObservers(
           const childrenDescription = childrenObservers[name];
           observers[name] = new ChildrenObserver(
             controller,
-            instance,
+            instance as IIndexable,
             flags,
             name,
             childrenDescription.callback,

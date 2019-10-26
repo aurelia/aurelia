@@ -54,17 +54,14 @@ export const DirtyCheckSettings = {
 
 /** @internal */
 export class DirtyChecker {
-  private readonly tracked: DirtyCheckProperty[];
+  private readonly tracked: DirtyCheckProperty[] = [];
 
   public task: ITask | null = null;
-  private elapsedFrames: number;
+  private elapsedFrames: number = 0;
 
   public constructor(
     @IScheduler public readonly scheduler: IScheduler,
-  ) {
-    this.elapsedFrames = 0;
-    this.tracked = [];
-  }
+  ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
@@ -73,7 +70,7 @@ export class DirtyChecker {
     if (DirtyCheckSettings.warn) {
       Reporter.write(801, propertyName);
     }
-    return new DirtyCheckProperty(this, obj, propertyName);
+    return new DirtyCheckProperty(this, obj as IIndexable, propertyName);
   }
 
   public addProperty(property: DirtyCheckProperty): void {
@@ -117,18 +114,13 @@ export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 @subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public obj: IObservable & IIndexable;
   public oldValue: unknown;
-  public propertyKey: string;
 
-  private readonly dirtyChecker: IDirtyChecker;
-
-  public constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
-    this.obj = obj as IObservable & IIndexable;
-    this.propertyKey = propertyKey;
-
-    this.dirtyChecker = dirtyChecker;
-  }
+  public constructor(
+    private readonly dirtyChecker: IDirtyChecker,
+    public obj: IObservable & IIndexable,
+    public propertyKey: string,
+  ) {}
 
   public isDirty(): boolean {
     return this.oldValue !== this.obj[this.propertyKey];

@@ -59,8 +59,10 @@ export class TranslationBindingInstruction {
   public readonly type: string = TranslationInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  public constructor(public from: IsBindingBehavior, public to: string) {
-  }
+  public constructor(
+    public from: IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
@@ -134,8 +136,10 @@ export class TranslationBindBindingInstruction {
   public readonly type: string = TranslationBindInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  public constructor(public from: IsBindingBehavior, public to: string) {
-  }
+  public constructor(
+    public from: IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
@@ -165,7 +169,7 @@ export class TranslationBindBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
-  ) { }
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
     TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });

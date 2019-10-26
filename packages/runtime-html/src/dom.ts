@@ -36,10 +36,6 @@ export const enum NodeType {
   Notation = 12
 }
 
-function isRenderLocation(node: Node): node is Node & IRenderLocation {
-  return node.textContent === 'au-end';
-}
-
 /**
  * IDOM implementation for Html.
  */
@@ -50,12 +46,10 @@ export class HTMLDOM implements IDOM {
   public readonly CustomEvent: typeof CustomEvent;
   public readonly CSSStyleSheet: typeof CSSStyleSheet;
   public readonly ShadowRoot: typeof ShadowRoot;
-  public readonly window: Window;
-  public readonly document: Document;
 
   public constructor(
-    window: Window,
-    document: Document,
+    public readonly window: Window,
+    public readonly document: Document,
     TNode: typeof Node,
     TElement: typeof Element,
     THTMLElement: typeof HTMLElement,
@@ -63,8 +57,6 @@ export class HTMLDOM implements IDOM {
     TCSSStyleSheet: typeof CSSStyleSheet,
     TShadowRoot: typeof ShadowRoot
   ) {
-    this.window = window;
-    this.document = document;
     this.Node = TNode;
     this.Element = TElement;
     this.HTMLElement = THTMLElement;
@@ -240,16 +232,16 @@ export { $DOM as DOM };
  * @internal
  */
 export class FragmentNodeSequence implements INodeSequence {
-  public isMounted: boolean;
-  public isLinked: boolean;
+  public isMounted: boolean = false;
+  public isLinked: boolean = false;
 
   public firstChild: Node;
   public lastChild: Node;
   public childNodes: Node[];
 
-  public next?: INodeSequence<Node>;
+  public next?: INodeSequence<Node> = void 0;
 
-  private refNode?: Node;
+  private refNode?: Node = void 0;
 
   private readonly targets: ArrayLike<Node>;
 
@@ -257,10 +249,6 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly dom: IDOM,
     private readonly fragment: DocumentFragment,
   ) {
-    this.isMounted = false;
-    this.isLinked = false;
-
-    this.fragment = fragment;
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
@@ -294,10 +282,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
     this.firstChild = fragment.firstChild!;
     this.lastChild = fragment.lastChild!;
-
-    this.next = void 0;
-
-    this.refNode = void 0;
   }
 
   public findTargets(): ArrayLike<Node> {
@@ -459,19 +443,17 @@ export class AuMarker implements INode {
     return this.nextSibling.parentNode!;
   }
 
-  public readonly nextSibling: Node;
   public readonly previousSibling!: Node;
   public readonly content?: Node;
   public readonly childNodes!: ArrayLike<ChildNode>;
   public readonly nodeName!: 'AU-M';
   public readonly nodeType!: NodeType.Element;
 
-  public textContent: string;
+  public textContent: string = '';
 
-  public constructor(next: Node) {
-    this.nextSibling = next;
-    this.textContent = '';
-  }
+  public constructor(
+    public readonly nextSibling: Node,
+  ) {}
 
   public remove(): void { /* do nothing */ }
 }
@@ -485,13 +467,9 @@ export class AuMarker implements INode {
 
 /** @internal */
 export class HTMLTemplateFactory implements ITemplateFactory {
-  public static readonly inject: readonly Key[] = [IDOM];
-
-  private readonly dom: IDOM;
-
-  public constructor(dom: IDOM) {
-    this.dom = dom;
-  }
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+  ) {}
 
   public static register(container: IContainer): IResolver<ITemplateFactory> {
     return Registration.singleton(ITemplateFactory, this).register(container);

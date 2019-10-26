@@ -32,15 +32,9 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpress
 
 /** @internal */
 export class ExpressionParser implements IExpressionParser {
-  private readonly expressionLookup: Record<string, IsBindingBehavior>;
-  private readonly forOfLookup: Record<string, IForOfStatement>;
-  private readonly interpolationLookup: Record<string, IInterpolationExpression>;
-
-  public constructor() {
-    this.expressionLookup = Object.create(null);
-    this.forOfLookup = Object.create(null);
-    this.interpolationLookup = Object.create(null);
-  }
+  private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
+  private readonly forOfLookup: Record<string, IForOfStatement> = Object.create(null);
+  private readonly interpolationLookup: Record<string, IInterpolationExpression> = Object.create(null);
 
   public parse(expression: string, bindingType: BindingType.ForCommand): IForOfStatement;
   public parse(expression: string, bindingType: BindingType.Interpolation): IInterpolationExpression;

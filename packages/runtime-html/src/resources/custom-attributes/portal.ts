@@ -40,7 +40,7 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
 @templateController('portal')
 export class Portal<T extends ParentNode = ParentNode> {
 
-  public readonly id: number;
+  public readonly id: number = nextId('au$component');
 
   @bindable({ primary: true })
   public target: PortalTarget<T>;
@@ -49,7 +49,7 @@ export class Portal<T extends ParentNode = ParentNode> {
   public renderContext: PortalTarget<T>;
 
   @bindable()
-  public strict: boolean;
+  public strict: boolean = false;
 
   @bindable()
   public deactivating?: PortalLifecycleCallback<T>;
@@ -68,7 +68,7 @@ export class Portal<T extends ParentNode = ParentNode> {
 
   public readonly view: IController<T>;
 
-  private task: ILifecycleTask;
+  private task: ILifecycleTask = LifecycleTask.done;
 
   private currentTarget?: PortalTarget;
 
@@ -80,16 +80,12 @@ export class Portal<T extends ParentNode = ParentNode> {
     @IRenderLocation private readonly originalLoc: IRenderLocation<T>,
     @IDOM private readonly dom: HTMLDOM,
   ) {
-    this.id = nextId('au$component');
     // to make the shape of this object consistent.
     // todo: is this necessary
     this.currentTarget = dom.createElement('div');
 
-    this.task = LifecycleTask.done;
     this.view = this.factory.create();
     this.view.hold(originalLoc, MountStrategy.insertBefore);
-
-    this.strict = false;
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {

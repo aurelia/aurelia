@@ -14,14 +14,15 @@ class TraceInfo implements ITraceInfo {
   public static tail: ITraceInfo = marker;
   public static stack: ITraceInfo[] = [];
 
-  public readonly objName: string;
-  public readonly methodName: string;
   public readonly depth: number;
-  public params: unknown[] | null;
   public next: ITraceInfo | null;
   public prev: ITraceInfo | null;
 
-  public constructor(objName: string, methodName: string, params: unknown[] | null) {
+  public constructor(
+    public readonly objName: string,
+    public readonly methodName: string,
+    public params: unknown[] | null,
+  ) {
     this.objName = objName;
     this.methodName = methodName;
     this.depth = TraceInfo.stack.length;
@@ -132,7 +133,7 @@ export const DebugTracer: typeof Tracer = {
   }
 };
 
-const defaultOptions: ILiveLoggingOptions = Object.freeze({
+const defaultOptions: ILiveLoggingOptions = {
   rendering: true,
   binding: true,
   observation: true,
@@ -141,7 +142,7 @@ const defaultOptions: ILiveLoggingOptions = Object.freeze({
   di: true,
   lifecycle: true,
   jit: true
-});
+};
 
 /**
  * Writes out each trace info item as they are traced.

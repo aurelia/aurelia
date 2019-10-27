@@ -39,7 +39,8 @@
     "@aurelia/jit": "0.4.0",
     "@aurelia/kernel": "0.4.0",
     "@aurelia/runtime": "0.4.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.6.4",
+    "jsdom": "^15.1.1"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

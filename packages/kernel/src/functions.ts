@@ -1,5 +1,5 @@
 import { PLATFORM } from './platform';
-import { Constructable } from './interfaces';
+import { Constructable, Overwrite } from './interfaces';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -432,3 +432,52 @@ export const getPrototypeChain = (function () {
     return chain as [T, ...Constructable[]];
   };
 })();
+
+export function toLookup<
+  T1 extends {},
+>(
+  obj1: T1,
+): T1;
+export function toLookup<
+  T1 extends {},
+  T2 extends {},
+>(
+  obj1: T1,
+  obj2: T2,
+): Overwrite<T1, T2>;
+export function toLookup<
+  T1 extends {},
+  T2 extends {},
+  T3 extends {},
+>(
+  obj1: T1,
+  obj2: T2,
+  obj3: T3,
+): Overwrite<T1, Overwrite<T1, T2>>;
+export function toLookup<
+  T1 extends {},
+  T2 extends {},
+  T3 extends {},
+  T4 extends {},
+>(
+  obj1: T1,
+  obj2: T2,
+  obj3: T3,
+  obj4: T4,
+): Readonly<T1 & T2 & T3 & T4>;
+export function toLookup<
+  T1 extends {},
+  T2 extends {},
+  T3 extends {},
+  T4 extends {},
+  T5 extends {},
+>(
+  obj1: T1,
+  obj2: T2,
+  obj3: T3,
+  obj4: T4,
+  obj5: T5,
+): Readonly<T1 & T2 & T3 & T4 & T5>;
+export function toLookup(...objs: {}[]): Readonly<{}> {
+  return Object.assign(Object.create(null) as {}, ...objs);
+}

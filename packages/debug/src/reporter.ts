@@ -31,17 +31,17 @@ export const Reporter: typeof RuntimeReporter = {
 
     switch (info.level) {
       case LogLevel.debug:
-        if (this.level >= LogLevel.debug) {
+        if (this.level <= LogLevel.debug) {
           console.debug(message, ...params);
         }
         break;
       case LogLevel.info:
-        if (this.level >= LogLevel.info) {
+        if (this.level <= LogLevel.info) {
           console.info(message, ...params);
         }
         break;
       case LogLevel.warn:
-        if (this.level >= LogLevel.warn) {
+        if (this.level <= LogLevel.warn) {
           console.warn(message, ...params);
         }
         break;

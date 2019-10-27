@@ -11,13 +11,39 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     var LogLevel;
     (function (LogLevel) {
-        LogLevel[LogLevel["error"] = 0] = "error";
-        LogLevel[LogLevel["warn"] = 1] = "warn";
+        /**
+         * The most detailed information about internal app state.
+         *
+         * Disabled by default and should never be enabled in a production environment.
+         */
+        LogLevel[LogLevel["trace"] = 0] = "trace";
+        /**
+         * Information that is useful for debugging during development and has no long-term value.
+         */
+        LogLevel[LogLevel["debug"] = 1] = "debug";
+        /**
+         * Information about the general flow of the application that has long-term value.
+         */
         LogLevel[LogLevel["info"] = 2] = "info";
-        LogLevel[LogLevel["debug"] = 3] = "debug";
+        /**
+         * Unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
+         */
+        LogLevel[LogLevel["warn"] = 3] = "warn";
+        /**
+         * Unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
+         */
+        LogLevel[LogLevel["error"] = 4] = "error";
+        /**
+         * Unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
+         */
+        LogLevel[LogLevel["fatal"] = 5] = "fatal";
+        /**
+         * No messages should be written.
+         */
+        LogLevel[LogLevel["none"] = 6] = "none";
     })(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
     exports.Reporter = {
-        level: 1 /* warn */,
+        level: 3 /* warn */,
         write(code, ...params) { return; },
         error(code, ...params) { return new Error(`Code ${code}`); }
     };

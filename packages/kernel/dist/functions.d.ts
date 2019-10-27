@@ -1,4 +1,4 @@
-import { Constructable } from './interfaces';
+import { Constructable, Overwrite } from './interfaces';
 /**
  * Efficiently determine whether the provided property key is numeric
  * (and thus could be an array indexer) or not.
@@ -98,4 +98,9 @@ export declare function mergeArrays<T>(...arrays: (readonly T[] | undefined)[]):
 export declare function mergeObjects<T extends object>(...objects: readonly (T | undefined)[]): T;
 export declare function firstDefined<T>(...values: readonly (T | undefined)[]): T;
 export declare const getPrototypeChain: <T extends Constructable<{}>>(Type: T) => readonly [T, ...Constructable<{}>[]];
+export declare function toLookup<T1 extends {}>(obj1: T1): T1;
+export declare function toLookup<T1 extends {}, T2 extends {}>(obj1: T1, obj2: T2): Overwrite<T1, T2>;
+export declare function toLookup<T1 extends {}, T2 extends {}, T3 extends {}>(obj1: T1, obj2: T2, obj3: T3): Overwrite<T1, Overwrite<T1, T2>>;
+export declare function toLookup<T1 extends {}, T2 extends {}, T3 extends {}, T4 extends {}>(obj1: T1, obj2: T2, obj3: T3, obj4: T4): Readonly<T1 & T2 & T3 & T4>;
+export declare function toLookup<T1 extends {}, T2 extends {}, T3 extends {}, T4 extends {}, T5 extends {}>(obj1: T1, obj2: T2, obj3: T3, obj4: T4, obj5: T5): Readonly<T1 & T2 & T3 & T4 & T5>;
 //# sourceMappingURL=functions.d.ts.map

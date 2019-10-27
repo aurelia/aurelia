@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./di", "./metadata", "./path", "./platform", "./reporter", "./profiler", "./resource", "./eventaggregator", "./functions"], factory);
+        define(["require", "exports", "./di", "./metadata", "./logger", "./path", "./platform", "./reporter", "./profiler", "./resource", "./eventaggregator", "./functions"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,6 +24,18 @@
     var metadata_1 = require("./metadata");
     exports.metadata = metadata_1.metadata;
     exports.Metadata = metadata_1.Metadata;
+    var logger_1 = require("./logger");
+    exports.ColorOptions = logger_1.ColorOptions;
+    exports.ILogConfig = logger_1.ILogConfig;
+    exports.ILogEventFactory = logger_1.ILogEventFactory;
+    exports.ISink = logger_1.ISink;
+    exports.ILogger = logger_1.ILogger;
+    exports.LogConfig = logger_1.LogConfig;
+    exports.DefaultLogEvent = logger_1.DefaultLogEvent;
+    exports.DefaultLogEventFactory = logger_1.DefaultLogEventFactory;
+    exports.DefaultLogger = logger_1.DefaultLogger;
+    exports.ConsoleSink = logger_1.ConsoleSink;
+    exports.LoggerConfiguration = logger_1.LoggerConfiguration;
     var path_1 = require("./path");
     exports.relativeToFile = path_1.relativeToFile;
     exports.join = path_1.join;

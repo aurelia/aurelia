@@ -402,5 +402,9 @@
             return chain;
         };
     })();
+    function toLookup(...objs) {
+        return Object.assign(Object.create(null), ...objs);
+    }
+    exports.toLookup = toLookup;
 });
 //# sourceMappingURL=functions.js.map

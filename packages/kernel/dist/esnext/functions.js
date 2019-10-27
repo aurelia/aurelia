@@ -379,4 +379,7 @@ export const getPrototypeChain = (function () {
         return chain;
     };
 })();
+export function toLookup(...objs) {
+    return Object.assign(Object.create(null), ...objs);
+}
 //# sourceMappingURL=functions.js.map

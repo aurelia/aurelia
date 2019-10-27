@@ -38,11 +38,11 @@
   "dependencies": {
     "@aurelia/jit": "0.4.0",
     "@aurelia/kernel": "0.4.0",
-    "@aurelia/runtime": "0.4.0"
+    "@aurelia/runtime": "0.4.0",
+    "typescript": "^3.6.4"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",
-    "tslib": "^1.10.0",
-    "typescript": "^3.6.4"
+    "tslib": "^1.10.0"
   }
 }

@@ -1,5 +1,5 @@
 import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingInstruction, TranslationBindBindingRenderer, TranslationBinding, TranslationBindingCommand, TranslationBindingInstruction, TranslationBindingRenderer, TranslationBindInstructionType, TranslationInstructionType } from '@aurelia/i18n';
-import { AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
+import { attributePattern, AttributePatternDefinition, AttrSyntax, BindingCommand, bindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
 import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
@@ -7,16 +7,17 @@ import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {
-  let originalAliases: string[];
-  // eslint-disable-next-line mocha/no-hooks
-  afterEach(function () {
-    TranslationAttributePattern.aliases = originalAliases;
-  });
-  function setup(aliases?: any[]) {
-    aliases = aliases || TranslationAttributePattern.aliases;
-    [originalAliases, TranslationAttributePattern.aliases] = [TranslationAttributePattern.aliases, aliases];
+  function setup(aliases?: string[]) {
+    aliases = aliases || ['t'];
     const container = DI.createContainer();
-    TranslationAttributePattern.register(container);
+    const paterns: AttributePatternDefinition[] = [];
+    for (const pattern of aliases) {
+      paterns.push({ pattern, symbols: '' });
+      TranslationAttributePattern.registerAlias(pattern);
+    }
+    container.register(
+      attributePattern(...paterns)(TranslationAttributePattern)
+    );
     return container.get(IAttributePattern);
   }
 
@@ -61,16 +62,15 @@ describe('TranslationAttributePattern', function () {
 });
 
 describe('TranslationBindingCommand', function () {
-  let originalAliases: string[];
-  // eslint-disable-next-line mocha/no-hooks
-  afterEach(function () {
-    TranslationBindingCommand.aliases = originalAliases;
-  });
   function setup(aliases?: string[]) {
-    aliases = aliases || TranslationBindingCommand.aliases;
-    [originalAliases, TranslationBindingCommand.aliases] = [TranslationBindingCommand.aliases, aliases];
+    aliases = aliases || [];
     const container = DI.createContainer();
-    TranslationBindingCommand.register(container);
+    container.register(
+      bindingCommand({ name: 't', aliases })(TranslationBindingCommand)
+    );
+    if (!aliases.includes('t')) {
+      aliases.push('t');
+    }
     return aliases.reduce(
       (acc: TranslationBindingCommand[], alias) => {
         acc.push(
@@ -172,16 +172,17 @@ describe('TranslationBindingRenderer', function () {
 });
 
 describe('TranslationBindAttributePattern', function () {
-  let originalAliases: string[];
-  // eslint-disable-next-line mocha/no-hooks
-  afterEach(function () {
-    TranslationBindAttributePattern.aliases = originalAliases;
-  });
-  function setup(aliases?: any[]) {
-    aliases = aliases || TranslationBindAttributePattern.aliases;
-    [originalAliases, TranslationBindAttributePattern.aliases] = [TranslationBindAttributePattern.aliases, aliases];
+  function setup(aliases?: string[]) {
+    aliases = aliases || ['t'];
     const container = DI.createContainer();
-    TranslationBindAttributePattern.register(container);
+    const patterns: AttributePatternDefinition[] = [];
+    for (const pattern of aliases) {
+      patterns.push({ pattern: `${pattern}.bind`, symbols: '.' });
+      TranslationBindAttributePattern.registerAlias(pattern);
+    }
+    container.register(
+      attributePattern(...patterns)(TranslationBindAttributePattern)
+    );
     return container.get(IAttributePattern);
   }
 
@@ -212,7 +213,7 @@ describe('TranslationBindAttributePattern', function () {
         []));
 
     aliases.forEach((alias) => {
-      assert.typeOf(sut[`${alias}.bind`], 'function');
+      assert.typeOf(sut[`${alias}.bind`], 'function', `${alias}.bind`);
     });
   });
 
@@ -230,20 +231,20 @@ describe('TranslationBindAttributePattern', function () {
 });
 
 describe('TranslationBindBindingCommand', function () {
-  let originalAliases: string[];
-  // eslint-disable-next-line mocha/no-hooks
-  afterEach(function () {
-    TranslationBindBindingCommand.aliases = originalAliases;
-  });
   function setup(aliases?: string[]) {
-    aliases = aliases || TranslationBindBindingCommand.aliases;
-    [originalAliases, TranslationBindBindingCommand.aliases] = [TranslationBindBindingCommand.aliases, aliases];
+    aliases = aliases || [];
+    aliases = aliases.map(alias => `${alias}.bind`);
     const container = DI.createContainer();
-    TranslationBindBindingCommand.register(container);
+    container.register(
+      bindingCommand({ name: 't.bind', aliases })(TranslationBindBindingCommand)
+    );
+    if (!aliases.includes('t.bind')) {
+      aliases.push('t.bind');
+    }
     return aliases.reduce(
       (acc: TranslationBindBindingCommand[], alias) => {
         acc.push(
-          container.get<TranslationBindBindingCommand>(BindingCommand.keyFrom(`${alias}.bind`)),
+          container.get<TranslationBindBindingCommand>(BindingCommand.keyFrom(alias)),
         );
         return acc;
       },

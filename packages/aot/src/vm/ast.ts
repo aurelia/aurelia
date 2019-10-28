@@ -356,131 +356,6 @@ type $StatementNode = (
   ExportDeclaration
 );
 
-// #endregion
-
-// #region $Node type unions
-
-type $$BindingPattern = (
-  $ArrayBindingPattern |
-  $ObjectBindingPattern
-);
-
-type $$DestructurableBinding = (
-  $VariableDeclaration |
-  $ParameterDeclaration |
-  $BindingElement
-);
-
-type $NodeWithSpreadElements = (
-  $ArrayLiteralExpression |
-  $CallExpression |
-  $NewExpression
-);
-
-type $$BindingName = (
-  $ArrayBindingPattern |
-  $Identifier |
-  $ObjectBindingPattern
-);
-
-type $$ObjectLiteralElementLike = (
-  $PropertyAssignment |
-  $ShorthandPropertyAssignment |
-  $SpreadAssignment |
-  $MethodDeclaration |
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration
-);
-
-type $$ArrayBindingElement = (
-  $BindingElement |
-  $OmittedExpression
-);
-
-type $$SignatureDeclaration = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $ArrowFunction |
-  $ConstructorDeclaration |
-  $FunctionDeclaration |
-  $FunctionExpression |
-  $MethodDeclaration
-);
-
-type $$EntityName = (
-  $Identifier |
-  $QualifiedName
-);
-
-type $$NodeWithQualifiedName = (
-  $ImportEqualsDeclaration |
-  $QualifiedName
-);
-
-type $$NamedDeclaration = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $MethodDeclaration |
-  $PropertyAssignment |
-  $ShorthandPropertyAssignment |
-  $SpreadAssignment |
-  $BindingElement |
-  $EnumMember |
-  $PropertyDeclaration
-);
-
-type $$PropertyName = (
-  $ComputedPropertyName |
-  $Identifier |
-  $NumericLiteral |
-  $StringLiteral
-);
-
-type $$ModuleDeclaration = (
-  $ExportAssignment |
-  $ExportDeclaration |
-  $ImportDeclaration |
-  $ImportEqualsDeclaration |
-  $ModuleDeclaration |
-  $NamespaceExportDeclaration
-);
-
-type $$ModuleDeclarationParent = (
-  $SourceFile |
-  $ModuleBlock |
-  $ModuleDeclaration
-);
-
-type $$ModuleBody = (
-  $ModuleBlock |
-  $ModuleDeclaration
-);
-
-type $$ModuleName = (
-  $Identifier |
-  $StringLiteral
-);
-
-type $$ModuleReference = (
-  $$EntityName |
-  $ExternalModuleReference
-);
-
-type $$ClassElement = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $ConstructorDeclaration |
-  $MethodDeclaration |
-  $SemicolonClassElement |
-  $PropertyDeclaration
-);
-
-type $$NodeWithHeritageClauses = (
-  $ClassDeclaration |
-  $ClassExpression |
-  $InterfaceDeclaration
-);
-
 type $ClassElementNode = (
   GetAccessorDeclaration |
   SetAccessorDeclaration |
@@ -490,273 +365,14 @@ type $ClassElementNode = (
   PropertyDeclaration
 );
 
-type $$Declaration = (
-  $$ModuleDeclaration |
-  $VariableStatement |
-  $FunctionDeclaration |
-  $ClassDeclaration |
-  $InterfaceDeclaration |
-  $TypeAliasDeclaration |
-  $EnumDeclaration
-);
+// #endregion
 
-type $$MethodDeclaration = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $MethodDeclaration
-);
-
-type $$HasMetadata = (
-  $ClassDeclaration |
-  $VariableDeclaration
-);
-
-type $$NamedModuleItem = (
-  $ClassDeclaration |
-  $FunctionDeclaration |
-  $VariableStatement |
-  $EnumDeclaration
-);
-
-type $NodeWithDecorators = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $ClassDeclaration |
-  $ConstructorDeclaration |
-  $EnumDeclaration |
-  $ExportAssignment |
-  $ExportDeclaration |
-  $FunctionDeclaration |
-  $ImportDeclaration |
-  $ImportEqualsDeclaration |
-  $InterfaceDeclaration |
-  $MethodDeclaration |
-  $ModuleDeclaration |
-  $ParameterDeclaration |
-  $PropertyDeclaration |
-  $TypeAliasDeclaration
-);
-
-type $$Literal = (
-  $BigIntLiteral |
-  $BooleanLiteral |
-  $NoSubstitutionTemplateLiteral |
-  $NullLiteral |
-  $NumericLiteral |
-  $RegularExpressionLiteral |
-  $StringLiteral
-);
-
-type $$PrimaryExpression = (
-  $ArrayLiteralExpression |
-  $ClassExpression |
-  $FunctionExpression |
-  $Identifier |
-  $NewExpression |
-  $ObjectLiteralExpression |
-  $ParenthesizedExpression |
-  $TemplateExpression |
-  $ThisExpression |
-  $SuperExpression
-);
-
-type $$PrimaryExpressionOrHigher = (
-  $$Literal |
-  $$PrimaryExpression
-);
-
-type $$MemberExpression = (
-  $ElementAccessExpression |
-  $NonNullExpression |
-  $PropertyAccessExpression |
-  $TaggedTemplateExpression
-);
-
-type $$MemberExpressionOrHigher = (
-  $$PrimaryExpressionOrHigher |
-  $$MemberExpression
-);
-
-type $$CallExpressionOrHigher = (
-  $$MemberExpressionOrHigher |
-  $CallExpression
-);
-
-type $$LHSExpression = (
-  $MetaProperty
-);
-
-type $$LHSExpressionOrHigher = (
-  $$CallExpressionOrHigher |
-  $$LHSExpression
-);
+// #region $Node type unions
 
 type $$CoverCallExpressionAndAsyncArrowHead = $$LHSExpressionOrHigher;
 
-type $$UpdateExpression = (
-  $JsxElement |
-  $JsxFragment |
-  $JsxSelfClosingElement |
-  $PostfixUnaryExpression |
-  $PrefixUnaryExpression
-);
-
-type $$UpdateExpressionOrHigher = (
-  $$LHSExpressionOrHigher |
-  $$UpdateExpression
-);
-
-type $$UnaryExpression = (
-  $AwaitExpression |
-  $DeleteExpression |
-  $PrefixUnaryExpression |
-  $TypeAssertion |
-  $TypeOfExpression |
-  $VoidExpression
-);
-
-type $$UnaryExpressionOrHigher = (
-  $$UpdateExpressionOrHigher |
-  $$UnaryExpression
-);
-
-type $$BinaryExpression = (
-  $AsExpression |
-  $BinaryExpression
-);
-
-type $$BinaryExpressionOrHigher = (
-  $$UnaryExpressionOrHigher |
-  $$BinaryExpression
-);
-
-type $$AssignmentExpression = (
-  $ArrowFunction |
-  $ConditionalExpression |
-  $YieldExpression
-);
-
-type $$AssignmentExpressionOrHigher = (
-  $$BinaryExpressionOrHigher |
-  $$AssignmentExpression
-);
-
-type $$StringLiteralLike = (
-  $NoSubstitutionTemplateLiteral |
-  $StringLiteral
-);
-
-type $$ArgumentOrArrayLiteralElement = (
-  $$AssignmentExpressionOrHigher |
-  $SpreadElement |
-  $OmittedExpression
-);
-
-type $$TemplateLiteral = (
-  $NoSubstitutionTemplateLiteral |
-  $TemplateExpression
-);
-
-type $$IterationStatement = (
-  $DoStatement |
-  $ForInStatement |
-  $ForOfStatement |
-  $ForStatement |
-  $WhileStatement
-);
-
-type $$BreakableStatement = (
-  $$IterationStatement |
-  $SwitchStatement
-);
-
-// http://www.ecma-international.org/ecma-262/#prod-Statement
-type $$ESStatement = (
-  $Block |
-  $VariableStatement | // Note, technically only "var declaration" belongs here but TS clumps them up
-  $EmptyStatement |
-  $ExpressionStatement |
-  $IfStatement |
-  $$BreakableStatement |
-  $ContinueStatement |
-  $BreakStatement |
-  $ReturnStatement |
-  $WithStatement |
-  $LabeledStatement |
-  $ThrowStatement |
-  $TryStatement |
-  $DebuggerStatement
-);
-
-type $$ESDeclaration = (
-  $FunctionDeclaration |
-  $ClassDeclaration |
-  $VariableStatement
-);
-
-type $$StatementListItem = (
-  $$ESStatement |
-  $$ESDeclaration
-);
-
-type $$ModuleItem = (
-  $$StatementListItem |
-  $$ModuleDeclaration
-);
-
-type $$Statement = (
-  $$BreakableStatement |
-  $$Declaration |
-  $Block |
-  $BreakStatement |
-  $ContinueStatement |
-  $DebuggerStatement |
-  $EmptyStatement |
-  $ExpressionStatement |
-  $IfStatement |
-  $LabeledStatement |
-  $ReturnStatement |
-  $ThrowStatement |
-  $TryStatement |
-  $WithStatement |
-  // SourceFile is not technically a statement, but we define it as an "owning statement" as it is the highest
-  // level owner of other statements.
-  $SourceFile
-);
-
-type $$LabelledItem = (
-  $$ESStatement |
-  $FunctionDeclaration
-);
-
-type $NodeWithStatements = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $$IterationStatement |
-  $Block |
-  $CaseClause |
-  $CatchClause |
-  $ConstructorDeclaration |
-  $DefaultClause |
-  $FunctionDeclaration |
-  $LabeledStatement |
-  $MethodDeclaration |
-  $ModuleBlock |
-  $SourceFile |
-  $TryStatement |
-  $WithStatement |
-  $FunctionExpression |
-  $ArrowFunction |
-  $IfStatement
-);
-
-type $$Initializer = (
-  $$AssignmentExpressionOrHigher |
-  $VariableDeclarationList
-);
-
 type $AnyParentNode = (
-  $$Declaration |
+  $$TSModuleItem |
   $ArrayBindingPattern |
   $ArrayLiteralExpression |
   $ArrowFunction |
@@ -848,172 +464,189 @@ type $$JsxOpeningLikeElement = (
   $JsxOpeningElement
 );
 
-type $$JsxAttributeLike = (
-  $JsxAttribute |
-  $JsxSpreadAttribute
-);
-
-type $$JsxNamed = (
-  $JsxOpeningElement |
-  $JsxClosingElement |
-  $JsxSelfClosingElement
-);
-
-type $$JsxTagNameExpression = (
-  $Identifier |
-  $ThisExpression |
-  $$JsxTagNamePropertyAccess
-);
-
-type $$JsxChild = (
-  $JsxText |
-  $JsxExpression |
-  $JsxElement |
-  $JsxSelfClosingElement |
-  $JsxFragment
-);
-
-type $$JsxParent = (
-  $JsxElement |
-  $JsxFragment
-);
-
-type $$JsxTagNamePropertyAccess = $PropertyAccessExpression & {
-  expression: $$JsxTagNameExpression;
-};
-
 // #endregion
 
 // #region Builders
 
-function $heritageClauseList(
-  nodes: readonly HeritageClause[] | undefined,
-  parent: $$NodeWithHeritageClauses,
+function $assignmentExpressionList(
+  nodes: readonly $AssignmentExpressionNode[] | undefined,
+  parent: $AnyParentNode,
   ctx: Context,
-): readonly $HeritageClause[] {
+): readonly $$AssignmentExpressionOrHigher[] {
   if (nodes === void 0 || nodes.length === 0) {
     return emptyArray;
   }
 
   const len = nodes.length;
-  const $nodes: $HeritageClause[] = Array(len);
+  const $nodes: $$AssignmentExpressionOrHigher[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $HeritageClause(nodes[i], parent, ctx);
+    $nodes[i] = $assignmentExpression(nodes[i], parent, ctx);
   }
   return $nodes;
 }
 
-function $expressionWithTypeArgumentsList(
-  nodes: readonly ExpressionWithTypeArguments[],
-  parent: $HeritageClause,
+type $$BinaryExpression = (
+  $AsExpression |
+  $BinaryExpression
+);
+
+type $$BinaryExpressionOrHigher = (
+  $$UnaryExpressionOrHigher |
+  $$BinaryExpression
+);
+
+type $$AssignmentExpression = (
+  $ArrowFunction |
+  $ConditionalExpression |
+  $YieldExpression
+);
+
+type $$AssignmentExpressionOrHigher = (
+  $$BinaryExpressionOrHigher |
+  $$AssignmentExpression
+);
+
+function $assignmentExpression(
+  node: undefined,
+  parent: $AnyParentNode,
   ctx: Context,
-): readonly $ExpressionWithTypeArguments[] {
-  if (nodes.length === 0) {
-    return emptyArray;
+): undefined;
+function $assignmentExpression(
+  node: $AssignmentExpressionNode,
+  parent: $AnyParentNode,
+  ctx: Context,
+): $$AssignmentExpressionOrHigher;
+function $assignmentExpression(
+  node: $AssignmentExpressionNode | undefined,
+  parent: $AnyParentNode,
+  ctx: Context,
+): $$AssignmentExpressionOrHigher | undefined;
+function $assignmentExpression(
+  node: $AssignmentExpressionNode | undefined,
+  parent: $AnyParentNode,
+  ctx: Context,
+): $$AssignmentExpressionOrHigher | undefined {
+  if (node === void 0) {
+    return void 0;
   }
 
-  const len = nodes.length;
-  const $nodes: $ExpressionWithTypeArguments[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $ExpressionWithTypeArguments(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
-
-function $$declaration(
-  node: $DeclarationNode,
-  parent: $NodeWithStatements,
-  ctx: Context,
-): $$Declaration {
   switch (node.kind) {
-    case SyntaxKind.VariableStatement:
-      return new $VariableStatement(node, parent, ctx);
-    case SyntaxKind.FunctionDeclaration:
-      return new $FunctionDeclaration(node, parent, ctx);
-    case SyntaxKind.ClassDeclaration:
-      return new $ClassDeclaration(node, parent, ctx);
-    case SyntaxKind.InterfaceDeclaration:
-      return new $InterfaceDeclaration(node, parent, ctx);
-    case SyntaxKind.TypeAliasDeclaration:
-      return new $TypeAliasDeclaration(node, parent, ctx);
-    case SyntaxKind.EnumDeclaration:
-      return new $EnumDeclaration(node, parent, ctx);
+    case SyntaxKind.AsExpression:
+      return new $AsExpression(node, parent, ctx);
+    case SyntaxKind.BinaryExpression:
+      return new $BinaryExpression(node, parent, ctx);
+    case SyntaxKind.ArrowFunction:
+      return new $ArrowFunction(node, parent, ctx);
+    case SyntaxKind.ConditionalExpression:
+      return new $ConditionalExpression(node, parent, ctx);
+    case SyntaxKind.YieldExpression:
+      return new $YieldExpression(node, parent, ctx);
     default:
-      return $$moduleDeclaration(node, parent as $$ModuleDeclarationParent, ctx);
+      return $unaryExpression(node, parent, ctx);
   }
 }
 
-function $$esDeclaration(
-  node: $DeclarationNode,
-  parent: $NodeWithStatements,
+type $$UpdateExpression = (
+  $JsxElement |
+  $JsxFragment |
+  $JsxSelfClosingElement |
+  $PostfixUnaryExpression |
+  $PrefixUnaryExpression
+);
+
+type $$UpdateExpressionOrHigher = (
+  $$LHSExpressionOrHigher |
+  $$UpdateExpression
+);
+
+type $$UnaryExpression = (
+  $AwaitExpression |
+  $DeleteExpression |
+  $PrefixUnaryExpression |
+  $TypeAssertion |
+  $TypeOfExpression |
+  $VoidExpression
+);
+
+type $$UnaryExpressionOrHigher = (
+  $$UpdateExpressionOrHigher |
+  $$UnaryExpression
+);
+
+function $unaryExpression(
+  node: $UnaryExpressionNode,
+  parent: $AnyParentNode,
   ctx: Context,
-): $$ESDeclaration {
+): $$UnaryExpressionOrHigher {
   switch (node.kind) {
-    case SyntaxKind.VariableStatement:
-      return new $VariableStatement(node, parent, ctx);
-    case SyntaxKind.FunctionDeclaration:
-      return new $FunctionDeclaration(node, parent, ctx);
-    case SyntaxKind.ClassDeclaration:
-      return new $ClassDeclaration(node, parent, ctx);
+    case SyntaxKind.JsxElement:
+      return new $JsxElement(node, parent as $$JsxParent, ctx);
+    case SyntaxKind.JsxFragment:
+      return new $JsxFragment(node, parent as $$JsxParent, ctx);
+    case SyntaxKind.JsxSelfClosingElement:
+      return new $JsxSelfClosingElement(node, parent as $$JsxParent, ctx);
+    case SyntaxKind.PostfixUnaryExpression:
+      return new $PostfixUnaryExpression(node, parent, ctx);
+    case SyntaxKind.PrefixUnaryExpression:
+      return new $PrefixUnaryExpression(node, parent, ctx);
+    case SyntaxKind.AwaitExpression:
+      return new $AwaitExpression(node, parent, ctx);
+    case SyntaxKind.DeleteExpression:
+      return new $DeleteExpression(node, parent, ctx);
+    case SyntaxKind.TypeAssertionExpression:
+      return new $TypeAssertion(node, parent, ctx);
+    case SyntaxKind.TypeOfExpression:
+      return new $TypeOfExpression(node, parent, ctx);
+    case SyntaxKind.VoidExpression:
+      return new $VoidExpression(node, parent, ctx);
     default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
+      return $LHSExpression(node, parent, ctx);
   }
 }
 
-function $enumMemberList(
-  nodes: readonly EnumMember[],
-  parent: $EnumDeclaration,
-  ctx: Context,
-): readonly $EnumMember[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
+type $$PrimaryExpression = (
+  $ArrayLiteralExpression |
+  $ClassExpression |
+  $FunctionExpression |
+  $Identifier |
+  $NewExpression |
+  $ObjectLiteralExpression |
+  $ParenthesizedExpression |
+  $TemplateExpression |
+  $ThisExpression |
+  $SuperExpression
+);
 
-  const len = nodes.length;
-  const $nodes: $EnumMember[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $EnumMember(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
+type $$PrimaryExpressionOrHigher = (
+  $$Literal |
+  $$PrimaryExpression
+);
 
-function $variableDeclarationList(
-  nodes: readonly VariableDeclaration[],
-  parent: $VariableDeclarationList,
-  ctx: Context,
-): readonly $VariableDeclaration[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
+type $$MemberExpression = (
+  $ElementAccessExpression |
+  $NonNullExpression |
+  $PropertyAccessExpression |
+  $TaggedTemplateExpression
+);
 
-  const len = nodes.length;
-  const $nodes: $VariableDeclaration[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $VariableDeclaration(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
+type $$MemberExpressionOrHigher = (
+  $$PrimaryExpressionOrHigher |
+  $$MemberExpression
+);
 
-function $decoratorList(
-  nodes: readonly Decorator[] | undefined,
-  parent: $NodeWithDecorators,
-  ctx: Context,
-): readonly $Decorator[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
+type $$CallExpressionOrHigher = (
+  $$MemberExpressionOrHigher |
+  $CallExpression
+);
 
-  if (nodes.length === 1) {
-    return [new $Decorator(nodes[0], parent, ctx)];
-  }
+type $$LHSExpression = (
+  $MetaProperty
+);
 
-  const len = nodes.length;
-  const $nodes: $Decorator[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $Decorator(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
+type $$LHSExpressionOrHigher = (
+  $$CallExpressionOrHigher |
+  $$LHSExpression
+);
 
 function $LHSExpression(
   node: $LHSExpressionNode,
@@ -1058,93 +691,53 @@ function $LHSExpression(
   }
 }
 
-function $unaryExpression(
-  node: $UnaryExpressionNode,
+type $$Literal = (
+  $BigIntLiteral |
+  $BooleanLiteral |
+  $NoSubstitutionTemplateLiteral |
+  $NullLiteral |
+  $NumericLiteral |
+  $RegularExpressionLiteral |
+  $StringLiteral
+);
+
+function $literal(
+  node: $LiteralNode,
   parent: $AnyParentNode,
   ctx: Context,
-): $$UnaryExpressionOrHigher {
+): $$Literal {
   switch (node.kind) {
-    case SyntaxKind.JsxElement:
-      return new $JsxElement(node, parent as $$JsxParent, ctx);
-    case SyntaxKind.JsxFragment:
-      return new $JsxFragment(node, parent as $$JsxParent, ctx);
-    case SyntaxKind.JsxSelfClosingElement:
-      return new $JsxSelfClosingElement(node, parent as $$JsxParent, ctx);
-    case SyntaxKind.PostfixUnaryExpression:
-      return new $PostfixUnaryExpression(node, parent, ctx);
-    case SyntaxKind.PrefixUnaryExpression:
-      return new $PrefixUnaryExpression(node, parent, ctx);
-    case SyntaxKind.AwaitExpression:
-      return new $AwaitExpression(node, parent, ctx);
-    case SyntaxKind.DeleteExpression:
-      return new $DeleteExpression(node, parent, ctx);
-    case SyntaxKind.TypeAssertionExpression:
-      return new $TypeAssertion(node, parent, ctx);
-    case SyntaxKind.TypeOfExpression:
-      return new $TypeOfExpression(node, parent, ctx);
-    case SyntaxKind.VoidExpression:
-      return new $VoidExpression(node, parent, ctx);
+    case SyntaxKind.NumericLiteral:
+      return new $NumericLiteral(node, parent, ctx);
+    case SyntaxKind.BigIntLiteral:
+      return new $BigIntLiteral(node, parent, ctx);
+    case SyntaxKind.StringLiteral:
+      return new $StringLiteral(node, parent, ctx);
+    case SyntaxKind.RegularExpressionLiteral:
+      return new $RegularExpressionLiteral(node, parent, ctx);
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
+      return new $NoSubstitutionTemplateLiteral(node, parent, ctx);
+    case SyntaxKind.NullKeyword:
+      return new $NullLiteral(node, parent, ctx);
+    case SyntaxKind.TrueKeyword:
+    case SyntaxKind.FalseKeyword:
+      return new $BooleanLiteral(node, parent, ctx);
     default:
-      return $LHSExpression(node, parent, ctx);
+      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
   }
 }
 
-function $assignmentExpression(
-  node: undefined,
-  parent: $AnyParentNode,
-  ctx: Context,
-): undefined;
-function $assignmentExpression(
-  node: $AssignmentExpressionNode,
-  parent: $AnyParentNode,
-  ctx: Context,
-): $$AssignmentExpressionOrHigher;
-function $assignmentExpression(
-  node: $AssignmentExpressionNode | undefined,
-  parent: $AnyParentNode,
-  ctx: Context,
-): $$AssignmentExpressionOrHigher | undefined;
-function $assignmentExpression(
-  node: $AssignmentExpressionNode | undefined,
-  parent: $AnyParentNode,
-  ctx: Context,
-): $$AssignmentExpressionOrHigher | undefined {
-  if (node === void 0) {
-    return void 0;
-  }
+type $NodeWithSpreadElements = (
+  $ArrayLiteralExpression |
+  $CallExpression |
+  $NewExpression
+);
 
-  switch (node.kind) {
-    case SyntaxKind.AsExpression:
-      return new $AsExpression(node, parent, ctx);
-    case SyntaxKind.BinaryExpression:
-      return new $BinaryExpression(node, parent, ctx);
-    case SyntaxKind.ArrowFunction:
-      return new $ArrowFunction(node, parent, ctx);
-    case SyntaxKind.ConditionalExpression:
-      return new $ConditionalExpression(node, parent, ctx);
-    case SyntaxKind.YieldExpression:
-      return new $YieldExpression(node, parent, ctx);
-    default:
-      return $unaryExpression(node, parent, ctx);
-  }
-}
-
-function $assignmentExpressionList(
-  nodes: readonly $AssignmentExpressionNode[] | undefined,
-  parent: $AnyParentNode,
-  ctx: Context,
-): readonly $$AssignmentExpressionOrHigher[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $$AssignmentExpressionOrHigher[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = $assignmentExpression(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
+type $$ArgumentOrArrayLiteralElement = (
+  $$AssignmentExpressionOrHigher |
+  $SpreadElement |
+  $OmittedExpression
+);
 
 function $argumentOrArrayLiteralElement(
   node: $ArgumentOrArrayLiteralElementNode,
@@ -1178,62 +771,6 @@ function $argumentOrArrayLiteralElementList(
   return $nodes;
 }
 
-function $$objectLiteralElementLikeList(
-  nodes: readonly ObjectLiteralElementLike[],
-  parent: $ObjectLiteralExpression,
-  ctx: Context,
-): readonly $$ObjectLiteralElementLike[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $$ObjectLiteralElementLike[] = Array(len);
-  let el: ObjectLiteralElementLike;
-
-  for (let i = 0; i < len; ++i) {
-    el = nodes[i];
-    switch (el.kind) {
-      case SyntaxKind.PropertyAssignment:
-        $nodes[i] = new $PropertyAssignment(el, parent, ctx);
-        break;
-      case SyntaxKind.ShorthandPropertyAssignment:
-        $nodes[i] = new $ShorthandPropertyAssignment(el, parent, ctx);
-        break;
-      case SyntaxKind.SpreadAssignment:
-        $nodes[i] = new $SpreadAssignment(el, parent, ctx);
-        break;
-      case SyntaxKind.MethodDeclaration:
-        $nodes[i] = new $MethodDeclaration(el, parent, ctx);
-        break;
-      case SyntaxKind.GetAccessor:
-        $nodes[i] = new $GetAccessorDeclaration(el, parent, ctx);
-        break;
-      case SyntaxKind.SetAccessor:
-        $nodes[i] = new $SetAccessorDeclaration(el, parent, ctx);
-        break;
-    }
-  }
-  return $nodes;
-}
-
-function $$templateSpanList(
-  nodes: readonly TemplateSpan[],
-  parent: $TemplateExpression,
-  ctx: Context,
-): readonly $TemplateSpan[] {
-  if (nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $TemplateSpan[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $TemplateSpan(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
-
 function $identifier(
   node: undefined,
   parent: $AnyParentNode,
@@ -1260,152 +797,12 @@ function $identifier(
   return new $Identifier(node, parent, ctx);
 }
 
-function $$jsxChildList(
-  nodes: readonly JsxChild[],
-  parent: $$JsxParent,
-  ctx: Context,
-): readonly $$JsxChild[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $$JsxChild[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    switch (nodes[i].kind) {
-      case SyntaxKind.JsxText:
-        $nodes[i] = new $JsxText(nodes[i] as JsxText, parent, ctx);
-        break;
-      case SyntaxKind.JsxExpression:
-        $nodes[i] = new $JsxExpression(nodes[i] as JsxExpression, parent, ctx);
-        break;
-      case SyntaxKind.JsxElement:
-        $nodes[i] = new $JsxElement(nodes[i] as JsxElement, parent, ctx);
-        break;
-      case SyntaxKind.JsxSelfClosingElement:
-        $nodes[i] = new $JsxSelfClosingElement(nodes[i] as JsxSelfClosingElement, parent, ctx);
-        break;
-      case SyntaxKind.JsxFragment:
-        $nodes[i] = new $JsxFragment(nodes[i] as JsxFragment, parent, ctx);
-        break;
-    }
-  }
-  return $nodes;
-}
-
-function $$jsxTagNameExpression(
-  node: JsxTagNameExpression,
-  parent: $$JsxNamed,
-  ctx: Context,
-): $$JsxTagNameExpression {
-  switch (node.kind) {
-    case SyntaxKind.Identifier:
-      return new $Identifier(node, parent, ctx);
-    case SyntaxKind.ThisKeyword:
-      return new $ThisExpression(node, parent, ctx);
-    case SyntaxKind.PropertyAccessExpression:
-      return new $PropertyAccessExpression(node, parent, ctx) as $$JsxTagNamePropertyAccess;
-    default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
-  }
-}
-
-function $literal(
-  node: $LiteralNode,
-  parent: $AnyParentNode,
-  ctx: Context,
-): $$Literal {
-  switch (node.kind) {
-    case SyntaxKind.NumericLiteral:
-      return new $NumericLiteral(node, parent, ctx);
-    case SyntaxKind.BigIntLiteral:
-      return new $BigIntLiteral(node, parent, ctx);
-    case SyntaxKind.StringLiteral:
-      return new $StringLiteral(node, parent, ctx);
-    case SyntaxKind.RegularExpressionLiteral:
-      return new $RegularExpressionLiteral(node, parent, ctx);
-    case SyntaxKind.NoSubstitutionTemplateLiteral:
-      return new $NoSubstitutionTemplateLiteral(node, parent, ctx);
-    case SyntaxKind.NullKeyword:
-      return new $NullLiteral(node, parent, ctx);
-    case SyntaxKind.TrueKeyword:
-    case SyntaxKind.FalseKeyword:
-      return new $BooleanLiteral(node, parent, ctx);
-    default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
-  }
-}
-
-function $$classElementList(
-  nodes: readonly $ClassElementNode[] | undefined,
-  parent: $ClassDeclaration | $ClassExpression,
-  ctx: Context,
-): readonly $$ClassElement[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $$ClassElement[] = [];
-  let $node: $$ClassElement | undefined;
-  let node: $ClassElementNode;
-  for (let i = 0; i < len; ++i) {
-    node = nodes[i];
-    if ((node as { body?: Block }).body !== void 0) {
-      $node = $$classElement(nodes[i], parent, ctx);
-      if ($node !== void 0) {
-        $nodes.push($node);
-      }
-    }
-  }
-  return $nodes;
-}
-
-function $$classElement(
-  node: $ClassElementNode,
-  parent: $ClassDeclaration | $ClassExpression,
-  ctx: Context,
-): $$ClassElement | undefined {
-  switch (node.kind) {
-    case SyntaxKind.PropertyDeclaration:
-      return new $PropertyDeclaration(node, parent, ctx);
-    case SyntaxKind.SemicolonClassElement:
-      return new $SemicolonClassElement(node, parent, ctx);
-    case SyntaxKind.MethodDeclaration:
-      return new $MethodDeclaration(node, parent, ctx);
-    case SyntaxKind.Constructor:
-      return new $ConstructorDeclaration(node, parent, ctx);
-    case SyntaxKind.GetAccessor:
-      return new $GetAccessorDeclaration(node, parent, ctx);
-    case SyntaxKind.SetAccessor:
-      return new $SetAccessorDeclaration(node, parent, ctx);
-    default:
-      return void 0;
-  }
-}
-
-function $$moduleDeclaration(
-  node: $ModuleStatementNode,
-  parent: $$ModuleDeclarationParent,
-  ctx: Context,
-): $$ModuleDeclaration {
-  switch (node.kind) {
-    case SyntaxKind.ModuleDeclaration:
-      return new $ModuleDeclaration(node, parent, ctx);
-    case SyntaxKind.NamespaceExportDeclaration:
-      return new $NamespaceExportDeclaration(node, parent, ctx);
-    case SyntaxKind.ImportEqualsDeclaration:
-      return new $ImportEqualsDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
-    case SyntaxKind.ImportDeclaration:
-      return new $ImportDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
-    case SyntaxKind.ExportAssignment:
-      return new $ExportAssignment(node, parent as $SourceFile, ctx);
-    case SyntaxKind.ExportDeclaration:
-      return new $ExportDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
-    default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
-  }
-}
+type $$PropertyName = (
+  $ComputedPropertyName |
+  $Identifier |
+  $NumericLiteral |
+  $StringLiteral
+);
 
 function $$propertyName(
   node: PropertyName,
@@ -1423,6 +820,16 @@ function $$propertyName(
       return new $ComputedPropertyName(node, parent as $$NamedDeclaration, ctx);
   }
 }
+
+type $$SignatureDeclaration = (
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration |
+  $ArrowFunction |
+  $ConstructorDeclaration |
+  $FunctionDeclaration |
+  $FunctionExpression |
+  $MethodDeclaration
+);
 
 function $parameterDeclarationList(
   nodes: readonly ParameterDeclaration[] | undefined,
@@ -1484,6 +891,18 @@ function ParameterDeclarationToIsSimpleParameterList(params: readonly $Parameter
   return false;
 }
 
+type $$DestructurableBinding = (
+  $VariableDeclaration |
+  $ParameterDeclaration |
+  $BindingElement
+);
+
+type $$BindingName = (
+  $ArrayBindingPattern |
+  $Identifier |
+  $ObjectBindingPattern
+);
+
 function $$bindingName(
   node: BindingName,
   parent: $$DestructurableBinding,
@@ -1499,81 +918,63 @@ function $$bindingName(
   }
 }
 
-function $$arrayBindingElement(
-  node: ArrayBindingElement,
-  parent: $ArrayBindingPattern,
-  ctx: Context,
-): $$ArrayBindingElement {
-  switch (node.kind) {
-    case SyntaxKind.BindingElement:
-      return new $BindingElement(node, parent, ctx);
-    case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, parent, ctx);
-  }
-}
+type $NodeWithStatements = (
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration |
+  $$IterationStatement |
+  $Block |
+  $CaseClause |
+  $CatchClause |
+  $ConstructorDeclaration |
+  $DefaultClause |
+  $FunctionDeclaration |
+  $LabeledStatement |
+  $MethodDeclaration |
+  $ModuleBlock |
+  $SourceFile |
+  $TryStatement |
+  $WithStatement |
+  $FunctionExpression |
+  $ArrowFunction |
+  $IfStatement
+);
 
+type $$IterationStatement = (
+  $DoStatement |
+  $ForInStatement |
+  $ForOfStatement |
+  $ForStatement |
+  $WhileStatement
+);
 
-function $$arrayBindingElementList(
-  nodes: readonly ArrayBindingElement[],
-  parent: $ArrayBindingPattern,
-  ctx: Context,
-): readonly $$ArrayBindingElement[] {
-  const len = nodes.length;
-  const $nodes: $$ArrayBindingElement[] = Array(len);
+type $$BreakableStatement = (
+  $$IterationStatement |
+  $SwitchStatement
+);
 
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = $$arrayBindingElement(nodes[i], parent, ctx);
-  }
+type $$ModuleDeclarationParent = (
+  $SourceFile |
+  $ModuleBlock |
+  $ModuleDeclaration
+);
 
-  return $nodes;
-}
-
-function $$statement(
-  node: $StatementNode,
-  parent: $NodeWithStatements,
-  ctx: Context,
-): $$Statement {
-  switch (node.kind) {
-    case SyntaxKind.Block:
-      return new $Block(node, parent, ctx);
-    case SyntaxKind.EmptyStatement:
-      return new $EmptyStatement(node, parent, ctx);
-    case SyntaxKind.ExpressionStatement:
-      return new $ExpressionStatement(node, parent, ctx);
-    case SyntaxKind.IfStatement:
-      return new $IfStatement(node, parent, ctx);
-    case SyntaxKind.DoStatement:
-      return new $DoStatement(node, parent, ctx);
-    case SyntaxKind.WhileStatement:
-      return new $WhileStatement(node, parent, ctx);
-    case SyntaxKind.ForStatement:
-      return new $ForStatement(node, parent, ctx);
-    case SyntaxKind.ForInStatement:
-      return new $ForInStatement(node, parent, ctx);
-    case SyntaxKind.ForOfStatement:
-      return new $ForOfStatement(node, parent, ctx);
-    case SyntaxKind.ContinueStatement:
-      return new $ContinueStatement(node, parent, ctx);
-    case SyntaxKind.BreakStatement:
-      return new $BreakStatement(node, parent, ctx);
-    case SyntaxKind.ReturnStatement:
-      return new $ReturnStatement(node, parent, ctx);
-    case SyntaxKind.WithStatement:
-      return new $WithStatement(node, parent, ctx);
-    case SyntaxKind.SwitchStatement:
-      return new $SwitchStatement(node, parent, ctx);
-    case SyntaxKind.LabeledStatement:
-      return new $LabeledStatement(node, parent, ctx);
-    case SyntaxKind.ThrowStatement:
-      return new $ThrowStatement(node, parent, ctx);
-    case SyntaxKind.TryStatement:
-      return new $TryStatement(node, parent, ctx);
-    case SyntaxKind.DebuggerStatement:
-      return new $DebuggerStatement(node, parent, ctx);
-    default:
-      return $$declaration(node, parent, ctx);
-  }
-}
+// http://www.ecma-international.org/ecma-262/#prod-Statement
+type $$ESStatement = (
+  $Block |
+  $VariableStatement | // Note, technically only "var declaration" belongs here but TS clumps them up
+  $EmptyStatement |
+  $ExpressionStatement |
+  $IfStatement |
+  $$BreakableStatement |
+  $ContinueStatement |
+  $BreakStatement |
+  $ReturnStatement |
+  $WithStatement |
+  $LabeledStatement |
+  $ThrowStatement |
+  $TryStatement |
+  $DebuggerStatement
+);
 
 function $$esStatement(
   node: $StatementNode,
@@ -1622,11 +1023,33 @@ function $$esStatement(
   }
 }
 
-function $$esStatementListItem(
+type $$ESDeclaration = (
+  $FunctionDeclaration |
+  $ClassDeclaration |
+  $VariableStatement
+);
+
+type $$TSDeclaration = (
+  $InterfaceDeclaration |
+  $TypeAliasDeclaration |
+  $EnumDeclaration
+);
+
+type $$ESStatementListItem = (
+  $$ESStatement |
+  $$ESDeclaration
+);
+
+type $$TSStatementListItem = (
+  $$ESStatementListItem |
+  $$TSDeclaration
+);
+
+function $$tsStatementListItem(
   node: $StatementNode,
   parent: $NodeWithStatements,
   ctx: Context,
-): $$StatementListItem {
+): $$TSStatementListItem {
   switch (node.kind) {
     case SyntaxKind.VariableStatement:
       return new $VariableStatement(node, parent, ctx);
@@ -1634,16 +1057,105 @@ function $$esStatementListItem(
       return new $FunctionDeclaration(node, parent, ctx);
     case SyntaxKind.ClassDeclaration:
       return new $ClassDeclaration(node, parent, ctx);
+    case SyntaxKind.InterfaceDeclaration:
+      return new $InterfaceDeclaration(node, parent, ctx);
+    case SyntaxKind.TypeAliasDeclaration:
+      return new $TypeAliasDeclaration(node, parent, ctx);
+    case SyntaxKind.EnumDeclaration:
+      return new $EnumDeclaration(node, parent, ctx);
     default:
       return $$esStatement(node, parent, ctx);
   }
 }
 
+function $$tsStatementList(
+  nodes: readonly $StatementNode[],
+  parent: $NodeWithStatements,
+  ctx: Context,
+): readonly $$TSStatementListItem[] {
+  const len = nodes.length;
+  let node: $StatementNode;
+  const $nodes: $$TSStatementListItem[] = [];
+
+  let x = 0;
+  for (let i = 0; i < len; ++i) {
+    node = nodes[i];
+    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
+      continue;
+    }
+    $nodes[x++] = $$tsStatementListItem(node, parent, ctx);
+  }
+  return $nodes;
+}
+
+type $$ESModuleItem = (
+  $$ESStatementListItem |
+  $ImportDeclaration |
+  $ExportDeclaration
+);
+
+type $$TSModuleItem = (
+  $$ESModuleItem |
+  $$TSDeclaration |
+  $ExportAssignment |
+  $ImportEqualsDeclaration |
+  $ModuleDeclaration |
+  $NamespaceExportDeclaration
+);
+
+function $$tsModuleItem(
+  node: $StatementNode,
+  parent: $NodeWithStatements | $$ModuleDeclarationParent,
+  ctx: Context,
+): $$TSModuleItem {
+  switch (node.kind) {
+    case SyntaxKind.ModuleDeclaration:
+      return new $ModuleDeclaration(node, parent as $$ModuleDeclarationParent, ctx);
+    case SyntaxKind.NamespaceExportDeclaration:
+      return new $NamespaceExportDeclaration(node, parent as $$ModuleDeclarationParent, ctx);
+    case SyntaxKind.ImportEqualsDeclaration:
+      return new $ImportEqualsDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
+    case SyntaxKind.ImportDeclaration:
+      return new $ImportDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
+    case SyntaxKind.ExportAssignment:
+      return new $ExportAssignment(node, parent as $SourceFile, ctx);
+    case SyntaxKind.ExportDeclaration:
+      return new $ExportDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
+    default:
+      return $$tsStatementListItem(node, parent as $NodeWithStatements, ctx);
+  }
+}
+
+function $$tsModuleItemList(
+  nodes: readonly $StatementNode[],
+  parent: $NodeWithStatements | $$ModuleDeclarationParent,
+  ctx: Context,
+): readonly $$TSModuleItem[] {
+  const len = nodes.length;
+  let node: $StatementNode;
+  const $nodes: $$TSModuleItem[] = [];
+
+  let x = 0;
+  for (let i = 0; i < len; ++i) {
+    node = nodes[i];
+    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
+      continue;
+    }
+    $nodes[x++] = $$tsModuleItem(node, parent, ctx);
+  }
+  return $nodes;
+}
+
+type $$ESLabelledItem = (
+  $$ESStatement |
+  $FunctionDeclaration
+);
+
 function $$esLabelledItem(
   node: $StatementNode,
   parent: $NodeWithStatements,
   ctx: Context,
-): $$LabelledItem {
+): $$ESLabelledItem {
   switch (node.kind) {
     case SyntaxKind.VariableStatement:
       return new $VariableStatement(node, parent, ctx);
@@ -1654,51 +1166,11 @@ function $$esLabelledItem(
   }
 }
 
-function $$esStatementList(
-  nodes: readonly $StatementNode[],
-  parent: $NodeWithStatements,
-  ctx: Context,
-): readonly $$StatementListItem[] {
-  const len = nodes.length;
-  let node: $StatementNode;
-  const $nodes: $$StatementListItem[] = [];
-
-
-  for (let i = 0; i < len; ++i) {
-    node = nodes[i];
-    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
-      continue;
-    }
-    $nodes.push($$esStatementListItem(node, parent, ctx));
-  }
-  return $nodes;
-}
-
-function $$statementList(
-  nodes: readonly $StatementNode[],
-  parent: $NodeWithStatements,
-  ctx: Context,
-): readonly $$Statement[] {
-  const len = nodes.length;
-  let node: $StatementNode;
-  const $nodes: $$Statement[] = [];
-
-
-  for (let i = 0; i < len; ++i) {
-    node = nodes[i];
-    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
-      continue;
-    }
-    $nodes.push($$statement(node, parent, ctx));
-  }
-  return $nodes;
-}
-
 // #endregion
 
 // #region AST helpers
 
-function GetDirectivePrologue(statements: readonly $$Statement[]): $DirectivePrologue {
+function GetDirectivePrologue(statements: readonly $$TSModuleItem[]): $DirectivePrologue {
   let directivePrologue: $ExpressionStatement_T<$StringLiteral>[] = emptyArray;
 
   let statement: $ExpressionStatement_T<$StringLiteral>;
@@ -1877,9 +1349,6 @@ function ArrayBindingElementsToIsSimpleParameterList(elements: readonly $$ArrayB
 
 // #endregion
 
-// Just to make the build pass without having to implement everything at once. Easy way to find all places that need to be implemented.
-const placeholder = null as any;
-
 // #region AST
 
 // #region Declaration statements
@@ -1932,6 +1401,46 @@ export class $VariableStatement implements I$Node {
   }
 }
 
+type $NodeWithDecorators = (
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration |
+  $ClassDeclaration |
+  $ConstructorDeclaration |
+  $EnumDeclaration |
+  $ExportAssignment |
+  $ExportDeclaration |
+  $FunctionDeclaration |
+  $ImportDeclaration |
+  $ImportEqualsDeclaration |
+  $InterfaceDeclaration |
+  $MethodDeclaration |
+  $ModuleDeclaration |
+  $ParameterDeclaration |
+  $PropertyDeclaration |
+  $TypeAliasDeclaration
+);
+
+function $decoratorList(
+  nodes: readonly Decorator[] | undefined,
+  parent: $NodeWithDecorators,
+  ctx: Context,
+): readonly $Decorator[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  if (nodes.length === 1) {
+    return [new $Decorator(nodes[0], parent, ctx)];
+  }
+
+  const len = nodes.length;
+  const $nodes: $Decorator[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $Decorator(nodes[i], parent, ctx);
+  }
+  return $nodes;
+}
+
 export class $FunctionDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.FunctionDeclaration;
   public readonly id: number;
@@ -1967,7 +1476,7 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isconstantdeclaration
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-isconstantdeclaration
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsConstantDeclaration
-  public readonly IsConstantDeclaration: boofalselean = false;
+  public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isfunctiondefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-isfunctiondefinition
@@ -2031,6 +1540,80 @@ export class $FunctionDeclaration implements I$Node {
     this.HasInitializer = $parameters.some(p => p.HasInitializer);
     this.HasName = $name !== void 0;
     this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+  }
+}
+
+function $heritageClauseList(
+  nodes: readonly HeritageClause[] | undefined,
+  parent: $$NodeWithHeritageClauses,
+  ctx: Context,
+): readonly $HeritageClause[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $HeritageClause[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $HeritageClause(nodes[i], parent, ctx);
+  }
+  return $nodes;
+}
+
+function $$classElementList(
+  nodes: readonly $ClassElementNode[] | undefined,
+  parent: $ClassDeclaration | $ClassExpression,
+  ctx: Context,
+): readonly $$ClassElement[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $$ClassElement[] = [];
+  let $node: $$ClassElement | undefined;
+  let node: $ClassElementNode;
+  for (let i = 0; i < len; ++i) {
+    node = nodes[i];
+    if ((node as { body?: Block }).body !== void 0) {
+      $node = $$classElement(nodes[i], parent, ctx);
+      if ($node !== void 0) {
+        $nodes.push($node);
+      }
+    }
+  }
+  return $nodes;
+}
+
+type $$ClassElement = (
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration |
+  $ConstructorDeclaration |
+  $MethodDeclaration |
+  $SemicolonClassElement |
+  $PropertyDeclaration
+);
+
+function $$classElement(
+  node: $ClassElementNode,
+  parent: $ClassDeclaration | $ClassExpression,
+  ctx: Context,
+): $$ClassElement | undefined {
+  switch (node.kind) {
+    case SyntaxKind.PropertyDeclaration:
+      return new $PropertyDeclaration(node, parent, ctx);
+    case SyntaxKind.SemicolonClassElement:
+      return new $SemicolonClassElement(node, parent, ctx);
+    case SyntaxKind.MethodDeclaration:
+      return new $MethodDeclaration(node, parent, ctx);
+    case SyntaxKind.Constructor:
+      return new $ConstructorDeclaration(node, parent, ctx);
+    case SyntaxKind.GetAccessor:
+      return new $GetAccessorDeclaration(node, parent, ctx);
+    case SyntaxKind.SetAccessor:
+      return new $SetAccessorDeclaration(node, parent, ctx);
+    default:
+      return void 0;
   }
 }
 
@@ -2105,6 +1688,9 @@ export class $InterfaceDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
+  // Stubbed for static semantics
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
   public readonly $heritageClauses: readonly $HeritageClause[];
@@ -2134,6 +1720,9 @@ export class $TypeAliasDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
+  // Stubbed for static semantics
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
 
@@ -2155,11 +1744,31 @@ export class $TypeAliasDeclaration implements I$Node {
   }
 }
 
+function $enumMemberList(
+  nodes: readonly EnumMember[],
+  parent: $EnumDeclaration,
+  ctx: Context,
+): readonly $EnumMember[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $EnumMember[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $EnumMember(nodes[i], parent, ctx);
+  }
+  return $nodes;
+}
+
 export class $EnumDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.EnumDeclaration;
   public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
+
+  // Stubbed for static semantics
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
@@ -2252,6 +1861,23 @@ export class $VariableDeclaration implements I$Node {
   }
 }
 
+function $variableDeclarationList(
+  nodes: readonly VariableDeclaration[],
+  parent: $VariableDeclarationList,
+  ctx: Context,
+): readonly $VariableDeclaration[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $VariableDeclaration[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $VariableDeclaration(nodes[i], parent, ctx);
+  }
+  return $nodes;
+}
+
 export class $VariableDeclarationList implements I$Node {
   public readonly $kind = SyntaxKind.VariableDeclarationList;
   public readonly id: number;
@@ -2323,6 +1949,29 @@ export class $EnumMember implements I$Node {
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
   }
+}
+
+type $$NodeWithHeritageClauses = (
+  $ClassDeclaration |
+  $ClassExpression |
+  $InterfaceDeclaration
+);
+
+function $expressionWithTypeArgumentsList(
+  nodes: readonly ExpressionWithTypeArguments[],
+  parent: $HeritageClause,
+  ctx: Context,
+): readonly $ExpressionWithTypeArguments[] {
+  if (nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $ExpressionWithTypeArguments[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $ExpressionWithTypeArguments(nodes[i], parent, ctx);
+  }
+  return $nodes;
 }
 
 export class $HeritageClause implements I$Node {
@@ -2459,6 +2108,54 @@ export class $ArrayLiteralExpression implements I$Node {
   }
 }
 
+type $$ObjectLiteralElementLike = (
+  $PropertyAssignment |
+  $ShorthandPropertyAssignment |
+  $SpreadAssignment |
+  $MethodDeclaration |
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration
+);
+
+function $$objectLiteralElementLikeList(
+  nodes: readonly ObjectLiteralElementLike[],
+  parent: $ObjectLiteralExpression,
+  ctx: Context,
+): readonly $$ObjectLiteralElementLike[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $$ObjectLiteralElementLike[] = Array(len);
+  let el: ObjectLiteralElementLike;
+
+  for (let i = 0; i < len; ++i) {
+    el = nodes[i];
+    switch (el.kind) {
+      case SyntaxKind.PropertyAssignment:
+        $nodes[i] = new $PropertyAssignment(el, parent, ctx);
+        break;
+      case SyntaxKind.ShorthandPropertyAssignment:
+        $nodes[i] = new $ShorthandPropertyAssignment(el, parent, ctx);
+        break;
+      case SyntaxKind.SpreadAssignment:
+        $nodes[i] = new $SpreadAssignment(el, parent, ctx);
+        break;
+      case SyntaxKind.MethodDeclaration:
+        $nodes[i] = new $MethodDeclaration(el, parent, ctx);
+        break;
+      case SyntaxKind.GetAccessor:
+        $nodes[i] = new $GetAccessorDeclaration(el, parent, ctx);
+        break;
+      case SyntaxKind.SetAccessor:
+        $nodes[i] = new $SetAccessorDeclaration(el, parent, ctx);
+        break;
+    }
+  }
+  return $nodes;
+}
+
 export class $ObjectLiteralExpression implements I$Node {
   public readonly $kind = SyntaxKind.ObjectLiteralExpression;
   public readonly id: number;
@@ -2586,6 +2283,11 @@ export class $NewExpression implements I$Node {
   }
 }
 
+type $$TemplateLiteral = (
+  $NoSubstitutionTemplateLiteral |
+  $TemplateExpression
+);
+
 export class $TaggedTemplateExpression implements I$Node {
   public readonly $kind = SyntaxKind.TaggedTemplateExpression;
   public readonly id: number;
@@ -2683,6 +2385,23 @@ export class $FunctionExpression implements I$Node {
     this.HasName = $name !== void 0;
     this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
   }
+}
+
+function $$templateSpanList(
+  nodes: readonly TemplateSpan[],
+  parent: $TemplateExpression,
+  ctx: Context,
+): readonly $TemplateSpan[] {
+  if (nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $TemplateSpan[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $TemplateSpan(nodes[i], parent, ctx);
+  }
+  return $nodes;
 }
 
 export class $TemplateExpression implements I$Node {
@@ -3281,6 +3000,52 @@ export class $Identifier implements I$Node {
   }
 }
 
+type $$JsxParent = (
+  $JsxElement |
+  $JsxFragment
+);
+
+type $$JsxChild = (
+  $JsxText |
+  $JsxExpression |
+  $JsxElement |
+  $JsxSelfClosingElement |
+  $JsxFragment
+);
+
+function $$jsxChildList(
+  nodes: readonly JsxChild[],
+  parent: $$JsxParent,
+  ctx: Context,
+): readonly $$JsxChild[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $$JsxChild[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    switch (nodes[i].kind) {
+      case SyntaxKind.JsxText:
+        $nodes[i] = new $JsxText(nodes[i] as JsxText, parent, ctx);
+        break;
+      case SyntaxKind.JsxExpression:
+        $nodes[i] = new $JsxExpression(nodes[i] as JsxExpression, parent, ctx);
+        break;
+      case SyntaxKind.JsxElement:
+        $nodes[i] = new $JsxElement(nodes[i] as JsxElement, parent, ctx);
+        break;
+      case SyntaxKind.JsxSelfClosingElement:
+        $nodes[i] = new $JsxSelfClosingElement(nodes[i] as JsxSelfClosingElement, parent, ctx);
+        break;
+      case SyntaxKind.JsxFragment:
+        $nodes[i] = new $JsxFragment(nodes[i] as JsxFragment, parent, ctx);
+        break;
+    }
+  }
+  return $nodes;
+}
+
 export class $JsxElement implements I$Node {
   public readonly $kind = SyntaxKind.JsxElement;
   public readonly id: number;
@@ -3303,6 +3068,39 @@ export class $JsxElement implements I$Node {
     this.$openingElement = new $JsxOpeningElement(node.openingElement, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);
     this.$closingElement = new $JsxClosingElement(node.closingElement, this, ctx);
+  }
+}
+
+type $$JsxNamed = (
+  $JsxOpeningElement |
+  $JsxClosingElement |
+  $JsxSelfClosingElement
+);
+
+type $$JsxTagNamePropertyAccess = $PropertyAccessExpression & {
+  expression: $$JsxTagNameExpression;
+};
+
+type $$JsxTagNameExpression = (
+  $Identifier |
+  $ThisExpression |
+  $$JsxTagNamePropertyAccess
+);
+
+function $$jsxTagNameExpression(
+  node: JsxTagNameExpression,
+  parent: $$JsxNamed,
+  ctx: Context,
+): $$JsxTagNameExpression {
+  switch (node.kind) {
+    case SyntaxKind.Identifier:
+      return new $Identifier(node, parent, ctx);
+    case SyntaxKind.ThisKeyword:
+      return new $ThisExpression(node, parent, ctx);
+    case SyntaxKind.PropertyAccessExpression:
+      return new $PropertyAccessExpression(node, parent, ctx) as $$JsxTagNamePropertyAccess;
+    default:
+      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
   }
 }
 
@@ -3463,6 +3261,11 @@ export class $JsxAttribute implements I$Node {
         : new $JsxExpression(node.initializer, this, ctx);
   }
 }
+
+type $$JsxAttributeLike = (
+  $JsxAttribute |
+  $JsxSpreadAttribute
+);
 
 export class $JsxAttributes implements I$Node {
   public readonly $kind = SyntaxKind.JsxAttributes;
@@ -3900,7 +3703,7 @@ export class $SourceFile implements I$Node {
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
 
-  public readonly $statements: readonly $$Statement[] = [];
+  public readonly $statements: readonly $$TSModuleItem[] = [];
 
   public readonly DirectivePrologue: $DirectivePrologue;
 
@@ -3912,7 +3715,7 @@ export class $SourceFile implements I$Node {
   ) {
     this.id = project.registerNode(this);
 
-    const $statements = this.$statements = $$statementList(
+    const $statements = this.$statements = $$tsModuleItemList(
       node.statements as NodeArray<$ModuleStatementNode>,
       this,
       Context.InTopLevel,
@@ -3927,6 +3730,16 @@ export class $SourceFile implements I$Node {
 }
 
 // #region Statements
+
+type $$ModuleBody = (
+  $ModuleBlock |
+  $ModuleDeclaration
+);
+
+type $$ModuleName = (
+  $Identifier |
+  $StringLiteral
+);
 
 export class $ModuleDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ModuleDeclaration;
@@ -3993,6 +3806,11 @@ export class $NamespaceExportDeclaration implements I$Node {
     this.$name = $identifier(node.name, this, ctx);
   }
 }
+
+type $$ModuleReference = (
+  $$EntityName |
+  $ExternalModuleReference
+);
 
 /**
  * One of:
@@ -4294,7 +4112,7 @@ export class $ModuleBlock implements I$Node {
   public readonly $kind = SyntaxKind.ModuleBlock;
   public readonly id: number;
 
-  public readonly $statements: readonly $$Statement[];
+  public readonly $statements: readonly $$TSModuleItem[];
 
   public constructor(
     public readonly node: ModuleBlock,
@@ -4305,7 +4123,7 @@ export class $ModuleBlock implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$statementList(node.statements as NodeArray<$ModuleStatementNode>, this, ctx);
+    this.$statements = $$tsModuleItemList(node.statements as NodeArray<$ModuleStatementNode>, this, ctx);
   }
 }
 
@@ -4330,6 +4148,16 @@ export class $ExternalModuleReference implements I$Node {
 
 // #endregion
 
+type $$NodeWithQualifiedName = (
+  $ImportEqualsDeclaration |
+  $QualifiedName
+);
+
+type $$EntityName = (
+  $Identifier |
+  $QualifiedName
+);
+
 export class $QualifiedName implements I$Node {
   public readonly $kind = SyntaxKind.QualifiedName;
   public readonly id: number;
@@ -4352,6 +4180,18 @@ export class $QualifiedName implements I$Node {
     this.$right = new $Identifier(node.right, this, ctx);
   }
 }
+
+type $$NamedDeclaration = (
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration |
+  $MethodDeclaration |
+  $PropertyAssignment |
+  $ShorthandPropertyAssignment |
+  $SpreadAssignment |
+  $BindingElement |
+  $EnumMember |
+  $PropertyDeclaration
+);
 
 export class $ComputedPropertyName implements I$Node {
   public readonly $kind = SyntaxKind.ComputedPropertyName;
@@ -4464,6 +4304,40 @@ export class $ObjectBindingPattern implements I$Node {
   }
 }
 
+type $$ArrayBindingElement = (
+  $BindingElement |
+  $OmittedExpression
+);
+
+function $$arrayBindingElement(
+  node: ArrayBindingElement,
+  parent: $ArrayBindingPattern,
+  ctx: Context,
+): $$ArrayBindingElement {
+  switch (node.kind) {
+    case SyntaxKind.BindingElement:
+      return new $BindingElement(node, parent, ctx);
+    case SyntaxKind.OmittedExpression:
+      return new $OmittedExpression(node, parent, ctx);
+  }
+}
+
+
+function $$arrayBindingElementList(
+  nodes: readonly ArrayBindingElement[],
+  parent: $ArrayBindingPattern,
+  ctx: Context,
+): readonly $$ArrayBindingElement[] {
+  const len = nodes.length;
+  const $nodes: $$ArrayBindingElement[] = Array(len);
+
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = $$arrayBindingElement(nodes[i], parent, ctx);
+  }
+
+  return $nodes;
+}
+
 export class $ArrayBindingPattern implements I$Node {
   public readonly $kind = SyntaxKind.ArrayBindingPattern;
   public readonly id: number;
@@ -4506,6 +4380,11 @@ export class $ArrayBindingPattern implements I$Node {
     this.IsSimpleParameterList = ArrayBindingElementsToIsSimpleParameterList($elements);
   }
 }
+
+type $$BindingPattern = (
+  $ArrayBindingPattern |
+  $ObjectBindingPattern
+);
 
 export class $BindingElement implements I$Node {
   public readonly $kind = SyntaxKind.BindingElement;
@@ -4681,7 +4560,7 @@ export class $Block implements I$Node {
   public readonly $kind = SyntaxKind.Block;
   public readonly id: number;
 
-  public readonly $statements: readonly $$StatementListItem[];
+  public readonly $statements: readonly $$TSStatementListItem[];
 
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
@@ -4698,7 +4577,7 @@ export class $Block implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$esStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
   }
 }
 
@@ -4846,6 +4725,11 @@ export class $WhileStatement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 }
+
+type $$Initializer = (
+  $$AssignmentExpressionOrHigher |
+  $VariableDeclarationList
+);
 
 export class $ForStatement implements I$Node {
   public readonly $kind = SyntaxKind.ForStatement;
@@ -5094,7 +4978,7 @@ export class $LabeledStatement implements I$Node {
   public readonly id: number;
 
   public readonly $label: $Identifier;
-  public readonly $statement: $$LabelledItem;
+  public readonly $statement: $$ESLabelledItem;
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
@@ -5250,7 +5134,7 @@ export class $CaseClause implements I$Node {
   }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statements: readonly $$StatementListItem[];
+  public readonly $statements: readonly $$ESStatementListItem[];
 
   public constructor(
     public readonly node: CaseClause,
@@ -5262,7 +5146,7 @@ export class $CaseClause implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statements = $$esStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
   }
 }
 
@@ -5275,7 +5159,7 @@ export class $DefaultClause implements I$Node {
     return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
   }
 
-  public readonly $statements: readonly $$StatementListItem[];
+  public readonly $statements: readonly $$ESStatementListItem[];
 
   public constructor(
     public readonly node: DefaultClause,
@@ -5286,7 +5170,7 @@ export class $DefaultClause implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$esStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
   }
 }
 

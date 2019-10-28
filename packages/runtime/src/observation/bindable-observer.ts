@@ -23,6 +23,7 @@ export class BindableObserver {
   public observing: boolean;
 
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+  private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];
   private readonly hasPropertyChangedCallback: boolean;
 
   public constructor(
@@ -42,9 +43,12 @@ export class BindableObserver {
     }
 
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
-    const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof this.obj.propertyChanged === 'function';
 
-    if (this.callback === void 0 || !hasPropertyChangedCallback) {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const propertyChangedCallback = this.propertyChangedCallback = this.obj.propertyChanged;
+    const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
+
+    if (this.callback === void 0 && !hasPropertyChangedCallback) {
       this.observing = false;
     } else {
       this.observing = true;
@@ -70,14 +74,16 @@ export class BindableObserver {
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        // eslint-disable-next-line sonarjs/no-collapsible-if
         if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSourceExpression) > 0) {
           const callback = this.callback;
+
           if (callback !== void 0) {
             callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
           }
+
           if (this.hasPropertyChangedCallback) {
-            (this.obj as HasPropertyChangedCallback).propertyChanged(this.propertyKey, newValue, currentValue, this.persistentFlags | flags);
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            this.propertyChangedCallback!.call(this.obj, this.propertyKey, newValue, currentValue, this.persistentFlags | flags);
           }
         }
       } else if (!this.inBatch) {

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/router",
-  "version": "0.5.0-dev.201910271617",
+  "version": "0.5.0-dev.201910282145",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,9 +36,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.5.0-dev.201910271617",
-    "@aurelia/runtime": "0.5.0-dev.201910271617",
-    "@aurelia/runtime-html": "0.5.0-dev.201910271617"
+    "@aurelia/kernel": "0.5.0-dev.201910282145",
+    "@aurelia/runtime": "0.5.0-dev.201910282145",
+    "@aurelia/runtime-html": "0.5.0-dev.201910282145"
   },
   "devDependencies": {
     "@types/node": "^10.14.13",

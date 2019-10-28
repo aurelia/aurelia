@@ -33,5 +33,5 @@
     "packages/validation",
     "packages/webpack-loader"
   ],
-  "version": "0.5.0-dev.201910271617"
+  "version": "0.5.0-dev.201910282145"
 }

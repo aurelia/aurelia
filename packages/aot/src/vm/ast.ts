@@ -1540,6 +1540,7 @@ export class $FunctionDeclaration implements I$Node {
     this.HasInitializer = $parameters.some(p => p.HasInitializer);
     this.HasName = $name !== void 0;
     this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+    this.VarDeclaredNames = $body.VarDeclaredNames;
   }
 }
 
@@ -1649,6 +1650,8 @@ export class $ClassDeclaration implements I$Node {
   public readonly PrototypePropertyNameList: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-propname
   public readonly PropName: string;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly string[] = emptyArray;
 
   public constructor(
     public readonly node: ClassDeclaration,
@@ -1690,6 +1693,7 @@ export class $InterfaceDeclaration implements I$Node {
 
   // Stubbed for static semantics
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  public readonly VarDeclaredNames: readonly string[] = emptyArray;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
@@ -1722,6 +1726,7 @@ export class $TypeAliasDeclaration implements I$Node {
 
   // Stubbed for static semantics
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  public readonly VarDeclaredNames: readonly string[] = emptyArray;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
@@ -1769,6 +1774,7 @@ export class $EnumDeclaration implements I$Node {
 
   // Stubbed for static semantics
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  public readonly VarDeclaredNames: readonly string[] = emptyArray;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
@@ -2384,6 +2390,7 @@ export class $FunctionExpression implements I$Node {
     this.HasInitializer = $parameters.some(p => p.HasInitializer);
     this.HasName = $name !== void 0;
     this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+    this.VarDeclaredNames = $body.VarDeclaredNames;
   }
 }
 
@@ -2841,6 +2848,7 @@ export class $ArrowFunction implements I$Node {
     this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
     this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+    this.VarDeclaredNames = $body.$kind === SyntaxKind.Block ? $body.VarDeclaredNames : emptyArray;
   }
 }
 
@@ -4566,6 +4574,7 @@ export class $Block implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet))
   }
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4577,7 +4586,9 @@ export class $Block implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+
+    this.VarDeclaredNames = $statements.flatMap(x => x.VarDeclaredNames);
   }
 }
 
@@ -4587,6 +4598,7 @@ export class $EmptyStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4616,6 +4628,7 @@ export class $ExpressionStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4647,6 +4660,7 @@ export class $IfStatement implements I$Node {
     }
     return this.$elseStatement !== void 0 && this.$elseStatement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4659,15 +4673,15 @@ export class $IfStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
-    this.$elseStatement = node.elseStatement === void 0
+    const $thenStatement = this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
+    const $elseStatement = this.$elseStatement = node.elseStatement === void 0
       ? void 0
       : $$esStatement(node.elseStatement as $StatementNode, this, ctx);
 
-    if (this.$elseStatement === void 0) {
-      //this.VarDeclaredNames = this.$thenStatement.V
+    if ($elseStatement === void 0) {
+      this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
     } else {
-
+      this.VarDeclaredNames = $thenStatement.VarDeclaredNames.concat($elseStatement.VarDeclaredNames);
     }
   }
 }
@@ -4683,6 +4697,7 @@ export class $DoStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4696,6 +4711,8 @@ export class $DoStatement implements I$Node {
 
     this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    this.VarDeclaredNames = this.$statement.VarDeclaredNames;
   }
 }
 
@@ -4710,6 +4727,7 @@ export class $WhileStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4723,6 +4741,8 @@ export class $WhileStatement implements I$Node {
 
     this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    this.VarDeclaredNames = this.$statement.VarDeclaredNames;
   }
 }
 
@@ -4744,6 +4764,7 @@ export class $ForStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4755,14 +4776,24 @@ export class $ForStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$initializer = node.initializer === void 0
+    const $initializer = this.$initializer = node.initializer === void 0
       ? void 0
       : node.initializer.kind === SyntaxKind.VariableDeclarationList
         ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
         : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
     this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+
+    if (
+      $initializer !== void 0 &&
+      $initializer.$kind === SyntaxKind.VariableDeclarationList &&
+      ($initializer.nodeFlags & (NodeFlags.Const | NodeFlags.Let)) === 0
+    ) {
+      this.VarDeclaredNames = $initializer.BoundNames.concat($statement.VarDeclaredNames);
+    } else {
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
+    }
   }
 }
 
@@ -4779,6 +4810,7 @@ export class $ForInStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4790,19 +4822,23 @@ export class $ForInStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$initializer = node.initializer.kind === SyntaxKind.VariableDeclarationList
+    const $initializer = this.$initializer = node.initializer.kind === SyntaxKind.VariableDeclarationList
       ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
       : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
-    if (
-      this.$initializer.$kind === SyntaxKind.VariableDeclarationList
-      && (this.$initializer.nodeFlags & (NodeFlags.Const | NodeFlags.Let)) > 0
-    ) {
-      this.BoundNames = this.$initializer.BoundNames;
+    if ($initializer.$kind === SyntaxKind.VariableDeclarationList) {
+      if (($initializer.nodeFlags & (NodeFlags.Const | NodeFlags.Let)) === 0) {
+        this.BoundNames = PLATFORM.emptyArray;
+        this.VarDeclaredNames = $initializer.BoundNames.concat($statement.VarDeclaredNames);
+      } else {
+        this.BoundNames = $initializer.BoundNames;
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
+      }
     } else {
       this.BoundNames = PLATFORM.emptyArray;
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
     }
   }
 }
@@ -4820,6 +4856,7 @@ export class $ForOfStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4831,19 +4868,23 @@ export class $ForOfStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$initializer = node.initializer.kind === SyntaxKind.VariableDeclarationList
+    const $initializer = this.$initializer = node.initializer.kind === SyntaxKind.VariableDeclarationList
       ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
       : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
-    if (
-      this.$initializer.$kind === SyntaxKind.VariableDeclarationList
-      && (this.$initializer.nodeFlags & (NodeFlags.Const | NodeFlags.Let)) > 0
-    ) {
-      this.BoundNames = this.$initializer.BoundNames;
+    if ($initializer.$kind === SyntaxKind.VariableDeclarationList) {
+      if (($initializer.nodeFlags & (NodeFlags.Const | NodeFlags.Let)) === 0) {
+        this.BoundNames = PLATFORM.emptyArray;
+        this.VarDeclaredNames = $initializer.BoundNames.concat($statement.VarDeclaredNames);
+      } else {
+        this.BoundNames = $initializer.BoundNames;
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
+      }
     } else {
       this.BoundNames = PLATFORM.emptyArray;
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
     }
   }
 }
@@ -4856,6 +4897,7 @@ export class $ContinueStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4879,6 +4921,7 @@ export class $BreakStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4902,6 +4945,7 @@ export class $ReturnStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4930,6 +4974,7 @@ export class $WithStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statement.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4943,6 +4988,8 @@ export class $WithStatement implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+
+    this.VarDeclaredNames = this.$statement.VarDeclaredNames;
   }
 }
 
@@ -4957,6 +5004,7 @@ export class $SwitchStatement implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$caseBlock.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4970,6 +5018,8 @@ export class $SwitchStatement implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
+
+    this.VarDeclaredNames = this.$caseBlock.VarDeclaredNames;
   }
 }
 
@@ -4992,6 +5042,7 @@ export class $LabeledStatement implements I$Node {
 
     return this.$statement.ContainsDuplicateLabels(newLabelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -5005,6 +5056,8 @@ export class $LabeledStatement implements I$Node {
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabel);
     this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+
+    this.VarDeclaredNames = this.$statement.VarDeclaredNames;
   }
 }
 
@@ -5016,6 +5069,7 @@ export class $ThrowStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -5028,10 +5082,6 @@ export class $ThrowStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-
-    $: if (true) {
-      $: if (true) return;
-    };
   }
 }
 
@@ -5053,6 +5103,7 @@ export class $TryStatement implements I$Node {
     }
     return this.$finallyBlock !== void 0 && this.$finallyBlock.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -5064,13 +5115,23 @@ export class $TryStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$tryBlock = new $Block(node.tryBlock, this, ctx);
-    this.$catchClause = node.catchClause === void 0
+    const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx);
+    const $catchClause = this.$catchClause = node.catchClause === void 0
       ? void 0
       : new $CatchClause(node.catchClause, this, ctx);
-    this.$finallyBlock = node.finallyBlock === void 0
+    const $finallyBlock = this.$finallyBlock = node.finallyBlock === void 0
       ? void 0
       : new $Block(node.finallyBlock, this, ctx);
+
+    if ($catchClause === void 0) {
+      // $finallyBlock must be defined
+      this.VarDeclaredNames = $tryBlock.VarDeclaredNames.concat($finallyBlock!.VarDeclaredNames);
+    } else if ($finallyBlock === void 0) {
+      // $catchClause must be defined
+      this.VarDeclaredNames = $tryBlock.VarDeclaredNames.concat($catchClause!.VarDeclaredNames);
+    } else {
+      this.VarDeclaredNames = $tryBlock.VarDeclaredNames.concat($catchClause!.VarDeclaredNames, $finallyBlock!.VarDeclaredNames);
+    }
   }
 }
 
@@ -5080,6 +5141,7 @@ export class $DebuggerStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
   public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -5105,6 +5167,9 @@ export class $CaseBlock implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$clauses.some(x => x.ContainsDuplicateLabels(labelSet));
   }
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly string[];
+
   public readonly $clauses: readonly ($CaseClause | $DefaultClause)[];
 
   public constructor(
@@ -5121,6 +5186,8 @@ export class $CaseBlock implements I$Node {
         ? new $CaseClause(x, this, ctx)
         : new $DefaultClause(x, this, ctx)
     );
+
+    this.VarDeclaredNames = this.$clauses.flatMap(x => x.VarDeclaredNames);
   }
 }
 
@@ -5132,9 +5199,11 @@ export class $CaseClause implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
   }
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly string[];
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statements: readonly $$ESStatementListItem[];
+  public readonly $statements: readonly $$TSStatementListItem[];
 
   public constructor(
     public readonly node: CaseClause,
@@ -5147,6 +5216,8 @@ export class $CaseClause implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+
+    this.VarDeclaredNames = this.$statements.flatMap(x => x.VarDeclaredNames);
   }
 }
 
@@ -5158,8 +5229,10 @@ export class $DefaultClause implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
   }
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly string[];
 
-  public readonly $statements: readonly $$ESStatementListItem[];
+  public readonly $statements: readonly $$TSStatementListItem[];
 
   public constructor(
     public readonly node: DefaultClause,
@@ -5171,6 +5244,8 @@ export class $DefaultClause implements I$Node {
     this.id = root.registerNode(this);
 
     this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+
+    this.VarDeclaredNames = this.$statements.flatMap(x => x.VarDeclaredNames);
   }
 }
 
@@ -5182,6 +5257,8 @@ export class $CatchClause implements I$Node {
   public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
     return this.$block.ContainsDuplicateLabels(labelSet);
   }
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly string[];
 
   public readonly $variableDeclaration: $VariableDeclaration | undefined;
   public readonly $block: $Block;
@@ -5201,6 +5278,8 @@ export class $CatchClause implements I$Node {
       ? void 0
       : new $VariableDeclaration(node.variableDeclaration, this, ctx);
     this.$block = new $Block(node.block, this, ctx);
+
+    this.VarDeclaredNames = this.$block.VarDeclaredNames;
   }
 }
 

@@ -1702,11 +1702,11 @@ function BindingElementsToHasInitializer(elements: readonly $BindingElement[]): 
 function BindingElementsToIsSimpleParameterList(elements: readonly $BindingElement[]): boolean {
   const len = elements.length;
   for (let i = 0; i < len; ++i) {
-    if (elements[i].IsSimpleParameterList) {
-      return true;
+    if (!elements[i].IsSimpleParameterList) {
+      return false;
     }
   }
-  return false;
+  return true;
 }
 
 function ArrayBindingElementsToBoundNames(elements: readonly $$ArrayBindingElement[]): readonly string[] {
@@ -1741,11 +1741,11 @@ function ArrayBindingElementsToHasInitializer(elements: readonly $$ArrayBindingE
 function ArrayBindingElementsToIsSimpleParameterList(elements: readonly $$ArrayBindingElement[]): boolean {
   const len = elements.length;
   for (let i = 0; i < len; ++i) {
-    if (elements[i].IsSimpleParameterList) {
-      return true;
+    if (!elements[i].IsSimpleParameterList) {
+      return false;
     }
   }
-  return false;
+  return true;
 }
 
 
@@ -1900,6 +1900,7 @@ export class $FunctionDeclaration implements I$Node {
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
     this.HasInitializer = $parameters.some(p => p.HasInitializer);
     this.HasName = $name !== void 0;
+    this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
   }
 }
 
@@ -2548,6 +2549,7 @@ export class $FunctionExpression implements I$Node {
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
     this.HasInitializer = $parameters.some(p => p.HasInitializer);
     this.HasName = $name !== void 0;
+    this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
   }
 }
 
@@ -2987,6 +2989,7 @@ export class $ArrowFunction implements I$Node {
     this.ContainsExpression = false;
     this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+    this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
   }
 }
 
@@ -4281,7 +4284,7 @@ export class $ParameterDeclaration implements I$Node {
     this.BoundNames = $name.BoundNames;
     this.ContainsExpression = $initializer !== void 0 || $name.ContainsExpression;
     this.HasInitializer = $initializer !== void 0;
-    this.IsSimpleParameterList = $initializer === void 0 && $name.$kind === SyntaxKind.Identifier;
+    this.IsSimpleParameterList = $initializer === void 0 && $name.IsSimpleParameterList;
   }
 }
 

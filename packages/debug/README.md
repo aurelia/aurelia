@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install -D @aurelia/debug
+npm i -D @aurelia/debug
 ```
 
 For our nightly builds:
 
 ```bash
-npm install -D @aurelia/debug@dev
+npm i -D @aurelia/debug@dev
 ```

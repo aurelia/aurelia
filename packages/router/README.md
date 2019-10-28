@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/router
+npm i @aurelia/router
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/router@dev
+npm i @aurelia/router@dev
 ```

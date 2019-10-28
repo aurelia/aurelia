@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/runtime-html-browser
+npm i @aurelia/runtime-html-browser
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/runtime-html-browser@dev
+npm i @aurelia/runtime-html-browser@dev
 ```

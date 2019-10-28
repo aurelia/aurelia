@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/jit
+npm i @aurelia/jit
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/jit@dev
+npm i @aurelia/jit@dev
 ```

@@ -1,7 +1,7 @@
 ## Running the tests
 
 - `cd app`
-- `npm install`
+- `npm i`
 - `npm run build`
 - `npm run serve` (ensure the app is running on port 9001)
 - (open a new terminal window, keep the current app server running)

@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/runtime
+npm i @aurelia/runtime
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/runtime@dev
+npm i @aurelia/runtime@dev
 ```

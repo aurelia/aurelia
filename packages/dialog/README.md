@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/dialog
+npm i @aurelia/dialog
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/dialog@dev
+npm i @aurelia/dialog@dev
 ```

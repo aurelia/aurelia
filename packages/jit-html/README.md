@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/jit-html
+npm i @aurelia/jit-html
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/jit-html@dev
+npm i @aurelia/jit-html@dev
 ```

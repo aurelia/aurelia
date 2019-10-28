@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/fetch-client
+npm i @aurelia/fetch-client
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/fetch-client@dev
+npm i @aurelia/fetch-client@dev
 ```

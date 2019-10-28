@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/kernel
+npm i @aurelia/kernel
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/kernel@dev
+npm i @aurelia/kernel@dev
 ```

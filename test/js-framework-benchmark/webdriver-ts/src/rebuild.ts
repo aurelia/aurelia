@@ -21,8 +21,8 @@ function main() {
             stdio: 'inherit'
           });
         } catch {} // eslint-disable-line no-empty
-        console.log("running npm install && npm run build-prod");
-        exec('npm install && npm run build-prod', {
+        console.log("running npm i && npm run build-prod");
+        exec('npm i && npm run build-prod', {
           cwd: path.resolve(dir),
           stdio: 'inherit'
         });

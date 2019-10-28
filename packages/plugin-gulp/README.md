@@ -11,13 +11,13 @@
 For the latest stable version:
 
 ```bash
-npm install -D @aurelia/plugin-gulp
+npm i -D @aurelia/plugin-gulp
 ```
 
 For our nightly builds:
 
 ```bash
-npm install -D @aurelia/plugin-gulp@dev
+npm i -D @aurelia/plugin-gulp@dev
 ```
 
 ## Usage

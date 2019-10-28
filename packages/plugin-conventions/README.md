@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install -D @aurelia/plugin-conventions
+npm i -D @aurelia/plugin-conventions
 ```
 
 For our nightly builds:
 
 ```bash
-npm install -D @aurelia/plugin-conventions@dev
+npm i -D @aurelia/plugin-conventions@dev
 ```

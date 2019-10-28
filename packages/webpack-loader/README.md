@@ -11,13 +11,13 @@
 For the latest stable version:
 
 ```bash
-npm install -D @aurelia/webpack-loader
+npm i -D @aurelia/webpack-loader
 ```
 
 For our nightly builds:
 
 ```bash
-npm install -D @aurelia/webpack-loader@dev
+npm i -D @aurelia/webpack-loader@dev
 ```
 
 ## Usage

@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install @aurelia/runtime-html-jsdom
+npm i @aurelia/runtime-html-jsdom
 ```
 
 For our nightly builds:
 
 ```bash
-npm install @aurelia/runtime-html-jsdom@dev
+npm i @aurelia/runtime-html-jsdom@dev
 ```

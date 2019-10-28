@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install -D @aurelia/plugin-parcel
+npm i -D @aurelia/plugin-parcel
 ```
 
 For our nightly builds:
 
 ```bash
-npm install -D @aurelia/plugin-parcel@dev
+npm i -D @aurelia/plugin-parcel@dev
 ```

@@ -1,4 +1,4 @@
-import { IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
+import { IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration, ILogger } from '@aurelia/kernel';
 import { Project } from './project';
 import { NPMPackageLoader } from './system/npm-package-loader';
 import { IFileSystem } from './system/interfaces';
@@ -18,7 +18,8 @@ export class Workspace {
 
   public async loadProject(rootDir: string): Promise<Project> {
     const loader = this.container.get(NPMPackageLoader);
+    const logger = this.container.get(ILogger);
     const entryPkg = await loader.loadEntryPackage(rootDir);
-    return new Project(rootDir, entryPkg);
+    return new Project(rootDir, entryPkg, logger);
   }
 }

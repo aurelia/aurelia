@@ -566,6 +566,7 @@ workflows:
           <<: *filter_only_master
           channel: dev
           branch: develop
+          swap: true
           requires:
             - merge_and_dist_master
 
@@ -627,7 +628,6 @@ workflows:
           <<: *filter_only_release
           channel: latest
           branch: release
-          swap: false
           requires:
             - request_publish_latest
 

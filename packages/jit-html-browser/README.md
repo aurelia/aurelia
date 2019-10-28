@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/jit-html-browser
+npm install @aurelia/jit-html-browser
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/jit-html-browser@dev
+npm install @aurelia/jit-html-browser@dev
 ```

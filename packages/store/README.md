@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/store
+npm install @aurelia/store
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/store@dev
+npm install @aurelia/store@dev
 ```

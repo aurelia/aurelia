@@ -30,11 +30,11 @@ Note plugin authors should instead use individual scoped `@aurelia/*` packages i
 For the latest stable version:
 
 ```bash
-npm install --save-dev aurelia
+npm install aurelia
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save-dev aurelia@dev
+npm install aurelia@dev
 ```

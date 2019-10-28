@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/plugin-svg
+npm install @aurelia/plugin-svg
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/plugin-svg@dev
+npm install @aurelia/plugin-svg@dev
 ```

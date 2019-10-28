@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/runtime-html-jsdom
+npm install @aurelia/runtime-html-jsdom
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/runtime-html-jsdom@dev
+npm install @aurelia/runtime-html-jsdom@dev
 ```

@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/runtime-html
+npm install @aurelia/runtime-html
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/runtime-html@dev
+npm install @aurelia/runtime-html@dev
 ```

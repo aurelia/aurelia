@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/jit-html-jsdom
+npm install @aurelia/jit-html-jsdom
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/jit-html-jsdom@dev
+npm install @aurelia/jit-html-jsdom@dev
 ```

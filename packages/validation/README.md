@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/validation
+npm install @aurelia/validation
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/validation@dev
+npm install @aurelia/validation@dev
 ```

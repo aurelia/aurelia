@@ -1842,26 +1842,26 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isfunctiondefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-isfunctiondefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsFunctionDefinition
-  public readonly IsFunctionDefinition: boolean = placeholder;
+  public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
-  public readonly IsSimpleParameterList: boolean = placeholder;
+  public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
-  public readonly LexicallyDeclaredNames: readonly string[] = placeholder;
+  public readonly LexicallyDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
-  public readonly LexicallyScopedDeclarations: readonly string[] = placeholder;
+  public readonly LexicallyScopedDeclarations: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
-  public readonly VarScopedDeclarations: readonly string[] = placeholder;
+  public readonly VarScopedDeclarations: readonly string[];
 
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-hasdirectsuper
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-hasdirectsuper
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-HasDirectSuper
-  public readonly HasDirectSuper: boolean = placeholder;
+  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
-  public readonly PropName: string = placeholder;
+  public readonly PropName: string;
 
   public readonly DirectivePrologue: $DirectivePrologue;
 
@@ -1924,15 +1924,15 @@ export class $ClassDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
   public readonly IsConstantDeclaration: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
-  public readonly IsFunctionDefinition: boolean = placeholder;
+  public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
-  public readonly IsStatic: boolean = placeholder;
+  public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
-  public readonly NonConstructorMethodDefinitions: any[] = placeholder;
+  public readonly NonConstructorMethodDefinitions: any[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
-  public readonly PrototypePropertyNameList: readonly string[] = placeholder;
+  public readonly PrototypePropertyNameList: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-propname
-  public readonly PropName: string = placeholder;
+  public readonly PropName: string;
 
   public constructor(
     public readonly node: ClassDeclaration,
@@ -2258,7 +2258,7 @@ export class $ThisExpression implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2301,7 +2301,7 @@ export class $ArrayLiteralExpression implements I$Node {
   public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2333,7 +2333,7 @@ export class $ObjectLiteralExpression implements I$Node {
   public readonly $properties: readonly $$ObjectLiteralElementLike[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2412,7 +2412,7 @@ export class $CallExpression implements I$Node {
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-left-hand-side-expressions-static-semantics-coveredcallexpression
-  public readonly CoveredCallExpression: $$CoverCallExpressionAndAsyncArrowHead = placeholder;
+  public readonly CoveredCallExpression: $$CoverCallExpressionAndAsyncArrowHead;
 
   public constructor(
     public readonly node: CallExpression,
@@ -2505,17 +2505,17 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
   public readonly IsConstantDeclaration: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
-  public readonly IsFunctionDefinition: boolean = placeholder;
+  public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
-  public readonly IsSimpleParameterList: boolean = placeholder;
+  public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
-  public readonly LexicallyDeclaredNames: readonly string[] = placeholder;
+  public readonly LexicallyDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
-  public readonly LexicallyScopedDeclarations: readonly string[] = placeholder;
+  public readonly LexicallyScopedDeclarations: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
-  public readonly VarScopedDeclarations: readonly string[] = placeholder;
+  public readonly VarScopedDeclarations: readonly string[];
 
   public readonly DirectivePrologue: $DirectivePrologue;
 
@@ -2559,7 +2559,7 @@ export class $TemplateExpression implements I$Node {
   public readonly $templateSpans: readonly $TemplateSpan[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2617,31 +2617,31 @@ export class $ClassExpression implements I$Node {
   public readonly $members: readonly $$ClassElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
-  public readonly BoundNames: readonly string[] = placeholder;
+  public readonly BoundNames: readonly string[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: any;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
-  public readonly HasName: boolean = placeholder;
+  public readonly HasName: boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
-  public readonly IsConstantDeclaration: boolean = placeholder;
+  public readonly IsConstantDeclaration: boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
-  public readonly IsFunctionDefinition: boolean = placeholder;
+  public readonly IsFunctionDefinition: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
-  public readonly IsStatic: boolean = placeholder;
+  public readonly IsStatic: boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
-  public readonly NonConstructorMethodDefinitions: any[] = placeholder;
+  public readonly NonConstructorMethodDefinitions: any[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
-  public readonly PrototypePropertyNameList: readonly string[] = placeholder;
+  public readonly PrototypePropertyNameList: readonly string[];
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-propname
-  public readonly PropName: string = placeholder;
+  public readonly PropName: string;
 
 
   public constructor(
@@ -2938,24 +2938,24 @@ export class $ArrowFunction implements I$Node {
   public readonly HasName: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-issimpleparameterlist
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean = placeholder;
+  public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
-  public readonly CoveredFormalsList: boolean = placeholder;
+  public readonly CoveredFormalsList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
-  public readonly LexicallyDeclaredNames: readonly string[] = placeholder;
+  public readonly LexicallyDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallyscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly string[] = placeholder;
+  public readonly LexicallyScopedDeclarations: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-vardeclarednames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarDeclaredNames
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-varscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly string[] = placeholder;
+  public readonly VarScopedDeclarations: readonly string[];
 
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-CoveredAsyncArrowHead
-  public readonly CoveredAsyncArrowHead: readonly $ParameterDeclaration[] = placeholder;
+  public readonly CoveredAsyncArrowHead: readonly $ParameterDeclaration[];
 
   public readonly DirectivePrologue: $DirectivePrologue;
 
@@ -3113,12 +3113,12 @@ export class $Identifier implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-boundnames
   public readonly BoundNames: readonly [string];
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-assignmenttargettype
-  public readonly AssignmentTargetType: 'strict' | 'simple' = placeholder;
+  public readonly AssignmentTargetType: 'strict' | 'simple';
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
-  public readonly StringValue: string = placeholder;
+  public readonly StringValue: string;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3395,7 +3395,7 @@ export class $NumericLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3421,7 +3421,7 @@ export class $BigIntLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3447,7 +3447,7 @@ export class $StringLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3473,7 +3473,7 @@ export class $RegularExpressionLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3499,7 +3499,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3525,7 +3525,7 @@ export class $NullLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3551,7 +3551,7 @@ export class $BooleanLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression = placeholder;
+  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3614,11 +3614,11 @@ export class $MethodDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-hasdirectsuper
-  public readonly HasDirectSuper: boolean = placeholder;
+  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string = placeholder;
+  public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
-  public readonly SpecialMethod: boolean = placeholder;
+  public readonly SpecialMethod: boolean;
 
   public constructor(
     public readonly node: MethodDeclaration,
@@ -3653,11 +3653,11 @@ export class $GetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-hasdirectsuper
-  public readonly HasDirectSuper: boolean = placeholder;
+  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string = placeholder;
+  public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
-  public readonly SpecialMethod: boolean = placeholder;
+  public readonly SpecialMethod: boolean;
 
   public constructor(
     public readonly node: GetAccessorDeclaration,
@@ -3689,11 +3689,11 @@ export class $SetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 1;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-hasdirectsuper
-  public readonly HasDirectSuper: boolean = placeholder;
+  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string = placeholder;
+  public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
-  public readonly SpecialMethod: boolean = placeholder;
+  public readonly SpecialMethod: boolean;
 
   public constructor(
     public readonly node: SetAccessorDeclaration,
@@ -4548,7 +4548,7 @@ export class $Block implements I$Node {
 
   public readonly $statements: readonly $$Statement[];
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: Block,
@@ -4617,7 +4617,7 @@ export class $IfStatement implements I$Node {
   public readonly $thenStatement: $$Statement;
   public readonly $elseStatement: $$Statement | undefined;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: IfStatement,
@@ -4649,7 +4649,7 @@ export class $DoStatement implements I$Node {
   public readonly $statement: $$Statement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: DoStatement,
@@ -4672,7 +4672,7 @@ export class $WhileStatement implements I$Node {
   public readonly $statement: $$Statement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: WhileStatement,
@@ -4697,7 +4697,7 @@ export class $ForStatement implements I$Node {
   public readonly $incrementor: $$AssignmentExpressionOrHigher | undefined;
   public readonly $statement: $$Statement;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: ForStatement,
@@ -4728,7 +4728,7 @@ export class $ForInStatement implements I$Node {
   public readonly $statement: $$Statement;
 
   public readonly BoundNames: readonly string[];
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: ForInStatement,
@@ -4765,7 +4765,7 @@ export class $ForOfStatement implements I$Node {
   public readonly $statement: $$Statement;
 
   public readonly BoundNames: readonly string[];
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: ForOfStatement,
@@ -4865,7 +4865,7 @@ export class $WithStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$Statement;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: WithStatement,
@@ -4888,7 +4888,7 @@ export class $SwitchStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: SwitchStatement,
@@ -4911,7 +4911,7 @@ export class $LabeledStatement implements I$Node {
   public readonly $label: $Identifier;
   public readonly $statement: $$Statement;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: LabeledStatement,
@@ -4956,7 +4956,7 @@ export class $TryStatement implements I$Node {
   public readonly $catchClause: $CatchClause | undefined;
   public readonly $finallyBlock: $Block | undefined;
 
-  public readonly VarDeclaredNames: readonly string[] = placeholder;
+  public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
     public readonly node: TryStatement,

@@ -24,7 +24,7 @@ import {
   TranslationBindingRenderer
 } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
-import { AttributePatternDefinition, attributePattern, bindingCommand } from '@aurelia/jit';
+import { AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/jit';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 
@@ -52,15 +52,15 @@ function coreComponents(options: I18nConfigurationOptions) {
 
     if (alias !== 't') {
       commandAliases.push(alias);
-      bindCommandAliases.push(bindAlias)
+      bindCommandAliases.push(bindAlias);
     }
   }
   const renderers = [
-    attributePattern(...patterns)(TranslationAttributePattern),
-    bindingCommand({name:'t', aliases: commandAliases})(TranslationBindingCommand),
+    AttributePattern.define(patterns, TranslationAttributePattern),
+    BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
     TranslationBindingRenderer,
-    attributePattern(...bindPatterns)(TranslationBindAttributePattern),
-    bindingCommand({name:'t.bind', aliases: bindCommandAliases})(TranslationBindBindingCommand),
+    AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
+    BindingCommand.define({name:'t.bind', aliases: bindCommandAliases}, TranslationBindBindingCommand),
     TranslationBindBindingRenderer,
     TranslationParametersAttributePattern,
     TranslationParametersBindingCommand,

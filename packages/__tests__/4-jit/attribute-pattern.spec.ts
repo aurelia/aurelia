@@ -1,9 +1,10 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Protocol, Constructable } from '@aurelia/kernel';
 import {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
-  ISyntaxInterpreter
+  ISyntaxInterpreter,
+  AttributePattern
 } from '@aurelia/jit';
 import { assert } from '@aurelia/testing';
 
@@ -157,14 +158,15 @@ describe('@attributePattern', function () {
           container.register(ThePattern as any);
           const interpreter = container.get(ISyntaxInterpreter);
           const attrPattern = container.get(IAttributePattern);
-          interpreter.add(attrPattern.$patternDefs);
+          const patternDefs = Protocol.annotation.get(attrPattern.constructor as Constructable, AttributePattern.patternDefsAnnotation) as AttributePatternDefinition[];
+          interpreter.add(patternDefs);
 
           const result = interpreter.interpret(value);
           if (match != null) {
             assert.strictEqual(
-              attrPattern.$patternDefs.map(d => d.pattern).includes(result.pattern),
+              patternDefs.map(d => d.pattern).includes(result.pattern),
               true,
-              `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0`
+              `patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0`
             );
             attrPattern[result.pattern](value, 'foo', result.parts);
             assert.strictEqual(receivedRawName, value, `receivedRawName`);
@@ -172,9 +174,9 @@ describe('@attributePattern', function () {
             assert.deepStrictEqual(receivedParts, result.parts, `receivedParts`);
           } else {
             assert.strictEqual(
-              !attrPattern.$patternDefs.map(d => d.pattern).includes(result.pattern),
+              !patternDefs.map(d => d.pattern).includes(result.pattern),
               true,
-              `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1`
+              `patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1`
             );
           }
 

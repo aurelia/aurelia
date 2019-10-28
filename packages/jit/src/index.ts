@@ -8,7 +8,7 @@ export {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
-  IAttributePatternHandler,
+  AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
 } from './attribute-pattern';

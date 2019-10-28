@@ -30,12 +30,14 @@
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aot",
-    "dev": "tsc -b -w"
+    "dev": "tsc -b -w",
+    "test": "node -r esm dist/esnext/index.js"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@aurelia/debug": "0.4.0",
     "@aurelia/kernel": "0.4.0",
     "@aurelia/runtime": "0.4.0",
     "@aurelia/runtime-html": "0.4.0",

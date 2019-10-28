@@ -7,6 +7,12 @@ import { subscriberCollection } from './subscriber-collection';
 
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
 
+export interface IMayHavePropertyChangedCallback {
+  propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+}
+
+type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
+
 @subscriberCollection()
 export class SelfObserver {
   public currentValue: unknown = void 0;
@@ -17,11 +23,12 @@ export class SelfObserver {
   public observing: boolean;
 
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+  private readonly hasPropertyChangedCallback: boolean;
 
   public constructor(
     public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    public readonly obj: IIndexable,
+    public readonly obj: IIndexable & IMayHavePropertyChangedCallback,
     public readonly propertyKey: string,
     cbName: string,
   ) {
@@ -35,8 +42,9 @@ export class SelfObserver {
     }
 
     this.callback = this.obj[cbName] as typeof SelfObserver.prototype.callback;
+    const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof this.obj.propertyChanged === 'function';
 
-    if (this.callback === void 0) {
+    if (this.callback === void 0 || !hasPropertyChangedCallback) {
       this.observing = false;
     } else {
       this.observing = true;
@@ -67,6 +75,9 @@ export class SelfObserver {
           const callback = this.callback;
           if (callback !== void 0) {
             callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+          }
+          if (this.hasPropertyChangedCallback) {
+            (this.obj as HasPropertyChangedCallback).propertyChanged(this.propertyKey, newValue, currentValue, this.persistentFlags | flags);
           }
         }
       } else if (!this.inBatch) {

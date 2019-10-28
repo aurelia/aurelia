@@ -2,7 +2,7 @@ import { PLATFORM, Primitive, IIndexable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
   PrimitiveObserver,
-  SelfObserver,
+  BindableObserver,
   SetterObserver
 } from '@aurelia/runtime';
 import { SpySubscriber, assert, TestContext, ChangeSet } from '@aurelia/testing';
@@ -180,11 +180,11 @@ describe('SetterObserver', function () {
   });
 });
 
-describe('SelfObserver', function () {
+describe('BindableObserver', function () {
   function setup(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.createHTMLTestContext();
     const lifecycle = ctx.lifecycle;
-    const sut = new SelfObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`);
+    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`);
 
     return { sut };
   }

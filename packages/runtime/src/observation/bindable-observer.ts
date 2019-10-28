@@ -5,7 +5,7 @@ import { IPropertyObserver, ISubscriber } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
 
-export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
+export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
 
 export interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
@@ -14,7 +14,7 @@ export interface IMayHavePropertyChangedCallback {
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
 @subscriberCollection()
-export class SelfObserver {
+export class BindableObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
@@ -41,7 +41,7 @@ export class SelfObserver {
       this.obj = obj;
     }
 
-    this.callback = this.obj[cbName] as typeof SelfObserver.prototype.callback;
+    this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof this.obj.propertyChanged === 'function';
 
     if (this.callback === void 0 || !hasPropertyChangedCallback) {

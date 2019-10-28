@@ -699,6 +699,11 @@ type $$StatementListItem = (
   $$ESDeclaration
 );
 
+type $$ModuleItem = (
+  $$StatementListItem |
+  $$ModuleDeclaration
+);
+
 type $$Statement = (
   $$BreakableStatement |
   $$Declaration |
@@ -717,6 +722,11 @@ type $$Statement = (
   // SourceFile is not technically a statement, but we define it as an "owning statement" as it is the highest
   // level owner of other statements.
   $SourceFile
+);
+
+type $$LabelledItem = (
+  $$ESStatement |
+  $FunctionDeclaration
 );
 
 type $NodeWithStatements = (
@@ -930,6 +940,23 @@ function $$declaration(
       return new $EnumDeclaration(node, parent, ctx);
     default:
       return $$moduleDeclaration(node, parent as $$ModuleDeclarationParent, ctx);
+  }
+}
+
+function $$esDeclaration(
+  node: $DeclarationNode,
+  parent: $NodeWithStatements,
+  ctx: Context,
+): $$ESDeclaration {
+  switch (node.kind) {
+    case SyntaxKind.VariableStatement:
+      return new $VariableStatement(node, parent, ctx);
+    case SyntaxKind.FunctionDeclaration:
+      return new $FunctionDeclaration(node, parent, ctx);
+    case SyntaxKind.ClassDeclaration:
+      return new $ClassDeclaration(node, parent, ctx);
+    default:
+      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
   }
 }
 
@@ -1548,6 +1575,105 @@ function $$statement(
   }
 }
 
+function $$esStatement(
+  node: $StatementNode,
+  parent: $NodeWithStatements,
+  ctx: Context,
+): $$ESStatement {
+  switch (node.kind) {
+    case SyntaxKind.Block:
+      return new $Block(node, parent, ctx);
+    case SyntaxKind.EmptyStatement:
+      return new $EmptyStatement(node, parent, ctx);
+    case SyntaxKind.ExpressionStatement:
+      return new $ExpressionStatement(node, parent, ctx);
+    case SyntaxKind.IfStatement:
+      return new $IfStatement(node, parent, ctx);
+    case SyntaxKind.DoStatement:
+      return new $DoStatement(node, parent, ctx);
+    case SyntaxKind.WhileStatement:
+      return new $WhileStatement(node, parent, ctx);
+    case SyntaxKind.ForStatement:
+      return new $ForStatement(node, parent, ctx);
+    case SyntaxKind.ForInStatement:
+      return new $ForInStatement(node, parent, ctx);
+    case SyntaxKind.ForOfStatement:
+      return new $ForOfStatement(node, parent, ctx);
+    case SyntaxKind.ContinueStatement:
+      return new $ContinueStatement(node, parent, ctx);
+    case SyntaxKind.BreakStatement:
+      return new $BreakStatement(node, parent, ctx);
+    case SyntaxKind.ReturnStatement:
+      return new $ReturnStatement(node, parent, ctx);
+    case SyntaxKind.WithStatement:
+      return new $WithStatement(node, parent, ctx);
+    case SyntaxKind.SwitchStatement:
+      return new $SwitchStatement(node, parent, ctx);
+    case SyntaxKind.LabeledStatement:
+      return new $LabeledStatement(node, parent, ctx);
+    case SyntaxKind.ThrowStatement:
+      return new $ThrowStatement(node, parent, ctx);
+    case SyntaxKind.TryStatement:
+      return new $TryStatement(node, parent, ctx);
+    case SyntaxKind.DebuggerStatement:
+      return new $DebuggerStatement(node, parent, ctx);
+    default:
+      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+  }
+}
+
+function $$esStatementListItem(
+  node: $StatementNode,
+  parent: $NodeWithStatements,
+  ctx: Context,
+): $$StatementListItem {
+  switch (node.kind) {
+    case SyntaxKind.VariableStatement:
+      return new $VariableStatement(node, parent, ctx);
+    case SyntaxKind.FunctionDeclaration:
+      return new $FunctionDeclaration(node, parent, ctx);
+    case SyntaxKind.ClassDeclaration:
+      return new $ClassDeclaration(node, parent, ctx);
+    default:
+      return $$esStatement(node, parent, ctx);
+  }
+}
+
+function $$esLabelledItem(
+  node: $StatementNode,
+  parent: $NodeWithStatements,
+  ctx: Context,
+): $$LabelledItem {
+  switch (node.kind) {
+    case SyntaxKind.VariableStatement:
+      return new $VariableStatement(node, parent, ctx);
+    case SyntaxKind.FunctionDeclaration:
+      return new $FunctionDeclaration(node, parent, ctx);
+    default:
+      return $$esStatement(node, parent, ctx);
+  }
+}
+
+function $$esStatementList(
+  nodes: readonly $StatementNode[],
+  parent: $NodeWithStatements,
+  ctx: Context,
+): readonly $$StatementListItem[] {
+  const len = nodes.length;
+  let node: $StatementNode;
+  const $nodes: $$StatementListItem[] = [];
+
+
+  for (let i = 0; i < len; ++i) {
+    node = nodes[i];
+    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
+      continue;
+    }
+    $nodes.push($$esStatementListItem(node, parent, ctx));
+  }
+  return $nodes;
+}
+
 function $$statementList(
   nodes: readonly $StatementNode[],
   parent: $NodeWithStatements,
@@ -1769,6 +1895,8 @@ export class $VariableStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
@@ -1820,6 +1948,8 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-BoundNames
   public readonly BoundNames: readonly [string | '*default*'] | readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
@@ -1920,6 +2050,8 @@ export class $ClassDeclaration implements I$Node {
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: any;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
@@ -4549,8 +4681,12 @@ export class $Block implements I$Node {
   public readonly $kind = SyntaxKind.Block;
   public readonly id: number;
 
-  public readonly $statements: readonly $$Statement[];
+  public readonly $statements: readonly $$StatementListItem[];
 
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet))
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4562,7 +4698,7 @@ export class $Block implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$statementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.$statements = $$esStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
   }
 }
 
@@ -4570,6 +4706,8 @@ export class $EmptyStatement implements I$Node {
   public readonly $kind = SyntaxKind.EmptyStatement;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4597,6 +4735,8 @@ export class $ExpressionStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4617,9 +4757,17 @@ export class $IfStatement implements I$Node {
   public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $thenStatement: $$Statement;
-  public readonly $elseStatement: $$Statement | undefined;
+  public readonly $thenStatement: $$ESStatement;
+  public readonly $elseStatement: $$ESStatement | undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    let hasDuplicate = this.$thenStatement.ContainsDuplicateLabels(labelSet);
+    if (hasDuplicate) {
+      return true;
+    }
+    return this.$elseStatement !== void 0 && this.$elseStatement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4632,10 +4780,10 @@ export class $IfStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$thenStatement = $$statement(node.thenStatement as $StatementNode, this, ctx);
+    this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
     this.$elseStatement = node.elseStatement === void 0
       ? void 0
-      : $$statement(node.elseStatement as $StatementNode, this, ctx);
+      : $$esStatement(node.elseStatement as $StatementNode, this, ctx);
 
     if (this.$elseStatement === void 0) {
       //this.VarDeclaredNames = this.$thenStatement.V
@@ -4649,9 +4797,13 @@ export class $DoStatement implements I$Node {
   public readonly $kind = SyntaxKind.DoStatement;
   public readonly id: number;
 
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$ESStatement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4663,7 +4815,7 @@ export class $DoStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 }
@@ -4672,9 +4824,13 @@ export class $WhileStatement implements I$Node {
   public readonly $kind = SyntaxKind.WhileStatement;
   public readonly id: number;
 
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$ESStatement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4686,7 +4842,7 @@ export class $WhileStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 }
@@ -4698,8 +4854,12 @@ export class $ForStatement implements I$Node {
   public readonly $initializer: $$Initializer | undefined;
   public readonly $condition: $$AssignmentExpressionOrHigher | undefined;
   public readonly $incrementor: $$AssignmentExpressionOrHigher | undefined;
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$ESStatement;
 
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4718,7 +4878,7 @@ export class $ForStatement implements I$Node {
         : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
     this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
   }
 }
 
@@ -4728,9 +4888,13 @@ export class $ForInStatement implements I$Node {
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$ESStatement;
 
   public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4746,7 +4910,7 @@ export class $ForInStatement implements I$Node {
       ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
       : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
     if (
       this.$initializer.$kind === SyntaxKind.VariableDeclarationList
@@ -4765,9 +4929,13 @@ export class $ForOfStatement implements I$Node {
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$ESStatement;
 
   public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4783,7 +4951,7 @@ export class $ForOfStatement implements I$Node {
       ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
       : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
     if (
       this.$initializer.$kind === SyntaxKind.VariableDeclarationList
@@ -4802,6 +4970,8 @@ export class $ContinueStatement implements I$Node {
 
   public readonly $label: $Identifier | undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4823,6 +4993,8 @@ export class $BreakStatement implements I$Node {
 
   public readonly $label: $Identifier | undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4844,6 +5016,8 @@ export class $ReturnStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4866,8 +5040,12 @@ export class $WithStatement implements I$Node {
   public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$ESStatement;
 
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statement.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4880,7 +5058,7 @@ export class $WithStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
   }
 }
 
@@ -4891,6 +5069,10 @@ export class $SwitchStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
 
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$caseBlock.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4912,8 +5094,20 @@ export class $LabeledStatement implements I$Node {
   public readonly id: number;
 
   public readonly $label: $Identifier;
-  public readonly $statement: $$Statement;
+  public readonly $statement: $$LabelledItem;
 
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    const label = this.$label.node.text;
+    if (labelSet.has(label)) {
+      return true;
+    }
+
+    const newLabelSet = new Set(labelSet);
+    newLabelSet.add(label);
+
+    return this.$statement.ContainsDuplicateLabels(newLabelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4926,7 +5120,7 @@ export class $LabeledStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabel);
-    this.$statement = $$statement(node.statement as $StatementNode, this, ctx);
+    this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
   }
 }
 
@@ -4936,6 +5130,8 @@ export class $ThrowStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -4948,6 +5144,10 @@ export class $ThrowStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    $: if (true) {
+      $: if (true) return;
+    };
   }
 }
 
@@ -4959,6 +5159,16 @@ export class $TryStatement implements I$Node {
   public readonly $catchClause: $CatchClause | undefined;
   public readonly $finallyBlock: $Block | undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    if (this.$tryBlock.ContainsDuplicateLabels(labelSet)) {
+      return true;
+    }
+    if (this.$catchClause !== void 0 && this.$catchClause.ContainsDuplicateLabels(labelSet)) {
+      return true;
+    }
+    return this.$finallyBlock !== void 0 && this.$finallyBlock.ContainsDuplicateLabels(labelSet);
+  }
   public readonly VarDeclaredNames: readonly string[];
 
   public constructor(
@@ -4984,6 +5194,8 @@ export class $DebuggerStatement implements I$Node {
   public readonly $kind = SyntaxKind.DebuggerStatement;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = PLATFORM.emptyArray;
 
   public constructor(
@@ -5005,6 +5217,10 @@ export class $CaseBlock implements I$Node {
   public readonly $kind = SyntaxKind.CaseBlock;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$clauses.some(x => x.ContainsDuplicateLabels(labelSet));
+  }
   public readonly $clauses: readonly ($CaseClause | $DefaultClause)[];
 
   public constructor(
@@ -5028,8 +5244,13 @@ export class $CaseClause implements I$Node {
   public readonly $kind = SyntaxKind.CaseClause;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
+  }
+
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statements: readonly $$Statement[];
+  public readonly $statements: readonly $$StatementListItem[];
 
   public constructor(
     public readonly node: CaseClause,
@@ -5041,7 +5262,7 @@ export class $CaseClause implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statements = $$statementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.$statements = $$esStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
   }
 }
 
@@ -5049,7 +5270,12 @@ export class $DefaultClause implements I$Node {
   public readonly $kind = SyntaxKind.DefaultClause;
   public readonly id: number;
 
-  public readonly $statements: readonly $$Statement[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
+  }
+
+  public readonly $statements: readonly $$StatementListItem[];
 
   public constructor(
     public readonly node: DefaultClause,
@@ -5060,13 +5286,18 @@ export class $DefaultClause implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$statementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.$statements = $$esStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
   }
 }
 
 export class $CatchClause implements I$Node {
   public readonly $kind = SyntaxKind.CatchClause;
   public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-containsduplicatelabels
+  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
+    return this.$block.ContainsDuplicateLabels(labelSet);
+  }
 
   public readonly $variableDeclaration: $VariableDeclaration | undefined;
   public readonly $block: $Block;

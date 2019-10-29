@@ -1510,6 +1510,12 @@ function $$classElement(
   }
 }
 
+type $$MethodDefinition = (
+  $MethodDeclaration |
+  $GetAccessorDeclaration |
+  $SetAccessorDeclaration
+);
+
 export class $ClassDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ClassDeclaration;
   public readonly id: number;
@@ -1521,11 +1527,10 @@ export class $ClassDeclaration implements I$Node {
   public readonly $heritageClauses: readonly $HeritageClause[];
   public readonly $members: readonly $$ClassElement[];
 
-
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
-  public readonly ConstructorMethod: any;
+  public readonly ConstructorMethod: $ConstructorDeclaration | undefined;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-declarationpart
   public readonly DeclarationPart: $ClassDeclaration = this;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
@@ -1535,7 +1540,7 @@ export class $ClassDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
   public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
-  public readonly NonConstructorMethodDefinitions: any[];
+  public readonly NonConstructorMethodDefinitions: readonly $$MethodDefinition[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   public readonly PrototypePropertyNameList: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
@@ -1559,7 +1564,7 @@ export class $ClassDeclaration implements I$Node {
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
-    this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
+    const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
     if ($name === void 0) {
       this.BoundNames = SyntheticAnonymousBoundNames;
@@ -1568,6 +1573,30 @@ export class $ClassDeclaration implements I$Node {
         this.BoundNames = [...$name.BoundNames, '*default*'];
       } else {
         this.BoundNames = $name.BoundNames;
+      }
+    }
+
+    const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
+    const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as string[];
+
+    let $member: $$ClassElement;
+    for (let i = 0, ii = $members.length; i < ii; ++i) {
+      $member = $members[i];
+      switch ($member.$kind) {
+        case SyntaxKind.PropertyDeclaration:
+          break;
+        case SyntaxKind.Constructor:
+          this.ConstructorMethod = $member;
+          break;
+        case SyntaxKind.MethodDeclaration:
+        case SyntaxKind.GetAccessor:
+        case SyntaxKind.SetAccessor:
+          NonConstructorMethodDefinitions.push($member);
+          if ($member.PropName !== empty && !$member.IsStatic) {
+            PrototypePropertyNameList.push($member.PropName as string);
+          }
+          break;
+        case SyntaxKind.SemicolonClassElement:
       }
     }
 
@@ -2147,9 +2176,6 @@ export class $CallExpression implements I$Node {
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
 
-  // http://www.ecma-international.org/ecma-262/#sec-left-hand-side-expressions-static-semantics-coveredcallexpression
-  public readonly CoveredCallExpression: $$CoverCallExpressionAndAsyncArrowHead;
-
   public constructor(
     public readonly node: CallExpression,
     public readonly parent: $AnyParentNode,
@@ -2419,7 +2445,7 @@ export class $ClassExpression implements I$Node {
 
     const $name = this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
-    this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
+    const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
     if ($name === void 0) {
       this.BoundNames = SyntheticAnonymousBoundNames;
@@ -2428,6 +2454,30 @@ export class $ClassExpression implements I$Node {
         this.BoundNames = [...$name.BoundNames, '*default*'];
       } else {
         this.BoundNames = $name.BoundNames;
+      }
+    }
+
+    const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
+    const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as string[];
+
+    let $member: $$ClassElement;
+    for (let i = 0, ii = $members.length; i < ii; ++i) {
+      $member = $members[i];
+      switch ($member.$kind) {
+        case SyntaxKind.PropertyDeclaration:
+          break;
+        case SyntaxKind.Constructor:
+          this.ConstructorMethod = $member;
+          break;
+        case SyntaxKind.MethodDeclaration:
+        case SyntaxKind.GetAccessor:
+        case SyntaxKind.SetAccessor:
+          NonConstructorMethodDefinitions.push($member);
+          if ($member.PropName !== empty && !$member.IsStatic) {
+            PrototypePropertyNameList.push($member.PropName as string);
+          }
+          break;
+        case SyntaxKind.SemicolonClassElement:
       }
     }
 
@@ -2712,7 +2762,7 @@ export class $ArrowFunction implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
-  public readonly CoveredFormalsList: boolean;
+  public readonly CoveredFormalsList: readonly $ParameterDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly string[];
@@ -2725,9 +2775,6 @@ export class $ArrowFunction implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-varscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
-
-  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-CoveredAsyncArrowHead
-  public readonly CoveredAsyncArrowHead: readonly $ParameterDeclaration[];
 
   public readonly DirectivePrologue: DirectivePrologue;
 
@@ -2776,6 +2823,8 @@ export class $ArrowFunction implements I$Node {
       this.VarDeclaredNames = emptyArray;
       this.VarScopedDeclarations = emptyArray;
     }
+
+    this.CoveredFormalsList = $parameters;
   }
 }
 

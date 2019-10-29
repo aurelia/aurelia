@@ -52,7 +52,7 @@ const globalResources = [
   .register(
     JitHtmlBrowserConfiguration,
     DebugConfiguration,
-    RouterConfiguration,
+    RouterConfiguration.customize({ useHref: true }),
     ...globalResources,
   )
   .app({

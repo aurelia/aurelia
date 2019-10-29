@@ -71,7 +71,9 @@ export class LinkHandler {
       anchor: null
     };
 
-    const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
+    const target = info.anchor = event.currentTarget as Element;
+    // Switch to this for delegation:
+    // const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
     if (!target || !LinkHandler.targetIsThisWindow(target, win)) {
       return info;
     }
@@ -141,7 +143,7 @@ export class LinkHandler {
     this.isActive = true;
     this.options = { ...options };
 
-    this.document.addEventListener('click', this.handler, true);
+    // this.document.addEventListener('click', this.handler, true);
   }
 
   /**
@@ -151,11 +153,11 @@ export class LinkHandler {
     if (!this.isActive) {
       throw new Error('Link handler has not been activated');
     }
-    this.document.removeEventListener('click', this.handler, true);
+    // this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 
-  private readonly handler: EventListener = (e: Event) => {
+  public readonly handler: EventListener = (e: Event) => {
     const info = LinkHandler.getEventInfo(e as MouseEvent, this.window, this.options);
 
     if (info.shouldHandleEvent) {

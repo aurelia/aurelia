@@ -41,6 +41,17 @@ export interface IViewportInstruction {
   parameters?: ComponentParameters;
 }
 
+export interface IRoute {
+  path: string;
+  id?: string;
+  instructions: NavigationInstruction[] | ViewportInstruction[];
+}
+export interface IFoundRoute {
+  match: IRoute | null;
+  matching: string;
+  remaining: string;
+}
+
 export interface IComponentAndOrViewportOrNothing {
   component?: ComponentAppellation;
   viewport?: ViewportHandle;

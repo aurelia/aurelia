@@ -4,7 +4,7 @@ Typescript Benchmark driver
 This is the indentended replacement for the java-webdriver.
 
 Compile with:
-npm install
+npm i
 npm run compile
 
 Run with:

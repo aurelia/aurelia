@@ -2936,6 +2936,12 @@ export class $Identifier implements I$Node {
     this.BoundNames = [node.text] as const;
     this.StringValue = node.text;
     this.PropName = this.StringValue;
+
+    if (hasBit(ctx, Context.InStrictMode) && (this.PropName === 'eval' || this.PropName === 'arguments')) {
+      this.AssignmentTargetType = 'strict';
+    } else {
+      this.AssignmentTargetType = 'simple';
+    }
   }
 }
 

@@ -2397,7 +2397,7 @@ export class $ClassExpression implements I$Node {
   public readonly ConstructorMethod: any;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
-  public readonly HasName: boolean;
+  public readonly HasName: false = false;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
   public readonly IsConstantDeclaration: boolean;

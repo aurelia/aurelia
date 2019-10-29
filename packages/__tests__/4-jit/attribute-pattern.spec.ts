@@ -1,4 +1,4 @@
-import { DI, Protocol, Constructable } from '@aurelia/kernel';
+import { DI, Constructable } from '@aurelia/kernel';
 import {
   attributePattern,
   AttributePatternDefinition,

@@ -435,6 +435,7 @@ type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePa
 
 export interface AttributePattern {
   readonly name: string;
+  readonly definitionAnnotationKey: string;
   define<TProto, TClass>(patternDefs: AttributePatternDefinition[], Type: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass>;
   getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>): AttributePatternDefinition[];
 }
@@ -459,7 +460,7 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
 
 export const AttributePattern: AttributePattern = Object.freeze({
   name: Protocol.resource.keyFor('attribute-pattern'),
-  patternDefsAnnotation: 'attribute-pattern-definitions',
+  definitionAnnotationKey: 'attribute-pattern-definitions',
   define<TProto, TClass>(
     patternDefs: AttributePatternDefinition[],
     Type: DecoratableAttributePattern<TProto, TClass>,
@@ -468,15 +469,16 @@ export const AttributePattern: AttributePattern = Object.freeze({
     validatePrototype(Type.prototype as IAttributePattern, patternDefs);
 
     const definition = new AttributePatternResourceDefinition(Type);
-    Metadata.define(AttributePattern.name, definition, Type);
-    Protocol.resource.appendTo(Type, AttributePattern.name);
+    const { name, definitionAnnotationKey } = AttributePattern;
+    Metadata.define(name, definition, Type);
+    Protocol.resource.appendTo(Type, name);
 
-    Protocol.annotation.set(Type, this.patternDefsAnnotation, patternDefs);
-    Protocol.annotation.appendTo(Type, this.patternDefsAnnotation);
+    Protocol.annotation.set(Type, definitionAnnotationKey, patternDefs);
+    Protocol.annotation.appendTo(Type, definitionAnnotationKey);
 
     return Type as DecoratedAttributePattern<TProto, TClass>;
   },
   getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) {
-    return Protocol.annotation.get(Type, AttributePattern.patternDefsAnnotation) as AttributePatternDefinition[];
+    return Protocol.annotation.get(Type, AttributePattern.definitionAnnotationKey) as AttributePatternDefinition[];
   }
 });

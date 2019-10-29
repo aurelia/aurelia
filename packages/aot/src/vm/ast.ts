@@ -851,49 +851,6 @@ function $parameterDeclarationList(
   return $nodes;
 }
 
-function ParameterDeclarationsToBoundNames(params: readonly $ParameterDeclaration[]): readonly string[] {
-  const len = params.length;
-  if (len === 0) {
-    return emptyArray;
-  }
-
-  const BoundNames: string[] = [];
-  for (let i = 0; i < len; ++i) {
-    BoundNames.push(...params[i].BoundNames);
-  }
-  return BoundNames;
-}
-
-function ParameterDeclarationToContainsExpression(params: readonly $ParameterDeclaration[]): boolean {
-  const len = params.length;
-  for (let i = 0; i < len; ++i) {
-    if (params[i].ContainsExpression) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function ParameterDeclarationToHasInitializer(params: readonly $ParameterDeclaration[]): boolean {
-  const len = params.length;
-  for (let i = 0; i < len; ++i) {
-    if (params[i].HasInitializer) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function ParameterDeclarationToIsSimpleParameterList(params: readonly $ParameterDeclaration[]): boolean {
-  const len = params.length;
-  for (let i = 0; i < len; ++i) {
-    if (params[i].IsSimpleParameterList) {
-      return true;
-    }
-  }
-  return false;
-}
-
 type $$DestructurableBinding = (
   $VariableDeclaration |
   $ParameterDeclaration |
@@ -2238,10 +2195,13 @@ export class $TaggedTemplateExpression implements I$Node {
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
-    this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx)
-    this.$template = node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral
-      ? new $NoSubstitutionTemplateLiteral(node.template, this, ctx)
-      : new $TemplateExpression(node.template, this, ctx);
+    this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx);
+
+    if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
+      this.$template = new $NoSubstitutionTemplateLiteral(node.template, this, ctx);
+    } else {
+      this.$template = new $TemplateExpression(node.template, this, ctx);
+    }
   }
 }
 
@@ -2312,7 +2272,7 @@ export class $FunctionExpression implements I$Node {
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body, this, ctx);
 
-    this.BoundNames = ParameterDeclarationsToBoundNames(this.$parameters);
+    this.BoundNames = $parameters.flatMap(x => x.BoundNames);
     this.ContainsExpression = $parameters.length === 0 || $parameters.some(p => p.ContainsExpression);
     this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
@@ -2725,9 +2685,12 @@ export class $ConditionalExpression implements I$Node {
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
-    this.$condition = node.condition.kind === SyntaxKind.BinaryExpression
-      ? new $BinaryExpression(node.condition as BinaryExpression, this, ctx)
-      : $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx);
+    if (node.condition.kind === SyntaxKind.BinaryExpression) {
+      this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx);
+    } else {
+      this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx);
+    }
+
     this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx)
     this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx)
   }
@@ -2749,7 +2712,7 @@ export class $ArrowFunction implements I$Node {
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsexpression
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-ContainsExpression
-  public readonly ContainsExpression: boolean;
+  public readonly ContainsExpression: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsusestrict
   public readonly ContainsUseStrict: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-expectedargumentcount
@@ -2795,36 +2758,45 @@ export class $ArrowFunction implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.DirectivePrologue = node.body.kind === SyntaxKind.Block ? GetDirectivePrologue((node.body as Block).statements) : emptyArray;
-    if (this.DirectivePrologue.ContainsUseStrict) {
-      ctx |= Context.InStrictMode;
-    }
+    if (node.body.kind === SyntaxKind.Block) {
+      this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
+      if (this.DirectivePrologue.ContainsUseStrict) {
+        ctx |= Context.InStrictMode;
+        this.ContainsUseStrict = true;
+      } else {
+        this.ContainsUseStrict = false;
+      }
 
-    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx)
-    const $body = this.$body = node.body.kind === SyntaxKind.Block
-      ? new $Block(node.body as Block, this, ctx)
-      : $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx);
+      const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+      const $body = this.$body = new $Block(node.body as Block, this, ctx);
 
-    this.BoundNames = ParameterDeclarationsToBoundNames(this.$parameters);
-    this.ContainsExpression = false;
-    this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
-    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+      this.BoundNames = $parameters.flatMap(x => x.BoundNames);
+      this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+      this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+      this.CoveredFormalsList = $parameters;
 
-    // TODO: we sure about this?
-    if ($body.$kind === SyntaxKind.Block) {
+      // TODO: we sure about this?
       this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
       this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
       this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
       this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
     } else {
+      this.DirectivePrologue = emptyArray;
+      this.ContainsUseStrict = false;
+
+      const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+      this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx);
+
+      this.BoundNames = $parameters.flatMap(x => x.BoundNames);
+      this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+      this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+      this.CoveredFormalsList = $parameters;
+
       this.LexicallyDeclaredNames = emptyArray;
       this.LexicallyScopedDeclarations = emptyArray;
       this.VarDeclaredNames = emptyArray;
       this.VarScopedDeclarations = emptyArray;
     }
-
-    this.CoveredFormalsList = $parameters;
   }
 }
 
@@ -2935,10 +2907,12 @@ export class $TemplateSpan implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
-    this.$literal = node.literal.kind === SyntaxKind.TemplateMiddle
-      ? new $TemplateMiddle(node.literal, this, ctx)
-      : new $TemplateTail(node.literal, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    if (node.literal.kind === SyntaxKind.TemplateMiddle) {
+      this.$literal = new $TemplateMiddle(node.literal, this, ctx);
+    } else {
+      this.$literal = new $TemplateTail(node.literal, this, ctx);
+    }
   }
 }
 
@@ -3249,11 +3223,15 @@ export class $JsxAttribute implements I$Node {
     this.id = root.registerNode(this);
 
     this.$name = $identifier(node.name, this, ctx);
-    this.$initializer = node.initializer === void 0
-      ? void 0
-      : node.initializer.kind === SyntaxKind.StringLiteral
-        ? new $StringLiteral(node.initializer, this, ctx)
-        : new $JsxExpression(node.initializer, this, ctx);
+    if (node.initializer === void 0) {
+      this.$initializer = void 0;
+    } else {
+      if (node.initializer.kind === SyntaxKind.StringLiteral) {
+        this.$initializer = new $StringLiteral(node.initializer, this, ctx);
+      } else {
+        this.$initializer = new $JsxExpression(node.initializer, this, ctx);
+      }
+    }
   }
 }
 
@@ -3791,9 +3769,12 @@ export class $ModuleDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = node.name.kind === SyntaxKind.Identifier
-      ? new $Identifier(node.name, this, ctx)
-      : new $StringLiteral(node.name, this, ctx);
+    if (node.name.kind === SyntaxKind.Identifier) {
+      this.$name = new $Identifier(node.name, this, ctx);
+    } else {
+      this.$name = new $StringLiteral(node.name, this, ctx);
+    }
+
     if (node.body === void 0) {
       this.$body = void 0;
     } else {
@@ -4428,9 +4409,11 @@ export class $QualifiedName implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$left = node.left.kind === SyntaxKind.Identifier
-      ? new $Identifier(node.left, this, ctx)
-      : new $QualifiedName(node.left, this, ctx);
+    if (node.left.kind === SyntaxKind.Identifier) {
+      this.$left = new $Identifier(node.left, this, ctx);
+    } else {
+      this.$left = new $QualifiedName(node.left, this, ctx);
+    }
     this.$right = new $Identifier(node.right, this, ctx);
   }
 }
@@ -4681,21 +4664,46 @@ export class $BindingElement implements I$Node {
 
     ctx = clearBit(ctx, Context.IsBindingName);
 
-    const $propertyName = this.$propertyName = node.propertyName === void 0
-      ? void 0
-      : $$propertyName(node.propertyName, this, ctx);
-    const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName);
-    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+    if (node.propertyName === void 0) {
+      this.$propertyName = void 0;
+      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName);
 
-    this.BoundNames = $name.BoundNames;
-    this.ContainsExpression = (
-      $propertyName !== void 0
-      && $propertyName.$kind === SyntaxKind.ComputedPropertyName
-    ) || $initializer !== void 0
-      ? true
-      : $name.ContainsExpression;
-    this.HasInitializer = $initializer !== void 0;
-    this.IsSimpleParameterList = $initializer === void 0 && $name.$kind === SyntaxKind.Identifier;
+      this.BoundNames = $name.BoundNames;
+
+      if (node.initializer === void 0) {
+        this.$initializer = void 0;
+
+        this.ContainsExpression = $name.ContainsExpression;
+        this.HasInitializer = false;
+        this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
+      } else {
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+        this.ContainsExpression = true;
+        this.HasInitializer = true;
+        this.IsSimpleParameterList = false;
+      }
+
+    } else {
+      const $propertyName = this.$propertyName = $$propertyName(node.propertyName, this, ctx);
+      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName);
+
+      this.BoundNames = $name.BoundNames;
+
+      if (node.initializer === void 0) {
+        this.$initializer = void 0;
+
+        this.ContainsExpression = $propertyName.$kind === SyntaxKind.ComputedPropertyName || $name.ContainsExpression;
+        this.HasInitializer = false;
+        this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
+      } else {
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+        this.ContainsExpression = true;
+        this.HasInitializer = true;
+        this.IsSimpleParameterList = false;
+      }
+    }
   }
 }
 
@@ -4991,16 +4999,23 @@ export class $IfStatement implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $thenStatement = this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
-    const $elseStatement = this.$elseStatement = node.elseStatement === void 0
-      ? void 0
-      : $$esStatement(node.elseStatement as $StatementNode, this, ctx);
 
-    if ($elseStatement === void 0) {
+    if (node.elseStatement === void 0) {
+      this.$elseStatement = void 0;
+
       this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
       this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
     } else {
-      this.VarDeclaredNames = $thenStatement.VarDeclaredNames.concat($elseStatement.VarDeclaredNames);
-      this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations.concat($elseStatement.VarScopedDeclarations);
+      const $elseStatement = $$esStatement(node.elseStatement as $StatementNode, this, ctx);
+
+      this.VarDeclaredNames = [
+        ...$thenStatement.VarDeclaredNames,
+        ...$elseStatement.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$thenStatement.VarScopedDeclarations,
+        ...$elseStatement.VarScopedDeclarations,
+      ];
     }
   }
 }
@@ -5091,25 +5106,37 @@ export class $ForStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    const $initializer = this.$initializer = node.initializer === void 0
-      ? void 0
-      : node.initializer.kind === SyntaxKind.VariableDeclarationList
-        ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
-        : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
     this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
-    if (
-      $initializer !== void 0 &&
-      $initializer.$kind === SyntaxKind.VariableDeclarationList &&
-      !$initializer.isLexical
-    ) {
-      this.VarDeclaredNames = $initializer.BoundNames.concat($statement.VarDeclaredNames);
-      this.VarScopedDeclarations = $initializer.VarScopedDeclarations.concat($statement.VarScopedDeclarations);
-    } else {
+    if (node.initializer === void 0) {
+      this.$initializer = void 0;
+
       this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+    } else {
+      if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+        const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+        if ($initializer.isLexical) {
+          this.VarDeclaredNames = $statement.VarDeclaredNames;
+          this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+        } else {
+          this.VarDeclaredNames = [
+            ...$initializer.BoundNames,
+            ...$statement.VarDeclaredNames,
+          ];
+          this.VarScopedDeclarations = [
+            ...$initializer.VarScopedDeclarations,
+            ...$statement.VarScopedDeclarations,
+          ];
+        }
+      } else {
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
+        this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+      }
     }
   }
 }
@@ -5137,23 +5164,29 @@ export class $ForInStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    const $initializer = this.$initializer = node.initializer.kind === SyntaxKind.VariableDeclarationList
-      ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
-      : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
-    if ($initializer.$kind === SyntaxKind.VariableDeclarationList) {
-      if (!$initializer.isLexical) {
-        this.BoundNames = emptyArray;
-        this.VarDeclaredNames = $initializer.BoundNames.concat($statement.VarDeclaredNames);
-        this.VarScopedDeclarations = [$initializer.$declarations[0], ...$statement.VarScopedDeclarations];
-      } else {
+    if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+      if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
         this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+      } else {
+        this.BoundNames = emptyArray;
+        this.VarDeclaredNames = [
+          ...$initializer.BoundNames,
+          ...$statement.VarDeclaredNames,
+        ];
+        this.VarScopedDeclarations = [
+          ...$initializer.$declarations,
+          ...$statement.VarScopedDeclarations,
+        ];
       }
     } else {
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
       this.BoundNames = emptyArray;
       this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -5184,23 +5217,29 @@ export class $ForOfStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    const $initializer = this.$initializer = node.initializer.kind === SyntaxKind.VariableDeclarationList
-      ? new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx)
-      : $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
-    if ($initializer.$kind === SyntaxKind.VariableDeclarationList) {
-      if (!$initializer.isLexical) {
-        this.BoundNames = emptyArray;
-        this.VarDeclaredNames = $initializer.BoundNames.concat($statement.VarDeclaredNames);
-        this.VarScopedDeclarations = [$initializer.$declarations[0], ...$statement.VarScopedDeclarations];
-      } else {
+    if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+      if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
         this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+      } else {
+        this.BoundNames = emptyArray;
+        this.VarDeclaredNames = [
+          ...$initializer.BoundNames,
+          ...$statement.VarDeclaredNames,
+        ];
+        this.VarScopedDeclarations = [
+          ...$initializer.$declarations,
+          ...$statement.VarScopedDeclarations,
+        ];
       }
     } else {
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
       this.BoundNames = emptyArray;
       this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -5276,9 +5315,11 @@ export class $ReturnStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$expression = node.expression === void 0
-      ? void 0
-      : $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    if (node.expression === void 0) {
+      this.$expression = void 0;
+    } else {
+      this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    }
   }
 }
 
@@ -5446,24 +5487,46 @@ export class $TryStatement implements I$Node {
     this.id = root.registerNode(this);
 
     const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx);
-    const $catchClause = this.$catchClause = node.catchClause === void 0
-      ? void 0
-      : new $CatchClause(node.catchClause, this, ctx);
-    const $finallyBlock = this.$finallyBlock = node.finallyBlock === void 0
-      ? void 0
-      : new $Block(node.finallyBlock, this, ctx);
+    if (node.catchClause === void 0) {
+      // finallyBlock must be defined
+      this.$catchClause = void 0;
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
 
-    if ($catchClause === void 0) {
-      // $finallyBlock must be defined
-      this.VarDeclaredNames = $tryBlock.VarDeclaredNames.concat($finallyBlock!.VarDeclaredNames);
-      this.VarScopedDeclarations = $tryBlock.VarScopedDeclarations.concat($finallyBlock!.VarScopedDeclarations);
-    } else if ($finallyBlock === void 0) {
-      // $catchClause must be defined
-      this.VarDeclaredNames = $tryBlock.VarDeclaredNames.concat($catchClause!.VarDeclaredNames);
-      this.VarScopedDeclarations = $tryBlock.VarScopedDeclarations.concat($catchClause!.VarScopedDeclarations);
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$finallyBlock.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$tryBlock.VarScopedDeclarations,
+        ...$finallyBlock.VarScopedDeclarations,
+      ];
+    } else if (node.finallyBlock === void 0) {
+      // catchClause must be defined
+      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
+      this.$finallyBlock = void 0;
+
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$catchClause.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$tryBlock.VarScopedDeclarations,
+        ...$catchClause.VarScopedDeclarations,
+      ];
     } else {
-      this.VarDeclaredNames = $tryBlock.VarDeclaredNames.concat($catchClause!.VarDeclaredNames, $finallyBlock!.VarDeclaredNames);
-      this.VarScopedDeclarations = $tryBlock.VarScopedDeclarations.concat($catchClause!.VarScopedDeclarations, $finallyBlock!.VarScopedDeclarations);
+      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
+
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$catchClause.VarDeclaredNames,
+        ...$finallyBlock.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$tryBlock.VarScopedDeclarations,
+        ...$catchClause.VarScopedDeclarations,
+        ...$finallyBlock.VarScopedDeclarations,
+      ];
     }
   }
 }
@@ -5602,9 +5665,11 @@ export class $CatchClause implements I$Node {
 
     ctx |= Context.InCatchClause;
 
-    this.$variableDeclaration = node.variableDeclaration === void 0
-      ? void 0
-      : new $VariableDeclaration(node.variableDeclaration, this, ctx);
+    if (node.variableDeclaration === void 0) {
+      this.$variableDeclaration = void 0;
+    } else {
+      this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, this, ctx);
+    }
     this.$block = new $Block(node.block, this, ctx);
 
     this.VarDeclaredNames = this.$block.VarDeclaredNames;

@@ -1,6 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, IFoundRoute, IRouteableComponentType } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, IFoundRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
@@ -608,7 +608,7 @@ export class Viewport {
     }
   }
   public findMatchingRoute(path: string): IFoundRoute | null {
-    let componentType: IRouteableComponentType | null =
+    let componentType: RouteableComponentType | null =
       this.nextContent !== null
         && this.nextContent.content !== null
         ? this.nextContent.content.componentType
@@ -616,7 +616,7 @@ export class Viewport {
     if (componentType === null) {
       componentType = (this.context! as any).componentType;
     }
-    const routes: IRoute[] = (componentType as IRouteableComponentType & { routes: IRoute[] }).routes;
+    const routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     if (routes !== null && routes !== void 0) {
       const routeTable: RouteTable = new RouteTable();
       routeTable.addRoutes(this.router, routes);

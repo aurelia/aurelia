@@ -1139,7 +1139,7 @@ describe('Router', function () {
     async function $setup(config?, dependencies: any[] = [], routes = []) {
       const ctx = TestContext.createHTMLTestContext();
 
-      const { container, lifecycle } = ctx;
+      const { container, scheduler } = ctx;
 
       const App = CustomElement.define({
         name: 'app',
@@ -1169,7 +1169,7 @@ describe('Router', function () {
         ctx.doc.body.removeChild(host);
       }
 
-      return { ctx, container, lifecycle, host, au, router, $teardown };
+      return { ctx, container, scheduler, host, au, router, $teardown };
     }
 
     it.only('to load routes', async function () {
@@ -1197,35 +1197,35 @@ describe('Router', function () {
       const Grandchild = CustomElement.define({ name: 'grandchild', template: '|grandchild|' });
       const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '|grandchild2|' });
 
-      const { lifecycle, container, host, router, $teardown } = await $setup(void 0,
+      const { scheduler, container, host, router, $teardown } = await $setup(void 0,
         [Parent, Parent2, Child, Child2, Grandchild, Grandchild2], [
         { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }
       ]);
 
-      // await $goto('/parent-config', router, lifecycle);
+      // await $goto('/parent-config', router, scheduler);
       // assert.match(host.textContent, /.*?|parent|.*?/, `host.textContent`);
-      // await $goto('/parent2@default', router, lifecycle);
+      // await $goto('/parent2@default', router, scheduler);
       // assert.match(host.textContent, /.*?|parent2|.*?/, `host.textContent`);
 
-      await $goto('/parent-config/child-config', router, lifecycle);
-      assert.match(host.textContent, /.*?|parent|.*?|child|.*?/, `host.textContent`);
-      await $goto('/parent2@default/child2@parent2', router, lifecycle);
+      // await $goto('/parent-config/child-config', router, scheduler);
+      // assert.match(host.textContent, /.*?|parent|.*?|child|.*?/, `host.textContent`);
+      await $goto('/parent2@default/child2@parent2', router, scheduler);
       assert.match(host.textContent, /.*?|parent2|.*?|child2|.*?/, `host.textContent`);
 
-      await $goto('/parent-config/child2@parent', router, lifecycle);
+      await $goto('/parent-config/child2@parent', router, scheduler);
       assert.match(host.textContent, /.*?|parent|.*?|child2|.*?/, `host.textContent`);
-      await $goto('/parent2@default/child-config', router, lifecycle);
+      await $goto('/parent2@default/child-config', router, scheduler);
       assert.match(host.textContent, /.*?|parent2|.*?|child|.*?/, `host.textContent`);
 
 
-      await $goto('/parent-config/child-config/grandchild-config', router, lifecycle);
+      await $goto('/parent-config/child-config/grandchild-config', router, scheduler);
       assert.match(host.textContent, /.*?|parent|.*?|child|.*?|grandchild|.*?/, `host.textContent`);
-      await $goto('/parent2@default/child2@parent2@grandchild2@child2', router, lifecycle);
+      await $goto('/parent2@default/child2@parent2@grandchild2@child2', router, scheduler);
       assert.match(host.textContent, /.*?|parent2|.*?|child2|.*?|grandchild2|.*?/, `host.textContent`);
 
-      // await $goto('/parent-config/child2@parent', router, lifecycle);
+      // await $goto('/parent-config/child2@parent', router, scheduler);
       // assert.match(host.textContent, /.*?|parent|.*?|child2|.*?/, `host.textContent`);
-      // await $goto('/parent2@default/child-config', router, lifecycle);
+      // await $goto('/parent2@default/child-config', router, scheduler);
       // assert.match(host.textContent, /.*?|parent2|.*?|child|.*?/, `host.textContent`);
 
       await $teardown();

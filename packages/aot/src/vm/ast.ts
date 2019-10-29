@@ -1377,10 +1377,6 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
-  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-hasdirectsuper
-  // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-hasdirectsuper
-  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-HasDirectSuper
-  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
@@ -3487,8 +3483,6 @@ export class $MethodDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number;
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-hasdirectsuper
-  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
@@ -3526,8 +3520,6 @@ export class $GetAccessorDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 0;
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-hasdirectsuper
-  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
@@ -3562,8 +3554,6 @@ export class $SetAccessorDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 1;
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-hasdirectsuper
-  public readonly HasDirectSuper: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod

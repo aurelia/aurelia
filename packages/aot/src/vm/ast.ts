@@ -3516,8 +3516,6 @@ export class $MethodDeclaration implements I$Node {
   public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: string | empty;
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
-  public readonly SpecialMethod: boolean;
 
   public constructor(
     public readonly node: MethodDeclaration,
@@ -3554,8 +3552,6 @@ export class $GetAccessorDeclaration implements I$Node {
   public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: string | empty;
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
-  public readonly SpecialMethod: boolean;
 
   public constructor(
     public readonly node: GetAccessorDeclaration,
@@ -3590,8 +3586,6 @@ export class $SetAccessorDeclaration implements I$Node {
   public readonly ExpectedArgumentCount: number = 1;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: string | empty;
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
-  public readonly SpecialMethod: boolean;
 
   public constructor(
     public readonly node: SetAccessorDeclaration,

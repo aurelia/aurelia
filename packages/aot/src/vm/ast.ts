@@ -2918,6 +2918,7 @@ export class $Identifier implements I$Node {
     this.id = root.registerNode(this);
 
     this.BoundNames = [node.text] as const;
+    this.StringValue = node.text;
   }
 }
 
@@ -3305,6 +3306,9 @@ export class $StringLiteral implements I$Node {
   public readonly $kind = SyntaxKind.StringLiteral;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-string-literals-static-semantics-stringvalue
+  public readonly StringValue: string;
+
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $StringLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
@@ -3324,12 +3328,17 @@ export class $StringLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = root.registerNode(this);
+
+    this.StringValue = node.text;
   }
 }
 
 export class $RegularExpressionLiteral implements I$Node {
   public readonly $kind = SyntaxKind.RegularExpressionLiteral;
   public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-regexp-identifier-names-static-semantics-stringvalue
+  public readonly StringValue: string;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $RegularExpressionLiteral = this;
@@ -3350,6 +3359,8 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = root.registerNode(this);
+
+    this.StringValue = node.text;
   }
 }
 

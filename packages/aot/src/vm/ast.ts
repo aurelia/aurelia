@@ -1242,8 +1242,6 @@ export class $VariableStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
@@ -1339,8 +1337,6 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-BoundNames
   public readonly BoundNames: readonly [string | '*default*'] | readonly string[];
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
@@ -1518,8 +1514,6 @@ export class $ClassDeclaration implements I$Node {
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: any;
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-declarationpart
   public readonly DeclarationPart: $ClassDeclaration = this;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
@@ -1580,7 +1574,6 @@ export class $InterfaceDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   // Stubbed for static semantics
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyDeclaredNames: readonly string[] = emptyArray;
@@ -1616,7 +1609,6 @@ export class $TypeAliasDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   // Stubbed for static semantics
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyDeclaredNames: readonly string[] = emptyArray;
@@ -1667,7 +1659,6 @@ export class $EnumDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   // Stubbed for static semantics
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyDeclaredNames: readonly string[] = emptyArray;
@@ -1715,8 +1706,6 @@ export class $VariableDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
@@ -4488,10 +4477,6 @@ export class $Block implements I$Node {
 
   public readonly $statements: readonly $$TSStatementListItem[];
 
-  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet))
-  }
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallydeclarednames
   public readonly LexicallyDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallyscopeddeclarations
@@ -4579,8 +4564,6 @@ export class $EmptyStatement implements I$Node {
   public readonly $kind = SyntaxKind.EmptyStatement;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -4611,8 +4594,6 @@ export class $ExpressionStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -4639,14 +4620,6 @@ export class $IfStatement implements I$Node {
   public readonly $thenStatement: $$ESStatement;
   public readonly $elseStatement: $$ESStatement | undefined;
 
-  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    let hasDuplicate = this.$thenStatement.ContainsDuplicateLabels(labelSet);
-    if (hasDuplicate) {
-      return true;
-    }
-    return this.$elseStatement !== void 0 && this.$elseStatement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-varscopeddeclarations
@@ -4684,10 +4657,6 @@ export class $DoStatement implements I$Node {
   public readonly $statement: $$ESStatement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-varscopeddeclarations
@@ -4717,10 +4686,6 @@ export class $WhileStatement implements I$Node {
   public readonly $statement: $$ESStatement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-varscopeddeclarations
@@ -4757,10 +4722,6 @@ export class $ForStatement implements I$Node {
   public readonly $incrementor: $$AssignmentExpressionOrHigher | undefined;
   public readonly $statement: $$ESStatement;
 
-  // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-varscopeddeclarations
@@ -4807,10 +4768,6 @@ export class $ForInStatement implements I$Node {
   public readonly $statement: $$ESStatement;
 
   public readonly BoundNames: readonly string[];
-  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
@@ -4858,10 +4815,6 @@ export class $ForOfStatement implements I$Node {
   public readonly $statement: $$ESStatement;
 
   public readonly BoundNames: readonly string[];
-  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
@@ -4906,8 +4859,6 @@ export class $ContinueStatement implements I$Node {
 
   public readonly $label: $Identifier | undefined;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -4932,8 +4883,6 @@ export class $BreakStatement implements I$Node {
 
   public readonly $label: $Identifier | undefined;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -4958,8 +4907,6 @@ export class $ReturnStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -4987,10 +4934,6 @@ export class $WithStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESStatement;
 
-  // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statement.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-varscopeddeclarations
@@ -5020,10 +4963,6 @@ export class $SwitchStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
 
-  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$caseBlock.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
@@ -5053,18 +4992,6 @@ export class $LabeledStatement implements I$Node {
   public readonly $label: $Identifier;
   public readonly $statement: $$ESLabelledItem;
 
-  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    const label = this.$label.node.text;
-    if (labelSet.has(label)) {
-      return true;
-    }
-
-    const newLabelSet = new Set(labelSet);
-    newLabelSet.add(label);
-
-    return this.$statement.ContainsDuplicateLabels(newLabelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallydeclarednames
   public readonly LexicallyDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallyscopeddeclarations
@@ -5123,8 +5050,6 @@ export class $ThrowStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -5151,16 +5076,6 @@ export class $TryStatement implements I$Node {
   public readonly $catchClause: $CatchClause | undefined;
   public readonly $finallyBlock: $Block | undefined;
 
-  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    if (this.$tryBlock.ContainsDuplicateLabels(labelSet)) {
-      return true;
-    }
-    if (this.$catchClause !== void 0 && this.$catchClause.ContainsDuplicateLabels(labelSet)) {
-      return true;
-    }
-    return this.$finallyBlock !== void 0 && this.$finallyBlock.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
@@ -5202,8 +5117,6 @@ export class $DebuggerStatement implements I$Node {
   public readonly $kind = SyntaxKind.DebuggerStatement;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): false { return false; }
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -5228,10 +5141,6 @@ export class $CaseBlock implements I$Node {
   public readonly $kind = SyntaxKind.CaseBlock;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$clauses.some(x => x.ContainsDuplicateLabels(labelSet));
-  }
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
@@ -5263,10 +5172,6 @@ export class $CaseClause implements I$Node {
   public readonly $kind = SyntaxKind.CaseClause;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
-  }
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
@@ -5296,10 +5201,6 @@ export class $DefaultClause implements I$Node {
   public readonly $kind = SyntaxKind.DefaultClause;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$statements.some(x => x.ContainsDuplicateLabels(labelSet));
-  }
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
@@ -5327,10 +5228,6 @@ export class $CatchClause implements I$Node {
   public readonly $kind = SyntaxKind.CatchClause;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-containsduplicatelabels
-  public ContainsDuplicateLabels(labelSet: Set<string>): boolean {
-    return this.$block.ContainsDuplicateLabels(labelSet);
-  }
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations

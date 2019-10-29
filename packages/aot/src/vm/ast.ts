@@ -1534,8 +1534,6 @@ export class $ClassDeclaration implements I$Node {
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
   public readonly IsFunctionDefinition: true = true;
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
-  public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
   public readonly NonConstructorMethodDefinitions: any[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
@@ -1563,13 +1561,13 @@ export class $ClassDeclaration implements I$Node {
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
-    if (this.$name === void 0) {
+    if ($name === void 0) {
       this.BoundNames = SyntheticAnonymousBoundNames;
     } else {
       if ((this.modifierFlags & ModifierFlags.ExportDefault) === ModifierFlags.ExportDefault) {
-        this.BoundNames = [...this.$name.BoundNames, '*default*'];
+        this.BoundNames = [...$name.BoundNames, '*default*'];
       } else {
-        this.BoundNames = this.$name.BoundNames;
+        this.BoundNames = $name.BoundNames;
       }
     }
 
@@ -2392,25 +2390,16 @@ export class $ClassExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
-
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: any;
-
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
-  public readonly HasName: false = false;
-
+  public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
-  public readonly IsConstantDeclaration: boolean;
-
+  public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
   public readonly IsFunctionDefinition: true = true;
-
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
-  public readonly IsStatic: boolean;
-
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
   public readonly NonConstructorMethodDefinitions: any[];
-
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   public readonly PrototypePropertyNameList: readonly string[];
 
@@ -2428,9 +2417,21 @@ export class $ClassExpression implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
+
+    if ($name === void 0) {
+      this.BoundNames = SyntheticAnonymousBoundNames;
+    } else {
+      if ((this.modifierFlags & ModifierFlags.ExportDefault) === ModifierFlags.ExportDefault) {
+        this.BoundNames = [...$name.BoundNames, '*default*'];
+      } else {
+        this.BoundNames = $name.BoundNames;
+      }
+    }
+
+    this.HasName = $name !== void 0;
   }
 }
 
@@ -3484,6 +3485,9 @@ export class $PropertyDeclaration implements I$Node {
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  public readonly IsStatic: boolean;
+
   public constructor(
     public readonly node: PropertyDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
@@ -3498,6 +3502,8 @@ export class $PropertyDeclaration implements I$Node {
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3512,6 +3518,8 @@ export class $MethodDeclaration implements I$Node {
   public readonly $parameters: readonly $ParameterDeclaration[];
   public readonly $body: $Block;
 
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
@@ -3535,6 +3543,7 @@ export class $MethodDeclaration implements I$Node {
 
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
     this.PropName = this.$name.PropName;
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3542,12 +3551,15 @@ export class $GetAccessorDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.GetAccessor;
   public readonly id: number;
 
+  public readonly modifierFlags: ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$PropertyName;
   public readonly $parameters: readonly $ParameterDeclaration[];
   public readonly $body: $Block;
 
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
@@ -3562,12 +3574,15 @@ export class $GetAccessorDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
+    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     this.$body = new $Block(node.body!, this, ctx);
 
     this.PropName = this.$name.PropName;
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3582,6 +3597,8 @@ export class $SetAccessorDeclaration implements I$Node {
   public readonly $parameters: readonly $ParameterDeclaration[];
   public readonly $body: $Block;
 
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 1;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
@@ -3604,6 +3621,7 @@ export class $SetAccessorDeclaration implements I$Node {
     this.$body = new $Block(node.body!, this, ctx);
 
     this.PropName = this.$name.PropName;
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3611,6 +3629,8 @@ export class $SemicolonClassElement implements I$Node {
   public readonly $kind = SyntaxKind.SemicolonClassElement;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  public readonly IsStatic: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: empty = empty;
 

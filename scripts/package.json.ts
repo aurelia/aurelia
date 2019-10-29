@@ -323,7 +323,7 @@ export interface Scripts {
    */
   preinstall?: string;
   /**
-   * Run BEFORE the package is published (Also run on local npm install without any arguments)
+   * Run BEFORE the package is published (Also run on local npm i without any arguments)
    */
   prepublish?:   string;
   prerestart?:   string;

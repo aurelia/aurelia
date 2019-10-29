@@ -87,7 +87,7 @@ async function main() {
   const noPackageLock = packageLockInformations.filter(pli => pli.versions.some((packageVersionInfo: PackageVersionInformation) => packageVersionInfo instanceof PackageVersionInformationErrorNoPackageJSONLock));
 
   if (noPackageLock.length > 0) {
-    console.log("WARNING: The following frameworks do not yet have a package-lock.json file (maybe you must 'npm install' it): ");
+    console.log("WARNING: The following frameworks do not yet have a package-lock.json file (maybe you must 'npm i' it): ");
     console.log(`${noPackageLock.map(val => `${val.framework.keyedType}/${val.framework.directory}`).join('\n')  }\n`);
   }
 

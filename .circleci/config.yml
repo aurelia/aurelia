@@ -221,7 +221,7 @@ jobs:
           name: "Install js-framework-benchmark"
           command: |
             cd test/js-framework-benchmark
-            npm install
+            npm i
       - run:
           name: "Serve test app"
           background: true
@@ -232,13 +232,13 @@ jobs:
           name: "Install & build webdriver-ts"
           command: |
             cd test/js-framework-benchmark/webdriver-ts
-            npm install
+            npm i
             npm run build-prod
       - run:
           name: "Install webdriver-ts-results"
           command: |
             cd test/js-framework-benchmark/webdriver-ts-results
-            npm install
+            npm i
       - run:
           name: "Run the benchmark"
           command: |
@@ -319,7 +319,7 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm install
+            npm i
             npm run build
       - run:
           name: "Serve e2e app in the background"
@@ -342,12 +342,12 @@ jobs:
           name: "Install cypress"
           command: |
             cd packages/__tests__/router/e2e/doc-example
-            npm install
+            npm i
       - run:
           name: "Install and build test app"
           command: |
             cd packages/__tests__/router/e2e/doc-example/app
-            npm install
+            npm i
             npm run build
       - run:
           name: "Serve test app in the background"
@@ -370,7 +370,7 @@ jobs:
           name: "Install cypress"
           command: |
             cd packages/__e2e__
-            npm install
+            npm i
       - run:
           name: "Run e2e tests"
           background: true
@@ -431,7 +431,7 @@ jobs:
                 name: "Install app via verdaccio"
                 command: |
                   cd << parameters.path >>
-                  npm install --registry << parameters.registry >>
+                  npm i --registry << parameters.registry >>
       - unless:
           condition: << parameters.use_verdaccio >>
           steps:
@@ -439,7 +439,7 @@ jobs:
                 name: "Install app via npm"
                 command: |
                   cd << parameters.path >>
-                  npm install
+                  npm i
       - run:
           name: "Build test app"
           command: |

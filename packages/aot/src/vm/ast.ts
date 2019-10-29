@@ -1209,6 +1209,19 @@ export class $VariableStatement implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-declarationpart
   public readonly DeclarationPart: $VariableStatement = this;
 
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  public readonly ExportedBindings: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  public readonly ExportedNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  public readonly ModuleRequests: readonly string[];
+
   public constructor(
     public readonly node: VariableStatement,
     public readonly parent: $NodeWithStatements,
@@ -1234,10 +1247,38 @@ export class $VariableStatement implements I$Node {
     );
 
     this.isLexical = $declarationList.isLexical;
+    this.IsConstantDeclaration = $declarationList.IsConstantDeclaration;
 
     this.BoundNames = $declarationList.BoundNames;
     this.VarDeclaredNames = $declarationList.VarDeclaredNames;
     this.VarScopedDeclarations = $declarationList.VarScopedDeclarations;
+
+    if (hasBit(ctx, Context.InExport)) {
+      this.ExportedBindings = this.BoundNames;
+      this.ExportedNames = this.BoundNames;
+      this.ExportEntries = this.BoundNames.map(name =>
+        new ExportEntryRecord(
+          /* ExportName */name,
+          /* ModuleRequest */null,
+          /* ImportName */null,
+          /* LocalName */name,
+        )
+      );
+
+      if (this.isLexical) {
+        this.LexicallyScopedDeclarations = [this.DeclarationPart];
+      } else {
+        this.LexicallyScopedDeclarations = emptyArray;
+      }
+    } else {
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+
+      this.LexicallyScopedDeclarations = emptyArray;
+    }
+
+    this.ModuleRequests = emptyArray;
   }
 }
 
@@ -1785,6 +1826,9 @@ export class $VariableDeclarationList implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
+  // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: boolean;
+
   public constructor(
     public readonly node: VariableDeclarationList,
     public readonly parent: $VariableStatement | $ForStatement | $ForOfStatement | $ForInStatement,
@@ -1797,6 +1841,7 @@ export class $VariableDeclarationList implements I$Node {
     this.nodeFlags = node.flags;
 
     this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
+    this.IsConstantDeclaration = (node.flags & NodeFlags.Const) > 0;
 
     if (hasBit(ctx, Context.InVariableStatement)) {
       this.combinedNodeFlags = node.flags | (parent as $VariableStatement).nodeFlags;
@@ -4159,9 +4204,9 @@ export class $ExportDeclaration implements I$Node {
   public readonly moduleSpecifier: string | null;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[]= emptyArray;
+  public readonly BoundNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[]= emptyArray;
+  public readonly ExportedBindings: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
   public readonly ExportedNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
@@ -4200,7 +4245,14 @@ export class $ExportDeclaration implements I$Node {
       this.$exportClause = void 0;
 
       this.ExportedNames = emptyArray;
-      this.ExportEntries = [new ExportEntryRecord(null, this.moduleSpecifier, '*', null)];
+      this.ExportEntries = [
+        new ExportEntryRecord(
+          /* ExportName */null,
+          /* ModuleRequest */this.moduleSpecifier,
+          /* ImportName */'*',
+          /* LocalName */null,
+        ),
+      ];
     } else {
       const $exportClause = this.$exportClause = new $NamedExports(node.exportClause, this, ctx);
 

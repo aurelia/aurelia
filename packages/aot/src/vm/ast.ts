@@ -1953,7 +1953,7 @@ export class $ThisExpression implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $ThisExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -1996,7 +1996,7 @@ export class $ArrayLiteralExpression implements I$Node {
   public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $ArrayLiteralExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2076,7 +2076,7 @@ export class $ObjectLiteralExpression implements I$Node {
   public readonly $properties: readonly $$ObjectLiteralElementLike[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $ObjectLiteralExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2330,7 +2330,7 @@ export class $TemplateExpression implements I$Node {
   public readonly $templateSpans: readonly $TemplateSpan[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $TemplateExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -2362,6 +2362,9 @@ export class $ParenthesizedExpression implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  public readonly CoveredParenthesizedExpression: $$AssignmentExpressionOrHigher;
+
   public constructor(
     public readonly node: ParenthesizedExpression,
     public readonly parent: $AnyParentNode,
@@ -2374,6 +2377,8 @@ export class $ParenthesizedExpression implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    this.CoveredParenthesizedExpression = this.$expression;
   }
 }
 
@@ -2903,7 +2908,7 @@ export class $Identifier implements I$Node {
   public readonly StringValue: string;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $Identifier = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3264,7 +3269,7 @@ export class $NumericLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $NumericLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3290,7 +3295,7 @@ export class $BigIntLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $BigIntLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3316,7 +3321,7 @@ export class $StringLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $StringLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3342,7 +3347,7 @@ export class $RegularExpressionLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $RegularExpressionLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3368,7 +3373,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $NoSubstitutionTemplateLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3394,7 +3399,7 @@ export class $NullLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $NullLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
@@ -3420,7 +3425,7 @@ export class $BooleanLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
-  public readonly CoveredParenthesizedExpression: $ParenthesizedExpression;
+  public readonly CoveredParenthesizedExpression: $BooleanLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition

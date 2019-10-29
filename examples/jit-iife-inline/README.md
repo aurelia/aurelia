@@ -7,6 +7,6 @@ Simply open index.html in your browser!
 Alternatively:
 
 ```bash
-npm install
+npm i
 npm run serve
 ```

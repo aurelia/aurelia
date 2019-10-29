@@ -3761,8 +3761,6 @@ export class $SourceFile implements I$Node {
   }
 }
 
-// #region Statements
-
 type $$ModuleBody = (
   $ModuleBlock |
   $ModuleDeclaration
@@ -3816,27 +3814,22 @@ export class $ModuleDeclaration implements I$Node {
   }
 }
 
-export class $NamespaceExportDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.NamespaceExportDeclaration;
-  public readonly id: number;
-
-  public readonly modifierFlags: ModifierFlags;
-
-  public readonly $name: $Identifier;
-
+// http://www.ecma-international.org/ecma-262/#importentry-record
+/**
+ * | Import Statement Form          | MR        | IN          | LN        |
+ * |:-------------------------------|:----------|:------------|:----------|
+ * | `import v from "mod";`         | `"mod"`   | `"default"` | `"v"`     |
+ * | `import * as ns from "mod";`   | `"mod"`   | `"*"`       | `"ns"`    |
+ * | `import {x} from "mod";`       | `"mod"`   | `"x"`       | `"x"`     |
+ * | `import {x as v} from "mod";`  | `"mod"`   | `"x"`       | `"v"`     |
+ * | `import "mod";`                | N/A       | N/A         | N/A       |
+ */
+export class ImportEntryRecord {
   public constructor(
-    public readonly node: NamespaceExportDeclaration,
-    public readonly parent: $$ModuleDeclarationParent,
-    public readonly ctx: Context,
-    public readonly root: $SourceFile = parent.root,
-    public readonly depth: number = parent.depth + 1,
-  ) {
-    this.id = root.registerNode(this);
-
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
-
-    this.$name = $identifier(node.name, this, ctx);
-  }
+    public readonly ModuleRequest: string,
+    public readonly ImportName: string,
+    public readonly LocalName: string,
+  ) {}
 }
 
 type $$ModuleReference = (
@@ -3899,7 +3892,13 @@ export class $ImportDeclaration implements I$Node {
   public readonly $importClause: $ImportClause | undefined;
   public readonly $moduleSpecifier: $StringLiteral;
 
+  public readonly moduleSpecifier: string;
+
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-importentries
+  public readonly ImportEntries: readonly ImportEntryRecord[];
+
 
   public constructor(
     public readonly node: ImportDeclaration,
@@ -3912,13 +3911,229 @@ export class $ImportDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$importClause = node.importClause === void 0
-      ? void 0
-      : new $ImportClause(node.importClause, this, ctx);
     this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
 
-    this.BoundNames = this.$importClause === void 0 ? emptyArray : this.$importClause.BoundNames;
+    this.moduleSpecifier = this.$moduleSpecifier.StringValue;
+
+    if (node.importClause === void 0) {
+      this.$importClause = void 0;
+
+      this.BoundNames = emptyArray;
+      this.ImportEntries = emptyArray;
+    } else {
+      const $importClause = this.$importClause = new $ImportClause(node.importClause, this, ctx);
+
+      this.BoundNames = $importClause.BoundNames;
+      this.ImportEntries = $importClause.ImportEntriesForModule;
+    }
   }
+}
+
+// In case of:
+// import d from "mod" => name = d, namedBinding = undefined
+// import * as ns from "mod" => name = undefined, namedBinding: NamespaceImport = { name: ns }
+// import d, * as ns from "mod" => name = d, namedBinding: NamespaceImport = { name: ns }
+// import { a, b as x } from "mod" => name = undefined, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
+// import d, { a, b as x } from "mod" => name = d, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
+export class $ImportClause implements I$Node {
+  public readonly $kind = SyntaxKind.ImportClause;
+  public readonly id: number;
+
+  public readonly $name: $Identifier | undefined;
+  public readonly $namedBindings: $NamespaceImport | $NamedImports | undefined;
+
+  public readonly moduleSpecifier: string;
+
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  public readonly ImportEntriesForModule: readonly ImportEntryRecord[];
+
+  public constructor(
+    public readonly node: ImportClause,
+    public readonly parent: $ImportDeclaration,
+    public readonly ctx: Context,
+    public readonly root: $SourceFile = parent.root,
+    public readonly depth: number = parent.depth + 1,
+  ) {
+    this.id = root.registerNode(this);
+
+    const moduleSpecifier = this.moduleSpecifier = parent.moduleSpecifier;
+
+    const BoundNames = this.BoundNames = [] as string[];
+    const ImportEntriesForModule = this.ImportEntriesForModule = [] as ImportEntryRecord[];
+
+    if (node.name === void 0) {
+      this.$name = void 0;
+    } else {
+      const $name = this.$name = new $Identifier(node.name, this, ctx);
+
+      const [localName] = $name.BoundNames;
+      BoundNames.push(localName);
+      ImportEntriesForModule.push(
+        new ImportEntryRecord(
+          /* ModuleRequest */moduleSpecifier,
+          /* ImportName */'default',
+          /* LocalName */localName,
+        ),
+      );
+    }
+
+    if (node.namedBindings === void 0) {
+      this.$namedBindings = void 0;
+    } else {
+      if (node.namedBindings.kind === SyntaxKind.NamespaceImport) {
+        const $namedBindings = this.$namedBindings = new $NamespaceImport(node.namedBindings, this, ctx);
+        BoundNames.push(...$namedBindings.BoundNames);
+        ImportEntriesForModule.push(...$namedBindings.ImportEntriesForModule);
+      } else {
+        const $namedBindings = this.$namedBindings = new $NamedImports(node.namedBindings, this, ctx);
+        BoundNames.push(...$namedBindings.BoundNames);
+        ImportEntriesForModule.push(...$namedBindings.ImportEntriesForModule);
+      }
+    }
+  }
+}
+
+export class $NamedImports implements I$Node {
+  public readonly $kind = SyntaxKind.NamedImports;
+  public readonly id: number;
+
+  public readonly $elements: readonly $ImportSpecifier[];
+
+  public readonly moduleSpecifier: string;
+
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  public readonly ImportEntriesForModule: readonly ImportEntryRecord[];
+
+  public constructor(
+    public readonly node: NamedImports,
+    public readonly parent: $ImportClause,
+    public readonly ctx: Context,
+    public readonly root: $SourceFile = parent.root,
+    public readonly depth: number = parent.depth + 1,
+  ) {
+    this.id = root.registerNode(this);
+
+    this.moduleSpecifier = parent.moduleSpecifier;
+
+    const $elements = this.$elements = node.elements.map(x => new $ImportSpecifier(x, this, ctx));
+
+    this.BoundNames = $elements.flatMap(x => x.BoundNames);
+    this.ImportEntriesForModule = $elements.flatMap(x => x.ImportEntriesForModule);
+  }
+}
+
+export class $ImportSpecifier implements I$Node {
+  public readonly $kind = SyntaxKind.ImportSpecifier;
+  public readonly id: number;
+
+  public readonly $propertyName: $Identifier | undefined;
+  public readonly $name: $Identifier;
+
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  public readonly BoundNames: readonly [string];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  public readonly ImportEntriesForModule: readonly [ImportEntryRecord];
+
+  public constructor(
+    public readonly node: ImportSpecifier,
+    public readonly parent: $NamedImports,
+    public readonly ctx: Context,
+    public readonly root: $SourceFile = parent.root,
+    public readonly depth: number = parent.depth + 1,
+  ) {
+    this.id = root.registerNode(this);
+
+    const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
+    this.$name = $identifier(node.name, this, ctx);
+
+    this.BoundNames = this.$name.BoundNames;
+
+    const moduleSpecifier = parent.moduleSpecifier;
+
+    if ($propertyName === void 0) {
+      const [localName] = this.BoundNames;
+      this.ImportEntriesForModule = [
+        new ImportEntryRecord(
+          /* ModuleRequest */moduleSpecifier,
+          /* ImportName */localName,
+          /* LocalName */localName,
+        ),
+      ];
+    } else {
+      const importName = $propertyName.StringValue;
+      const localName = this.$name.StringValue;
+      this.ImportEntriesForModule = [
+        new ImportEntryRecord(
+          /* ModuleRequest */moduleSpecifier,
+          /* ImportName */importName,
+          /* LocalName */localName,
+        ),
+      ];
+    }
+  }
+}
+
+export class $NamespaceImport implements I$Node {
+  public readonly $kind = SyntaxKind.NamespaceImport;
+  public readonly id: number;
+
+  public readonly $name: $Identifier;
+
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  public readonly ImportEntriesForModule: readonly [ImportEntryRecord];
+
+  public constructor(
+    public readonly node: NamespaceImport,
+    public readonly parent: $ImportClause,
+    public readonly ctx: Context,
+    public readonly root: $SourceFile = parent.root,
+    public readonly depth: number = parent.depth + 1,
+  ) {
+    this.id = root.registerNode(this);
+
+    this.$name = $identifier(node.name, this, ctx);
+
+    this.BoundNames = this.$name.BoundNames;
+
+    const moduleSpecifier = parent.moduleSpecifier;
+
+    const localName = this.$name.StringValue;
+    this.ImportEntriesForModule = [
+      new ImportEntryRecord(
+        /* ModuleRequest */moduleSpecifier,
+        /* ImportName */'*',
+        /* LocalName */localName,
+      ),
+    ];
+  }
+}
+
+/**
+ * | Export Statement Form           | EN           | MR            | IN         | LN            |
+ * |:--------------------------------|:-------------|:--------------|:-----------|:--------------|
+ * | `export var v;`                 | `"v"`        | `null`        | `null`     | `"v"`         |
+ * | `export default function f(){}` | `"default"`  | `null`        | `null`     | `"f"`         |
+ * | `export default function(){}`   | `"default"`  | `null`        | `null`     | `"*default*"` |
+ * | `export default 42;`            | `"default"`  | `null`        | `null`     | `"*default*"` |
+ * | `export {x};`                   | `"x"`        | `null`        | `null`     | `"x"`         |
+ * | `export {v as x};`              | `"x"`        | `null`        | `null`     | `"v"`         |
+ * | `export {x} from "mod";`        | `"x"`        | `"mod"`       | `"x"`      | `null`        |
+ * | `export {v as x} from "mod";`   | `"x"`        | `"mod"`       | `"v"`      | `null`        |
+ * | `export * from "mod";`          | `null`       | `"mod"`       | `"*"`      | `null`        |
+ */
+export class ExportEntryRecord {
+  public constructor(
+    public readonly ExportName: string | null,
+    public readonly ModuleRequest: string | null,
+    public readonly ImportName: string | null,
+    public readonly LocalName: string | null,
+  ) {}
 }
 
 export class $ExportAssignment implements I$Node {
@@ -3948,28 +4163,6 @@ export class $ExportAssignment implements I$Node {
   }
 }
 
-/**
- * | Export Statement Form           | EN           | MR            | IN         | LN            |
- * |:--------------------------------|:-------------|:--------------|:-----------|:--------------|
- * | `export var v;`                 | `"v"`        | `null`        | `null`     | `"v"`         |
- * | `export default function f(){}` | `"default"`  | `null`        | `null`     | `"f"`         |
- * | `export default function(){}`   | `"default"`  | `null`        | `null`     | `"*default*"` |
- * | `export default 42;`            | `"default"`  | `null`        | `null`     | `"*default*"` |
- * | `export {x};`                   | `"x"`        | `null`        | `null`     | `"x"`         |
- * | `export {v as x};`              | `"x"`        | `null`        | `null`     | `"v"`         |
- * | `export {x} from "mod";`        | `"x"`        | `"mod"`       | `"x"`      | `null`        |
- * | `export {v as x} from "mod";`   | `"x"`        | `"mod"`       | `"v"`      | `null`        |
- * | `export * from "mod";`          | `null`       | `"mod"`       | `"*"`      | `null`        |
- */
-export class ExportEntryRecord {
-  public constructor(
-    public readonly ExportName: string | null,
-    public readonly ModuleRequest: string | null,
-    public readonly ImportName: string | null,
-    public readonly LocalName: string | null,
-  ) {}
-}
-
 export class $ExportDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ExportDeclaration;
   public readonly id: number;
@@ -3982,9 +4175,9 @@ export class $ExportDeclaration implements I$Node {
   public readonly moduleSpecifier: string | null;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly string[]= emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[];
+  public readonly ExportedBindings: readonly string[]= emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
   public readonly ExportedNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
@@ -3992,7 +4185,7 @@ export class $ExportDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   public readonly ModuleRequests: readonly string[];
 
@@ -4021,138 +4214,15 @@ export class $ExportDeclaration implements I$Node {
 
     if (node.exportClause === void 0) {
       this.$exportClause = void 0;
-    } else {
-      this.$exportClause = new $NamedExports(node.exportClause, this, ctx);
-    }
 
-    this.BoundNames = emptyArray;
-    this.ExportedBindings = emptyArray;
-    if (this.$exportClause === void 0) {
       this.ExportedNames = emptyArray;
       this.ExportEntries = [new ExportEntryRecord(null, this.moduleSpecifier, '*', null)];
     } else {
-      this.ExportedNames = this.$exportClause.ExportedNames;
-      this.ExportEntries = this.$exportClause.ExportEntriesForModule;
+      const $exportClause = this.$exportClause = new $NamedExports(node.exportClause, this, ctx);
+
+      this.ExportedNames = $exportClause.ExportedNames;
+      this.ExportEntries = $exportClause.ExportEntriesForModule;
     }
-
-    this.LexicallyScopedDeclarations = emptyArray;
-  }
-}
-
-// #endregion
-
-// #region Module declaration children
-
-// In case of:
-// import d from "mod" => name = d, namedBinding = undefined
-// import * as ns from "mod" => name = undefined, namedBinding: NamespaceImport = { name: ns }
-// import d, * as ns from "mod" => name = d, namedBinding: NamespaceImport = { name: ns }
-// import { a, b as x } from "mod" => name = undefined, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
-// import d, { a, b as x } from "mod" => name = d, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
-export class $ImportClause implements I$Node {
-  public readonly $kind = SyntaxKind.ImportClause;
-  public readonly id: number;
-
-  public readonly $name: $Identifier | undefined;
-  public readonly $namedBindings: $NamespaceImport | $NamedImports | undefined;
-
-  public readonly BoundNames: readonly string[];
-
-  public constructor(
-    public readonly node: ImportClause,
-    public readonly parent: $ImportDeclaration,
-    public readonly ctx: Context,
-    public readonly root: $SourceFile = parent.root,
-    public readonly depth: number = parent.depth + 1,
-  ) {
-    this.id = root.registerNode(this);
-
-    this.$name = $identifier(node.name, this, ctx);
-    this.$namedBindings = node.namedBindings === void 0
-      ? void 0
-      : node.namedBindings.kind === SyntaxKind.NamespaceImport
-        ? new $NamespaceImport(node.namedBindings, this, ctx)
-        : new $NamedImports(node.namedBindings, this, ctx);
-
-    const BoundNames: string[] = [];
-    if (this.$name !== void 0) {
-      BoundNames.push(...this.$name.BoundNames);
-    }
-    if (this.$namedBindings !== void 0) {
-      BoundNames.push(...this.$namedBindings.BoundNames);
-    }
-    this.BoundNames = BoundNames;
-  }
-}
-
-export class $NamespaceImport implements I$Node {
-  public readonly $kind = SyntaxKind.NamespaceImport;
-  public readonly id: number;
-
-  public readonly $name: $Identifier;
-
-  public readonly BoundNames: readonly string[];
-
-  public constructor(
-    public readonly node: NamespaceImport,
-    public readonly parent: $ImportClause,
-    public readonly ctx: Context,
-    public readonly root: $SourceFile = parent.root,
-    public readonly depth: number = parent.depth + 1,
-  ) {
-    this.id = root.registerNode(this);
-
-    this.$name = $identifier(node.name, this, ctx);
-
-    this.BoundNames = this.$name.BoundNames;
-  }
-}
-
-export class $NamedImports implements I$Node {
-  public readonly $kind = SyntaxKind.NamedImports;
-  public readonly id: number;
-
-  public readonly $elements: readonly $ImportSpecifier[];
-
-  public readonly BoundNames: readonly string[];
-
-  public constructor(
-    public readonly node: NamedImports,
-    public readonly parent: $ImportClause,
-    public readonly ctx: Context,
-    public readonly root: $SourceFile = parent.root,
-    public readonly depth: number = parent.depth + 1,
-  ) {
-    this.id = root.registerNode(this);
-
-    this.$elements = node.elements.map(x => new $ImportSpecifier(x, this, ctx));
-
-    this.BoundNames = this.$elements.flatMap(x => x.BoundNames);
-  }
-}
-
-export class $ImportSpecifier implements I$Node {
-  public readonly $kind = SyntaxKind.ImportSpecifier;
-  public readonly id: number;
-
-  public readonly $propertyName: $Identifier | undefined;
-  public readonly $name: $Identifier;
-
-  public readonly BoundNames: readonly [string];
-
-  public constructor(
-    public readonly node: ImportSpecifier,
-    public readonly parent: $NamedImports,
-    public readonly ctx: Context,
-    public readonly root: $SourceFile = parent.root,
-    public readonly depth: number = parent.depth + 1,
-  ) {
-    this.id = root.registerNode(this);
-
-    this.$propertyName = $identifier(node.propertyName, this, ctx);
-    this.$name = $identifier(node.name, this, ctx);
-
-    this.BoundNames = this.$name.BoundNames;
   }
 }
 
@@ -4213,7 +4283,7 @@ export class $ExportSpecifier implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$propertyName = $identifier(node.propertyName, this, ctx);
+    const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
     this.$name = $identifier(node.name, this, ctx);
 
     const sourceName = this.$name.StringValue;
@@ -4221,7 +4291,7 @@ export class $ExportSpecifier implements I$Node {
 
     this.ReferencedBindings = [sourceName];
 
-    if (this.$propertyName === void 0) {
+    if ($propertyName === void 0) {
       this.ExportedNames = [sourceName];
 
       if (moduleSpecifier === null) {
@@ -4244,7 +4314,7 @@ export class $ExportSpecifier implements I$Node {
         ];
       }
     } else {
-      const exportName = this.$propertyName.StringValue;
+      const exportName = $propertyName.StringValue;
 
       this.ExportedNames = [exportName];
 
@@ -4268,6 +4338,29 @@ export class $ExportSpecifier implements I$Node {
         ];
       }
     }
+  }
+}
+
+export class $NamespaceExportDeclaration implements I$Node {
+  public readonly $kind = SyntaxKind.NamespaceExportDeclaration;
+  public readonly id: number;
+
+  public readonly modifierFlags: ModifierFlags;
+
+  public readonly $name: $Identifier;
+
+  public constructor(
+    public readonly node: NamespaceExportDeclaration,
+    public readonly parent: $$ModuleDeclarationParent,
+    public readonly ctx: Context,
+    public readonly root: $SourceFile = parent.root,
+    public readonly depth: number = parent.depth + 1,
+  ) {
+    this.id = root.registerNode(this);
+
+    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+
+    this.$name = $identifier(node.name, this, ctx);
   }
 }
 
@@ -4308,8 +4401,6 @@ export class $ExternalModuleReference implements I$Node {
     this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx);
   }
 }
-
-// #endregion
 
 type $$NodeWithQualifiedName = (
   $ImportEqualsDeclaration |

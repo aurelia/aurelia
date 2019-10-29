@@ -143,6 +143,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { Project } from '../project';
+import { empty } from './value';
 const {
   emptyArray,
   emptyObject,
@@ -1376,7 +1377,7 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
-  public readonly PropName: string;
+  public readonly PropName: string | undefined;
 
   public readonly DirectivePrologue: $DirectivePrologue;
 
@@ -1421,6 +1422,12 @@ export class $FunctionDeclaration implements I$Node {
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
     this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+
+    if ($name === void 0) {
+      this.PropName = void 0;
+    } else {
+      this.PropName = $name.PropName;
+    }
   }
 }
 
@@ -1528,8 +1535,6 @@ export class $ClassDeclaration implements I$Node {
   public readonly NonConstructorMethodDefinitions: any[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   public readonly PrototypePropertyNameList: readonly string[];
-  // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-propname
-  public readonly PropName: string;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
   public readonly VarDeclaredNames: readonly string[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
@@ -2401,9 +2406,6 @@ export class $ClassExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   public readonly PrototypePropertyNameList: readonly string[];
 
-  // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-propname
-  public readonly PropName: string;
-
 
   public constructor(
     public readonly node: ClassExpression,
@@ -2885,12 +2887,15 @@ export class $Identifier implements I$Node {
   public readonly $kind = SyntaxKind.Identifier;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
+  public readonly StringValue: string;
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: string;
+
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-boundnames
   public readonly BoundNames: readonly [string];
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-assignmenttargettype
   public readonly AssignmentTargetType: 'strict' | 'simple';
-  // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
-  public readonly StringValue: string;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $Identifier = this;
@@ -2919,6 +2924,7 @@ export class $Identifier implements I$Node {
 
     this.BoundNames = [node.text] as const;
     this.StringValue = node.text;
+    this.PropName = this.StringValue;
   }
 }
 
@@ -3254,6 +3260,9 @@ export class $NumericLiteral implements I$Node {
   public readonly $kind = SyntaxKind.NumericLiteral;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: string;
+
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $NumericLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
@@ -3273,6 +3282,8 @@ export class $NumericLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = root.registerNode(this);
+
+    this.PropName = Number(node.text).toString();
   }
 }
 
@@ -3308,6 +3319,8 @@ export class $StringLiteral implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-string-literals-static-semantics-stringvalue
   public readonly StringValue: string;
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: string;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $StringLiteral = this;
@@ -3330,6 +3343,7 @@ export class $StringLiteral implements I$Node {
     this.id = root.registerNode(this);
 
     this.StringValue = node.text;
+    this.PropName = this.StringValue;
   }
 }
 
@@ -3484,7 +3498,7 @@ export class $MethodDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: string | empty;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
   public readonly SpecialMethod: boolean;
 
@@ -3505,6 +3519,7 @@ export class $MethodDeclaration implements I$Node {
     this.$body = new $Block(node.body!, this, ctx);
 
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+    this.PropName = this.$name.PropName;
   }
 }
 
@@ -3521,7 +3536,7 @@ export class $GetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: string | empty;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
   public readonly SpecialMethod: boolean;
 
@@ -3538,6 +3553,8 @@ export class $GetAccessorDeclaration implements I$Node {
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     this.$body = new $Block(node.body!, this, ctx);
+
+    this.PropName = this.$name.PropName;
   }
 }
 
@@ -3555,7 +3572,7 @@ export class $SetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 1;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: string | empty;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-specialmethod
   public readonly SpecialMethod: boolean;
 
@@ -3574,12 +3591,17 @@ export class $SetAccessorDeclaration implements I$Node {
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     this.$body = new $Block(node.body!, this, ctx);
+
+    this.PropName = this.$name.PropName;
   }
 }
 
 export class $SemicolonClassElement implements I$Node {
   public readonly $kind = SyntaxKind.SemicolonClassElement;
   public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
+  public readonly PropName: empty = empty;
 
   public constructor(
     public readonly node: SemicolonClassElement,
@@ -4125,6 +4147,9 @@ export class $ComputedPropertyName implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: string | empty = empty;
+
   public constructor(
     public readonly node: ComputedPropertyName,
     public readonly parent: $$NamedDeclaration,
@@ -4396,6 +4421,9 @@ export class $PropertyAssignment implements I$Node {
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher;
 
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: string | empty;
+
   public constructor(
     public readonly node: PropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
@@ -4409,6 +4437,8 @@ export class $PropertyAssignment implements I$Node {
 
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+    this.PropName = this.$name.PropName;
   }
 }
 
@@ -4420,6 +4450,9 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
   public readonly $name: $Identifier;
   public readonly $objectAssignmentInitializer: $$AssignmentExpressionOrHigher | undefined;
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: string;
 
   public constructor(
     public readonly node: ShorthandPropertyAssignment,
@@ -4434,6 +4467,8 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
     this.$name = $identifier(node.name, this, ctx);
     this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode, this, ctx);
+
+    this.PropName = this.$name.PropName;
   }
 }
 
@@ -4442,6 +4477,9 @@ export class $SpreadAssignment implements I$Node {
   public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  public readonly PropName: empty = empty;
 
   public constructor(
     public readonly node: SpreadAssignment,

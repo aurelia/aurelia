@@ -134,6 +134,8 @@ import {
   WhileStatement,
   WithStatement,
   YieldExpression,
+  Statement,
+  Expression,
 } from 'typescript';
 import {
   PLATFORM,
@@ -177,7 +179,7 @@ const enum Context {
   IsBlockScoped             = 0b00110000000000000,
   IsVar                     = 0b01000000000000000,
   IsFunctionScoped          = 0b01000000000000000,
-  HasMetadata               = 0b10000000000000000,
+  InStrictMode              = 0b10000000000000000,
 }
 
 const modifiersToModifierFlags = (function () {
@@ -1172,24 +1174,24 @@ function $$esLabelledItem(
 
 // #region AST helpers
 
-function GetDirectivePrologue(statements: readonly $$TSModuleItem[]): $DirectivePrologue {
-  let directivePrologue: $ExpressionStatement_T<$StringLiteral>[] = emptyArray;
+function GetDirectivePrologue(statements: readonly Statement[]): DirectivePrologue {
+  let directivePrologue: ExpressionStatement_T<StringLiteral>[] = emptyArray;
 
-  let statement: $ExpressionStatement_T<$StringLiteral>;
+  let statement: ExpressionStatement_T<StringLiteral>;
   const len = statements.length;
   for (let i = 0; i < len; ++i) {
-    statement = statements[i] as $ExpressionStatement_T<$StringLiteral>;
+    statement = statements[i] as ExpressionStatement_T<StringLiteral>;
     if (
-      statement.$kind === SyntaxKind.ExpressionStatement
-      && statement.$expression.$kind === SyntaxKind.StringLiteral
+      statement.kind === SyntaxKind.ExpressionStatement
+      && statement.expression.kind === SyntaxKind.StringLiteral
     ) {
       if (directivePrologue === emptyArray) {
         directivePrologue = [statement];
       } else {
         directivePrologue.push(statement);
       }
-      if (statement.$expression.node.text === 'use strict') {
-        (directivePrologue as Writable<$DirectivePrologue>).ContainsUseStrict = true;
+      if (statement.expression.text === 'use strict') {
+        (directivePrologue as Writable<DirectivePrologue>).ContainsUseStrict = true;
       }
     } else {
       break;
@@ -1379,7 +1381,7 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
   public readonly PropName: string | undefined;
 
-  public readonly DirectivePrologue: $DirectivePrologue;
+  public readonly DirectivePrologue: DirectivePrologue;
 
   public constructor(
     public readonly node: FunctionDeclaration,
@@ -1394,12 +1396,15 @@ export class $FunctionDeclaration implements I$Node {
 
     ctx = clearBit(ctx, Context.InTopLevel);
 
+    this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
+    if (this.DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
+
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx);
-
-    this.DirectivePrologue = GetDirectivePrologue($body.$statements);
 
     if (this.$name === void 0) {
       this.BoundNames = SyntheticAnonymousBoundNames;
@@ -1549,7 +1554,7 @@ export class $ClassDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InTopLevel) | Context.HasMetadata;
+    ctx = clearBit(ctx, Context.InTopLevel);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -2255,7 +2260,7 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
-  public readonly DirectivePrologue: $DirectivePrologue;
+  public readonly DirectivePrologue: DirectivePrologue;
 
   public constructor(
     public readonly node: FunctionExpression,
@@ -2274,11 +2279,14 @@ export class $FunctionExpression implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
+    this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
+    if (this.DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
+
     const $name = this.$name = $identifier(node.name, this, ctx);
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body, this, ctx);
-
-    this.DirectivePrologue = GetDirectivePrologue($body.$statements);
 
     this.BoundNames = ParameterDeclarationsToBoundNames(this.$parameters);
     this.ContainsExpression = $parameters.length === 0 || $parameters.some(p => p.ContainsExpression);
@@ -2720,7 +2728,7 @@ export class $ArrowFunction implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-CoveredAsyncArrowHead
   public readonly CoveredAsyncArrowHead: readonly $ParameterDeclaration[];
 
-  public readonly DirectivePrologue: $DirectivePrologue;
+  public readonly DirectivePrologue: DirectivePrologue;
 
   public constructor(
     public readonly node: ArrowFunction,
@@ -2739,12 +2747,15 @@ export class $ArrowFunction implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
+    this.DirectivePrologue = node.body.kind === SyntaxKind.Block ? GetDirectivePrologue((node.body as Block).statements) : emptyArray;
+    if (this.DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
+
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx)
     const $body = this.$body = node.body.kind === SyntaxKind.Block
       ? new $Block(node.body as Block, this, ctx)
       : $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx);
-
-    this.DirectivePrologue = $body.$kind === SyntaxKind.Block ? GetDirectivePrologue($body.$statements) : emptyArray;
 
     this.BoundNames = ParameterDeclarationsToBoundNames(this.$parameters);
     this.ContainsExpression = false;
@@ -2897,7 +2908,7 @@ export class $Identifier implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-assignmenttargettype
   public readonly AssignmentTargetType: 'strict' | 'simple';
 
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpressionf
   public readonly CoveredParenthesizedExpression: $Identifier = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   public readonly HasName: false = false;
@@ -3653,7 +3664,7 @@ export class $SourceFile implements I$Node {
 
   public readonly $statements: readonly $$TSModuleItem[] = [];
 
-  public readonly DirectivePrologue: $DirectivePrologue;
+  public readonly DirectivePrologue: DirectivePrologue;
 
   public constructor(
     public readonly $file: IFile,
@@ -3663,13 +3674,17 @@ export class $SourceFile implements I$Node {
   ) {
     this.id = project.registerNode(this);
 
+    let ctx = Context.InTopLevel;
+    this.DirectivePrologue = GetDirectivePrologue(node.statements);
+    if (this.DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
+
     const $statements = this.$statements = $$tsModuleItemList(
       node.statements as NodeArray<$ModuleStatementNode>,
       this,
-      Context.InTopLevel,
+      ctx,
     );
-
-    this.DirectivePrologue = GetDirectivePrologue($statements);
   }
 
   public registerNode(node: I$Node): number {
@@ -4629,11 +4644,11 @@ export class $EmptyStatement implements I$Node {
   }
 }
 
-type $ExpressionStatement_T<T extends $$AssignmentExpressionOrHigher> = $ExpressionStatement & {
-  readonly $expression: T;
+type ExpressionStatement_T<T extends Expression> = ExpressionStatement & {
+  readonly expression: T;
 };
 
-type $DirectivePrologue = readonly $ExpressionStatement_T<$StringLiteral>[] & {
+type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] & {
   readonly ContainsUseStrict?: true;
 };
 

@@ -17,7 +17,7 @@ import { IViewportOptions, Viewport } from '../viewport';
         Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
       </div>
     </template>
-  `.replace(/\s+/g, '')
+  `
 })
 export class ViewportCustomElement {
   @bindable public name: string = 'default';

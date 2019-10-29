@@ -708,15 +708,15 @@ export class Router implements IRouter {
     // }
     let controller: any = elementOrViewModelOrController instanceof Controller ? elementOrViewModelOrController : closestController(elementOrViewModelOrController);
     while (controller) {
-      if (controller.viewModel && controller.viewModel.viewport) {
-        return controller.viewModel.viewport;
-      }
-      // if (controller.host) {
-      //   const viewport = this.allViewports().find((item) => item.element === controller!.host);
-      //   if (viewport) {
-      //     return viewport;
-      //   }
+      // if (controller.viewModel && controller.viewModel.viewport) {
+      //   return controller.viewModel.viewport;
       // }
+      if (controller.host) {
+        const viewport = this.allViewports().find((item) => item.element === controller!.host);
+        if (viewport) {
+          return viewport;
+        }
+      }
       controller = controller.parent;
     }
     return null;

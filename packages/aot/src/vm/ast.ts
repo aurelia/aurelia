@@ -3879,7 +3879,8 @@ export class $ImportDeclaration implements I$Node {
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-importentries
   public readonly ImportEntries: readonly ImportEntryRecord[];
-
+  // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-modulerequests
+  public readonly ModuleRequests: readonly string[];
 
   public constructor(
     public readonly node: ImportDeclaration,
@@ -3907,6 +3908,8 @@ export class $ImportDeclaration implements I$Node {
       this.BoundNames = $importClause.BoundNames;
       this.ImportEntries = $importClause.ImportEntriesForModule;
     }
+
+    this.ModuleRequests = [this.moduleSpecifier];
   }
 }
 

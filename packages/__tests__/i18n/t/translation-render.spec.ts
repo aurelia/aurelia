@@ -48,10 +48,7 @@ describe('TranslationAttributePattern', function () {
 describe('TranslationBindingCommand', function () {
   function setup(aliases?: string[]) {
     aliases = aliases || [];
-    const container = DI.createContainer();
-    container.register(
-      bindingCommand({ name: 't', aliases })(TranslationBindingCommand)
-    );
+    const container = DI.createContainer(BindingCommand.define({ name: 't', aliases }, TranslationBindingCommand));
     if (!aliases.includes('t')) {
       aliases.push('t');
     }
@@ -193,10 +190,7 @@ describe('TranslationBindBindingCommand', function () {
   function setup(aliases?: string[]) {
     aliases = aliases || [];
     aliases = aliases.map(alias => `${alias}.bind`);
-    const container = DI.createContainer();
-    container.register(
-      bindingCommand({ name: 't.bind', aliases })(TranslationBindBindingCommand)
-    );
+    const container = DI.createContainer(BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand));
     if (!aliases.includes('t.bind')) {
       aliases.push('t.bind');
     }

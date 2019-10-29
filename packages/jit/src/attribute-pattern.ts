@@ -1,4 +1,4 @@
-import { Class, DI, IContainer, IRegistry, PLATFORM, Registration, Reporter, Protocol, Constructable, ResourceDefinition, ResourceType, Metadata } from '@aurelia/kernel';
+import { Class, Constructable, DI, IContainer, Metadata, PLATFORM, Protocol, Registration, Reporter, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 
 export interface AttributePatternDefinition {
@@ -428,10 +428,16 @@ export interface IAttributePattern {
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
 
-type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<{} | IAttributePattern>, TClass> & Partial<IRegistry>;
-type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern, TClass> & IRegistry;
+type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<{} | IAttributePattern>, TClass>;
+type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern, TClass>;
 
 type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
+
+export interface AttributePattern {
+  readonly name: string;
+  define<TProto, TClass>(patternDefs: AttributePatternDefinition[], Type: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass>;
+  getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>): AttributePatternDefinition[];
+}
 
 export function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator {
   return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
@@ -451,22 +457,26 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
   }
 }
 
-export const AttributePattern = {
+export const AttributePattern: AttributePattern = Object.freeze({
   name: Protocol.resource.keyFor('attribute-pattern'),
   patternDefsAnnotation: 'attribute-pattern-definitions',
   define<TProto, TClass>(
     patternDefs: AttributePatternDefinition[],
-    Type: DecoratableAttributePattern<TProto, TClass>) {
+    Type: DecoratableAttributePattern<TProto, TClass>,
+  ) {
 
     validatePrototype(Type.prototype as IAttributePattern, patternDefs);
 
     const definition = new AttributePatternResourceDefinition(Type);
-    Metadata.define(AttributePattern.name, definition, definition.Type);
+    Metadata.define(AttributePattern.name, definition, Type);
     Protocol.resource.appendTo(Type, AttributePattern.name);
 
-    Protocol.annotation.set(definition.Type, this.patternDefsAnnotation, patternDefs);
-    Protocol.annotation.appendTo(definition.Type, this.patternDefsAnnotation);
+    Protocol.annotation.set(Type, this.patternDefsAnnotation, patternDefs);
+    Protocol.annotation.appendTo(Type, this.patternDefsAnnotation);
 
-    return definition.Type as DecoratedAttributePattern<TProto, TClass>;
+    return Type as DecoratedAttributePattern<TProto, TClass>;
+  },
+  getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) {
+    return Protocol.annotation.get(Type, AttributePattern.patternDefsAnnotation) as AttributePatternDefinition[];
   }
-};
+});

@@ -29,7 +29,7 @@ describe('TranslationAttributePattern', function () {
       patternDefs.push({ pattern: alias, symbols: '' });
     }
 
-    assert.deepEqual(Protocol.annotation.get(sut.constructor as Constructable, AttributePattern.patternDefsAnnotation), patternDefs);
+    assert.deepEqual(AttributePattern.getPatternDefinitions(sut.constructor as Constructable), patternDefs);
   });
 
   it('creates attribute syntax without `to` part when `T="expr"` is used', function () {
@@ -163,7 +163,7 @@ describe('TranslationBindAttributePattern', function () {
 
     assert.instanceOf(sut, TranslationBindAttributePattern);
     assert.deepEqual(
-      Protocol.annotation.get(sut.constructor as Constructable, AttributePattern.patternDefsAnnotation),
+      AttributePattern.getPatternDefinitions(sut.constructor as Constructable),
       aliases.reduce(
         (acc, alias) => {
           acc.push({ pattern: `${alias}.bind`, symbols: '.' });

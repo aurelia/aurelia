@@ -20,7 +20,7 @@ export class AttributeParser implements IAttributeParser {
     this.interpreter = interpreter;
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
-      const defs = Protocol.annotation.get(attrPattern.constructor as Constructable, AttributePattern.patternDefsAnnotation) as AttributePatternDefinition[];
+      const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
       interpreter.add(defs);
       defs.forEach(def => {
         patterns[def.pattern] = attrPattern as unknown as IAttributePattern;

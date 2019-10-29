@@ -158,7 +158,7 @@ describe('@attributePattern', function () {
           container.register(ThePattern as any);
           const interpreter = container.get(ISyntaxInterpreter);
           const attrPattern = container.get(IAttributePattern);
-          const patternDefs = Protocol.annotation.get(attrPattern.constructor as Constructable, AttributePattern.patternDefsAnnotation) as AttributePatternDefinition[];
+          const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
           interpreter.add(patternDefs);
 
           const result = interpreter.interpret(value);

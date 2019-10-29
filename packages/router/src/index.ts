@@ -117,4 +117,6 @@ export {
   NavCustomElementRegistration,
   GotoCustomAttribute,
   GotoCustomAttributeRegistration,
+  HrefCustomAttribute,
+  HrefCustomAttributeRegistration,
 } from './configuration';

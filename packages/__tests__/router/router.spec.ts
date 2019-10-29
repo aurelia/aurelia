@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, inject } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
@@ -1133,6 +1133,104 @@ describe('Router', function () {
     });
   });
   /*******************/
+  describe('can use configuration', function () {
+    this.timeout(30000);
+
+    async function $setup(config?, dependencies: any[] = [], routes = []) {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const { container, lifecycle } = ctx;
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: '<au-viewport></au-viewport>',
+        dependencies
+      }, class {
+        public static routes = routes;
+      });
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
+
+      const au = new Aurelia(container)
+        .register(
+          DebugConfiguration,
+          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          App)
+        .app({ host: host, component: App });
+
+      const router = getModifiedRouter(container);
+
+      await au.start().wait();
+
+      async function $teardown() {
+        router.deactivate();
+        await au.stop().wait();
+        ctx.doc.body.removeChild(host);
+      }
+
+      return { ctx, container, lifecycle, host, au, router, $teardown };
+    }
+
+    it.only('to load routes', async function () {
+      const Parent = CustomElement.define({ name: 'parent', template: '|parent|<au-viewport name="parent"></au-viewport>' }, class {
+        public static routes = [
+          { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent' }] },
+        ];
+      });
+      const Parent2 = CustomElement.define({ name: 'parent2', template: '|parent2|<au-viewport name="parent2"></au-viewport>' }, class {
+        public static routes = [
+          { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
+        ];
+      });
+      const Child = CustomElement.define({ name: 'child', template: '|child|<au-viewport name="child"></au-viewport>' }, class {
+        public static routes = [
+          { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
+        ];
+      });
+      const Child2 = CustomElement.define({ name: 'child2', template: '|child2|<au-viewport name="child2"></au-viewport>' }, class {
+        public static routes = [
+          { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
+        ];
+      });
+
+      const Grandchild = CustomElement.define({ name: 'grandchild', template: '|grandchild|' });
+      const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '|grandchild2|' });
+
+      const { lifecycle, container, host, router, $teardown } = await $setup(void 0,
+        [Parent, Parent2, Child, Child2, Grandchild, Grandchild2], [
+        { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }
+      ]);
+
+      // await $goto('/parent-config', router, lifecycle);
+      // assert.match(host.textContent, /.*?|parent|.*?/, `host.textContent`);
+      // await $goto('/parent2@default', router, lifecycle);
+      // assert.match(host.textContent, /.*?|parent2|.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child-config', router, lifecycle);
+      assert.match(host.textContent, /.*?|parent|.*?|child|.*?/, `host.textContent`);
+      await $goto('/parent2@default/child2@parent2', router, lifecycle);
+      assert.match(host.textContent, /.*?|parent2|.*?|child2|.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child2@parent', router, lifecycle);
+      assert.match(host.textContent, /.*?|parent|.*?|child2|.*?/, `host.textContent`);
+      await $goto('/parent2@default/child-config', router, lifecycle);
+      assert.match(host.textContent, /.*?|parent2|.*?|child|.*?/, `host.textContent`);
+
+
+      await $goto('/parent-config/child-config/grandchild-config', router, lifecycle);
+      assert.match(host.textContent, /.*?|parent|.*?|child|.*?|grandchild|.*?/, `host.textContent`);
+      await $goto('/parent2@default/child2@parent2@grandchild2@child2', router, lifecycle);
+      assert.match(host.textContent, /.*?|parent2|.*?|child2|.*?|grandchild2|.*?/, `host.textContent`);
+
+      // await $goto('/parent-config/child2@parent', router, lifecycle);
+      // assert.match(host.textContent, /.*?|parent|.*?|child2|.*?/, `host.textContent`);
+      // await $goto('/parent2@default/child-config', router, lifecycle);
+      // assert.match(host.textContent, /.*?|parent2|.*?|child|.*?/, `host.textContent`);
+
+      await $teardown();
+    });
+  });
 });
 
 let quxCantLeave = 0;

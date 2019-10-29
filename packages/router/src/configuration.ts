@@ -1,8 +1,9 @@
-import { GotoCustomAttribute } from './resources/goto';
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { StartTask } from '@aurelia/runtime';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
+import { GotoCustomAttribute } from './resources/goto';
+import { HrefCustomAttribute } from './resources/href';
 import { IRouter, IRouterOptions } from './router';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
@@ -19,21 +20,24 @@ export {
   ViewportCustomElement,
   NavCustomElement,
   GotoCustomAttribute,
+  HrefCustomAttribute,
 };
 
 export const ViewportCustomElementRegistration = ViewportCustomElement as unknown as IRegistry;
 export const NavCustomElementRegistration = NavCustomElement as unknown as IRegistry;
 export const GotoCustomAttributeRegistration = GotoCustomAttribute as unknown as IRegistry;
+export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as IRegistry;
 
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`, `au-nav`
- * - Custom Attributes: `goto`
+ * - Custom Attributes: `goto`, `href`
  */
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
   NavCustomElement as unknown as IRegistry,
   GotoCustomAttribute as unknown as IRegistry,
+  HrefCustomAttribute as unknown as IRegistry,
 ];
 
 let configurationOptions: IRouterOptions = {};

@@ -5,6 +5,13 @@ import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 
+export const enum ParametersType {
+  none = 'none',
+  string = 'string',
+  array = 'array',
+  object = 'object',
+}
+
 export class ViewportInstruction {
   public componentName: string | null = null;
   public componentType: RouteableComponentType | null = null;
@@ -14,9 +21,12 @@ export class ViewportInstruction {
   public parametersString: string | null = null;
   public parameters: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
+  public parametersType: ParametersType = ParametersType.none;
 
   public scope: Viewport | null = null;
   public needsViewportDescribed: boolean = false;
+
+  public default: boolean = false;
 
   public constructor(
     component: ComponentAppellation,
@@ -62,18 +72,23 @@ export class ViewportInstruction {
   }
 
   public setParameters(parameters?: ComponentParameters | null): void {
-    if (parameters === undefined || parameters === '') {
+    // TODO: Initialize parameters better and more of them and just fix this
+    if (parameters === undefined || parameters === null || parameters === '') {
+      this.parametersType = ParametersType.none;
       parameters = null;
-    }
-    if (typeof parameters === 'string') {
+    } else if (typeof parameters === 'string') {
+      this.parametersType = ParametersType.string;
       this.parametersString = parameters;
-      // TODO: Initialize parameters better and more of them and just fix this
       this.parameters = { id: parameters };
+    } else if (Array.isArray(parameters)) {
+      this.parametersType = ParametersType.array;
+      this.parametersList = parameters;
+      this.parametersString = this.parametersList.join(',');
     } else {
+      this.parametersType = ParametersType.object;
       this.parameters = parameters;
-      // TODO: Create parametersString
+      this.parametersString = Object.keys(this.parameters!).map(param => `${param}=${this.parameters![param]}`).join(',');
     }
-    // TODO: Deal with parametersList
   }
 
   public isEmpty(): boolean {

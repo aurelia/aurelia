@@ -1,7 +1,8 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigatorInstruction } from './interfaces';
+import { INavigatorInstruction, IRoute } from './interfaces';
 import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
+import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface INavigatorStore {
@@ -36,8 +37,10 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
 export interface IStoredNavigatorEntry {
   instruction: string | ViewportInstruction[];
   fullStateInstruction: string | ViewportInstruction[];
+  scope?: Viewport | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
+  route?: IRoute;
   path?: string;
   title?: string;
   query?: string;
@@ -262,6 +265,7 @@ export class Navigator {
       untracked,
       historyMovement,
       navigation,
+      scope,
 
       resolve,
       reject,

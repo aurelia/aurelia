@@ -1,11 +1,12 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, IFoundRoute, IRouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
+import { RouteTable } from './route-table';
 
 export interface IFindViewportsResult {
   foundViewports: ViewportInstruction[];
@@ -33,6 +34,9 @@ export class Viewport {
 
   public parent: Viewport | null = null;
   public children: Viewport[] = [];
+
+  public routeTable: RouteTable | null = null;
+  public path: string | null = null;
 
   private clear: boolean = false;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
@@ -170,6 +174,7 @@ export class Viewport {
       const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
       for (const instruction of instructions) {
         instruction.setViewport(this);
+        instruction.default = true;
       }
       this.router.goto(instructions, { append: true }).catch(error => { throw error; });
     }
@@ -363,6 +368,9 @@ export class Viewport {
 
   public addChild(viewport: Viewport): void {
     if (!this.children.some(vp => vp === viewport)) {
+      if (viewport.parent !== null) {
+        viewport.parent.removeChild(viewport);
+      }
       this.children.push(viewport);
       viewport.parent = this;
     }
@@ -387,7 +395,7 @@ export class Viewport {
 
   public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], disregardViewports: boolean = false): IFindViewportsResult {
     const foundViewports: ViewportInstruction[] = [];
-    const remainingInstructions: ViewportInstruction[] = [];
+    let remainingInstructions: ViewportInstruction[] = [];
 
     // Get a shallow copy of all available viewports
     const availableViewports: Record<string, Viewport | null> = { ...this.getEnabledViewports() };
@@ -500,6 +508,7 @@ export class Viewport {
       }
     }
 
+    remainingInstructions = [...viewportInstructions, ...remainingInstructions];
     return {
       foundViewports,
       remainingInstructions,
@@ -586,6 +595,36 @@ export class Viewport {
       arrayRemove(this.historyCache, (cached => cached === content));
     }
   }
+
+  public addRoutes(routes: IRoute[]): IRoute[] {
+    if (this.routeTable === null) {
+      this.routeTable = new RouteTable();
+    }
+    return this.routeTable.addRoutes(this.router, routes);
+  }
+  public removeRoutes(routes: IRoute[] | string[]): void {
+    if (this.routeTable !== null) {
+      this.routeTable.removeRoutes(this.router, routes);
+    }
+  }
+  public findMatchingRoute(path: string): IFoundRoute | null {
+    let componentType: IRouteableComponentType | null =
+      this.nextContent !== null
+        && this.nextContent.content !== null
+        ? this.nextContent.content.componentType
+        : this.content.content.componentType;
+    if (componentType === null) {
+      componentType = (this.context! as any).componentType;
+    }
+    const routes: IRoute[] = (componentType as IRouteableComponentType & { routes: IRoute[] }).routes;
+    if (routes !== null && routes !== void 0) {
+      const routeTable: RouteTable = new RouteTable();
+      routeTable.addRoutes(this.router, routes);
+      return routeTable.findMatchingRoute(path);
+    }
+    return null;
+  }
+
 
   private async unloadContent(): Promise<void> {
     this.content.removeComponent(this.element as Element, this.router.statefulHistory || this.options.stateful);

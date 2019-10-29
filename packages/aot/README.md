@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save-dev @aurelia/aot
+npm i -D @aurelia/aot
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save-dev @aurelia/aot@dev
+npm i -D @aurelia/aot@dev
 ```

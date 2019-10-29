@@ -4,7 +4,7 @@
   "description": "The Cypress integration tests.",
   "main": "index.js",
   "scripts": {
-    "e2e": "npm install && cypress open",
+    "e2e": "npm i && cypress open",
     "e2eci": "node node_modules/cypress/bin/cypress run --reporter xunit --reporter-options output=testresult.xml"
   },
   "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",

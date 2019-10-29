@@ -3948,6 +3948,28 @@ export class $ExportAssignment implements I$Node {
   }
 }
 
+/**
+ * | Export Statement Form           | EN           | MR            | IN         | LN            |
+ * |:--------------------------------|:-------------|:--------------|:-----------|:--------------|
+ * | `export var v;`                 | `"v"`        | `null`        | `null`     | `"v"`         |
+ * | `export default function f(){}` | `"default"`  | `null`        | `null`     | `"f"`         |
+ * | `export default function(){}`   | `"default"`  | `null`        | `null`     | `"*default*"` |
+ * | `export default 42;`            | `"default"`  | `null`        | `null`     | `"*default*"` |
+ * | `export {x};`                   | `"x"`        | `null`        | `null`     | `"x"`         |
+ * | `export {v as x};`              | `"x"`        | `null`        | `null`     | `"v"`         |
+ * | `export {x} from "mod";`        | `"x"`        | `"mod"`       | `"x"`      | `null`        |
+ * | `export {v as x} from "mod";`   | `"x"`        | `"mod"`       | `"v"`      | `null`        |
+ * | `export * from "mod";`          | `null`       | `"mod"`       | `"*"`      | `null`        |
+ */
+export class ExportEntryRecord {
+  public constructor(
+    public readonly ExportName: string | null,
+    public readonly ModuleRequest: string | null,
+    public readonly ImportName: string | null,
+    public readonly LocalName: string | null,
+  ) {}
+}
+
 export class $ExportDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ExportDeclaration;
   public readonly id: number;
@@ -3957,7 +3979,22 @@ export class $ExportDeclaration implements I$Node {
   public readonly $exportClause: $NamedExports | undefined;
   public readonly $moduleSpecifier: $StringLiteral | undefined;
 
+  public readonly moduleSpecifier: string | null;
+
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-boundnames
   public readonly BoundNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  public readonly ExportedBindings: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  public readonly ExportedNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: false = false;
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  public readonly ModuleRequests: readonly string[];
 
   public constructor(
     public readonly node: ExportDeclaration,
@@ -3970,16 +4007,35 @@ export class $ExportDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$exportClause = node.exportClause === void 0
-      ? void 0
-      : new $NamedExports(node.exportClause, this, ctx)
     if (node.moduleSpecifier === void 0) {
       this.$moduleSpecifier = void 0;
+      this.moduleSpecifier = null;
+
+      this.ModuleRequests = emptyArray;
     } else {
       this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
+      this.moduleSpecifier = this.$moduleSpecifier!.StringValue;
+
+      this.ModuleRequests = [this.moduleSpecifier];
+    }
+
+    if (node.exportClause === void 0) {
+      this.$exportClause = void 0;
+    } else {
+      this.$exportClause = new $NamedExports(node.exportClause, this, ctx);
     }
 
     this.BoundNames = emptyArray;
+    this.ExportedBindings = emptyArray;
+    if (this.$exportClause === void 0) {
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = [new ExportEntryRecord(null, this.moduleSpecifier, '*', null)];
+    } else {
+      this.ExportedNames = this.$exportClause.ExportedNames;
+      this.ExportEntries = this.$exportClause.ExportEntriesForModule;
+    }
+
+    this.LexicallyScopedDeclarations = emptyArray;
   }
 }
 
@@ -4106,6 +4162,15 @@ export class $NamedExports implements I$Node {
 
   public readonly $elements: readonly $ExportSpecifier[];
 
+  public readonly moduleSpecifier: string | null;
+
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  public readonly ExportedNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-exportentriesformodule
+  public readonly ExportEntriesForModule: readonly ExportEntryRecord[];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-referencedbindings
+  public readonly ReferencedBindings: readonly string[];
+
   public constructor(
     public readonly node: NamedExports,
     public readonly parent: $ExportDeclaration,
@@ -4115,7 +4180,13 @@ export class $NamedExports implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
+    this.moduleSpecifier = parent.moduleSpecifier;
+
     this.$elements = node.elements.map(x => new $ExportSpecifier(x, this, ctx));
+
+    this.ExportedNames = this.$elements.flatMap(x => x.ExportedNames);
+    this.ExportEntriesForModule = this.$elements.flatMap(x => x.ExportEntriesForModule);
+    this.ReferencedBindings = this.$elements.flatMap(x => x.ReferencedBindings);
   }
 }
 
@@ -4125,6 +4196,13 @@ export class $ExportSpecifier implements I$Node {
 
   public readonly $propertyName: $Identifier | undefined;
   public readonly $name: $Identifier;
+
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  public readonly ExportedNames: readonly [string];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-exportentriesformodule
+  public readonly ExportEntriesForModule: readonly [ExportEntryRecord];
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-referencedbindings
+  public readonly ReferencedBindings: readonly [string];
 
   public constructor(
     public readonly node: ExportSpecifier,
@@ -4137,6 +4215,59 @@ export class $ExportSpecifier implements I$Node {
 
     this.$propertyName = $identifier(node.propertyName, this, ctx);
     this.$name = $identifier(node.name, this, ctx);
+
+    const sourceName = this.$name.StringValue;
+    const moduleSpecifier = parent.moduleSpecifier;
+
+    this.ReferencedBindings = [sourceName];
+
+    if (this.$propertyName === void 0) {
+      this.ExportedNames = [sourceName];
+
+      if (moduleSpecifier === null) {
+        this.ExportEntriesForModule = [
+          new ExportEntryRecord(
+            /* ExportName */sourceName,
+            /* ModuleRequest */moduleSpecifier,
+            /* ImportName */null,
+            /* LocalName */sourceName,
+          ),
+        ];
+      } else {
+        this.ExportEntriesForModule = [
+          new ExportEntryRecord(
+            /* ExportName */sourceName,
+            /* ModuleRequest */moduleSpecifier,
+            /* ImportName */sourceName,
+            /* LocalName */null,
+          ),
+        ];
+      }
+    } else {
+      const exportName = this.$propertyName.StringValue;
+
+      this.ExportedNames = [exportName];
+
+      if (moduleSpecifier === null) {
+        this.ExportEntriesForModule = [
+          new ExportEntryRecord(
+            /* ExportName */exportName,
+            /* ModuleRequest */moduleSpecifier,
+            /* ImportName */null,
+            /* LocalName */sourceName,
+          ),
+        ];
+      } else {
+        this.ExportEntriesForModule = [
+          new ExportEntryRecord(
+            /* ExportName */exportName,
+            /* ModuleRequest */moduleSpecifier,
+            /* ImportName */sourceName,
+            /* LocalName */null,
+          ),
+        ];
+      }
+    }
   }
 }
 

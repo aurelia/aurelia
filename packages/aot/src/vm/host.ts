@@ -17,7 +17,7 @@ export interface IModule {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
   '<IModule>': any;
 
-  readonly host: Host;
+  readonly Host: Host;
 }
 
 export class DeferredModule implements IModule {
@@ -25,7 +25,7 @@ export class DeferredModule implements IModule {
 
   public constructor(
     public readonly $file: IFile,
-    public readonly host: Host,
+    public readonly Host: Host,
   ) {}
 }
 

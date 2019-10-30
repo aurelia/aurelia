@@ -223,7 +223,7 @@ export interface I$Node<
   TNode extends object = object,
   > {
   readonly depth: number;
-  readonly host: Host;
+  readonly Host: Host;
   readonly parent: I$Node;
   readonly node: TNode;
   readonly ctx: Context;
@@ -1082,10 +1082,10 @@ export class $VariableStatement implements I$Node {
     public readonly node: VariableStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = node.flags;
@@ -1256,10 +1256,10 @@ export class $FunctionDeclaration implements I$Node {
     public readonly node: FunctionDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -1475,10 +1475,10 @@ export class $ClassDeclaration implements I$Node {
     public readonly node: ClassDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InTopLevel);
 
@@ -1601,10 +1601,10 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly node: InterfaceDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InTopLevel) | Context.InTypeElement;
 
@@ -1631,10 +1631,10 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly node: TypeAliasDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InTopLevel) | Context.InTypeElement;
 
@@ -1678,10 +1678,10 @@ export class $EnumDeclaration implements I$Node {
     public readonly node: EnumDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InTopLevel);
 
@@ -1721,10 +1721,10 @@ export class $VariableDeclaration implements I$Node {
     public readonly node: VariableDeclaration,
     public readonly parent: $VariableDeclarationList | $CatchClause,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = node.flags;
@@ -1797,10 +1797,10 @@ export class $VariableDeclarationList implements I$Node {
     public readonly node: VariableDeclarationList,
     public readonly parent: $VariableStatement | $ForStatement | $ForOfStatement | $ForInStatement,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.nodeFlags = node.flags;
 
@@ -1841,10 +1841,10 @@ export class $EnumMember implements I$Node {
     public readonly node: EnumMember,
     public readonly parent: $EnumDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
@@ -1884,10 +1884,10 @@ export class $HeritageClause implements I$Node {
     public readonly node: HeritageClause,
     public readonly parent: $$NodeWithHeritageClauses,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$types = $expressionWithTypeArgumentsList(node.types, this, ctx);
   }
@@ -1903,10 +1903,10 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly node: ExpressionWithTypeArguments,
     public readonly parent: $HeritageClause,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
@@ -1924,10 +1924,10 @@ export class $Decorator implements I$Node {
     public readonly node: Decorator,
     public readonly parent: $NodeWithDecorators,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
@@ -1954,10 +1954,10 @@ export class $ThisExpression implements I$Node {
     public readonly node: ThisExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -1969,10 +1969,10 @@ export class $SuperExpression implements I$Node {
     public readonly node: SuperExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -2041,10 +2041,10 @@ export class $ArrayLiteralExpression implements I$Node {
     public readonly node: ArrayLiteralExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2121,10 +2121,10 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly node: ObjectLiteralExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2143,10 +2143,10 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly node: PropertyAccessExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2166,10 +2166,10 @@ export class $ElementAccessExpression implements I$Node {
     public readonly node: ElementAccessExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2189,10 +2189,10 @@ export class $CallExpression implements I$Node {
     public readonly node: CallExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2212,10 +2212,10 @@ export class $NewExpression implements I$Node {
     public readonly node: NewExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2240,10 +2240,10 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly node: TaggedTemplateExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2298,10 +2298,10 @@ export class $FunctionExpression implements I$Node {
     public readonly node: FunctionExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     if (this.isIIFE = isIIFE(this)) {
       ctx = clearBit(ctx, Context.InExpressionStatement);
@@ -2372,10 +2372,10 @@ export class $TemplateExpression implements I$Node {
     public readonly node: TemplateExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2397,10 +2397,10 @@ export class $ParenthesizedExpression implements I$Node {
     public readonly node: ParenthesizedExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2440,10 +2440,10 @@ export class $ClassExpression implements I$Node {
     public readonly node: ClassExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
 
@@ -2501,10 +2501,10 @@ export class $NonNullExpression implements I$Node {
     public readonly node: NonNullExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2522,10 +2522,10 @@ export class $MetaProperty implements I$Node {
     public readonly node: MetaProperty,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2547,10 +2547,10 @@ export class $DeleteExpression implements I$Node {
     public readonly node: DeleteExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2568,10 +2568,10 @@ export class $TypeOfExpression implements I$Node {
     public readonly node: TypeOfExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2589,10 +2589,10 @@ export class $VoidExpression implements I$Node {
     public readonly node: VoidExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2610,10 +2610,10 @@ export class $AwaitExpression implements I$Node {
     public readonly node: AwaitExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2631,10 +2631,10 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly node: PrefixUnaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2652,10 +2652,10 @@ export class $PostfixUnaryExpression implements I$Node {
     public readonly node: PostfixUnaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2673,10 +2673,10 @@ export class $TypeAssertion implements I$Node {
     public readonly node: TypeAssertion,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2699,10 +2699,10 @@ export class $BinaryExpression implements I$Node {
     public readonly node: BinaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2723,10 +2723,10 @@ export class $ConditionalExpression implements I$Node {
     public readonly node: ConditionalExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2784,10 +2784,10 @@ export class $ArrowFunction implements I$Node {
     public readonly node: ArrowFunction,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     if (this.isIIFE = isIIFE(this)) {
       ctx = clearBit(ctx, Context.InExpressionStatement);
@@ -2845,10 +2845,10 @@ export class $YieldExpression implements I$Node {
     public readonly node: YieldExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2866,10 +2866,10 @@ export class $AsExpression implements I$Node {
     public readonly node: AsExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -2889,10 +2889,10 @@ export class $TemplateHead implements I$Node {
     public readonly node: TemplateHead,
     public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -2904,10 +2904,10 @@ export class $TemplateMiddle implements I$Node {
     public readonly node: TemplateMiddle,
     public readonly parent: $TemplateExpression | $TemplateSpan,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -2919,10 +2919,10 @@ export class $TemplateTail implements I$Node {
     public readonly node: TemplateTail,
     public readonly parent: $TemplateExpression | $TemplateSpan,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -2937,10 +2937,10 @@ export class $TemplateSpan implements I$Node {
     public readonly node: TemplateSpan,
     public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     if (node.literal.kind === SyntaxKind.TemplateMiddle) {
@@ -2987,10 +2987,10 @@ export class $Identifier implements I$Node {
     public readonly node: Identifier,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.BoundNames = [node.text] as const;
     this.StringValue = node.text;
@@ -3062,10 +3062,10 @@ export class $JsxElement implements I$Node {
     public readonly node: JsxElement,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -3119,10 +3119,10 @@ export class $JsxSelfClosingElement implements I$Node {
     public readonly node: JsxSelfClosingElement,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -3143,10 +3143,10 @@ export class $JsxFragment implements I$Node {
     public readonly node: JsxFragment,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
@@ -3164,10 +3164,10 @@ export class $JsxText implements I$Node {
     public readonly node: JsxText,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3182,10 +3182,10 @@ export class $JsxOpeningElement implements I$Node {
     public readonly node: JsxOpeningElement,
     public readonly parent: $JsxElement,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
@@ -3202,10 +3202,10 @@ export class $JsxClosingElement implements I$Node {
     public readonly node: JsxClosingElement,
     public readonly parent: $JsxElement,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
   }
@@ -3219,10 +3219,10 @@ export class $JsxOpeningFragment implements I$Node {
     public readonly node: JsxOpeningFragment,
     public readonly parent: $JsxFragment,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3234,10 +3234,10 @@ export class $JsxClosingFragment implements I$Node {
     public readonly node: JsxClosingFragment,
     public readonly parent: $JsxFragment,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3252,10 +3252,10 @@ export class $JsxAttribute implements I$Node {
     public readonly node: JsxAttribute,
     public readonly parent: $JsxAttributes,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$name = $identifier(node.name, this, ctx);
     if (node.initializer === void 0) {
@@ -3285,10 +3285,10 @@ export class $JsxAttributes implements I$Node {
     public readonly node: JsxAttributes,
     public readonly parent: $$JsxOpeningLikeElement,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$properties = node.properties.map(
       x => x.kind === SyntaxKind.JsxAttribute
@@ -3308,10 +3308,10 @@ export class $JsxSpreadAttribute implements I$Node {
     public readonly node: JsxSpreadAttribute,
     public readonly parent: $JsxAttributes,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
@@ -3327,10 +3327,10 @@ export class $JsxExpression implements I$Node {
     public readonly node: JsxExpression,
     public readonly parent: $$JsxParent | $$JsxAttributeLike,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
@@ -3358,10 +3358,10 @@ export class $NumericLiteral implements I$Node {
     public readonly node: NumericLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.PropName = Number(node.text).toString();
   }
@@ -3386,10 +3386,10 @@ export class $BigIntLiteral implements I$Node {
     public readonly node: BigIntLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3417,10 +3417,10 @@ export class $StringLiteral implements I$Node {
     public readonly node: StringLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const StringValue = this.StringValue = node.text;
     this.PropName = StringValue;
@@ -3449,10 +3449,10 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly node: RegularExpressionLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.StringValue = node.text;
   }
@@ -3477,10 +3477,10 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly node: NoSubstitutionTemplateLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3503,10 +3503,10 @@ export class $NullLiteral implements I$Node {
     public readonly node: NullLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3529,10 +3529,10 @@ export class $BooleanLiteral implements I$Node {
     public readonly node: BooleanLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
     this.$kind = node.kind;
   }
 }
@@ -3554,10 +3554,10 @@ export class $PropertyDeclaration implements I$Node {
     public readonly node: PropertyDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -3591,10 +3591,10 @@ export class $MethodDeclaration implements I$Node {
     public readonly node: MethodDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -3631,10 +3631,10 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly node: GetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -3670,10 +3670,10 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly node: SetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -3700,10 +3700,10 @@ export class $SemicolonClassElement implements I$Node {
     public readonly node: SemicolonClassElement,
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -3721,10 +3721,10 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly node: ConstructorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -3786,11 +3786,11 @@ export class $SourceFile implements I$Node, IModule {
   public constructor(
     public readonly $file: IFile,
     public readonly node: SourceFile,
-    public readonly host: Host,
+    public readonly Host: Host,
     public readonly pkg: NPMPackage,
     public readonly compilerOptions: CompilerOptions,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.matcher = PatternMatcher.getOrCreate(compilerOptions, pkg.container);
 
@@ -3987,10 +3987,10 @@ export class $ModuleDeclaration implements I$Node {
     public readonly node: ModuleDeclaration,
     public readonly parent: $SourceFile | $$ModuleBody,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -4061,10 +4061,10 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly node: ImportEqualsDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -4111,10 +4111,10 @@ export class $ImportDeclaration implements I$Node {
     public readonly node: ImportDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -4162,10 +4162,10 @@ export class $ImportClause implements I$Node {
     public readonly node: ImportClause,
     public readonly parent: $ImportDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const moduleSpecifier = this.moduleSpecifier = parent.moduleSpecifier;
 
@@ -4221,10 +4221,10 @@ export class $NamedImports implements I$Node {
     public readonly node: NamedImports,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.moduleSpecifier = parent.moduleSpecifier;
 
@@ -4251,10 +4251,10 @@ export class $ImportSpecifier implements I$Node {
     public readonly node: ImportSpecifier,
     public readonly parent: $NamedImports,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
@@ -4301,10 +4301,10 @@ export class $NamespaceImport implements I$Node {
     public readonly node: NamespaceImport,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $name = this.$name = $identifier(node.name, this, ctx);
 
@@ -4359,10 +4359,10 @@ export class $ExportAssignment implements I$Node {
     public readonly node: ExportAssignment,
     public readonly parent: $SourceFile,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -4402,10 +4402,10 @@ export class $ExportDeclaration implements I$Node {
     public readonly node: ExportDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -4462,10 +4462,10 @@ export class $NamedExports implements I$Node {
     public readonly node: NamedExports,
     public readonly parent: $ExportDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.moduleSpecifier = parent.moduleSpecifier;
 
@@ -4495,10 +4495,10 @@ export class $ExportSpecifier implements I$Node {
     public readonly node: ExportSpecifier,
     public readonly parent: $NamedExports,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
@@ -4570,10 +4570,10 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly node: NamespaceExportDeclaration,
     public readonly parent: $$ModuleDeclarationParent,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -4592,10 +4592,10 @@ export class $ModuleBlock implements I$Node {
     public readonly node: ModuleBlock,
     public readonly parent: $ModuleDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -4609,10 +4609,10 @@ export class $ExternalModuleReference implements I$Node {
     public readonly node: ExternalModuleReference,
     public readonly parent: $ImportEqualsDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx);
   }
@@ -4639,10 +4639,10 @@ export class $QualifiedName implements I$Node {
     public readonly node: QualifiedName,
     public readonly parent: $$NodeWithQualifiedName,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     if (node.left.kind === SyntaxKind.Identifier) {
       this.$left = new $Identifier(node.left, this, ctx);
@@ -4679,10 +4679,10 @@ export class $ComputedPropertyName implements I$Node {
     public readonly node: ComputedPropertyName,
     public readonly parent: $$NamedDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
@@ -4715,10 +4715,10 @@ export class $ParameterDeclaration implements I$Node {
     public readonly node: ParameterDeclaration,
     public readonly parent: $$SignatureDeclaration,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = this.combinedModifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = this.combinedNodeFlags = node.flags;
@@ -4767,10 +4767,10 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly node: ObjectBindingPattern,
     public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.combinedModifierFlags = parent.combinedModifierFlags;
     this.nodeFlags = node.flags;
@@ -4844,10 +4844,10 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly node: ArrayBindingPattern,
     public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.combinedModifierFlags = parent.combinedModifierFlags;
     this.nodeFlags = node.flags;
@@ -4895,10 +4895,10 @@ export class $BindingElement implements I$Node {
     public readonly node: BindingElement,
     public readonly parent: $$BindingPattern,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
@@ -4960,10 +4960,10 @@ export class $SpreadElement implements I$Node {
     public readonly node: SpreadElement,
     public readonly parent: $NodeWithSpreadElements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
@@ -4985,10 +4985,10 @@ export class $PropertyAssignment implements I$Node {
     public readonly node: PropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -5015,10 +5015,10 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly node: ShorthandPropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -5042,10 +5042,10 @@ export class $SpreadAssignment implements I$Node {
     public readonly node: SpreadAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
@@ -5068,10 +5068,10 @@ export class $OmittedExpression implements I$Node {
     public readonly node: OmittedExpression,
     public readonly parent: $ArrayBindingPattern | $ArrayLiteralExpression | $NewExpression | $CallExpression,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -5096,10 +5096,10 @@ export class $Block implements I$Node {
     public readonly node: Block,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
@@ -5164,10 +5164,10 @@ export class $EmptyStatement implements I$Node {
     public readonly node: EmptyStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -5192,10 +5192,10 @@ export class $ExpressionStatement implements I$Node {
     public readonly node: ExpressionStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx | Context.InExpressionStatement);
   }
@@ -5216,10 +5216,10 @@ export class $IfStatement implements I$Node {
     public readonly node: IfStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $thenStatement = this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
@@ -5253,10 +5253,10 @@ export class $DoStatement implements I$Node {
     public readonly node: DoStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
@@ -5279,10 +5279,10 @@ export class $WhileStatement implements I$Node {
     public readonly node: WhileStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
@@ -5312,10 +5312,10 @@ export class $ForStatement implements I$Node {
     public readonly node: ForStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
     this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
@@ -5361,10 +5361,10 @@ export class $ForInStatement implements I$Node {
     public readonly node: ForInStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
@@ -5406,10 +5406,10 @@ export class $ForOfStatement implements I$Node {
     public readonly node: ForOfStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
@@ -5448,10 +5448,10 @@ export class $ContinueStatement implements I$Node {
     public readonly node: ContinueStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
   }
@@ -5470,10 +5470,10 @@ export class $BreakStatement implements I$Node {
     public readonly node: BreakStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
   }
@@ -5492,10 +5492,10 @@ export class $ReturnStatement implements I$Node {
     public readonly node: ReturnStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     if (node.expression === void 0) {
       this.$expression = void 0;
@@ -5519,10 +5519,10 @@ export class $WithStatement implements I$Node {
     public readonly node: WithStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
@@ -5545,10 +5545,10 @@ export class $SwitchStatement implements I$Node {
     public readonly node: SwitchStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
@@ -5577,10 +5577,10 @@ export class $LabeledStatement implements I$Node {
     public readonly node: LabeledStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabel);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
@@ -5614,10 +5614,10 @@ export class $ThrowStatement implements I$Node {
     public readonly node: ThrowStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
@@ -5638,10 +5638,10 @@ export class $TryStatement implements I$Node {
     public readonly node: TryStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx);
     if (node.catchClause === void 0) {
@@ -5686,10 +5686,10 @@ export class $DebuggerStatement implements I$Node {
     public readonly node: DebuggerStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
   }
 }
 
@@ -5710,10 +5710,10 @@ export class $CaseBlock implements I$Node {
     public readonly node: CaseBlock,
     public readonly parent: $SwitchStatement,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $clauses = this.$clauses = node.clauses.map(
       x => x.kind === SyntaxKind.CaseClause
@@ -5739,10 +5739,10 @@ export class $CaseClause implements I$Node {
     public readonly node: CaseClause,
     public readonly parent: $CaseBlock,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
@@ -5764,10 +5764,10 @@ export class $DefaultClause implements I$Node {
     public readonly node: DefaultClause,
     public readonly parent: $CaseBlock,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
@@ -5789,10 +5789,10 @@ export class $CatchClause implements I$Node {
     public readonly node: CatchClause,
     public readonly parent: $TryStatement,
     public readonly ctx: Context,
-    public readonly host: Host = parent.host,
+    public readonly Host: Host = parent.Host,
     public readonly depth: number = parent.depth + 1,
   ) {
-    this.id = host.registerNode(this);
+    this.id = Host.registerNode(this);
 
     ctx |= Context.InCatchClause;
 

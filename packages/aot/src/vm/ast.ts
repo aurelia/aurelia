@@ -1546,6 +1546,17 @@ export class $ClassDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  public readonly ExportedBindings: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  public readonly ExportedNames: readonly string[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  public readonly ModuleRequests: readonly string[];
+
   public constructor(
     public readonly node: ClassDeclaration,
     public readonly parent: $NodeWithStatements,
@@ -1559,20 +1570,14 @@ export class $ClassDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+      ctx |= Context.InExport;
+    }
+
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
-
-    if ($name === void 0) {
-      this.BoundNames = SyntheticAnonymousBoundNames;
-    } else {
-      if ((this.modifierFlags & ModifierFlags.ExportDefault) === ModifierFlags.ExportDefault) {
-        this.BoundNames = [...$name.BoundNames, '*default*'];
-      } else {
-        this.BoundNames = $name.BoundNames;
-      }
-    }
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
     const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as string[];
@@ -1598,7 +1603,70 @@ export class $ClassDeclaration implements I$Node {
       }
     }
 
-    this.HasName = $name !== void 0;
+    const HasName = this.HasName = $name !== void 0;
+
+    if (hasBit(ctx, Context.InExport)) {
+      if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
+        if (HasName) {
+          const [localName] = $name!.BoundNames;
+          this.BoundNames = [localName, '*default*'];
+
+          this.ExportedBindings = this.BoundNames;
+          this.ExportedNames = ['*default*'];
+          this.ExportEntries = [
+            new ExportEntryRecord(
+              /* ExportName */'*default*',
+              /* ModuleRequest */null,
+              /* ImportName */null,
+              /* LocalName */localName,
+            ),
+          ];
+        } else {
+          this.BoundNames = ['*default*'];
+
+          this.ExportedBindings = this.BoundNames;
+          this.ExportedNames = this.BoundNames;
+          this.ExportEntries = [
+            new ExportEntryRecord(
+              /* ExportName */'*default*',
+              /* ModuleRequest */null,
+              /* ImportName */null,
+              /* LocalName */'*default*',
+            ),
+          ];
+        }
+
+        this.LexicallyScopedDeclarations = [this];
+      } else {
+        // Must have a name, so we assume it does
+        this.BoundNames = $name!.BoundNames;
+        const [localName] = $name!.BoundNames;
+
+        this.ExportedBindings = this.BoundNames;
+        this.ExportedNames = this.BoundNames;
+        this.ExportEntries = [
+          new ExportEntryRecord(
+            /* ExportName */localName,
+            /* ModuleRequest */null,
+            /* ImportName */null,
+            /* LocalName */localName,
+          ),
+        ];
+
+        this.LexicallyScopedDeclarations = [this.DeclarationPart];
+      }
+    } else {
+      // Must have a name, so we assume it does
+      this.BoundNames = $name!.BoundNames;
+
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+
+      this.LexicallyScopedDeclarations = emptyArray;
+    }
+
+    this.ModuleRequests = emptyArray;
   }
 }
 

@@ -1,6 +1,6 @@
 export { AttrSyntax } from './ast';
 export { IAttributeParser } from './attribute-parser';
-export { attributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter, } from './attribute-pattern';
+export { attributePattern, IAttributePattern, AttributePattern, Interpretation, ISyntaxInterpreter, } from './attribute-pattern';
 export { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern, } from './attribute-patterns';
 export { bindingCommand, BindingCommand, BindingCommandDefinition, getTarget, } from './binding-command';
 export { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand } from './binding-commands';

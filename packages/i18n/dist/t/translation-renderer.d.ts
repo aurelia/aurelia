@@ -1,16 +1,9 @@
-import { AttributePatternDefinition, AttrSyntax, BindingSymbol, IAttributePattern, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
-import { IContainer } from '@aurelia/kernel';
+import { AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
 import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 export declare const TranslationInstructionType = "tt";
-export declare class TranslationAttributePattern implements IAttributePattern {
-    [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax) | AttributePatternDefinition[];
-    /**
-     * Enables aliases for translation/localization attribute.
-     */
-    static aliases: string[];
-    $patternDefs: AttributePatternDefinition[];
-    static register(container: IContainer): void;
-    private static createPattern;
+export declare class TranslationAttributePattern {
+    [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
+    static registerAlias(alias: string): void;
 }
 export declare class TranslationBindingInstruction {
     from: IsBindingBehavior;
@@ -20,12 +13,7 @@ export declare class TranslationBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindingCommand implements BindingCommandInstance {
-    /**
-     * Enables aliases for translation/localization attribute.
-     */
-    static aliases: string[];
     readonly bindingType: BindingType.CustomCommand;
-    static register(container: IContainer): void;
     compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindingInstruction;
 }
 export declare class TranslationBindingRenderer implements IInstructionRenderer {
@@ -35,15 +23,9 @@ export declare class TranslationBindingRenderer implements IInstructionRenderer 
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void;
 }
 export declare const TranslationBindInstructionType = "tbt";
-export declare class TranslationBindAttributePattern implements IAttributePattern {
-    [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax) | AttributePatternDefinition[];
-    /**
-     * Enables aliases for translation/localization attribute.
-     */
-    static aliases: string[];
-    $patternDefs: AttributePatternDefinition[];
-    static register(container: IContainer): void;
-    private static createPattern;
+export declare class TranslationBindAttributePattern {
+    [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
+    static registerAlias(alias: string): void;
 }
 export declare class TranslationBindBindingInstruction {
     from: IsBindingBehavior;
@@ -53,12 +35,7 @@ export declare class TranslationBindBindingInstruction {
     constructor(from: IsBindingBehavior, to: string);
 }
 export declare class TranslationBindBindingCommand implements BindingCommandInstance {
-    /**
-     * Enables aliases for translation/localization attribute.
-     */
-    static aliases: string[];
     readonly bindingType: BindingType.BindCommand;
-    static register(container: IContainer): void;
     compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationBindBindingInstruction;
 }
 export declare class TranslationBindBindingRenderer implements IInstructionRenderer {

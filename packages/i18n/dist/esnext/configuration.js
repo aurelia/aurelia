@@ -13,28 +13,40 @@ import { TranslationBindingBehavior } from './t/translation-binding-behavior';
 import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
 import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
-const renderers = [
-    TranslationAttributePattern,
-    TranslationBindingCommand,
-    TranslationBindingRenderer,
-    TranslationBindAttributePattern,
-    TranslationBindBindingCommand,
-    TranslationBindBindingRenderer,
-    TranslationParametersAttributePattern,
-    TranslationParametersBindingCommand,
-    TranslationParametersBindingRenderer
-];
+import { BindingCommand, AttributePattern } from '@aurelia/jit';
 const translation = [
     TranslationValueConverter,
     TranslationBindingBehavior,
 ];
 function coreComponents(options) {
-    if (Array.isArray(options.translationAttributeAliases)) {
-        TranslationAttributePattern.aliases = options.translationAttributeAliases;
-        TranslationBindingCommand.aliases = options.translationAttributeAliases;
-        TranslationBindAttributePattern.aliases = options.translationAttributeAliases;
-        TranslationBindBindingCommand.aliases = options.translationAttributeAliases;
+    const configuredAliases = options.translationAttributeAliases;
+    const aliases = Array.isArray(configuredAliases) ? configuredAliases : ['t'];
+    const patterns = [];
+    const bindPatterns = [];
+    const commandAliases = [];
+    const bindCommandAliases = [];
+    for (const alias of aliases) {
+        const bindAlias = `${alias}.bind`;
+        patterns.push({ pattern: alias, symbols: '' });
+        TranslationAttributePattern.registerAlias(alias);
+        bindPatterns.push({ pattern: bindAlias, symbols: '.' });
+        TranslationBindAttributePattern.registerAlias(alias);
+        if (alias !== 't') {
+            commandAliases.push(alias);
+            bindCommandAliases.push(bindAlias);
+        }
     }
+    const renderers = [
+        AttributePattern.define(patterns, TranslationAttributePattern),
+        BindingCommand.define({ name: 't', aliases: commandAliases }, TranslationBindingCommand),
+        TranslationBindingRenderer,
+        AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
+        BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, TranslationBindBindingCommand),
+        TranslationBindBindingRenderer,
+        TranslationParametersAttributePattern,
+        TranslationParametersBindingCommand,
+        TranslationParametersBindingRenderer
+    ];
     return {
         register(container) {
             return container.register(Registration.callback(I18nInitOptions, () => options.initOptions), StartTask.with(I18N).beforeBind().call(i18n => i18n.task), Registration.singleton(I18nWrapper, I18nextWrapper), Registration.singleton(I18N, I18nService), ...renderers, ...translation);

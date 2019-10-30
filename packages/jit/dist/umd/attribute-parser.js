@@ -22,7 +22,7 @@
             this.interpreter = interpreter;
             const patterns = this.patterns = {};
             attrPatterns.forEach(attrPattern => {
-                const defs = attrPattern.$patternDefs;
+                const defs = attribute_pattern_1.AttributePattern.getPatternDefinitions(attrPattern.constructor);
                 interpreter.add(defs);
                 defs.forEach(def => {
                     patterns[def.pattern] = attrPattern;

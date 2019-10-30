@@ -1,7 +1,7 @@
 import { __decorate, __param } from "tslib";
 import { all, DI } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
-import { IAttributePattern, ISyntaxInterpreter } from './attribute-pattern';
+import { AttributePattern, IAttributePattern, ISyntaxInterpreter } from './attribute-pattern';
 export const IAttributeParser = DI.createInterface('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 /** @internal */
 let AttributeParser = class AttributeParser {
@@ -11,7 +11,7 @@ let AttributeParser = class AttributeParser {
         this.interpreter = interpreter;
         const patterns = this.patterns = {};
         attrPatterns.forEach(attrPattern => {
-            const defs = attrPattern.$patternDefs;
+            const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor);
             interpreter.add(defs);
             defs.forEach(def => {
                 patterns[def.pattern] = attrPattern;

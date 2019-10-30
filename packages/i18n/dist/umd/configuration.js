@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-renderer", "./t/translation-renderer", "./t/translation-value-converter"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-renderer", "./t/translation-renderer", "./t/translation-value-converter", "@aurelia/jit"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,28 +24,40 @@
     const translation_parameters_renderer_1 = require("./t/translation-parameters-renderer");
     const translation_renderer_1 = require("./t/translation-renderer");
     const translation_value_converter_1 = require("./t/translation-value-converter");
-    const renderers = [
-        translation_renderer_1.TranslationAttributePattern,
-        translation_renderer_1.TranslationBindingCommand,
-        translation_renderer_1.TranslationBindingRenderer,
-        translation_renderer_1.TranslationBindAttributePattern,
-        translation_renderer_1.TranslationBindBindingCommand,
-        translation_renderer_1.TranslationBindBindingRenderer,
-        translation_parameters_renderer_1.TranslationParametersAttributePattern,
-        translation_parameters_renderer_1.TranslationParametersBindingCommand,
-        translation_parameters_renderer_1.TranslationParametersBindingRenderer
-    ];
+    const jit_1 = require("@aurelia/jit");
     const translation = [
         translation_value_converter_1.TranslationValueConverter,
         translation_binding_behavior_1.TranslationBindingBehavior,
     ];
     function coreComponents(options) {
-        if (Array.isArray(options.translationAttributeAliases)) {
-            translation_renderer_1.TranslationAttributePattern.aliases = options.translationAttributeAliases;
-            translation_renderer_1.TranslationBindingCommand.aliases = options.translationAttributeAliases;
-            translation_renderer_1.TranslationBindAttributePattern.aliases = options.translationAttributeAliases;
-            translation_renderer_1.TranslationBindBindingCommand.aliases = options.translationAttributeAliases;
+        const configuredAliases = options.translationAttributeAliases;
+        const aliases = Array.isArray(configuredAliases) ? configuredAliases : ['t'];
+        const patterns = [];
+        const bindPatterns = [];
+        const commandAliases = [];
+        const bindCommandAliases = [];
+        for (const alias of aliases) {
+            const bindAlias = `${alias}.bind`;
+            patterns.push({ pattern: alias, symbols: '' });
+            translation_renderer_1.TranslationAttributePattern.registerAlias(alias);
+            bindPatterns.push({ pattern: bindAlias, symbols: '.' });
+            translation_renderer_1.TranslationBindAttributePattern.registerAlias(alias);
+            if (alias !== 't') {
+                commandAliases.push(alias);
+                bindCommandAliases.push(bindAlias);
+            }
         }
+        const renderers = [
+            jit_1.AttributePattern.define(patterns, translation_renderer_1.TranslationAttributePattern),
+            jit_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_renderer_1.TranslationBindingCommand),
+            translation_renderer_1.TranslationBindingRenderer,
+            jit_1.AttributePattern.define(bindPatterns, translation_renderer_1.TranslationBindAttributePattern),
+            jit_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_renderer_1.TranslationBindBindingCommand),
+            translation_renderer_1.TranslationBindBindingRenderer,
+            translation_parameters_renderer_1.TranslationParametersAttributePattern,
+            translation_parameters_renderer_1.TranslationParametersBindingCommand,
+            translation_parameters_renderer_1.TranslationParametersBindingRenderer
+        ];
         return {
             register(container) {
                 return container.register(kernel_1.Registration.callback(i18n_configuration_options_1.I18nInitOptions, () => options.initOptions), runtime_1.StartTask.with(i18n_1.I18N).beforeBind().call(i18n => i18n.task), kernel_1.Registration.singleton(i18next_wrapper_1.I18nWrapper, i18next_wrapper_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_1.I18N, i18n_1.I18nService), ...renderers, ...translation);

@@ -1,4 +1,4 @@
-import { Class, IRegistry } from '@aurelia/kernel';
+import { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 export interface AttributePatternDefinition {
     pattern: string;
@@ -21,15 +21,25 @@ export interface ISyntaxInterpreter {
 }
 export declare const ISyntaxInterpreter: import("@aurelia/kernel").InterfaceSymbol<ISyntaxInterpreter>;
 export interface IAttributePattern {
-    $patternDefs: AttributePatternDefinition[];
-}
-export interface IAttributePatternHandler {
     [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 export declare const IAttributePattern: import("@aurelia/kernel").InterfaceSymbol<IAttributePattern>;
-declare type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;
-declare type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;
+declare type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<{} | IAttributePattern>, TClass>;
+declare type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern, TClass>;
 declare type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
+export interface AttributePattern {
+    readonly name: string;
+    readonly definitionAnnotationKey: string;
+    define<TProto, TClass>(patternDefs: AttributePatternDefinition[], Type: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass>;
+    getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>): AttributePatternDefinition[];
+}
 export declare function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator;
+export declare class AttributePatternResourceDefinition implements ResourceDefinition<Constructable, IAttributePattern> {
+    Type: ResourceType<Constructable, Partial<IAttributePattern>>;
+    name: string;
+    constructor(Type: ResourceType<Constructable, Partial<IAttributePattern>>);
+    register(container: IContainer): void;
+}
+export declare const AttributePattern: AttributePattern;
 export {};
 //# sourceMappingURL=attribute-pattern.d.ts.map

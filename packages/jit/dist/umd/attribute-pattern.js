@@ -381,18 +381,36 @@
     exports.IAttributePattern = kernel_1.DI.createInterface('IAttributePattern').noDefault();
     function attributePattern(...patternDefs) {
         return function decorator(target) {
-            const proto = target.prototype;
-            // Note: the prototype is really meant to be an intersection type between IAttrubutePattern and IAttributePatternHandler, but
-            // a type with an index signature cannot be intersected with anything else that has normal property names.
-            // So we're forced to use a union type and cast it here.
-            validatePrototype(proto, patternDefs);
-            proto.$patternDefs = patternDefs;
-            target.register = function register(container) {
-                kernel_1.Registration.singleton(exports.IAttributePattern, target).register(container);
-            };
-            return target;
+            return exports.AttributePattern.define(patternDefs, target);
         };
     }
     exports.attributePattern = attributePattern;
+    class AttributePatternResourceDefinition {
+        constructor(Type) {
+            this.Type = Type;
+            this.name = (void 0);
+        }
+        register(container) {
+            kernel_1.Registration.singleton(exports.IAttributePattern, this.Type).register(container);
+        }
+    }
+    exports.AttributePatternResourceDefinition = AttributePatternResourceDefinition;
+    exports.AttributePattern = Object.freeze({
+        name: kernel_1.Protocol.resource.keyFor('attribute-pattern'),
+        definitionAnnotationKey: 'attribute-pattern-definitions',
+        define(patternDefs, Type) {
+            validatePrototype(Type.prototype, patternDefs);
+            const definition = new AttributePatternResourceDefinition(Type);
+            const { name, definitionAnnotationKey } = exports.AttributePattern;
+            kernel_1.Metadata.define(name, definition, Type);
+            kernel_1.Protocol.resource.appendTo(Type, name);
+            kernel_1.Protocol.annotation.set(Type, definitionAnnotationKey, patternDefs);
+            kernel_1.Protocol.annotation.appendTo(Type, definitionAnnotationKey);
+            return Type;
+        },
+        getPatternDefinitions(Type) {
+            return kernel_1.Protocol.annotation.get(Type, exports.AttributePattern.definitionAnnotationKey);
+        }
+    });
 });
 //# sourceMappingURL=attribute-pattern.js.map

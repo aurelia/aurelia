@@ -16,6 +16,7 @@
     var attribute_pattern_1 = require("./attribute-pattern");
     exports.attributePattern = attribute_pattern_1.attributePattern;
     exports.IAttributePattern = attribute_pattern_1.IAttributePattern;
+    exports.AttributePattern = attribute_pattern_1.AttributePattern;
     exports.Interpretation = attribute_pattern_1.Interpretation;
     exports.ISyntaxInterpreter = attribute_pattern_1.ISyntaxInterpreter;
     var attribute_patterns_1 = require("./attribute-patterns");

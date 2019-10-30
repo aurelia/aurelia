@@ -144,7 +144,7 @@ import {
 } from '@aurelia/kernel';
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
-import { Host, IModule } from './Host';
+import { Host, IModule, ResolveSet, ResolvedBindingRecord } from './host';
 import { empty } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 const {
@@ -3735,43 +3735,6 @@ export class $ConstructorDeclaration implements I$Node {
   }
 }
 
-export class ResolveSet {
-  private readonly modules: IModule[] = [];
-  private readonly exportNames: string[] = [];
-  private count: number = 0;
-
-  public has(mod: IModule, exportName: string): boolean {
-    const modules = this.modules;
-    const exportNames = this.exportNames;
-    const count = this.count;
-
-    for (let i = 0; i < count; ++i) {
-      if (exportNames[i] === exportName && modules[i] === mod) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public add(mod: IModule, exportName: string): void {
-    const index = this.count;
-    this.modules[index] = mod;
-    this.exportNames[index] = exportName;
-    ++this.count;
-  }
-
-  public forEach(callback: (mod: IModule, exportName: string) => void): void {
-    const modules = this.modules;
-    const exportNames = this.exportNames;
-    const count = this.count;
-
-    for (let i = 0; i < count; ++i) {
-      callback(modules[i], exportNames[i]);
-    }
-  }
-}
-
 type $$ESModuleItem = (
   $$ESStatementListItem |
   $ImportDeclaration |
@@ -4103,6 +4066,146 @@ export class $SourceFile implements I$Node, IModule {
     this.logger.debug(`IndirectExportEntries: `, indirectExportEntries);
     this.logger.debug(`LocalExportEntries: `, localExportEntries);
     this.logger.debug(`StarExportEntries: `, starExportEntries);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
+  public InitializeEnvironment(): void {
+    // 1. Let module be this Source Text Module Record.
+    // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
+    for (const e of this.IndirectExportEntries) {
+      // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
+      const resolution = this.ResolveExport(e.ExportName!, new ResolveSet());
+
+      // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
+      if (resolution === null || resolution === 'ambiguous') {
+        throw new SyntaxError(`ResolveExport(${e.ExportName}) returned ${resolution}`);
+      }
+
+      // 2. c. Assert: resolution is a ResolvedBinding Record.
+    }
+
+    // 3. Assert: All named exports from module are resolvable.
+    // 4. Let realm be module.[[Realm]].
+    // 5. Assert: realm is not undefined.
+    // 6. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
+    // 7. Set module.[[Environment]] to env.
+    // 8. Let envRec be env's EnvironmentRecord.
+    // 9. For each ImportEntry Record in in module.[[ImportEntries]], do
+    // 9. a. Let importedModule be ! HostResolveImportedModule(module, in.[[ModuleRequest]]).
+    // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
+    // 9. c. If in.[[ImportName]] is "*", then
+    // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
+    // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
+    // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
+    // 9. d. Else,
+    // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
+    // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
+    // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
+    // 10. Let code be module.[[ECMAScriptCode]].
+    // 11. Let varDeclarations be the VarScopedDeclarations of code.
+    // 12. Let declaredVarNames be a new empty List.
+    // 13. For each element d in varDeclarations, do
+    // 13. a. For each element dn of the BoundNames of d, do
+    // 13. a. i. If dn is not an element of declaredVarNames, then
+    // 13. a. i. 1. Perform ! envRec.CreateMutableBinding(dn, false).
+    // 13. a. i. 2. Call envRec.InitializeBinding(dn, undefined).
+    // 13. a. i. 3. Append dn to declaredVarNames.
+    // 14. Let lexDeclarations be the LexicallyScopedDeclarations of code.
+    // 15. For each element d in lexDeclarations, do
+    // 15. a. For each element dn of the BoundNames of d, do
+    // 15. a. i. If IsConstantDeclaration of d is true, then
+    // 15. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
+    // 15. a. ii. Else,
+    // 15. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
+    // 15. a. iii. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+    // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
+    // 15. a. iii. 2. Call envRec.InitializeBinding(dn, fo).
+    // 16. Return NormalCompletion(empty).
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-resolveexport
+  public ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
+    // 1. Let module be this Source Text Module Record.
+    // 2. For each Record { [[Module]], [[ExportName]] } r in resolveSet, do
+    // 2. a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
+    if (resolveSet.has(this, exportName)) {
+      // 2. a. i. Assert: This is a circular import request.
+      // 2. a. ii. Return null.
+      return null;
+    }
+
+    // 3. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
+    resolveSet.add(this, exportName);
+
+    // 4. For each ExportEntry Record e in module.[[LocalExportEntries]], do
+    for (const e of this.LocalExportEntries) {
+      // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
+      if (exportName === e.ExportName) {
+        // 4. a. i. Assert: module provides the direct binding for this export.
+        // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
+        return new ResolvedBindingRecord(this, e.LocalName!);
+      }
+    }
+
+    const host = this.Host;
+
+    // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
+    for (const e of this.IndirectExportEntries) {
+      // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
+      if (exportName === e.ExportName) {
+        // 5. a. i. Assert: module imports a specific binding for this export.
+        // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
+        const importedModule = host.HostResolveImportedModule(this, e.ModuleRequest!);
+
+        // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
+        return importedModule.ResolveExport(e.ImportName!, resolveSet);
+      }
+    }
+
+    // 6. If SameValue(exportName, "default") is true, then
+    if (exportName === 'default') {
+      // 6. a. Assert: A default export was not explicitly defined by this module.
+      // 6. b. Return null.
+      return null;
+      // 6. c. NOTE: A default export cannot be provided by an export *.
+    }
+
+    // 7. Let starResolution be null.
+    let starResolution: ResolvedBindingRecord | null = null;
+
+    // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
+    for (const e of this.StarExportEntries) {
+      // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
+      const importedModule = host.HostResolveImportedModule(this, e.ModuleRequest!);
+
+      // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
+      const resolution = importedModule.ResolveExport(exportName, resolveSet);
+
+      // 8. c. If resolution is "ambiguous", return "ambiguous".
+      if (resolution === 'ambiguous') {
+        return 'ambiguous';
+      }
+
+      // 8. d. If resolution is not null, then
+      if (resolution !== null) {
+        // 8. d. i. Assert: resolution is a ResolvedBinding Record.
+        // 8. d. ii. If starResolution is null, set starResolution to resolution.
+        if (starResolution === null) {
+          starResolution = resolution;
+        }
+        // 8. d. iii. Else,
+        else {
+          // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
+          // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
+          if (!(resolution.Module === starResolution.Module && resolution.BindingName === starResolution.BindingName)) {
+            return 'ambiguous';
+          }
+        }
+      }
+    }
+
+    // 9. Return starResolution.
+    return starResolution;
   }
 }
 

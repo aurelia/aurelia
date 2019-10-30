@@ -12,12 +12,58 @@ function comparePathLength(a: { path: { length: number } }, b: { path: { length:
   return a.path.length - b.path.length;
 }
 
+export class ResolveSet {
+  private readonly modules: IModule[] = [];
+  private readonly exportNames: string[] = [];
+  private count: number = 0;
+
+  public has(mod: IModule, exportName: string): boolean {
+    const modules = this.modules;
+    const exportNames = this.exportNames;
+    const count = this.count;
+
+    for (let i = 0; i < count; ++i) {
+      if (exportNames[i] === exportName && modules[i] === mod) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public add(mod: IModule, exportName: string): void {
+    const index = this.count;
+    this.modules[index] = mod;
+    this.exportNames[index] = exportName;
+    ++this.count;
+  }
+
+  public forEach(callback: (mod: IModule, exportName: string) => void): void {
+    const modules = this.modules;
+    const exportNames = this.exportNames;
+    const count = this.count;
+
+    for (let i = 0; i < count; ++i) {
+      callback(modules[i], exportNames[i]);
+    }
+  }
+}
+
+export class ResolvedBindingRecord {
+  public constructor(
+    public readonly Module: IModule,
+    public readonly BindingName: string,
+  ) {}
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
 export interface IModule {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
   '<IModule>': any;
 
   readonly Host: Host;
+
+  ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
 }
 
 export class DeferredModule implements IModule {
@@ -27,6 +73,10 @@ export class DeferredModule implements IModule {
     public readonly $file: IFile,
     public readonly Host: Host,
   ) {}
+
+  public ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
+    throw new Error('Method not implemented.');
+  }
 }
 
 export class Host {

@@ -9,7 +9,7 @@ import { Host } from './vm/host';
   // Just for testing
   const root = resolve(__dirname, '..', '..', '..', '..');
   const host = new Host();
-  const pkg = await host.loadEntryPackage({ rootDir: root });
+  const file = await host.loadEntryFile({ rootDir: root });
 
 })().catch(err => {
   console.error(err);

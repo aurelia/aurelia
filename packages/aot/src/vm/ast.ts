@@ -3783,7 +3783,7 @@ export class $SourceFile implements I$Node {
     public readonly $file: IFile,
     public readonly node: SourceFile,
     public readonly host: Host,
-    public readonly npmPackage: NPMPackage,
+    public readonly pkg: NPMPackage,
   ) {
     this.id = host.registerNode(this);
 

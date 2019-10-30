@@ -1,8 +1,9 @@
 import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { I$Node } from './ast';
+import { I$Node, $SourceFile } from './ast';
 import { IFileSystem } from '../system/interfaces';
 import { NodeFileSystem } from '../system/file-system';
 import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
+import { createSourceFile, ScriptTarget } from 'typescript';
 
 export interface IOptions {
   readonly rootDir: string;
@@ -31,14 +32,12 @@ export class Host {
     this.logger = container.get(ILogger).root.scopeTo('Host');
   }
 
-  public loadEntryPackage(opts: IOptions): Promise<NPMPackage> {
-    this.logger.debug(`loadEntryPackage(${JSON.stringify(opts)})`);
-
-    const container = this.container.createChild();
-    Registration.instance(IOptions, opts).register(container);
-    const loader = container.get(NPMPackageLoader);
-
-    return loader.loadEntryPackage(opts.rootDir);
+  public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {
+    const pkg = await this.loadEntryPackage(opts);
+    const file = pkg.entryFile;
+    const sourceText = await file.getContent();
+    const sourceFile = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
+    return new $SourceFile(file, sourceFile, this, pkg);
   }
 
   public registerNode(node: I$Node): number {
@@ -46,5 +45,15 @@ export class Host {
     this.nodes[id] = node;
     ++this.nodeCount;
     return id;
+  }
+
+  private loadEntryPackage(opts: IOptions): Promise<NPMPackage> {
+    this.logger.debug(`loadEntryPackage(${JSON.stringify(opts)})`);
+
+    const container = this.container.createChild();
+    Registration.instance(IOptions, opts).register(container);
+    const loader = container.get(NPMPackageLoader);
+
+    return loader.loadEntryPackage(opts.rootDir);
   }
 }

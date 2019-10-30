@@ -155,6 +155,10 @@ function hasBit(flag: number, bit: number): boolean {
   return (flag & bit) > 0;
 }
 
+function hasAllBits(flag: number, bit: number): boolean {
+  return (flag & bit) === bit;
+}
+
 function clearBit(flag: number, bit: number): number {
   return (flag | bit) ^ bit;
 }
@@ -1017,14 +1021,13 @@ function GetDirectivePrologue(statements: readonly Statement[]): DirectiveProlog
 }
 
 function GetExpectedArgumentCount(params: readonly $ParameterDeclaration[]): number {
-  const len = params.length;
-  for (let i = 0; i < len; ++i) {
+  for (let i = 0, ii = params.length; i < ii; ++i) {
     if (params[i].HasInitializer) {
       return i;
     }
   }
 
-  return len;
+  return params.length;
 }
 
 const SyntheticAnonymousBoundNames = ['*default*'] as const;
@@ -1062,8 +1065,6 @@ export class $VariableStatement implements I$Node {
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-declarationpart
-  public readonly DeclarationPart: $VariableStatement = this;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
   public readonly ExportedBindings: readonly string[];
@@ -1102,16 +1103,16 @@ export class $VariableStatement implements I$Node {
       ctx,
     );
 
-    this.isLexical = $declarationList.isLexical;
+    const isLexical = this.isLexical = $declarationList.isLexical;
     this.IsConstantDeclaration = $declarationList.IsConstantDeclaration;
 
-    this.BoundNames = $declarationList.BoundNames;
+    const BoundNames = this.BoundNames = $declarationList.BoundNames;
     this.VarScopedDeclarations = $declarationList.VarScopedDeclarations;
 
     if (hasBit(ctx, Context.InExport)) {
-      this.ExportedBindings = this.BoundNames;
-      this.ExportedNames = this.BoundNames;
-      this.ExportEntries = this.BoundNames.map(name =>
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = BoundNames.map(name =>
         new ExportEntryRecord(
           /* ExportName */name,
           /* ModuleRequest */null,
@@ -1120,8 +1121,8 @@ export class $VariableStatement implements I$Node {
         )
       );
 
-      if (this.isLexical) {
-        this.LexicallyScopedDeclarations = [this.DeclarationPart];
+      if (isLexical) {
+        this.LexicallyScopedDeclarations = [this];
       } else {
         this.LexicallyScopedDeclarations = emptyArray;
       }
@@ -1177,6 +1178,19 @@ function $decoratorList(
   return $nodes;
 }
 
+// Simple property accessors used for some map/flatMap/some/every operations,
+// to avoid allocating a new arrow function for each of those calls.
+function getContainsExpression<T>(obj: { ContainsExpression: T }): T { return obj.ContainsExpression; }
+function getHasInitializer<T>(obj: { HasInitializer: T }): T { return obj.HasInitializer; }
+function getIsSimpleParameterList<T>(obj: { IsSimpleParameterList: T }): T { return obj.IsSimpleParameterList; }
+function getBoundNames<T>(obj: { BoundNames: T }): T { return obj.BoundNames; }
+function getVarScopedDeclarations<T>(obj: { VarScopedDeclarations: T }): T {  return obj.VarScopedDeclarations; }
+function getLocalName<T>(obj: { LocalName: T }): T { return obj.LocalName; }
+function getImportEntriesForModule<T>(obj: { ImportEntriesForModule: T }): T { return obj.ImportEntriesForModule; }
+function getExportedNames<T>(obj: { ExportedNames: T }): T { return obj.ExportedNames; }
+function getExportEntriesForModule<T>(obj: { ExportEntriesForModule: T }): T { return obj.ExportEntriesForModule; }
+function getReferencedBindings<T>(obj: { ReferencedBindings: T }): T { return obj.ReferencedBindings; }
+
 export class $FunctionDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.FunctionDeclaration;
   public readonly id: number;
@@ -1197,8 +1211,6 @@ export class $FunctionDeclaration implements I$Node {
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
   public readonly ContainsUseStrict: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-declarationpart
-  public readonly DeclarationPart: $FunctionDeclaration = this;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
@@ -1250,15 +1262,15 @@ export class $FunctionDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
     ctx = clearBit(ctx, Context.InTopLevel);
 
-    this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
+    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
     if (this.DirectivePrologue.ContainsUseStrict) {
       ctx |= Context.InStrictMode;
     }
@@ -1268,12 +1280,12 @@ export class $FunctionDeclaration implements I$Node {
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx);
 
-    this.ContainsExpression = $parameters.length === 0 || $parameters.some(p => p.ContainsExpression);
-    this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
+    this.ContainsExpression = $parameters.some(getContainsExpression);
+    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.HasInitializer = $parameters.some(p => p.HasInitializer);
+    this.HasInitializer = $parameters.some(getHasInitializer);
     const HasName = this.HasName = $name !== void 0;
-    this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+    this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
 
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
@@ -1288,9 +1300,9 @@ export class $FunctionDeclaration implements I$Node {
       if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
         if (HasName) {
           const [localName] = $name!.BoundNames;
-          this.BoundNames = [localName, '*default*'];
+          const BoundNames = this.BoundNames = [localName, '*default*'];
 
-          this.ExportedBindings = this.BoundNames;
+          this.ExportedBindings = BoundNames;
           this.ExportedNames = ['*default*'];
           this.ExportEntries = [
             new ExportEntryRecord(
@@ -1301,10 +1313,10 @@ export class $FunctionDeclaration implements I$Node {
             ),
           ];
         } else {
-          this.BoundNames = ['*default*'];
+          const BoundNames = this.BoundNames = ['*default*'];
 
-          this.ExportedBindings = this.BoundNames;
-          this.ExportedNames = this.BoundNames;
+          this.ExportedBindings = BoundNames;
+          this.ExportedNames = BoundNames;
           this.ExportEntries = [
             new ExportEntryRecord(
               /* ExportName */'*default*',
@@ -1316,11 +1328,11 @@ export class $FunctionDeclaration implements I$Node {
         }
       } else {
         // Must have a name, so we assume it does
-        this.BoundNames = $name!.BoundNames;
-        const [localName] = $name!.BoundNames;
+        const BoundNames = this.BoundNames = $name!.BoundNames;
+        const [localName] = BoundNames;
 
-        this.ExportedBindings = this.BoundNames;
-        this.ExportedNames = this.BoundNames;
+        this.ExportedBindings = BoundNames;
+        this.ExportedNames = BoundNames;
         this.ExportEntries = [
           new ExportEntryRecord(
             /* ExportName */localName,
@@ -1436,8 +1448,6 @@ export class $ClassDeclaration implements I$Node {
   public readonly BoundNames: readonly string[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: $ConstructorDeclaration | undefined;
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-declarationpart
-  public readonly DeclarationPart: $ClassDeclaration = this;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
@@ -1473,15 +1483,15 @@ export class $ClassDeclaration implements I$Node {
 
     ctx = clearBit(ctx, Context.InTopLevel);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
-    this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
+    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
@@ -1514,9 +1524,9 @@ export class $ClassDeclaration implements I$Node {
       if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
         if (HasName) {
           const [localName] = $name!.BoundNames;
-          this.BoundNames = [localName, '*default*'];
+          const BoundNames = this.BoundNames = [localName, '*default*'];
 
-          this.ExportedBindings = this.BoundNames;
+          this.ExportedBindings = BoundNames;
           this.ExportedNames = ['*default*'];
           this.ExportEntries = [
             new ExportEntryRecord(
@@ -1527,10 +1537,10 @@ export class $ClassDeclaration implements I$Node {
             ),
           ];
         } else {
-          this.BoundNames = ['*default*'];
+          const BoundNames = this.BoundNames = ['*default*'];
 
-          this.ExportedBindings = this.BoundNames;
-          this.ExportedNames = this.BoundNames;
+          this.ExportedBindings = BoundNames;
+          this.ExportedNames = BoundNames;
           this.ExportEntries = [
             new ExportEntryRecord(
               /* ExportName */'*default*',
@@ -1544,11 +1554,11 @@ export class $ClassDeclaration implements I$Node {
         this.LexicallyScopedDeclarations = [this];
       } else {
         // Must have a name, so we assume it does
-        this.BoundNames = $name!.BoundNames;
-        const [localName] = $name!.BoundNames;
+        const BoundNames = this.BoundNames = $name!.BoundNames;
+        const [localName] = BoundNames;
 
-        this.ExportedBindings = this.BoundNames;
-        this.ExportedNames = this.BoundNames;
+        this.ExportedBindings = BoundNames;
+        this.ExportedNames = BoundNames;
         this.ExportEntries = [
           new ExportEntryRecord(
             /* ExportName */localName,
@@ -1558,7 +1568,7 @@ export class $ClassDeclaration implements I$Node {
           ),
         ];
 
-        this.LexicallyScopedDeclarations = [this.DeclarationPart];
+        this.LexicallyScopedDeclarations = [this];
       }
     } else {
       // Must have a name, so we assume it does
@@ -1585,7 +1595,6 @@ export class $InterfaceDeclaration implements I$Node {
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
-  public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
   public readonly $heritageClauses: readonly $HeritageClause[];
 
@@ -1602,7 +1611,6 @@ export class $InterfaceDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
   }
@@ -1618,7 +1626,6 @@ export class $TypeAliasDeclaration implements I$Node {
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
-  public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
 
   public constructor(
@@ -1634,7 +1641,6 @@ export class $TypeAliasDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $identifier(node.name, this, ctx);
   }
 }
@@ -1666,7 +1672,6 @@ export class $EnumDeclaration implements I$Node {
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
-  public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier;
   public readonly $members: readonly $EnumMember[];
 
@@ -1683,7 +1688,6 @@ export class $EnumDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $identifier(node.name, this, ctx);
     this.$members = $enumMemberList(node.members, this, ctx);
   }
@@ -1723,18 +1727,18 @@ export class $VariableDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = node.flags;
 
     if (hasBit(ctx, Context.InVariableStatement)) {
       this.combinedNodeFlags = node.flags | (parent as $VariableDeclarationList).combinedNodeFlags;
-      this.combinedModifierFlags = this.modifierFlags | (parent as $VariableDeclarationList).combinedModifierFlags;
+      this.combinedModifierFlags = modifierFlags | (parent as $VariableDeclarationList).combinedModifierFlags;
     } else {
       this.combinedNodeFlags = node.flags;
-      this.combinedModifierFlags = this.modifierFlags;
+      this.combinedModifierFlags = modifierFlags;
     }
 
-    this.$name = $$bindingName(node.name, this, ctx);
+    const $name = this.$name = $$bindingName(node.name, this, ctx);
 
     // Clear this flag because it's used inside $Identifier to declare locals/exports
     // and we don't want to do that on the identifiers in types/initializers.
@@ -1742,7 +1746,7 @@ export class $VariableDeclaration implements I$Node {
 
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
-    this.BoundNames = this.$name.BoundNames;
+    this.BoundNames = $name.BoundNames;
     if (hasBit(ctx, Context.IsVar)) { // TODO: what about parameter and for declarations?
       this.VarScopedDeclarations = [this];
       this.IsConstantDeclaration = false;
@@ -1822,8 +1826,8 @@ export class $VariableDeclarationList implements I$Node {
 
     const $declarations = this.$declarations = $variableDeclarationList(node.declarations, this, ctx);
 
-    this.BoundNames = $declarations.flatMap(x => x.BoundNames);
-    this.VarScopedDeclarations = $declarations.flatMap(x => x.VarScopedDeclarations);
+    this.BoundNames = $declarations.flatMap(getBoundNames);
+    this.VarScopedDeclarations = $declarations.flatMap(getVarScopedDeclarations);
   }
 }
 
@@ -2308,8 +2312,8 @@ export class $FunctionExpression implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
-    if (this.DirectivePrologue.ContainsUseStrict) {
+    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
+    if (DirectivePrologue.ContainsUseStrict) {
       ctx |= Context.InStrictMode;
     }
 
@@ -2317,13 +2321,13 @@ export class $FunctionExpression implements I$Node {
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body, this, ctx);
 
-    this.BoundNames = $parameters.flatMap(x => x.BoundNames);
-    this.ContainsExpression = $parameters.length === 0 || $parameters.some(p => p.ContainsExpression);
-    this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
+    this.BoundNames = $parameters.flatMap(getBoundNames);
+    this.ContainsExpression = $parameters.some(getContainsExpression);
+    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.HasInitializer = $parameters.some(p => p.HasInitializer);
+    this.HasInitializer = $parameters.some(getHasInitializer);
     this.HasName = $name !== void 0;
-    this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+    this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
 
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
@@ -2401,9 +2405,9 @@ export class $ParenthesizedExpression implements I$Node {
 
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
-    this.CoveredParenthesizedExpression = this.$expression;
+    this.CoveredParenthesizedExpression = $expression;
   }
 }
 
@@ -2444,7 +2448,7 @@ export class $ClassExpression implements I$Node {
 
     ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $name = this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
@@ -2453,7 +2457,7 @@ export class $ClassExpression implements I$Node {
     if ($name === void 0) {
       this.BoundNames = SyntheticAnonymousBoundNames;
     } else {
-      if ((this.modifierFlags & ModifierFlags.ExportDefault) === ModifierFlags.ExportDefault) {
+      if (hasAllBits(modifierFlags, ModifierFlags.ExportDefault)) {
         this.BoundNames = [...$name.BoundNames, '*default*'];
       } else {
         this.BoundNames = $name.BoundNames;
@@ -2701,7 +2705,6 @@ export class $BinaryExpression implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    const inExpressionStatement = hasBit(ctx, Context.InExpressionStatement);
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
@@ -2796,8 +2799,8 @@ export class $ArrowFunction implements I$Node {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
-      this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
-      if (this.DirectivePrologue.ContainsUseStrict) {
+      const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
+      if (DirectivePrologue.ContainsUseStrict) {
         ctx |= Context.InStrictMode;
         this.ContainsUseStrict = true;
       } else {
@@ -2807,9 +2810,9 @@ export class $ArrowFunction implements I$Node {
       const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
       const $body = this.$body = new $Block(node.body as Block, this, ctx);
 
-      this.BoundNames = $parameters.flatMap(x => x.BoundNames);
+      this.BoundNames = $parameters.flatMap(getBoundNames);
       this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-      this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+      this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
       this.CoveredFormalsList = $parameters;
 
       // TODO: we sure about this?
@@ -2822,9 +2825,9 @@ export class $ArrowFunction implements I$Node {
       const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
       this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx);
 
-      this.BoundNames = $parameters.flatMap(x => x.BoundNames);
+      this.BoundNames = $parameters.flatMap(getBoundNames);
       this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-      this.IsSimpleParameterList = $parameters.every(p => p.IsSimpleParameterList);
+      this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
       this.CoveredFormalsList = $parameters;
 
       this.LexicallyScopedDeclarations = emptyArray;
@@ -2992,9 +2995,9 @@ export class $Identifier implements I$Node {
 
     this.BoundNames = [node.text] as const;
     this.StringValue = node.text;
-    this.PropName = this.StringValue;
+    const PropName = this.PropName = this.StringValue;
 
-    if (hasBit(ctx, Context.InStrictMode) && (this.PropName === 'eval' || this.PropName === 'arguments')) {
+    if (hasBit(ctx, Context.InStrictMode) && (PropName === 'eval' || PropName === 'arguments')) {
       this.AssignmentTargetType = 'strict';
     } else {
       this.AssignmentTargetType = 'simple';
@@ -3420,8 +3423,8 @@ export class $StringLiteral implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.StringValue = node.text;
-    this.PropName = this.StringValue;
+    const StringValue = this.StringValue = node.text;
+    this.PropName = StringValue;
   }
 }
 
@@ -3557,13 +3560,13 @@ export class $PropertyDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
-    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+    this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3594,16 +3597,16 @@ export class $MethodDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     this.$body = new $Block(node.body!, this, ctx);
 
     this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.PropName = this.$name.PropName;
-    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+    this.PropName = $name.PropName;
+    this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3634,15 +3637,15 @@ export class $GetAccessorDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     this.$body = new $Block(node.body!, this, ctx);
 
-    this.PropName = this.$name.PropName;
-    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+    this.PropName = $name.PropName;
+    this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3673,15 +3676,15 @@ export class $SetAccessorDeclaration implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
     this.$body = new $Block(node.body!, this, ctx);
 
-    this.PropName = this.$name.PropName;
-    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+    this.PropName = $name.PropName;
+    this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
 }
 
@@ -3822,7 +3825,7 @@ export class $SourceFile implements I$Node {
           $stmt = $statements[s++] = new $ImportDeclaration(stmt, this, ctx);
 
           ImportEntries.push(...$stmt.ImportEntries);
-          ImportedLocalNames.push(...$stmt.ImportEntries.map(x => x.LocalName));
+          ImportedLocalNames.push(...$stmt.ImportEntries.map(getLocalName));
 
           ModuleRequests.push(...$stmt.ModuleRequests);
           break;
@@ -4113,9 +4116,9 @@ export class $ImportDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
+    const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
 
-    this.moduleSpecifier = this.$moduleSpecifier.StringValue;
+    const moduleSpecifier = this.moduleSpecifier = $moduleSpecifier.StringValue;
 
     if (node.importClause === void 0) {
       this.$importClause = void 0;
@@ -4129,7 +4132,7 @@ export class $ImportDeclaration implements I$Node {
       this.ImportEntries = $importClause.ImportEntriesForModule;
     }
 
-    this.ModuleRequests = [this.moduleSpecifier];
+    this.ModuleRequests = [moduleSpecifier];
   }
 }
 
@@ -4225,8 +4228,8 @@ export class $NamedImports implements I$Node {
 
     const $elements = this.$elements = node.elements.map(x => new $ImportSpecifier(x, this, ctx));
 
-    this.BoundNames = $elements.flatMap(x => x.BoundNames);
-    this.ImportEntriesForModule = $elements.flatMap(x => x.ImportEntriesForModule);
+    this.BoundNames = $elements.flatMap(getBoundNames);
+    this.ImportEntriesForModule = $elements.flatMap(getImportEntriesForModule);
   }
 }
 
@@ -4252,14 +4255,14 @@ export class $ImportSpecifier implements I$Node {
     this.id = root.registerNode(this);
 
     const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
-    this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx);
 
-    this.BoundNames = this.$name.BoundNames;
+    const BoundNames = this.BoundNames = this.$name.BoundNames;
 
     const moduleSpecifier = parent.moduleSpecifier;
 
     if ($propertyName === void 0) {
-      const [localName] = this.BoundNames;
+      const [localName] = BoundNames;
       this.ImportEntriesForModule = [
         new ImportEntryRecord(
           /* ModuleRequest */moduleSpecifier,
@@ -4269,7 +4272,7 @@ export class $ImportSpecifier implements I$Node {
       ];
     } else {
       const importName = $propertyName.StringValue;
-      const localName = this.$name.StringValue;
+      const localName = $name.StringValue;
       this.ImportEntriesForModule = [
         new ImportEntryRecord(
           /* ModuleRequest */moduleSpecifier,
@@ -4301,13 +4304,13 @@ export class $NamespaceImport implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx);
 
-    this.BoundNames = this.$name.BoundNames;
+    this.BoundNames = $name.BoundNames;
 
     const moduleSpecifier = parent.moduleSpecifier;
 
-    const localName = this.$name.StringValue;
+    const localName = $name.StringValue;
     this.ImportEntriesForModule = [
       new ImportEntryRecord(
         /* ModuleRequest */moduleSpecifier,
@@ -4404,16 +4407,17 @@ export class $ExportDeclaration implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
+    let moduleSpecifier: string | null;
     if (node.moduleSpecifier === void 0) {
       this.$moduleSpecifier = void 0;
-      this.moduleSpecifier = null;
+      moduleSpecifier = this.moduleSpecifier = null;
 
       this.ModuleRequests = emptyArray;
     } else {
-      this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
-      this.moduleSpecifier = this.$moduleSpecifier!.StringValue;
+      const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
+      moduleSpecifier = this.moduleSpecifier = $moduleSpecifier!.StringValue;
 
-      this.ModuleRequests = [this.moduleSpecifier];
+      this.ModuleRequests = [moduleSpecifier];
     }
 
     if (node.exportClause === void 0) {
@@ -4423,7 +4427,7 @@ export class $ExportDeclaration implements I$Node {
       this.ExportEntries = [
         new ExportEntryRecord(
           /* ExportName */null,
-          /* ModuleRequest */this.moduleSpecifier,
+          /* ModuleRequest */moduleSpecifier,
           /* ImportName */'*',
           /* LocalName */null,
         ),
@@ -4463,11 +4467,11 @@ export class $NamedExports implements I$Node {
 
     this.moduleSpecifier = parent.moduleSpecifier;
 
-    this.$elements = node.elements.map(x => new $ExportSpecifier(x, this, ctx));
+    const $elements = this.$elements = node.elements.map(x => new $ExportSpecifier(x, this, ctx));
 
-    this.ExportedNames = this.$elements.flatMap(x => x.ExportedNames);
-    this.ExportEntriesForModule = this.$elements.flatMap(x => x.ExportEntriesForModule);
-    this.ReferencedBindings = this.$elements.flatMap(x => x.ReferencedBindings);
+    this.ExportedNames = $elements.flatMap(getExportedNames);
+    this.ExportEntriesForModule = $elements.flatMap(getExportEntriesForModule);
+    this.ReferencedBindings = $elements.flatMap(getReferencedBindings);
   }
 }
 
@@ -4495,9 +4499,9 @@ export class $ExportSpecifier implements I$Node {
     this.id = root.registerNode(this);
 
     const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
-    this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx);
 
-    const sourceName = this.$name.StringValue;
+    const sourceName = $name.StringValue;
     const moduleSpecifier = parent.moduleSpecifier;
 
     this.ReferencedBindings = [sourceName];
@@ -4643,6 +4647,7 @@ export class $QualifiedName implements I$Node {
     } else {
       this.$left = new $QualifiedName(node.left, this, ctx);
     }
+
     this.$right = new $Identifier(node.right, this, ctx);
   }
 }
@@ -4720,12 +4725,19 @@ export class $ParameterDeclaration implements I$Node {
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$bindingName(node.name, this, ctx);
-    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
     this.BoundNames = $name.BoundNames;
-    this.ContainsExpression = $initializer !== void 0 || $name.ContainsExpression;
-    this.HasInitializer = $initializer !== void 0;
-    this.IsSimpleParameterList = $initializer === void 0 && $name.IsSimpleParameterList;
+    if (node.initializer === void 0) {
+      this.$initializer = void 0;
+      this.ContainsExpression = $name.ContainsExpression;
+      this.HasInitializer = false;
+      this.IsSimpleParameterList = $name.IsSimpleParameterList;
+    } else {
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+      this.ContainsExpression = true;
+      this.HasInitializer = true;
+      this.IsSimpleParameterList = false;
+    }
   }
 }
 
@@ -4766,10 +4778,10 @@ export class $ObjectBindingPattern implements I$Node {
 
     const $elements = this.$elements = node.elements.map(x => new $BindingElement(x, this, ctx));
 
-    this.BoundNames = $elements.flatMap(x => x.BoundNames);
-    this.ContainsExpression = $elements.some(x => x.ContainsExpression);
-    this.HasInitializer = $elements.some(x => x.HasInitializer);
-    this.IsSimpleParameterList = $elements.every(x => x.IsSimpleParameterList);
+    this.BoundNames = $elements.flatMap(getBoundNames);
+    this.ContainsExpression = $elements.some(getContainsExpression);
+    this.HasInitializer = $elements.some(getHasInitializer);
+    this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
   }
 }
 
@@ -4843,10 +4855,10 @@ export class $ArrayBindingPattern implements I$Node {
 
     const $elements = this.$elements = $$arrayBindingElementList(node.elements, this, ctx);
 
-    this.BoundNames = $elements.flatMap(x => x.BoundNames);
-    this.ContainsExpression = $elements.some(x => x.ContainsExpression);
-    this.HasInitializer = $elements.some(x => x.HasInitializer);
-    this.IsSimpleParameterList = $elements.every(x => x.IsSimpleParameterList);
+    this.BoundNames = $elements.flatMap(getBoundNames);
+    this.ContainsExpression = $elements.some(getContainsExpression);
+    this.HasInitializer = $elements.some(getHasInitializer);
+    this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
   }
 }
 
@@ -4978,10 +4990,10 @@ export class $PropertyAssignment implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
-    this.PropName = this.$name.PropName;
+    this.PropName = $name.PropName;
   }
 }
 
@@ -5008,10 +5020,10 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx);
     this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode, this, ctx);
 
-    this.PropName = this.$name.PropName;
+    this.PropName = $name.PropName;
   }
 }
 
@@ -5100,18 +5112,18 @@ export class $Block implements I$Node {
       $statement = $statements[i];
       switch ($statement.$kind) {
         case SyntaxKind.FunctionDeclaration:
-          LexicallyScopedDeclarations.push($statement.DeclarationPart);
+          LexicallyScopedDeclarations.push($statement);
 
-          TopLevelVarScopedDeclarations.push($statement.DeclarationPart);
+          TopLevelVarScopedDeclarations.push($statement);
           break;
         case SyntaxKind.ClassDeclaration:
-          LexicallyScopedDeclarations.push($statement.DeclarationPart);
+          LexicallyScopedDeclarations.push($statement);
 
           TopLevelLexicallyScopedDeclarations.push($statement);
           break;
         case SyntaxKind.VariableStatement:
           if ($statement.isLexical) {
-            LexicallyScopedDeclarations.push($statement.DeclarationPart);
+            LexicallyScopedDeclarations.push($statement);
 
             TopLevelLexicallyScopedDeclarations.push($statement);
           } else {
@@ -5244,10 +5256,10 @@ export class $DoStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
-    this.VarScopedDeclarations = this.$statement.VarScopedDeclarations;
+    this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
 }
 
@@ -5270,10 +5282,10 @@ export class $WhileStatement implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
-    this.VarScopedDeclarations = this.$statement.VarScopedDeclarations;
+    this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
 }
 
@@ -5511,9 +5523,9 @@ export class $WithStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
-    this.VarScopedDeclarations = this.$statement.VarScopedDeclarations;
+    this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
 }
 
@@ -5537,9 +5549,9 @@ export class $SwitchStatement implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
+    const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
 
-    this.VarScopedDeclarations = this.$caseBlock.VarScopedDeclarations;
+    this.VarScopedDeclarations = $caseBlock.VarScopedDeclarations;
   }
 }
 
@@ -5701,13 +5713,13 @@ export class $CaseBlock implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$clauses = node.clauses.map(
+    const $clauses = this.$clauses = node.clauses.map(
       x => x.kind === SyntaxKind.CaseClause
         ? new $CaseClause(x, this, ctx)
         : new $DefaultClause(x, this, ctx)
     );
 
-    this.VarScopedDeclarations = this.$clauses.flatMap(x => x.VarScopedDeclarations);
+    this.VarScopedDeclarations = $clauses.flatMap(getVarScopedDeclarations);
   }
 }
 
@@ -5731,9 +5743,9 @@ export class $CaseClause implements I$Node {
     this.id = root.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
-    this.VarScopedDeclarations = this.$statements.flatMap(x => x.VarScopedDeclarations);
+    this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
 }
 
@@ -5755,9 +5767,9 @@ export class $DefaultClause implements I$Node {
   ) {
     this.id = root.registerNode(this);
 
-    this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
-    this.VarScopedDeclarations = this.$statements.flatMap(x => x.VarScopedDeclarations);
+    this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
 }
 
@@ -5787,9 +5799,9 @@ export class $CatchClause implements I$Node {
     } else {
       this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, this, ctx);
     }
-    this.$block = new $Block(node.block, this, ctx);
+    const $block = this.$block = new $Block(node.block, this, ctx);
 
-    this.VarScopedDeclarations = this.$block.VarScopedDeclarations;
+    this.VarScopedDeclarations = $block.VarScopedDeclarations;
   }
 }
 

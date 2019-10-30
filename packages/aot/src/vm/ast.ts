@@ -297,16 +297,6 @@ type $ArgumentOrArrayLiteralElementNode = (
   OmittedExpression
 );
 
-type $DeclarationNode = (
-  $ModuleStatementNode |
-  VariableStatement |
-  FunctionDeclaration |
-  ClassDeclaration |
-  InterfaceDeclaration |
-  TypeAliasDeclaration |
-  EnumDeclaration
-);
-
 type $LiteralNode = (
   NumericLiteral |
   BigIntLiteral |
@@ -371,8 +361,6 @@ type $ClassElementNode = (
 // #endregion
 
 // #region $Node type unions
-
-type $$CoverCallExpressionAndAsyncArrowHead = $$LHSExpressionOrHigher;
 
 type $AnyParentNode = (
   $$TSModuleItem |
@@ -470,23 +458,6 @@ type $$JsxOpeningLikeElement = (
 // #endregion
 
 // #region Builders
-
-function $assignmentExpressionList(
-  nodes: readonly $AssignmentExpressionNode[] | undefined,
-  parent: $AnyParentNode,
-  ctx: Context,
-): readonly $$AssignmentExpressionOrHigher[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $$AssignmentExpressionOrHigher[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = $assignmentExpression(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
 
 type $$BinaryExpression = (
   $AsExpression |
@@ -607,6 +578,16 @@ function $unaryExpression(
   }
 }
 
+type $$Literal = (
+  $BigIntLiteral |
+  $BooleanLiteral |
+  $NoSubstitutionTemplateLiteral |
+  $NullLiteral |
+  $NumericLiteral |
+  $RegularExpressionLiteral |
+  $StringLiteral
+);
+
 type $$PrimaryExpression = (
   $ArrayLiteralExpression |
   $ClassExpression |
@@ -689,27 +670,6 @@ function $LHSExpression(
       return new $ThisExpression(node, parent, ctx);
     case SyntaxKind.SuperKeyword:
       return new $SuperExpression(node, parent, ctx);
-    default:
-      return $literal(node, parent, ctx);
-  }
-}
-
-type $$Literal = (
-  $BigIntLiteral |
-  $BooleanLiteral |
-  $NoSubstitutionTemplateLiteral |
-  $NullLiteral |
-  $NumericLiteral |
-  $RegularExpressionLiteral |
-  $StringLiteral
-);
-
-function $literal(
-  node: $LiteralNode,
-  parent: $AnyParentNode,
-  ctx: Context,
-): $$Literal {
-  switch (node.kind) {
     case SyntaxKind.NumericLiteral:
       return new $NumericLiteral(node, parent, ctx);
     case SyntaxKind.BigIntLiteral:
@@ -728,50 +688,6 @@ function $literal(
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
   }
-}
-
-type $NodeWithSpreadElements = (
-  $ArrayLiteralExpression |
-  $CallExpression |
-  $NewExpression
-);
-
-type $$ArgumentOrArrayLiteralElement = (
-  $$AssignmentExpressionOrHigher |
-  $SpreadElement |
-  $OmittedExpression
-);
-
-function $argumentOrArrayLiteralElement(
-  node: $ArgumentOrArrayLiteralElementNode,
-  parent: $NodeWithSpreadElements,
-  ctx: Context,
-): $$ArgumentOrArrayLiteralElement {
-  switch (node.kind) {
-    case SyntaxKind.SpreadElement:
-      return new $SpreadElement(node, parent, ctx);
-    case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, parent, ctx);
-    default:
-      return $assignmentExpression(node, parent, ctx);
-  }
-}
-
-function $argumentOrArrayLiteralElementList(
-  nodes: readonly $ArgumentOrArrayLiteralElementNode[] | undefined,
-  parent: $NodeWithSpreadElements,
-  ctx: Context,
-): readonly $$ArgumentOrArrayLiteralElement[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $$ArgumentOrArrayLiteralElement[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], parent, ctx);
-  }
-  return $nodes;
 }
 
 function $identifier(
@@ -1045,64 +961,6 @@ function $$tsStatementList(
       continue;
     }
     $nodes[x++] = $$tsStatementListItem(node, parent, ctx);
-  }
-  return $nodes;
-}
-
-type $$ESModuleItem = (
-  $$ESStatementListItem |
-  $ImportDeclaration |
-  $ExportDeclaration
-);
-
-type $$TSModuleItem = (
-  $$ESModuleItem |
-  $$TSDeclaration |
-  $ExportAssignment |
-  $ImportEqualsDeclaration |
-  $ModuleDeclaration |
-  $NamespaceExportDeclaration
-);
-
-function $$tsModuleItem(
-  node: $StatementNode,
-  parent: $NodeWithStatements | $$ModuleDeclarationParent,
-  ctx: Context,
-): $$TSModuleItem {
-  switch (node.kind) {
-    case SyntaxKind.ModuleDeclaration:
-      return new $ModuleDeclaration(node, parent as $$ModuleDeclarationParent, ctx);
-    case SyntaxKind.NamespaceExportDeclaration:
-      return new $NamespaceExportDeclaration(node, parent as $$ModuleDeclarationParent, ctx);
-    case SyntaxKind.ImportEqualsDeclaration:
-      return new $ImportEqualsDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
-    case SyntaxKind.ImportDeclaration:
-      return new $ImportDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
-    case SyntaxKind.ExportAssignment:
-      return new $ExportAssignment(node, parent as $SourceFile, ctx);
-    case SyntaxKind.ExportDeclaration:
-      return new $ExportDeclaration(node, parent as $SourceFile | $ModuleBlock, ctx);
-    default:
-      return $$tsStatementListItem(node, parent as $NodeWithStatements, ctx);
-  }
-}
-
-function $$tsModuleItemList(
-  nodes: readonly $StatementNode[],
-  parent: $NodeWithStatements | $$ModuleDeclarationParent,
-  ctx: Context,
-): readonly $$TSModuleItem[] {
-  const len = nodes.length;
-  let node: $StatementNode;
-  const $nodes: $$TSModuleItem[] = [];
-
-  let x = 0;
-  for (let i = 0; i < len; ++i) {
-    node = nodes[i];
-    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
-      continue;
-    }
-    $nodes[x++] = $$tsModuleItem(node, parent, ctx);
   }
   return $nodes;
 }
@@ -2113,6 +1971,50 @@ export class $SuperExpression implements I$Node {
   ) {
     this.id = root.registerNode(this);
   }
+}
+
+type $NodeWithSpreadElements = (
+  $ArrayLiteralExpression |
+  $CallExpression |
+  $NewExpression
+);
+
+type $$ArgumentOrArrayLiteralElement = (
+  $$AssignmentExpressionOrHigher |
+  $SpreadElement |
+  $OmittedExpression
+);
+
+function $argumentOrArrayLiteralElement(
+  node: $ArgumentOrArrayLiteralElementNode,
+  parent: $NodeWithSpreadElements,
+  ctx: Context,
+): $$ArgumentOrArrayLiteralElement {
+  switch (node.kind) {
+    case SyntaxKind.SpreadElement:
+      return new $SpreadElement(node, parent, ctx);
+    case SyntaxKind.OmittedExpression:
+      return new $OmittedExpression(node, parent, ctx);
+    default:
+      return $assignmentExpression(node, parent, ctx);
+  }
+}
+
+function $argumentOrArrayLiteralElementList(
+  nodes: readonly $ArgumentOrArrayLiteralElementNode[] | undefined,
+  parent: $NodeWithSpreadElements,
+  ctx: Context,
+): readonly $$ArgumentOrArrayLiteralElement[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $$ArgumentOrArrayLiteralElement[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], parent, ctx);
+  }
+  return $nodes;
 }
 
 export class $ArrayLiteralExpression implements I$Node {
@@ -3830,6 +3732,20 @@ export class $ConstructorDeclaration implements I$Node {
   }
 }
 
+type $$ESModuleItem = (
+  $$ESStatementListItem |
+  $ImportDeclaration |
+  $ExportDeclaration
+);
+
+type $$TSModuleItem = (
+  $$ESModuleItem |
+  $$TSDeclaration |
+  $ExportAssignment |
+  $ImportEqualsDeclaration |
+  $ModuleDeclaration |
+  $NamespaceExportDeclaration
+);
 
 export class $SourceFile implements I$Node {
   public readonly $kind = SyntaxKind.SourceFile;
@@ -3840,7 +3756,7 @@ export class $SourceFile implements I$Node {
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
 
-  public readonly $statements: readonly $$TSModuleItem[] = [];
+  public readonly $statements: readonly $$TSModuleItem[];
 
   public readonly DirectivePrologue: DirectivePrologue;
 
@@ -4663,7 +4579,8 @@ export class $ModuleBlock implements I$Node {
   public readonly $kind = SyntaxKind.ModuleBlock;
   public readonly id: number;
 
-  public readonly $statements: readonly $$TSModuleItem[];
+  // TODO: ModuleBlock shares a lot in common with SourceFile, so we implement this last to try to maximize code reuse / reduce refactoring overhead and/or see if the two can be consolidated.
+  public readonly $statements: readonly $$TSModuleItem[] = emptyArray;
 
   public constructor(
     public readonly node: ModuleBlock,
@@ -4673,8 +4590,6 @@ export class $ModuleBlock implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = root.registerNode(this);
-
-    this.$statements = $$tsModuleItemList(node.statements as NodeArray<$ModuleStatementNode>, this, ctx);
   }
 }
 
@@ -5208,7 +5123,16 @@ export class $Block implements I$Node {
 
           VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
           break;
-        default:
+        case SyntaxKind.Block:
+        case SyntaxKind.IfStatement:
+        case SyntaxKind.DoStatement:
+        case SyntaxKind.WhileStatement:
+        case SyntaxKind.ForStatement:
+        case SyntaxKind.ForInStatement:
+        case SyntaxKind.ForOfStatement:
+        case SyntaxKind.WithStatement:
+        case SyntaxKind.SwitchStatement:
+        case SyntaxKind.TryStatement:
           VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
       }
     }

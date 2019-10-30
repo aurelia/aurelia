@@ -140,6 +140,7 @@ import {
 import {
   PLATFORM,
   Writable,
+  ILogger,
 } from '@aurelia/kernel';
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
@@ -3734,6 +3735,43 @@ export class $ConstructorDeclaration implements I$Node {
   }
 }
 
+export class ResolveSet {
+  private readonly modules: IModule[] = [];
+  private readonly exportNames: string[] = [];
+  private count: number = 0;
+
+  public has(mod: IModule, exportName: string): boolean {
+    const modules = this.modules;
+    const exportNames = this.exportNames;
+    const count = this.count;
+
+    for (let i = 0; i < count; ++i) {
+      if (exportNames[i] === exportName && modules[i] === mod) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public add(mod: IModule, exportName: string): void {
+    const index = this.count;
+    this.modules[index] = mod;
+    this.exportNames[index] = exportName;
+    ++this.count;
+  }
+
+  public forEach(callback: (mod: IModule, exportName: string) => void): void {
+    const modules = this.modules;
+    const exportNames = this.exportNames;
+    const count = this.count;
+
+    for (let i = 0; i < count; ++i) {
+      callback(modules[i], exportNames[i]);
+    }
+  }
+}
+
 type $$ESModuleItem = (
   $$ESStatementListItem |
   $ImportDeclaration |
@@ -3749,6 +3787,11 @@ type $$TSModuleItem = (
   $NamespaceExportDeclaration
 );
 
+export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' | 'evaluating' | 'evaluated';
+
+// http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
+// http://www.ecma-international.org/ecma-262/#sec-cyclic-module-records
+// http://www.ecma-international.org/ecma-262/#sec-source-text-module-records
 export class $SourceFile implements I$Node, IModule {
   '<IModule>': any;
 
@@ -3761,6 +3804,7 @@ export class $SourceFile implements I$Node, IModule {
   public readonly depth: number = 0;
 
   public readonly matcher: PatternMatcher | null;
+  public readonly logger: ILogger;
 
   public readonly $statements: readonly $$TSModuleItem[];
 
@@ -3783,6 +3827,15 @@ export class $SourceFile implements I$Node, IModule {
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
+  public Status: ModuleStatus;
+  public DFSIndex: number | undefined;
+  public DFSAncestorIndex: number | undefined;
+  public RequestedModules: string[];
+
+  public readonly LocalExportEntries: readonly ExportEntryRecord[];
+  public readonly IndirectExportEntries: readonly ExportEntryRecord[];
+  public readonly StarExportEntries: readonly ExportEntryRecord[];
+
   public constructor(
     public readonly $file: IFile,
     public readonly node: SourceFile,
@@ -3791,6 +3844,8 @@ export class $SourceFile implements I$Node, IModule {
     public readonly compilerOptions: CompilerOptions,
   ) {
     this.id = Host.registerNode(this);
+    const fileName = $file.path;
+    this.logger = pkg.container.get(ILogger).root.scopeTo(`SourceFile<${fileName.slice(fileName.lastIndexOf('/') + 1)}>`);
 
     this.matcher = PatternMatcher.getOrCreate(compilerOptions, pkg.container);
 
@@ -3961,6 +4016,93 @@ export class $SourceFile implements I$Node, IModule {
           throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
       }
     }
+
+    // http://www.ecma-international.org/ecma-262/#sec-parsemodule
+
+    // 1. Assert: sourceText is an ECMAScript source text (see clause 10).
+    // 2. Parse sourceText using Module as the goal symbol and analyse the parse result for any Early Error conditions. If the parse was successful and no early errors were found, let body be the resulting parse tree. Otherwise, let body be a List of one or more SyntaxError or ReferenceError objects representing the parsing errors and/or early errors. Parsing and early error detection may be interweaved in an implementation-dependent manner. If more than one parsing error or early error is present, the number and ordering of error objects in the list is implementation-dependent, but at least one must be present.
+    // 3. If body is a List of errors, return body.
+    // 4. Let requestedModules be the ModuleRequests of body.
+    const requestedModules = ModuleRequests;
+
+    // 5. Let importEntries be ImportEntries of body.
+    const importEntries = ImportEntries;
+
+    // 6. Let importedBoundNames be ImportedLocalNames(importEntries).
+    const importedBoundNames = ImportedLocalNames;
+
+    // 7. Let indirectExportEntries be a new empty List.
+    const indirectExportEntries: ExportEntryRecord[] = [];
+
+    // 8. Let localExportEntries be a new empty List.
+    const localExportEntries: ExportEntryRecord[] = [];
+
+    // 9. Let starExportEntries be a new empty List.
+    const starExportEntries: ExportEntryRecord[] = [];
+
+    // 10. Let exportEntries be ExportEntries of body.
+    const exportEntries = ExportEntries;
+    let ee: ExportEntryRecord;
+
+    // 11. For each ExportEntry Record ee in exportEntries, do
+    for (let i = 0, ii = exportEntries.length; i < ii; ++i) {
+      ee = exportEntries[i];
+
+      // 11. a. If ee.[[ModuleRequest]] is null, then
+      if (ee.ModuleRequest === null) {
+        // 11. a. i. If ee.[[LocalName]] is not an element of importedBoundNames, then
+        if (importedBoundNames.indexOf(ee.LocalName!) === -1) {
+          // 11. a. i. 1. Append ee to localExportEntries.
+          localExportEntries.push(ee);
+        }
+        // 11. a. ii. Else,
+        else {
+          // 11. a. ii. 1. Let ie be the element of importEntries whose [[LocalName]] is the same as ee.[[LocalName]].
+          const ie = importEntries.find(x => x.LocalName === ee.LocalName)!;
+          // 11. a. ii. 2. If ie.[[ImportName]] is "*", then
+          if (ie.ImportName === '*') {
+            // 11. a. ii. 2. a. Assert: This is a re-export of an imported module namespace object.
+            // 11. a. ii. 2. b. Append ee to localExportEntries.
+            localExportEntries.push(ee);
+          }
+          // 11. a. ii. 3. Else this is a re-export of a single name,
+          else {
+            // 11. a. ii. 3. a. Append the ExportEntry Record { [[ModuleRequest]]: ie.[[ModuleRequest]], [[ImportName]]: ie.[[ImportName]], [[LocalName]]: null, [[ExportName]]: ee.[[ExportName]] } to indirectExportEntries.
+            indirectExportEntries.push(new ExportEntryRecord(ee.ExportName, ie.ModuleRequest, ie.ImportName, null));
+          }
+        }
+      }
+      // 11. b. Else if ee.[[ImportName]] is "*", then
+      else if (ee.ImportName === '*') {
+      // 11. b. i. Append ee to starExportEntries.
+        starExportEntries.push(ee);
+      }
+      // 11. c. Else,
+      else {
+        // 11. c. i. Append ee to indirectExportEntries.
+        indirectExportEntries.push(ee);
+      }
+    }
+
+    // 12. Return Source Text Module Record { [[Realm]]: realm, [[Environment]]: undefined, [[Namespace]]: undefined, [[Status]]: "uninstantiated", [[EvaluationError]]: undefined, [[HostDefined]]: hostDefined, [[ECMAScriptCode]]: body, [[RequestedModules]]: requestedModules, [[ImportEntries]]: importEntries, [[LocalExportEntries]]: localExportEntries, [[IndirectExportEntries]]: indirectExportEntries, [[StarExportEntries]]: starExportEntries, [[DFSIndex]]: undefined, [[DFSAncestorIndex]]: undefined }.
+    this.Status = 'uninstantiated';
+    this.DFSIndex = void 0;
+    this.DFSAncestorIndex = void 0;
+
+    this.RequestedModules = requestedModules;
+
+    this.IndirectExportEntries = indirectExportEntries;
+    this.LocalExportEntries = localExportEntries;
+    this.StarExportEntries = starExportEntries;
+
+
+    this.logger.debug(`RequestedModules: `, requestedModules);
+
+    this.logger.debug(`ImportEntries: `, importEntries);
+
+    this.logger.debug(`IndirectExportEntries: `, indirectExportEntries);
+    this.logger.debug(`LocalExportEntries: `, localExportEntries);
+    this.logger.debug(`StarExportEntries: `, starExportEntries);
   }
 }
 

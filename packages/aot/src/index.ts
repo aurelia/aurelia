@@ -1,15 +1,15 @@
 /* eslint-disable import/no-nodejs-modules */
 import { DebugConfiguration } from '@aurelia/debug';
 import { resolve } from 'path';
-import { Workspace } from './workspace';
+import { Host } from './vm/host';
 
 (async function () {
   DebugConfiguration.register();
 
   // Just for testing
   const root = resolve(__dirname, '..', '..', '..', '..');
-  const ws = Workspace.create();
-  const project = await ws.loadProject(root);
+  const host = new Host();
+  const pkg = await host.loadEntryPackage({ rootDir: root });
 
 })().catch(err => {
   console.error(err);

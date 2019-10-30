@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import { ILogger, PLATFORM } from '@aurelia/kernel';
+import { ILogger, PLATFORM, IContainer } from '@aurelia/kernel';
 import { Char } from '@aurelia/jit';
 import { IFileSystem, IFile } from './interfaces';
 import { normalizePath, joinPath } from './path-utils';
@@ -172,16 +172,14 @@ export class NPMPackageLoader {
   private readonly pkgCache: Map<string, NPMPackage> = new Map();
   private readonly pkgPromiseCache: Map<string, Promise<NPMPackage>> = new Map();
 
-  public static get inject() {
-    // Temporary, because param decorators are being difficult in node/esm mode for some reason.
-    return [ILogger, IFileSystem];
-  }
+  public static get inject() { return [IContainer, ILogger, IFileSystem]; }
 
   public constructor(
+    public readonly container: IContainer,
     public readonly logger: ILogger,
     public readonly fs: IFileSystem,
   ) {
-    this.logger = this.logger.scopeTo(this.constructor.name);
+    this.logger = logger.root.scopeTo('NPMPackageLoader');
   }
 
   public async loadEntryPackage(

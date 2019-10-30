@@ -85,4 +85,9 @@ export interface IFileSystem {
   getFilesSync(packageDir: string): readonly IFile[];
 }
 
+export interface IOptions {
+  readonly rootDir: string;
+}
+
+export const IOptions = DI.createInterface<IOptions>('IOptions').noDefault();
 export const IFileSystem = DI.createInterface<IFileSystem>('IFileSystem').noDefault();

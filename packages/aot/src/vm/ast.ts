@@ -140,12 +140,12 @@ import {
 import {
   PLATFORM,
   Writable,
-  ILogger,
 } from '@aurelia/kernel';
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
-import { Host } from './host';
+import { Host, IModule } from './Host';
 import { empty } from './value';
+import { PatternMatcher } from '../system/pattern-matcher';
 const {
   emptyArray,
   emptyObject,
@@ -3749,7 +3749,9 @@ type $$TSModuleItem = (
   $NamespaceExportDeclaration
 );
 
-export class $SourceFile implements I$Node {
+export class $SourceFile implements I$Node, IModule {
+  '<IModule>': any;
+
   public readonly $kind = SyntaxKind.SourceFile;
   public readonly id: number;
 
@@ -3757,6 +3759,8 @@ export class $SourceFile implements I$Node {
   public readonly parent: $SourceFile = this;
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
+
+  public readonly matcher: PatternMatcher | null;
 
   public readonly $statements: readonly $$TSModuleItem[];
 
@@ -3784,8 +3788,11 @@ export class $SourceFile implements I$Node {
     public readonly node: SourceFile,
     public readonly host: Host,
     public readonly pkg: NPMPackage,
+    public readonly compilerOptions: CompilerOptions,
   ) {
     this.id = host.registerNode(this);
+
+    this.matcher = PatternMatcher.getOrCreate(compilerOptions, pkg.container);
 
     let ctx = Context.InTopLevel;
     this.DirectivePrologue = GetDirectivePrologue(node.statements);

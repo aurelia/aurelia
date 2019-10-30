@@ -2,7 +2,7 @@
 import { ILogger, PLATFORM, IContainer } from '@aurelia/kernel';
 import { Char } from '@aurelia/jit';
 import { IFileSystem, IFile } from './interfaces';
-import { normalizePath, joinPath } from './path-utils';
+import { normalizePath, joinPath, isRelativeModulePath } from './path-utils';
 import { basename } from 'path';
 import { Package } from './package-types';
 
@@ -126,37 +126,6 @@ const compareApplicationEntryFile = createFileComparer([
   'main.js',
 ]);
 
-/**
- * Returns `true` if this is an absolute POSIX, UNC or DOS path.
- *
- * Assumes path has already been normalized with `normalizePath`
- */
-function isRootedDiskPath(path: string): boolean {
-  const ch0 = path.charCodeAt(0);
-  return (
-    ch0 === Char.Slash
-    || (
-      ch0 >= Char.LowerA
-      && ch0 <= Char.LowerZ
-      && path.charCodeAt(1) === Char.Colon
-    )
-  );
-}
-
-function isRelativeModulePath(path: string): boolean {
-  const ch0 = path.charCodeAt(0);
-  if (ch0 === Char.Dot) {
-    const ch1 = path.charCodeAt(1);
-    if (ch1 === Char.Dot) {
-      return path.charCodeAt(2) === Char.Slash || path.length === 2;
-    }
-
-    return ch1 === Char.Slash || path.length === 1;
-  }
-
-  return isRootedDiskPath(path);
-}
-
 function determineEntryFileByConvention(
   files: readonly IFile[],
   isPrimaryEntryPoint: boolean,
@@ -208,6 +177,14 @@ export class NPMPackageLoader {
     }
 
     return entryPkg;
+  }
+
+  public getCachedPackage(path: string): NPMPackage {
+    const pkg = this.pkgCache.get(path);
+    if (pkg === void 0) {
+      throw new Error(`Cannot resolve package ${path}`);
+    }
+    return pkg;
   }
 
   /** @internal */
@@ -268,6 +245,8 @@ export class NPMPackage {
   public readonly entryFile: IFile;
   public readonly deps: readonly NPMPackageDependency[];
 
+  public readonly container: IContainer;
+
   public constructor(
     public readonly nodeModulesDir: string,
     public readonly loader: NPMPackageLoader,
@@ -277,6 +256,8 @@ export class NPMPackage {
     dir: string,
     pkgJsonFileContent: string,
   ) {
+    this.container = loader.container;
+
     const pkgJson = this.pkgJson = JSON.parse(pkgJsonFileContent) as Package;
     const pkgName = this.pkgName = typeof pkgJson.name === 'string' ? pkgJson.name : dir.slice(dir.lastIndexOf('/') + 1);
     const pkgModuleOrMain = typeof pkgJson.module === 'string' ? pkgJson.module : pkgJson.main;

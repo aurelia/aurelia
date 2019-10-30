@@ -5,6 +5,7 @@ import { Laptop, Storage } from './molecules/specs-viewer/laptop-specs-viewer';
 import { User } from './molecules/user-preference/user-preference';
 import { Thing } from './molecules/specs-viewer/thing-viewer';
 import { SelectOption } from './atoms/select-dropdown/select-dropdown';
+import { Card } from './molecules/cards/cards';
 
 type Contact = { number: number; type: string };
 export type Product = { id: number; name: string };
@@ -79,6 +80,15 @@ export class App {
   public selectedItems3: Item[] = [{ id: 0, name: 'Motherboard' }];
   public selectedItems4: Item[] = [this.items4[0].id];
   // #endregion
+
+  public heroes: Card[] = [
+    { header: 'Iron Man', details: 'Inventor Tony Stark applies his genius for high-tech solutions to problems as Iron Man, the armored Avenger.' },
+    { header: 'Captain America', details: 'America’s World War II Super-Soldier continues his fight in the present as an Avenger and untiring sentinel of liberty.' },
+    { header: 'Hulk', details: 'Exposed to heavy doses of gamma radiation, scientist Bruce Banner transforms into the mean, green rage machine called the Hulk.' },
+    { header: 'Spider-Man', details: 'With amazing spider-like abilities, teenage science whiz Peter Parker fights crime and dreams of becoming an Avenger as Spider-Man.' },
+    { header: 'Thor', details: 'Thor Odinson wields the power of the ancient Asgardians to fight evil throughout the Nine Realms and beyond.' }
+  ];
+  public selectedHero: Card = this.heroes[0];
 
   public changeTexts() {
     this.text1 = 'newText1';

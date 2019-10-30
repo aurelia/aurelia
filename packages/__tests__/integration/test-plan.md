@@ -40,7 +40,7 @@
 #### Observation
 - [ ] `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
 - [x] `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
-- [ ] `class-attribute-accessor`: manipulates class attributes for an element.
+- [ ] ``: manipulates class attributes for an element.
 - [ ] `data-attribute-observer`: observes non-class, and non-style HTML attributes.
   ```html
   <div aria-disabled.attr="disabled">

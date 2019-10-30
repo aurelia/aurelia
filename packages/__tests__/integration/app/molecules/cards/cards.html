@@ -1,0 +1,4 @@
+<div repeat.for="item of items" class="card ${item == selected ? 'selected' : ''}" click.delegate="select(item)">
+  <h2>${item.header}</h2>
+  <span class.bind="item == selected ? 'selectedDetails' : ''">${item.details}</span>
+</div>

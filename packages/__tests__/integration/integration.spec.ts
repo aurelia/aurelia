@@ -6,7 +6,7 @@ import { App, Product } from './app/app';
 import { startup, TestExecutionContext } from './app/startup';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 
-describe('app', function () {
+describe.only('app', function () {
   function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
     return async function () {
       const ctx = await startup();
@@ -810,4 +810,21 @@ describe('app', function () {
       }
     })
   );
+
+  $it(`uses cards to display topic details which marks the selected topic with a specific color`, function ({ host, ctx }) {
+    const cardsCE = host.querySelector('cards');
+    const cards = toArray(cardsCE.querySelectorAll('div'));
+
+    assert.equal(getComputedStyle(cardsCE).display, "flex", "incorrect cards display");
+    assert.equal(getComputedStyle(cards[0]).backgroundColor, "rgb(0, 0, 255)", "incorrect selected background1");
+    assert.equal(getComputedStyle(cards[0].querySelector("span")).color, "rgb(203, 203, 203)", "incorrect selected color1");
+
+    cards[1].click();
+    ctx.scheduler.yieldAll();
+
+    assert.equal(getComputedStyle(cards[0]).backgroundColor, "rgba(0, 0, 0, 0)", "incorrect background1");
+    assert.equal(getComputedStyle(cards[0].querySelector("span")).color, "rgb(0, 0, 0)", "incorrect color1");
+    assert.equal(getComputedStyle(cards[1]).backgroundColor, "rgb(0, 0, 255)", "incorrect selected background2");
+    assert.equal(getComputedStyle(cards[1].querySelector("span")).color, "rgb(203, 203, 203)", "incorrect selected color2");
+  });
 });

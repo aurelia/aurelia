@@ -106,6 +106,18 @@ module.exports = function (config) {
           {
             test: /\.html$/i,
             loader: 'html-loader'
+          },
+          {
+            test: /\.css$/i,
+            use: [
+              'style-loader',
+              {
+                loader: 'css-loader',
+                options: {
+                  modules: { localIdentName: '[name]__[local]__[hash:base64]' },
+                }
+              }
+            ]
           }
         ]
       }

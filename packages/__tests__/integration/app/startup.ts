@@ -1,6 +1,7 @@
 /* eslint-disable no-shadow */
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, FrequentMutations } from '@aurelia/runtime';
+import { StyleConfiguration } from '@aurelia/runtime-html';
 import { HTMLTestContext, TestContext, CallCollection } from '@aurelia/testing';
 import { App as component } from './app';
 import { atoms } from './atoms';
@@ -26,7 +27,8 @@ export async function startup() {
   au
     .register(FrequentMutations as unknown as IRegistration)
     .register(atoms)
-    .register(molecules);
+    .register(molecules)
+    .register(StyleConfiguration.cssModulesProcessor());
   au.app({ host, component });
 
   await au.start().wait();

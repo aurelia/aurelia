@@ -5,6 +5,7 @@ import { SpecsViewer, ViewerValueConverter } from './specs-viewer/specs-viewer';
 import { ThingViewer } from './specs-viewer/thing-viewer';
 import { UserPreference } from './user-preference/user-preference';
 import { LetDemo, SqrtValueConverter } from './let-demo/let-demo';
+import { Cards } from './cards/cards';
 
 export const molecules = {
   register(container: IContainer) {
@@ -19,7 +20,9 @@ export const molecules = {
         UserPreference,
 
         LetDemo,
-        SqrtValueConverter
+        SqrtValueConverter,
+
+        Cards
       );
   }
 };

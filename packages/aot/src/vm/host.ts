@@ -105,7 +105,12 @@ export class Host {
   }
 
   public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {
+    this.logger.info(`Loading entry file: ${JSON.stringify(opts)}`);
+
     const pkg = await this.loadEntryPackage(opts);
+
+    this.logger.info(`Finished loading entry file`);
+
     return this.getESModule(pkg.entryFile, pkg);
   }
 
@@ -218,7 +223,8 @@ export class Host {
           compilerOptions = this.getCompilerOptions(dir, pkg);
         } else {
           const tsConfigText = tsConfigFile.getContentSync();
-          const tsConfigObj = JSON.parse(tsConfigText);
+          // tsconfig allows some stuff that's not valid JSON, so parse it as a JS object instead
+          const tsConfigObj = new Function(`return ${tsConfigText}`)();
           compilerOptions = tsConfigObj.compilerOptions;
           if (compilerOptions === null || typeof compilerOptions !== 'object') {
             compilerOptions = {};

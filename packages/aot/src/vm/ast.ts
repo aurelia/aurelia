@@ -3875,6 +3875,13 @@ export class $SourceFile implements I$Node, IModule {
           } else {
             VarScopedDeclarations.push($stmt);
           }
+
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
+
           break;
         case SyntaxKind.FunctionDeclaration:
           // Skip overload signature
@@ -3883,10 +3890,22 @@ export class $SourceFile implements I$Node, IModule {
           }
           $stmt = $statements[s++] = new $FunctionDeclaration(stmt, this, ctx);
 
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
+
           LexicallyScopedDeclarations.push($stmt);
           break;
         case SyntaxKind.ClassDeclaration:
           $stmt = $statements[s++] = new $ClassDeclaration(stmt, this, ctx);
+
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
 
           LexicallyScopedDeclarations.push($stmt);
           break;
@@ -4031,7 +4050,12 @@ export class $SourceFile implements I$Node, IModule {
           // 11. a. ii. 3. Else this is a re-export of a single name,
           else {
             // 11. a. ii. 3. a. Append the ExportEntry Record { [[ModuleRequest]]: ie.[[ModuleRequest]], [[ImportName]]: ie.[[ImportName]], [[LocalName]]: null, [[ExportName]]: ee.[[ExportName]] } to indirectExportEntries.
-            indirectExportEntries.push(new ExportEntryRecord(ee.ExportName, ie.ModuleRequest, ie.ImportName, null));
+            indirectExportEntries.push(new ExportEntryRecord(
+              /* ExportName */ee.ExportName,
+              /* ModuleRequest */ie.ModuleRequest,
+              /* ImportName */ie.ImportName,
+              /* LocalName */null,
+            ));
           }
         }
       }
@@ -4070,6 +4094,8 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
   public InitializeEnvironment(): void {
+    this.logger.info(`Initializing environment`);
+
     // 1. Let module be this Source Text Module Record.
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
@@ -4084,6 +4110,8 @@ export class $SourceFile implements I$Node, IModule {
       // 2. c. Assert: resolution is a ResolvedBinding Record.
     }
 
+    const host = this.Host;
+
     // 3. Assert: All named exports from module are resolvable.
     // 4. Let realm be module.[[Realm]].
     // 5. Assert: realm is not undefined.
@@ -4091,16 +4119,31 @@ export class $SourceFile implements I$Node, IModule {
     // 7. Set module.[[Environment]] to env.
     // 8. Let envRec be env's EnvironmentRecord.
     // 9. For each ImportEntry Record in in module.[[ImportEntries]], do
-    // 9. a. Let importedModule be ! HostResolveImportedModule(module, in.[[ModuleRequest]]).
-    // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
-    // 9. c. If in.[[ImportName]] is "*", then
-    // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
-    // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
-    // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
-    // 9. d. Else,
-    // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
-    // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
-    // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
+    for (const ie of this.ImportEntries) {
+      // 9. a. Let importedModule be ! HostResolveImportedModule(module, in.[[ModuleRequest]]).
+      const importedModule = host.HostResolveImportedModule(this, ie.ModuleRequest);
+
+      // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
+      // 9. c. If in.[[ImportName]] is "*", then
+      if (ie.ImportName === '*') {
+        // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
+        // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
+        // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
+      }
+      // 9. d. Else,
+      else {
+        // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
+        const resolution = importedModule.ResolveExport(ie.ImportName, new ResolveSet());
+
+        // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
+        if (resolution === null || resolution === 'ambiguous') {
+          throw new SyntaxError(`ResolveExport(${ie.ImportName}) returned ${resolution}`);
+        }
+
+        // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
+      }
+    }
+
     // 10. Let code be module.[[ECMAScriptCode]].
     // 11. Let varDeclarations be the VarScopedDeclarations of code.
     // 12. Let declaredVarNames be a new empty List.
@@ -4121,6 +4164,8 @@ export class $SourceFile implements I$Node, IModule {
     // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
     // 15. a. iii. 2. Call envRec.InitializeBinding(dn, fo).
     // 16. Return NormalCompletion(empty).
+
+    this.logger.info(`Finished initializing environment`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolveexport
@@ -4131,6 +4176,7 @@ export class $SourceFile implements I$Node, IModule {
     if (resolveSet.has(this, exportName)) {
       // 2. a. i. Assert: This is a circular import request.
       // 2. a. ii. Return null.
+      this.logger.debug(`[ResolveExport] Circular import: ${exportName}`);
       return null;
     }
 
@@ -4166,6 +4212,7 @@ export class $SourceFile implements I$Node, IModule {
     if (exportName === 'default') {
       // 6. a. Assert: A default export was not explicitly defined by this module.
       // 6. b. Return null.
+      this.logger.debug(`[ResolveExport] No default export defined`);
       return null;
       // 6. c. NOTE: A default export cannot be provided by an export *.
     }
@@ -4202,6 +4249,10 @@ export class $SourceFile implements I$Node, IModule {
           }
         }
       }
+    }
+
+    if (starResolution === null) {
+      this.logger.debug(`[ResolveExport] starResolution is null`);
     }
 
     // 9. Return starResolution.

@@ -198,7 +198,10 @@ export class $Number<T extends number = number> {
   ) {}
 }
 
-export class $Object<T extends string = string, P = unknown> {
+export class $Object<
+  T extends string = string,
+  P = unknown,
+> {
   public readonly '<$Object>': unknown;
 
   public readonly id: number = ++esValueId;
@@ -216,7 +219,7 @@ export class $Object<T extends string = string, P = unknown> {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): false { return false; }
   public get isObject(): true { return true; }
-  public get isFunction(): false { return false; }
+  public get isFunction(): boolean { return false; }
 
   public constructor(
     public readonly host: Host,
@@ -228,21 +231,50 @@ export class $Object<T extends string = string, P = unknown> {
   }
 }
 
-export class $Function {
+export class $Function<
+  T extends string = string,
+  P extends $Object = $Object,
+> extends $Object<T, P> {
   public readonly '<$Function>': unknown;
 
-  public readonly id: number = ++esValueId;
-  public readonly IntrinsicName: 'function' = 'function' as const;
-
-  public get isEmpty(): false { return false; }
-  public get isUndefined(): false { return false; }
-  public get isNull(): false { return false; }
-  public get isNil(): false { return false; }
-  public get isBoolean(): false { return false; }
-  public get isNumber(): false { return false; }
-  public get isString(): false { return false; }
-  public get isSymbol(): false { return false; }
-  public get isPrimitive(): false { return false; }
-  public get isObject(): true { return true; }
   public get isFunction(): true { return true; }
+
+  public constructor(
+    host: Host,
+    IntrinsicName: T,
+    proto: P,
+  ) {
+    super(host, IntrinsicName, proto);
+  }
+}
+
+export class $ECMAScriptFunction<
+  T extends string = string,
+  P extends $Object = $Object,
+> extends $Function<T, P> {
+  public readonly '<$ECMAScriptFunction>': unknown;
+
+  public constructor(
+    host: Host,
+    IntrinsicName: T,
+    proto: P,
+  ) {
+    super(host, IntrinsicName, proto);
+  }
+}
+
+export class $BuiltinFunction<
+  T extends string = string,
+  P extends $Object = $Object,
+> extends $Function<T, P> {
+  public readonly '<$BuiltinFunction>': unknown;
+
+  public constructor(
+    host: Host,
+    IntrinsicName: T,
+    proto: P,
+    private readonly $invoke: CallableFunction,
+  ) {
+    super(host, IntrinsicName, proto);
+  }
 }

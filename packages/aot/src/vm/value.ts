@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Host } from './host';
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
@@ -266,9 +267,10 @@ export class $Object<
     // 1. Return ! OrdinaryGetPrototypeOf(O)
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarygetprototypeof
+    const O = this;
 
     // 1. Return O.[[Prototype]].
-    return this['[[Prototype]]'];
+    return O['[[Prototype]]'];
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
@@ -278,13 +280,14 @@ export class $Object<
     // 1. Return ! OrdinarySetPrototypeOf(O, V).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarysetprototypeof
+    const O = this;
 
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let extensible be O.[[Extensible]].
-    const extensible = this['[[Extensible]]'].value;
+    const extensible = O['[[Extensible]]'].value;
 
     // 3. Let current be O.[[Prototype]].
-    const current = this['[[Prototype]]'];
+    const current = O['[[Prototype]]'];
 
     // 4. If SameValue(V, current) is true, return true.
     if (V.is(current)) {
@@ -309,7 +312,7 @@ export class $Object<
         done = true;
       }
       // 8. b. Else if SameValue(p, O) is true, return false.
-      else if (p.is(this)) {
+      else if (p.is(O)) {
         return intrinsics.false;
       }
       // 8. c. Else,
@@ -326,7 +329,7 @@ export class $Object<
     }
 
     // 9. Set O.[[Prototype]] to V.
-    this['[[Prototype]]'] = V;
+    O['[[Prototype]]'] = V;
 
     // 10. Return true.
     return intrinsics.true;
@@ -337,9 +340,10 @@ export class $Object<
     // 1. Return ! OrdinaryIsExtensible(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryisextensible
+    const O = this;
 
     // 1. Return O.[[Extensible]].
-    return this['[[Extensible]]'];
+    return O['[[Extensible]]'];
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
@@ -349,9 +353,10 @@ export class $Object<
     // 1. Return ! OrdinaryPreventExtensions(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarypreventextensions
+    const O = this;
 
     // 1. Set O.[[Extensible]] to false.
-    this['[[Extensible]]'] = intrinsics.false;
+    O['[[Extensible]]'] = intrinsics.false;
 
     // 2. Return true.
     return intrinsics.true;

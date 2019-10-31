@@ -7,6 +7,7 @@ import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
 import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname } from 'path';
+import { CreateIntrinsics, Intrinsics } from './intrinsics';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -79,9 +80,22 @@ export class DeferredModule implements IModule {
   }
 }
 
+export class Realm {
+  public '[[Intrinsics]]': Intrinsics;
+  public '[[GlobalObject]]': any;
+  public '[[GlobalEnv]]': any;
+  public '[[TemplateMap]]': any;
+
+  public constructor(
+    public readonly Host: Host,
+  ) {}
+}
+
 export class Host {
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
+
+  public readonly realm: Realm;
 
   private readonly logger: ILogger;
 
@@ -102,6 +116,9 @@ export class Host {
     }
 
     this.logger = container.get(ILogger).root.scopeTo('Host');
+
+    const realm = this.realm = new Realm(this);
+    realm['[[Intrinsics]]'] = CreateIntrinsics(this);
   }
 
   public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {

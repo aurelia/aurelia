@@ -1,5 +1,5 @@
 import { Host, Realm } from './host';
-import { $Object, $Any, $BuiltinFunction } from './value';
+import { $Object, $Any, $BuiltinFunction, $Null } from './value';
 
 export type CallableFunction = (
   thisArgument: $Any,
@@ -12,35 +12,14 @@ export type FunctionPrototype = Realm['[[Intrinsics]]']['%FunctionPrototype%'];
 // http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction
 export function CreateBuiltinFunction<
   T extends string = string,
-  P extends $Object = $Object,
->(
-  host: Host,
-  IntrinsicName: T,
-  steps: CallableFunction,
-  internalSlotsList: readonly string[],
-  realm: Realm | undefined,
-  prototype: P,
-): $BuiltinFunction<T, P>;
-export function CreateBuiltinFunction<
-  T extends string = string,
 >(
   host: Host,
   IntrinsicName: T,
   steps: CallableFunction,
   internalSlotsList: readonly string[],
   realm?: Realm,
-): $BuiltinFunction<T, FunctionPrototype>;
-export function CreateBuiltinFunction<
-  T extends string = string,
-  P extends $Object = $Object,
->(
-  host: Host,
-  IntrinsicName: T,
-  steps: CallableFunction,
-  internalSlotsList: readonly string[],
-  realm?: Realm,
-  prototype?: P,
-): $BuiltinFunction<T, P> {
+  prototype?: $Object,
+): $BuiltinFunction<T> {
   // 1. Assert: steps is either a set of algorithm steps or other definition of a function's behaviour provided in this specification.
   // 2. If realm is not present, set realm to the current Realm Record.
   if (realm === void 0) {
@@ -50,7 +29,7 @@ export function CreateBuiltinFunction<
   // 3. Assert: realm is a Realm Record.
   // 4. If prototype is not present, set prototype to realm.[[Intrinsics]].[[%FunctionPrototype%]].
   if (prototype === void 0) {
-    prototype = realm['[[Intrinsics]]']['%FunctionPrototype%'] as P;
+    prototype = realm['[[Intrinsics]]']['%FunctionPrototype%'];
   }
 
   // 5. Let func be a new built-in function object that when called performs the action described by steps. The new function object has internal slots whose names are the elements of internalSlotsList. The initial value of each of those internal slots is undefined.

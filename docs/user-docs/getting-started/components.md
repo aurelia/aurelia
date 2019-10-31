@@ -182,7 +182,7 @@ Aurelia
 As a best practice, we recommend an alternate approach to registering each component individually in this way. Instead, create a folder where you keep all your shared components. In that folder, create a `registry.ts` module where you re-export your components. Then, import that registry module and pass it to the application's `register` method at startup.
 
 {% code-tabs %}
-{% code-tabs-item title="components/register.ts" %}
+{% code-tabs-item title="components/registry.ts" %}
 ```typescript
 export * from './say-hello';
 export * from './name-tag';
@@ -264,7 +264,7 @@ We highly recommend that you leverage conventions where possible. A few benefits
 
 ## The Component Lifecycle
 
-Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times. For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document. 
+Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times. For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document.
 
 Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs \(`binding/unbinding`, `bound/unbound`, `attaching/detaching`, `attached/detached`\) in order to clean up any resources you have allocated. If you register a listener or subscriber in one callback, remember to remove it in the opposite callback.
 

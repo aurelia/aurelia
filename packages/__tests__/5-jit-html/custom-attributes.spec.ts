@@ -5,7 +5,7 @@ import {
   INode,
   CustomAttribute
 } from '@aurelia/runtime';
-import { assert, setup } from '@aurelia/testing';
+import { assert, setup, eachCartesianJoin } from '@aurelia/testing';
 
 describe('custom-attributes', function () {
   // custom elements
@@ -267,6 +267,154 @@ describe('custom-attributes', function () {
       const fooVm = CustomAttribute.for(fooEl, 'foo').viewModel as Foo;
       return {
         fooVm: fooVm,
+        tearDown: () => options.au.stop()
+      };
+    }
+  });
+
+  // in the tests here, we use a combination of change handler and property change handler
+  // and assert that they work in the same way, the presence of one callback is equivalent with the other
+  // foo1: has both normal change handler and all properties change handler
+  // foo2: has only normal change handler
+  // foo3: has only all properties change handler
+  describe('04. Change handler with "propertyChanged" callback', function() {
+    interface IChangeHandlerTestViewModel {
+      prop: any;
+      propChangedCallCount: number;
+      propertyChangedCallCount: number;
+      propertyChangedCallArguments: unknown[][];
+      propChanged?(newValue: any): void;
+      propertyChanged?(...args: unknown[]): void;
+    }
+
+    @customAttribute('foo')
+    class Foo implements IChangeHandlerTestViewModel {
+      @bindable()
+      public prop: any;
+      public propChangedCallCount: number = 0;
+      public propertyChangedCallCount: number = 0;
+      public propertyChangedCallArguments: unknown[][] = [];
+      public propChanged(): void {
+        this.propChangedCallCount++;
+      }
+      public propertyChanged(...args: unknown[]): void {
+        this.propertyChangedCallCount++;
+        this.propertyChangedCallArguments.push(args);
+      }
+    }
+
+    @customAttribute('foo2')
+    class Foo2 implements IChangeHandlerTestViewModel {
+      @bindable()
+      public prop: any;
+      public propChangedCallCount: number = 0;
+      public propertyChangedCallCount: number = 0;
+      public propertyChangedCallArguments: unknown[][] = [];
+      public propChanged(): void {
+        this.propChangedCallCount++;
+      }
+      public propertyChanged(...args: unknown[]): void {
+        this.propertyChangedCallCount++;
+        this.propertyChangedCallArguments.push(args);
+      }
+    }
+
+    @customAttribute('foo3')
+    class Foo3 implements IChangeHandlerTestViewModel {
+      @bindable()
+      public prop: any;
+      public propChangedCallCount: number = 0;
+      public propertyChangedCallCount: number = 0;
+      public propertyChangedCallArguments: unknown[][] = [];
+      public propChanged(): void {
+        this.propChangedCallCount++;
+      }
+      public propertyChanged(...args: unknown[]): void {
+        this.propertyChangedCallCount++;
+        this.propertyChangedCallArguments.push(args);
+      }
+    }
+
+    type ITestVmCallCounts = [number, number, number[]];
+    interface IChangeHandlerTestCase {
+      callCounts: ITestVmCallCounts[];
+    }
+
+    const templateUsages: [/* usage desc */string, /* usage syntax */string][] = [
+      ['plain', '="prop"'],
+      ['binding command', '.bind="prop"'],
+      ['two-way binding', '.two-way="prop"'],
+      ['interpolation', `=\${prop}"`],
+    ];
+
+    const testCases: IChangeHandlerTestCase[] = [
+      {
+        callCounts: [
+          /* foo1: has both normal change handler and all properties change handler */
+          [
+            /* normal change handler call count */1,
+            /* all properties change handler call count */1,
+            /* corresponding count of arguments of all properties change handler */[4]
+          ],
+          /* foo2: has only normal change handler */
+          [
+            /* normal change handler call count */1,
+            /* all properties change handler call count */0,
+            /* corresponding count of arguments of all properties change handler */[]
+          ],
+          /* foo3: has only all properties change handler */
+          [
+            /* normal change handler call count */0,
+            /* all properties change handler call count */1,
+            /* corresponding count of arguments of all properties change handler */[4]
+          ]
+        ]
+      }
+    ];
+
+    eachCartesianJoin(
+      [templateUsages, testCases],
+      ([usageDesc, usageSyntax], testCase) => {
+        it(`does not invoke change handler when starts with ${usageDesc} usage`, function() {
+          const template = `<div foo${usageSyntax} foo2${usageSyntax} foo3${usageSyntax}></div>`;
+          const { foos, tearDown } = setupChangeHandlerTest(template);
+          const callCounts = testCase.callCounts;
+
+          foos.forEach((foo) => {
+            assert.strictEqual(foo.propChangedCallCount, 0);
+            assert.strictEqual(foo.propertyChangedCallCount, 0);
+
+            foo.prop = '5';
+          });
+
+          foos.forEach((fooVm, idx) => {
+            assert.strictEqual(fooVm.propChangedCallCount, callCounts[idx][0]);
+            assert.strictEqual(fooVm.propertyChangedCallCount, callCounts[idx][1]);
+
+            if (fooVm.propertyChangedCallCount > 0) {
+              for (let i = 0; fooVm.propertyChangedCallCount > i; ++i) {
+                assert.strictEqual(fooVm.propertyChangedCallArguments[i].length, callCounts[idx][2][i]);
+              }
+            }
+          });
+
+          tearDown();
+        });
+      }
+    );
+
+    function setupChangeHandlerTest(template: string) {
+      const options = setup(template, class {}, [Foo, Foo2, Foo3]);
+      const fooEl = options.appHost.querySelector('div') as INode;
+      const fooVm = fooEl.$au.foo.viewModel as Foo;
+      const foo2Vm = fooEl.$au.foo2.viewModel as Foo2;
+      const foo3Vm = fooEl.$au.foo3.viewModel as Foo3;
+      return {
+        rootVm: options.component,
+        fooVm,
+        foo2Vm,
+        foo3Vm,
+        foos: [fooVm, foo2Vm, foo3Vm] as [IChangeHandlerTestViewModel, IChangeHandlerTestViewModel, IChangeHandlerTestViewModel],
         tearDown: () => options.au.stop()
       };
     }

@@ -1,11 +1,15 @@
 import { CustomElement, IController, IViewModel } from '@aurelia/runtime';
 
 export function closestController(elementOrViewModel: Element | IViewModel): IController | undefined {
-  if ('$controller' in elementOrViewModel) {
-    return (elementOrViewModel as IViewModel).$controller;
-  }
+  // if ('$controller' in elementOrViewModel) {
+  //   return (elementOrViewModel as IViewModel).$controller;
+  // }
   if ('$au' in elementOrViewModel) {
-    const attributeController: IController = (elementOrViewModel as IViewModel & { $au: Record<string, IController> }).$au['goto']
+    const $au: Record<string, IController> = (elementOrViewModel as { $au: Record<string, IController> }).$au;
+    if ($au['au-viewport']) {
+      return $au['au-viewport'];
+    }
+    const attributeController: IController = $au['goto']
       || (elementOrViewModel as IViewModel & { $au: Record<string, IController> }).$au['href'];
     return attributeController.parent;
   }

@@ -42,7 +42,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State = State.none;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope = void 0;;
+  public $scope?: IScope = void 0;
   public part?: string;
 
   public targetObserver?: AccessorOrObserver = void 0;;

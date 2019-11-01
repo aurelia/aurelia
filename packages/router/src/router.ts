@@ -538,9 +538,9 @@ export class Router implements IRouter {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
   }
-  public allViewports(includeDisabled: boolean = false): Viewport[] {
+  public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     this.ensureRootScope();
-    return (this.rootScope as Viewport).allViewports(includeDisabled);
+    return (this.rootScope as Viewport).allViewports(includeDisabled, includeReplaced);
   }
 
   public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
@@ -728,7 +728,7 @@ export class Router implements IRouter {
         const instructions = this.instructionResolver.parseViewportInstructions(instruction);
         if (this.options.useConfiguredRoutes && !this.hasSiblingInstructions(instructions)) {
           const foundRoute = scope.findMatchingRoute(instruction);
-          if (foundRoute !== null && foundRoute.match !== null) {
+          if (foundRoute !== null && foundRoute.foundConfiguration) {
             route = foundRoute;
           } else {
             if (this.options.useDirectRoutes) {

@@ -26,7 +26,7 @@ export interface IRouteTransformer {
 
   addRoutes?(router: IRouter, routes: IRoute[], parent?: string): IRoute[];
   removeRoutes?(router: IRouter, routes: IRoute[] | string[]): void;
-  findMatchingRoute?(path: string): { match: IRoute | null, matching: string, remaining: string };
+  findMatchingRoute?(router: IRouter, path: string): { match: IRoute | null, matching: string, remaining: string };
 }
 
 export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
@@ -413,12 +413,12 @@ export class Router implements IRouter {
         remainingInstructions.length === 0) {
         let configuredInstructions: ViewportInstruction[] = [];
         let configured: IFoundRoute | null = null;
-        console.log('configured route remaining', configuredRoute);
+        // console.log('configured route remaining', configuredRoute);
         const routeViewports: Viewport[] = alreadyFoundInstructions
           .filter(instr => instr.viewport !== null && instr.viewport.path === configuredRoutePath)
           .map(instr => instr.viewport)
           .filter((value, index, arr) => arr.indexOf(value) === index) as Viewport[];
-        const remainingCheck = configuredRoute!.remaining;
+        let foundRoute = false;
         for (const viewport of routeViewports) {
           ({ instructions: configuredInstructions, route: configured } = this.findInstructions(
             viewport,
@@ -427,12 +427,7 @@ export class Router implements IRouter {
           if (configured !== null && configured.match !== null) {
             configuredRoute = configured;
             configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
-            for (const configuredInstruction of configuredInstructions) {
-              remainingInstructions.push(configuredInstruction);
-              alreadyFoundInstructions = alreadyFoundInstructions.filter(instr =>
-                instr.viewportName !== configuredInstruction.viewportName ||
-                instr.scope !== configuredInstruction.scope);
-            }
+            foundRoute = true;
             break;
           }
 
@@ -450,9 +445,20 @@ export class Router implements IRouter {
           //   }
           // }
         }
-        if (configuredInstructions.length === 0) {
+        if (configuredInstructions.length > 0) {
+          if (!foundRoute) {
+            configuredRoute = configured;
+            configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute!.matching}`;
+          }
+        } else {
           // TODO: Do something here!
           this.unknownRoute(configuredRoute!.remaining);
+        }
+        for (const configuredInstruction of configuredInstructions) {
+          remainingInstructions.push(configuredInstruction);
+          alreadyFoundInstructions = alreadyFoundInstructions.filter(instr =>
+            instr.viewportName !== configuredInstruction.viewportName ||
+            instr.scope !== configuredInstruction.scope);
         }
       }
 
@@ -689,9 +695,10 @@ export class Router implements IRouter {
   }
 
   /**
-   * Finds the closest ancestor viewport.
+   * Finds the closest ancestor viewport. The provided element, view model or controller
+   * is NOT a valid ancestor.
    *
-   * @param elementOrViewModelOrController - The element or view model to search upward from.
+   * @param elementOrViewModelOrController - The element, view model or controller to search upward from.
    * @returns The Viewport that is the closest ancestor.
    */
   public closestViewport(elementOrViewModelOrController: Element | IViewModel | IController): Viewport | null {
@@ -714,16 +721,20 @@ export class Router implements IRouter {
     //   CustomElement.for(el);
     // }
     let controller: any = elementOrViewModelOrController instanceof Controller ? elementOrViewModelOrController : closestController(elementOrViewModelOrController);
+    // Make sure we don't include the provided element, view model or controller
+    if (controller) {
+      controller = controller.parent;
+    }
     while (controller) {
-      // if (controller.viewModel && controller.viewModel.viewport) {
-      //   return controller.viewModel.viewport;
-      // }
-      if (controller.host) {
-        const viewport = this.allViewports().find((item) => item.element === controller!.host);
-        if (viewport) {
-          return viewport;
-        }
+      if (controller.host && controller.host.$au && controller.host.$au['au-viewport'] && controller.host.$au['au-viewport'].viewModel && controller.host.$au['au-viewport'].viewModel.viewport) {
+        return controller.host.$au['au-viewport'].viewModel.viewport;
       }
+      // if (controller.host) {
+      //   const viewport = this.allViewports().find((item) => item.element === controller!.host);
+      //   if (viewport) {
+      //     return viewport;
+      //   }
+      // }
       controller = controller.parent;
     }
     return null;

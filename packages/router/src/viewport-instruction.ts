@@ -159,6 +159,10 @@ export class ViewportInstruction {
   }
 
   public sameViewport(other: ViewportInstruction): boolean {
-    return (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
+    if (this.viewport !== null && other.viewport !== null) {
+      return this.viewport === other.viewport;
+    }
+    return this.scope === other.scope &&
+      (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
   }
 }

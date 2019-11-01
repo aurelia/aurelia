@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { $Any, $Object, $String, $Boolean, $Undefined } from './value';
+import { $Any, $Object, $String, $Boolean, $Undefined, $Function, $Null } from './value';
 import { IModule, Host } from './host';
 import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set } from './operations';
 import { $PropertyDescriptor } from './property-descriptor';
@@ -197,13 +197,13 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
-  public HasThisBinding(): false {
+  public HasThisBinding(): boolean {
     // 1. Return false.
     return false;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
-  public HasSuperBinding(): false {
+  public HasSuperBinding(): boolean {
     // 1. Return false.
     return false;
   }
@@ -393,5 +393,120 @@ export class $ObjectEnvRec {
 
     // 3. Otherwise, return undefined.
     return intrinsics.undefined;
+  }
+}
+
+export type BindingStatus = 'lexical' | 'initialized' | 'uninitialized';
+
+export class $FunctionEnvRec extends $DeclarativeEnvRec {
+  public readonly '<$FunctionEnvRec>': unknown;
+
+  public '[[ThisValue]]': $Any;
+  public '[[ThisBindingStatus]]': BindingStatus;
+  public '[[FunctionObject]]': $Function;
+  public '[[HomeObject]]': $Object | $Undefined;
+  public '[[NewTarget]]': $Object | $Undefined;
+
+  public constructor(
+    host: Host,
+    outer: $EnvRec,
+    ThisBindingStatus: BindingStatus,
+    FunctionObject: $Function,
+    HomeObject: $Object | $Undefined,
+    NewTarget: $Object | $Undefined,
+  ) {
+    super(host, outer);
+
+    this['[[ThisBindingStatus]]'] = ThisBindingStatus;
+    this['[[FunctionObject]]'] = FunctionObject;
+    this['[[HomeObject]]'] = HomeObject;
+    this['[[NewTarget]]'] = NewTarget;
+  }
+
+  // Overrides
+  // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
+  public HasThisBinding(): boolean {
+    // 1. Let envRec be the function Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. If envRec.[[ThisBindingStatus]] is "lexical", return false; otherwise, return true.
+    if (envRec['[[ThisBindingStatus]]'] === 'lexical') {
+      return false;
+    }
+    return true;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
+  public HasSuperBinding(): boolean {
+    // 1. Let envRec be the function Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. If envRec.[[ThisBindingStatus]] is "lexical", return false.
+    if (envRec['[[ThisBindingStatus]]'] === 'lexical') {
+      return false;
+    }
+
+    // 3. If envRec.[[HomeObject]] has the value undefined, return false; otherwise, return true.
+    if (envRec['[[HomeObject]]'].isUndefined) {
+      return false;
+    }
+    return true;
+  }
+
+  // Additions
+  // http://www.ecma-international.org/ecma-262/#sec-bindthisvalue
+  public BindThisValue<T extends $Any>(V: T): T {
+    // 1. Let envRec be the function Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
+    // 3. If envRec.[[ThisBindingStatus]] is "initialized", throw a ReferenceError exception.
+    if (envRec['[[ThisBindingStatus]]'] === 'initialized') {
+      throw new ReferenceError('3. If envRec.[[ThisBindingStatus]] is "initialized", throw a ReferenceError exception.');
+    }
+
+    // 4. Set envRec.[[ThisValue]] to V.
+    envRec['[[ThisValue]]'] = V;
+
+    // 5. Set envRec.[[ThisBindingStatus]] to "initialized".
+    envRec['[[ThisBindingStatus]]'] = 'initialized';
+
+    // 6. Return V.
+    return V;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-environment-records-getthisbinding
+  public GetThisBinding(): $Any {
+    // 1. Let envRec be the function Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
+    // 3. If envRec.[[ThisBindingStatus]] is "uninitialized", throw a ReferenceError exception.
+    if (envRec['[[ThisBindingStatus]]'] === 'uninitialized') {
+      throw new ReferenceError('3. If envRec.[[ThisBindingStatus]] is "uninitialized", throw a ReferenceError exception.');
+    }
+
+    // 4. Return envRec.[[ThisValue]].
+    return envRec['[[ThisValue]]'];
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-getsuperbase
+  public GetSuperBase(): $Object | $Null | $Undefined {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the function Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let home be envRec.[[HomeObject]].
+    const home = envRec['[[HomeObject]]'];
+
+    // 3. If home has the value undefined, return undefined.
+    if (home.isUndefined) {
+      return intrinsics.undefined;
+    }
+
+    // 4. Assert: Type(home) is Object.
+    // 5. Return ? home.[[GetPrototypeOf]]().
+    return home['[[GetPrototypeOf]]']();
   }
 }

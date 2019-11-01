@@ -24,20 +24,9 @@ import {
   TranslationBindingRenderer
 } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
+import { AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/jit';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
-
-const renderers = [
-  TranslationAttributePattern,
-  TranslationBindingCommand,
-  TranslationBindingRenderer,
-  TranslationBindAttributePattern,
-  TranslationBindBindingCommand,
-  TranslationBindBindingRenderer,
-  TranslationParametersAttributePattern,
-  TranslationParametersBindingCommand,
-  TranslationParametersBindingRenderer
-];
 
 const translation = [
   TranslationValueConverter,
@@ -45,12 +34,39 @@ const translation = [
 ];
 
 function coreComponents(options: I18nConfigurationOptions) {
-  if (Array.isArray(options.translationAttributeAliases)) {
-    TranslationAttributePattern.aliases = options.translationAttributeAliases;
-    TranslationBindingCommand.aliases = options.translationAttributeAliases;
-    TranslationBindAttributePattern.aliases = options.translationAttributeAliases;
-    TranslationBindBindingCommand.aliases = options.translationAttributeAliases;
+  const configuredAliases = options.translationAttributeAliases;
+  const aliases = Array.isArray(configuredAliases) ? configuredAliases : ['t'];
+
+  const patterns: AttributePatternDefinition[] = [];
+  const bindPatterns: AttributePatternDefinition[] = [];
+  const commandAliases: string[] = [];
+  const bindCommandAliases: string[] = [];
+  for (const alias of aliases) {
+    const bindAlias = `${alias}.bind`;
+
+    patterns.push({ pattern: alias, symbols: '' });
+    TranslationAttributePattern.registerAlias(alias);
+
+    bindPatterns.push({ pattern: bindAlias, symbols: '.' });
+    TranslationBindAttributePattern.registerAlias(alias);
+
+    if (alias !== 't') {
+      commandAliases.push(alias);
+      bindCommandAliases.push(bindAlias);
+    }
   }
+  const renderers = [
+    AttributePattern.define(patterns, TranslationAttributePattern),
+    BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
+    TranslationBindingRenderer,
+    AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
+    BindingCommand.define({name:'t.bind', aliases: bindCommandAliases}, TranslationBindBindingCommand),
+    TranslationBindBindingRenderer,
+    TranslationParametersAttributePattern,
+    TranslationParametersBindingCommand,
+    TranslationParametersBindingRenderer
+  ];
+
   return {
     register(container: IContainer) {
       return container.register(

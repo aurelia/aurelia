@@ -11,13 +11,7 @@ import { IViewportOptions, Viewport } from '../viewport';
 
 @customElement({
   name: 'au-viewport',
-  template: `
-    <template>
-      <div class="viewport-header" style="display: none;">
-        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
-      </div>
-    </template>
-  `
+  template: `<template><div class="viewport-header" style="display: none;">Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b></div></template>`
 })
 export class ViewportCustomElement {
   @bindable public name: string = 'default';

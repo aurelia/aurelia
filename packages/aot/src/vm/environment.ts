@@ -6,7 +6,8 @@ import { $PropertyDescriptor } from './property-descriptor';
 
 export type $EnvRec = (
   $DeclarativeEnvRec |
-  $ObjectEnvRec
+  $ObjectEnvRec |
+  $FunctionEnvRec
 );
 
 export class $Binding {

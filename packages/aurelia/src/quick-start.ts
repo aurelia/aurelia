@@ -35,7 +35,7 @@ export class Aurelia extends $Aurelia<HTMLElement> {
     return createAurelia().app(config);
   }
 
-  public static register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): Aurelia {
+  public static register(...params: any[]): Aurelia {
     return createAurelia().register(...params);
   }
 

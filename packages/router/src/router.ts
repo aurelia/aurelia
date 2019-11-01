@@ -113,7 +113,7 @@ export class Router implements IRouter {
   public activeComponents: ViewportInstruction[] = [];
   public activeRoute?: IRoute;
 
-  public addedViewports: ViewportInstruction[] = [];
+  public appendedInstructions: ViewportInstruction[] = [];
 
   public options: IRouterOptions = {
     useHref: true,
@@ -296,7 +296,7 @@ export class Router implements IRouter {
       && !configuredRoute.foundConfiguration
       && !configuredRoute.foundInstructions) {
       // TODO: Do something here!
-      this.unknownRoute(configuredRoute!.remaining);
+      this.unknownRoute(configuredRoute.remaining);
     }
 
     if (configuredRoute.foundConfiguration) {
@@ -426,25 +426,20 @@ export class Router implements IRouter {
         }
         if (configured.foundInstructions) {
           configuredRoute = configured;
-          configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute!.matching}`;
+          configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
         } else {
           // TODO: Do something here!
           this.unknownRoute(configured.remaining);
         }
-        for (const configuredInstruction of configured.instructions) {
-          remainingInstructions.push(configuredInstruction);
-          alreadyFoundInstructions = alreadyFoundInstructions.filter(instr =>
-            instr.viewportName !== configuredInstruction.viewportName ||
-            instr.scope !== configuredInstruction.scope);
-        }
+        this.appendInstructions(configured.instructions);
       }
 
-      while (this.addedViewports.length > 0) {
-        const addedViewport = this.addedViewports.shift() as ViewportInstruction;
-        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.viewport === addedViewport.viewport);
-        const existingFound = viewportInstructions.find(value => value.viewport === addedViewport.viewport);
-        const existingRemaining = remainingInstructions.find(value => value.viewportName === addedViewport.viewportName);
-        if (addedViewport.default &&
+      while (this.appendedInstructions.length > 0) {
+        const appendedInstruction = this.appendedInstructions.shift() as ViewportInstruction;
+        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+        const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
+        const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
+        if (appendedInstruction.default &&
           (existingAlreadyFound ||
             (existingFound !== void 0 && !existingFound.default) ||
             (existingRemaining !== void 0 && !existingRemaining.default))) {
@@ -456,7 +451,11 @@ export class Router implements IRouter {
         if (existingRemaining !== void 0) {
           arrayRemove(remainingInstructions, value => value === existingRemaining);
         }
-        viewportInstructions.push(addedViewport);
+        if (appendedInstruction.viewport !== null) {
+          viewportInstructions.push(appendedInstruction);
+        } else {
+          remainingInstructions.push(appendedInstruction);
+        }
       }
 
       // defaultViewports = this.allViewports().filter(viewport =>
@@ -600,12 +599,7 @@ export class Router implements IRouter {
     if (options.append) {
       if (this.processingNavigation) {
         instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
-        for (const instruction of instructions as ViewportInstruction[]) {
-          if (instruction.scope === null) {
-            instruction.scope = scope;
-          }
-        }
-        this.addedViewports.push(...(instructions as ViewportInstruction[]));
+        this.appendInstructions(instructions as ViewportInstruction[], scope);
         // Can't return current navigation promise since it can lead to deadlock in enter
         return Promise.resolve();
         // } else {
@@ -731,13 +725,14 @@ export class Router implements IRouter {
           instruction = '';
         }
 
-        if (this.options.useConfiguredRoutes) {
+        const instructions = this.instructionResolver.parseViewportInstructions(instruction);
+        if (this.options.useConfiguredRoutes && !this.hasSiblingInstructions(instructions)) {
           const foundRoute = scope.findMatchingRoute(instruction);
           if (foundRoute !== null && foundRoute.match !== null) {
             route = foundRoute;
           } else {
             if (this.options.useDirectRoutes) {
-              route.instructions = this.instructionResolver.parseViewportInstructions(instruction);
+              route.instructions = instructions;
               if (route.instructions.length > 0) {
                 const nextInstructions = route.instructions[0].nextScopeInstructions || [];
                 route.remaining = this.instructionResolver.stringifyViewportInstructions(nextInstructions);
@@ -746,7 +741,7 @@ export class Router implements IRouter {
             }
           }
         } else if (this.options.useDirectRoutes) {
-          route.instructions = this.instructionResolver.parseViewportInstructions(instruction);
+          route.instructions = instructions;
         }
       }
     } else {
@@ -760,6 +755,28 @@ export class Router implements IRouter {
     }
 
     return route;
+  }
+
+  private hasSiblingInstructions(instructions: ViewportInstruction[] | null): boolean {
+    if (instructions === null) {
+      return false;
+    }
+    if (instructions.length > 1) {
+      return true;
+    }
+    return instructions.some(instruction => this.hasSiblingInstructions(instruction.nextScopeInstructions));
+  }
+
+  private appendInstructions(instructions: ViewportInstruction[], scope: Viewport | null = null): void {
+    if (scope === null) {
+      scope = this.rootScope;
+    }
+    for (const instruction of instructions) {
+      if (instruction.scope === null) {
+        instruction.scope = scope;
+      }
+    }
+    this.appendedInstructions.push(...(instructions as ViewportInstruction[]));
   }
 
   private unknownRoute(route: string) {

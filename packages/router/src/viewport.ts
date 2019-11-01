@@ -1,7 +1,8 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags, IController } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, IFoundRoute, RouteableComponentType } from './interfaces';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
+import { FoundRoute } from './found-route';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
@@ -607,7 +608,7 @@ export class Viewport {
       this.routeTable.removeRoutes(this.router, routes);
     }
   }
-  public findMatchingRoute(path: string): IFoundRoute | null {
+  public findMatchingRoute(path: string): FoundRoute | null {
     let componentType: RouteableComponentType | null =
       this.nextContent !== null
         && this.nextContent.content !== null

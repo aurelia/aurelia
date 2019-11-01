@@ -7,7 +7,7 @@ import { Aurelia, CustomElement, IController, IRenderContext, IViewModel, Contro
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, IFoundRoute } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
@@ -19,6 +19,7 @@ import { NavigationInstructionResolver } from './type-resolvers';
 import { arrayRemove, closestController } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { FoundRoute } from './found-route';
 
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
@@ -282,24 +283,23 @@ export class Router implements IRouter {
       // }
     }
 
-    let instructions: ViewportInstruction[] = [];
     let clearUsedViewports: boolean = fullStateInstruction;
-    let configuredRoute: IFoundRoute | null = null;
-    let configuredRoutePath: string | null = null;
-    ({ instructions, route: configuredRoute } = this.findInstructions(
+    let configuredRoute = this.findInstructions(
       this.rootScope!,
       instruction.instruction,
       instruction.scope || this.rootScope!,
-      this.options.transformFromUrl && !fullStateInstruction));
+      this.options.transformFromUrl && !fullStateInstruction);
+    let instructions = configuredRoute.instructions;
+    let configuredRoutePath: string | null = null;
 
     if (instruction.instruction.length > 0
-      && (configuredRoute === null || configuredRoute.match === null)
-      && instructions.length === 0) {
+      && !configuredRoute.foundConfiguration
+      && !configuredRoute.foundInstructions) {
       // TODO: Do something here!
       this.unknownRoute(configuredRoute!.remaining);
     }
 
-    if (configuredRoute !== null && configuredRoute.match !== null) {
+    if (configuredRoute.foundConfiguration) {
       instruction.path = (instruction.instruction as string).startsWith('/')
         ? (instruction.instruction as string).slice(1) : instruction.instruction as string;
       configuredRoutePath = `${configuredRoutePath || ''}${configuredRoute.matching}`;
@@ -406,55 +406,32 @@ export class Router implements IRouter {
       remainingInstructions = remaining.remaining;
 
       // Look for configured child routes (once we've loaded everything so far?)
-      if (configuredRoute !== null &&
-        configuredRoute.remaining !== null &&
-        configuredRoute.remaining.length > 0 &&
+      if (configuredRoute.hasRemaining &&
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
-        let configuredInstructions: ViewportInstruction[] = [];
-        let configured: IFoundRoute | null = null;
+        let configured = new FoundRoute();
         // console.log('configured route remaining', configuredRoute);
         const routeViewports: Viewport[] = alreadyFoundInstructions
           .filter(instr => instr.viewport !== null && instr.viewport.path === configuredRoutePath)
           .map(instr => instr.viewport)
           .filter((value, index, arr) => arr.indexOf(value) === index) as Viewport[];
-        let foundRoute = false;
         for (const viewport of routeViewports) {
-          ({ instructions: configuredInstructions, route: configured } = this.findInstructions(
+          configured = this.findInstructions(
             viewport,
-            (configuredRoute as IFoundRoute)!.remaining,
-            viewport.scope || viewport.owningScope!));
-          if (configured !== null && configured.match !== null) {
-            configuredRoute = configured;
-            configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
-            foundRoute = true;
+            configuredRoute.remaining,
+            viewport.scope || viewport.owningScope!);
+          if (configured.foundConfiguration) {
             break;
           }
-
-          // const configured = viewport.findMatchingRoute(configuredRoute!.remaining);
-          // if (configured !== null && configured.match !== null) {
-          //   configuredRoute = configured;
-          //   configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
-          //   const configuredInstructions = configuredRoute!.match!.instructions as ViewportInstruction[];
-          //   for (const configuredInstruction of configuredInstructions) {
-          //     configuredInstruction.scope = viewport.scope || viewport.owningScope;
-          //     remainingInstructions.push(configuredInstruction);
-          //     alreadyFoundInstructions = alreadyFoundInstructions.filter(instr =>
-          //       instr.viewportName !== configuredInstruction.viewportName ||
-          //       instr.scope !== configuredInstruction.scope);
-          //   }
-          // }
         }
-        if (configuredInstructions.length > 0) {
-          if (!foundRoute) {
-            configuredRoute = configured;
-            configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute!.matching}`;
-          }
+        if (configured.foundInstructions) {
+          configuredRoute = configured;
+          configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute!.matching}`;
         } else {
           // TODO: Do something here!
-          this.unknownRoute(configuredRoute!.remaining);
+          this.unknownRoute(configured.remaining);
         }
-        for (const configuredInstruction of configuredInstructions) {
+        for (const configuredInstruction of configured.instructions) {
           remainingInstructions.push(configuredInstruction);
           alreadyFoundInstructions = alreadyFoundInstructions.filter(instr =>
             instr.viewportName !== configuredInstruction.viewportName ||
@@ -749,13 +726,12 @@ export class Router implements IRouter {
     return viewport.removeRoutes(routes);
   }
 
-  private findInstructions(scope: Viewport, instruction: string | ViewportInstruction[], instructionScope: Viewport, transformUrl: boolean = false): { instructions: ViewportInstruction[], route: IFoundRoute | null } {
-    let route: IFoundRoute | null = null;
-    let instructions: ViewportInstruction[] = [];
+  private findInstructions(scope: Viewport, instruction: string | ViewportInstruction[], instructionScope: Viewport, transformUrl: boolean = false): FoundRoute {
+    let route = new FoundRoute();
     if (typeof instruction === 'string') {
       instruction = transformUrl ? this.options.transformFromUrl!(instruction, this) : instruction;
       if (Array.isArray(instruction)) {
-        instructions = instruction;
+        route.instructions = instruction;
       } else {
         // TODO: Review this
         if (instruction === '/') {
@@ -763,38 +739,34 @@ export class Router implements IRouter {
         }
 
         if (this.options.useConfiguredRoutes) {
-          route = scope.findMatchingRoute(instruction);
-          if (route !== null && route.match !== null) {
-            instructions = route.match.instructions as ViewportInstruction[];
+          const foundRoute = scope.findMatchingRoute(instruction);
+          if (foundRoute !== null && foundRoute.match !== null) {
+            route = foundRoute;
           } else {
             if (this.options.useDirectRoutes) {
-              instructions = this.instructionResolver.parseViewportInstructions(instruction);
-              if (instructions.length > 0) {
-                const nextInstructions = instructions[0].nextScopeInstructions || [];
-                route = {
-                  match: null,
-                  matching: '',
-                  remaining: this.instructionResolver.stringifyViewportInstructions(nextInstructions),
-                };
-                instructions[0].nextScopeInstructions = null;
+              route.instructions = this.instructionResolver.parseViewportInstructions(instruction);
+              if (route.instructions.length > 0) {
+                const nextInstructions = route.instructions[0].nextScopeInstructions || [];
+                route.remaining = this.instructionResolver.stringifyViewportInstructions(nextInstructions);
+                route.instructions[0].nextScopeInstructions = null;
               }
             }
           }
         } else if (this.options.useDirectRoutes) {
-          instructions = this.instructionResolver.parseViewportInstructions(instruction);
+          route.instructions = this.instructionResolver.parseViewportInstructions(instruction);
         }
       }
     } else {
-      instructions = instruction;
+      route.instructions = instruction;
     }
 
-    for (const instr of instructions) {
+    for (const instr of route.instructions) {
       if (instr.scope === null) {
         instr.scope = instructionScope;
       }
     }
 
-    return { instructions, route };
+    return route;
   }
 
   private unknownRoute(route: string) {

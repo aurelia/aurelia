@@ -1,7 +1,8 @@
 import { IRouter, IRouteTransformer } from './router';
 import { ViewportInstruction } from './viewport-instruction';
-import { IRoute, IFoundRoute } from './interfaces';
+import { IRoute } from './interfaces';
 import { NavigationInstructionResolver } from './type-resolvers';
+import { FoundRoute } from './found-route';
 
 /**
  * Class that handles routes configured in a route table
@@ -53,7 +54,7 @@ export class RouteTable implements IRouteTransformer {
     }
   }
 
-  public findMatchingRoute(router: IRouter, path: string): IFoundRoute {
+  public findMatchingRoute(router: IRouter, path: string): FoundRoute {
     let match: IRoute | null = null;
     let matching: string = '';
     let params: Record<string, string> = {};
@@ -72,15 +73,15 @@ export class RouteTable implements IRouteTransformer {
         }
       }
     }
+    let instructions: ViewportInstruction[] = [];
     if (match !== null) {
-      // Clone it so it config doesn't get modified
-      match = { ...match };
-      match.instructions = router.instructionResolver.cloneViewportInstructions(match.instructions as ViewportInstruction[]);
-      for (const instruction of match.instructions as ViewportInstruction[]) {
+      // clone it so config doesn't get modified
+      instructions = router.instructionResolver.cloneViewportInstructions(match.instructions as ViewportInstruction[]);
+      for (const instruction of instructions) {
         instruction.setParameters(params);
       }
     }
-    return { match, matching, remaining: path.slice(matching.length) };
+    return new FoundRoute(match, matching, instructions, path.slice(matching.length));
   }
 
   private ensureProperRoute(router: IRouter, route: IRoute, parent?: string): IRoute {

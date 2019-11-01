@@ -46,11 +46,6 @@ export interface IRoute {
   id?: string;
   instructions: NavigationInstruction[] | ViewportInstruction[];
 }
-export interface IFoundRoute {
-  match: IRoute | null;
-  matching: string;
-  remaining: string;
-}
 
 export interface IComponentAndOrViewportOrNothing {
   component?: ComponentAppellation;

@@ -218,8 +218,6 @@ export class $DeclarativeEnvRec {
 export class $ObjectEnvRec {
   public readonly '<$ObjectEnvRec>': unknown;
 
-  public readonly bindings: Map<string, $Binding> = new Map();
-
   public withEnvironment: boolean = false;
 
   public constructor(

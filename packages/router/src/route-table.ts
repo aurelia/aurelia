@@ -53,7 +53,7 @@ export class RouteTable implements IRouteTransformer {
     }
   }
 
-  public findMatchingRoute(path: string): IFoundRoute {
+  public findMatchingRoute(router: IRouter, path: string): IFoundRoute {
     let match: IRoute | null = null;
     let matching: string = '';
     let params: Record<string, string> = {};
@@ -73,6 +73,9 @@ export class RouteTable implements IRouteTransformer {
       }
     }
     if (match !== null) {
+      // Clone it so it config doesn't get modified
+      match = { ...match };
+      match.instructions = router.instructionResolver.cloneViewportInstructions(match.instructions as ViewportInstruction[]);
       for (const instruction of match.instructions as ViewportInstruction[]) {
         instruction.setParameters(params);
       }

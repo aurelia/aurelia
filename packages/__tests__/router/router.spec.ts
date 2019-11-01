@@ -341,7 +341,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  xit('cancels if not child canLeave', async function () {
+  it('cancels if not child canLeave', async function () {
     this.timeout(5000);
 
     const { scheduler, host, router, tearDown } = await setup();
@@ -880,8 +880,6 @@ describe('Router', function () {
     await tearDown();
   });
 
-  // Fred's tests
-
   describe('local deps', function () {
     this.timeout(5000);
 
@@ -1132,7 +1130,7 @@ describe('Router', function () {
       }
     });
   });
-  /*******************/
+
   describe('can use configuration', function () {
     this.timeout(30000);
 

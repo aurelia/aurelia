@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
+/* eslint-disable */
 import { Host } from './host';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from './operations';
 
-// eslint-disable-next-line @typescript-eslint/class-name-casing
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
 
@@ -542,6 +541,37 @@ export class $Object<
 
     // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
     return $OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
+  public '[[Delete]]'(P: $PropertyKey): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return ? OrdinaryDelete(O, P).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinarydelete
+    const O = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let desc be ? O.[[GetOwnProperty]](P).
+    const desc = O['[[GetOwnProperty]]'](P);
+
+    // 3. If desc is undefined, return true.
+    if (desc.isUndefined) {
+      return intrinsics.true;
+    }
+
+    // 4. If desc.[[Configurable]] is true, then
+    if (desc['[[Configurable]]'].isTruthy) {
+      // 4. a. Remove the own property with name P from O.
+      O.properties.delete(P.value);
+
+      // 4. b. Return true.
+      return intrinsics.true;
+    }
+
+    // 5. Return false.
+    return intrinsics.false;
   }
 }
 

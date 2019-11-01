@@ -151,6 +151,8 @@ export class ViewportContent {
       const host: INode = element as INode;
       const container = context;
       Controller.forCustomElement(this.content.componentInstance, container, host);
+      ((this.content.componentInstance as IRouteableComponent & { $controller: Controller }).$controller as IController).parent =
+        (element as Element & { $controller: Controller }).$controller;
     }
     // Temporarily tag content so that it can find parent scope before viewport is attached
     const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
@@ -186,13 +188,14 @@ export class ViewportContent {
     this.taggedNodes = [];
   }
 
-  public initializeComponent(): void {
+  public initializeComponent(parent: IController): void {
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
     // Don't initialize cached content or instantiated history content
     // if (!this.fromCache || !this.fromHistory) {
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+    // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = parent;
+    ((this.content.componentInstance as IRouteableComponent).$controller as IController).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     // }
     this.contentStatus = ContentStatus.initialized;
   }
@@ -203,6 +206,7 @@ export class ViewportContent {
     // Don't terminate cached content
     // if (!stateful) {
     await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
+    // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = void 0;
     // }
     this.contentStatus = ContentStatus.loaded;
   }

@@ -40,6 +40,9 @@ export class ViewportContent {
   public get componentInstance(): IRouteableComponent | null {
     return this.content.componentInstance;
   }
+  public get viewport(): Viewport | null {
+    return this.content.viewport;
+  }
 
   public equalComponent(other: ViewportContent): boolean {
     return this.content.sameComponent(other.content);

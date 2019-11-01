@@ -386,12 +386,16 @@ export class Viewport {
   }
 
   public getEnabledViewports(): Record<string, Viewport> {
-    return this.children.filter((viewport) => viewport.enabled).reduce(
+    return this.getOwnedViewports().filter(viewport => viewport.enabled).reduce(
       (viewports: Record<string, Viewport>, viewport) => {
         viewports[viewport.name] = viewport;
         return viewports;
       },
       {});
+  }
+
+  public getOwnedViewports(includeDisabled: boolean = false): Viewport[] {
+    return this.router.allViewports(includeDisabled).filter(viewport => viewport.owningScope === this);
   }
 
   public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], disregardViewports: boolean = false): IFindViewportsResult {
@@ -535,7 +539,7 @@ export class Viewport {
     // Each au-viewport element has its own Viewport
     if (element && viewport && viewport.element !== null && viewport.element !== element) {
       viewport.enabled = false;
-      viewport = this.children.find(child => child.name === name && child.element === element) || null;
+      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.element === element) || null;
       if (viewport) {
         viewport.enabled = true;
       }
@@ -558,10 +562,22 @@ export class Viewport {
     return false;
   }
 
-  public allViewports(includeDisabled: boolean = false): Viewport[] {
-    const viewports = this.children.filter((viewport) => viewport.enabled || includeDisabled);
-    for (const scope of this.children) {
-      viewports.push(...scope.allViewports(includeDisabled));
+  public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
+    let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
+    if (!includeReplaced && this.nextContent !== null) {
+      const nextViewports: Viewport[] = this.router.instructionResolver
+        .flattenViewportInstructions([this.nextContent.content])
+        .filter(instruction => instruction.viewport !== null)
+        .map(instruction => instruction.viewport) as Viewport[];
+      let replacedViewports: Viewport[] = (this.router.instructionResolver
+        .flattenViewportInstructions([this.content.content]) as ViewportInstruction[])
+        .filter(instruction => instruction.viewport !== null)
+        .map(instruction => instruction.viewport) as Viewport[];
+      replacedViewports = replacedViewports.filter(replaced => nextViewports.indexOf(replaced) < 0);
+      viewports = viewports.filter(viewport => replacedViewports.indexOf(viewport) < 0);
+    }
+    for (const scope of viewports) {
+      viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
     }
     return viewports;
   }

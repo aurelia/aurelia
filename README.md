@@ -65,7 +65,7 @@ Note: *Please keep in mind that Aurelia 2 is still in pre-alpha.* A number of fe
 
 ## Getting Started
 
-To get started with a new Aurelia 2 project, with Node.js installed, simply run `npx makes aurelia`. You'll then be guided through a series of choices on how you'd like to setup your project. Once complete, you'll have a new Aurelia 2 project ready to run. For more information on Aurelia's use of `makes`, see [here](https://github.com/aurelia/new). If you aren't interested in taking our preferred approach to generating a project, you can also see [the examples folder in this repo](examples) for pure JIT setups (no conventions) with various loaders and bundlers.
+First, ensure that you have Node.js installed on your system. Next, using [npx](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b), a tool distributed as part of Node.js, we'll create a new Aurelia 2 app. At a command prompt, run the command `npx makes aurelia`. This will cause `npx` to download the `makes` scaffolding tool, along with the `aurelia` generator, which it will use to guide you through the setup process. Once complete, you'll have a new Aurelia 2 project ready to run. For more information on Aurelia's use of `makes`, see [here](https://github.com/aurelia/new). If you aren't interested in taking our preferred approach to generating a project, you can also see [the examples folder in this repo](examples) for pure JIT setups (no conventions) with various loaders and bundlers.
 
 ## Documentation
 

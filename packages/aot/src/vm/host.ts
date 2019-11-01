@@ -60,7 +60,7 @@ export class ResolvedBindingRecord {
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
 export interface IModule {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
-  '<IModule>': any;
+  readonly '<IModule>': unknown;
 
   readonly Host: Host;
 
@@ -68,7 +68,7 @@ export interface IModule {
 }
 
 export class DeferredModule implements IModule {
-  '<IModule>': any;
+  readonly '<IModule>': unknown;
 
   public constructor(
     public readonly $file: IFile,

@@ -71,7 +71,7 @@ export class $PropertyDescriptor {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-isaccessordescriptor
-export function IsAccessorDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc is $PropertyDescriptor {
+export function $IsAccessorDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc is $PropertyDescriptor {
   // 1. If Desc is undefined, return false.
   if (Desc.isUndefined) {
     return false;
@@ -83,7 +83,7 @@ export function IsAccessorDescriptor(Desc: $PropertyDescriptor | $Undefined): De
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-isdatadescriptor
-export function IsDataDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc is $PropertyDescriptor {
+export function $IsDataDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc is $PropertyDescriptor {
   // 1. If Desc is undefined, return false.
   if (Desc.isUndefined) {
     return false;
@@ -95,7 +95,7 @@ export function IsDataDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc i
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-isgenericdescriptor
-export function IsGenericDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc is $PropertyDescriptor {
+export function $IsGenericDescriptor(Desc: $PropertyDescriptor | $Undefined): Desc is $PropertyDescriptor {
   // 1. If Desc is undefined, return false.
   if (Desc.isUndefined) {
     return false;

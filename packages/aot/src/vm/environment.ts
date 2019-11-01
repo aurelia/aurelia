@@ -1,8 +1,12 @@
-import { $Any } from './value';
+/* eslint-disable */
+import { $Any, $Object, $String, $Boolean, $Undefined } from './value';
 import { IModule, Host } from './host';
+import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set } from './operations';
+import { $PropertyDescriptor } from './property-descriptor';
 
 export type $EnvRec = (
-  $DeclarativeEnvRec
+  $DeclarativeEnvRec |
+  $ObjectEnvRec
 );
 
 export class $Binding {
@@ -208,5 +212,188 @@ export class $DeclarativeEnvRec {
   public WithBaseObject(): undefined {
     // 1. Return undefined.
     return void 0;
+  }
+}
+
+export class $ObjectEnvRec {
+  public readonly '<$ObjectEnvRec>': unknown;
+
+  public readonly bindings: Map<string, $Binding> = new Map();
+
+  public withEnvironment: boolean = false;
+
+  public constructor(
+    public readonly host: Host,
+    public readonly outer: $EnvRec | null,
+    public readonly bindingObject: $Object,
+  ) {}
+
+  // Overrides
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasbinding-n
+  public HasBinding(N: string): boolean {
+    const host = this.host;
+    const intrinsics = host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let bindings be the binding object for envRec.
+    const bindings = envRec.bindingObject;
+
+    // 3. Let foundBinding be ? HasProperty(bindings, N).
+    const foundBinding = $HasProperty(bindings, new $String(host, N));
+
+    // 4. If foundBinding is false, return false.
+    if (foundBinding.value === false) {
+      return false;
+    }
+
+    // 5. If the withEnvironment flag of envRec is false, return true.
+    if (!envRec.withEnvironment) {
+      return true;
+    }
+
+    // 6. Let unscopables be ? Get(bindings, @@unscopables).
+    const unscopables = $Get(bindings, intrinsics['@@unscopables']);
+
+    // 7. If Type(unscopables) is Object, then
+    if (unscopables.isObject) {
+      // 7. a. Let blocked be ToBoolean(? Get(unscopables, N)).
+      const blocked = $Get(unscopables, new $String(host, N)).isTruthy;
+
+      // 7. b. If blocked is true, return false.
+      if (blocked) {
+        return false;
+      }
+    }
+
+    // 8. Return true.
+    return true;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createmutablebinding-n-d
+  public CreateMutableBinding(N: string, D: boolean): $Boolean {
+    const host = this.host;
+    const intrinsics = host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let bindings be the binding object for envRec.
+    const bindings = envRec.bindingObject;
+
+    // 3. Return ? DefinePropertyOrThrow(bindings, N, PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }).
+    const $N = new $String(host, N);
+    const Desc = new $PropertyDescriptor(host, $N);
+    Desc['[[Value]]'] = intrinsics.undefined;
+    Desc['[[Writable]]'] = intrinsics.true;
+    Desc['[[Enumerable]]'] = intrinsics.true;
+    Desc['[[Configurable]]'] = new $Boolean(host, D);
+    return $DefinePropertyOrThrow(bindings, $N, Desc);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createimmutablebinding-n-s
+  public CreateImmutableBinding(N: string, S: boolean): $Boolean {
+    // The concrete Environment Record method CreateImmutableBinding is never used within this specification in association with object Environment Records.
+    throw new Error('Should not be called');
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-initializebinding-n-v
+  public InitializeBinding(N: string, V: $Any): $Boolean {
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Assert: envRec must have an uninitialized binding for N.
+    // 3. Record that the binding for N in envRec has been initialized.
+    // 4. Return ? envRec.SetMutableBinding(N, V, false).
+    return envRec.SetMutableBinding(N, V, false);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-setmutablebinding-n-v-s
+  public SetMutableBinding(N: string, V: $Any, S: boolean): $Boolean {
+    const host = this.host;
+
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let bindings be the binding object for envRec.
+    const bindings = envRec.bindingObject;
+
+    // 3. Return ? Set(bindings, N, V, S).
+    return $Set(bindings, new $String(host, N), V, S);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-getbindingvalue-n-s
+  public GetBindingValue(N: string, S: boolean): $Any {
+    const host = this.host;
+    const intrinsics = host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let bindings be the binding object for envRec.
+    const bindings = envRec.bindingObject;
+
+    const $N = new $String(host, N);
+
+    // 3. Let value be ? HasProperty(bindings, N).
+    const value = $HasProperty(bindings, $N);
+
+    // 4. If value is false, then
+    if (value.isFalsey) {
+      // 4. a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.
+      if (!S) {
+        return intrinsics.undefined;
+      }
+
+      throw new ReferenceError('4. a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.');
+    }
+
+    // 5. Return ? Get(bindings, N).
+    return $Get(bindings, $N);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-deletebinding-n
+  public DeleteBinding(N: string): $Boolean {
+    const host = this.host;
+
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let bindings be the binding object for envRec.
+    const bindings = envRec.bindingObject;
+
+    const $N = new $String(host, N);
+
+    // 3. Return ? bindings.[[Delete]](N).
+    return bindings['[[Delete]]']($N);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasthisbinding
+  public HasThisBinding(): false {
+    // 1. Return false.
+    return false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hassuperbinding
+  public HasSuperBinding(): false {
+    // 1. Return false.
+    return false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-withbaseobject
+  public WithBaseObject(): $Object | $Undefined {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the object Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. If the withEnvironment flag of envRec is true, return the binding object for envRec.
+    if (envRec.withEnvironment) {
+      return envRec.bindingObject;
+    }
+
+    // 3. Otherwise, return undefined.
+    return intrinsics.undefined;
   }
 }

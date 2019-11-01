@@ -1,4 +1,14 @@
 <template>
+  <style>
+    .selected {
+      background-color: rgb(255, 0, 0);
+    }
+
+    .selectedDetails {
+      color: rgb(106, 106, 106);
+    }
+
+  </style>
   <div frequent-mutations>
     <button id="staticTextChanger" click.delegate="changeTexts()">Change texts</button>
     <read-only-text id="text0" value="text0"></read-only-text>

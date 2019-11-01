@@ -1,15 +1,18 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
-import { toArray, PLATFORM } from '@aurelia/kernel';
+import { toArray } from '@aurelia/kernel';
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
-import { startup, TestExecutionContext } from './app/startup';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
+import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
 
 describe.only('app', function () {
-  function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+  function createTestFunction(
+    testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
+    startupConfiguration?: StartupConfiguration,
+  ) {
     return async function () {
-      const ctx = await startup();
+      const ctx = await startup(startupConfiguration);
       try {
         await testFunction(ctx);
       } catch (e) {
@@ -19,14 +22,14 @@ describe.only('app', function () {
       }
     };
   }
-  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    it(title, createTestFunction(testFunction));
+  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+    it(title, createTestFunction(testFunction, startupConfiguration));
   }
-  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    it.skip(title, createTestFunction(testFunction));
+  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+    it.skip(title, createTestFunction(testFunction, startupConfiguration));
   };
-  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    it.only(title, createTestFunction(testFunction));
+  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+    it.only(title, createTestFunction(testFunction, startupConfiguration));
   };
 
   function getViewModel<T>(element: Element) {
@@ -811,20 +814,36 @@ describe.only('app', function () {
     })
   );
 
-  $it(`uses cards to display topic details which marks the selected topic with a specific color`, function ({ host, ctx }) {
-    const cardsCE = host.querySelector('cards');
-    const cards = toArray(cardsCE.querySelectorAll('div'));
+  [
+    { useCSSModule: false, selectedHeaderColor: 'rgb(255, 0, 0)', selectedDetailsColor: 'rgb(106, 106, 106)' },
+    { useCSSModule: true, selectedHeaderColor: 'rgb(0, 0, 255)', selectedDetailsColor: 'rgb(203, 203, 203)' },
+  ].map(({ useCSSModule, selectedHeaderColor, selectedDetailsColor }) =>
+    $it(`uses cards to display topic details which marks the selected topic with a specific color - useCSSModule:${useCSSModule}`,
+      async function ({ host, ctx }) {
+        const container1 = host.querySelector('cards #cards1');
+        const container2 = host.querySelector('cards #cards2');
+        const cards1 = toArray(container1.querySelectorAll('div'));
+        const cards2 = toArray(container2.querySelectorAll('div'));
 
-    assert.equal(getComputedStyle(cardsCE).display, "flex", "incorrect cards display");
-    assert.equal(getComputedStyle(cards[0]).backgroundColor, "rgb(0, 0, 255)", "incorrect selected background1");
-    assert.equal(getComputedStyle(cards[0].querySelector("span")).color, "rgb(203, 203, 203)", "incorrect selected color1");
+        assert.equal(getComputedStyle(container1).display, 'flex', 'incorrect container1 display');
+        assert.equal(getComputedStyle(container2).display, 'flex', 'incorrect container2 display');
+        assert.equal(getComputedStyle(cards1[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container1');
+        assert.equal(getComputedStyle(cards1[0].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color1 - container1');
+        assert.equal(getComputedStyle(cards2[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container2');
+        assert.equal(getComputedStyle(cards2[0].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color1 - container2');
 
-    cards[1].click();
-    ctx.scheduler.yieldAll();
+        cards1[1].click();
+        await ctx.scheduler.yieldAll();
 
-    assert.equal(getComputedStyle(cards[0]).backgroundColor, "rgba(0, 0, 0, 0)", "incorrect background1");
-    assert.equal(getComputedStyle(cards[0].querySelector("span")).color, "rgb(0, 0, 0)", "incorrect color1");
-    assert.equal(getComputedStyle(cards[1]).backgroundColor, "rgb(0, 0, 255)", "incorrect selected background2");
-    assert.equal(getComputedStyle(cards[1].querySelector("span")).color, "rgb(203, 203, 203)", "incorrect selected color2");
-  });
+        assert.equal(getComputedStyle(cards1[0]).backgroundColor, 'rgba(0, 0, 0, 0)', 'incorrect background1 - container1');
+        assert.equal(getComputedStyle(cards1[0].querySelector('span')).color, 'rgb(0, 0, 0)', 'incorrect color1 - container1');
+        assert.equal(getComputedStyle(cards1[1]).backgroundColor, selectedHeaderColor, 'incorrect selected background2 - container1');
+        assert.equal(getComputedStyle(cards1[1].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color2 - container1');
+
+        assert.equal(getComputedStyle(cards2[0]).backgroundColor, 'rgba(0, 0, 0, 0)', 'incorrect background1 - container2');
+        assert.equal(getComputedStyle(cards2[0].querySelector('span')).color, 'rgb(0, 0, 0)', 'incorrect color1 - container2');
+        assert.equal(getComputedStyle(cards2[1]).backgroundColor, selectedHeaderColor, 'incorrect selected background2 - container2');
+        assert.equal(getComputedStyle(cards2[1].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color2 - container2');
+      },
+      { useCSSModule }));
 });

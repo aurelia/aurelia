@@ -1,4 +1,14 @@
-<div repeat.for="item of items" class="card ${item == selected ? 'selected' : ''}" click.delegate="select(item)">
-  <h2>${item.header}</h2>
-  <span class.bind="item == selected ? 'selectedDetails' : ''">${item.details}</span>
+<div id="cards1">
+  <div repeat.for="item of items" class="card ${item == selected ? 'selected' : ''}" click.delegate="select(item)">
+    <h2>${item.header}</h2>
+    <span class.bind="item == selected ? 'selectedDetails' : ''">${item.details}</span>
+  </div>
+</div>
+
+<div id="cards2">
+  <div repeat.for="item of items" class.bind="{'card selected': item == selected, 'card': true}"
+    click.delegate="select(item)">
+    <h2>${item.header}</h2>
+    <span class.bind="{'selectedDetails': item == selected}">${item.details}</span>
+  </div>
 </div>

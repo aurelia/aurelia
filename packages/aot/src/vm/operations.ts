@@ -12,7 +12,7 @@ export type CallableFunction = (
 export type FunctionPrototype = Realm['[[Intrinsics]]']['%FunctionPrototype%'];
 
 // http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction
-export function CreateBuiltinFunction<
+export function $CreateBuiltinFunction<
   T extends string = string,
 >(
   host: Host,
@@ -44,7 +44,7 @@ export function CreateBuiltinFunction<
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-hasproperty
-export function HasProperty(O: $Object, P: $PropertyKey): $Boolean {
+export function $HasProperty(O: $Object, P: $PropertyKey): $Boolean {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Return ? O.[[HasProperty]](P).
@@ -52,7 +52,7 @@ export function HasProperty(O: $Object, P: $PropertyKey): $Boolean {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-get-o-p
-export function Get(O: $Object, P: $PropertyKey): $Any {
+export function $Get(O: $Object, P: $PropertyKey): $Any {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Return ? O.[[Get]](P, O).
@@ -60,7 +60,7 @@ export function Get(O: $Object, P: $PropertyKey): $Any {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-call
-export function Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $Any {
+export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $Any {
   // 1. If argumentsList is not present, set argumentsList to a new empty List.
   if (argumentsList === void 0) {
     argumentsList = [];
@@ -76,7 +76,7 @@ export function Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $A
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-definepropertyorthrow
-export function DefinePropertyOrThrow(O: $Object, P: $PropertyKey, desc: $PropertyDescriptor): $Boolean {
+export function $DefinePropertyOrThrow(O: $Object, P: $PropertyKey, desc: $PropertyDescriptor): $Boolean {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
@@ -92,7 +92,7 @@ export function DefinePropertyOrThrow(O: $Object, P: $PropertyKey, desc: $Proper
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-validateandapplypropertydescriptor
-export function ValidateAndApplyPropertyDescriptor(
+export function $ValidateAndApplyPropertyDescriptor(
   O: $Object | $Undefined,
   P: $PropertyKey | $Undefined,
   extensible: $Boolean,

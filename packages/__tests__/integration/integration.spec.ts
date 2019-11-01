@@ -6,7 +6,7 @@ import { App, Product } from './app/app';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
 
-describe.only('app', function () {
+describe('app', function () {
   function createTestFunction(
     testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
     startupConfiguration?: StartupConfiguration,

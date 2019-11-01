@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { IRenderContext, LifecycleFlags, IController } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, IFoundRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
@@ -241,7 +241,7 @@ export class Viewport {
 
     await this.nextContent.enter(this.content.instruction);
     await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element, this);
-    this.nextContent.initializeComponent();
+    this.nextContent.initializeComponent((this.element as Element & { $controller: IController }).$controller);
     return true;
   }
 
@@ -333,7 +333,7 @@ export class Viewport {
 
   public binding(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
-      this.content.initializeComponent();
+      this.content.initializeComponent((this.element as Element & { $controller: IController }).$controller);
     }
   }
 
@@ -620,7 +620,7 @@ export class Viewport {
     if (routes !== null && routes !== void 0) {
       const routeTable: RouteTable = new RouteTable();
       routeTable.addRoutes(this.router, routes);
-      return routeTable.findMatchingRoute(path);
+      return routeTable.findMatchingRoute(this.router, path);
     }
     return null;
   }

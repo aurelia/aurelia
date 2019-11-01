@@ -10,7 +10,7 @@ There are various ways that you can set up an Aurelia project, including everyth
 
 Before you run `makes`, you will need a recent version of Node.js installed on your machine \(version `8.9.0` or above should work\). If you do not have Node.js, you can [get it here.](https://nodejs.org/en/)
 
-With Node.js installed, open a command prompt and run the following command:
+Next, using [`npx`](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b), a tool distributed with Node.js, we'll create a new Aurelia app. Open a command prompt and run the following command:
 
 ```bash
 npx makes aurelia

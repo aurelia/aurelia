@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Host } from './host';
+import { $PropertyDescriptor } from './property-descriptor';
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
 export interface empty { '<empty>': unknown }
@@ -21,6 +22,11 @@ export type $Any = (
   $Primitive |
   $Object |
   $Function
+);
+
+export type $PropertyKey = (
+  $String |
+  $Symbol
 );
 
 export type $NonNumberPrimitive = Exclude<$Primitive, $Number>;
@@ -234,6 +240,8 @@ export class $Object<
 
   public readonly id: number = ++esValueId;
 
+  public readonly properties: Map<string | symbol, $PropertyDescriptor> = new Map();
+
   public ['[[Prototype]]']: $Object | $Null;
   public ['[[Extensible]]']: $Boolean;
 
@@ -360,6 +368,87 @@ export class $Object<
 
     // 2. Return true.
     return intrinsics.true;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+  public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return ? OrdinaryHasProperty(O, P).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinaryhasproperty
+    const O = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+
+    // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
+    const hasOwn = O['[[GetOwnProperty]]'](P);
+
+    // 3. If hasOwn is not undefined, return true.
+    if (!hasOwn.isUndefined) {
+      return intrinsics.true;
+    }
+
+    // 4. Let parent be ? O.[[GetPrototypeOf]]().
+    const parent = O['[[GetPrototypeOf]]']();
+
+    // 5. If parent is not null, then
+    if (!parent.isNull) {
+      // 5. a. Return ? parent.[[HasProperty]](P).
+      return parent['[[HasProperty]]'](P);
+    }
+
+    // 6. Return false.
+    return intrinsics.false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+  public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
+    const host = this.host;
+    const intrinsics = host.realm['[[Intrinsics]]'];
+
+    // 1. Return ! OrdinaryGetOwnProperty(O, P).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinarygetownproperty
+    const O = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. If O does not have an own property with key P, return undefined.
+    if (!O.properties.has(P.value)) {
+      return intrinsics.undefined;
+    }
+
+    // 3. Let D be a newly created Property Descriptor with no fields.
+    const D = new $PropertyDescriptor(host, P);
+
+    // 4. Let X be O's own property whose key is P.
+    const X = O.properties.get(P.value)!;
+
+    // 5. If X is a data property, then
+    if (X.isDataDescriptor) {
+      // 5. a. Set D.[[Value]] to the value of X's [[Value]] attribute.
+      D['[[Value]]'] = X['[[Value]]'];
+
+      // 5. b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
+      D['[[Writable]]'] = X['[[Writable]]'];
+    }
+    // 6. Else X is an accessor property,
+    else {
+      // 6. a. Set D.[[Get]] to the value of X's [[Get]] attribute.
+      D['[[Get]]'] = X['[[Get]]'];
+
+      // 6. b. Set D.[[Set]] to the value of X's [[Set]] attribute.
+      D['[[Set]]'] = X['[[Set]]'];
+    }
+
+    // 7. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
+    D['[[Enumerable]]'] = X['[[Enumerable]]'];
+
+    // 8. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
+    D['[[Configurable]]'] = X['[[Configurable]]'];
+
+    // 9. Return D.
+    return D;
   }
 }
 

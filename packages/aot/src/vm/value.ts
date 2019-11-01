@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Host } from './host';
 import { $PropertyDescriptor } from './property-descriptor';
-import { Call, ValidateAndApplyPropertyDescriptor } from './operations';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from './operations';
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
 export interface empty { '<empty>': unknown }
@@ -450,7 +450,7 @@ export class $Object<
     const extensible = O['[[IsExtensible]]']();
 
     // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
-    return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current);
+    return $ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
@@ -526,7 +526,7 @@ export class $Object<
     }
 
     // 8. Return ? Call(getter, Receiver).
-    return Call(getter, Receiver);
+    return $Call(getter, Receiver);
   }
 }
 

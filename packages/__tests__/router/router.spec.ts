@@ -1235,6 +1235,42 @@ describe('Router', function () {
       await $goto('/parent2@default/child-config/grandchild-config', router, scheduler);
       assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child!.*?!grandchild!.*?/, `host.textContent`);
 
+
+      await $goto('/parent-config', router, scheduler);
+      assert.match(host.textContent, /.*?!parent!.*?/, `host.textContent`);
+      await $goto('/parent2', router, scheduler);
+      assert.match(host.textContent, /.*?!parent2!.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child-config', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent!.*?!child!.*?/, `host.textContent`);
+      await $goto('/parent2/child2', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child2!.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child2', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent!.*?!child2!.*?/, `host.textContent`);
+      await $goto('/parent2/child-config', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child!.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child-config/grandchild-config', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent!.*?!child!.*?!grandchild!.*?/, `host.textContent`);
+      await $goto('/parent2/child2/grandchild2', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child2!.*?!grandchild2!.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child-config/grandchild2', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent!.*?!child!.*?!grandchild2!.*?/, `host.textContent`);
+      await $goto('/parent2/child2/grandchild-config', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child2!.*?!grandchild!.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child2/grandchild-config', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent!.*?!child2!.*?!grandchild!.*?/, `host.textContent`);
+      await $goto('/parent2/child-config/grandchild2', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child!.*?!grandchild2!.*?/, `host.textContent`);
+
+      await $goto('/parent-config/child2/grandchild2', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent!.*?!child2!.*?!grandchild2!.*?/, `host.textContent`);
+      await $goto('/parent2/child-config/grandchild-config', router, scheduler);
+      assert.match(host.textContent.replace(/\n/g, ''), /.*?!parent2!.*?!child!.*?!grandchild!.*?/, `host.textContent`);
+
       await $teardown();
     });
   });

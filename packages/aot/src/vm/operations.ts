@@ -59,6 +59,125 @@ export function $Get(O: $Object, P: $PropertyKey): $Any {
   return O['[[Get]]'](P, O);
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
+export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: boolean): $Boolean {
+  // 1. Assert: Type(O) is Object.
+  // 2. Assert: IsPropertyKey(P) is true.
+  // 3. Assert: Type(Throw) is Boolean.
+  // 4. Let success be ? O.[[Set]](P, V, O).
+  const success = O['[[Set]]'](P, V, O);
+
+  // 5. If success is false and Throw is true, throw a TypeError exception.
+  if (!success && Throw) {
+    throw new TypeError('5. If success is false and Throw is true, throw a TypeError exception.');
+  }
+
+  // 6. Return success.
+  return success;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-createdataproperty
+export function $CreateDataProperty(O: $Object, P: $PropertyKey, V: $Any): $Boolean {
+  const host = O.host;
+  const intrinsics = host.realm['[[Intrinsics]]'];
+
+  // 1. Assert: Type(O) is Object.
+  // 2. Assert: IsPropertyKey(P) is true.
+  // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+  const newDesc = new $PropertyDescriptor(host, P);
+  newDesc['[[Value]]'] = V;
+  newDesc['[[Writable]]'] = intrinsics.true;
+  newDesc['[[Enumerable]]'] = intrinsics.true;
+  newDesc['[[Configurable]]'] = intrinsics.true;
+
+  // 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
+  return O['[[DefineOwnProperty]]'](P, newDesc);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-ordinarysetwithowndescriptor
+export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $Any, Receiver: $Object, ownDesc: $PropertyDescriptor | $Undefined): $Boolean {
+  const host = O.host;
+  const intrinsics = host.realm['[[Intrinsics]]'];
+
+  // 1. Assert: IsPropertyKey(P) is true.
+  // 2. If ownDesc is undefined, then
+  if (ownDesc.isUndefined) {
+    // 2. a. Let parent be ? O.[[GetPrototypeOf]]().
+    const parent = O['[[GetPrototypeOf]]']();
+
+    // 2. b. If parent is not null, then
+    if (!parent.isNull) {
+      // 2. b. i. Return ? parent.[[Set]](P, V, Receiver).
+      return parent['[[Set]]'](P, V, Receiver);
+    }
+    // 2. c. Else,
+    else {
+      // 2. c. i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+      ownDesc = new $PropertyDescriptor(host, P);
+      ownDesc['[[Value]]'] = intrinsics.undefined;
+      ownDesc['[[Writable]]'] = intrinsics.true;
+      ownDesc['[[Enumerable]]'] = intrinsics.true;
+      ownDesc['[[Configurable]]'] = intrinsics.true;
+    }
+  }
+
+  // 3. If IsDataDescriptor(ownDesc) is true, then
+  if (ownDesc.isDataDescriptor) {
+    // 3. a. If ownDesc.[[Writable]] is false, return false.
+    if (ownDesc['[[Writable]]'].isFalsey) {
+      return intrinsics.false;
+    }
+
+    // 3. b. If Type(Receiver) is not Object, return false.
+    if (!Receiver.isObject) {
+      return intrinsics.false;
+    }
+
+    // 3. c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+    const existingDescriptor = Receiver['[[GetOwnProperty]]'](P);
+
+    // 3. d. If existingDescriptor is not undefined, then
+    if (!existingDescriptor.isUndefined) {
+      // 3. d. i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
+      if (existingDescriptor.isAccessorDescriptor) {
+        return intrinsics.false;
+      }
+
+      // 3. d. ii. If existingDescriptor.[[Writable]] is false, return false.
+      if (existingDescriptor['[[Writable]]'].isFalsey) {
+        return intrinsics.false;
+      }
+
+      // 3. d. iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
+      const valueDesc = new $PropertyDescriptor(host, P);
+      valueDesc['[[Value]]'] = V;
+
+      // 3. d. iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
+      return Receiver['[[DefineOwnProperty]]'](P, valueDesc);
+    }
+    // 3. e. Else Receiver does not currently have a property P,
+    else {
+      // 3. e. i. Return ? CreateDataProperty(Receiver, P, V).
+      return $CreateDataProperty(Receiver, P, V);
+    }
+  }
+
+  // 4. Assert: IsAccessorDescriptor(ownDesc) is true.
+  // 5. Let setter be ownDesc.[[Set]].
+  const setter = ownDesc['[[Set]]'] as $Undefined | $Function;
+
+  // 6. If setter is undefined, return false.
+  if (setter.isUndefined) {
+    return intrinsics.false;
+  }
+
+  // 7. Perform ? Call(setter, Receiver, « V »).
+  $Call(setter, Receiver, [V]);
+
+  // 8. Return true.
+  return intrinsics.true;
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-call
 export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $Any {
   // 1. If argumentsList is not present, set argumentsList to a new empty List.

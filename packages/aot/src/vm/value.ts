@@ -528,6 +528,21 @@ export class $Object<
     // 8. Return ? Call(getter, Receiver).
     return $Call(getter, Receiver);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
+  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean {
+    // 1. Return ? OrdinarySet(O, P, V, Receiver).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinaryset
+    const O = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
+    const ownDesc = O['[[GetOwnProperty]]'](P);
+
+    // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
+    return $OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc);
+  }
 }
 
 export class $Function<

@@ -1,5 +1,7 @@
+/* eslint-disable */
 import { Host, Realm } from './host';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined } from './value';
+import { $PropertyDescriptor } from './property-descriptor';
 
 export type CallableFunction = (
   thisArgument: $Any,
@@ -65,7 +67,7 @@ export function Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $A
   }
 
   // 2. If IsCallable(F) is false, throw a TypeError exception.
-  if (!IsCallable(F)) {
+  if (!F.isFunction) {
     throw new TypeError('2. If IsCallable(F) is false, throw a TypeError exception.');
   }
 
@@ -73,10 +75,232 @@ export function Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $A
   return F['[[Call]]'](V, argumentsList);
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-iscallable
-export function IsCallable(argument: $Any): argument is $Function {
-  // 1. If Type(argument) is not Object, return false.
-  // 2. If argument has a [[Call]] internal method, return true.
-  // 3. Return false.
-  return argument.isFunction;
+// http://www.ecma-international.org/ecma-262/#sec-definepropertyorthrow
+export function DefinePropertyOrThrow(O: $Object, P: $PropertyKey, desc: $PropertyDescriptor): $Boolean {
+  // 1. Assert: Type(O) is Object.
+  // 2. Assert: IsPropertyKey(P) is true.
+  // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
+  const success = O['[[DefineOwnProperty]]'](P, desc);
+
+  // 4. If success is false, throw a TypeError exception.
+  if (success.isFalsey) {
+    throw new TypeError('4. If success is false, throw a TypeError exception.');
+  }
+
+  // 5. Return success.
+  return success;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-validateandapplypropertydescriptor
+export function ValidateAndApplyPropertyDescriptor(
+  O: $Object | $Undefined,
+  P: $PropertyKey | $Undefined,
+  extensible: $Boolean,
+  Desc: $PropertyDescriptor,
+  current: $PropertyDescriptor | $Undefined,
+): $Boolean {
+  const host = O.host;
+  const intrinsics = host.realm['[[Intrinsics]]'];
+
+  // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
+  // 2. If current is undefined, then
+  if (current.isUndefined) {
+    // 2. a. If extensible is false, return false.
+    if (!extensible.value) {
+      return intrinsics.false;
+    }
+
+    // 2. b. Assert: extensible is true.
+    // 2. c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
+    if (Desc.isGenericDescriptor || Desc.isDataDescriptor) {
+      // 2. c. i. If O is not undefined, create an own data property named P of object O whose [[Value]], [[Writable]], [[Enumerable]] and [[Configurable]] attribute values are described by Desc. If the value of an attribute field of Desc is absent, the attribute of the newly created property is set to its default value.
+      if (!O.isUndefined) {
+        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        if (Desc['[[Value]]'].isEmpty) {
+          newDesc['[[Value]]'] = intrinsics.undefined;
+        } else {
+          newDesc['[[Value]]'] = Desc['[[Value]]'];
+        }
+        if (Desc['[[Writable]]'].isEmpty) {
+          newDesc['[[Writable]]'] = intrinsics.false;
+        } else {
+          newDesc['[[Writable]]'] = Desc['[[Writable]]'];
+        }
+        if (Desc['[[Enumerable]]'].isEmpty) {
+          newDesc['[[Enumerable]]'] = intrinsics.false;
+        } else {
+          newDesc['[[Enumerable]]'] = Desc['[[Enumerable]]'];
+        }
+        if (Desc['[[Configurable]]'].isEmpty) {
+          newDesc['[[Configurable]]'] = intrinsics.false;
+        } else {
+          newDesc['[[Configurable]]'] = Desc['[[Configurable]]'];
+        }
+
+        O.properties.set((P as $PropertyKey).value, newDesc);
+      }
+    }
+    // 2. d. Else Desc must be an accessor Property Descriptor,
+    else {
+      // 2. d. i. If O is not undefined, create an own accessor property named P of object O whose [[Get]], [[Set]], [[Enumerable]] and [[Configurable]] attribute values are described by Desc. If the value of an attribute field of Desc is absent, the attribute of the newly created property is set to its default value.
+      if (!O.isUndefined) {
+        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        if (Desc['[[Get]]'].isEmpty) {
+          newDesc['[[Get]]'] = intrinsics.undefined;
+        } else {
+          newDesc['[[Get]]'] = Desc['[[Get]]'];
+        }
+        if (Desc['[[Set]]'].isEmpty) {
+          newDesc['[[Set]]'] = intrinsics.undefined;
+        } else {
+          newDesc['[[Set]]'] = Desc['[[Set]]'];
+        }
+        if (Desc['[[Enumerable]]'].isEmpty) {
+          newDesc['[[Enumerable]]'] = intrinsics.false;
+        } else {
+          newDesc['[[Enumerable]]'] = Desc['[[Enumerable]]'];
+        }
+        if (Desc['[[Configurable]]'].isEmpty) {
+          newDesc['[[Configurable]]'] = intrinsics.false;
+        } else {
+          newDesc['[[Configurable]]'] = Desc['[[Configurable]]'];
+        }
+
+        O.properties.set((P as $PropertyKey).value, newDesc);
+      }
+    }
+
+    // 2. e. Return true.
+    return intrinsics.true;
+  }
+
+  // 3. If every field in Desc is absent, return true.
+  if (
+    Desc['[[Configurable]]'].isEmpty &&
+    Desc['[[Enumerable]]'].isEmpty &&
+    Desc['[[Writable]]'].isEmpty &&
+    Desc['[[Value]]'].isEmpty &&
+    Desc['[[Get]]'].isEmpty &&
+    Desc['[[Set]]'].isEmpty
+  ) {
+    return intrinsics.true;
+  }
+
+  // 4. If current.[[Configurable]] is false, then
+  if (current['[[Configurable]]'].isFalsey) {
+    // 4. a. If Desc.[[Configurable]] is present and its value is true, return false.
+    if (Desc['[[Configurable]]'].isTruthy) {
+      return intrinsics.false;
+    }
+
+    // 4. b. If Desc.[[Enumerable]] is present and the [[Enumerable]] fields of current and Desc are the Boolean negation of each other, return false.
+    if (!Desc['[[Enumerable]]'].isEmpty && current['[[Enumerable]]'].isTruthy === Desc['[[Enumerable]]'].isFalsey) {
+      return intrinsics.false;
+    }
+  }
+
+  // 5. If IsGenericDescriptor(Desc) is true, no further validation is required.
+  if (Desc.isGenericDescriptor) {
+
+  }
+  // 6. Else if IsDataDescriptor(current) and IsDataDescriptor(Desc) have different results, then
+  else if (current.isDataDescriptor !== Desc.isDataDescriptor) {
+    // 6. a. If current.[[Configurable]] is false, return false.
+    if (current['[[Configurable]]'].isFalsey) {
+      return intrinsics.false;
+    }
+
+    // 6. b. If IsDataDescriptor(current) is true, then
+    if (current.isDataDescriptor) {
+      // 6. b. i. If O is not undefined, convert the property named P of object O from a data property to an accessor property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
+      if (!O.isUndefined) {
+        const existingDesc = O.properties.get((P as $PropertyKey).value)!;
+        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
+        newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
+        newDesc['[[Get]]'] = intrinsics.undefined;
+        newDesc['[[Set]]'] = intrinsics.undefined;
+
+        O.properties.set((P as $PropertyKey).value, newDesc);
+      }
+    }
+    // 6. c. Else,
+    else {
+      // 6. c. i. If O is not undefined, convert the property named P of object O from an accessor property to a data property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
+      if (!O.isUndefined) {
+        const existingDesc = O.properties.get((P as $PropertyKey).value)!;
+        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
+        newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
+        newDesc['[[Writable]]'] = intrinsics.false;
+        newDesc['[[Value]]'] = intrinsics.undefined;
+
+        O.properties.set((P as $PropertyKey).value, newDesc);
+      }
+    }
+  }
+  // 7. Else if IsDataDescriptor(current) and IsDataDescriptor(Desc) are both true, then
+  else if (current.isDataDescriptor && Desc.isDataDescriptor) {
+    // 7. a. If current.[[Configurable]] is false and current.[[Writable]] is false, then
+    if (current['[[Configurable]]'].isFalsey && current['[[Writable]]'].isFalsey) {
+      // 7. a. i. If Desc.[[Writable]] is present and Desc.[[Writable]] is true, return false.
+      if (Desc['[[Writable]]'].isTruthy) {
+        return intrinsics.false;
+      }
+
+      // 7. a. ii. If Desc.[[Value]] is present and SameValue(Desc.[[Value]], current.[[Value]]) is false, return false.
+      if (!Desc['[[Value]]'].isEmpty && !Desc['[[Value]]'].is(current['[[Value]]'])) {
+        return intrinsics.false;
+      }
+
+      // 7. a. iii. Return true.
+      return intrinsics.true;
+    }
+  }
+  // 8. Else IsAccessorDescriptor(current) and IsAccessorDescriptor(Desc) are both true,
+  else {
+    // 8. a. If current.[[Configurable]] is false, then
+    if (current['[[Configurable]]'].isFalsey) {
+      // 8. a. i. If Desc.[[Set]] is present and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.
+      if (!Desc['[[Set]]'].isEmpty && !Desc['[[Set]]'].is(current['[[Set]]'])) {
+        return intrinsics.false;
+      }
+
+      // 8. a. ii. If Desc.[[Get]] is present and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
+      if (!Desc['[[Get]]'].isEmpty && !Desc['[[Get]]'].is(current['[[Get]]'])) {
+        return intrinsics.false;
+      }
+
+      // 8. a. iii. Return true.
+      return intrinsics.true;
+    }
+  }
+
+  // 9. If O is not undefined, then
+  if (!O.isUndefined) {
+    const existingDesc = O.properties.get((P as $PropertyKey).value)!;
+
+    // 9. a. For each field of Desc that is present, set the corresponding attribute of the property named P of object O to the value of the field.
+    if (!Desc['[[Configurable]]'].isEmpty) {
+      existingDesc['[[Configurable]]'] = Desc['[[Configurable]]'];
+    }
+    if (!Desc['[[Enumerable]]'].isEmpty) {
+      existingDesc['[[Enumerable]]'] = Desc['[[Enumerable]]'];
+    }
+    if (!Desc['[[Writable]]'].isEmpty) {
+      existingDesc['[[Writable]]'] = Desc['[[Writable]]'];
+    }
+    if (!Desc['[[Value]]'].isEmpty) {
+      existingDesc['[[Value]]'] = Desc['[[Value]]'];
+    }
+    if (!Desc['[[Get]]'].isEmpty) {
+      existingDesc['[[Get]]'] = Desc['[[Get]]'];
+    }
+    if (!Desc['[[Set]]'].isEmpty) {
+      existingDesc['[[Set]]'] = Desc['[[Set]]'];
+    }
+  }
+
+  // 10. Return true.
+  return intrinsics.true;
 }

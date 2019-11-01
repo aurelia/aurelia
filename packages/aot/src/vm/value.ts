@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Host } from './host';
 import { $PropertyDescriptor } from './property-descriptor';
-import { Call } from './operations';
+import { Call, ValidateAndApplyPropertyDescriptor } from './operations';
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
 export interface empty { '<empty>': unknown }
@@ -53,6 +53,8 @@ export class $Empty {
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): false { return false; }
+  public get isFalsey(): true { return true; }
 
   public constructor(
     public readonly host: Host,
@@ -82,6 +84,8 @@ export class $Undefined {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): false { return false; }
+  public get isFalsey(): true { return true; }
 
   public constructor(
     public readonly host: Host,
@@ -111,6 +115,8 @@ export class $Null {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): false { return false; }
+  public get isFalsey(): true { return true; }
 
   public constructor(
     public readonly host: Host,
@@ -138,6 +144,8 @@ export class $Boolean<T extends boolean = boolean> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): T { return this.value; }
+  public get isFalsey(): T extends true ? false : true { return !this.value as T extends true ? false : true; }
 
   public constructor(
     public readonly host: Host,
@@ -166,6 +174,8 @@ export class $String<T extends string = string> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): boolean { return this.value.length > 0; }
+  public get isFalsey(): boolean { return this.value.length === 0; }
 
   public constructor(
     public readonly host: Host,
@@ -194,6 +204,8 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): true { return true; }
+  public get isFalsey(): false { return false; }
 
   public constructor(
     public readonly host: Host,
@@ -223,6 +235,8 @@ export class $Number<T extends number = number> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isTruthy(): boolean { return this.value !== 0 && !isNaN(this.value); }
+  public get isFalsey(): boolean { return this.value === 0 || isNaN(this.value); }
 
   public constructor(
     public readonly host: Host,
@@ -257,6 +271,8 @@ export class $Object<
   public get isPrimitive(): false { return false; }
   public get isObject(): true { return true; }
   public get isFunction(): boolean { return false; }
+  public get isTruthy(): true { return true; }
+  public get isFalsey(): false { return false; }
 
   public constructor(
     public readonly host: Host,
@@ -418,6 +434,23 @@ export class $Object<
 
     // 9. Return D.
     return D;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
+  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
+    // 1. Return ? OrdinaryDefineOwnProperty(O, P, Desc).
+    const O = this;
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinarydefineownproperty
+
+    // 1. Let current be ? O.[[GetOwnProperty]](P).
+    const current = O['[[GetOwnProperty]]'](P);
+
+    // 2. Let extensible be ? IsExtensible(O).
+    const extensible = O['[[IsExtensible]]']();
+
+    // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
+    return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p

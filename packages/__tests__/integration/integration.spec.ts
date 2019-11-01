@@ -827,6 +827,7 @@ describe.only('app', function () {
 
         assert.equal(getComputedStyle(container1).display, 'flex', 'incorrect container1 display');
         assert.equal(getComputedStyle(container2).display, 'flex', 'incorrect container2 display');
+        assert.equal(cards1.every((card)=> card.querySelector('footer').classList.contains('foo-bar')), true);
         assert.equal(getComputedStyle(cards1[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container1');
         assert.equal(getComputedStyle(cards1[0].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color1 - container1');
         assert.equal(getComputedStyle(cards2[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container2');

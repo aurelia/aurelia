@@ -24,8 +24,8 @@ export class $PropertyDescriptor {
   public '[[Enumerable]]': $Boolean | $Undefined | $Empty;
   public '[[Configurable]]': $Boolean | $Undefined | $Empty;
 
-  public '[[Get]]': $Boolean | $Function | $Empty;
-  public '[[Set]]': $Boolean | $Function | $Empty;
+  public '[[Get]]': $Function | $Undefined | $Empty;
+  public '[[Set]]': $Function | $Undefined | $Empty;
 
   public '[[Value]]': $Any;
   public '[[Writable]]': $Boolean | $Undefined | $Empty;

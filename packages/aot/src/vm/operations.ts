@@ -1,5 +1,5 @@
 import { Host, Realm } from './host';
-import { $Object, $Any, $BuiltinFunction, $Null } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function } from './value';
 
 export type CallableFunction = (
   thisArgument: $Any,
@@ -39,4 +39,44 @@ export function CreateBuiltinFunction<
   // 9. Set func.[[ScriptOrModule]] to null.
   // 10. Return func.
   return new $BuiltinFunction(host, IntrinsicName, prototype, steps);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-hasproperty
+export function HasProperty(O: $Object, P: $PropertyKey): $Boolean {
+  // 1. Assert: Type(O) is Object.
+  // 2. Assert: IsPropertyKey(P) is true.
+  // 3. Return ? O.[[HasProperty]](P).
+  return O['[[HasProperty]]'](P);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-get-o-p
+export function Get(O: $Object, P: $PropertyKey): $Any {
+  // 1. Assert: Type(O) is Object.
+  // 2. Assert: IsPropertyKey(P) is true.
+  // 3. Return ? O.[[Get]](P, O).
+  return O['[[Get]]'](P, O);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-call
+export function Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $Any {
+  // 1. If argumentsList is not present, set argumentsList to a new empty List.
+  if (argumentsList === void 0) {
+    argumentsList = [];
+  }
+
+  // 2. If IsCallable(F) is false, throw a TypeError exception.
+  if (!IsCallable(F)) {
+    throw new TypeError('2. If IsCallable(F) is false, throw a TypeError exception.');
+  }
+
+  // 3. Return ? F.[[Call]](V, argumentsList).
+  return F['[[Call]]'](V, argumentsList);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-iscallable
+export function IsCallable(argument: $Any): argument is $Function {
+  // 1. If Type(argument) is not Object, return false.
+  // 2. If argument has a [[Call]] internal method, return true.
+  // 3. Return false.
+  return argument.isFunction;
 }

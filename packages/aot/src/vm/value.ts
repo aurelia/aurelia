@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Host } from './host';
 import { $PropertyDescriptor } from './property-descriptor';
+import { Call } from './operations';
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
 export interface empty { '<empty>': unknown }
@@ -370,38 +371,6 @@ export class $Object<
     return intrinsics.true;
   }
 
-  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-  public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
-
-    // 1. Return ? OrdinaryHasProperty(O, P).
-
-    // http://www.ecma-international.org/ecma-262/#sec-ordinaryhasproperty
-    const O = this;
-
-    // 1. Assert: IsPropertyKey(P) is true.
-
-    // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
-    const hasOwn = O['[[GetOwnProperty]]'](P);
-
-    // 3. If hasOwn is not undefined, return true.
-    if (!hasOwn.isUndefined) {
-      return intrinsics.true;
-    }
-
-    // 4. Let parent be ? O.[[GetPrototypeOf]]().
-    const parent = O['[[GetPrototypeOf]]']();
-
-    // 5. If parent is not null, then
-    if (!parent.isNull) {
-      // 5. a. Return ? parent.[[HasProperty]](P).
-      return parent['[[HasProperty]]'](P);
-    }
-
-    // 6. Return false.
-    return intrinsics.false;
-  }
-
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
   public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
     const host = this.host;
@@ -450,6 +419,82 @@ export class $Object<
     // 9. Return D.
     return D;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+  public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return ? OrdinaryHasProperty(O, P).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinaryhasproperty
+    const O = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+
+    // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
+    const hasOwn = O['[[GetOwnProperty]]'](P);
+
+    // 3. If hasOwn is not undefined, return true.
+    if (!hasOwn.isUndefined) {
+      return intrinsics.true;
+    }
+
+    // 4. Let parent be ? O.[[GetPrototypeOf]]().
+    const parent = O['[[GetPrototypeOf]]']();
+
+    // 5. If parent is not null, then
+    if (!parent.isNull) {
+      // 5. a. Return ? parent.[[HasProperty]](P).
+      return parent['[[HasProperty]]'](P);
+    }
+
+    // 6. Return false.
+    return intrinsics.false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
+  public '[[Get]]'(P: $PropertyKey, Receiver: $Any): $Any {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    // 1. Return ? OrdinaryGet(O, P, Receiver).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinaryget
+    const O = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let desc be ? O.[[GetOwnProperty]](P).
+    const desc = O['[[GetOwnProperty]]'](P);
+
+    // 3. If desc is undefined, then
+    if (desc.isUndefined) {
+      // 3. a. Let parent be ? O.[[GetPrototypeOf]]().
+      const parent = O['[[GetPrototypeOf]]']();
+
+      // 3. b. If parent is null, return undefined.
+      if (parent.isNull) {
+        return intrinsics.undefined;
+      }
+
+      // 3. c. Return ? parent.[[Get]](P, Receiver).
+      return parent['[[Get]]'](P, Receiver);
+    }
+
+    // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
+    if (desc.isDataDescriptor) {
+      return desc['[[Value]]'];
+    }
+
+    // 5. Assert: IsAccessorDescriptor(desc) is true.
+    // 6. Let getter be desc.[[Get]].
+    const getter = desc['[[Get]]'] as $Function | $Undefined;
+
+    // 7. If getter is undefined, return undefined.
+    if (getter.isUndefined) {
+      return getter;
+    }
+
+    // 8. Return ? Call(getter, Receiver).
+    return Call(getter, Receiver);
+  }
 }
 
 export class $Function<
@@ -465,6 +510,12 @@ export class $Function<
     proto: $Object,
   ) {
     super(host, IntrinsicName, proto);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
+  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+    // TODO
+    return {} as any;
   }
 }
 

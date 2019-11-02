@@ -849,7 +849,7 @@ describe.only('app', function () {
       },
       { useCSSModule }));
 
-  $it.only(`cards uses inline styles`,
+  $it(`cards uses inline styles`,
     async function ({ host, ctx }) {
       const cardsEl = host.querySelector('cards');
       const cardsVm = getViewModel<Cards>(cardsEl);

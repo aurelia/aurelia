@@ -57,12 +57,12 @@ export class RouteTable implements IRouteTransformer {
   public findMatchingRoute(router: IRouter, path: string): FoundRoute {
     let match: IRoute | null = null;
     let matching: string = '';
-    let params: Record<string, string> = {};
+    const params: Record<string, string> = {};
     if (path.startsWith('/') || path.startsWith('+')) {
       path = path.slice(1);
     }
     for (const route of this.routes) {
-      const find = '^' + route.path.replace('+', '\\+').replace(/\:id/g, '(\\d+)');
+      const find = `^${route.path.replace('+', '\\+').replace(/:id/g, '(\\d+)')}`;
       const regex = new RegExp(find);
       const found = regex.exec(path);
       if (found !== null && (match === null || route.path.length > match.path.length)) {

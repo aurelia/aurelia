@@ -1,9 +1,10 @@
-import { IIndexable, Reporter } from '@aurelia/kernel';
+import { IIndexable, Reporter, PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IPropertyObserver, ISubscriber } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
+import { InterceptorFunc } from '../templating/bindable';
 
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
 
@@ -32,6 +33,8 @@ export class BindableObserver {
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
     cbName: string,
+    private readonly getterInterceptor: InterceptorFunc,
+    private readonly setterInterceptor: InterceptorFunc,
   ) {
     let isProxy = false;
     if (ProxyObserver.isProxy(obj)) {
@@ -115,16 +118,47 @@ export class BindableObserver {
         {
           enumerable: true,
           configurable: true,
-          get: () => {
-            return this.currentValue;
-          },
-          set: value => {
-            this.setValue(value, LifecycleFlags.none);
-          },
+          get: this.createGetter(),
+          set: this.createSetter(),
         }
       )
     ) {
       Reporter.write(1, this.propertyKey, this.obj);
     }
   }
+
+  private createGetter(): () => unknown {
+    const getter = this.getterInterceptor === PLATFORM.noop
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      ? this.plainGetter
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      : this.interceptedGetter;
+    return getter.bind(this);
+  }
+
+  private plainGetter(): unknown {
+    return this.currentValue;
+  }
+
+  private interceptedGetter(): unknown {
+    return this.getterInterceptor(this.currentValue);
+  }
+
+  private createSetter(): InterceptorFunc {
+    const setterFn = this.setterInterceptor === PLATFORM.noop
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      ? this.plainSetter
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      : this.interceptedSetter;
+    return setterFn.bind(this);
+  }
+
+  private plainSetter(value: unknown): void {
+    this.setValue(value, LifecycleFlags.none);
+  }
+
+  private interceptedSetter(value: unknown): void {
+    this.setValue(this.setterInterceptor(value), LifecycleFlags.none);
+  }
+
 }

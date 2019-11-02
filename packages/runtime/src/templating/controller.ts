@@ -71,6 +71,7 @@ import {
   CustomElement
 } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
+import { BindableDefinition } from './bindable';
 
 type Definition = CustomAttributeDefinition | CustomElementDefinition;
 type Kind = { name: string };
@@ -1022,16 +1023,22 @@ function createObservers(
 
   const length = observableNames.length;
   let name: string;
+  let bindable: BindableDefinition;
+
   for (let i = 0; i < length; ++i) {
     name = observableNames[i];
 
     if (observers[name] == void 0) {
+      bindable = bindables[name];
+
       observers[name] = new BindableObserver(
         lifecycle,
         flags,
         useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
         name,
-        bindables[name].callback
+        bindable.callback,
+        bindable.get,
+        bindable.set,
       );
     }
   }

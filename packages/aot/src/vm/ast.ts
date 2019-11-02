@@ -480,7 +480,7 @@ type $$AssignmentExpression = (
   $YieldExpression
 );
 
-type $$AssignmentExpressionOrHigher = (
+export type $$AssignmentExpressionOrHigher = (
   $$BinaryExpressionOrHigher |
   $$AssignmentExpression
 );

@@ -1,7 +1,9 @@
 /* eslint-disable */
-import { Host } from './host';
+import { Host, Realm, IModule } from './host';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from './operations';
+import { $EnvRec } from './environment';
+import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher } from './ast';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -605,11 +607,27 @@ export class $Function<
   }
 }
 
+export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';
+export type ConstructorKind = 'base' | 'derived';
+export type ThisMode = 'lexical' | 'strict' | 'global';
+
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
 export class $ECMAScriptFunction<
   T extends string = string,
 > extends $Function<T> {
   public readonly '<$ECMAScriptFunction>': unknown;
+
+  public ['[[Environment]]']: $EnvRec;
+  public ['[[FormalParameters]]']: readonly $ParameterDeclaration[];
+  public ['[[FunctionKind]]']: FunctionKind;
+  public ['[[ECMAScriptCode]]']: $Block | $$AssignmentExpressionOrHigher;
+  public ['[[ConstructorKind]]']: ConstructorKind;
+  public ['[[Realm]]']: Realm;
+  public ['[[ScriptOrModule]]']: IModule;
+  public ['[[ThisMode]]']: ThisMode;
+  public ['[[Strict]]']: $Boolean;
+  public ['[[HomeObject]]']: $Object;
+  public ['[[SourceText]]']: $String;
 
   public constructor(
     host: Host,

@@ -1,6 +1,6 @@
 /* eslint-disable */
-import { $Any, $Object, $String, $Boolean, $Undefined, $Function, $Null, $Empty, $ECMAScriptFunction } from './value';
-import { IModule, Host } from './host';
+import { $Any, $Object, $String, $Boolean, $Undefined, $Null, $Empty, $ECMAScriptFunction } from './value';
+import { IModule, Realm } from './realm';
 import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from './operations';
 import { $PropertyDescriptor } from './property-descriptor';
 
@@ -44,7 +44,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newdeclarativeenvironment
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly outer: $EnvRec | null,
   ) {
     // 1. Let env be a new Lexical Environment.
@@ -57,7 +57,7 @@ export class $DeclarativeEnvRec {
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasbinding-n
   public HasBinding(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
@@ -73,7 +73,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-createmutablebinding-n-d
   public CreateMutableBinding(N: $String, D: $Boolean): $Empty {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
@@ -97,7 +97,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-createimmutablebinding-n-s
   public CreateImmutableBinding(N: $String, S: $Boolean): $Empty {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
@@ -121,7 +121,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-initializebinding-n-v
   public InitializeBinding(N: $String, V: $Any): $Empty {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
@@ -141,7 +141,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-setmutablebinding-n-v-s
   public SetMutableBinding(N: $String, V: $Any, S: $Boolean): $Empty {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
@@ -210,7 +210,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-deletebinding-n
   public DeleteBinding(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
@@ -233,7 +233,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
   public HasThisBinding(): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
     return intrinsics.false;
@@ -241,7 +241,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
   public HasSuperBinding(): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
     return intrinsics.false;
@@ -249,7 +249,7 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-withbaseobject
   public WithBaseObject(): $Undefined {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return undefined.
     return intrinsics.undefined;
@@ -263,7 +263,7 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newobjectenvironment
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly outer: $EnvRec | null,
     public readonly bindingObject: $Object,
   ) {
@@ -277,7 +277,7 @@ export class $ObjectEnvRec {
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasbinding-n
   public HasBinding(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -319,8 +319,8 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createmutablebinding-n-d
   public CreateMutableBinding(N: $String, D: $Boolean): $Boolean {
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
@@ -329,7 +329,7 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Return ? DefinePropertyOrThrow(bindings, N, PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }).
-    const Desc = new $PropertyDescriptor(host, N);
+    const Desc = new $PropertyDescriptor(realm, N);
     Desc['[[Value]]'] = intrinsics.undefined;
     Desc['[[Writable]]'] = intrinsics.true;
     Desc['[[Enumerable]]'] = intrinsics.true;
@@ -345,7 +345,7 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-initializebinding-n-v
   public InitializeBinding(N: $String, V: $Any): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
@@ -372,7 +372,7 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-getbindingvalue-n-s
   public GetBindingValue(N: $String, S: $Boolean): $Any {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
@@ -411,7 +411,7 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasthisbinding
   public HasThisBinding(): $Boolean<false> {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
     return intrinsics.false;
@@ -419,7 +419,7 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hassuperbinding
   public HasSuperBinding(): $Boolean<false> {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
     return intrinsics.false;
@@ -427,7 +427,7 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-withbaseobject
   public WithBaseObject(): $Object | $Undefined {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
@@ -455,11 +455,11 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newfunctionenvironment
   public constructor(
-    host: Host,
+    realm: Realm,
     F: $ECMAScriptFunction,
     newTarget: $Object | $Undefined,
   ) {
-    super(host, F['[[Environment]]']);
+    super(realm, F['[[Environment]]']);
 
     // 1. Assert: F is an ECMAScript function.
     // 2. Assert: Type(newTarget) is Undefined or Object.
@@ -490,7 +490,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
     // 11. Set env's EnvironmentRecord to envRec.
     // 12. Set the outer lexical environment reference of env to F.[[Environment]].
-    // See super(host, F['[[Environment]]']);
+    // See super(realm, F['[[Environment]]']);
 
     // 13. Return env.
   }
@@ -498,7 +498,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
   public HasThisBinding(): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
@@ -513,7 +513,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
   public HasSuperBinding(): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
@@ -570,7 +570,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-getsuperbase
   public GetSuperBase(): $Object | $Null | $Undefined {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
@@ -599,16 +599,16 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newglobalenvironment
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     G: $Object,
     thisValue: $Object,
   ) {
     // 1. Let env be a new Lexical Environment.
     // 2. Let objRec be a new object Environment Record containing G as the binding object.
-    const objRec = new $ObjectEnvRec(host, null, G);
+    const objRec = new $ObjectEnvRec(realm, null, G);
 
     // 3. Let dclRec be a new declarative Environment Record containing no bindings.
-    const dclRec = new $DeclarativeEnvRec(host, null);
+    const dclRec = new $DeclarativeEnvRec(realm, null);
 
     // 4. Let globalRec be a new global Environment Record.
     const globalRec = this;
@@ -633,7 +633,7 @@ export class $GlobalEnvRec {
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasbinding-n
   public HasBinding(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -753,7 +753,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-deletebinding-n
   public DeleteBinding(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -803,7 +803,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasthisbinding
   public HasThisBinding(): $Boolean<true> {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return true.
     return intrinsics.true;
@@ -811,7 +811,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hassuperbinding
   public HasSuperBinding(): $Boolean<false> {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
     return intrinsics.false;
@@ -819,7 +819,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-withbaseobject
   public WithBaseObject(): $Undefined {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return undefined.
     return intrinsics.undefined;
@@ -837,7 +837,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-hasvardeclaration
   public HasVarDeclaration(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -868,7 +868,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-hasrestrictedglobalproperty
   public HasRestrictedGlobalProperty(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -898,7 +898,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalvar
   public CanDeclareGlobalVar(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -923,7 +923,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalfunction
   public CanDeclareGlobalFunction(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -958,7 +958,7 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalvarbinding
   public CreateGlobalVarBinding(N: $String, D: $Boolean): $Empty {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -999,8 +999,8 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalfunctionbinding
   public CreateGlobalFunctionBinding(N: $String, V: $Any, D: $Boolean): $Empty {
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
@@ -1018,7 +1018,7 @@ export class $GlobalEnvRec {
     // 5. If existingProp is undefined or existingProp.[[Configurable]] is true, then
     if (existingProp.isUndefined || existingProp['[[Configurable]]'].isTruthy) {
       // 5. a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
-      desc = new $PropertyDescriptor(host, N);
+      desc = new $PropertyDescriptor(realm, N);
       desc['[[Enumerable]]'] = intrinsics.true;
       desc['[[Configurable]]'] = D;
 
@@ -1028,7 +1028,7 @@ export class $GlobalEnvRec {
     // 6. Else,
     else {
       // 6. a. Let desc be the PropertyDescriptor { [[Value]]: V }.
-      desc = new $PropertyDescriptor(host, N);
+      desc = new $PropertyDescriptor(realm, N);
 
       desc['[[Value]]'] = V;
     }
@@ -1074,10 +1074,10 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newmoduleenvironment
   public constructor(
-    host: Host,
+    realm: Realm,
     outer: $EnvRec,
   ) {
-    super(host, outer);
+    super(realm, outer);
     // 1. Let env be a new Lexical Environment.
     // 2. Let envRec be a new module Environment Record containing no bindings.
     // 3. Set env's EnvironmentRecord to envRec.
@@ -1088,7 +1088,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getbindingvalue-n-s
   public GetBindingValue(N: $String, S: $Boolean<true>): $Any {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Assert: S is true.
     // 2. Let envRec be the module Environment Record for which the method was invoked.
@@ -1133,7 +1133,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-hasthisbinding
   public HasThisBinding(): $Boolean<true> {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return true.
     return intrinsics.true;
@@ -1142,7 +1142,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getthisbinding
   public GetThisBinding(): $Undefined {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return undefined.
     return intrinsics.undefined;
@@ -1150,7 +1150,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-createimportbinding
   public CreateImportBinding(N: $String, M: IModule, N2: $String): $Empty {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the module Environment Record for which the method was invoked.
     const envRec = this;

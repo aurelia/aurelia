@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Host, Realm, IModule, ResolveSet, ResolvedBindingRecord } from './host';
+import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype } from './operations';
 import { $EnvRec } from './environment';
@@ -58,7 +58,7 @@ export class $Empty {
   public get isFalsey(): true { return true; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
   ) {}
 
   public is(other: $Any): other is $Empty {
@@ -90,7 +90,7 @@ export class $Undefined {
   public get isFalsey(): true { return true; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
   ) {}
 
   public is(other: $Any): other is $Undefined {
@@ -122,7 +122,7 @@ export class $Null {
   public get isFalsey(): true { return true; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
   ) {}
 
   public is(other: $Any): other is $Null {
@@ -152,7 +152,7 @@ export class $Boolean<T extends boolean = boolean> {
   public get isFalsey(): T extends true ? false : true { return !this.value as T extends true ? false : true; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly value: T,
   ) {}
 
@@ -183,7 +183,7 @@ export class $String<T extends string = string> {
   public get isFalsey(): boolean { return this.value.length === 0; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly value: T,
   ) {}
 
@@ -214,7 +214,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isFalsey(): false { return false; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly Description: T,
     public readonly value = Symbol(Description.value),
   ) {}
@@ -246,7 +246,7 @@ export class $Number<T extends number = number> {
   public get isFalsey(): boolean { return this.value === 0 || isNaN(this.value); }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly value: T,
   ) {}
 
@@ -283,12 +283,12 @@ export class $Object<
   public get isFalsey(): false { return false; }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly IntrinsicName: T,
     proto: $Object | $Null,
   ) {
     this['[[Prototype]]'] = proto;
-    this['[[Extensible]]'] = host.realm['[[Intrinsics]]'].true;
+    this['[[Extensible]]'] = realm['[[Intrinsics]]'].true;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-objectcreate
@@ -297,11 +297,11 @@ export class $Object<
     proto: $Object,
     internalSlotsList?: TSlots,
   ): $Object<T> & TSlots {
-    const host = proto.host;
+    const realm = proto.realm;
 
     // 1. If internalSlotsList is not present, set internalSlotsList to a new empty List.
     // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
-    const obj = new $Object(host, IntrinsicName, proto);
+    const obj = new $Object(realm, IntrinsicName, proto);
     Object.assign(obj, internalSlotsList);
 
     // 3. Set obj's essential internal methods to the default ordinary object definitions specified in 9.1.
@@ -328,7 +328,7 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
   public '[[SetPrototypeOf]]'(V: $Object | $Null): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinarySetPrototypeOf(O, V).
 
@@ -401,7 +401,7 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
   public '[[PreventExtensions]]'(): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinaryPreventExtensions(O).
 
@@ -417,8 +417,8 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
   public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinaryGetOwnProperty(O, P).
 
@@ -432,7 +432,7 @@ export class $Object<
     }
 
     // 3. Let D be a newly created Property Descriptor with no fields.
-    const D = new $PropertyDescriptor(host, P);
+    const D = new $PropertyDescriptor(realm, P);
 
     // 4. Let X be O's own property whose key is P.
     const X = O.properties.get(P.value)!;
@@ -483,7 +483,7 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
   public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ? OrdinaryHasProperty(O, P).
 
@@ -515,7 +515,7 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
   public '[[Get]]'(P: $PropertyKey, Receiver: $Any): $Any {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
     // 1. Return ? OrdinaryGet(O, P, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryget
@@ -574,7 +574,7 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
   public '[[Delete]]'(P: $PropertyKey): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ? OrdinaryDelete(O, P).
 
@@ -611,11 +611,11 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
   // http://www.ecma-international.org/ecma-262/#sec-modulenamespacecreate
   public constructor(
-    host: Host,
+    realm: Realm,
     mod: IModule,
     exports: readonly string[],
   ) {
-    super(host, 'NamespaceExoticObject', host.realm['[[Intrinsics]]'].null);
+    super(realm, 'NamespaceExoticObject', realm['[[Intrinsics]]'].null);
     // 1. Assert: module is a Module Record.
     // 2. Assert: module.[[Namespace]] is undefined.
     // 3. Assert: exports is a List of String values.
@@ -645,13 +645,13 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-isextensible
   public '[[IsExtensible]]'(): $Boolean<false> {
     // 1. Return false.
-    return this.host.realm['[[Intrinsics]]'].false;
+    return this.realm['[[Intrinsics]]'].false;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-preventextensions
   public '[[PreventExtensions]]'(): $Boolean<true> {
     // 1. Return true.
-    return this.host.realm['[[Intrinsics]]'].true;
+    return this.realm['[[Intrinsics]]'].true;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-getownproperty-p
@@ -661,8 +661,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
       return super['[[GetOwnProperty]]'](P);
     }
 
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
     // 2. Let exports be O.[[Exports]].
@@ -677,7 +677,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const value = O['[[Get]]'](P, O);
 
     // 5. Return PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: false }.
-    const desc = new $PropertyDescriptor(host, P);
+    const desc = new $PropertyDescriptor(realm, P);
     desc['[[Value]]'] = value;
     desc['[[Writable]]'] = intrinsics.true;
     desc['[[Enumerable]]'] = intrinsics.true;
@@ -693,8 +693,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
       return super['[[DefineOwnProperty]]'](P, Desc);
     }
 
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
     // 2. Let current be ? O.[[GetOwnProperty]](P).
@@ -744,8 +744,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
       return super['[[HasProperty]]'](P);
     }
 
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
     // 2. Let exports be O.[[Exports]].
@@ -769,8 +769,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
       return super['[[Get]]'](P, Receiver);
     }
 
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
     // 3. Let exports be O.[[Exports]].
@@ -808,7 +808,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-set-p-v-receiver
   public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean<false> {
     // 1. Return false.
-    return this.host.realm['[[Intrinsics]]'].false;
+    return this.realm['[[Intrinsics]]'].false;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-delete-p
@@ -820,8 +820,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
       return super['[[Delete]]'](P);
     }
 
-    const host = this.host;
-    const intrinsics = host.realm['[[Intrinsics]]'];
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
     // 3. Let exports be O.[[Exports]].
@@ -854,11 +854,11 @@ export class $Function<
   public get isFunction(): true { return true; }
 
   public constructor(
-    host: Host,
+    realm: Realm,
     IntrinsicName: T,
     proto: $Object,
   ) {
-    super(host, IntrinsicName, proto);
+    super(realm, IntrinsicName, proto);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
@@ -891,11 +891,11 @@ export class $ECMAScriptFunction<
   public ['[[SourceText]]']: $String;
 
   public constructor(
-    host: Host,
+    realm: Realm,
     IntrinsicName: T,
     proto: $Object,
   ) {
-    super(host, IntrinsicName, proto);
+    super(realm, IntrinsicName, proto);
   }
 }
 
@@ -906,11 +906,11 @@ export class $BuiltinFunction<
   public readonly '<$BuiltinFunction>': unknown;
 
   public constructor(
-    host: Host,
+    realm: Realm,
     IntrinsicName: T,
     proto: $Object,
     private readonly $invoke: CallableFunction,
   ) {
-    super(host, IntrinsicName, proto);
+    super(realm, IntrinsicName, proto);
   }
 }

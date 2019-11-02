@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Host, Realm } from './host';
+import { Realm } from './realm';
 import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 
@@ -15,18 +15,14 @@ export type FunctionPrototype = Realm['[[Intrinsics]]']['%FunctionPrototype%'];
 export function $CreateBuiltinFunction<
   T extends string = string,
 >(
-  host: Host,
+  realm: Realm,
   IntrinsicName: T,
   steps: CallableFunction,
   internalSlotsList: readonly string[],
-  realm?: Realm,
   prototype?: $Object,
 ): $BuiltinFunction<T> {
   // 1. Assert: steps is either a set of algorithm steps or other definition of a function's behaviour provided in this specification.
   // 2. If realm is not present, set realm to the current Realm Record.
-  if (realm === void 0) {
-    realm = host.realm;
-  }
 
   // 3. Assert: realm is a Realm Record.
   // 4. If prototype is not present, set prototype to realm.[[Intrinsics]].[[%FunctionPrototype%]].
@@ -40,7 +36,7 @@ export function $CreateBuiltinFunction<
   // 8. Set func.[[Extensible]] to true.
   // 9. Set func.[[ScriptOrModule]] to null.
   // 10. Return func.
-  return new $BuiltinFunction(host, IntrinsicName, prototype, steps);
+  return new $BuiltinFunction(realm, IntrinsicName, prototype, steps);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-hasproperty
@@ -78,13 +74,13 @@ export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: $Boolean): $Bo
 
 // http://www.ecma-international.org/ecma-262/#sec-createdataproperty
 export function $CreateDataProperty(O: $Object, P: $PropertyKey, V: $Any): $Boolean {
-  const host = O.host;
-  const intrinsics = host.realm['[[Intrinsics]]'];
+  const realm = O.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-  const newDesc = new $PropertyDescriptor(host, P);
+  const newDesc = new $PropertyDescriptor(realm, P);
   newDesc['[[Value]]'] = V;
   newDesc['[[Writable]]'] = intrinsics.true;
   newDesc['[[Enumerable]]'] = intrinsics.true;
@@ -96,8 +92,8 @@ export function $CreateDataProperty(O: $Object, P: $PropertyKey, V: $Any): $Bool
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarysetwithowndescriptor
 export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $Any, Receiver: $Object, ownDesc: $PropertyDescriptor | $Undefined): $Boolean {
-  const host = O.host;
-  const intrinsics = host.realm['[[Intrinsics]]'];
+  const realm = O.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: IsPropertyKey(P) is true.
   // 2. If ownDesc is undefined, then
@@ -113,7 +109,7 @@ export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $A
     // 2. c. Else,
     else {
       // 2. c. i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-      ownDesc = new $PropertyDescriptor(host, P);
+      ownDesc = new $PropertyDescriptor(realm, P);
       ownDesc['[[Value]]'] = intrinsics.undefined;
       ownDesc['[[Writable]]'] = intrinsics.true;
       ownDesc['[[Enumerable]]'] = intrinsics.true;
@@ -149,7 +145,7 @@ export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $A
       }
 
       // 3. d. iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
-      const valueDesc = new $PropertyDescriptor(host, P);
+      const valueDesc = new $PropertyDescriptor(realm, P);
       valueDesc['[[Value]]'] = V;
 
       // 3. d. iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
@@ -180,8 +176,8 @@ export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $A
 
 // http://www.ecma-international.org/ecma-262/#sec-hasownproperty
 export function $HasOwnProperty(O: $Object, P: $PropertyKey): $Boolean {
-  const host = O.host;
-  const intrinsics = host.realm['[[Intrinsics]]'];
+  const realm = O.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
@@ -237,8 +233,8 @@ export function $ValidateAndApplyPropertyDescriptor(
   Desc: $PropertyDescriptor,
   current: $PropertyDescriptor | $Undefined,
 ): $Boolean {
-  const host = O.host;
-  const intrinsics = host.realm['[[Intrinsics]]'];
+  const realm = O.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
   // 2. If current is undefined, then
@@ -253,7 +249,7 @@ export function $ValidateAndApplyPropertyDescriptor(
     if (Desc.isGenericDescriptor || Desc.isDataDescriptor) {
       // 2. c. i. If O is not undefined, create an own data property named P of object O whose [[Value]], [[Writable]], [[Enumerable]] and [[Configurable]] attribute values are described by Desc. If the value of an attribute field of Desc is absent, the attribute of the newly created property is set to its default value.
       if (!O.isUndefined) {
-        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        const newDesc = new $PropertyDescriptor(realm, P as $PropertyKey);
         if (Desc['[[Value]]'].isEmpty) {
           newDesc['[[Value]]'] = intrinsics.undefined;
         } else {
@@ -282,7 +278,7 @@ export function $ValidateAndApplyPropertyDescriptor(
     else {
       // 2. d. i. If O is not undefined, create an own accessor property named P of object O whose [[Get]], [[Set]], [[Enumerable]] and [[Configurable]] attribute values are described by Desc. If the value of an attribute field of Desc is absent, the attribute of the newly created property is set to its default value.
       if (!O.isUndefined) {
-        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        const newDesc = new $PropertyDescriptor(realm, P as $PropertyKey);
         if (Desc['[[Get]]'].isEmpty) {
           newDesc['[[Get]]'] = intrinsics.undefined;
         } else {
@@ -353,7 +349,7 @@ export function $ValidateAndApplyPropertyDescriptor(
       // 6. b. i. If O is not undefined, convert the property named P of object O from a data property to an accessor property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
       if (!O.isUndefined) {
         const existingDesc = O.properties.get((P as $PropertyKey).value)!;
-        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        const newDesc = new $PropertyDescriptor(realm, P as $PropertyKey);
         newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
         newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
         newDesc['[[Get]]'] = intrinsics.undefined;
@@ -367,7 +363,7 @@ export function $ValidateAndApplyPropertyDescriptor(
       // 6. c. i. If O is not undefined, convert the property named P of object O from an accessor property to a data property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
       if (!O.isUndefined) {
         const existingDesc = O.properties.get((P as $PropertyKey).value)!;
-        const newDesc = new $PropertyDescriptor(host, P as $PropertyKey);
+        const newDesc = new $PropertyDescriptor(realm, P as $PropertyKey);
         newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
         newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
         newDesc['[[Writable]]'] = intrinsics.false;
@@ -446,7 +442,7 @@ export function $ValidateAndApplyPropertyDescriptor(
 
 // http://www.ecma-international.org/ecma-262/#sec-set-immutable-prototype
 export function $SetImmutablePrototype(O: $Object, V: $Object | $Null): $Boolean {
-  const intrinsics = O.host.realm['[[Intrinsics]]'];
+  const intrinsics = O.realm['[[Intrinsics]]'];
 
   // 1. Assert: Either Type(V) is Object or Type(V) is Null.
   // 2. Let current be ? O.[[GetPrototypeOf]]().

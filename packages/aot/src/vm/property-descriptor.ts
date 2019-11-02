@@ -1,5 +1,5 @@
 import { $Boolean, $Undefined, $Empty, $Function, $Any, $PropertyKey } from './value';
-import { Host } from './host';
+import { Realm } from './realm';
 
 let descriptorId = 0;
 
@@ -54,10 +54,10 @@ export class $PropertyDescriptor {
   }
 
   public constructor(
-    public readonly host: Host,
+    public readonly realm: Realm,
     public readonly name: $PropertyKey,
   ) {
-    const $empty = host.realm['[[Intrinsics]]'].empty;
+    const $empty = realm['[[Intrinsics]]'].empty;
 
     this['[[Enumerable]]'] = $empty;
     this['[[Configurable]]'] = $empty;

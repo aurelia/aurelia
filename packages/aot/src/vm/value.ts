@@ -291,6 +291,26 @@ export class $Object<
     this['[[Extensible]]'] = host.realm['[[Intrinsics]]'].true;
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-objectcreate
+  public static Create<T extends string = string, TSlots extends {} = {}>(
+    IntrinsicName: T,
+    proto: $Object,
+    internalSlotsList?: TSlots,
+  ): $Object<T> & TSlots {
+    const host = proto.host;
+
+    // 1. If internalSlotsList is not present, set internalSlotsList to a new empty List.
+    // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
+    const obj = new $Object(host, IntrinsicName, proto);
+    Object.assign(obj, internalSlotsList);
+
+    // 3. Set obj's essential internal methods to the default ordinary object definitions specified in 9.1.
+    // 4. Set obj.[[Prototype]] to proto.
+    // 5. Set obj.[[Extensible]] to true.
+    // 6. Return obj.
+    return obj as $Object<T> & TSlots;
+  }
+
   public is(other: $Any): other is $Object<T> {
     return this.id === other.id;
   }

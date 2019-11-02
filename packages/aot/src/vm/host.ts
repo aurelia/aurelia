@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { I$Node, $SourceFile } from './ast';
+import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression } from './ast';
 import { IFileSystem, FileKind, IFile, IOptions } from '../system/interfaces';
 import { NodeFileSystem } from '../system/file-system';
 import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
@@ -8,7 +8,7 @@ import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname } from 'path';
 import { CreateIntrinsics, Intrinsics } from './intrinsics';
-import { $EnvRec, $ModuleEnvRec } from './environment';
+import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec } from './environment';
 import { $Undefined, $Object } from './value';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
@@ -86,15 +86,38 @@ export class DeferredModule implements IModule {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm {
   public '[[Intrinsics]]': Intrinsics;
-  public '[[GlobalObject]]': any;
-  public '[[GlobalEnv]]': any;
-  public '[[TemplateMap]]': any;
+  public '[[GlobalObject]]': $Object;
+  public '[[GlobalEnv]]': $GlobalEnvRec;
+  public '[[TemplateMap]]': { '[[Site]]': $TemplateExpression | $TaggedTemplateExpression; '[[Array]]': $Object }[];
+  public '[[HostDefined]]': any;
 
-  public constructor(
+  private constructor(
     public readonly Host: Host,
   ) {}
+
+  // http://www.ecma-international.org/ecma-262/#sec-createrealm
+  public static Create(Host: Host): Realm {
+    // 1. Let realmRec be a new Realm Record.
+    const realmRec = new Realm(Host);
+
+    // 2. Perform CreateIntrinsics(realmRec).
+    CreateIntrinsics(Host);
+
+    // 3. Set realmRec.[[GlobalObject]] to undefined.
+    realmRec['[[GlobalObject]]'] = (void 0)!;
+
+    // 4. Set realmRec.[[GlobalEnv]] to undefined.
+    realmRec['[[GlobalEnv]]'] = (void 0)!;
+
+    // 5. Set realmRec.[[TemplateMap]] to a new empty List.
+    realmRec['[[TemplateMap]]'] = [];
+
+    // 6. Return realmRec.
+    return realmRec;
+  }
 }
 
 export class Host {
@@ -123,8 +146,7 @@ export class Host {
 
     this.logger = container.get(ILogger).root.scopeTo('Host');
 
-    const realm = this.realm = new Realm(this);
-    realm['[[Intrinsics]]'] = CreateIntrinsics(this);
+    this.realm = Realm.Create(this);
   }
 
   public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {

@@ -144,8 +144,8 @@ import {
 } from '@aurelia/kernel';
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
-import { Host, IModule, ResolveSet, ResolvedBindingRecord } from './host';
-import { empty, $Undefined } from './value';
+import { Host, IModule, ResolveSet, ResolvedBindingRecord, Realm } from './host';
+import { empty, $Undefined, $Object } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec } from './environment';
 const {
@@ -3759,7 +3759,10 @@ export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' |
 export class $SourceFile implements I$Node, IModule {
   public readonly '<IModule>': unknown;
 
+  public '[[Realm]]': Realm | $Undefined;
   public '[[Environment]]': $ModuleEnvRec | $Undefined;
+  public '[[Namespace]]': $Object | $Undefined;
+  public '[[HostDefined]]': any;
 
   public readonly $kind = SyntaxKind.SourceFile;
   public readonly id: number;
@@ -4117,9 +4120,15 @@ export class $SourceFile implements I$Node, IModule {
 
     // 3. Assert: All named exports from module are resolvable.
     // 4. Let realm be module.[[Realm]].
+    const realm = this['[[Realm]]'] as Realm;
+
     // 5. Assert: realm is not undefined.
     // 6. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
+    const envRec = new $ModuleEnvRec(host, realm['[[GlobalEnv]]']);
+
     // 7. Set module.[[Environment]] to env.
+    this['[[Environment]]'] = envRec;
+
     // 8. Let envRec be env's EnvironmentRecord.
     // 9. For each ImportEntry Record in in module.[[ImportEntries]], do
     for (const ie of this.ImportEntries) {
@@ -4130,6 +4139,29 @@ export class $SourceFile implements I$Node, IModule {
       // 9. c. If in.[[ImportName]] is "*", then
       if (ie.ImportName === '*') {
         // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
+        const namespace = (function (mod) {
+          // http://www.ecma-international.org/ecma-262/#sec-getmodulenamespace
+
+          // 1. Assert: module is an instance of a concrete subclass of Module Record.
+          // 2. Assert: module.[[Status]] is not "uninstantiated".
+          // 3. Let namespace be module.[[Namespace]].
+          const namespace = mod['[[Namespace]]'];
+
+          // 4. If namespace is undefined, then
+          if (namespace.isUndefined) {
+            // 4. a. Let exportedNames be ? module.GetExportedNames(« »).
+
+            // 4. b. Let unambiguousNames be a new empty List.
+            // 4. c. For each name that is an element of exportedNames, do
+            // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
+            // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
+            // 4. d. Set namespace to ModuleNamespaceCreate(module, unambiguousNames).
+          }
+
+          // 5. Return namespace.
+          return namespace;
+        })(importedModule);
+
         // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
       }

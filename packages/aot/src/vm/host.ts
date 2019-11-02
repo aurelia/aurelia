@@ -66,7 +66,10 @@ export interface IModule {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
   readonly '<IModule>': unknown;
 
+  '[[Realm]]': Realm | $Undefined;
   '[[Environment]]': $ModuleEnvRec | $Undefined;
+  '[[Namespace]]': $Object | $Undefined;
+  '[[HostDefined]]': any;
 
   readonly Host: Host;
 
@@ -76,7 +79,10 @@ export interface IModule {
 export class DeferredModule implements IModule {
   public readonly '<IModule>': unknown;
 
+  public '[[Realm]]': Realm | $Undefined;
   public '[[Environment]]': $ModuleEnvRec | $Undefined;
+  public '[[Namespace]]': $Object | $Undefined;
+  public '[[HostDefined]]': any;
 
   public constructor(
     public readonly $file: IFile,

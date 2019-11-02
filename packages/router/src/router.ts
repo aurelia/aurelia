@@ -1,9 +1,5 @@
-// tslint:disable:max-line-length
-// tslint:disable:typedef
-// tslint:disable:quotemark
-// tslint:disable:comment-format
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IController, IRenderContext, IViewModel, Controller } from '@aurelia/runtime';
+import { Aurelia, IController, IRenderContext, IViewModel, Controller } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -27,7 +23,7 @@ export interface IRouteTransformer {
 
   addRoutes?(router: IRouter, routes: IRoute[], parent?: string): IRoute[];
   removeRoutes?(router: IRouter, routes: IRoute[] | string[]): void;
-  findMatchingRoute?(router: IRouter, path: string): { match: IRoute | null, matching: string, remaining: string };
+  findMatchingRoute?(router: IRouter, path: string): { match: IRoute | null; matching: string; remaining: string };
 }
 
 export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
@@ -271,18 +267,13 @@ export class Router implements IRouter {
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
-
     let fullStateInstruction: boolean = false;
     const instructionNavigation: INavigatorFlags = instruction.navigation as INavigatorFlags;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
       fullStateInstruction = true;
-      // if (!confirm('Perform history navigation?')) {
-      //   this.navigator.cancel(instruction);
-      //   this.processingNavigation = null;
-      //   return Promise.resolve();
-      // }
+      // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null;
+      //   return Promise.resolve(); }
     }
-
     let clearUsedViewports: boolean = fullStateInstruction;
     let configuredRoute = this.findInstructions(
       this.rootScope!,
@@ -311,7 +302,6 @@ export class Router implements IRouter {
       clearUsedViewports = true;
       instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
     }
-
     const parsedQuery: IParsedQuery = parseQuery(instruction.query);
     instruction.parameters = parsedQuery.parameters;
     instruction.parameterList = parsedQuery.list;
@@ -326,8 +316,7 @@ export class Router implements IRouter {
       && doneDefaultViewports.every(done => done !== viewport)
     );
     const updatedViewports: Viewport[] = [];
-
-    let alreadyFoundInstructions: ViewportInstruction[] = [];
+    const alreadyFoundInstructions: ViewportInstruction[] = [];
     // TODO: Take care of cancellations down in subsets/iterations
     let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
     let guard = 100;
@@ -336,21 +325,7 @@ export class Router implements IRouter {
       if (!guard--) {
         throw Reporter.error(2002);
       }
-
-      // for (const defaultViewport of defaultViewports) {
-      //   doneDefaultViewports.push(defaultViewport);
-      //   if (viewportInstructions.every(value => value.viewport !== defaultViewport) &&
-      //     remainingInstructions.every(value => value.viewportName !== defaultViewport.name)) {
-      //     const defaultInstructions = this.instructionResolver.parseViewportInstructions(defaultViewport.options.default as string);
-      //     for (const defaultInstruction of defaultInstructions) {
-      //       defaultInstruction.setViewport(defaultViewport);
-      //       defaultInstruction.default = true;
-      //       viewportInstructions.push(defaultInstruction);
-      //     }
-      //   }
-      // }
       defaultViewports = [];
-
       const changedViewports: Viewport[] = [];
 
       const outcome = this.guardian.passes(GuardTypes.Before, viewportInstructions, instruction);
@@ -360,7 +335,6 @@ export class Router implements IRouter {
       if (typeof outcome !== 'boolean') {
         viewportInstructions = outcome;
       }
-
       for (const viewportInstruction of viewportInstructions) {
         const viewport: Viewport = viewportInstruction.viewport as Viewport;
         viewport.path = configuredRoutePath;
@@ -369,12 +343,10 @@ export class Router implements IRouter {
         }
         arrayRemove(clearViewports, value => value === viewport);
       }
-
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
       if (results.some(result => result === false)) {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
-
       results = await Promise.all(changedViewports.map(async (value) => {
         const canEnter = await value.canEnter();
         if (typeof canEnter === 'boolean') {
@@ -392,7 +364,6 @@ export class Router implements IRouter {
       if (results.some(result => result === false)) {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], qInstruction);
       }
-
       for (const viewport of changedViewports) {
         if (updatedViewports.every(value => value !== viewport)) {
           updatedViewports.push(viewport);
@@ -409,9 +380,7 @@ export class Router implements IRouter {
       if (configuredRoute.hasRemaining &&
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
-        let configured = new FoundRoute();
-        // console.log('configured route remaining', configuredRoute);
-        const routeViewports: Viewport[] = alreadyFoundInstructions
+        let configured = new FoundRoute(); const routeViewports: Viewport[] = alreadyFoundInstructions
           .filter(instr => instr.viewport !== null && instr.viewport.path === configuredRoutePath)
           .map(instr => instr.viewport)
           .filter((value, index, arr) => arr.indexOf(value) === index) as Viewport[];
@@ -457,14 +426,6 @@ export class Router implements IRouter {
           remainingInstructions.push(appendedInstruction);
         }
       }
-
-      // defaultViewports = this.allViewports().filter(viewport =>
-      //   viewport.options.default
-      //   && viewport.content.componentInstance === null
-      //   && doneDefaultViewports.every(done => done !== viewport)
-      //   && updatedViewports.every(updated => updated !== viewport)
-      // );
-
       // clearViewports is empty if we're not clearing viewports
       if (viewportInstructions.length === 0 &&
         remainingInstructions.length === 0 &&
@@ -475,11 +436,8 @@ export class Router implements IRouter {
         ];
         clearViewports = [];
       }
-
       // TODO: Do we still need this? What if no viewport at all?
-      // if (!this.allViewports().length) {
-      //   viewportsRemaining = false;
-      // }
+      // if (!this.allViewports().length) { viewportsRemaining = false; }
       clearUsedViewports = false;
     }
 
@@ -596,18 +554,16 @@ export class Router implements IRouter {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
     }
 
-    if (options.append) {
-      if (this.processingNavigation) {
-        instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
-        this.appendInstructions(instructions as ViewportInstruction[], scope);
-        // Can't return current navigation promise since it can lead to deadlock in enter
-        return Promise.resolve();
-        // } else {
-        //   // Can only append after first load has happened (defaults can fire too early)
-        //   if (!this.loadedFirst) {
-        //     return Promise.resolve();
-        //   }
-      }
+    if (options.append && this.processingNavigation) {
+      instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
+      this.appendInstructions(instructions as ViewportInstruction[], scope);
+      // Can't return current navigation promise since it can lead to deadlock in enter
+      return Promise.resolve();
+      // } else {
+      //   // Can only append after first load has happened (defaults can fire too early)
+      //   if (!this.loadedFirst) {
+      //     return Promise.resolve();
+      //   }
     }
 
     const entry: INavigatorEntry = {

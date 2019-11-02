@@ -19,13 +19,12 @@ export class HrefCustomAttribute {
   ) { }
 
   public binding(): void {
-    if (this.router.options.useHref) {
-      if ((this as IViewModel).$controller!.parent!.controllers!
+    if (this.router.options.useHref &&
+      ((this as IViewModel).$controller!.parent!.controllers!
         .filter(c => c.vmKind === ViewModelKind.customAttribute &&
-          c.bindingContext instanceof GotoCustomAttribute).length === 0) {
-        this.eventListener = this.eventManager.addEventListener(
-          this.dom, this.element, 'click', this.router.linkHandler.handler, DelegationStrategy.none);
-      }
+          c.bindingContext instanceof GotoCustomAttribute).length === 0)) {
+      this.eventListener = this.eventManager.addEventListener(
+        this.dom, this.element, 'click', this.router.linkHandler.handler, DelegationStrategy.none);
     }
     this.updateValue();
   }

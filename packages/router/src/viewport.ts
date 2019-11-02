@@ -573,8 +573,8 @@ export class Viewport {
         .flattenViewportInstructions([this.content.content]) as ViewportInstruction[])
         .filter(instruction => instruction.viewport !== null)
         .map(instruction => instruction.viewport) as Viewport[];
-      replacedViewports = replacedViewports.filter(replaced => nextViewports.indexOf(replaced) < 0);
-      viewports = viewports.filter(viewport => replacedViewports.indexOf(viewport) < 0);
+      replacedViewports = replacedViewports.filter(replaced => !nextViewports.includes(replaced));
+      viewports = viewports.filter(viewport => !replacedViewports.includes(viewport));
     }
     for (const scope of viewports) {
       viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
@@ -641,7 +641,6 @@ export class Viewport {
     }
     return null;
   }
-
 
   private async unloadContent(): Promise<void> {
     this.content.removeComponent(this.element as Element, this.router.statefulHistory || this.options.stateful);

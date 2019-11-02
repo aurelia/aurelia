@@ -2,7 +2,7 @@ import { IRoute } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
 
 export class FoundRoute {
-  constructor(
+  public constructor(
     public match: IRoute | null = null,
     public matching: string = '',
     public instructions: ViewportInstruction[] = [],

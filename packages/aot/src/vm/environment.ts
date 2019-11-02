@@ -266,7 +266,7 @@ export class $ObjectEnvRec {
     const foundBinding = $HasProperty(bindings, N);
 
     // 4. If foundBinding is false, return false.
-    if (foundBinding.value === false) {
+    if (foundBinding.isFalsey) {
       return intrinsics.false;
     }
 
@@ -328,6 +328,8 @@ export class $ObjectEnvRec {
 
     // 2. Assert: envRec must have an uninitialized binding for N.
     // 3. Record that the binding for N in envRec has been initialized.
+    // TODO: record
+
     // 4. Return ? envRec.SetMutableBinding(N, V, false).
     return envRec.SetMutableBinding(N, V, intrinsics.false);
   }
@@ -373,8 +375,6 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-deletebinding-n
   public DeleteBinding(N: $String): $Boolean {
-    const intrinsics = this.host.realm['[[Intrinsics]]'];
-
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -536,5 +536,452 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
     // 4. Assert: Type(home) is Object.
     // 5. Return ? home.[[GetPrototypeOf]]().
     return home['[[GetPrototypeOf]]']();
+  }
+}
+
+export class $GlobalEnvRec {
+  public readonly '<$GlobalEnvRec>': unknown;
+
+  public '[[ObjectRecord]]': $ObjectEnvRec;
+  public '[[GlobalThisValue]]': $Object;
+  public '[[DeclarativeRecord]]': $DeclarativeEnvRec;
+  public '[[VarNames]]': string[];
+
+  public constructor(
+    public readonly host: Host,
+    ObjectRecord: $ObjectEnvRec,
+    GlobalThisValue: $Object,
+    DeclarativeRecord: $DeclarativeEnvRec,
+    VarNames: string[],
+  ) {
+    this['[[ObjectRecord]]'] = ObjectRecord;
+    this['[[GlobalThisValue]]'] = GlobalThisValue;
+    this['[[DeclarativeRecord]]'] = DeclarativeRecord;
+    this['[[VarNames]]'] = VarNames;
+  }
+
+  // Overrides
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasbinding-n
+  public HasBinding(N: $String): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, return true.
+    if (dclRec.HasBinding(N).isTruthy) {
+      return intrinsics.true;
+    }
+
+    // 4. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 5. Return ? ObjRec.HasBinding(N).
+    return objRec.HasBinding(N);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-createmutablebinding-n-d
+  public CreateMutableBinding(N: $String, D: $Boolean): $Empty {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
+    if (dclRec.HasBinding(N).isTruthy) {
+      throw new TypeError('3. If DclRec.HasBinding(N) is true, throw a TypeError exception.');
+    }
+
+    // 4. Return DclRec.CreateMutableBinding(N, D).
+    return dclRec.CreateMutableBinding(N, D);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-createimmutablebinding-n-s
+  public CreateImmutableBinding(N: $String, S: $Boolean): $Empty {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
+    if (dclRec.HasBinding(N).isTruthy) {
+      throw new TypeError('3. If DclRec.HasBinding(N) is true, throw a TypeError exception.');
+    }
+
+    // 4. Return DclRec.CreateImmutableBinding(N, S).
+    return dclRec.CreateImmutableBinding(N, S);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-initializebinding-n-v
+  public InitializeBinding(N: $String, V: $Any): $Boolean | $Empty {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, then
+    if (dclRec.HasBinding(N).isTruthy) {
+      // 3. a. Return DclRec.InitializeBinding(N, V).
+      return dclRec.InitializeBinding(N, V);
+    }
+
+    // 4. Assert: If the binding exists, it must be in the object Environment Record.
+    // 5. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 6. Return ? ObjRec.InitializeBinding(N, V).
+    return objRec.InitializeBinding(N, V);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-setmutablebinding-n-v-s
+  public SetMutableBinding(N: $String, V: $Any, S: $Boolean): $Boolean | $Empty {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, then
+    if (dclRec.HasBinding(N).isTruthy) {
+      // 3. a. Return DclRec.SetMutableBinding(N, V, S).
+      return dclRec.SetMutableBinding(N, V, S);
+    }
+
+    // 4. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 5. Return ? ObjRec.SetMutableBinding(N, V, S).
+    return objRec.SetMutableBinding(N, V, S);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getbindingvalue-n-s
+  public GetBindingValue(N: $String, S: $Boolean): $Any {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, then
+    if (dclRec.HasBinding(N).isTruthy) {
+      // 3. a. Return DclRec.GetBindingValue(N, S).
+      return dclRec.GetBindingValue(N, S);
+    }
+
+    // 4. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 5. Return ? ObjRec.GetBindingValue(N, S).
+    return objRec.GetBindingValue(N, S);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-deletebinding-n
+  public DeleteBinding(N: $String): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. If DclRec.HasBinding(N) is true, then
+    if (dclRec.HasBinding(N).isTruthy) {
+      // 3. a. Return DclRec.DeleteBinding(N).
+      return dclRec.DeleteBinding(N);
+    }
+
+    // 4. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 5. Let globalObject be the binding object for ObjRec.
+    const globalObject = objRec.bindingObject;
+
+    // 6. Let existingProp be ? HasOwnProperty(globalObject, N).
+    const existingProp = $HasOwnProperty(globalObject, N);
+
+    // 7. If existingProp is true, then
+    if (existingProp.isTruthy) {
+      // 7. a. Let status be ? ObjRec.DeleteBinding(N).
+      const status = objRec.DeleteBinding(N);
+
+      // 7. b. If status is true, then
+      if (status.isTruthy) {
+        // 7. b. i. Let varNames be envRec.[[VarNames]].
+        const varNames = envRec['[[VarNames]]'];
+
+        // 7. b. ii. If N is an element of varNames, remove that element from the varNames.
+        const idx = varNames.indexOf(N.value);
+        if (idx >= 0) {
+          varNames.splice(idx, 1);
+        }
+      }
+
+      // 7. c. Return status.
+      return status;
+    }
+
+    // 8. Return true.
+    return intrinsics.true;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasthisbinding
+  public HasThisBinding(): $Boolean<true> {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return true.
+    return intrinsics.true;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hassuperbinding
+  public HasSuperBinding(): $Boolean<false> {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return false.
+    return intrinsics.false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-withbaseobject
+  public WithBaseObject(): $Undefined {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return undefined.
+    return intrinsics.undefined;
+  }
+
+  // Additions
+  // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getthisbinding
+  public GetThisBinding(): $Object {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Return envRec.[[GlobalThisValue]].
+    return envRec['[[GlobalThisValue]]'];
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-hasvardeclaration
+  public HasVarDeclaration(N: $String): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let varDeclaredNames be envRec.[[VarNames]].
+    const varDeclaredNames = envRec['[[VarNames]]'];
+
+    // 3. If varDeclaredNames contains N, return true.
+    if (varDeclaredNames.includes(N.value)) {
+      return intrinsics.true;
+    }
+
+    // 4. Return false.
+    return intrinsics.false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-haslexicaldeclaration
+  public HasLexicalDeclaration(N: $String): $Boolean {
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let DclRec be envRec.[[DeclarativeRecord]].
+    const dclRec = envRec['[[DeclarativeRecord]]'];
+
+    // 3. Return DclRec.HasBinding(N).
+    return dclRec.HasBinding(N);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-hasrestrictedglobalproperty
+  public HasRestrictedGlobalProperty(N: $String): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 3. Let globalObject be the binding object for ObjRec.
+    const globalObject = objRec.bindingObject;
+
+    // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+    const existingProp = globalObject['[[GetOwnProperty]]'](N);
+
+    // 5. If existingProp is undefined, return false.
+    if (existingProp.isUndefined) {
+      return intrinsics.false;
+    }
+
+    // 6. If existingProp.[[Configurable]] is true, return false.
+    if (existingProp['[[Configurable]]'].isTruthy) {
+      return intrinsics.false;
+    }
+
+    // 7. Return true.
+    return intrinsics.true;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalvar
+  public CanDeclareGlobalVar(N: $String): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 3. Let globalObject be the binding object for ObjRec.
+    const globalObject = objRec.bindingObject;
+
+    // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
+    const hasProperty = $HasOwnProperty(globalObject, N);
+
+    // 5. If hasProperty is true, return true.
+    if (hasProperty.isTruthy) {
+      return intrinsics.true;
+    }
+
+    // 6. Return ? IsExtensible(globalObject).
+    return globalObject['[[IsExtensible]]']();
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalfunction
+  public CanDeclareGlobalFunction(N: $String): $Boolean {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 3. Let globalObject be the binding object for ObjRec.
+    const globalObject = objRec.bindingObject;
+
+    // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+    const existingProp = globalObject['[[GetOwnProperty]]'](N);
+
+    // 5. If existingProp is undefined, return ? IsExtensible(globalObject).
+    if (existingProp.isUndefined) {
+      return globalObject['[[IsExtensible]]']();
+    }
+
+    // 6. If existingProp.[[Configurable]] is true, return true.
+    if (existingProp['[[Configurable]]'].isTruthy) {
+      return intrinsics.true;
+    }
+
+    // 7. If IsDataDescriptor(existingProp) is true and existingProp has attribute values { [[Writable]]: true, [[Enumerable]]: true }, return true.
+    if (existingProp.isDataDescriptor && existingProp['[[Writable]]'].isTruthy && existingProp['[[Enumerable]]'].isTruthy) {
+      return intrinsics.true;
+    }
+
+    // 8. Return false.
+    return intrinsics.false;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-createglobalvarbinding
+  public CreateGlobalVarBinding(N: $String, D: $Boolean): $Empty {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 3. Let globalObject be the binding object for ObjRec.
+    const globalObject = objRec.bindingObject;
+
+    // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
+    const hasProperty = $HasOwnProperty(globalObject, N);
+
+    // 5. Let extensible be ? IsExtensible(globalObject).
+    const extensible = globalObject['[[IsExtensible]]']();
+
+    // 6. If hasProperty is false and extensible is true, then
+    if (hasProperty.isFalsey && extensible.isTruthy) {
+      // 6. a. Perform ? ObjRec.CreateMutableBinding(N, D).
+      objRec.CreateMutableBinding(N, D);
+
+      // 6. b. Perform ? ObjRec.InitializeBinding(N, undefined).
+      objRec.InitializeBinding(N, intrinsics.undefined);
+    }
+
+    // 7. Let varDeclaredNames be envRec.[[VarNames]].
+    const varDeclaredNames = envRec['[[VarNames]]'];
+
+    // 8. If varDeclaredNames does not contain N, then
+    if (!varDeclaredNames.includes(N.value)) {
+      // 8. a. Append N to varDeclaredNames.
+      varDeclaredNames.push(N.value);
+    }
+
+    // 9. Return NormalCompletion(empty).
+    return intrinsics.empty;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-createglobalfunctionbinding
+  public CreateGlobalFunctionBinding(N: $String, V: $Any, D: $Boolean): $Empty {
+    const host = this.host;
+    const intrinsics = host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the global Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Let ObjRec be envRec.[[ObjectRecord]].
+    const objRec = envRec['[[ObjectRecord]]'];
+
+    // 3. Let globalObject be the binding object for ObjRec.
+    const globalObject = objRec.bindingObject;
+
+    // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+    const existingProp = globalObject['[[GetOwnProperty]]'](N);
+
+    let desc: $PropertyDescriptor;
+    // 5. If existingProp is undefined or existingProp.[[Configurable]] is true, then
+    if (existingProp.isUndefined || existingProp['[[Configurable]]'].isTruthy) {
+      // 5. a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
+      desc = new $PropertyDescriptor(host, N);
+      desc['[[Enumerable]]'] = intrinsics.true;
+      desc['[[Configurable]]'] = D;
+
+      desc['[[Value]]'] = V;
+      desc['[[Writable]]'] = intrinsics.true;
+    }
+    // 6. Else,
+    else {
+      // 6. a. Let desc be the PropertyDescriptor { [[Value]]: V }.
+      desc = new $PropertyDescriptor(host, N);
+
+      desc['[[Value]]'] = V;
+    }
+
+    // 7. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
+    $DefinePropertyOrThrow(globalObject, N, desc);
+
+    // 8. Record that the binding for N in ObjRec has been initialized.
+    // TODO: record
+
+    // 9. Perform ? Set(globalObject, N, V, false).
+    $Set(globalObject, N, V, intrinsics.false);
+
+    // 10. Let varDeclaredNames be envRec.[[VarNames]].
+    const varDeclaredNames = envRec['[[VarNames]]'];
+
+    // 11. If varDeclaredNames does not contain N, then
+    if (!varDeclaredNames.includes(N.value)) {
+      // 11. a. Append N to varDeclaredNames.
+      varDeclaredNames.push(N.value);
+    }
+
+    // 12. Return NormalCompletion(empty).
+    return intrinsics.empty;
   }
 }

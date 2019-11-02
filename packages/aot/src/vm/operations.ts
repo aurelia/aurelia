@@ -60,7 +60,7 @@ export function $Get(O: $Object, P: $PropertyKey): $Any {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
-export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: boolean): $Boolean {
+export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: $Boolean): $Boolean {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Assert: Type(Throw) is Boolean.
@@ -68,7 +68,7 @@ export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: boolean): $Boo
   const success = O['[[Set]]'](P, V, O);
 
   // 5. If success is false and Throw is true, throw a TypeError exception.
-  if (!success && Throw) {
+  if (success.isFalsey && Throw.isTruthy) {
     throw new TypeError('5. If success is false and Throw is true, throw a TypeError exception.');
   }
 
@@ -178,6 +178,25 @@ export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $A
   return intrinsics.true;
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-hasownproperty
+export function $HasOwnProperty(O: $Object, P: $PropertyKey): $Boolean {
+  const host = O.host;
+  const intrinsics = host.realm['[[Intrinsics]]'];
+
+  // 1. Assert: Type(O) is Object.
+  // 2. Assert: IsPropertyKey(P) is true.
+  // 3. Let desc be ? O.[[GetOwnProperty]](P).
+  const desc = O['[[GetOwnProperty]]'](P);
+
+  // 4. If desc is undefined, return false.
+  if (desc.isUndefined) {
+    return intrinsics.false;
+  }
+
+  // 5. Return true.
+  return intrinsics.true;
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-call
 export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $Any {
   // 1. If argumentsList is not present, set argumentsList to a new empty List.
@@ -225,7 +244,7 @@ export function $ValidateAndApplyPropertyDescriptor(
   // 2. If current is undefined, then
   if (current.isUndefined) {
     // 2. a. If extensible is false, return false.
-    if (!extensible.value) {
+    if (extensible.isFalsey) {
       return intrinsics.false;
     }
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { $Any, $Object, $String, $Boolean, $Undefined, $Function, $Null, $Empty } from './value';
+import { $Any, $Object, $String, $Boolean, $Undefined, $Function, $Null, $Empty, $ECMAScriptFunction } from './value';
 import { IModule, Host } from './host';
 import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from './operations';
 import { $PropertyDescriptor } from './property-descriptor';
@@ -42,10 +42,17 @@ export class $DeclarativeEnvRec {
 
   public readonly bindings: Map<string, $Binding> = new Map();
 
+  // http://www.ecma-international.org/ecma-262/#sec-newdeclarativeenvironment
   public constructor(
     public readonly host: Host,
     public readonly outer: $EnvRec | null,
-  ) {}
+  ) {
+    // 1. Let env be a new Lexical Environment.
+    // 2. Let envRec be a new declarative Environment Record containing no bindings.
+    // 3. Set env's EnvironmentRecord to envRec.
+    // 4. Set the outer lexical environment reference of env to E.
+    // 5. Return env.
+  }
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasbinding-n
@@ -254,11 +261,18 @@ export class $ObjectEnvRec {
 
   public withEnvironment: boolean = false;
 
+  // http://www.ecma-international.org/ecma-262/#sec-newobjectenvironment
   public constructor(
     public readonly host: Host,
     public readonly outer: $EnvRec | null,
     public readonly bindingObject: $Object,
-  ) {}
+  ) {
+    // 1. Let env be a new Lexical Environment.
+    // 2. Let envRec be a new object Environment Record containing O as the binding object.
+    // 3. Set env's EnvironmentRecord to envRec.
+    // 4. Set the outer lexical environment reference of env to E.
+    // 5. Return env.
+  }
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasbinding-n
@@ -435,24 +449,50 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   public '[[ThisValue]]': $Any;
   public '[[ThisBindingStatus]]': BindingStatus;
-  public '[[FunctionObject]]': $Function;
+  public '[[FunctionObject]]': $ECMAScriptFunction;
   public '[[HomeObject]]': $Object | $Undefined;
   public '[[NewTarget]]': $Object | $Undefined;
 
+  // http://www.ecma-international.org/ecma-262/#sec-newfunctionenvironment
   public constructor(
     host: Host,
-    outer: $EnvRec,
-    ThisBindingStatus: BindingStatus,
-    FunctionObject: $Function,
-    HomeObject: $Object | $Undefined,
-    NewTarget: $Object | $Undefined,
+    F: $ECMAScriptFunction,
+    newTarget: $Object | $Undefined,
   ) {
-    super(host, outer);
+    super(host, F['[[Environment]]']);
 
-    this['[[ThisBindingStatus]]'] = ThisBindingStatus;
-    this['[[FunctionObject]]'] = FunctionObject;
-    this['[[HomeObject]]'] = HomeObject;
-    this['[[NewTarget]]'] = NewTarget;
+    // 1. Assert: F is an ECMAScript function.
+    // 2. Assert: Type(newTarget) is Undefined or Object.
+    // 3. Let env be a new Lexical Environment.
+    // 4. Let envRec be a new function Environment Record containing no bindings.
+    const envRec = this;
+
+    // 5. Set envRec.[[FunctionObject]] to F.
+    envRec['[[FunctionObject]]'] = F;
+
+    // 6. If F.[[ThisMode]] is lexical, set envRec.[[ThisBindingStatus]] to "lexical".
+    if (F['[[ThisMode]]'] === 'lexical') {
+      envRec['[[ThisBindingStatus]]'] = 'lexical';
+    }
+    // 7. Else, set envRec.[[ThisBindingStatus]] to "uninitialized".
+    else {
+      envRec['[[ThisBindingStatus]]'] = 'uninitialized';
+    }
+
+    // 8. Let home be F.[[HomeObject]].
+    const home = F['[[HomeObject]]'];
+
+    // 9. Set envRec.[[HomeObject]] to home.
+    envRec['[[HomeObject]]'] = home;
+
+    // 10. Set envRec.[[NewTarget]] to newTarget.
+    envRec['[[NewTarget]]'] = newTarget;
+
+    // 11. Set env's EnvironmentRecord to envRec.
+    // 12. Set the outer lexical environment reference of env to F.[[Environment]].
+    // See super(host, F['[[Environment]]']);
+
+    // 13. Return env.
   }
 
   // Overrides

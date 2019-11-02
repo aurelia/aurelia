@@ -7,11 +7,21 @@ import { $PropertyDescriptor } from './property-descriptor';
 export type $EnvRec = (
   $DeclarativeEnvRec |
   $ObjectEnvRec |
-  $FunctionEnvRec
+  $FunctionEnvRec |
+  $GlobalEnvRec |
+  $ModuleEnvRec
 );
+
+let bindingId = 0;
 
 export class $Binding {
   public readonly '<$Binding>': unknown;
+
+  public readonly id: number = ++bindingId;
+
+  public get isIndirect(): boolean {
+    return this.M !== null;
+  }
 
   public constructor(
     public isMutable: boolean,
@@ -22,7 +32,7 @@ export class $Binding {
     public name: string,
     public origin: $EnvRec,
     public M: IModule | null = null,
-    public N2: string | null = null,
+    public N2: $String | null = null,
   ) {}
 }
 
@@ -982,6 +992,122 @@ export class $GlobalEnvRec {
     }
 
     // 12. Return NormalCompletion(empty).
+    return intrinsics.empty;
+  }
+}
+
+export class $ModuleEnvRec extends $DeclarativeEnvRec {
+  public readonly '<$ModuleEnvRec>': unknown;
+
+  // Everything is false because an environment record should not appear like any kind of normal ES value.
+  public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): false { return false; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): false { return false; }
+  public get isObject(): false { return false; }
+  public get isFunction(): false { return false; }
+
+  public constructor(
+    host: Host,
+    outer: $EnvRec,
+  ) {
+    super(host, outer);
+  }
+
+  // Overrides
+  // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getbindingvalue-n-s
+  public GetBindingValue(N: $String, S: $Boolean<true>): $Any {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Assert: S is true.
+    // 2. Let envRec be the module Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 3. Assert: envRec has a binding for N.
+    const binding = envRec.bindings.get(N.value)!;
+
+    // 4. If the binding for N is an indirect binding, then
+    if (binding.isIndirect) {
+      // 4. a. Let M and N2 be the indirection values provided when this binding for N was created.
+      const M = binding.M!;
+      const N2 = binding.N2!;
+
+      // 4. b. Let targetEnv be M.[[Environment]].
+      const targetER = M['[[Environment]]'];
+
+      // 4. c. If targetEnv is undefined, throw a ReferenceError exception.
+      if (targetER.isUndefined) {
+        throw new ReferenceError('4. c. If targetEnv is undefined, throw a ReferenceError exception.');
+      }
+
+      // 4. d. Let targetER be targetEnv's EnvironmentRecord.
+      // 4. e. Return ? targetER.GetBindingValue(N2, true).
+      return targetER.GetBindingValue(N2, intrinsics.true);
+    }
+
+    // 5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
+    if (!binding.isInitialized) {
+      throw new ReferenceError('5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.');
+    }
+
+    // 6. Return the value currently bound to N in envRec.
+    return binding.value;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-deletebinding-n
+  public DeleteBinding(N: never): never {
+    // 1. Assert: This method is never invoked. See 12.5.3.1.
+    throw new Error('1. Assert: This method is never invoked. See 12.5.3.1.');
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-hasthisbinding
+  public HasThisBinding(): $Boolean<true> {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return true.
+    return intrinsics.true;
+  }
+
+  // Additions
+  // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getthisbinding
+  public GetThisBinding(): $Undefined {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Return undefined.
+    return intrinsics.undefined;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-createimportbinding
+  public CreateImportBinding(N: $String, M: IModule, N2: $String): $Empty {
+    const intrinsics = this.host.realm['[[Intrinsics]]'];
+
+    // 1. Let envRec be the module Environment Record for which the method was invoked.
+    const envRec = this;
+
+    // 2. Assert: envRec does not already have a binding for N.
+    // 3. Assert: M is a Module Record.
+    // 4. Assert: When M.[[Environment]] is instantiated it will have a direct binding for N2.
+
+    // 5. Create an immutable indirect binding in envRec for N that references M and N2 as its target binding and record that the binding is initialized.
+    const binding = new $Binding(
+      /* isMutable */false,
+      /* isStrict */true,
+      /* isInitialized */true,
+      /* canBeDeleted */false,
+      /* value */intrinsics.empty,
+      /* name */N.value,
+      /* origin */this,
+      /* M */M,
+      /* N2 */N2,
+    );
+    envRec.bindings.set(N.value, binding);
+
+    // 6. Return NormalCompletion(empty).
     return intrinsics.empty;
   }
 }

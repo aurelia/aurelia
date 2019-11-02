@@ -8,6 +8,8 @@ import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname } from 'path';
 import { CreateIntrinsics, Intrinsics } from './intrinsics';
+import { $EnvRec, $ModuleEnvRec } from './environment';
+import { $Undefined, $Object } from './value';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -62,13 +64,17 @@ export interface IModule {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
   readonly '<IModule>': unknown;
 
+  '[[Environment]]': $ModuleEnvRec | $Undefined;
+
   readonly Host: Host;
 
   ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
 }
 
 export class DeferredModule implements IModule {
-  readonly '<IModule>': unknown;
+  public readonly '<IModule>': unknown;
+
+  public '[[Environment]]': $ModuleEnvRec | $Undefined;
 
   public constructor(
     public readonly $file: IFile,

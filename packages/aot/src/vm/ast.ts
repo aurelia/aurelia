@@ -145,8 +145,9 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { Host, IModule, ResolveSet, ResolvedBindingRecord } from './host';
-import { empty } from './value';
+import { empty, $Undefined } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
+import { $ModuleEnvRec } from './environment';
 const {
   emptyArray,
   emptyObject,
@@ -3756,7 +3757,9 @@ export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' |
 // http://www.ecma-international.org/ecma-262/#sec-cyclic-module-records
 // http://www.ecma-international.org/ecma-262/#sec-source-text-module-records
 export class $SourceFile implements I$Node, IModule {
-  '<IModule>': any;
+  public readonly '<IModule>': unknown;
+
+  public '[[Environment]]': $ModuleEnvRec | $Undefined;
 
   public readonly $kind = SyntaxKind.SourceFile;
   public readonly id: number;

@@ -597,17 +597,37 @@ export class $GlobalEnvRec {
   public '[[DeclarativeRecord]]': $DeclarativeEnvRec;
   public '[[VarNames]]': string[];
 
+  // http://www.ecma-international.org/ecma-262/#sec-newglobalenvironment
   public constructor(
     public readonly host: Host,
-    ObjectRecord: $ObjectEnvRec,
-    GlobalThisValue: $Object,
-    DeclarativeRecord: $DeclarativeEnvRec,
-    VarNames: string[],
+    G: $Object,
+    thisValue: $Object,
   ) {
-    this['[[ObjectRecord]]'] = ObjectRecord;
-    this['[[GlobalThisValue]]'] = GlobalThisValue;
-    this['[[DeclarativeRecord]]'] = DeclarativeRecord;
-    this['[[VarNames]]'] = VarNames;
+    // 1. Let env be a new Lexical Environment.
+    // 2. Let objRec be a new object Environment Record containing G as the binding object.
+    const objRec = new $ObjectEnvRec(host, null, G);
+
+    // 3. Let dclRec be a new declarative Environment Record containing no bindings.
+    const dclRec = new $DeclarativeEnvRec(host, null);
+
+    // 4. Let globalRec be a new global Environment Record.
+    const globalRec = this;
+
+    // 5. Set globalRec.[[ObjectRecord]] to objRec.
+    globalRec['[[ObjectRecord]]'] = objRec;
+
+    // 6. Set globalRec.[[GlobalThisValue]] to thisValue.
+    globalRec['[[GlobalThisValue]]'] = thisValue;
+
+    // 7. Set globalRec.[[DeclarativeRecord]] to dclRec.
+    globalRec['[[DeclarativeRecord]]'] = dclRec;
+
+    // 8. Set globalRec.[[VarNames]] to a new empty List.
+    globalRec['[[VarNames]]'] = [];
+
+    // 9. Set env's EnvironmentRecord to globalRec.
+    // 10. Set the outer lexical environment reference of env to null.
+    // 11. Return env.
   }
 
   // Overrides

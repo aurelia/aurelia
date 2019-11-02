@@ -43,7 +43,7 @@ export declare class Aurelia<TNode extends INode = INode> {
     private next?;
     constructor(container?: IContainer);
     register(...params: any[]): this;
-    app(config: ISinglePageApp<TNode>): this;
+    app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'>;
     start(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     stop(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     wait(): Promise<void>;

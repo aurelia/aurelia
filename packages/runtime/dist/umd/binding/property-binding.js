@@ -35,7 +35,6 @@
             this.$lifecycle = locator.get(lifecycle_1.ILifecycle);
         }
         ;
-        ;
         updateTarget(value, flags) {
             flags |= this.persistentFlags;
             this.targetObserver.setValue(value, flags);

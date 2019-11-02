@@ -24,7 +24,6 @@ let PropertyBinding = class PropertyBinding {
         this.$lifecycle = locator.get(ILifecycle);
     }
     ;
-    ;
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
         this.targetObserver.setValue(value, flags);

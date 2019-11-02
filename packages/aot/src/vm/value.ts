@@ -64,6 +64,7 @@ export class $Empty {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {
   public readonly '<$Undefined>': unknown;
 
@@ -95,6 +96,7 @@ export class $Undefined {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-null-type
 export class $Null {
   public readonly '<$Null>': unknown;
 
@@ -126,6 +128,7 @@ export class $Null {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-boolean-type
 export class $Boolean<T extends boolean = boolean> {
   public readonly '<$Boolean>': unknown;
 
@@ -156,6 +159,7 @@ export class $Boolean<T extends boolean = boolean> {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-string-type
 export class $String<T extends string = string> {
   public readonly '<$String>': unknown;
 
@@ -186,6 +190,7 @@ export class $String<T extends string = string> {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
 export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public readonly '<$Symbol>': unknown;
 
@@ -217,6 +222,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-number-type
 export class $Number<T extends number = number> {
   public readonly '<$Number>': unknown;
 
@@ -247,6 +253,7 @@ export class $Number<T extends number = number> {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<
   T extends string = string,
 > {
@@ -575,6 +582,7 @@ export class $Object<
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#table-6
 export class $Function<
   T extends string = string,
 > extends $Object<T> {
@@ -597,6 +605,7 @@ export class $Function<
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
 export class $ECMAScriptFunction<
   T extends string = string,
 > extends $Function<T> {
@@ -611,6 +620,7 @@ export class $ECMAScriptFunction<
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects
 export class $BuiltinFunction<
   T extends string = string,
 > extends $Function<T> {

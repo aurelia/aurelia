@@ -1072,11 +1072,17 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
 
+  // http://www.ecma-international.org/ecma-262/#sec-newmoduleenvironment
   public constructor(
     host: Host,
     outer: $EnvRec,
   ) {
     super(host, outer);
+    // 1. Let env be a new Lexical Environment.
+    // 2. Let envRec be a new module Environment Record containing no bindings.
+    // 3. Set env's EnvironmentRecord to envRec.
+    // 4. Set the outer lexical environment reference of env to E.
+    // 5. Return env.
   }
 
   // Overrides

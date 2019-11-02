@@ -7,7 +7,7 @@ import { subscriberCollection } from './subscriber-collection';
 
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
 
-export interface IMayHavePropertyChangedCallback {
+interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
 }
 
@@ -29,7 +29,7 @@ export class BindableObserver {
   public constructor(
     public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    public readonly obj: IIndexable & IMayHavePropertyChangedCallback,
+    public readonly obj: IIndexable,
     public readonly propertyKey: string,
     cbName: string,
   ) {
@@ -45,7 +45,7 @@ export class BindableObserver {
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const propertyChangedCallback = this.propertyChangedCallback = this.obj.propertyChanged;
+    const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
 
     if (this.callback === void 0 && !hasPropertyChangedCallback) {

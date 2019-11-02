@@ -9,7 +9,9 @@ import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../s
 import { dirname } from 'path';
 import { CreateIntrinsics, Intrinsics } from './intrinsics';
 import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec } from './environment';
-import { $Undefined, $Object } from './value';
+import { $Undefined, $Object, $Function, $Null, $String } from './value';
+import { $PropertyDescriptor } from './property-descriptor';
+import { $DefinePropertyOrThrow } from './operations';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -86,8 +88,24 @@ export class DeferredModule implements IModule {
   }
 }
 
+export class ExecutionContextStack extends Array<ExecutionContext> {
+  public get top(): ExecutionContext {
+    return this[this.length - 1];
+  }
+
+  public push(context: ExecutionContext): number {
+    return super.push(context);
+  }
+
+  public pop(): ExecutionContext {
+    return super.pop()!;
+  }
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm {
+  public readonly stack: ExecutionContextStack = new ExecutionContextStack();
+
   public '[[Intrinsics]]': Intrinsics;
   public '[[GlobalObject]]': $Object;
   public '[[GlobalEnv]]': $GlobalEnvRec;
@@ -120,6 +138,14 @@ export class Realm {
   }
 }
 
+export class ExecutionContext {
+  public Function!: $Function | $Null;
+  public Realm!: Realm;
+  public ScriptOrModule!: IModule | $Null;
+  public LexicalEnvironment!: $EnvRec;
+  public VariableEnvironment!: $EnvRec;
+}
+
 export class Host {
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
@@ -146,7 +172,144 @@ export class Host {
 
     this.logger = container.get(ILogger).root.scopeTo('Host');
 
-    this.realm = Realm.Create(this);
+    // http://www.ecma-international.org/ecma-262/#sec-initializehostdefinedrealm
+
+    // 1. Let realm be CreateRealm().
+    const realm = this.realm = Realm.Create(this);
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 2. Let newContext be a new execution context.
+    const newContext = new ExecutionContext();
+
+    // 3. Set the Function of newContext to null.
+    newContext.Function = intrinsics.null;
+
+    // 4. Set the Realm of newContext to realm.
+    newContext.Realm = realm;
+
+    // 5. Set the ScriptOrModule of newContext to null.
+    newContext.ScriptOrModule = intrinsics.null;
+
+    // 6. Push newContext onto the execution context stack; newContext is now the running execution context.
+    realm.stack.push(newContext);
+
+    // 7. If the host requires use of an exotic object to serve as realm's global object, let global be such an object created in an implementation-defined manner. Otherwise, let global be undefined, indicating that an ordinary object should be created as the global object.
+    let global = intrinsics.undefined as $Undefined | $Object;
+
+    // 8. If the host requires that the this binding in realm's global scope return an object other than the global object, let thisValue be such an object created in an implementation-defined manner. Otherwise, let thisValue be undefined, indicating that realm's global this binding should be the global object.
+    let thisValue = intrinsics.undefined as $Undefined | $Object;
+
+    // 9. Perform SetRealmGlobalObject(realm, global, thisValue).
+    // http://www.ecma-international.org/ecma-262/#sec-setrealmglobalobject
+    (function (host: Host, realmRec: Realm, globalObj: $Object | $Undefined, thisValue: $Object | $Undefined) {
+      // 1. If globalObj is undefined, then
+      if (globalObj.isUndefined) {
+        // 1. a. Let intrinsics be realmRec.[[Intrinsics]].
+        // 1. b. Set globalObj to ObjectCreate(intrinsics.[[%ObjectPrototype%]]).
+        globalObj = $Object.Create('GlobalObject', intrinsics['%ObjectPrototype%']);
+      }
+
+      // 2. Assert: Type(globalObj) is Object.
+      // 3. If thisValue is undefined, set thisValue to globalObj.
+      if (thisValue.isUndefined) {
+        thisValue = globalObj;
+      }
+
+      // 4. Set realmRec.[[GlobalObject]] to globalObj.
+      realmRec['[[GlobalObject]]'] = globalObj as $Object;
+
+      // 5. Let newGlobalEnv be NewGlobalEnvironment(globalObj, thisValue).
+      const newGlobalEnv = new $GlobalEnvRec(host, globalObj as $Object, thisValue as $Object);
+
+      // 6. Set realmRec.[[GlobalEnv]] to newGlobalEnv.
+      realmRec['[[GlobalEnv]]'] = newGlobalEnv;
+
+      // 7. Return realmRec.
+    })(this, realm, global, thisValue);
+
+    // 10. Let globalObj be ? SetDefaultGlobalBindings(realm).
+    // http://www.ecma-international.org/ecma-262/#sec-setdefaultglobalbindings
+    (function (host: Host, realmRec: Realm) {
+      // 1. Let global be realmRec.[[GlobalObject]].
+      const global = realmRec['[[GlobalObject]]'];
+
+      // 2. For each property of the Global Object specified in clause 18, do
+      // 2. a. Let name be the String value of the property name.
+      // 2. b. Let desc be the fully populated data property descriptor for the property containing the specified attributes for the property. For properties listed in 18.2, 18.3, or 18.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
+      // 2. c. Perform ? DefinePropertyOrThrow(global, name, desc).
+      // 3. Return global.
+
+      function def(propertyName: string, intrinsicName: keyof Intrinsics): void {
+        const name = new $String(host, propertyName);
+        const desc = new $PropertyDescriptor(host, name);
+        desc['[[Writable]]'] = intrinsics.false;
+        desc['[[Enumerable]]'] = intrinsics.false;
+        desc['[[Configurable]]'] = intrinsics.false;
+        desc['[[Value]]'] = intrinsics[intrinsicName];
+        $DefinePropertyOrThrow(global, name, desc);
+      }
+
+      // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
+      def('Infinity', 'Infinity');
+      def('NaN', 'NaN');
+      def('undefined', 'undefined');
+
+      // http://www.ecma-international.org/ecma-262/#sec-function-properties-of-the-global-object
+      def('eval', '%eval%');
+      def('isFinite', '%isFinite%');
+      def('isNaN', '%isNaN%');
+      def('parseFloat', '%parseFloat%');
+      def('parseInt', '%parseInt%');
+      def('decodeURI', '%decodeURI%');
+      def('decodeURIComponent', '%decodeURIComponent%');
+      def('encodeURI', '%encodeURI%');
+      def('encodeURIComponent', '%encodeURIComponent%');
+
+      // http://www.ecma-international.org/ecma-262/#sec-constructor-properties-of-the-global-object
+      def('Array', '%Array%');
+      def('ArrayBuffer', '%ArrayBuffer%');
+      def('Boolean', '%Boolean%');
+      def('DataView', '%DataView%');
+      def('Date', '%Date%');
+      def('Error', '%Error%');
+      def('EvalError', '%EvalError%');
+      def('Float32Array', '%Float32Array%');
+      def('Float64Array', '%Float64Array%');
+      def('Function', '%Function%');
+      def('Int8Array', '%Int8Array%');
+      def('Int16Array', '%Int16Array%');
+      def('Int32Array', '%Int32Array%');
+      def('Map', '%Map%');
+      def('Number', '%Number%');
+      def('Object', '%Object%');
+      def('Promise', '%Promise%');
+      def('Proxy', '%Proxy%');
+      def('RangeError', '%RangeError%');
+      def('ReferenceError', '%ReferenceError%');
+      def('RegExp', '%RegExp%');
+      def('Set', '%Set%');
+      def('SharedArrayBuffer', '%SharedArrayBuffer%');
+      def('String', '%String%');
+      def('Symbol', '%Symbol%');
+      def('SyntaxError', '%SyntaxError%');
+      def('TypeError', '%TypeError%');
+      def('Uint8Array', '%Uint8Array%');
+      def('Uint8ClampedArray', '%Uint8ClampedArray%');
+      def('Uint16Array', '%Uint16Array%');
+      def('Uint32Array', '%Uint32Array%');
+      def('URIError', '%URIError%');
+      def('WeakMap', '%WeakMap%');
+      def('WeakSet', '%WeakSet%');
+
+      // http://www.ecma-international.org/ecma-262/#sec-other-properties-of-the-global-object
+      def('Atomics', '%Atomics%');
+      def('JSON', '%JSON%');
+      def('Math', '%Math%');
+      def('Reflect', '%Reflect%');
+    })(this, realm);
+
+    // 11. Create any implementation-defined global object properties on globalObj.
+    // 12. Return NormalCompletion(empty).
   }
 
   public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {

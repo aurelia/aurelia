@@ -9,6 +9,7 @@
   * [Exploring the Source Code](getting-started/quick-start-guide/exploring-the-source-code.md)
   * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
+  * [Bonus](getting-started/quick-start-guide/bonus.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Building Components](getting-started/components.md)
 * [Displaying Basic Data](getting-started/displaying-basic-data.md)

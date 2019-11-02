@@ -13,3 +13,19 @@
     <span class.bind="{'selectedDetails': item == selected}">${item.details}</span>
   </div>
 </div>
+
+<p id="simple-style" style="background-color: rgb(255, 0, 0); font-weight: 700;">
+  style-attribute-accessor-test-target
+</p>
+<p id="inline-bound-style" style.bind="{'background-color': 'rgb(255, 0, 0)', 'font-weight': '700'}">
+  style-attribute-accessor-test-target
+</p>
+<p id="bound-style-obj" style.bind="styleObj">
+  style-attribute-accessor-test-target
+</p>
+<p id="bound-style-array" style.bind="styleArray">
+  style-attribute-accessor-test-target
+</p>
+<p id="bound-style-str" style.bind="styleStr">
+  style-attribute-accessor-test-target
+</p>

@@ -5,8 +5,9 @@ import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing'
 import { App, Product } from './app/app';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
+import { Cards } from './app/molecules/cards/cards';
 
-describe('app', function () {
+describe.only('app', function () {
   function createTestFunction(
     testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
     startupConfiguration?: StartupConfiguration,
@@ -827,7 +828,7 @@ describe('app', function () {
 
         assert.equal(getComputedStyle(container1).display, 'flex', 'incorrect container1 display');
         assert.equal(getComputedStyle(container2).display, 'flex', 'incorrect container2 display');
-        assert.equal(cards1.every((card)=> card.querySelector('footer').classList.contains('foo-bar')), true);
+        assert.equal(cards1.every((card) => card.querySelector('footer').classList.contains('foo-bar')), true);
         assert.equal(getComputedStyle(cards1[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container1');
         assert.equal(getComputedStyle(cards1[0].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color1 - container1');
         assert.equal(getComputedStyle(cards2[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container2');
@@ -847,4 +848,30 @@ describe('app', function () {
         assert.equal(getComputedStyle(cards2[1].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color2 - container2');
       },
       { useCSSModule }));
+
+  $it.only(`cards uses inline styles`,
+    async function ({ host, ctx }) {
+      const cardsEl = host.querySelector('cards');
+      const cardsVm = getViewModel<Cards>(cardsEl);
+
+      for (const id of ['simple-style', 'inline-bound-style', 'bound-style-obj', 'bound-style-array', 'bound-style-str']) {
+        const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
+        assert.equal(style.backgroundColor, 'rgb(255, 0, 0)', `bg color ${id}`);
+        assert.equal(style.fontWeight, '700', `font weight ${id}`);
+      }
+
+      cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
+      cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
+      cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
+      await ctx.scheduler.yieldAll();
+
+      for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
+        const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
+        assert.equal(style.backgroundColor, 'rgb(0, 0, 255)', `bg color ${id} - post change`);
+        assert.equal(style.borderWidth, '1px', `border width ${id} - post change`);
+        assert.equal(style.borderStyle, 'solid', `border style ${id} - post change`);
+        assert.equal(style.borderColor, 'rgb(0, 255, 0)', `border color ${id} - post change`);
+        assert.notEqual(style.fontWeight, '700', `font weight ${id} - post change`);
+      }
+    });
 });

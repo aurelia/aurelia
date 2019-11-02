@@ -40,7 +40,7 @@
 #### Observation
 - [ ] `attribute-ns-accessor`: Attribute accessor in a XML document/element that can be accessed via a namespace; wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS). Skipped for now, considering niche usages.
 - [x] `checked-observer`: observes checked property of `input[type=checkbox]` and `input[type=radio]`. Supports binding collection to checked value, and with custom matcher (compare function).
-- [ ] ``: manipulates class attributes for an element.
+- [x] `class-attribute-accessor`: manipulates class attributes for an element.
 - [ ] `data-attribute-observer`: observes non-class, and non-style HTML attributes.
   ```html
   <div aria-disabled.attr="disabled">
@@ -203,7 +203,7 @@ The update of the display is triggered every 2 seconds via a signal.
   - [x] bind model
   - [x] bind matcher
   - [x] bind boolean
-- card selector: displays a list of cards and applies a special css class and inline style (I know this is hypothetical, just grouping this here) on the selected card. Should cover `class-attribute-accessor`, `style-attribute-accessor`, and `element-attribute-observer`. Additionally, it applies a `src` attribute on the card images which should cover `data-attribute-accessor`.
+- [ ] card selector: displays a list of cards and applies a special css class and inline style (I know this is hypothetical, just grouping this here) on the selected card. Should cover `class-attribute-accessor`, `style-attribute-accessor`, and `element-attribute-observer`. Additionally, it applies a `src` attribute on the card images which should cover `data-attribute-accessor`.
 - [x] `<select>`
   - [x] single select
     - [x] simple id-value pair case

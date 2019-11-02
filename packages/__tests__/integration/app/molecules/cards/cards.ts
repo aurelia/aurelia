@@ -13,6 +13,8 @@ export interface Card {
  * Potential coverage target
  * - `runtime-html`
  *    - `css-modules-registry`
+ *    - `class-attribute-accessor`
+ *    - `style-attribute-accessor`
  */
 export class Cards {
 
@@ -27,6 +29,10 @@ export class Cards {
 
   @bindable public items: Card[];
   @bindable public selected: Card;
+
+  public styleStr: string = "background-color: rgb(255, 0, 0); font-weight: 700 !important";
+  public styleObj: any = { 'background-color': 'rgb(255, 0, 0)', 'font-weight': '700 !important' };
+  public styleArray: any[] = [{ 'background-color': 'rgb(255, 0, 0)' }, { 'font-weight': '700 !important' }];
 
   public select(card: Card) {
     this.selected = card;

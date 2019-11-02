@@ -57,7 +57,7 @@ export class ResolveSet {
 export class ResolvedBindingRecord {
   public constructor(
     public readonly Module: IModule,
-    public readonly BindingName: string,
+    public readonly BindingName: $String,
   ) {}
 }
 
@@ -74,6 +74,7 @@ export interface IModule {
   readonly Host: Host;
 
   ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
+  GetExportedNames(exportStarSet: Set<IModule>): readonly string[];
 }
 
 export class DeferredModule implements IModule {
@@ -90,6 +91,10 @@ export class DeferredModule implements IModule {
   ) {}
 
   public ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
+    throw new Error('Method not implemented.');
+  }
+
+  public GetExportedNames(exportStarSet: Set<IModule>): readonly string[] {
     throw new Error('Method not implemented.');
   }
 }

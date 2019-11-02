@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { Host, IModule, ResolveSet, ResolvedBindingRecord, Realm } from './host';
-import { empty, $Undefined, $Object } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec } from './environment';
 const {
@@ -3813,6 +3813,8 @@ export class $SourceFile implements I$Node, IModule {
     public readonly compilerOptions: CompilerOptions,
   ) {
     this.id = Host.registerNode(this);
+    this['[[Realm]]'] = Host.realm;
+
     const fileName = $file.path;
     this.logger = pkg.container.get(ILogger).root.scopeTo(`SourceFile<${fileName.slice(fileName.lastIndexOf('/') + 1)}>`);
 
@@ -4117,6 +4119,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     const host = this.Host;
+    const intrinsics = host.realm['[[Intrinsics]]'];
 
     // 3. Assert: All named exports from module are resolvable.
     // 4. Let realm be module.[[Realm]].
@@ -4145,25 +4148,42 @@ export class $SourceFile implements I$Node, IModule {
           // 1. Assert: module is an instance of a concrete subclass of Module Record.
           // 2. Assert: module.[[Status]] is not "uninstantiated".
           // 3. Let namespace be module.[[Namespace]].
-          const namespace = mod['[[Namespace]]'];
+          let namespace = mod['[[Namespace]]'];
 
           // 4. If namespace is undefined, then
           if (namespace.isUndefined) {
             // 4. a. Let exportedNames be ? module.GetExportedNames(« »).
+            const exportedNames = mod.GetExportedNames(new Set());
 
             // 4. b. Let unambiguousNames be a new empty List.
+            const unambiguousNames: string[] = [];
+
             // 4. c. For each name that is an element of exportedNames, do
-            // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
-            // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
+            for (const name of exportedNames) {
+              // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
+              const resolution = mod.ResolveExport(name, new ResolveSet());
+
+              // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
+              if (resolution instanceof ResolvedBindingRecord) {
+                unambiguousNames.push(name);
+              }
+            }
+
             // 4. d. Set namespace to ModuleNamespaceCreate(module, unambiguousNames).
+            namespace = new $NamespaceExoticObject(host, mod, unambiguousNames);
           }
 
           // 5. Return namespace.
           return namespace;
         })(importedModule);
 
+        const LocalName = new $String(host, ie.LocalName);
+
         // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
+        envRec.CreateImmutableBinding(LocalName, intrinsics.true);
+
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
+        envRec.InitializeBinding(LocalName, namespace);
       }
       // 9. d. Else,
       else {
@@ -4175,7 +4195,10 @@ export class $SourceFile implements I$Node, IModule {
           throw new SyntaxError(`ResolveExport(${ie.ImportName}) returned ${resolution}`);
         }
 
+        const LocalName = new $String(host, ie.LocalName);
+
         // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
+        envRec.CreateImportBinding(LocalName, resolution.Module, resolution.BindingName);
       }
     }
 
@@ -4203,6 +4226,65 @@ export class $SourceFile implements I$Node, IModule {
     this.logger.info(`Finished initializing environment`);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-getexportednames
+  public GetExportedNames(exportStarSet: Set<IModule>): readonly string[] {
+    // 1. Let module be this Source Text Module Record.
+    const mod = this;
+
+    // 2. If exportStarSet contains module, then
+    if (exportStarSet.has(mod)) {
+      // 2. a. Assert: We've reached the starting point of an import * circularity.
+      // 2. b. Return a new empty List.
+      return emptyArray;
+    }
+
+    // 3. Append module to exportStarSet.
+    exportStarSet.add(mod);
+
+    // 4. Let exportedNames be a new empty List.
+    const exportedNames: string[] = [];
+
+    // 5. For each ExportEntry Record e in module.[[LocalExportEntries]], do
+    for (const e of mod.LocalExportEntries) {
+      // 5. a. Assert: module provides the direct binding for this export.
+      // 5. b. Append e.[[ExportName]] to exportedNames.
+      exportedNames.push(e.ExportName!);
+    }
+
+    // 6. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
+    for (const e of mod.IndirectExportEntries) {
+      // 6. a. Assert: module imports a specific binding for this export.
+      // 6. b. Append e.[[ExportName]] to exportedNames.
+      exportedNames.push(e.ExportName!);
+    }
+
+    const host = this.Host;
+
+    // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
+    for (const e of mod.StarExportEntries) {
+      // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
+      const requestedModule = host.HostResolveImportedModule(mod, e.ModuleRequest!);
+
+      // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
+      const starNames = requestedModule.GetExportedNames(exportStarSet);
+
+      // 7. c. For each element n of starNames, do
+      for (const n of starNames) {
+        // 7. c. i. If SameValue(n, "default") is false, then
+        if (n !== 'default') {
+          // 7. c. i. 1. If n is not an element of exportedNames, then
+          if (exportedNames.indexOf(n) === -1) {
+            // 7. c. i. 1. a. Append n to exportedNames.
+            exportedNames.push(n);
+          }
+        }
+      }
+    }
+
+    // 8. Return exportedNames.
+    return exportedNames;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-resolveexport
   public ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
     // 1. Let module be this Source Text Module Record.
@@ -4224,7 +4306,7 @@ export class $SourceFile implements I$Node, IModule {
       if (exportName === e.ExportName) {
         // 4. a. i. Assert: module provides the direct binding for this export.
         // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
-        return new ResolvedBindingRecord(this, e.LocalName!);
+        return new ResolvedBindingRecord(this, new $String(this.Host, e.LocalName!));
       }
     }
 

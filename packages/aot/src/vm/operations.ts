@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Host, Realm } from './host';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 
 export type CallableFunction = (
@@ -441,4 +441,22 @@ export function $ValidateAndApplyPropertyDescriptor(
 
   // 10. Return true.
   return intrinsics.true;
+}
+
+
+// http://www.ecma-international.org/ecma-262/#sec-set-immutable-prototype
+export function $SetImmutablePrototype(O: $Object, V: $Object | $Null): $Boolean {
+  const intrinsics = O.host.realm['[[Intrinsics]]'];
+
+  // 1. Assert: Either Type(V) is Object or Type(V) is Null.
+  // 2. Let current be ? O.[[GetPrototypeOf]]().
+  const current = O['[[GetPrototypeOf]]']();
+
+  // 3. If SameValue(V, current) is true, return true.
+  if (V.is(current)) {
+    return intrinsics.true;
+  }
+
+  // 4. Return false.
+  return intrinsics.false;
 }

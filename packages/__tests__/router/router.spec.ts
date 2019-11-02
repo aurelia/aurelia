@@ -1131,7 +1131,7 @@ describe('Router', function () {
     });
   });
 
-  describe('can use configuration', async function () {
+  describe('can use configuration', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes = []) {
@@ -1196,9 +1196,9 @@ describe('Router', function () {
       const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
 
       const { scheduler, container, host, router, $teardown } = await $setup(void 0,
-        [Parent, Parent2, Child, Child2, Grandchild, Grandchild2], [
-        { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }
-      ]);
+        [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
+        [{ path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }]
+      );
 
       const tests = [
         { path: '/parent-config', result: /.*?!parent!.*?/ },
@@ -1221,7 +1221,6 @@ describe('Router', function () {
 
         { path: '/parent-config/child2@parent/grandchild2@child2', result: /.*?!parent!.*?!child2!.*?!grandchild2!.*?/ },
         { path: '/parent2@default/child-config/grandchild-config', result: /.*?!parent2!.*?!child!.*?!grandchild!.*?/ },
-
 
         { path: '/parent-config', result: /.*?!parent!.*?/ },
         { path: '/parent2', result: /.*?!parent2!.*?/ },

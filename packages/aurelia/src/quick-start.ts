@@ -1,6 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
-import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { DI, IContainer } from '@aurelia/kernel';
 import { Aurelia as $Aurelia, CompositionRoot, CustomElementType, ILifecycleTask, ISinglePageApp, CustomElement } from '@aurelia/runtime';
 
 // TODO: SSR?? abstract HTMLElement and document.
@@ -31,15 +31,15 @@ export class Aurelia extends $Aurelia<HTMLElement> {
     return createAurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp<HTMLElement> | unknown): Aurelia {
+  public static app(config: ISinglePageApp<HTMLElement> | unknown): Omit<Aurelia, 'register' | 'app'> {
     return createAurelia().app(config);
   }
 
-  public static register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): Aurelia {
+  public static register(...params: readonly unknown[]): Aurelia {
     return createAurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp<HTMLElement> | unknown): this {
+  public app(config: ISinglePageApp<HTMLElement> | unknown): Omit<this, 'register' | 'app'> {
     if (CustomElement.isType(config as CustomElementType)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config as CustomElementType);

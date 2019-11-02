@@ -8,7 +8,12 @@ import {
   $Symbol,
   $Object,
 } from './value';
-import { Host } from './host';
+import { Realm } from './host';
+
+export type $True = $Boolean<true>;
+export type $False = $Boolean<false>;
+export type $0 = $Number<0>;
+export type $EmptyString = $String<''>;
 
 /**
  * http://www.ecma-international.org/ecma-262/#table-7
@@ -126,315 +131,314 @@ import { Host } from './host';
  * %WeakSet%                         WeakSet                      The WeakSet constructor (23.4.1)
  * %WeakSetPrototype%                WeakSet.prototype            The initial value of the prototype data property of %WeakSet%
  */
+export class Intrinsics {
+  public readonly 'empty': $Empty;
+  public readonly 'undefined': $Undefined;
+  public readonly 'null': $Null;
+  public readonly 'true': $True;
+  public readonly 'false': $False;
+  public readonly 'NaN': $Number;
+  public readonly 'Infinity': $Number;
+  public readonly '-Infinity': $Number;
+  public readonly '0': $0;
+  public readonly '-0': $0;
+  public readonly '': $EmptyString;
 
-// http://www.ecma-international.org/ecma-262/#sec-createintrinsics
-/* eslint-disable max-lines-per-function,@typescript-eslint/camelcase */
-export function CreateIntrinsics(host: Host) {
-  const _empty = new $Empty(host);
-  const _undefined = new $Undefined(host);
-  const _null = new $Null(host);
-  const _true = new $Boolean(host, true);
-  const _false = new $Boolean(host, false);
-  const _NaN = new $Number(host, NaN);
-  const _Infinity = new $Number(host, Infinity);
-  const _NegativeInfinity = new $Number(host, -Infinity);
-  const _Zero = new $Number(host, 0);
-  const _NegativeZero = new $Number(host, -0);
-  const _EmptyString = new $String(host, '');
+  public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
+  public readonly '@@hasInstance': $Symbol<$String<'Symbol.hasInstance'>>;
+  public readonly '@@isConcatSpreadable': $Symbol<$String<'Symbol.isConcatSpreadable'>>;
+  public readonly '@@iterator': $Symbol<$String<'Symbol.iterator'>>;
+  public readonly '@@match': $Symbol<$String<'Symbol.match'>>;
+  public readonly '@@replace': $Symbol<$String<'Symbol.replace'>>;
+  public readonly '@@search': $Symbol<$String<'Symbol.search'>>;
+  public readonly '@@species': $Symbol<$String<'Symbol.species'>>;
+  public readonly '@@split': $Symbol<$String<'Symbol.split'>>;
+  public readonly '@@toPrimitive': $Symbol<$String<'Symbol.toPrimitive'>>;
+  public readonly '@@toStringTag': $Symbol<$String<'Symbol.toStringTag'>>;
+  public readonly '@@unscopables': $Symbol<$String<'Symbol.unscopables'>>;
 
-  const _Symbol_asyncIterator = new $Symbol(host, new $String(host, 'Symbol.asyncIterator'));
-  const _Symbol_hasInstance = new $Symbol(host, new $String(host, 'Symbol.hasInstance'));
-  const _Symbol_isConcatSpreadable = new $Symbol(host, new $String(host, 'Symbol.isConcatSpreadable'));
-  const _Symbol_iterator = new $Symbol(host, new $String(host, 'Symbol.iterator'));
-  const _Symbol_match = new $Symbol(host, new $String(host, 'Symbol.match'));
-  const _Symbol_replace = new $Symbol(host, new $String(host, 'Symbol.replace'));
-  const _Symbol_search = new $Symbol(host, new $String(host, 'Symbol.search'));
-  const _Symbol_species = new $Symbol(host, new $String(host, 'Symbol.species'));
-  const _Symbol_split = new $Symbol(host, new $String(host, 'Symbol.split'));
-  const _Symbol_toPrimitive = new $Symbol(host, new $String(host, 'Symbol.toPrimitive'));
-  const _Symbol_toStringTag = new $Symbol(host, new $String(host, 'Symbol.toStringTag'));
-  const _Symbol_unscopables = new $Symbol(host, new $String(host, 'Symbol.unscopables'));
+  public readonly '%ObjectPrototype%': $Object<'%ObjectPrototype%'>;
+  public readonly '%BooleanPrototype%': $Object<'%BooleanPrototype%'>;
+  public readonly '%NumberPrototype%': $Object<'%NumberPrototype%'>;
+  public readonly '%StringPrototype%': $Object<'%StringPrototype%'>;
+  public readonly '%SymbolPrototype%': $Object<'%SymbolPrototype%'>;
+  public readonly '%PromisePrototype%': $Object<'%PromisePrototype%'>;
+  public readonly '%RegExpPrototype%': $Object<'%RegExpPrototype%'>;
+  public readonly '%DatePrototype%': $Object<'%DatePrototype%'>;
 
-  const _ObjectPrototype = new $Object(host, '%ObjectPrototype%', _null);
-  const _BooleanPrototype = new $Object(host, '%BooleanPrototype%', _ObjectPrototype);
-  const _NumberPrototype = new $Object(host, '%NumberPrototype%', _ObjectPrototype);
-  const _StringPrototype = new $Object(host, '%StringPrototype%', _ObjectPrototype);
-  const _SymbolPrototype = new $Object(host, '%SymbolPrototype%', _ObjectPrototype);
-  const _PromisePrototype = new $Object(host, '%PromisePrototype%', _ObjectPrototype);
-  const _RegExpPrototype = new $Object(host, '%RegExpPrototype%', _ObjectPrototype);
-  const _DatePrototype = new $Object(host, '%DatePrototype%', _ObjectPrototype);
+  public readonly '%FunctionPrototype%': $Object<'%FunctionPrototype%'>;
+  public readonly '%AsyncFunctionPrototype%': $Object<'%AsyncFunctionPrototype%'>;
 
-  const _FunctionPrototype = new $Object(host, '%FunctionPrototype%', _ObjectPrototype);
-  const _AsyncFunctionPrototype = new $Object(host, '%AsyncFunctionPrototype%', _FunctionPrototype);
+  public readonly '%Generator%': $Object<'%Generator%'>;
+  public readonly '%AsyncGenerator%': $Object<'%AsyncGenerator%'>;
 
-  const _Generator = new $Object(host, '%Generator%', _FunctionPrototype);
-  const _AsyncGenerator = new $Object(host, '%AsyncGenerator%', _FunctionPrototype);
+  public readonly '%IteratorPrototype%': $Object<'%IteratorPrototype%'>;
+  public readonly '%ArrayIteratorPrototype%': $Object<'%ArrayIteratorPrototype%'>;
+  public readonly '%MapIteratorPrototype%': $Object<'%MapIteratorPrototype%'>;
+  public readonly '%SetIteratorPrototype%': $Object<'%SetIteratorPrototype%'>;
+  public readonly '%StringIteratorPrototype%': $Object<'%StringIteratorPrototype%'>;
+  public readonly '%GeneratorPrototype%': $Object<'%GeneratorPrototype%'>;
 
-  const _IteratorPrototype = new $Object(host, '%IteratorPrototype%', _ObjectPrototype);
-  const _ArrayIteratorPrototype = new $Object(host, '%ArrayIteratorPrototype%', _IteratorPrototype);
-  const _MapIteratorPrototype = new $Object(host, '%MapIteratorPrototype%', _IteratorPrototype);
-  const _SetIteratorPrototype = new $Object(host, '%SetIteratorPrototype%', _IteratorPrototype);
-  const _StringIteratorPrototype = new $Object(host, '%StringIteratorPrototype%', _IteratorPrototype);
-  const _GeneratorPrototype = new $Object(host, '%GeneratorPrototype%', _IteratorPrototype);
+  public readonly '%AsyncIteratorPrototype%': $Object<'%AsyncIteratorPrototype%'>;
+  public readonly '%AsyncFromSyncIteratorPrototype%': $Object<'%AsyncFromSyncIteratorPrototype%'>;
+  public readonly '%AsyncGeneratorPrototype%': $Object<'%AsyncGeneratorPrototype%'>;
 
-  const _AsyncIteratorPrototype = new $Object(host, '%AsyncIteratorPrototype%', _ObjectPrototype);
-  const _AsyncFromSyncIteratorPrototype = new $Object(host, '%AsyncFromSyncIteratorPrototype%', _AsyncIteratorPrototype);
-  const _AsyncGeneratorPrototype = new $Object(host, '%AsyncGeneratorPrototype%', _AsyncIteratorPrototype);
+  public readonly '%ArrayPrototype%': $Object<'%ArrayPrototype%'>;
+  public readonly '%MapPrototype%': $Object<'%MapPrototype%'>;
+  public readonly '%WeakMapPrototype%': $Object<'%WeakMapPrototype%'>;
+  public readonly '%SetPrototype%': $Object<'%SetPrototype%'>;
+  public readonly '%WeakSetPrototype%': $Object<'%WeakSetPrototype%'>;
+  public readonly '%DataViewPrototype%': $Object<'%DataViewPrototype%'>;
+  public readonly '%ArrayBufferPrototype%': $Object<'%ArrayBufferPrototype%'>;
+  public readonly '%SharedArrayBufferPrototype%': $Object<'%SharedArrayBufferPrototype%'>;
 
-  const _ArrayPrototype = new $Object(host, '%ArrayPrototype%', _ObjectPrototype);
-  const _MapPrototype = new $Object(host, '%MapPrototype%', _ObjectPrototype);
-  const _WeakMapPrototype = new $Object(host, '%WeakMapPrototype%', _ObjectPrototype);
-  const _SetPrototype = new $Object(host, '%SetPrototype%', _ObjectPrototype);
-  const _WeakSetPrototype = new $Object(host, '%WeakSetPrototype%', _ObjectPrototype);
-  const _DataViewPrototype = new $Object(host, '%DataViewPrototype%', _ObjectPrototype);
-  const _ArrayBufferPrototype = new $Object(host, '%ArrayBufferPrototype%', _ObjectPrototype);
-  const _SharedArrayBufferPrototype = new $Object(host, '%SharedArrayBufferPrototype%', _ObjectPrototype);
+  public readonly '%TypedArrayPrototype%': $Object<'%TypedArrayPrototype%'>;
+  public readonly '%Float32ArrayPrototype%': $Object<'%Float32ArrayPrototype%'>;
+  public readonly '%Float64ArrayPrototype%': $Object<'%Float64ArrayPrototype%'>;
+  public readonly '%Int8ArrayPrototype%': $Object<'%Int8ArrayPrototype%'>;
+  public readonly '%Int16ArrayPrototype%': $Object<'%Int16ArrayPrototype%'>;
+  public readonly '%Int32ArrayPrototype%': $Object<'%Int32ArrayPrototype%'>;
+  public readonly '%Uint8ArrayPrototype%': $Object<'%Uint8ArrayPrototype%'>;
+  public readonly '%Uint8ClampedArrayPrototype%': $Object<'%Uint8ClampedArrayPrototype%'>;
+  public readonly '%Uint16ArrayPrototype%': $Object<'%Uint16ArrayPrototype%'>;
+  public readonly '%Uint32ArrayPrototype%': $Object<'%Uint32ArrayPrototype%'>;
 
-  const _TypedArrayPrototype = new $Object(host, '%TypedArrayPrototype%', _ObjectPrototype);
-  const _Float32ArrayPrototype = new $Object(host, '%Float32ArrayPrototype%', _TypedArrayPrototype);
-  const _Float64ArrayPrototype = new $Object(host, '%Float64ArrayPrototype%', _TypedArrayPrototype);
-  const _Int8ArrayPrototype = new $Object(host, '%Int8ArrayPrototype%', _TypedArrayPrototype);
-  const _Int16ArrayPrototype = new $Object(host, '%Int16ArrayPrototype%', _TypedArrayPrototype);
-  const _Int32ArrayPrototype = new $Object(host, '%Int32ArrayPrototype%', _TypedArrayPrototype);
-  const _Uint8ArrayPrototype = new $Object(host, '%Uint8ArrayPrototype%', _TypedArrayPrototype);
-  const _Uint8ClampedArrayPrototype = new $Object(host, '%Uint8ClampedArrayPrototype%', _TypedArrayPrototype);
-  const _Uint16ArrayPrototype = new $Object(host, '%Uint16ArrayPrototype%', _TypedArrayPrototype);
-  const _Uint32ArrayPrototype = new $Object(host, '%Uint32ArrayPrototype%', _TypedArrayPrototype);
+  public readonly '%ErrorPrototype%': $Object<'%ErrorPrototype%'>;
+  public readonly '%EvalErrorPrototype%': $Object<'%EvalErrorPrototype%'>;
+  public readonly '%RangeErrorPrototype%': $Object<'%RangeErrorPrototype%'>;
+  public readonly '%ReferenceErrorPrototype%': $Object<'%ReferenceErrorPrototype%'>;
+  public readonly '%SyntaxErrorPrototype%': $Object<'%SyntaxErrorPrototype%'>;
+  public readonly '%TypeErrorPrototype%': $Object<'%TypeErrorPrototype%'>;
+  public readonly '%URIErrorPrototype%': $Object<'%URIErrorPrototype%'>;
 
-  const _ErrorPrototype = new $Object(host, '%ErrorPrototype%', _ObjectPrototype);
-  const _EvalErrorPrototype = new $Object(host, '%EvalErrorPrototype%', _ErrorPrototype);
-  const _RangeErrorPrototype = new $Object(host, '%RangeErrorPrototype%', _ErrorPrototype);
-  const _ReferenceErrorPrototype = new $Object(host, '%ReferenceErrorPrototype%', _ErrorPrototype);
-  const _SyntaxErrorPrototype = new $Object(host, '%SyntaxErrorPrototype%', _ErrorPrototype);
-  const _TypeErrorPrototype = new $Object(host, '%TypeErrorPrototype%', _ErrorPrototype);
-  const _URIErrorPrototype = new $Object(host, '%URIErrorPrototype%', _ErrorPrototype);
+  public readonly '%Object%': $Object<'%Object%'>;
+  public readonly '%Boolean%': $Object<'%Boolean%'>;
+  public readonly '%Number%': $Object<'%Number%'>;
+  public readonly '%String%': $Object<'%String%'>;
+  public readonly '%Symbol%': $Object<'%Symbol%'>;
+  public readonly '%Promise%': $Object<'%Promise%'>;
+  public readonly '%RegExp%': $Object<'%RegExp%'>;
+  public readonly '%Date%': $Object<'%Date%'>;
 
-  const _Object = new $Object(host, '%Object%', _FunctionPrototype);
-  const _Boolean = new $Object(host, '%Boolean%', _FunctionPrototype);
-  const _Number = new $Object(host, '%Number%', _FunctionPrototype);
-  const _String = new $Object(host, '%String%', _FunctionPrototype);
-  const _Symbol = new $Object(host, '%Symbol%', _FunctionPrototype);
-  const _Promise = new $Object(host, '%Promise%', _FunctionPrototype);
-  const _RegExp = new $Object(host, '%RegExp%', _FunctionPrototype);
-  const _Date = new $Object(host, '%Date%', _FunctionPrototype);
+  public readonly '%Function%': $Object<'%Function%'>;
+  public readonly '%AsyncFunction%': $Object<'%AsyncFunction%'>;
 
-  const _Function = new $Object(host, '%Function%', _FunctionPrototype);
-  const _AsyncFunction = new $Object(host, '%AsyncFunction%', _Function);
+  public readonly '%GeneratorFunction%': $Object<'%GeneratorFunction%'>;
+  public readonly '%AsyncGeneratorFunction%': $Object<'%AsyncGeneratorFunction%'>;
 
-  const _GeneratorFunction = new $Object(host, '%GeneratorFunction%', _Function);
-  const _AsyncGeneratorFunction = new $Object(host, '%AsyncGeneratorFunction%', _Function);
+  public readonly '%Array%': $Object<'%Array%'>;
+  public readonly '%Map%': $Object<'%Map%'>;
+  public readonly '%WeakMap%': $Object<'%WeakMap%'>;
+  public readonly '%Set%': $Object<'%Set%'>;
+  public readonly '%WeakSet%': $Object<'%WeakSet%'>;
+  public readonly '%DataView%': $Object<'%DataView%'>;
+  public readonly '%ArrayBuffer%': $Object<'%ArrayBuffer%'>;
+  public readonly '%SharedArrayBuffer%': $Object<'%SharedArrayBuffer%'>;
 
-  const _Array = new $Object(host, '%Array%', _FunctionPrototype);
-  const _Map = new $Object(host, '%Map%', _FunctionPrototype);
-  const _WeakMap = new $Object(host, '%WeakMap%', _FunctionPrototype);
-  const _Set = new $Object(host, '%Set%', _FunctionPrototype);
-  const _WeakSet = new $Object(host, '%WeakSet%', _FunctionPrototype);
-  const _DataView = new $Object(host, '%DataView%', _FunctionPrototype);
-  const _ArrayBuffer = new $Object(host, '%ArrayBuffer%', _FunctionPrototype);
-  const _SharedArrayBuffer = new $Object(host, '%SharedArrayBuffer%', _FunctionPrototype);
+  public readonly '%TypedArray%': $Object<'%TypedArray%'>;
+  public readonly '%Float32Array%': $Object<'%Float32Array%'>;
+  public readonly '%Float64Array%': $Object<'%Float64Array%'>;
+  public readonly '%Int8Array%': $Object<'%Int8Array%'>;
+  public readonly '%Int16Array%': $Object<'%Int16Array%'>;
+  public readonly '%Int32Array%': $Object<'%Int32Array%'>;
+  public readonly '%Uint8Array%': $Object<'%Uint8Array%'>;
+  public readonly '%Uint8ClampedArray%': $Object<'%Uint8ClampedArray%'>;
+  public readonly '%Uint16Array%': $Object<'%Uint16Array%'>;
+  public readonly '%Uint32Array%': $Object<'%Uint32Array%'>;
 
-  const _TypedArray = new $Object(host, '%TypedArray%', _FunctionPrototype);
-  const _Float32Array = new $Object(host, '%Float32Array%', _TypedArray);
-  const _Float64Array = new $Object(host, '%Float64Array%', _TypedArray);
-  const _Int8Array = new $Object(host, '%Int8Array%', _TypedArray);
-  const _Int16Array = new $Object(host, '%Int16Array%', _TypedArray);
-  const _Int32Array = new $Object(host, '%Int32Array%', _TypedArray);
-  const _Uint8Array = new $Object(host, '%Uint8Array%', _TypedArray);
-  const _Uint8ClampedArray = new $Object(host, '%Uint8ClampedArray%', _TypedArray);
-  const _Uint16Array = new $Object(host, '%Uint16Array%', _TypedArray);
-  const _Uint32Array = new $Object(host, '%Uint32Array%', _TypedArray);
+  public readonly '%Error%': $Object<'%Error%'>;
+  public readonly '%EvalError%': $Object<'%EvalError%'>;
+  public readonly '%RangeError%': $Object<'%RangeError%'>;
+  public readonly '%ReferenceError%': $Object<'%ReferenceError%'>;
+  public readonly '%SyntaxError%': $Object<'%SyntaxError%'>;
+  public readonly '%TypeError%': $Object<'%TypeError%'>;
+  public readonly '%URIError%': $Object<'%URIError%'>;
 
-  const _Error = new $Object(host, '%Error%', _FunctionPrototype);
-  const _EvalError = new $Object(host, '%EvalError%', _Error);
-  const _RangeError = new $Object(host, '%RangeError%', _Error);
-  const _ReferenceError = new $Object(host, '%ReferenceError%', _Error);
-  const _SyntaxError = new $Object(host, '%SyntaxError%', _Error);
-  const _TypeError = new $Object(host, '%TypeError%', _Error);
-  const _URIError = new $Object(host, '%URIError%', _Error);
+  public readonly '%Atomics%': $Object<'%Atomics%'>;
+  public readonly '%JSON%': $Object<'%JSON%'>;
+  public readonly '%Math%': $Object<'%Math%'>;
+  public readonly '%Reflect%': $Object<'%Reflect%'>;
+  public readonly '%Proxy%': $Object<'%Proxy%'>;
 
-  const _Atomics = new $Object(host, '%Atomics%', _ObjectPrototype);
-  const _JSON = new $Object(host, '%JSON%', _ObjectPrototype);
-  const _Math = new $Object(host, '%Math%', _ObjectPrototype);
-  const _Reflect = new $Object(host, '%Reflect%', _ObjectPrototype);
-  const _Proxy = new $Object(host, '%Proxy%', _FunctionPrototype);
+  public readonly '%decodeURI%': $Object<'%decodeURI%'>;
+  public readonly '%decodeURIComponent%': $Object<'%decodeURIComponent%'>;
+  public readonly '%encodeURI%': $Object<'%encodeURI%'>;
+  public readonly '%encodeURIComponent%': $Object<'%encodeURIComponent%'>;
+  public readonly '%eval%': $Object<'%eval%'>;
+  public readonly '%isFinite%': $Object<'%isFinite%'>;
+  public readonly '%isNaN%': $Object<'%isNaN%'>;
+  public readonly '%parseFloat%': $Object<'%parseFloat%'>;
+  public readonly '%parseInt%': $Object<'%parseInt%'>;
+  public readonly '%JSONParse%': $Object<'%JSONParse%'>;
+  public readonly '%JSONStringify%': $Object<'%JSONStringify%'>;
+  public readonly '%ThrowTypeError%': $Object<'%ThrowTypeError%'>;
 
-  const _decodeURI = new $Object(host, '%decodeURI%', _FunctionPrototype);
-  const _decodeURIComponent = new $Object(host, '%decodeURIComponent%', _FunctionPrototype);
-  const _encodeURI = new $Object(host, '%encodeURI%', _FunctionPrototype);
-  const _encodeURIComponent = new $Object(host, '%encodeURIComponent%', _FunctionPrototype);
-  const _eval = new $Object(host, '%eval%', _FunctionPrototype);
-  const _isFinite = new $Object(host, '%isFinite%', _FunctionPrototype);
-  const _isNaN = new $Object(host, '%isNaN%', _FunctionPrototype);
-  const _parseFloat = new $Object(host, '%parseFloat%', _FunctionPrototype);
-  const _parseInt = new $Object(host, '%parseInt%', _FunctionPrototype);
-  const _JSONParse = new $Object(host, '%JSONParse%', _FunctionPrototype);
-  const _JSONStringify = new $Object(host, '%JSONStringify%', _FunctionPrototype);
-  const _ThrowTypeError = new $Object(host, '%ThrowTypeError%', _FunctionPrototype);
+  public readonly '%ArrayProto_entries%': $Object<'%ArrayProto_entries%'>;
+  public readonly '%ArrayProto_forEach%': $Object<'%ArrayProto_forEach%'>;
+  public readonly '%ArrayProto_keys%': $Object<'%ArrayProto_keys%'>;
+  public readonly '%ArrayProto_values%': $Object<'%ArrayProto_values%'>;
+  public readonly '%ObjProto_toString%': $Object<'%ObjProto_toString%'>;
+  public readonly '%ObjProto_valueOf%': $Object<'%ObjProto_valueOf%'>;
+  public readonly '%PromiseProto_then%': $Object<'%PromiseProto_then%'>;
+  public readonly '%Promise_all%': $Object<'%Promise_all%'>;
+  public readonly '%Promise_reject%': $Object<'%Promise_reject%'>;
+  public readonly '%Promise_resolve%': $Object<'%Promise_resolve%'>;
 
-  const _ArrayProto_entries = new $Object(host, '%ArrayProto_entries%', _FunctionPrototype);
-  const _ArrayProto_forEach = new $Object(host, '%ArrayProto_forEach%', _FunctionPrototype);
-  const _ArrayProto_keys = new $Object(host, '%ArrayProto_keys%', _FunctionPrototype);
-  const _ArrayProto_values = new $Object(host, '%ArrayProto_values%', _FunctionPrototype);
-  const _ObjProto_toString = new $Object(host, '%ObjProto_toString%', _FunctionPrototype);
-  const _ObjProto_valueOf = new $Object(host, '%ObjProto_valueOf%', _FunctionPrototype);
-  const _PromiseProto_then = new $Object(host, '%PromiseProto_then%', _FunctionPrototype);
-  const _Promise_all = new $Object(host, '%Promise_all%', _FunctionPrototype);
-  const _Promise_reject = new $Object(host, '%Promise_reject%', _FunctionPrototype);
-  const _Promise_resolve = new $Object(host, '%Promise_resolve%', _FunctionPrototype);
+  // http://www.ecma-international.org/ecma-262/#sec-createintrinsics
+  public constructor(realm: Realm) {
+    realm['[[Intrinsics]]'] = this;
+    const host = realm.Host;
 
-  return Object.assign(Object.create(null) as {}, {
-    'empty': _empty,
-    'undefined': _undefined,
-    'null': _null,
-    'true': _true,
-    'false': _false,
-    'NaN': _NaN,
-    'Infinity': _Infinity,
-    '-Infinity': _NegativeInfinity,
-    '0': _Zero,
-    '-0': _NegativeZero,
-    '': _EmptyString,
+    this['empty'] = new $Empty(host);
+    this['undefined'] = new $Undefined(host);
+    this['null'] = new $Null(host);
+    this['true'] = new $Boolean(host, true);
+    this['false'] = new $Boolean(host, false);
+    this['NaN'] = new $Number(host, NaN);
+    this['Infinity'] = new $Number(host, Infinity);
+    this['-Infinity'] = new $Number(host, -Infinity);
+    this['0'] = new $Number(host, 0);
+    this['-0'] = new $Number(host, -0);
+    this[''] = new $String(host, '');
 
-    '@@asyncIterator': _Symbol_asyncIterator,
-    '@@hasInstance': _Symbol_hasInstance,
-    '@@isConcatSpreadable': _Symbol_isConcatSpreadable,
-    '@@iterator': _Symbol_iterator,
-    '@@match': _Symbol_match,
-    '@@replace': _Symbol_replace,
-    '@@search': _Symbol_search,
-    '@@species': _Symbol_species,
-    '@@split': _Symbol_split,
-    '@@toPrimitive': _Symbol_toPrimitive,
-    '@@toStringTag': _Symbol_toStringTag,
-    '@@unscopables': _Symbol_unscopables,
+    this['@@asyncIterator'] = new $Symbol(host, new $String(host, 'Symbol.asyncIterator'));
+    this['@@hasInstance'] = new $Symbol(host, new $String(host, 'Symbol.hasInstance'));
+    this['@@isConcatSpreadable'] = new $Symbol(host, new $String(host, 'Symbol.isConcatSpreadable'));
+    this['@@iterator'] = new $Symbol(host, new $String(host, 'Symbol.iterator'));
+    this['@@match'] = new $Symbol(host, new $String(host, 'Symbol.match'));
+    this['@@replace'] = new $Symbol(host, new $String(host, 'Symbol.replace'));
+    this['@@search'] = new $Symbol(host, new $String(host, 'Symbol.search'));
+    this['@@species'] = new $Symbol(host, new $String(host, 'Symbol.species'));
+    this['@@split'] = new $Symbol(host, new $String(host, 'Symbol.split'));
+    this['@@toPrimitive'] = new $Symbol(host, new $String(host, 'Symbol.toPrimitive'));
+    this['@@toStringTag'] = new $Symbol(host, new $String(host, 'Symbol.toStringTag'));
+    this['@@unscopables'] = new $Symbol(host, new $String(host, 'Symbol.unscopables'));
 
-    '%ObjectPrototype%': _ObjectPrototype,
-    '%BooleanPrototype%': _BooleanPrototype,
-    '%NumberPrototype%': _NumberPrototype,
-    '%StringPrototype%': _StringPrototype,
-    '%SymbolPrototype%': _SymbolPrototype,
-    '%PromisePrototype%': _PromisePrototype,
-    '%RegExpPrototype%': _RegExpPrototype,
-    '%DatePrototype%': _DatePrototype,
+    this['%ObjectPrototype%'] = new $Object(host, '%ObjectPrototype%', this['null']);
+    this['%BooleanPrototype%'] = new $Object(host, '%BooleanPrototype%', this['%ObjectPrototype%']);
+    this['%NumberPrototype%'] = new $Object(host, '%NumberPrototype%', this['%ObjectPrototype%']);
+    this['%StringPrototype%'] = new $Object(host, '%StringPrototype%', this['%ObjectPrototype%']);
+    this['%SymbolPrototype%'] = new $Object(host, '%SymbolPrototype%', this['%ObjectPrototype%']);
+    this['%PromisePrototype%'] = new $Object(host, '%PromisePrototype%', this['%ObjectPrototype%']);
+    this['%RegExpPrototype%'] = new $Object(host, '%RegExpPrototype%', this['%ObjectPrototype%']);
+    this['%DatePrototype%'] = new $Object(host, '%DatePrototype%', this['%ObjectPrototype%']);
 
-    '%FunctionPrototype%': _FunctionPrototype,
-    '%AsyncFunctionPrototype%': _AsyncFunctionPrototype,
+    this['%FunctionPrototype%'] = new $Object(host, '%FunctionPrototype%', this['%ObjectPrototype%']);
+    this['%AsyncFunctionPrototype%'] = new $Object(host, '%AsyncFunctionPrototype%', this['%FunctionPrototype%']);
 
-    '%Generator%': _Generator,
-    '%AsyncGenerator%': _AsyncGenerator,
+    this['%Generator%'] = new $Object(host, '%Generator%', this['%FunctionPrototype%']);
+    this['%AsyncGenerator%'] = new $Object(host, '%AsyncGenerator%', this['%FunctionPrototype%']);
 
-    '%IteratorPrototype%': _IteratorPrototype,
-    '%ArrayIteratorPrototype%': _ArrayIteratorPrototype,
-    '%MapIteratorPrototype%': _MapIteratorPrototype,
-    '%SetIteratorPrototype%': _SetIteratorPrototype,
-    '%StringIteratorPrototype%': _StringIteratorPrototype,
-    '%GeneratorPrototype%': _GeneratorPrototype,
+    this['%IteratorPrototype%'] = new $Object(host, '%IteratorPrototype%', this['%ObjectPrototype%']);
+    this['%ArrayIteratorPrototype%'] = new $Object(host, '%ArrayIteratorPrototype%', this['%IteratorPrototype%']);
+    this['%MapIteratorPrototype%'] = new $Object(host, '%MapIteratorPrototype%', this['%IteratorPrototype%']);
+    this['%SetIteratorPrototype%'] = new $Object(host, '%SetIteratorPrototype%', this['%IteratorPrototype%']);
+    this['%StringIteratorPrototype%'] = new $Object(host, '%StringIteratorPrototype%', this['%IteratorPrototype%']);
+    this['%GeneratorPrototype%'] = new $Object(host, '%GeneratorPrototype%', this['%IteratorPrototype%']);
 
-    '%AsyncIteratorPrototype%': _AsyncIteratorPrototype,
-    '%AsyncFromSyncIteratorPrototype%': _AsyncFromSyncIteratorPrototype,
-    '%AsyncGeneratorPrototype%': _AsyncGeneratorPrototype,
+    this['%AsyncIteratorPrototype%'] = new $Object(host, '%AsyncIteratorPrototype%', this['%ObjectPrototype%']);
+    this['%AsyncFromSyncIteratorPrototype%'] = new $Object(host, '%AsyncFromSyncIteratorPrototype%', this['%AsyncIteratorPrototype%']);
+    this['%AsyncGeneratorPrototype%'] = new $Object(host, '%AsyncGeneratorPrototype%', this['%AsyncIteratorPrototype%']);
 
-    '%ArrayPrototype%': _ArrayPrototype,
-    '%MapPrototype%': _MapPrototype,
-    '%WeakMapPrototype%': _WeakMapPrototype,
-    '%SetPrototype%': _SetPrototype,
-    '%WeakSetPrototype%': _WeakSetPrototype,
-    '%DataViewPrototype%': _DataViewPrototype,
-    '%ArrayBufferPrototype%': _ArrayBufferPrototype,
-    '%SharedArrayBufferPrototype%': _SharedArrayBufferPrototype,
+    this['%ArrayPrototype%'] = new $Object(host, '%ArrayPrototype%', this['%ObjectPrototype%']);
+    this['%MapPrototype%'] = new $Object(host, '%MapPrototype%', this['%ObjectPrototype%']);
+    this['%WeakMapPrototype%'] = new $Object(host, '%WeakMapPrototype%', this['%ObjectPrototype%']);
+    this['%SetPrototype%'] = new $Object(host, '%SetPrototype%', this['%ObjectPrototype%']);
+    this['%WeakSetPrototype%'] = new $Object(host, '%WeakSetPrototype%', this['%ObjectPrototype%']);
+    this['%DataViewPrototype%'] = new $Object(host, '%DataViewPrototype%', this['%ObjectPrototype%']);
+    this['%ArrayBufferPrototype%'] = new $Object(host, '%ArrayBufferPrototype%', this['%ObjectPrototype%']);
+    this['%SharedArrayBufferPrototype%'] = new $Object(host, '%SharedArrayBufferPrototype%', this['%ObjectPrototype%']);
 
-    '%TypedArrayPrototype%': _TypedArrayPrototype,
-    '%Float32ArrayPrototype%': _Float32ArrayPrototype,
-    '%Float64ArrayPrototype%': _Float64ArrayPrototype,
-    '%Int8ArrayPrototype%': _Int8ArrayPrototype,
-    '%Int16ArrayPrototype%': _Int16ArrayPrototype,
-    '%Int32ArrayPrototype%': _Int32ArrayPrototype,
-    '%Uint8ArrayPrototype%': _Uint8ArrayPrototype,
-    '%Uint8ClampedArrayPrototype%': _Uint8ClampedArrayPrototype,
-    '%Uint16ArrayPrototype%': _Uint16ArrayPrototype,
-    '%Uint32ArrayPrototype%': _Uint32ArrayPrototype,
+    this['%TypedArrayPrototype%'] = new $Object(host, '%TypedArrayPrototype%', this['%ObjectPrototype%']);
+    this['%Float32ArrayPrototype%'] = new $Object(host, '%Float32ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Float64ArrayPrototype%'] = new $Object(host, '%Float64ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Int8ArrayPrototype%'] = new $Object(host, '%Int8ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Int16ArrayPrototype%'] = new $Object(host, '%Int16ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Int32ArrayPrototype%'] = new $Object(host, '%Int32ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Uint8ArrayPrototype%'] = new $Object(host, '%Uint8ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Uint8ClampedArrayPrototype%'] = new $Object(host, '%Uint8ClampedArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Uint16ArrayPrototype%'] = new $Object(host, '%Uint16ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%Uint32ArrayPrototype%'] = new $Object(host, '%Uint32ArrayPrototype%', this['%TypedArrayPrototype%']);
 
-    '%ErrorPrototype%': _ErrorPrototype,
-    '%EvalErrorPrototype%': _EvalErrorPrototype,
-    '%RangeErrorPrototype%': _RangeErrorPrototype,
-    '%ReferenceErrorPrototype%': _ReferenceErrorPrototype,
-    '%SyntaxErrorPrototype%': _SyntaxErrorPrototype,
-    '%TypeErrorPrototype%': _TypeErrorPrototype,
-    '%URIErrorPrototype%': _URIErrorPrototype,
+    this['%ErrorPrototype%'] = new $Object(host, '%ErrorPrototype%', this['%ObjectPrototype%']);
+    this['%EvalErrorPrototype%'] = new $Object(host, '%EvalErrorPrototype%', this['%ErrorPrototype%']);
+    this['%RangeErrorPrototype%'] = new $Object(host, '%RangeErrorPrototype%', this['%ErrorPrototype%']);
+    this['%ReferenceErrorPrototype%'] = new $Object(host, '%ReferenceErrorPrototype%', this['%ErrorPrototype%']);
+    this['%SyntaxErrorPrototype%'] = new $Object(host, '%SyntaxErrorPrototype%', this['%ErrorPrototype%']);
+    this['%TypeErrorPrototype%'] = new $Object(host, '%TypeErrorPrototype%', this['%ErrorPrototype%']);
+    this['%URIErrorPrototype%'] = new $Object(host, '%URIErrorPrototype%', this['%ErrorPrototype%']);
 
-    '%Object%': _Object,
-    '%Boolean%': _Boolean,
-    '%Number%': _Number,
-    '%String%': _String,
-    '%Symbol%': _Symbol,
-    '%Promise%': _Promise,
-    '%RegExp%': _RegExp,
-    '%Date%': _Date,
+    this['%Object%'] = new $Object(host, '%Object%', this['%FunctionPrototype%']);
+    this['%Boolean%'] = new $Object(host, '%Boolean%', this['%FunctionPrototype%']);
+    this['%Number%'] = new $Object(host, '%Number%', this['%FunctionPrototype%']);
+    this['%String%'] = new $Object(host, '%String%', this['%FunctionPrototype%']);
+    this['%Symbol%'] = new $Object(host, '%Symbol%', this['%FunctionPrototype%']);
+    this['%Promise%'] = new $Object(host, '%Promise%', this['%FunctionPrototype%']);
+    this['%RegExp%'] = new $Object(host, '%RegExp%', this['%FunctionPrototype%']);
+    this['%Date%'] = new $Object(host, '%Date%', this['%FunctionPrototype%']);
 
-    '%Function%': _Function,
-    '%AsyncFunction%': _AsyncFunction,
+    this['%Function%'] = new $Object(host, '%Function%', this['%FunctionPrototype%']);
+    this['%AsyncFunction%'] = new $Object(host, '%AsyncFunction%', this['%Function%']);
 
-    '%GeneratorFunction%': _GeneratorFunction,
-    '%AsyncGeneratorFunction%': _AsyncGeneratorFunction,
+    this['%GeneratorFunction%'] = new $Object(host, '%GeneratorFunction%', this['%Function%']);
+    this['%AsyncGeneratorFunction%'] = new $Object(host, '%AsyncGeneratorFunction%', this['%Function%']);
 
-    '%Array%': _Array,
-    '%Map%': _Map,
-    '%WeakMap%': _WeakMap,
-    '%Set%': _Set,
-    '%WeakSet%': _WeakSet,
-    '%DataView%': _DataView,
-    '%ArrayBuffer%': _ArrayBuffer,
-    '%SharedArrayBuffer%': _SharedArrayBuffer,
+    this['%Array%'] = new $Object(host, '%Array%', this['%FunctionPrototype%']);
+    this['%Map%'] = new $Object(host, '%Map%', this['%FunctionPrototype%']);
+    this['%WeakMap%'] = new $Object(host, '%WeakMap%', this['%FunctionPrototype%']);
+    this['%Set%'] = new $Object(host, '%Set%', this['%FunctionPrototype%']);
+    this['%WeakSet%'] = new $Object(host, '%WeakSet%', this['%FunctionPrototype%']);
+    this['%DataView%'] = new $Object(host, '%DataView%', this['%FunctionPrototype%']);
+    this['%ArrayBuffer%'] = new $Object(host, '%ArrayBuffer%', this['%FunctionPrototype%']);
+    this['%SharedArrayBuffer%'] = new $Object(host, '%SharedArrayBuffer%', this['%FunctionPrototype%']);
 
-    '%TypedArray%': _TypedArray,
-    '%Float32Array%': _Float32Array,
-    '%Float64Array%': _Float64Array,
-    '%Int8Array%': _Int8Array,
-    '%Int16Array%': _Int16Array,
-    '%Int32Array%': _Int32Array,
-    '%Uint8Array%': _Uint8Array,
-    '%Uint8ClampedArray%': _Uint8ClampedArray,
-    '%Uint16Array%': _Uint16Array,
-    '%Uint32Array%': _Uint32Array,
+    this['%TypedArray%'] = new $Object(host, '%TypedArray%', this['%FunctionPrototype%']);
+    this['%Float32Array%'] = new $Object(host, '%Float32Array%', this['%TypedArray%']);
+    this['%Float64Array%'] = new $Object(host, '%Float64Array%', this['%TypedArray%']);
+    this['%Int8Array%'] = new $Object(host, '%Int8Array%', this['%TypedArray%']);
+    this['%Int16Array%'] = new $Object(host, '%Int16Array%', this['%TypedArray%']);
+    this['%Int32Array%'] = new $Object(host, '%Int32Array%', this['%TypedArray%']);
+    this['%Uint8Array%'] = new $Object(host, '%Uint8Array%', this['%TypedArray%']);
+    this['%Uint8ClampedArray%'] = new $Object(host, '%Uint8ClampedArray%', this['%TypedArray%']);
+    this['%Uint16Array%'] = new $Object(host, '%Uint16Array%', this['%TypedArray%']);
+    this['%Uint32Array%'] = new $Object(host, '%Uint32Array%', this['%TypedArray%']);
 
-    '%Error%': _Error,
-    '%EvalError%': _EvalError,
-    '%RangeError%': _RangeError,
-    '%ReferenceError%': _ReferenceError,
-    '%SyntaxError%': _SyntaxError,
-    '%TypeError%': _TypeError,
-    '%URIError%': _URIError,
+    this['%Error%'] = new $Object(host, '%Error%', this['%FunctionPrototype%']);
+    this['%EvalError%'] = new $Object(host, '%EvalError%', this['%Error%']);
+    this['%RangeError%'] = new $Object(host, '%RangeError%', this['%Error%']);
+    this['%ReferenceError%'] = new $Object(host, '%ReferenceError%', this['%Error%']);
+    this['%SyntaxError%'] = new $Object(host, '%SyntaxError%', this['%Error%']);
+    this['%TypeError%'] = new $Object(host, '%TypeError%', this['%Error%']);
+    this['%URIError%'] = new $Object(host, '%URIError%', this['%Error%']);
 
-    '%Atomics%': _Atomics,
-    '%JSON%': _JSON,
-    '%Math%': _Math,
-    '%Reflect%': _Reflect,
-    '%Proxy%': _Proxy,
+    this['%Atomics%'] = new $Object(host, '%Atomics%', this['%ObjectPrototype%']);
+    this['%JSON%'] = new $Object(host, '%JSON%', this['%ObjectPrototype%']);
+    this['%Math%'] = new $Object(host, '%Math%', this['%ObjectPrototype%']);
+    this['%Reflect%'] = new $Object(host, '%Reflect%', this['%ObjectPrototype%']);
+    this['%Proxy%'] = new $Object(host, '%Proxy%', this['%FunctionPrototype%']);
 
-    '%decodeURI%': _decodeURI,
-    '%decodeURIComponent%': _decodeURIComponent,
-    '%encodeURI%': _encodeURI,
-    '%encodeURIComponent%': _encodeURIComponent,
-    '%eval%': _eval,
-    '%isFinite%': _isFinite,
-    '%isNaN%': _isNaN,
-    '%parseFloat%': _parseFloat,
-    '%parseInt%': _parseInt,
-    '%JSONParse%': _JSONParse,
-    '%JSONStringify%': _JSONStringify,
-    '%ThrowTypeError%': _ThrowTypeError,
+    this['%decodeURI%'] = new $Object(host, '%decodeURI%', this['%FunctionPrototype%']);
+    this['%decodeURIComponent%'] = new $Object(host, '%decodeURIComponent%', this['%FunctionPrototype%']);
+    this['%encodeURI%'] = new $Object(host, '%encodeURI%', this['%FunctionPrototype%']);
+    this['%encodeURIComponent%'] = new $Object(host, '%encodeURIComponent%', this['%FunctionPrototype%']);
+    this['%eval%'] = new $Object(host, '%eval%', this['%FunctionPrototype%']);
+    this['%isFinite%'] = new $Object(host, '%isFinite%', this['%FunctionPrototype%']);
+    this['%isNaN%'] = new $Object(host, '%isNaN%', this['%FunctionPrototype%']);
+    this['%parseFloat%'] = new $Object(host, '%parseFloat%', this['%FunctionPrototype%']);
+    this['%parseInt%'] = new $Object(host, '%parseInt%', this['%FunctionPrototype%']);
+    this['%JSONParse%'] = new $Object(host, '%JSONParse%', this['%FunctionPrototype%']);
+    this['%JSONStringify%'] = new $Object(host, '%JSONStringify%', this['%FunctionPrototype%']);
+    this['%ThrowTypeError%'] = new $Object(host, '%ThrowTypeError%', this['%FunctionPrototype%']);
 
-    '%ArrayProto_entries%': _ArrayProto_entries,
-    '%ArrayProto_forEach%': _ArrayProto_forEach,
-    '%ArrayProto_keys%': _ArrayProto_keys,
-    '%ArrayProto_values%': _ArrayProto_values,
-    '%ObjProto_toString%': _ObjProto_toString,
-    '%ObjProto_valueOf%': _ObjProto_valueOf,
-    '%PromiseProto_then%': _PromiseProto_then,
-    '%Promise_all%': _Promise_all,
-    '%Promise_reject%': _Promise_reject,
-    '%Promise_resolve%': _Promise_resolve,
-  } as const);
+    this['%ArrayProto_entries%'] = new $Object(host, '%ArrayProto_entries%', this['%FunctionPrototype%']);
+    this['%ArrayProto_forEach%'] = new $Object(host, '%ArrayProto_forEach%', this['%FunctionPrototype%']);
+    this['%ArrayProto_keys%'] = new $Object(host, '%ArrayProto_keys%', this['%FunctionPrototype%']);
+    this['%ArrayProto_values%'] = new $Object(host, '%ArrayProto_values%', this['%FunctionPrototype%']);
+    this['%ObjProto_toString%'] = new $Object(host, '%ObjProto_toString%', this['%FunctionPrototype%']);
+    this['%ObjProto_valueOf%'] = new $Object(host, '%ObjProto_valueOf%', this['%FunctionPrototype%']);
+    this['%PromiseProto_then%'] = new $Object(host, '%PromiseProto_then%', this['%FunctionPrototype%']);
+    this['%Promise_all%'] = new $Object(host, '%Promise_all%', this['%FunctionPrototype%']);
+    this['%Promise_reject%'] = new $Object(host, '%Promise_reject%', this['%FunctionPrototype%']);
+    this['%Promise_resolve%'] = new $Object(host, '%Promise_resolve%', this['%FunctionPrototype%']);
+  }
 }
-
-export type Intrinsics = ReturnType<typeof CreateIntrinsics>;

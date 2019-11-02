@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
+import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration, Writable } from '@aurelia/kernel';
 import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression } from './ast';
 import { IFileSystem, FileKind, IFile, IOptions } from '../system/interfaces';
 import { NodeFileSystem } from '../system/file-system';
@@ -7,7 +7,7 @@ import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
 import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname } from 'path';
-import { CreateIntrinsics, Intrinsics } from './intrinsics';
+import { Intrinsics } from './intrinsics';
 import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec } from './environment';
 import { $Undefined, $Object, $Function, $Null, $String } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
@@ -114,7 +114,9 @@ export class Realm {
 
   private constructor(
     public readonly Host: Host,
-  ) {}
+  ) {
+    (Host as Writable<Host>).realm = this;
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-createrealm
   public static Create(Host: Host): Realm {
@@ -122,7 +124,7 @@ export class Realm {
     const realmRec = new Realm(Host);
 
     // 2. Perform CreateIntrinsics(realmRec).
-    CreateIntrinsics(Host);
+    new Intrinsics(realmRec);
 
     // 3. Set realmRec.[[GlobalObject]] to undefined.
     realmRec['[[GlobalObject]]'] = (void 0)!;
@@ -150,7 +152,7 @@ export class Host {
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
 
-  public readonly realm: Realm;
+  public readonly realm!: Realm; // Set by realm constructor
 
   private readonly logger: ILogger;
 
@@ -171,11 +173,12 @@ export class Host {
     }
 
     this.logger = container.get(ILogger).root.scopeTo('Host');
+    this.logger.info('Initializing realm');
 
     // http://www.ecma-international.org/ecma-262/#sec-initializehostdefinedrealm
 
     // 1. Let realm be CreateRealm().
-    const realm = this.realm = Realm.Create(this);
+    const realm = Realm.Create(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 2. Let newContext be a new execution context.
@@ -310,6 +313,8 @@ export class Host {
 
     // 11. Create any implementation-defined global object properties on globalObj.
     // 12. Return NormalCompletion(empty).
+
+    this.logger.info('Finished initializing realm');
   }
 
   public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {

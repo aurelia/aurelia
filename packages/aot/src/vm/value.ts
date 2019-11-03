@@ -901,6 +901,57 @@ export class $ECMAScriptFunction<
   ) {
     super(realm, IntrinsicName, proto);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-functionallocate
+  public static Allocate(
+    functionPrototype: $Object,
+    strict: $Boolean,
+    functionKind: 'normal' | 'non-constructor' | 'generator' | 'async' | 'async generator',
+  ): $ECMAScriptFunction {
+    // 1. Assert: Type(functionPrototype) is Object.
+    // 2. Assert: functionKind is either "normal", "non-constructor", "generator", "async", or "async generator".
+    // 3. If functionKind is "normal", let needsConstruct be true.
+    // 4. Else, let needsConstruct be false.
+    const needsConstruct = functionKind === 'normal';
+
+    // 5. If functionKind is "non-constructor", set functionKind to "normal".
+    if (functionKind === 'non-constructor') {
+      functionKind = 'normal';
+    }
+
+    const realm = functionPrototype.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 6. Let F be a newly created ECMAScript function object with the internal slots listed in Table 27. All of those internal slots are initialized to undefined.
+    const F = new $ECMAScriptFunction(realm, 'function', functionPrototype);
+
+    // 7. Set F's essential internal methods to the default ordinary object definitions specified in 9.1.
+    // 8. Set F.[[Call]] to the definition specified in 9.2.1.
+    // 9. If needsConstruct is true, then
+    if (needsConstruct) {
+      // 9. a. Set F.[[Construct]] to the definition specified in 9.2.2.
+      // 9. b. Set F.[[ConstructorKind]] to "base".
+      F['[[ConstructorKind]]'] = 'base';
+    }
+
+    // 10. Set F.[[Strict]] to strict.
+    F['[[Strict]]'] = strict;
+
+    // 11. Set F.[[FunctionKind]] to functionKind.
+    F['[[FunctionKind]]'] = functionKind;
+
+    // 12. Set F.[[Prototype]] to functionPrototype.
+    F['[[Prototype]]'] = functionPrototype;
+
+    // 13. Set F.[[Extensible]] to true.
+    F['[[Extensible]]'] = intrinsics.true;
+
+    // 14. Set F.[[Realm]] to the current Realm Record.
+    F['[[Realm]]'] = realm;
+
+    // 15. Return F.
+    return F;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects

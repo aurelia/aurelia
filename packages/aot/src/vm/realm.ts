@@ -183,7 +183,7 @@ export class Realm {
     realm.stack.push(newContext);
 
     // 7. If the host requires use of an exotic object to serve as realm's global object, let global be such an object created in an implementation-defined manner. Otherwise, let global be undefined, indicating that an ordinary object should be created as the global object.
-    const globalObj = $Object.Create('GlobalObject', intrinsics['%ObjectPrototype%']);
+    const globalObj = $Object.ObjectCreate('GlobalObject', intrinsics['%ObjectPrototype%']);
 
     // 8. If the host requires that the this binding in realm's global scope return an object other than the global object, let thisValue be such an object created in an implementation-defined manner. Otherwise, let thisValue be undefined, indicating that realm's global this binding should be the global object.
     const thisValue = globalObj;

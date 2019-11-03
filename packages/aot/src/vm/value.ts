@@ -297,7 +297,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-objectcreate
-  public static Create<T extends string = string, TSlots extends {} = {}>(
+  public static ObjectCreate<T extends string = string, TSlots extends {} = {}>(
     IntrinsicName: T,
     proto: $Object,
     internalSlotsList?: TSlots,
@@ -904,7 +904,7 @@ export class $ECMAScriptFunction<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-functionallocate
-  public static Allocate(
+  public static FunctionAllocate(
     functionPrototype: $Object,
     strict: $Boolean,
     functionKind: 'normal' | 'non-constructor' | 'generator' | 'async' | 'async generator',
@@ -955,7 +955,7 @@ export class $ECMAScriptFunction<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-functioninitialize
-  public static Initialize(
+  public static FunctionInitialize(
     F: $ECMAScriptFunction,
     kind: 'normal' | 'method' | 'arrow',
     node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
@@ -1036,10 +1036,10 @@ export class $ECMAScriptFunction<
     }
 
     // 4. Let F be FunctionAllocate(prototype, Strict, allocKind).
-    const F = this.Allocate(prototype!, Strict, allocKind);
+    const F = this.FunctionAllocate(prototype!, Strict, allocKind);
 
     // 5. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
-    return this.Initialize(F, kind, node, Scope);
+    return this.FunctionInitialize(F, kind, node, Scope);
   }
 }
 

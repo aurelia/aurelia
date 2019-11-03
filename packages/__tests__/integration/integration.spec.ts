@@ -849,29 +849,46 @@ describe.only('app', function () {
       },
       { useCSSModule }));
 
-  $it(`cards uses inline styles`,
-    async function ({ host, ctx }) {
-      const cardsEl = host.querySelector('cards');
-      const cardsVm = getViewModel<Cards>(cardsEl);
+  $it(`cards uses inline styles`, async function ({ host, ctx }) {
+    const cardsEl = host.querySelector('cards');
+    const cardsVm = getViewModel<Cards>(cardsEl);
 
-      for (const id of ['simple-style', 'inline-bound-style', 'bound-style-obj', 'bound-style-array', 'bound-style-str']) {
-        const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
-        assert.equal(style.backgroundColor, 'rgb(255, 0, 0)', `bg color ${id}`);
-        assert.equal(style.fontWeight, '700', `font weight ${id}`);
-      }
+    for (const id of ['simple-style', 'inline-bound-style', 'bound-style-obj', 'bound-style-array', 'bound-style-str']) {
+      const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
+      assert.equal(style.backgroundColor, 'rgb(255, 0, 0)', `bg color ${id}`);
+      assert.equal(style.fontWeight, '700', `font weight ${id}`);
+    }
 
-      cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
-      cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
-      cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
-      await ctx.scheduler.yieldAll();
+    cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
+    cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
+    cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
+    await ctx.scheduler.yieldAll();
 
-      for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
-        const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
-        assert.equal(style.backgroundColor, 'rgb(0, 0, 255)', `bg color ${id} - post change`);
-        assert.equal(style.borderWidth, '1px', `border width ${id} - post change`);
-        assert.equal(style.borderStyle, 'solid', `border style ${id} - post change`);
-        assert.equal(style.borderColor, 'rgb(0, 255, 0)', `border color ${id} - post change`);
-        assert.notEqual(style.fontWeight, '700', `font weight ${id} - post change`);
-      }
-    });
+    for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
+      const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
+      assert.equal(style.backgroundColor, 'rgb(0, 0, 255)', `bg color ${id} - post change`);
+      assert.equal(style.borderWidth, '1px', `border width ${id} - post change`);
+      assert.equal(style.borderStyle, 'solid', `border style ${id} - post change`);
+      assert.equal(style.borderColor, 'rgb(0, 255, 0)', `border color ${id} - post change`);
+      assert.notEqual(style.fontWeight, '700', `font weight ${id} - post change`);
+    }
+  });
+
+  $it(`cards have image`, async function ({ host, ctx }) {
+    const images: HTMLImageElement[] = toArray(host.querySelectorAll('cards #cards1 div img'));
+    const { heroes } = getViewModel<App>(host);
+
+    for (let i = 0; i < images.length; i++) {
+      assert.equal(images[i].src.endsWith(heroes[i].imgSrc), true, `incorrect img src#${i + 1}`);
+    }
+
+    heroes[0].imgSrc = undefined;
+    await ctx.scheduler.yieldAll();
+    assert.equal(images[0].src, '', `expected null img src`);
+
+    const imgSrc = "foobar.jpg";
+    heroes[0].imgSrc = imgSrc;
+    await ctx.scheduler.yieldAll();
+    assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
+  });
 });

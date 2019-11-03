@@ -1,5 +1,6 @@
 <div id="cards1">
   <div repeat.for="item of items" class="card ${item == selected ? 'selected' : ''}" click.delegate="select(item)">
+    <img src.bind="item.imgSrc">
     <h2>${item.header}</h2>
     <span class.bind="item == selected ? 'selectedDetails' : ''">${item.details}</span>
     <footer class.bind="['foo-bar']"></footer>

@@ -150,7 +150,8 @@ module.exports = function (config) {
         ui: 'bdd',
         timeout: 5000,
       }
-    }
+    },
+    logLevel: config.LOG_ERROR // to disable the WARN 404 for image requests
   };
 
   if (config.coverage) {

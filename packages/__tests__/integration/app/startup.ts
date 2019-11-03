@@ -26,12 +26,12 @@ export async function startup(config: StartupConfiguration = {}) {
   ctx.doc.body.appendChild(host);
   const au = new Aurelia(ctx.container);
   au
-    .register(FrequentMutations as unknown as IRegistration)
-    .register(atoms)
     .register(
+      FrequentMutations as unknown as IRegistration,
+      atoms,
       molecules.customize((molecularConfig: MolecularConfiguration) => {
         molecularConfig.useCSSModule = config.useCSSModule;
-      })
+      }),
     );
 
   au.app({ host, component });

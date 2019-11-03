@@ -7,6 +7,7 @@ import * as template from './cards.html';
 export interface Card {
   header: string;
   details: string;
+  imgSrc?: string;
 }
 
 /**
@@ -15,6 +16,7 @@ export interface Card {
  *    - `css-modules-registry`
  *    - `class-attribute-accessor`
  *    - `style-attribute-accessor`
+ *    - `data-attribute-accessor`
  */
 export class Cards {
 

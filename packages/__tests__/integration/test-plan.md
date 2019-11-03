@@ -52,7 +52,7 @@
   ```
 - [x] `element-property-accessor`: handles mutation of other attributes via VM properties.
 - [x] `select-value-observer`: handles selection of options in `<select>` element.
-- [ ] `style-attribute-accessor`: inline style accessor
+- [x] `style-attribute-accessor`: inline style accessor
 - [x] `value-attribute-observer`: observer for `[value]` (input)
 
 #### Binding behaviors

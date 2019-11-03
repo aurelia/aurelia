@@ -8,7 +8,7 @@ import { startup, StartupConfiguration, TestExecutionContext } from './app/start
 import { Cards } from './app/molecules/cards/cards';
 import { RandomGenerator } from './app/molecules/random-generator/random-generator';
 
-describe.only('app', function () {
+describe('app', function () {
   function createTestFunction(
     testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
     startupConfiguration?: StartupConfiguration,

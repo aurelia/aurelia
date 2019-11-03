@@ -144,6 +144,7 @@ export class Intrinsics {
   public readonly '*': $String<'*'>;
   public readonly '*default*': $String<'*default*'>;
   public readonly 'default': $String<'default'>;
+  public readonly 'length': $String<'length'>;
 
   public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
   public readonly '@@hasInstance': $Symbol<$String<'Symbol.hasInstance'>>;
@@ -303,6 +304,7 @@ export class Intrinsics {
     this['*'] = new $String(realm, '*');
     this['*default*'] = new $String(realm, '*default*');
     this['default'] = new $String(realm, 'default');
+    this['length'] = new $String(realm, 'length');
 
     this['@@asyncIterator'] = new $Symbol(realm, new $String(realm, 'Symbol.asyncIterator'));
     this['@@hasInstance'] = new $Symbol(realm, new $String(realm, 'Symbol.hasInstance'));

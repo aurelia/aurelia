@@ -374,6 +374,30 @@ export class Realm {
     }
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-getactivescriptormodule
+  public GetActiveScriptOrModule(): $SourceFile | $Null {
+    const intrinsics = this['[[Intrinsics]]'];
+    const stack = this.stack;
+
+    // 1. If the execution context stack is empty, return null.
+    if (stack.length === 0) {
+      return intrinsics.null;
+    }
+
+    // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
+    let ec: ExecutionContext;
+    let i = stack.length;
+    while (i-- > 0) {
+      ec = stack[i];
+      if (!ec.ScriptOrModule.isNull) {
+        return ec.ScriptOrModule;
+      }
+    }
+
+    // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule component.
+    return intrinsics.null;
+  }
+
   public registerNode(node: I$Node): number {
     const id = this.nodeCount;
     this.nodes[id] = node;
@@ -440,7 +464,7 @@ export class Realm {
 export class ExecutionContext {
   public Function!: $Function | $Null;
   public Realm!: Realm;
-  public ScriptOrModule!: IModule | $Null;
+  public ScriptOrModule!: $SourceFile | $Null;
   public LexicalEnvironment!: $EnvRec;
   public VariableEnvironment!: $EnvRec;
 }

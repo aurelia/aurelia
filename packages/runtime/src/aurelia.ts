@@ -214,7 +214,7 @@ export class Aurelia<TNode extends INode = INode> {
     return this;
   }
 
-  public app(config: ISinglePageApp<TNode>): this {
+  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'> {
     this.next = new CompositionRoot(config, this.container);
 
     if (this.isRunning) {

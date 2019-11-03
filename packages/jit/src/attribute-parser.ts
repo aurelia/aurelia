@@ -1,6 +1,6 @@
-import { all, DI } from '@aurelia/kernel';
+import { all, Constructable, DI } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
-import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
+import { AttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
@@ -11,7 +11,7 @@ export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttribute
 /** @internal */
 export class AttributeParser implements IAttributeParser {
   private readonly cache: Record<string, Interpretation> = {};
-  private readonly patterns: Record<string, IAttributePatternHandler>;
+  private readonly patterns: Record<string, IAttributePattern>;
 
   public constructor(
     @ISyntaxInterpreter private readonly interpreter: ISyntaxInterpreter,
@@ -20,10 +20,10 @@ export class AttributeParser implements IAttributeParser {
     this.interpreter = interpreter;
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
-      const defs = attrPattern.$patternDefs;
+      const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
       interpreter.add(defs);
       defs.forEach(def => {
-        patterns[def.pattern] = attrPattern as unknown as IAttributePatternHandler;
+        patterns[def.pattern] = attrPattern as unknown as IAttributePattern;
       });
     });
   }

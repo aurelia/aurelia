@@ -1,16 +1,9 @@
-import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand, Signals } from '@aurelia/i18n';
+import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags, ISignaler, CustomElement } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, CustomElement, DOM, INode, ISignaler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('translation-integration', function () {
-  // eslint-disable-next-line mocha/no-hooks
-  afterEach(function () {
-    TranslationBindingCommand.aliases = ['t'];
-    TranslationAttributePattern.aliases = ['t'];
-    TranslationBindBindingCommand.aliases = ['t'];
-    TranslationBindAttributePattern.aliases = ['t'];
-  });
   @customElement({ name: 'custom-message', template: `<div>\${message}</div>`, isStrictBinding: true })
   class CustomMessage {
     @bindable public message: string;

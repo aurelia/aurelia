@@ -7,6 +7,7 @@ import { LaptopSpecsViewer } from './specs-viewer/laptop-specs-viewer';
 import { SpecsViewer, ViewerValueConverter } from './specs-viewer/specs-viewer';
 import { ThingViewer } from './specs-viewer/thing-viewer';
 import { UserPreference } from './user-preference/user-preference';
+import { RandomGenerator } from './random-generator/random-generator';
 
 export interface MolecularConfiguration {
   useCSSModule: boolean;
@@ -38,7 +39,8 @@ function createMolecularConfiguration(customizeConfiguration: MolecularConfigCus
         LetDemo,
         SqrtValueConverter,
 
-        Cards.customize(useCSSModule)
+        Cards.customize(useCSSModule),
+        RandomGenerator
       );
     },
     customize(cb?: MolecularConfigCustomizer) {

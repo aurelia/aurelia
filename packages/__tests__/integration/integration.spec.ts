@@ -6,6 +6,7 @@ import { App, Product } from './app/app';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
 import { Cards } from './app/molecules/cards/cards';
+import { RandomGenerator } from './app/molecules/random-generator/random-generator';
 
 describe.only('app', function () {
   function createTestFunction(
@@ -890,5 +891,27 @@ describe.only('app', function () {
     heroes[0].imgSrc = imgSrc;
     await ctx.scheduler.yieldAll();
     assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
+  });
+
+  $it(`uses random-generator which generates a random number iff the container div is clicked`, async function ({ host, ctx }) {
+    const ce = host.querySelector("random-generator");
+    const vm = getViewModel<RandomGenerator>(ce);
+    const container = ce.querySelector("div");
+    // const display = container.querySelector("span");
+    const button = container.querySelector("button");
+
+    let prev = vm.random;
+    container.click();
+    await ctx.scheduler.yieldAll();
+    assert.notEqual(vm.random, prev, 'new random expected1');
+
+    prev = vm.random;
+    button.click();
+    await ctx.scheduler.yieldAll();
+    assert.equal(vm.random, prev, 'new random expected1');
+
+    container.click();
+    await ctx.scheduler.yieldAll();
+    assert.notEqual(vm.random, prev, 'new random expected1');
   });
 });

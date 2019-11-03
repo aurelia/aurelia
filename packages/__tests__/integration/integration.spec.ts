@@ -868,9 +868,18 @@ describe('app', function () {
     for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
       const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
       assert.equal(style.backgroundColor, 'rgb(0, 0, 255)', `bg color ${id} - post change`);
-      assert.equal(style.borderWidth, '1px', `border width ${id} - post change`);
-      assert.equal(style.borderStyle, 'solid', `border style ${id} - post change`);
-      assert.equal(style.borderColor, 'rgb(0, 255, 0)', `border color ${id} - post change`);
+      assert.equal(style.borderTopWidth, '1px', `border top width ${id} - post change`);
+      assert.equal(style.borderBottomWidth, '1px', `border bottom width ${id} - post change`);
+      assert.equal(style.borderRightWidth, '1px', `border right width ${id} - post change`);
+      assert.equal(style.borderLeftWidth, '1px', `border left width ${id} - post change`);
+      assert.equal(style.borderTopStyle, 'solid', `border top style ${id} - post change`);
+      assert.equal(style.borderBottomStyle, 'solid', `border bottom style ${id} - post change`);
+      assert.equal(style.borderRightStyle, 'solid', `border right style ${id} - post change`);
+      assert.equal(style.borderLeftStyle, 'solid', `border left style ${id} - post change`);
+      assert.equal(style.borderTopColor, 'rgb(0, 255, 0)', `border top color ${id} - post change`);
+      assert.equal(style.borderBottomColor, 'rgb(0, 255, 0)', `border bottom color ${id} - post change`);
+      assert.equal(style.borderRightColor, 'rgb(0, 255, 0)', `border right color ${id} - post change`);
+      assert.equal(style.borderLeftColor, 'rgb(0, 255, 0)', `border left color ${id} - post change`);
       assert.notEqual(style.fontWeight, '700', `font weight ${id} - post change`);
     }
   });

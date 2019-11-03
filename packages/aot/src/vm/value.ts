@@ -3,7 +3,7 @@ import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype } from './operations';
 import { $EnvRec } from './environment';
-import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher } from './ast';
+import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile } from './ast';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -59,6 +59,7 @@ export class $Empty {
 
   public constructor(
     public readonly realm: Realm,
+    public readonly sourceNode: $ComputedPropertyName | null = null,
   ) {}
 
   public is(other: $Any): other is $Empty {
@@ -91,6 +92,7 @@ export class $Undefined {
 
   public constructor(
     public readonly realm: Realm,
+    public readonly sourceNode: $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
   ) {}
 
   public is(other: $Any): other is $Undefined {
@@ -123,6 +125,7 @@ export class $Null {
 
   public constructor(
     public readonly realm: Realm,
+    public readonly sourceNode: $ExportDeclaration | $ExportSpecifier | $ClassDeclaration | $FunctionDeclaration | $VariableStatement | $SourceFile | null = null,
   ) {}
 
   public is(other: $Any): other is $Null {
@@ -185,6 +188,7 @@ export class $String<T extends string = string> {
   public constructor(
     public readonly realm: Realm,
     public readonly value: T,
+    public readonly sourceNode: $Identifier | $StringLiteral | $NumericLiteral | null = null,
   ) {}
 
   public is(other: $Any): other is $String<T> {
@@ -607,13 +611,13 @@ export class $Object<
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public readonly '[[Module]]': IModule;
-  public readonly '[[Exports]]': readonly string[];
+  public readonly '[[Exports]]': readonly $String[];
 
   // http://www.ecma-international.org/ecma-262/#sec-modulenamespacecreate
   public constructor(
     realm: Realm,
     mod: IModule,
-    exports: readonly string[],
+    exports: readonly $String[],
   ) {
     super(realm, 'NamespaceExoticObject', realm['[[Intrinsics]]'].null);
     // 1. Assert: module is a Module Record.
@@ -669,7 +673,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const exports = O['[[Exports]]'];
 
     // 3. If P is not an element of exports, return undefined.
-    if (!exports.includes(P.value)) {
+    if (exports.every(x => !x.is(P))) {
       return intrinsics.undefined;
     }
 
@@ -752,7 +756,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const exports = O['[[Exports]]'];
 
     // 3. If P is an element of exports, return true.
-    if (exports.includes(P.value)) {
+    if (exports.some(x => x.is(P))) {
       return intrinsics.true;
     }
 
@@ -777,7 +781,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const exports = O['[[Exports]]'];
 
     // 4. If P is not an element of exports, return undefined.
-    if (!exports.includes(P.value)) {
+    if (exports.every(x => !x.is(P))) {
       return intrinsics.undefined;
     }
 
@@ -785,7 +789,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const m = O['[[Module]]'];
 
     // 6. Let binding be ! m.ResolveExport(P, « »).
-    const binding = m.ResolveExport(P.value, new ResolveSet()) as ResolvedBindingRecord;
+    const binding = m.ResolveExport(P, new ResolveSet()) as ResolvedBindingRecord;
 
     // 7. Assert: binding is a ResolvedBinding Record.
     // 8. Let targetModule be binding.[[Module]].
@@ -828,7 +832,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const exports = O['[[Exports]]'];
 
     // 4. If P is an element of exports, return false.
-    if (exports.includes(P.value)) {
+    if (exports.some(x => x.is(P))) {
       return intrinsics.false;
     }
 

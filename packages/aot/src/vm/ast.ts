@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec } from './environment';
 const {
@@ -1031,8 +1031,6 @@ function GetExpectedArgumentCount(params: readonly $ParameterDeclaration[]): num
   return params.length;
 }
 
-const SyntheticAnonymousBoundNames = ['*default*'] as const;
-
 function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
   let prev = expr as I$Node;
   let parent = expr.parent as I$Node;
@@ -1063,14 +1061,14 @@ export class $VariableStatement implements I$Node {
   public readonly isLexical: boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[];
+  public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
-  public readonly ExportedNames: readonly string[];
+  public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
@@ -1078,7 +1076,7 @@ export class $VariableStatement implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
-  public readonly ModuleRequests: readonly string[];
+  public readonly ModuleRequests: readonly $String[];
 
   public constructor(
     public readonly node: VariableStatement,
@@ -1088,6 +1086,7 @@ export class $VariableStatement implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = node.flags;
@@ -1115,9 +1114,10 @@ export class $VariableStatement implements I$Node {
       this.ExportedNames = BoundNames;
       this.ExportEntries = BoundNames.map(name =>
         new ExportEntryRecord(
+          /* source */this,
           /* ExportName */name,
-          /* ModuleRequest */null,
-          /* ImportName */null,
+          /* ModuleRequest */intrinsics.null,
+          /* ImportName */intrinsics.null,
           /* LocalName */name,
         )
       );
@@ -1207,7 +1207,7 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-BoundNames
-  public readonly BoundNames: readonly [string | '*default*'] | readonly string[];
+  public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
@@ -1241,18 +1241,18 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-propname
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
-  public readonly PropName: string | undefined;
+  public readonly PropName: $String | $Undefined;
 
   public readonly DirectivePrologue: DirectivePrologue;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[];
+  public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
-  public readonly ExportedNames: readonly string[];
+  public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
-  public readonly ModuleRequests: readonly string[] = emptyArray;
+  public readonly ModuleRequests: readonly $String[] = emptyArray;
 
   public constructor(
     public readonly node: FunctionDeclaration,
@@ -1262,6 +1262,7 @@ export class $FunctionDeclaration implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -1292,7 +1293,7 @@ export class $FunctionDeclaration implements I$Node {
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
 
     if ($name === void 0) {
-      this.PropName = void 0;
+      this.PropName = new $Undefined(realm);
     } else {
       this.PropName = $name.PropName;
     }
@@ -1301,29 +1302,31 @@ export class $FunctionDeclaration implements I$Node {
       if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
         if (HasName) {
           const [localName] = $name!.BoundNames;
-          const BoundNames = this.BoundNames = [localName, '*default*'];
+          const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
-          this.ExportedNames = ['*default*'];
+          this.ExportedNames = [intrinsics['*default*']];
           this.ExportEntries = [
             new ExportEntryRecord(
-              /* ExportName */'*default*',
-              /* ModuleRequest */null,
-              /* ImportName */null,
+              /* source */this,
+              /* ExportName */intrinsics['*default*'],
+              /* ModuleRequest */intrinsics.null,
+              /* ImportName */intrinsics.null,
               /* LocalName */localName,
             ),
           ];
         } else {
-          const BoundNames = this.BoundNames = ['*default*'];
+          const BoundNames = this.BoundNames = [intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
           this.ExportedNames = BoundNames;
           this.ExportEntries = [
             new ExportEntryRecord(
-              /* ExportName */'*default*',
-              /* ModuleRequest */null,
-              /* ImportName */null,
-              /* LocalName */'*default*',
+              /* source */this,
+              /* ExportName */intrinsics['*default*'],
+              /* ModuleRequest */intrinsics.null,
+              /* ImportName */intrinsics.null,
+              /* LocalName */intrinsics['*default*'],
             ),
           ];
         }
@@ -1336,9 +1339,10 @@ export class $FunctionDeclaration implements I$Node {
         this.ExportedNames = BoundNames;
         this.ExportEntries = [
           new ExportEntryRecord(
+            /* source */this,
             /* ExportName */localName,
-            /* ModuleRequest */null,
-            /* ImportName */null,
+            /* ModuleRequest */intrinsics.null,
+            /* ImportName */intrinsics.null,
             /* LocalName */localName,
           ),
         ];
@@ -1441,12 +1445,12 @@ export class $ClassDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
-  public readonly $name: $Identifier | undefined;
+  public readonly $name: $Identifier | $Undefined;
   public readonly $heritageClauses: readonly $HeritageClause[];
   public readonly $members: readonly $$ClassElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: $ConstructorDeclaration | undefined;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
@@ -1458,20 +1462,20 @@ export class $ClassDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
   public readonly NonConstructorMethodDefinitions: readonly $$MethodDefinition[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
-  public readonly PrototypePropertyNameList: readonly string[];
+  public readonly PrototypePropertyNameList: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[];
+  public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
-  public readonly ExportedNames: readonly string[];
+  public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
-  public readonly ModuleRequests: readonly string[];
+  public readonly ModuleRequests: readonly $String[];
 
   public constructor(
     public readonly node: ClassDeclaration,
@@ -1481,6 +1485,7 @@ export class $ClassDeclaration implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     ctx = clearBit(ctx, Context.InTopLevel);
 
@@ -1491,12 +1496,17 @@ export class $ClassDeclaration implements I$Node {
     }
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    let $name: $Identifier | $Undefined;
+    if (node.name === void 0) {
+      $name = this.$name = new $Undefined(realm, this);
+    } else {
+      $name = this.$name = new $Identifier(node.name, this, ctx);
+    }
     const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
-    const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as string[];
+    const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as $String[];
 
     let $member: $$ClassElement;
     for (let i = 0, ii = $members.length; i < ii; ++i) {
@@ -1511,43 +1521,45 @@ export class $ClassDeclaration implements I$Node {
         case SyntaxKind.GetAccessor:
         case SyntaxKind.SetAccessor:
           NonConstructorMethodDefinitions.push($member);
-          if ($member.PropName !== empty && !$member.IsStatic) {
-            PrototypePropertyNameList.push($member.PropName as string);
+          if (!$member.PropName.isEmpty && !$member.IsStatic) {
+            PrototypePropertyNameList.push($member.PropName as $String);
           }
           break;
         case SyntaxKind.SemicolonClassElement:
       }
     }
 
-    const HasName = this.HasName = $name !== void 0;
+    const HasName = this.HasName = !$name.isUndefined;
 
     if (hasBit(ctx, Context.InExport)) {
       if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
         if (HasName) {
-          const [localName] = $name!.BoundNames;
-          const BoundNames = this.BoundNames = [localName, '*default*'];
+          const [localName] = ($name as $Identifier).BoundNames;
+          const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
-          this.ExportedNames = ['*default*'];
+          this.ExportedNames = [intrinsics['*default*']];
           this.ExportEntries = [
             new ExportEntryRecord(
-              /* ExportName */'*default*',
-              /* ModuleRequest */null,
-              /* ImportName */null,
+              /* source */this,
+              /* ExportName */intrinsics['*default*'],
+              /* ModuleRequest */intrinsics.null,
+              /* ImportName */intrinsics.null,
               /* LocalName */localName,
             ),
           ];
         } else {
-          const BoundNames = this.BoundNames = ['*default*'];
+          const BoundNames = this.BoundNames = [intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
           this.ExportedNames = BoundNames;
           this.ExportEntries = [
             new ExportEntryRecord(
-              /* ExportName */'*default*',
-              /* ModuleRequest */null,
-              /* ImportName */null,
-              /* LocalName */'*default*',
+              /* source */this,
+              /* ExportName */intrinsics['*default*'],
+              /* ModuleRequest */intrinsics.null,
+              /* ImportName */intrinsics.null,
+              /* LocalName */intrinsics['*default*'],
             ),
           ];
         }
@@ -1555,16 +1567,17 @@ export class $ClassDeclaration implements I$Node {
         this.LexicallyScopedDeclarations = [this];
       } else {
         // Must have a name, so we assume it does
-        const BoundNames = this.BoundNames = $name!.BoundNames;
+        const BoundNames = this.BoundNames = ($name as $Identifier).BoundNames;
         const [localName] = BoundNames;
 
         this.ExportedBindings = BoundNames;
         this.ExportedNames = BoundNames;
         this.ExportEntries = [
           new ExportEntryRecord(
+            /* source */this,
             /* ExportName */localName,
-            /* ModuleRequest */null,
-            /* ImportName */null,
+            /* ModuleRequest */intrinsics.null,
+            /* ImportName */intrinsics.null,
             /* LocalName */localName,
           ),
         ];
@@ -1573,7 +1586,7 @@ export class $ClassDeclaration implements I$Node {
       }
     } else {
       // Must have a name, so we assume it does
-      this.BoundNames = $name!.BoundNames;
+      this.BoundNames = ($name as $Identifier).BoundNames;
 
       this.ExportedBindings = emptyArray;
       this.ExportedNames = emptyArray;
@@ -1712,7 +1725,7 @@ export class $VariableDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -1788,7 +1801,7 @@ export class $VariableDeclarationList implements I$Node {
   public readonly isLexical: boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -2272,7 +2285,7 @@ export class $FunctionExpression implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
-  public readonly BoundNames: readonly [string | '*default*'] | readonly string[];
+  public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
@@ -2423,7 +2436,7 @@ export class $ClassExpression implements I$Node {
   public readonly $members: readonly $$ClassElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   public readonly ConstructorMethod: any;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
@@ -2435,7 +2448,7 @@ export class $ClassExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
   public readonly NonConstructorMethodDefinitions: any[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
-  public readonly PrototypePropertyNameList: readonly string[];
+  public readonly PrototypePropertyNameList: readonly $String[];
 
 
   public constructor(
@@ -2446,6 +2459,7 @@ export class $ClassExpression implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
 
@@ -2456,17 +2470,17 @@ export class $ClassExpression implements I$Node {
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
     if ($name === void 0) {
-      this.BoundNames = SyntheticAnonymousBoundNames;
+      this.BoundNames = [intrinsics['*default*']];
     } else {
       if (hasAllBits(modifierFlags, ModifierFlags.ExportDefault)) {
-        this.BoundNames = [...$name.BoundNames, '*default*'];
+        this.BoundNames = [...$name.BoundNames, intrinsics['*default*']];
       } else {
         this.BoundNames = $name.BoundNames;
       }
     }
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
-    const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as string[];
+    const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as $String[];
 
     let $member: $$ClassElement;
     for (let i = 0, ii = $members.length; i < ii; ++i) {
@@ -2481,8 +2495,8 @@ export class $ClassExpression implements I$Node {
         case SyntaxKind.GetAccessor:
         case SyntaxKind.SetAccessor:
           NonConstructorMethodDefinitions.push($member);
-          if ($member.PropName !== empty && !$member.IsStatic) {
-            PrototypePropertyNameList.push($member.PropName as string);
+          if (!$member.PropName.isEmpty && !$member.IsStatic) {
+            PrototypePropertyNameList.push($member.PropName as $String);
           }
           break;
         case SyntaxKind.SemicolonClassElement:
@@ -2756,7 +2770,7 @@ export class $ArrowFunction implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-BoundNames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsexpression
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-ContainsExpression
   public readonly ContainsExpression: false = false;
@@ -2960,12 +2974,12 @@ export class $Identifier implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
-  public readonly StringValue: string;
+  public readonly StringValue: $String;
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-boundnames
-  public readonly BoundNames: readonly [string];
+  public readonly BoundNames: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-assignmenttargettype
   public readonly AssignmentTargetType: 'strict' | 'simple';
 
@@ -2985,6 +2999,9 @@ export class $Identifier implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   public readonly IsSimpleParameterList: true = true;
 
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+
   public constructor(
     public readonly node: Identifier,
     public readonly parent: $AnyParentNode,
@@ -2994,11 +3011,11 @@ export class $Identifier implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    this.BoundNames = [node.text] as const;
-    this.StringValue = node.text;
-    const PropName = this.PropName = this.StringValue;
+    const StringValue = this.StringValue = new $String(realm, node.text, this);
+    this.PropName = StringValue;
+    this.BoundNames = [StringValue] as const;
 
-    if (hasBit(ctx, Context.InStrictMode) && (PropName === 'eval' || PropName === 'arguments')) {
+    if (hasBit(ctx, Context.InStrictMode) && (StringValue.value === 'eval' || StringValue.value === 'arguments')) {
       this.AssignmentTargetType = 'strict';
     } else {
       this.AssignmentTargetType = 'simple';
@@ -3343,7 +3360,7 @@ export class $NumericLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $NumericLiteral = this;
@@ -3365,7 +3382,7 @@ export class $NumericLiteral implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    this.PropName = Number(node.text).toString();
+    this.PropName = new $String(realm, Number(node.text).toString(), this);
   }
 }
 
@@ -3400,9 +3417,9 @@ export class $StringLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-string-literals-static-semantics-stringvalue
-  public readonly StringValue: string;
+  public readonly StringValue: $String;
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $StringLiteral = this;
@@ -3424,7 +3441,7 @@ export class $StringLiteral implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    const StringValue = this.StringValue = node.text;
+    const StringValue = this.StringValue = new $String(realm, node.text, this);
     this.PropName = StringValue;
   }
 }
@@ -3587,7 +3604,7 @@ export class $MethodDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string | empty;
+  public readonly PropName: $String | $Empty;
 
   public constructor(
     public readonly node: MethodDeclaration,
@@ -3627,7 +3644,7 @@ export class $GetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string | empty;
+  public readonly PropName: $String | $Empty;
 
   public constructor(
     public readonly node: GetAccessorDeclaration,
@@ -3666,7 +3683,7 @@ export class $SetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
   public readonly ExpectedArgumentCount: number = 1;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
-  public readonly PropName: string | empty;
+  public readonly PropName: $String | $Empty;
 
   public constructor(
     public readonly node: SetAccessorDeclaration,
@@ -3779,17 +3796,17 @@ export class $SourceFile implements I$Node, IModule {
   public readonly DirectivePrologue: DirectivePrologue;
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[];
+  public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportednames
-  public readonly ExportedNames: readonly string[];
+  public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportentries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-importentries
   public readonly ImportEntries: readonly ImportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-importedlocalnames
-  public readonly ImportedLocalNames: readonly string[];
+  public readonly ImportedLocalNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-modulerequests
-  public readonly ModuleRequests: readonly string[];
+  public readonly ModuleRequests: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-varscopeddeclarations
@@ -3798,7 +3815,7 @@ export class $SourceFile implements I$Node, IModule {
   public Status: ModuleStatus;
   public DFSIndex: number | undefined;
   public DFSAncestorIndex: number | undefined;
-  public RequestedModules: string[];
+  public RequestedModules: $String[];
 
   public readonly LocalExportEntries: readonly ExportEntryRecord[];
   public readonly IndirectExportEntries: readonly ExportEntryRecord[];
@@ -3812,9 +3829,9 @@ export class $SourceFile implements I$Node, IModule {
     public readonly compilerOptions: CompilerOptions,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
-    const fileName = $file.path;
-    this.logger = pkg.container.get(ILogger).root.scopeTo(`SourceFile<${fileName.slice(fileName.lastIndexOf('/') + 1)}>`);
+    this.logger = pkg.container.get(ILogger).root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
 
     this.matcher = PatternMatcher.getOrCreate(compilerOptions, pkg.container);
 
@@ -3824,12 +3841,12 @@ export class $SourceFile implements I$Node, IModule {
       ctx |= Context.InStrictMode;
     }
 
-    const ExportedBindings = this.ExportedBindings = [] as string[];
-    const ExportedNames = this.ExportedNames = [] as string[];
+    const ExportedBindings = this.ExportedBindings = [] as $String[];
+    const ExportedNames = this.ExportedNames = [] as $String[];
     const ExportEntries = this.ExportEntries = [] as ExportEntryRecord[];
     const ImportEntries = this.ImportEntries = [] as ImportEntryRecord[];
-    const ImportedLocalNames = this.ImportedLocalNames = [] as string[];
-    const ModuleRequests = this.ModuleRequests = [] as string[];
+    const ImportedLocalNames = this.ImportedLocalNames = [] as $String[];
+    const ModuleRequests = this.ModuleRequests = [] as $String[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
     const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESDeclaration[];
 
@@ -4037,18 +4054,18 @@ export class $SourceFile implements I$Node, IModule {
       ee = exportEntries[i];
 
       // 11. a. If ee.[[ModuleRequest]] is null, then
-      if (ee.ModuleRequest === null) {
+      if (ee.ModuleRequest.isNull) {
         // 11. a. i. If ee.[[LocalName]] is not an element of importedBoundNames, then
-        if (importedBoundNames.indexOf(ee.LocalName!) === -1) {
+        if (!importedBoundNames.some(x => x.is(ee.LocalName))) {
           // 11. a. i. 1. Append ee to localExportEntries.
           localExportEntries.push(ee);
         }
         // 11. a. ii. Else,
         else {
           // 11. a. ii. 1. Let ie be the element of importEntries whose [[LocalName]] is the same as ee.[[LocalName]].
-          const ie = importEntries.find(x => x.LocalName === ee.LocalName)!;
+          const ie = importEntries.find(x => x.LocalName.is(ee.LocalName))!;
           // 11. a. ii. 2. If ie.[[ImportName]] is "*", then
-          if (ie.ImportName === '*') {
+          if (ie.ImportName.value === '*') {
             // 11. a. ii. 2. a. Assert: This is a re-export of an imported module namespace object.
             // 11. a. ii. 2. b. Append ee to localExportEntries.
             localExportEntries.push(ee);
@@ -4057,16 +4074,17 @@ export class $SourceFile implements I$Node, IModule {
           else {
             // 11. a. ii. 3. a. Append the ExportEntry Record { [[ModuleRequest]]: ie.[[ModuleRequest]], [[ImportName]]: ie.[[ImportName]], [[LocalName]]: null, [[ExportName]]: ee.[[ExportName]] } to indirectExportEntries.
             indirectExportEntries.push(new ExportEntryRecord(
+              /* source */this,
               /* ExportName */ee.ExportName,
               /* ModuleRequest */ie.ModuleRequest,
               /* ImportName */ie.ImportName,
-              /* LocalName */null,
+              /* LocalName */intrinsics.null,
             ));
           }
         }
       }
       // 11. b. Else if ee.[[ImportName]] is "*", then
-      else if (ee.ImportName === '*') {
+      else if (ee.ImportName.value === '*') {
       // 11. b. i. Append ee to starExportEntries.
         starExportEntries.push(ee);
       }
@@ -4106,7 +4124,7 @@ export class $SourceFile implements I$Node, IModule {
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
       // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
-      const resolution = this.ResolveExport(e.ExportName!, new ResolveSet());
+      const resolution = this.ResolveExport(e.ExportName as $String, new ResolveSet());
 
       // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
       if (resolution === null || resolution === 'ambiguous') {
@@ -4136,7 +4154,7 @@ export class $SourceFile implements I$Node, IModule {
 
       // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
       // 9. c. If in.[[ImportName]] is "*", then
-      if (ie.ImportName === '*') {
+      if (ie.ImportName.value === '*') {
         // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
         const namespace = (function (mod) {
           // http://www.ecma-international.org/ecma-262/#sec-getmodulenamespace
@@ -4152,7 +4170,7 @@ export class $SourceFile implements I$Node, IModule {
             const exportedNames = mod.GetExportedNames(new Set());
 
             // 4. b. Let unambiguousNames be a new empty List.
-            const unambiguousNames: string[] = [];
+            const unambiguousNames: $String[] = [];
 
             // 4. c. For each name that is an element of exportedNames, do
             for (const name of exportedNames) {
@@ -4173,13 +4191,11 @@ export class $SourceFile implements I$Node, IModule {
           return namespace;
         })(importedModule);
 
-        const LocalName = new $String(realm, ie.LocalName);
-
         // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
-        envRec.CreateImmutableBinding(LocalName, intrinsics.true);
+        envRec.CreateImmutableBinding(ie.LocalName, intrinsics.true);
 
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
-        envRec.InitializeBinding(LocalName, namespace);
+        envRec.InitializeBinding(ie.LocalName, namespace);
       }
       // 9. d. Else,
       else {
@@ -4191,10 +4207,8 @@ export class $SourceFile implements I$Node, IModule {
           throw new SyntaxError(`ResolveExport(${ie.ImportName}) returned ${resolution}`);
         }
 
-        const LocalName = new $String(realm, ie.LocalName);
-
         // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
-        envRec.CreateImportBinding(LocalName, resolution.Module, resolution.BindingName);
+        envRec.CreateImportBinding(ie.LocalName, resolution.Module, resolution.BindingName);
       }
     }
 
@@ -4223,7 +4237,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames
-  public GetExportedNames(exportStarSet: Set<IModule>): readonly string[] {
+  public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
     // 1. Let module be this Source Text Module Record.
     const mod = this;
 
@@ -4238,20 +4252,20 @@ export class $SourceFile implements I$Node, IModule {
     exportStarSet.add(mod);
 
     // 4. Let exportedNames be a new empty List.
-    const exportedNames: string[] = [];
+    const exportedNames: $String[] = [];
 
     // 5. For each ExportEntry Record e in module.[[LocalExportEntries]], do
     for (const e of mod.LocalExportEntries) {
       // 5. a. Assert: module provides the direct binding for this export.
       // 5. b. Append e.[[ExportName]] to exportedNames.
-      exportedNames.push(e.ExportName!);
+      exportedNames.push(e.ExportName as $String);
     }
 
     // 6. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of mod.IndirectExportEntries) {
       // 6. a. Assert: module imports a specific binding for this export.
       // 6. b. Append e.[[ExportName]] to exportedNames.
-      exportedNames.push(e.ExportName!);
+      exportedNames.push(e.ExportName as $String);
     }
 
     const realm = this.realm;
@@ -4259,7 +4273,7 @@ export class $SourceFile implements I$Node, IModule {
     // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const requestedModule = realm.HostResolveImportedModule(mod, e.ModuleRequest!);
+      const requestedModule = realm.HostResolveImportedModule(mod, e.ModuleRequest as $String);
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
       const starNames = requestedModule.GetExportedNames(exportStarSet);
@@ -4267,9 +4281,9 @@ export class $SourceFile implements I$Node, IModule {
       // 7. c. For each element n of starNames, do
       for (const n of starNames) {
         // 7. c. i. If SameValue(n, "default") is false, then
-        if (n !== 'default') {
+        if (n.value !== 'default') {
           // 7. c. i. 1. If n is not an element of exportedNames, then
-          if (exportedNames.indexOf(n) === -1) {
+          if (!exportedNames.includes(n)) {
             // 7. c. i. 1. a. Append n to exportedNames.
             exportedNames.push(n);
           }
@@ -4282,14 +4296,14 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolveexport
-  public ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
+  public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
     // 1. Let module be this Source Text Module Record.
     // 2. For each Record { [[Module]], [[ExportName]] } r in resolveSet, do
     // 2. a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
     if (resolveSet.has(this, exportName)) {
       // 2. a. i. Assert: This is a circular import request.
       // 2. a. ii. Return null.
-      this.logger.debug(`[ResolveExport] Circular import: ${exportName}`);
+      this.logger.warn(`[ResolveExport] Circular import: ${exportName}`);
       return null;
     }
 
@@ -4299,10 +4313,12 @@ export class $SourceFile implements I$Node, IModule {
     // 4. For each ExportEntry Record e in module.[[LocalExportEntries]], do
     for (const e of this.LocalExportEntries) {
       // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
-      if (exportName === e.ExportName) {
+      if (exportName.is(e.ExportName)) {
         // 4. a. i. Assert: module provides the direct binding for this export.
+        this.logger.info(`[ResolveExport] found direct binding for ${exportName.value}`);
+
         // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
-        return new ResolvedBindingRecord(this, new $String(this.realm, e.LocalName!));
+        return new ResolvedBindingRecord(this, e.LocalName as $String);
       }
     }
 
@@ -4311,21 +4327,24 @@ export class $SourceFile implements I$Node, IModule {
     // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
       // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
-      if (exportName === e.ExportName) {
+      if (exportName.is(e.ExportName)) {
         // 5. a. i. Assert: module imports a specific binding for this export.
+        this.logger.info(`[ResolveExport] found specific imported binding for ${exportName.value}`);
+
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-        const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest!);
+        const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
 
         // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-        return importedModule.ResolveExport(e.ImportName!, resolveSet);
+        return importedModule.ResolveExport(e.ImportName as $String, resolveSet);
       }
     }
 
     // 6. If SameValue(exportName, "default") is true, then
-    if (exportName === 'default') {
+    if (exportName.value === 'default') {
       // 6. a. Assert: A default export was not explicitly defined by this module.
       // 6. b. Return null.
-      this.logger.debug(`[ResolveExport] No default export defined`);
+      this.logger.warn(`[ResolveExport] No default export defined`);
+
       return null;
       // 6. c. NOTE: A default export cannot be provided by an export *.
     }
@@ -4336,13 +4355,15 @@ export class $SourceFile implements I$Node, IModule {
     // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of this.StarExportEntries) {
       // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest!);
+      const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
 
       // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
       const resolution = importedModule.ResolveExport(exportName, resolveSet);
 
       // 8. c. If resolution is "ambiguous", return "ambiguous".
       if (resolution === 'ambiguous') {
+        this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName.value}`);
+
         return 'ambiguous';
       }
 
@@ -4358,6 +4379,8 @@ export class $SourceFile implements I$Node, IModule {
           // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
           // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
           if (!(resolution.Module === starResolution.Module && resolution.BindingName === starResolution.BindingName)) {
+            this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName.value}`);
+
             return 'ambiguous';
           }
         }
@@ -4365,7 +4388,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     if (starResolution === null) {
-      this.logger.debug(`[ResolveExport] starResolution is null`);
+      this.logger.warn(`[ResolveExport] starResolution is null for ${exportName.value}`);
     }
 
     // 9. Return starResolution.
@@ -4441,9 +4464,10 @@ export class $ModuleDeclaration implements I$Node {
  */
 export class ImportEntryRecord {
   public constructor(
-    public readonly ModuleRequest: string,
-    public readonly ImportName: string,
-    public readonly LocalName: string,
+    public readonly source: $ImportClause | $NamespaceImport | $ImportSpecifier,
+    public readonly ModuleRequest: $String,
+    public readonly ImportName: $String,
+    public readonly LocalName: $String,
   ) {}
 }
 
@@ -4504,17 +4528,17 @@ export class $ImportDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
-  public readonly $importClause: $ImportClause | undefined;
+  public readonly $importClause: $ImportClause | $Undefined;
   public readonly $moduleSpecifier: $StringLiteral;
 
-  public readonly moduleSpecifier: string;
+  public readonly moduleSpecifier: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-importentries
   public readonly ImportEntries: readonly ImportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-modulerequests
-  public readonly ModuleRequests: readonly string[];
+  public readonly ModuleRequests: readonly $String[];
 
   public constructor(
     public readonly node: ImportDeclaration,
@@ -4532,7 +4556,7 @@ export class $ImportDeclaration implements I$Node {
     const moduleSpecifier = this.moduleSpecifier = $moduleSpecifier.StringValue;
 
     if (node.importClause === void 0) {
-      this.$importClause = void 0;
+      this.$importClause = new $Undefined(realm, this);
 
       this.BoundNames = emptyArray;
       this.ImportEntries = emptyArray;
@@ -4557,13 +4581,13 @@ export class $ImportClause implements I$Node {
   public readonly $kind = SyntaxKind.ImportClause;
   public readonly id: number;
 
-  public readonly $name: $Identifier | undefined;
+  public readonly $name: $Identifier | $Undefined;
   public readonly $namedBindings: $NamespaceImport | $NamedImports | undefined;
 
-  public readonly moduleSpecifier: string;
+  public readonly moduleSpecifier: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
   public readonly ImportEntriesForModule: readonly ImportEntryRecord[];
 
@@ -4575,14 +4599,15 @@ export class $ImportClause implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     const moduleSpecifier = this.moduleSpecifier = parent.moduleSpecifier;
 
-    const BoundNames = this.BoundNames = [] as string[];
+    const BoundNames = this.BoundNames = [] as $String[];
     const ImportEntriesForModule = this.ImportEntriesForModule = [] as ImportEntryRecord[];
 
     if (node.name === void 0) {
-      this.$name = void 0;
+      this.$name = new $Undefined(realm, this);
     } else {
       const $name = this.$name = new $Identifier(node.name, this, ctx);
 
@@ -4590,8 +4615,9 @@ export class $ImportClause implements I$Node {
       BoundNames.push(localName);
       ImportEntriesForModule.push(
         new ImportEntryRecord(
+          /* source */this,
           /* ModuleRequest */moduleSpecifier,
-          /* ImportName */'default',
+          /* ImportName */intrinsics.default,
           /* LocalName */localName,
         ),
       );
@@ -4619,10 +4645,10 @@ export class $NamedImports implements I$Node {
 
   public readonly $elements: readonly $ImportSpecifier[];
 
-  public readonly moduleSpecifier: string;
+  public readonly moduleSpecifier: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
   public readonly ImportEntriesForModule: readonly ImportEntryRecord[];
 
@@ -4648,11 +4674,11 @@ export class $ImportSpecifier implements I$Node {
   public readonly $kind = SyntaxKind.ImportSpecifier;
   public readonly id: number;
 
-  public readonly $propertyName: $Identifier | undefined;
+  public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
-  public readonly BoundNames: readonly [string];
+  public readonly BoundNames: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
   public readonly ImportEntriesForModule: readonly [ImportEntryRecord];
 
@@ -4665,17 +4691,23 @@ export class $ImportSpecifier implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
+    let $propertyName: $Identifier | $Undefined;
+    if (node.propertyName === void 0) {
+      $propertyName = this.$propertyName = new $Undefined(realm, this);
+    } else {
+      $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx);
+    }
     const $name = this.$name = $identifier(node.name, this, ctx);
 
     const BoundNames = this.BoundNames = this.$name.BoundNames;
 
     const moduleSpecifier = parent.moduleSpecifier;
 
-    if ($propertyName === void 0) {
+    if ($propertyName.isUndefined) {
       const [localName] = BoundNames;
       this.ImportEntriesForModule = [
         new ImportEntryRecord(
+          /* source */this,
           /* ModuleRequest */moduleSpecifier,
           /* ImportName */localName,
           /* LocalName */localName,
@@ -4686,6 +4718,7 @@ export class $ImportSpecifier implements I$Node {
       const localName = $name.StringValue;
       this.ImportEntriesForModule = [
         new ImportEntryRecord(
+          /* source */this,
           /* ModuleRequest */moduleSpecifier,
           /* ImportName */importName,
           /* LocalName */localName,
@@ -4702,7 +4735,7 @@ export class $NamespaceImport implements I$Node {
   public readonly $name: $Identifier;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
   public readonly ImportEntriesForModule: readonly [ImportEntryRecord];
 
@@ -4714,8 +4747,9 @@ export class $NamespaceImport implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = new $Identifier(node.name, this, ctx);
 
     this.BoundNames = $name.BoundNames;
 
@@ -4724,8 +4758,9 @@ export class $NamespaceImport implements I$Node {
     const localName = $name.StringValue;
     this.ImportEntriesForModule = [
       new ImportEntryRecord(
+        /* source */this,
         /* ModuleRequest */moduleSpecifier,
-        /* ImportName */'*',
+        /* ImportName */intrinsics['*'],
         /* LocalName */localName,
       ),
     ];
@@ -4747,10 +4782,11 @@ export class $NamespaceImport implements I$Node {
  */
 export class ExportEntryRecord {
   public constructor(
-    public readonly ExportName: string | null,
-    public readonly ModuleRequest: string | null,
-    public readonly ImportName: string | null,
-    public readonly LocalName: string | null,
+    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $SourceFile,
+    public readonly ExportName: $String | $Null,
+    public readonly ModuleRequest: $String | $Null,
+    public readonly ImportName: $String | $Null,
+    public readonly LocalName: $String | $Null,
   ) {}
 }
 
@@ -4762,7 +4798,7 @@ export class $ExportAssignment implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly [$String<'*default*'>];
 
   public constructor(
     public readonly node: ExportAssignment,
@@ -4772,12 +4808,13 @@ export class $ExportAssignment implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
-    this.BoundNames = SyntheticAnonymousBoundNames;
+    this.BoundNames = [intrinsics['*default*']];
   }
 }
 
@@ -4790,14 +4827,14 @@ export class $ExportDeclaration implements I$Node {
   public readonly $exportClause: $NamedExports | undefined;
   public readonly $moduleSpecifier: $StringLiteral | undefined;
 
-  public readonly moduleSpecifier: string | null;
+  public readonly moduleSpecifier: $String | $Null;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-boundnames
-  public readonly BoundNames: readonly string[] = emptyArray;
+  public readonly BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
-  public readonly ExportedBindings: readonly string[] = emptyArray;
+  public readonly ExportedBindings: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
-  public readonly ExportedNames: readonly string[];
+  public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
@@ -4805,7 +4842,7 @@ export class $ExportDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
-  public readonly ModuleRequests: readonly string[];
+  public readonly ModuleRequests: readonly $String[];
 
   public constructor(
     public readonly node: ExportDeclaration,
@@ -4815,13 +4852,14 @@ export class $ExportDeclaration implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    let moduleSpecifier: string | null;
+    let moduleSpecifier: $String | $Null;
     if (node.moduleSpecifier === void 0) {
       this.$moduleSpecifier = void 0;
-      moduleSpecifier = this.moduleSpecifier = null;
+      moduleSpecifier = this.moduleSpecifier = intrinsics.null;
 
       this.ModuleRequests = emptyArray;
     } else {
@@ -4837,10 +4875,11 @@ export class $ExportDeclaration implements I$Node {
       this.ExportedNames = emptyArray;
       this.ExportEntries = [
         new ExportEntryRecord(
-          /* ExportName */null,
+          /* source */this,
+          /* ExportName */intrinsics.null,
           /* ModuleRequest */moduleSpecifier,
-          /* ImportName */'*',
-          /* LocalName */null,
+          /* ImportName */intrinsics['*'],
+          /* LocalName */intrinsics.null,
         ),
       ];
     } else {
@@ -4858,14 +4897,14 @@ export class $NamedExports implements I$Node {
 
   public readonly $elements: readonly $ExportSpecifier[];
 
-  public readonly moduleSpecifier: string | null;
+  public readonly moduleSpecifier: $String | $Null;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
-  public readonly ExportedNames: readonly string[];
+  public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-exportentriesformodule
   public readonly ExportEntriesForModule: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-referencedbindings
-  public readonly ReferencedBindings: readonly string[];
+  public readonly ReferencedBindings: readonly $String[];
 
   public constructor(
     public readonly node: NamedExports,
@@ -4890,15 +4929,15 @@ export class $ExportSpecifier implements I$Node {
   public readonly $kind = SyntaxKind.ExportSpecifier;
   public readonly id: number;
 
-  public readonly $propertyName: $Identifier | undefined;
+  public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
-  public readonly ExportedNames: readonly [string];
+  public readonly ExportedNames: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-exportentriesformodule
   public readonly ExportEntriesForModule: readonly [ExportEntryRecord];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-referencedbindings
-  public readonly ReferencedBindings: readonly [string];
+  public readonly ReferencedBindings: readonly [$String];
 
   public constructor(
     public readonly node: ExportSpecifier,
@@ -4908,34 +4947,42 @@ export class $ExportSpecifier implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
-    const $propertyName = this.$propertyName = $identifier(node.propertyName, this, ctx);
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    let $propertyName: $Identifier | $Undefined;
+    if (node.propertyName === void 0) {
+      $propertyName = this.$propertyName = new $Undefined(realm, this);
+    } else {
+      $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx);
+    }
+    const $name = this.$name = new $Identifier(node.name, this, ctx);
 
     const sourceName = $name.StringValue;
     const moduleSpecifier = parent.moduleSpecifier;
 
     this.ReferencedBindings = [sourceName];
 
-    if ($propertyName === void 0) {
+    if ($propertyName.isUndefined) {
       this.ExportedNames = [sourceName];
 
-      if (moduleSpecifier === null) {
+      if (moduleSpecifier.isNull) {
         this.ExportEntriesForModule = [
           new ExportEntryRecord(
+            /* source */this,
             /* ExportName */sourceName,
             /* ModuleRequest */moduleSpecifier,
-            /* ImportName */null,
+            /* ImportName */intrinsics.null,
             /* LocalName */sourceName,
           ),
         ];
       } else {
         this.ExportEntriesForModule = [
           new ExportEntryRecord(
+            /* source */this,
             /* ExportName */sourceName,
             /* ModuleRequest */moduleSpecifier,
             /* ImportName */sourceName,
-            /* LocalName */null,
+            /* LocalName */intrinsics.null,
           ),
         ];
       }
@@ -4944,22 +4991,24 @@ export class $ExportSpecifier implements I$Node {
 
       this.ExportedNames = [exportName];
 
-      if (moduleSpecifier === null) {
+      if (moduleSpecifier.isNull) {
         this.ExportEntriesForModule = [
           new ExportEntryRecord(
+            /* source */this,
             /* ExportName */exportName,
             /* ModuleRequest */moduleSpecifier,
-            /* ImportName */null,
+            /* ImportName */intrinsics.null,
             /* LocalName */sourceName,
           ),
         ];
       } else {
         this.ExportEntriesForModule = [
           new ExportEntryRecord(
+            /* source */this,
             /* ExportName */exportName,
             /* ModuleRequest */moduleSpecifier,
             /* ImportName */sourceName,
-            /* LocalName */null,
+            /* LocalName */intrinsics.null,
           ),
         ];
       }
@@ -5082,7 +5131,7 @@ export class $ComputedPropertyName implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
-  public readonly PropName: string | empty = empty;
+  public readonly PropName: $String | $Empty;
 
   public constructor(
     public readonly node: ComputedPropertyName,
@@ -5094,6 +5143,8 @@ export class $ComputedPropertyName implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    this.PropName = new $Empty(realm, this);
   }
 }
 
@@ -5112,7 +5163,7 @@ export class $ParameterDeclaration implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
-  public readonly BoundNames: readonly string[] | readonly [string];
+  public readonly BoundNames: readonly $String[] | readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
@@ -5164,7 +5215,7 @@ export class $ObjectBindingPattern implements I$Node {
   public readonly $elements: readonly $BindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
@@ -5241,7 +5292,7 @@ export class $ArrayBindingPattern implements I$Node {
   public readonly $elements: readonly $$ArrayBindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
@@ -5292,7 +5343,7 @@ export class $BindingElement implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
@@ -5388,7 +5439,7 @@ export class $PropertyAssignment implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
-  public readonly PropName: string | empty;
+  public readonly PropName: $String | $Empty;
 
   public constructor(
     public readonly node: PropertyAssignment,
@@ -5418,7 +5469,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
   public readonly $objectAssignmentInitializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
-  public readonly PropName: string;
+  public readonly PropName: $String;
 
   public constructor(
     public readonly node: ShorthandPropertyAssignment,
@@ -5465,7 +5516,7 @@ export class $OmittedExpression implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
-  public readonly BoundNames: readonly string[] = emptyArray;
+  public readonly BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   public readonly ContainsExpression: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
@@ -5762,7 +5813,7 @@ export class $ForInStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESStatement;
 
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -5807,7 +5858,7 @@ export class $ForOfStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESStatement;
 
-  public readonly BoundNames: readonly string[];
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 

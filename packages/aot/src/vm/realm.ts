@@ -19,16 +19,16 @@ function comparePathLength(a: { path: { length: number } }, b: { path: { length:
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];
-  private readonly exportNames: string[] = [];
+  private readonly exportNames: $String[] = [];
   private count: number = 0;
 
-  public has(mod: IModule, exportName: string): boolean {
+  public has(mod: IModule, exportName: $String): boolean {
     const modules = this.modules;
     const exportNames = this.exportNames;
     const count = this.count;
 
     for (let i = 0; i < count; ++i) {
-      if (exportNames[i] === exportName && modules[i] === mod) {
+      if (exportNames[i].is(exportName) && modules[i] === mod) {
         return true;
       }
     }
@@ -36,14 +36,14 @@ export class ResolveSet {
     return false;
   }
 
-  public add(mod: IModule, exportName: string): void {
+  public add(mod: IModule, exportName: $String): void {
     const index = this.count;
     this.modules[index] = mod;
     this.exportNames[index] = exportName;
     ++this.count;
   }
 
-  public forEach(callback: (mod: IModule, exportName: string) => void): void {
+  public forEach(callback: (mod: IModule, exportName: $String) => void): void {
     const modules = this.modules;
     const exportNames = this.exportNames;
     const count = this.count;
@@ -72,8 +72,8 @@ export interface IModule {
 
   readonly realm: Realm;
 
-  ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
-  GetExportedNames(exportStarSet: Set<IModule>): readonly string[];
+  ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
+  GetExportedNames(exportStarSet: Set<IModule>): readonly $String[];
 }
 
 export class DeferredModule implements IModule {
@@ -88,11 +88,11 @@ export class DeferredModule implements IModule {
     public readonly realm: Realm,
   ) {}
 
-  public ResolveExport(exportName: string, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
+  public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
     throw new Error('Method not implemented.');
   }
 
-  public GetExportedNames(exportStarSet: Set<IModule>): readonly string[] {
+  public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
     throw new Error('Method not implemented.');
   }
 }
@@ -307,12 +307,14 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-hostresolveimportedmodule
-  public HostResolveImportedModule(referencingModule: $SourceFile, specifier: string): IModule {
-    specifier = normalizePath(specifier);
+  public HostResolveImportedModule(referencingModule: $SourceFile, $specifier: $String): IModule {
+    const specifier = normalizePath($specifier.value);
     const isRelative = isRelativeModulePath(specifier);
     const pkg = referencingModule.pkg;
 
     if (isRelative) {
+      this.logger.info(`[ResolveImport] resolving internal relative module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+
       const filePath = resolvePath(dirname(referencingModule.$file.path), specifier);
       const files = pkg.files.filter(x => x.shortPath === filePath || x.path === filePath).sort(comparePathLength);
       if (files.length === 0) {
@@ -335,6 +337,8 @@ export class Realm {
     } else {
       const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(n.refName + '/'));
       if (pkgDep === void 0) {
+        this.logger.info(`[ResolveImport] resolving internal absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+
         if (referencingModule.matcher !== null) {
           const file = referencingModule.matcher.findMatch(pkg.files, specifier);
           return this.getESModule(file, pkg);
@@ -342,6 +346,8 @@ export class Realm {
           throw new Error(`Cannot resolve absolute file path without path mappings in tsconfig`);
         }
       } else {
+        this.logger.info(`[ResolveImport] resolving external absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+
         const container = referencingModule.pkg.container;
         const { rootDir } = container.get(IOptions);
         const fs = container.get(IFileSystem);

@@ -12,8 +12,6 @@ import { Realm } from './realm';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
-export type $0 = $Number<0>;
-export type $EmptyString = $String<''>;
 
 /**
  * http://www.ecma-international.org/ecma-262/#table-7
@@ -140,9 +138,12 @@ export class Intrinsics {
   public readonly 'NaN': $Number;
   public readonly 'Infinity': $Number;
   public readonly '-Infinity': $Number;
-  public readonly '0': $0;
-  public readonly '-0': $0;
-  public readonly '': $EmptyString;
+  public readonly '0': $Number<0>;
+  public readonly '-0': $Number<-0>;
+  public readonly '': $String<''>;
+  public readonly '*': $String<'*'>;
+  public readonly '*default*': $String<'*default*'>;
+  public readonly 'default': $String<'default'>;
 
   public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
   public readonly '@@hasInstance': $Symbol<$String<'Symbol.hasInstance'>>;
@@ -299,6 +300,9 @@ export class Intrinsics {
     this['0'] = new $Number(realm, 0);
     this['-0'] = new $Number(realm, -0);
     this[''] = new $String(realm, '');
+    this['*'] = new $String(realm, '*');
+    this['*default*'] = new $String(realm, '*default*');
+    this['default'] = new $String(realm, 'default');
 
     this['@@asyncIterator'] = new $Symbol(realm, new $String(realm, 'Symbol.asyncIterator'));
     this['@@hasInstance'] = new $Symbol(realm, new $String(realm, 'Symbol.hasInstance'));

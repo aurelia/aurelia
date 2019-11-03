@@ -957,6 +957,7 @@ export class $ECMAScriptFunction<
   // http://www.ecma-international.org/ecma-262/#sec-functioninitialize
   public static Initialize(
     F: $ECMAScriptFunction,
+    kind: 'normal' | 'method' | 'arrow',
     node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
     Scope: $EnvRec,
   ): $ECMAScriptFunction {
@@ -990,7 +991,7 @@ export class $ECMAScriptFunction<
     F['[[ScriptOrModule]]'] = realm.GetActiveScriptOrModule();
 
     // 8. If kind is Arrow, set F.[[ThisMode]] to lexical.
-    if (node.$kind === SyntaxKind.ArrowFunction) {
+    if (kind === 'arrow') {
       F['[[ThisMode]]'] = 'lexical';
     }
     // 9. Else if Strict is true, set F.[[ThisMode]] to strict.
@@ -1004,6 +1005,41 @@ export class $ECMAScriptFunction<
 
     // 11. Return F.
     return F;
+  }
+
+
+  // http://www.ecma-international.org/ecma-262/#sec-functioncreate
+  public static FunctionCreate(
+    kind: 'normal' | 'method' | 'arrow',
+    node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
+    Scope: $EnvRec,
+    Strict: $Boolean,
+    prototype?: $Object,
+  ) {
+    const realm = node.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. If prototype is not present, then
+    if (prototype === void 0) {
+      // 1. a. Set prototype to the intrinsic object %FunctionPrototype%.
+      prototype = intrinsics['%FunctionPrototype%'];
+    }
+
+    let allocKind: 'normal' | 'non-constructor';
+    // 2. If kind is not Normal, let allocKind be "non-constructor".
+    if (kind !== 'normal') {
+      allocKind = 'non-constructor';
+    }
+    // 3. Else, let allocKind be "normal".
+    else {
+      allocKind = 'normal';
+    }
+
+    // 4. Let F be FunctionAllocate(prototype, Strict, allocKind).
+    const F = this.Allocate(prototype!, Strict, allocKind);
+
+    // 5. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
+    return this.Initialize(F, kind, node, Scope);
   }
 }
 

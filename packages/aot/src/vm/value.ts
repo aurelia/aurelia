@@ -1,9 +1,10 @@
 /* eslint-disable */
 import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype } from './operations';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow } from './operations';
 import { $EnvRec } from './environment';
-import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile } from './ast';
+import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction } from './ast';
+import { SyntaxKind } from 'typescript';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -888,7 +889,7 @@ export class $ECMAScriptFunction<
   public ['[[ECMAScriptCode]]']: $Block | $$AssignmentExpressionOrHigher;
   public ['[[ConstructorKind]]']: ConstructorKind;
   public ['[[Realm]]']: Realm;
-  public ['[[ScriptOrModule]]']: IModule;
+  public ['[[ScriptOrModule]]']: $SourceFile;
   public ['[[ThisMode]]']: ThisMode;
   public ['[[Strict]]']: $Boolean;
   public ['[[HomeObject]]']: $Object;
@@ -950,6 +951,58 @@ export class $ECMAScriptFunction<
     F['[[Realm]]'] = realm;
 
     // 15. Return F.
+    return F;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-functioninitialize
+  public static Initialize(
+    F: $ECMAScriptFunction,
+    node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
+    Scope: $EnvRec,
+  ): $ECMAScriptFunction {
+    const realm = F['[[Realm]]'];
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let len be the ExpectedArgumentCount of ParameterList.
+    const len = node.ExpectedArgumentCount;
+
+    // 2. Perform ! SetFunctionLength(F, len).
+    const Desc = new $PropertyDescriptor(realm, intrinsics.length);
+    Desc['[[Value]]'] = new $Number(realm, len);
+    Desc['[[Writable]]'] = intrinsics.false;
+    Desc['[[Enumerable]]'] = intrinsics.false;
+    Desc['[[Configurable]]'] = intrinsics.true;
+    $DefinePropertyOrThrow(F, intrinsics.length, Desc);
+
+    // 3. Let Strict be F.[[Strict]].
+    const Strict = F['[[Strict]]'];
+
+    // 4. Set F.[[Environment]] to Scope.
+    F['[[Environment]]'] = Scope;
+
+    // 5. Set F.[[FormalParameters]] to ParameterList.
+    F['[[FormalParameters]]'] = node.$parameters;
+
+    // 6. Set F.[[ECMAScriptCode]] to Body.
+    F['[[ECMAScriptCode]]'] = node.$body;
+
+    // 7. Set F.[[ScriptOrModule]] to GetActiveScriptOrModule().
+    F['[[ScriptOrModule]]'] = realm.GetActiveScriptOrModule();
+
+    // 8. If kind is Arrow, set F.[[ThisMode]] to lexical.
+    if (node.$kind === SyntaxKind.ArrowFunction) {
+      F['[[ThisMode]]'] = 'lexical';
+    }
+    // 9. Else if Strict is true, set F.[[ThisMode]] to strict.
+    else if (Strict.isTruthy) {
+      F['[[ThisMode]]'] = 'strict';
+    }
+    // 10. Else, set F.[[ThisMode]] to global.
+    else {
+      F['[[ThisMode]]'] = 'global';
+    }
+
+    // 11. Return F.
     return F;
   }
 }

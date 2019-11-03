@@ -375,13 +375,13 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getactivescriptormodule
-  public GetActiveScriptOrModule(): $SourceFile | $Null {
-    const intrinsics = this['[[Intrinsics]]'];
+  public GetActiveScriptOrModule(): $SourceFile {
     const stack = this.stack;
 
     // 1. If the execution context stack is empty, return null.
     if (stack.length === 0) {
-      return intrinsics.null;
+      // We're throwing here for now. Not sure in which scenario this could be null that would not throw at some point.
+      throw new Error(`GetActiveScriptOrModule: stack is empty`);
     }
 
     // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
@@ -395,7 +395,9 @@ export class Realm {
     }
 
     // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule component.
-    return intrinsics.null;
+
+    // We're throwing here for now. Not sure in which scenario this could be null that would not throw at some point.
+    throw new Error(`GetActiveScriptOrModule: stack has no execution context with an active module`);
   }
 
   public registerNode(node: I$Node): number {

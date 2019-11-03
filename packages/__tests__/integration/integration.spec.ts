@@ -897,21 +897,31 @@ describe.only('app', function () {
     const ce = host.querySelector("random-generator");
     const vm = getViewModel<RandomGenerator>(ce);
     const container = ce.querySelector("div");
-    // const display = container.querySelector("span");
     const button = container.querySelector("button");
 
     let prev = vm.random;
+    const assertAttr = () => {
+      assert.equal(container['foobar'], vm.random);
+      assert.equal(container.getAttribute('foobar'), undefined);
+      assert.equal(container['foo-bar'], undefined);
+      assert.equal(container.getAttribute('foo-bar'), vm.random);
+    };
+    assertAttr();
+
+    // self BB
     container.click();
     await ctx.scheduler.yieldAll();
     assert.notEqual(vm.random, prev, 'new random expected1');
+    assertAttr();
 
     prev = vm.random;
     button.click();
     await ctx.scheduler.yieldAll();
-    assert.equal(vm.random, prev, 'new random expected1');
+    assert.equal(vm.random, prev, 'new random not expected');
 
     container.click();
     await ctx.scheduler.yieldAll();
-    assert.notEqual(vm.random, prev, 'new random expected1');
+    assert.notEqual(vm.random, prev, 'new random expected2');
+    assertAttr();
   });
 });

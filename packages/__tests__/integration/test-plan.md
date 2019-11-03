@@ -56,7 +56,7 @@
 - [x] `value-attribute-observer`: observer for `[value]` (input)
 
 #### Binding behaviors
-- [ ] `attr`: wrapper for data attribute observer. Postponed, seems like an old artifact.
+- [x] `attr`: wrapper for data attribute observer. Postponed, seems like an old artifact.
 - [x] `self`: triggers function iff the event originated from this element and not bubbled up from any child element.
 - [ ] `update-trigger`: registers event as update trigger
 
@@ -225,7 +225,8 @@ A `div` with a random number (as easier to generate :)) + plus a button that doe
 When the `div` is clicked, a new number is generated.
 Targets `self` binding behavior, as the button click does not trigger the change of number.
 
-**NOTE:**
+
+#### NOTE
 custom attributes with multiple bindables in different variants (one named value, none named value, with/without the default specified, with/without mode, with/without multi expressions, etc)
 
 From rluba:
@@ -251,24 +252,3 @@ The usage code looks like this:
 
 The result?
 `appendToBodyChanged` gets called and `appendToBody` is set to the string `append-to-body.bind: true; open.bind: ddopen` (so the whole attribute value of au-dropdown). How on earth can that happen?
-
-#### Hypothetical examples
-
-The following does not work:
-
-```typescript
-  public get organizationNonVolatile() {
-    return `${this.organization}, ${this.location}`;
-  }
-  public set organizationNonVolatile(value: string) {
-    this.organization = value;
-  }
-
-  @computed({ volatile: true })
-  public get organizationVolatile() {
-    return `${this.organization}, ${this.location}`;
-  }
-  public set organizationVolatile(value: string) {
-    this.organization = value;
-  }
-```

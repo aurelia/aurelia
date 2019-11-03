@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/check-indentation */
 import { bindable, customElement } from '@aurelia/runtime';
 import * as template from './command.html';
 

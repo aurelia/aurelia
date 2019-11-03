@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/check-indentation */
 import { bindable, CustomElement, PartialCustomElementDefinition } from '@aurelia/runtime';
 import { styles } from '@aurelia/runtime-html';
 import * as css from './cards.css';

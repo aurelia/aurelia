@@ -4,7 +4,9 @@ import { customElement } from '@aurelia/runtime';
 /**
  * Potential coverage target
  * - `runtime-html`
- *    - `self` binding behavior
+ *    - Binding behaviors
+ *      - `attr`
+ *      - `self`
  */
 @customElement({ name: 'random-generator', template })
 export class RandomGenerator {

@@ -4381,6 +4381,11 @@ export class $SourceFile implements I$Node, IModule {
   public Instantiate(): void {
     this.logger.debug(`[Instantiate] starting`);
 
+    // TODO: this is temporary. Should be done by RunJobs
+    if (this.realm.stack.length === 1 && this.realm.stack.top.ScriptOrModule.isNull) {
+      this.realm.stack.top.ScriptOrModule = this;
+    }
+
     // 1. Let module be this Cyclic Module Record.
     // 2. Assert: module.[[Status]] is not "instantiating" or "evaluating".
     // 3. Let stack be a new empty List.

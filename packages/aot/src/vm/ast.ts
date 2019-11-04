@@ -4381,6 +4381,7 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
   public Instantiate(): void {
+    const start = PLATFORM.now();
     this.logger.debug(`[Instantiate] starting`);
 
     // TODO: this is temporary. Should be done by RunJobs
@@ -4409,7 +4410,8 @@ export class $SourceFile implements I$Node, IModule {
     // 7. Assert: stack is empty.
     // 8. Return undefined.
 
-    this.logger.debug(`[Instantiate] done`);
+    const end = PLATFORM.now();
+    this.logger.info(`[Instantiate] done in ${Math.round(end - start)}ms`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
@@ -4806,6 +4808,58 @@ export class $SourceFile implements I$Node, IModule {
 
     // 9. Return starResolution.
     return starResolution;
+  }
+}
+
+export class $DocumentFragment implements I$Node, IModule {
+  public readonly '<IModule>': unknown;
+
+  public readonly id: number;
+
+  public readonly documentFragment: $DocumentFragment = this;
+  public readonly parent: $DocumentFragment = this;
+  public readonly ctx: Context = Context.None;
+  public readonly depth: number = 0;
+
+  public readonly logger: ILogger;
+
+  public '[[Environment]]': $ModuleEnvRec | $Undefined;
+  public '[[Namespace]]': $Object | $Undefined;
+  public '[[HostDefined]]': any;
+
+  public get isNull(): false { return false; }
+
+  public constructor(
+    public readonly $file: IFile,
+    public readonly node: DocumentFragment,
+    public readonly realm: Realm,
+    public readonly pkg: NPMPackage,
+  ) {
+    this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
+    this['[[Environment]]'] = intrinsics.undefined;
+    this['[[Namespace]]'] = intrinsics.undefined;
+
+    this.logger = pkg.container.get(ILogger).root.scopeTo(`DocumentFragment<(...)${$file.rootlessPath}>`);
+  }
+
+  public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
+    this.logger.debug(`[ResolveExport] returning content as '${exportName.value}'`);
+
+    return new ResolvedBindingRecord(this, exportName);
+  }
+
+  public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
+    return [];
+  }
+
+  public Instantiate(): void {
+
+  }
+
+  /** @internal */
+  public _InnerModuleInstantiation(stack: IModule[], index: number): number {
+    return index;
   }
 }
 

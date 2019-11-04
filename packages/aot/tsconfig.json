@@ -6,7 +6,8 @@
     "outDir": "dist/esnext",
     "types": [
       "node"
-    ]
+    ],
+    "lib": ["esnext", "dom"]
   },
   "include": ["src"]
 }

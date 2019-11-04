@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression } from './ast';
+import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression, $DocumentFragment } from './ast';
 import { IFileSystem, FileKind, IFile, IOptions } from '../system/interfaces';
 import { NodeFileSystem } from '../system/file-system';
 import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
@@ -12,6 +12,7 @@ import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec } from './environment';
 import { $Undefined, $Object, $Function, $Null, $String } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $DefinePropertyOrThrow } from './operations';
+import { JSDOM } from 'jsdom';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -124,6 +125,7 @@ export class ExecutionContextStack extends Array<ExecutionContext> {
 
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm {
+  public readonly jsdom: JSDOM;
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
 
@@ -141,7 +143,9 @@ export class Realm {
   private constructor(
     private readonly container: IContainer,
     private readonly logger: ILogger,
-  ) {}
+  ) {
+    this.jsdom = new JSDOM('');
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-createrealm
   public static Create(container?: IContainer): Realm {
@@ -334,14 +338,20 @@ export class Realm {
 
       let file = files.find(x => x.kind === FileKind.Script);
       if (file === void 0) {
-        file = files[0];
-        let deferred = this.moduleCache.get(file.path);
-        if (deferred === void 0) {
-          deferred = new DeferredModule(file, this);
-          this.moduleCache.set(file.path, deferred);
+        // TODO: make this less messy/patchy
+        file = files.find(x => x.kind === FileKind.Markup);
+        if (file === void 0) {
+          file = files[0];
+          let deferred = this.moduleCache.get(file.path);
+          if (deferred === void 0) {
+            deferred = new DeferredModule(file, this);
+            this.moduleCache.set(file.path, deferred);
+          }
+
+          return deferred;
         }
 
-        return deferred;
+        return this.getHTMLModule(file, pkg);
       }
 
       return this.getESModule(file, pkg);
@@ -426,6 +436,20 @@ export class Realm {
     const loader = container.get(NPMPackageLoader);
 
     return loader.loadEntryPackage(opts.rootDir);
+  }
+
+  private getHTMLModule(file: IFile, pkg: NPMPackage): $DocumentFragment {
+    let hm = this.moduleCache.get(file.path);
+    if (hm === void 0) {
+      const sourceText = file.getContentSync();
+      const template = this.jsdom.window.document.createElement('template');
+      template.innerHTML = sourceText;
+      hm = new $DocumentFragment(file, template.content, this, pkg);
+
+      this.moduleCache.set(file.path, hm);
+    }
+
+    return hm as $DocumentFragment;
   }
 
   private getESModule(file: IFile, pkg: NPMPackage): $SourceFile {

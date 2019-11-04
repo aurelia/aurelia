@@ -3670,6 +3670,8 @@ export class $StringLiteral implements I$Node {
   public readonly $kind = SyntaxKind.StringLiteral;
   public readonly id: number;
 
+  public readonly Value: $String;
+
   // http://www.ecma-international.org/ecma-262/#sec-string-literals-static-semantics-stringvalue
   public readonly StringValue: $String;
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
@@ -3698,6 +3700,15 @@ export class $StringLiteral implements I$Node {
 
     const StringValue = this.StringValue = new $String(realm, node.text, this);
     this.PropName = StringValue;
+    this.Value = StringValue;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  public Evaluate(): $String {
+    // Literal : StringLiteral
+
+    // 1. Return the StringValue of StringLiteral as defined in 11.8.4.1.
+    return this.Value;
   }
 }
 

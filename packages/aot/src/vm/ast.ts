@@ -145,9 +145,9 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
-import { $ModuleEnvRec } from './environment';
+import { $ModuleEnvRec, $EnvRec } from './environment';
 const {
   emptyArray,
   emptyObject,
@@ -1201,7 +1201,7 @@ export class $FunctionDeclaration implements I$Node {
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier | undefined;
   public readonly $parameters: readonly $ParameterDeclaration[];
-  public readonly $body: $Block | undefined;
+  public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-boundnames
@@ -1355,6 +1355,55 @@ export class $FunctionDeclaration implements I$Node {
       this.ExportedNames = emptyArray;
       this.ExportEntries = emptyArray;
     }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
+  public InstantiateFunctionObject(
+    Scope: $EnvRec,
+  ): $ECMAScriptFunction {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // FunctionDeclaration : function ( FormalParameters ) { FunctionBody }
+    if (this.$name === void 0) {
+      // 1. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, true).
+      const F = $ECMAScriptFunction.FunctionCreate('normal', this, Scope, intrinsics.true);
+
+      // 2. Perform MakeConstructor(F).
+      F.MakeConstructor();
+
+      // 3. Perform SetFunctionName(F, "default").
+      F.SetFunctionName(intrinsics.default);
+
+      // 4. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
+      F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need sourceFile for this)
+
+      // 5. Return F.
+      return F;
+    }
+
+    // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+
+    // 1. If the function code for FunctionDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = intrinsics.true; // TODO: can we actually break stuff by always having this be true? Anyway, still need to double check the scope for this
+
+    // 2. Let name be StringValue of BindingIdentifier.
+    const name = this.$name.StringValue;
+
+    // 3. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
+    const F = $ECMAScriptFunction.FunctionCreate('normal', this, Scope, strict);
+
+    // 4. Perform MakeConstructor(F).
+      F.MakeConstructor();
+
+    // 5. Perform SetFunctionName(F, name).
+      F.SetFunctionName(name);
+
+    // 6. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
+      F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need sourceFile for this)
+
+    // 7. Return F.
+    return F;
   }
 }
 
@@ -3821,6 +3870,8 @@ export class $SourceFile implements I$Node, IModule {
   public readonly IndirectExportEntries: readonly ExportEntryRecord[];
   public readonly StarExportEntries: readonly ExportEntryRecord[];
 
+  public get isNull(): false { return false; }
+
   public constructor(
     public readonly $file: IFile,
     public readonly node: SourceFile,
@@ -4214,23 +4265,58 @@ export class $SourceFile implements I$Node, IModule {
 
     // 10. Let code be module.[[ECMAScriptCode]].
     // 11. Let varDeclarations be the VarScopedDeclarations of code.
+    const varDeclarations = this.VarScopedDeclarations;
+
     // 12. Let declaredVarNames be a new empty List.
+    const declaredVarNames = [] as $String[];
+
     // 13. For each element d in varDeclarations, do
-    // 13. a. For each element dn of the BoundNames of d, do
-    // 13. a. i. If dn is not an element of declaredVarNames, then
-    // 13. a. i. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-    // 13. a. i. 2. Call envRec.InitializeBinding(dn, undefined).
-    // 13. a. i. 3. Append dn to declaredVarNames.
+    for (const d of varDeclarations) {
+      // 13. a. For each element dn of the BoundNames of d, do
+      for (const dn of d.BoundNames) {
+        // 13. a. i. If dn is not an element of declaredVarNames, then
+        if (!declaredVarNames.some(x => x.is(dn))) {
+          // 13. a. i. 1. Perform ! envRec.CreateMutableBinding(dn, false).
+          envRec.CreateMutableBinding(dn, intrinsics.false);
+
+          // 13. a. i. 2. Call envRec.InitializeBinding(dn, undefined).
+          envRec.InitializeBinding(dn, intrinsics.undefined);
+
+          // 13. a. i. 3. Append dn to declaredVarNames.
+          declaredVarNames.push(dn);
+        }
+      }
+    }
+
     // 14. Let lexDeclarations be the LexicallyScopedDeclarations of code.
+    const lexDeclarations = this.LexicallyScopedDeclarations;
+
     // 15. For each element d in lexDeclarations, do
-    // 15. a. For each element dn of the BoundNames of d, do
-    // 15. a. i. If IsConstantDeclaration of d is true, then
-    // 15. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-    // 15. a. ii. Else,
-    // 15. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-    // 15. a. iii. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-    // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
-    // 15. a. iii. 2. Call envRec.InitializeBinding(dn, fo).
+    for (const d of lexDeclarations) {
+      // 15. a. For each element dn of the BoundNames of d, do
+      for (const dn of d.BoundNames) {
+        // 15. a. i. If IsConstantDeclaration of d is true, then
+        if (d.IsConstantDeclaration) {
+          // 15. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
+          envRec.CreateImmutableBinding(dn, intrinsics.true);
+        }
+        // 15. a. ii. Else,
+        else {
+          // 15. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
+          envRec.CreateMutableBinding(dn, intrinsics.false);
+
+          // 15. a. iii. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+          if (d.$kind === SyntaxKind.FunctionDeclaration) {
+            // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
+            const fo = d.InstantiateFunctionObject(envRec);
+
+            // 15. a. iii. 2. Call envRec.InitializeBinding(dn, fo).
+            envRec.InitializeBinding(dn, fo);
+          }
+        }
+      }
+    }
+
     // 16. Return NormalCompletion(empty).
 
     this.logger.info(`Finished initializing environment`);

@@ -651,10 +651,7 @@ export class Viewport {
       }
       const recognizer: RouteRecognizer = new RouteRecognizer();
       recognizer.add(recognizableRoutes);
-      let result: RecognizeResult[] = recognizer.recognize(path);
-      // if (result === void 0) {
-      //   result = recognizer.recognize(`${path}*remainingPath`);
-      // }
+      const result: RecognizeResult[] = recognizer.recognize(path);
       if (result !== void 0 && result.length > 0) {
         found.match = (result[0].handler as RouteHandler & { route: IRoute }).route;
         found.matching = path;
@@ -665,18 +662,6 @@ export class Viewport {
           found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
         }
       }
-      // for (const route of this.routes) {
-      //   const find = `^${route.path.replace('+', '\\+').replace(/:id/g, '(\\d+)')}`;
-      //   const regex = new RegExp(find);
-      //   const found = regex.exec(path);
-      //   if (found !== null && (match === null || route.path.length > match.path.length)) {
-      //     match = route;
-      //     matching = found[0];
-      //     if (found.length > 1) {
-      //       params.id = found[1];
-      //     }
-      //   }
-      // }
       if (found.foundConfiguration) {
         // clone it so config doesn't get modified
         found.instructions = this.router.instructionResolver.cloneViewportInstructions(found.match!.instructions as ViewportInstruction[]);
@@ -685,9 +670,6 @@ export class Viewport {
         }
       }
       return found;
-      // const routeTable: RouteTable = new RouteTable();
-      // routeTable.addRoutes(this.router, routes);
-      // return routeTable.findMatchingRoute(this.router, path);
     }
     return null;
   }

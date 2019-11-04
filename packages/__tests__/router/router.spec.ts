@@ -1170,85 +1170,115 @@ describe('Router', function () {
       return { ctx, container, scheduler, host, au, router, $teardown };
     }
 
-    it(`to load routes`, async function () {
-      const Parent = CustomElement.define({ name: 'parent', template: '!parent!<au-viewport name="parent"></au-viewport>' }, class {
-        public static routes = [
-          { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent' }] },
-        ];
-      });
-      const Parent2 = CustomElement.define({ name: 'parent2', template: '!parent2!<au-viewport name="parent2"></au-viewport>' }, class {
-        public static routes = [
-          { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
-        ];
-      });
-      const Child = CustomElement.define({ name: 'child', template: '!child!<au-viewport name="child"></au-viewport>' }, class {
-        public static routes = [
-          { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
-        ];
-      });
-      const Child2 = CustomElement.define({ name: 'child2', template: '!child2!<au-viewport name="child2"></au-viewport>' }, class {
-        public static routes = [
-          { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
-        ];
-      });
-
-      const Grandchild = CustomElement.define({ name: 'grandchild', template: '!grandchild!' });
-      const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
-
-      const { scheduler, container, host, router, $teardown } = await $setup(void 0,
-        [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
-        [{ path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }]
-      );
-
-      const tests = [
-        { path: '/parent-config', result: /.*?!parent!.*?/ },
-        { path: '/parent2@default', result: /.*?!parent2!.*?/ },
-
-        { path: '/parent-config/child-config', result: /.*?!parent!.*?!child!.*?/ },
-        { path: '/parent2@default/child2@parent2', result: /.*?!parent2!.*?!child2!.*?/ },
-
-        { path: '/parent-config/child2@parent', result: /.*?!parent!.*?!child2!.*?/ },
-        { path: '/parent2@default/child-config', result: /.*?!parent2!.*?!child!.*?/ },
-
-        { path: '/parent-config/child-config/grandchild-config', result: /.*?!parent!.*?!child!.*?!grandchild!.*?/ },
-        { path: '/parent2@default/child2@parent2/grandchild2@child2', result: /.*?!parent2!.*?!child2!.*?!grandchild2!.*?/ },
-
-        { path: '/parent-config/child-config/grandchild2@child', result: /.*?!parent!.*?!child!.*?!grandchild2!.*?/ },
-        { path: '/parent2@default/child2@parent2/grandchild-config', result: /.*?!parent2!.*?!child2!.*?!grandchild!.*?/ },
-
-        { path: '/parent-config/child2@parent/grandchild-config', result: /.*?!parent!.*?!child2!.*?!grandchild!.*?/ },
-        { path: '/parent2@default/child-config/grandchild2@child', result: /.*?!parent2!.*?!child!.*?!grandchild2!.*?/ },
-
-        { path: '/parent-config/child2@parent/grandchild2@child2', result: /.*?!parent!.*?!child2!.*?!grandchild2!.*?/ },
-        { path: '/parent2@default/child-config/grandchild-config', result: /.*?!parent2!.*?!child!.*?!grandchild!.*?/ },
-
-        { path: '/parent-config', result: /.*?!parent!.*?/ },
-        { path: '/parent2', result: /.*?!parent2!.*?/ },
-
-        { path: '/parent-config/child-config', result: /.*?!parent!.*?!child!.*?/ },
-        { path: '/parent2/child2', result: /.*?!parent2!.*?!child2!.*?/ },
-
-        { path: '/parent-config/child2', result: /.*?!parent!.*?!child2!.*?/ },
-        { path: '/parent2/child-config', result: /.*?!parent2!.*?!child!.*?/ },
-
-        { path: '/parent-config/child-config/grandchild-config', result: /.*?!parent!.*?!child!.*?!grandchild!.*?/ },
-        { path: '/parent2/child2/grandchild2', result: /.*?!parent2!.*?!child2!.*?!grandchild2!.*?/ },
-
-        { path: '/parent-config/child-config/grandchild2', result: /.*?!parent!.*?!child!.*?!grandchild2!.*?/ },
-        { path: '/parent2/child2/grandchild-config', result: /.*?!parent2!.*?!child2!.*?!grandchild!.*?/ },
-
-        { path: '/parent-config/child2/grandchild-config', result: /.*?!parent!.*?!child2!.*?!grandchild!.*?/ },
-        { path: '/parent2/child-config/grandchild2', result: /.*?!parent2!.*?!child!.*?!grandchild2!.*?/ },
-
-        { path: '/parent-config/child2/grandchild2', result: /.*?!parent!.*?!child2!.*?!grandchild2!.*?/ },
-        { path: '/parent2/child-config/grandchild-config', result: /.*?!parent2!.*?!child!.*?!grandchild!.*?/ },
+    const Parent = CustomElement.define({ name: 'parent', template: '!parent!<au-viewport name="parent"></au-viewport>' }, class {
+      public static routes = [
+        { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent' }] },
       ];
+    });
+    const Parent2 = CustomElement.define({ name: 'parent2', template: '!parent2!<au-viewport name="parent2"></au-viewport>' }, class {
+      public static routes = [
+        { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
+      ];
+    });
+    const Child = CustomElement.define({ name: 'child', template: '!child!<au-viewport name="child"></au-viewport>' }, class {
+      public static routes = [
+        { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
+      ];
+    });
+    const Child2 = CustomElement.define({ name: 'child2', template: '!child2!<au-viewport name="child2"></au-viewport>' }, class {
+      public static routes = [
+        { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
+      ];
+    });
 
-      for (const test of tests) {
+    const Grandchild = CustomElement.define({ name: 'grandchild', template: '!grandchild!' });
+    const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
+
+    // const { scheduler, container, host, router, $teardown } = await $setup(void 0,
+    //   [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
+    //   [{ path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }]
+    // );
+    let scheduler, container, host, router, $teardown;
+    before(async function () {
+      ({ scheduler, container, host, router, $teardown } = await $setup(void 0,
+        [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
+        [
+          { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
+          { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
+          { path: 'parent-config/child2', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+          { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+        ]
+      ));
+    });
+
+    const tests = [
+      { path: '/parent-config', result: '!parent!' },
+      { path: '/parent2@default', result: '!parent2!' },
+
+      { path: '/parent-config/child-config', result: '!parent!!child!' },
+      { path: '/parent2@default/child2@parent2', result: '!parent2!!child2!' },
+
+      { path: '/parent-config/child2@parent', result: '!parent!!child2!' },
+      { path: '/parent2@default/child-config', result: '!parent2!!child!' },
+
+      { path: '/parent-config/child-config/grandchild-config', result: '!parent!!child!!grandchild!' },
+      { path: '/parent2@default/child2@parent2/grandchild2@child2', result: '!parent2!!child2!!grandchild2!' },
+
+      { path: '/parent-config/child-config/grandchild2@child', result: '!parent!!child!!grandchild2!' },
+      { path: '/parent2@default/child2@parent2/grandchild-config', result: '!parent2!!child2!!grandchild!' },
+
+      { path: '/parent-config/child2@parent/grandchild-config', result: '!parent!!child2!!grandchild!' },
+      { path: '/parent2@default/child-config/grandchild2@child', result: '!parent2!!child!!grandchild2!' },
+
+      { path: '/parent-config/child2@parent/grandchild2@child2', result: '!parent!!child2!!grandchild2!' },
+      { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!' },
+
+      { path: '/parent-config', result: '!parent!' },
+      { path: '/parent2', result: '!parent2!' },
+
+      { path: '/parent-config/child-config', result: '!parent!!child!' },
+      { path: '/parent2/child2', result: '!parent2!!child2!' },
+
+      { path: '/parent-config/child2', result: '!parent!!child2!' },
+      { path: '/parent2/child-config', result: '!parent2!!child!' },
+
+      { path: '/parent-config/child-config/grandchild-config', result: '!parent!!child!!grandchild!' },
+      { path: '/parent2/child2/grandchild2', result: '!parent2!!child2!!grandchild2!' },
+
+      { path: '/parent-config/child-config/grandchild2', result: '!parent!!child!!grandchild2!' },
+      { path: '/parent2/child2/grandchild-config', result: '!parent2!!child2!!grandchild!' },
+
+      { path: '/parent-config/child2/grandchild-config', result: '!parent!!child2!!grandchild!' },
+      { path: '/parent2/child-config/grandchild2', result: '!parent2!!child!!grandchild2!' },
+
+      { path: '/parent-config/child2/grandchild2', result: '!parent!!child2!!grandchild2!' },
+      { path: '/parent2/child-config/grandchild-config', result: '!parent2!!child!!grandchild!' },
+
+
+      // { path: '/parent-config/abc/grandchild-config', result: '!parent!!child!!grandchild!' },
+      // { path: '/parent2/child2(abc)/grandchild2', result: '!parent2!!child2!!grandchild2!' },
+
+      // { path: '/parent-config/abc/grandchild2', result: '!parent!!child!!grandchild2!' },
+      // { path: '/parent2/child2(abc)/grandchild-config', result: '!parent2!!child2!!grandchild!' },
+
+      // { path: '/parent-config/child2(abc)/grandchild-config', result: '!parent!!child2!!grandchild!' },
+      // { path: '/parent2/abc/grandchild2', result: '!parent2!!child!!grandchild2!' },
+
+      // { path: '/parent-config/child2(abc)/grandchild2', result: '!parent!!child2!!grandchild2!' },
+      // { path: '/parent2/abc/grandchild-config', result: '!parent2!!child!!grandchild!' },
+    ];
+
+    for (const test of tests) {
+      it(`to load route ${test.path}`, async function () {
         await $goto(test.path, router, scheduler);
-        assert.match(host.textContent.replace(/\n/g, ''), test.result, `host.textContent`);
+        // assert.match(host.textContent.replace(/\n/g, ''), test.result, `host.textContent`);
+        // assert.exactMatch(host.textContent, test.result.toString().replace(/\.\*\?/g, '').replace(/\//g, ''), `host.textContent`);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+      });
 
-      }
+    }
+
+    after(async function () {
       await $teardown();
     });
   });

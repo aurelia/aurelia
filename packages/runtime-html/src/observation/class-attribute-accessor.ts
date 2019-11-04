@@ -99,9 +99,9 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
 
   private addClassesAndUpdateIndex(classes: string[]) {
     const node = this.obj;
-    for (let i = 0, length = classes.length; i < length; i++) {
+    for (let i = 0, ii = classes.length; i < ii; i++) {
       const className = classes[i];
-      if (!className.length) {
+      if (className.length === 0) {
         continue;
       }
       this.nameIndex[className] = this.version;
@@ -140,7 +140,7 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
     for (const property in object) {
       // Let non typical values also evaluate true so disable bool check
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
-      if (!!object[property]) {
+      if (Boolean(object[property])) {
         // We must do this in case object property has a space in the name which results in two classes
         if (property.includes(' ')) {
           classes.push(...splitClassString(property));

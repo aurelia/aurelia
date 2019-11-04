@@ -827,26 +827,26 @@ describe('app', function () {
         const cards1 = toArray(container1.querySelectorAll('div'));
         const cards2 = toArray(container2.querySelectorAll('div'));
 
-        assert.equal(getComputedStyle(container1).display, 'flex', 'incorrect container1 display');
-        assert.equal(getComputedStyle(container2).display, 'flex', 'incorrect container2 display');
+        assert.html.computedStyle(container1, { display: 'flex' }, 'incorrect container1 display');
+        assert.html.computedStyle(container2, { display: 'flex' }, 'incorrect container2 display');
         assert.equal(cards1.every((card) => card.querySelector('footer').classList.contains('foo-bar')), true);
-        assert.equal(getComputedStyle(cards1[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container1');
-        assert.equal(getComputedStyle(cards1[0].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color1 - container1');
-        assert.equal(getComputedStyle(cards2[0]).backgroundColor, selectedHeaderColor, 'incorrect selected background1 - container2');
-        assert.equal(getComputedStyle(cards2[0].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color1 - container2');
+        assert.html.computedStyle(cards1[0], { backgroundColor: selectedHeaderColor }, 'incorrect selected background1 - container1');
+        assert.html.computedStyle(cards1[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container1');
+        assert.html.computedStyle(cards2[0], { backgroundColor: selectedHeaderColor }, 'incorrect selected background1 - container2');
+        assert.html.computedStyle(cards2[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container2');
 
         cards1[1].click();
         await ctx.scheduler.yieldAll();
 
-        assert.equal(getComputedStyle(cards1[0]).backgroundColor, 'rgba(0, 0, 0, 0)', 'incorrect background1 - container1');
-        assert.equal(getComputedStyle(cards1[0].querySelector('span')).color, 'rgb(0, 0, 0)', 'incorrect color1 - container1');
-        assert.equal(getComputedStyle(cards1[1]).backgroundColor, selectedHeaderColor, 'incorrect selected background2 - container1');
-        assert.equal(getComputedStyle(cards1[1].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color2 - container1');
+        assert.html.computedStyle(cards1[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container1');
+        assert.html.computedStyle(cards1[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container1');
+        assert.html.computedStyle(cards1[1], { backgroundColor: selectedHeaderColor }, 'incorrect selected background2 - container1');
+        assert.html.computedStyle(cards1[1].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color2 - container1');
 
-        assert.equal(getComputedStyle(cards2[0]).backgroundColor, 'rgba(0, 0, 0, 0)', 'incorrect background1 - container2');
-        assert.equal(getComputedStyle(cards2[0].querySelector('span')).color, 'rgb(0, 0, 0)', 'incorrect color1 - container2');
-        assert.equal(getComputedStyle(cards2[1]).backgroundColor, selectedHeaderColor, 'incorrect selected background2 - container2');
-        assert.equal(getComputedStyle(cards2[1].querySelector('span')).color, selectedDetailsColor, 'incorrect selected color2 - container2');
+        assert.html.computedStyle(cards2[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container2');
+        assert.html.computedStyle(cards2[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container2');
+        assert.html.computedStyle(cards2[1], { backgroundColor: selectedHeaderColor }, 'incorrect selected background2 - container2');
+        assert.html.computedStyle(cards2[1].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color2 - container2');
       },
       { useCSSModule }));
 
@@ -855,9 +855,11 @@ describe('app', function () {
     const cardsVm = getViewModel<Cards>(cardsEl);
 
     for (const id of ['simple-style', 'inline-bound-style', 'bound-style-obj', 'bound-style-array', 'bound-style-str']) {
-      const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
-      assert.equal(style.backgroundColor, 'rgb(255, 0, 0)', `bg color ${id}`);
-      assert.equal(style.fontWeight, '700', `font weight ${id}`);
+      assert.html.computedStyle(
+        cardsEl.querySelector(`p#${id}`),
+        { backgroundColor: 'rgb(255, 0, 0)', fontWeight: '700' },
+        `style ${id}`
+      );
     }
 
     cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
@@ -866,21 +868,29 @@ describe('app', function () {
     await ctx.scheduler.yieldAll();
 
     for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
-      const style = getComputedStyle(cardsEl.querySelector(`p#${id}`));
-      assert.equal(style.backgroundColor, 'rgb(0, 0, 255)', `bg color ${id} - post change`);
-      assert.equal(style.borderTopWidth, '1px', `border top width ${id} - post change`);
-      assert.equal(style.borderBottomWidth, '1px', `border bottom width ${id} - post change`);
-      assert.equal(style.borderRightWidth, '1px', `border right width ${id} - post change`);
-      assert.equal(style.borderLeftWidth, '1px', `border left width ${id} - post change`);
-      assert.equal(style.borderTopStyle, 'solid', `border top style ${id} - post change`);
-      assert.equal(style.borderBottomStyle, 'solid', `border bottom style ${id} - post change`);
-      assert.equal(style.borderRightStyle, 'solid', `border right style ${id} - post change`);
-      assert.equal(style.borderLeftStyle, 'solid', `border left style ${id} - post change`);
-      assert.equal(style.borderTopColor, 'rgb(0, 255, 0)', `border top color ${id} - post change`);
-      assert.equal(style.borderBottomColor, 'rgb(0, 255, 0)', `border bottom color ${id} - post change`);
-      assert.equal(style.borderRightColor, 'rgb(0, 255, 0)', `border right color ${id} - post change`);
-      assert.equal(style.borderLeftColor, 'rgb(0, 255, 0)', `border left color ${id} - post change`);
-      assert.notEqual(style.fontWeight, '700', `font weight ${id} - post change`);
+      const para = cardsEl.querySelector(`p#${id}`);
+      assert.html.computedStyle(
+        para,
+        {
+          backgroundColor: 'rgb(0, 0, 255)',
+          borderTopWidth: '1px',
+          borderBottomWidth: '1px',
+          borderRightWidth: '1px',
+          borderLeftWidth: '1px',
+          borderTopStyle: 'solid',
+          borderBottomStyle: 'solid',
+          borderRightStyle: 'solid',
+          borderLeftStyle: 'solid',
+          borderTopColor: 'rgb(0, 255, 0)',
+          borderBottomColor: 'rgb(0, 255, 0)',
+          borderRightColor: 'rgb(0, 255, 0)',
+          borderLeftColor: 'rgb(0, 255, 0)',
+        },
+        `style ${id} - post change`);
+      assert.html.notComputedStyle(
+        para,
+        { fontWeight: '700' },
+        `font-weight ${id} - post change`);
     }
   });
 

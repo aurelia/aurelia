@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, PLATFORM } from '@aurelia/kernel';
 import { StyleConfiguration } from '@aurelia/runtime-html';
 import { Cards } from './cards/cards';
 import { LetDemo, SqrtValueConverter } from './let-demo/let-demo';
@@ -49,4 +49,4 @@ function createMolecularConfiguration(customizeConfiguration: MolecularConfigCus
   };
 }
 
-export const molecules = createMolecularConfiguration(() => {/* noop */ });
+export const molecules = createMolecularConfiguration(PLATFORM.noop);

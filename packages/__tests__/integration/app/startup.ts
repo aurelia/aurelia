@@ -1,11 +1,11 @@
 /* eslint-disable no-shadow */
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, FrequentMutations } from '@aurelia/runtime';
-import { HTMLTestContext, TestContext, CallCollection } from '@aurelia/testing';
+import { CallCollection, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { App as component } from './app';
 import { atoms } from './atoms';
-import { molecules } from './molecules';
 import { callCollection } from './debug';
+import { MolecularConfiguration, molecules } from './molecules';
 
 export class TestExecutionContext {
   public constructor(
@@ -17,16 +17,23 @@ export class TestExecutionContext {
   ) { }
 }
 
-export async function startup() {
+export type StartupConfiguration = Partial<MolecularConfiguration & {}>;
+
+export async function startup(config: StartupConfiguration = {}) {
   const ctx = TestContext.createHTMLTestContext();
 
   const host = ctx.dom.createElement('div');
   ctx.doc.body.appendChild(host);
   const au = new Aurelia(ctx.container);
   au
-    .register(FrequentMutations as unknown as IRegistration)
-    .register(atoms)
-    .register(molecules);
+    .register(
+      FrequentMutations as unknown as IRegistration,
+      atoms,
+      molecules.customize((molecularConfig: MolecularConfiguration) => {
+        molecularConfig.useCSSModule = config.useCSSModule;
+      }),
+    );
+
   au.app({ host, component });
 
   await au.start().wait();

@@ -185,7 +185,7 @@ const startObservation = (element: IHtmlElement, subscription: ElementMutationSu
 
 const stopObservation = (element: IHtmlElement, subscription: ElementMutationSubscription): boolean => {
   const $eMObservers = element.$eMObservers;
-  if ($eMObservers.delete(subscription)) {
+  if ($eMObservers && $eMObservers.delete(subscription)) {
     if ($eMObservers.size === 0) {
       element.$mObserver.disconnect();
       element.$mObserver = undefined!;

@@ -5384,12 +5384,12 @@ export class $ExportSpecifier implements I$Node {
     }
     const $name = this.$name = new $Identifier(node.name, this, ctx);
 
-    const sourceName = $name.StringValue;
     const moduleSpecifier = parent.moduleSpecifier;
 
-    this.ReferencedBindings = [sourceName];
-
     if ($propertyName.isUndefined) {
+      const sourceName = $name.StringValue;
+
+      this.ReferencedBindings = [sourceName];
       this.ExportedNames = [sourceName];
 
       if (moduleSpecifier.isNull) {
@@ -5414,7 +5414,9 @@ export class $ExportSpecifier implements I$Node {
         ];
       }
     } else {
-      const exportName = $propertyName.StringValue;
+      const exportName = $name.StringValue;
+      const sourceName = $propertyName.StringValue;
+      this.ReferencedBindings = [sourceName];
 
       this.ExportedNames = [exportName];
 

@@ -39,6 +39,7 @@ export interface IViewportInstruction {
   component: ComponentAppellation;
   viewport?: ViewportHandle;
   parameters?: ComponentParameters;
+  children?: NavigationInstruction[];
 }
 
 export interface IRoute {

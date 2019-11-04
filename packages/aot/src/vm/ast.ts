@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
 const {
@@ -3233,6 +3233,23 @@ export class $Identifier implements I$Node {
     } else {
       this.AssignmentTargetType = 'simple';
     }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-evaluation
+  public Evaluate(): $Reference {
+    // IdentifierReference : Identifier
+
+    // 1. Return ? ResolveBinding(StringValue of Identifier).
+
+    // IdentifierReference : yield
+
+    // 1. Return ? ResolveBinding("yield").
+
+    // IdentifierReference : await
+
+    // 1. Return ? ResolveBinding("await").
+
+    return this.realm.ResolveBinding(this.StringValue);
   }
 }
 

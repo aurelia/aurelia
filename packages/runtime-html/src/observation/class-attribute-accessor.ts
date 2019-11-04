@@ -51,7 +51,7 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
       let { version } = this;
       this.oldValue = currentValue;
 
-      const classesToAdd = this.getClassesToAdd(currentValue as any);
+      const classesToAdd = getClassesToAdd(currentValue as any);
 
       // Get strings split on a space not including empties
       if (classesToAdd.length > 0) {
@@ -97,7 +97,22 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
     }
   }
 
-  private splitClassString(classString: string): string[] {
+  private addClassesAndUpdateIndex(classes: string[]) {
+    const node = this.obj;
+    for (let i = 0, ii = classes.length; i < ii; i++) {
+      const className = classes[i];
+      if (className.length === 0) {
+        continue;
+      }
+      this.nameIndex[className] = this.version;
+      node.classList.add(className);
+    }
+  }
+}
+
+export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
+
+  function splitClassString(classString: string): string[] {
     const matches = classString.match(/\S+/g);
     if (matches === null) {
       return PLATFORM.emptyArray;
@@ -105,50 +120,36 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
     return matches;
   }
 
-  private getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
-    if (typeof object === 'string') {
-      return this.splitClassString(object);
-    }
+  if (typeof object === 'string') {
+    return splitClassString(object);
+  }
 
-    if (object instanceof Array) {
-      const len = object.length;
-      if (len > 0) {
-        const classes: string[] = [];
-        for (let i = 0; i < len; ++i) {
-          classes.push(...this.getClassesToAdd(object[i]));
-        }
-        return classes;
-      } else {
-        return PLATFORM.emptyArray;
-      }
-    } else if (object instanceof Object) {
+  if (object instanceof Array) {
+    const len = object.length;
+    if (len > 0) {
       const classes: string[] = [];
-      for (const property in object) {
-        // Let non typical values also evaluate true so disable bool check
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
-        if (!!object[property]) {
-          // We must do this in case object property has a space in the name which results in two classes
-          if (property.includes(' ')) {
-            classes.push(...this.splitClassString(property));
-          } else {
-            classes.push(property);
-          }
-        }
+      for (let i = 0; i < len; ++i) {
+        classes.push(...getClassesToAdd(object[i]));
       }
       return classes;
+    } else {
+      return PLATFORM.emptyArray;
     }
-    return PLATFORM.emptyArray;
-  }
-
-  private addClassesAndUpdateIndex(classes: string[]) {
-    const node = this.obj;
-    for (let i = 0, length = classes.length; i < length; i++) {
-      const className = classes[i];
-      if (!className.length) {
-        continue;
+  } else if (object instanceof Object) {
+    const classes: string[] = [];
+    for (const property in object) {
+      // Let non typical values also evaluate true so disable bool check
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
+      if (Boolean(object[property])) {
+        // We must do this in case object property has a space in the name which results in two classes
+        if (property.includes(' ')) {
+          classes.push(...splitClassString(property));
+        } else {
+          classes.push(property);
+        }
       }
-      this.nameIndex[className] = this.version;
-      node.classList.add(className);
     }
+    return classes;
   }
+  return PLATFORM.emptyArray;
 }

@@ -704,6 +704,44 @@ function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, 
   }
 }
 
+type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
+function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
+  const styles = DOM.window.getComputedStyle(element as Element);
+  for (const [property, expected] of Object.entries(expectedStyles)) {
+    const actual: string = styles[property as any];
+    if (actual !== expected) {
+      return { isMatch: false, property, actual, expected };
+    }
+  }
+  return { isMatch: true };
+}
+function computedStyle(element: Node, expectedStyles: Record<string, string>, message?: string) {
+  const result = matchStyle(element, expectedStyles);
+  if (!result.isMatch) {
+    const { property, actual, expected } = result;
+    innerFail({
+      actual: `${property}:${actual}`,
+      expected: `${property}:${expected}`,
+      message,
+      operator: '==' as any,
+      stackStartFn: computedStyle
+    });
+  }
+}
+function notComputedStyle(element: Node, expectedStyles: Record<string, string>, message?: string) {
+  const result = matchStyle(element, expectedStyles);
+  if (result.isMatch) {
+    const display = Object.entries(expectedStyles).map(([key, value]) => `${key}:${value}`).join(',');
+    innerFail({
+      actual: display,
+      expected: display,
+      message,
+      operator: '!=' as any,
+      stackStartFn: notComputedStyle
+    });
+  }
+}
+
 const isSchedulerEmpty = (function () {
   function priorityToString(priority: TaskQueuePriority) {
     switch (priority) {
@@ -854,7 +892,9 @@ const assert = Object_freeze({
   },
   html: {
     textContent: isTextContentEqual,
-    value: isValueEqual
+    value: isValueEqual,
+    computedStyle: computedStyle,
+    notComputedStyle: notComputedStyle
   }
 });
 

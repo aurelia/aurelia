@@ -30,18 +30,12 @@ describe('doc-example / books route', function() {
 
     cy.get(Shared.listsViewport)
       .should('exist');
-    cy.get(Shared.listsViewportHeader)
-      .should('contain', 'Viewport: lists  : books');
 
     cy.get(Shared.contentViewport)
       .should('exist');
-    cy.get(Shared.contentViewportHeader)
-      .should('contain', 'Viewport: content  : about');
 
     cy.get(Shared.chatViewport)
       .should('exist');
-    cy.get(Shared.chatViewportHeader)
-      .should('contain', 'Viewport: chat  : null');
   });
 
   describe('books component', function() {
@@ -140,13 +134,9 @@ describe('doc-example / books route', function() {
     it('displays the correct viewports', function() {
       cy.get(Shared.contentViewport)
         .should('exist');
-      cy.get(Shared.contentViewportHeader)
-        .should('contain', 'Viewport: content  : book');
 
       cy.get(BookComponent.bookTabsViewport)
         .should('exist');
-      cy.get(BookComponent.bookTabsViewportHeader)
-        .should('contain', 'Viewport: book-tabs  : book-details');
     });
 
     it('displays the correct book details', function() {

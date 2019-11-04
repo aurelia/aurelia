@@ -1,3 +1,4 @@
+import { RouteRecognizer, RouteHandler, ConfigurableRoute, RecognizeResult } from './route-recognizer';
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { IRenderContext, LifecycleFlags, IController } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
@@ -8,6 +9,7 @@ import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 import { RouteTable } from './route-table';
+import { NavigationInstructionResolver } from './type-resolvers';
 
 export interface IFindViewportsResult {
   foundViewports: ViewportInstruction[];
@@ -633,13 +635,69 @@ export class Viewport {
     if (componentType === null) {
       componentType = (this.context! as any).componentType;
     }
-    const routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
+    let routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     if (routes !== null && routes !== void 0) {
-      const routeTable: RouteTable = new RouteTable();
-      routeTable.addRoutes(this.router, routes);
-      return routeTable.findMatchingRoute(this.router, path);
+      routes = routes.map(route => this.ensureProperRoute(route))
+      const recognizableRoutes: ConfigurableRoute[] = routes.map(route => ({ path: route.path, handler: { name: route.id, route } }));
+      for (let i: number = 0, ilen: number = recognizableRoutes.length; i < ilen; i++) {
+        const newRoute: ConfigurableRoute = { ...recognizableRoutes[i] };
+        newRoute.path += '/*remainingPath';
+        recognizableRoutes.push(newRoute);
+      }
+      const found: FoundRoute = new FoundRoute();
+      let params: Record<string, unknown> = {};
+      if (path.startsWith('/') || path.startsWith('+')) {
+        path = path.slice(1);
+      }
+      const recognizer: RouteRecognizer = new RouteRecognizer();
+      recognizer.add(recognizableRoutes);
+      let result: RecognizeResult[] = recognizer.recognize(path);
+      // if (result === void 0) {
+      //   result = recognizer.recognize(`${path}*remainingPath`);
+      // }
+      if (result !== void 0 && result.length > 0) {
+        found.match = (result[0].handler as RouteHandler & { route: IRoute }).route;
+        found.matching = path;
+        params = result[0].params;
+        if (params.remainingPath !== void 0 && (params.remainingPath as string).length > 0) {
+          found.remaining = params.remainingPath as string;
+          delete params['remainingPath'];
+          found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
+        }
+      }
+      // for (const route of this.routes) {
+      //   const find = `^${route.path.replace('+', '\\+').replace(/:id/g, '(\\d+)')}`;
+      //   const regex = new RegExp(find);
+      //   const found = regex.exec(path);
+      //   if (found !== null && (match === null || route.path.length > match.path.length)) {
+      //     match = route;
+      //     matching = found[0];
+      //     if (found.length > 1) {
+      //       params.id = found[1];
+      //     }
+      //   }
+      // }
+      if (found.foundConfiguration) {
+        // clone it so config doesn't get modified
+        found.instructions = this.router.instructionResolver.cloneViewportInstructions(found.match!.instructions as ViewportInstruction[]);
+        for (const instruction of found.instructions) {
+          instruction.setParameters(params);
+        }
+      }
+      return found;
+      // const routeTable: RouteTable = new RouteTable();
+      // routeTable.addRoutes(this.router, routes);
+      // return routeTable.findMatchingRoute(this.router, path);
     }
     return null;
+  }
+
+  private ensureProperRoute(route: IRoute): IRoute {
+    if (route.id === void 0) {
+      route.id = route.path;
+    }
+    route.instructions = NavigationInstructionResolver.toViewportInstructions(this.router, route.instructions);
+    return route;
   }
 
   private async unloadContent(): Promise<void> {

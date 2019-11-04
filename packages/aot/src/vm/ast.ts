@@ -3754,6 +3754,8 @@ export class $NullLiteral implements I$Node {
   public readonly $kind = SyntaxKind.NullKeyword;
   public readonly id: number;
 
+  public readonly Value: $Null;
+
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $NullLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
@@ -3774,6 +3776,16 @@ export class $NullLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+
+    this.Value = new $Null(realm, this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  public Evaluate(): $Null {
+    // Literal : NullLiteral
+
+    // 1. Return null.
+    return this.Value;
   }
 }
 

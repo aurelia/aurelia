@@ -38,9 +38,9 @@
     // DotSeparatedAttributePattern,
     // RefAttributePattern,
     exports.bindingCommand = jit_1.bindingCommand;
-    // IBindingCommandDefinition,
-    // IBindingCommandResource,
-    // IBindingCommandType,
+    // BindingCommandDefinition,
+    // BindingCommandKind,
+    // BindingCommandType,
     exports.getTarget = jit_1.getTarget;
     // CallBindingCommand,
     // DefaultBindingCommand,
@@ -104,6 +104,21 @@
     // IfEquals,
     // ReadonlyKeys,
     // WritableKeys,
+    // metadata,
+    exports.Metadata = kernel_1.Metadata;
+    // IConsoleLike,
+    exports.ColorOptions = kernel_1.ColorOptions;
+    // ILogConfig,
+    // ILogEvent,
+    // ILogEventFactory,
+    // ISink,
+    exports.ILogger = kernel_1.ILogger;
+    // LogConfig,
+    // DefaultLogEvent,
+    // DefaultLogEventFactory,
+    // DefaultLogger,
+    // ConsoleSink,
+    exports.LoggerConfiguration = kernel_1.LoggerConfiguration;
     // relativeToFile,
     // join,
     // buildQueryString,
@@ -124,12 +139,23 @@
     // ResourceDescription,
     // ResourcePartDescription,
     exports.RuntimeCompilationResources = kernel_1.RuntimeCompilationResources;
+    // fromAnnotationOrDefinitionOrTypeOrDefault,
+    // fromAnnotationOrTypeOrDefault,
+    // fromDefinitionOrDefault,
     exports.EventAggregator = kernel_1.EventAggregator;
     exports.IEventAggregator = kernel_1.IEventAggregator;
     exports.isNumeric = kernel_1.isNumeric;
     exports.camelCase = kernel_1.camelCase;
     exports.kebabCase = kernel_1.kebabCase;
+    exports.pascalCase = kernel_1.pascalCase;
     exports.toArray = kernel_1.toArray;
+    // nextId,
+    // resetId,
+    // compareNumber,
+    // mergeDistinct,
+    // isNumberOrBigInt,
+    // isStringOrDate,
+    exports.bound = kernel_1.bound;
     var router_1 = require("@aurelia/router");
     // Nav,
     exports.NavRoute = router_1.NavRoute;
@@ -163,9 +189,6 @@
     exports.IRouteTransformer = router_1.IRouteTransformer;
     exports.IRouter = router_1.IRouter;
     exports.Router = router_1.Router;
-    // IFindViewportsResult,
-    // ChildContainer,
-    // Scope as RouterScope, // duplicated in @aurelia/runtime
     // IViewportOptions,
     // Viewport,
     // ContentStatus,
@@ -314,27 +337,27 @@
     exports.proxySubscriberCollection = runtime_1.proxySubscriberCollection;
     exports.bindingBehavior = runtime_1.bindingBehavior;
     exports.BindingBehavior = runtime_1.BindingBehavior;
-    // IBindingBehaviorDefinition,
-    // IBindingBehaviorResource,
-    // IBindingBehaviorType,
+    // PartialBindingBehaviorDefinition,
+    // BindingBehaviorKind,
+    // BindingBehaviorDecorator,
+    // BindingBehaviorInstance,
+    // BindingBehaviorType,
     // BindingModeBehavior,
     // OneTimeBindingBehavior,
     // ToViewBindingBehavior,
     // FromViewBindingBehavior,
     // TwoWayBindingBehavior,
-    // DebounceableBinding,
     // DebounceBindingBehavior,
-    // PriorityBindingBehavior,
     // SignalableBinding,
     // SignalBindingBehavior,
-    // ThrottleableBinding,
     // ThrottleBindingBehavior,
     exports.customAttribute = runtime_1.customAttribute;
-    // CustomAttributeConstructor,
     // CustomAttributeDecorator,
     exports.CustomAttribute = runtime_1.CustomAttribute;
-    // ICustomAttributeResource,
-    // ICustomAttributeType,
+    // CustomAttributeDefinition
+    // CustomAttributeKind,
+    // CustomAttributeType,
+    // PartialCustomAttributeDefinition,
     exports.templateController = runtime_1.templateController;
     // FrequentMutations,
     // InfrequentMutations,
@@ -347,33 +370,49 @@
     exports.containerless = runtime_1.containerless;
     exports.customElement = runtime_1.customElement;
     exports.CustomElement = runtime_1.CustomElement;
-    // ICustomElementDecorator,
-    // ICustomElementResource,
-    // ICustomElementType,
+    // CustomElementDecorator,
+    // CustomElementKind,
+    // CustomElementType,
+    // CustomElementDefinition,
+    // PartialCustomElementDefinition,
     // IElementProjector,
     // IProjectorLocator,
     exports.useShadowDOM = runtime_1.useShadowDOM;
-    // IValueConverterDefinition,
-    // IValueConverterResource,
-    // IValueConverterType,
-    exports.valueConverter = runtime_1.valueConverter;
     exports.ValueConverter = runtime_1.ValueConverter;
+    // ValueConverterType,
+    exports.valueConverter = runtime_1.valueConverter;
     // ISanitizer,
     // SanitizeValueConverter,
     // ViewValueConverter,
+    // Clock,
+    // IClock,
+    // IClockSettings,
+    exports.IScheduler = runtime_1.IScheduler;
+    // ITask,
+    // ITaskQueue,
+    // QueueTaskOptions,
+    // Task,
+    // TaskAbortError,
+    // TaskCallback,
+    // TaskQueue,
+    exports.TaskQueuePriority = runtime_1.TaskQueuePriority;
+    // TaskStatus,
+    // QueueTaskTargetOptions,
     exports.bindable = runtime_1.bindable;
-    // BindableDecorator,
-    // WithBindables,
+    // PartialBindableDefinition,
+    // BindableDefinition,
     exports.Bindable = runtime_1.Bindable;
+    // PartialChildrenDefinition,
+    // ChildrenDefinition,
+    // Children,
     exports.children = runtime_1.children;
-    // ChildrenDecorator,
-    // HasChildrenObservers,
     // These exports are temporary until we have a proper way to unit test them
     exports.Controller = runtime_1.Controller;
     exports.ViewFactory = runtime_1.ViewFactory;
     // IViewLocator,
     // ViewLocator,
     // view,
+    // Views,
     // Aurelia, // Replaced by quick-start wrapper
     // IDOMInitializer,
     // ISinglePageApp,
@@ -388,7 +427,6 @@
     // OneTimeBindingBehaviorRegistration,
     // ToViewBindingBehaviorRegistration,
     // FromViewBindingBehaviorRegistration,
-    // PriorityBindingBehaviorRegistration,
     // SignalBindingBehaviorRegistration,
     // ThrottleBindingBehaviorRegistration,
     // TwoWayBindingBehaviorRegistration,
@@ -407,18 +445,9 @@
     // ILifecycleRegistration,
     // IRendererRegistration,
     // RuntimeConfiguration,
-    // CustomAttributeDefinition,
     // AttributeInstruction,
-    // BindableDefinitions,
-    // BindableSource,
-    // buildTemplateDefinition,
-    // CustomElementConstructor,
     // HooksDefinition,
-    // PartialCustomAttributeDefinition,
-    // BindableDefinition,
-    // IBuildInstruction,
     // ICallBindingInstruction,
-    // IElementHydrationOptions,
     // IHydrateAttributeInstruction,
     // IHydrateElementInstruction,
     // IHydrateLetElementInstruction,
@@ -433,12 +462,10 @@
     // ISetPropertyInstruction,
     // isTargetedInstruction,
     // ITargetedInstruction,
-    // PartialCustomElementDefinition,
     // NodeInstruction,
     // TargetedInstruction,
     // TargetedInstructionType,
-    // CustomElementDefinition,
-    // TemplatePartDefinitions,
+    // PartialCustomElementDefinitionParts,
     exports.alias = runtime_1.alias;
     exports.registerAliases = runtime_1.registerAliases;
     // DOM, should expose the one exported in runtime-html
@@ -475,7 +502,7 @@
     // IRenderContext,
     // IViewCache,
     // IViewFactory,
-    // Priority,
+    // MountStrategy,
     // PromiseOrTask,
     // MaybePromiseOrTask,
     exports.AggregateContinuationTask = runtime_1.AggregateContinuationTask;
@@ -556,6 +583,9 @@
     // Blur,
     // BlurManager,
     // Focus,
+    // Portal,
+    // PortalTarget,
+    // PortalLifecycleCallback,
     // Subject,
     // Compose,
     // IProjectorLocatorRegistration,
@@ -571,6 +601,8 @@
     // AttributeBindingRendererRegistration,
     // ListenerBindingRendererRegistration,
     // SetAttributeRendererRegistration,
+    // SetClassAttributeRendererRegistration,
+    // SetStyleAttributeRendererRegistration,
     // StylePropertyBindingRendererRegistration,
     // TextBindingRendererRegistration,
     // DefaultRenderers,
@@ -597,6 +629,8 @@
     // CaptureBindingInstruction,
     // DelegateBindingInstruction,
     // SetAttributeInstruction,
+    // SetClassAttributeInstruction,
+    // SetStyleAttributeInstruction,
     // StylePropertyBindingInstruction,
     // TextBindingInstruction,
     // TriggerBindingInstruction,
@@ -607,9 +641,4 @@
     exports.StyleConfiguration = runtime_html_1.StyleConfiguration;
     exports.styles = runtime_html_1.styles;
 });
-// export {
-//   IDOMInitializerRegistration,
-//   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
-//   RuntimeHtmlBrowserConfiguration
-// } from '@aurelia/runtime-html-browser';
 //# sourceMappingURL=index.js.map

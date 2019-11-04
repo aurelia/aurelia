@@ -74,6 +74,9 @@ export interface IModule {
 
   ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
   GetExportedNames(exportStarSet: Set<IModule>): readonly $String[];
+  Instantiate(): void;
+  /** @internal */
+  _InnerModuleInstantiation(stack: IModule[], index: number): number;
 }
 
 export class DeferredModule implements IModule {
@@ -93,6 +96,14 @@ export class DeferredModule implements IModule {
   }
 
   public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
+    throw new Error('Method not implemented.');
+  }
+
+  public Instantiate(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  public _InnerModuleInstantiation(stack: IModule[], index: number): number {
     throw new Error('Method not implemented.');
   }
 }

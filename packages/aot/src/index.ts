@@ -10,7 +10,7 @@ import { Realm } from './vm/realm';
   const root = resolve(__dirname, '..', '..', '..', '..', 'test', 'realworld');
   const realm = Realm.Create();
   const file = await realm.loadEntryFile({ rootDir: root });
-  file.InitializeEnvironment();
+  file.Instantiate();
 
 })().catch(err => {
   console.error(err);

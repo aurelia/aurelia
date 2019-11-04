@@ -4167,9 +4167,119 @@ export class $SourceFile implements I$Node, IModule {
     this.logger.debug(`StarExportEntries: `, starExportEntries);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
+  public Instantiate(): void {
+    this.logger.info(`[Instantiate] starting`);
+
+    // 1. Let module be this Cyclic Module Record.
+    // 2. Assert: module.[[Status]] is not "instantiating" or "evaluating".
+    // 3. Let stack be a new empty List.
+    const stack = [] as $SourceFile[];
+
+    // 4. Let result be InnerModuleInstantiation(module, stack, 0).
+    const result = this._InnerModuleInstantiation(stack, 0);
+
+    // 5. If result is an abrupt completion, then
+    // 5. a. For each module m in stack, do
+    // 5. a. i. Assert: m.[[Status]] is "instantiating".
+    // 5. a. ii. Set m.[[Status]] to "uninstantiated".
+    // 5. a. iii. Set m.[[Environment]] to undefined.
+    // 5. a. iv. Set m.[[DFSIndex]] to undefined.
+    // 5. a. v. Set m.[[DFSAncestorIndex]] to undefined.
+    // 5. b. Assert: module.[[Status]] is "uninstantiated".
+    // 5. c. Return result.
+    // 6. Assert: module.[[Status]] is "instantiated" or "evaluated".
+    // 7. Assert: stack is empty.
+    // 8. Return undefined.
+
+    this.logger.info(`[Instantiate] done`);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
+  /** @internal */
+  public _InnerModuleInstantiation(stack: $SourceFile[], index: number): number {
+    // 1. If module is not a Cyclic Module Record, then
+    // 1. a. Perform ? module.Instantiate().
+    // 1. b. Return index.
+
+    // We only deal with cyclic module records for now
+
+    // 2. If module.[[Status]] is "instantiating", "instantiated", or "evaluated", then
+    if (this.Status === 'instantiating' || this.Status === 'instantiated' || this.Status === 'evaluated') {
+      // 2. Return index.
+      return index;
+    }
+
+    // 3. Assert: module.[[Status]] is "uninstantiated".
+    // 4. Set module.[[Status]] to "instantiating".
+    this.Status = 'instantiating';
+
+    // 5. Set module.[[DFSIndex]] to index.
+    this.DFSIndex = index;
+
+    // 6. Set module.[[DFSAncestorIndex]] to index.
+    this.DFSAncestorIndex = index;
+
+    // 7. Increase index by 1.
+    ++index;
+
+    // 8. Append module to stack.
+    stack.push(this);
+
+    const realm = this.realm;
+
+    // 9. For each String required that is an element of module.[[RequestedModules]], do
+    for (const required of this.RequestedModules) {
+      // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
+      const requiredModule = realm.HostResolveImportedModule(this, required);
+
+      // 9. b. Set index to ? InnerModuleInstantiation(requiredModule, stack, index).
+      index = requiredModule._InnerModuleInstantiation(stack, index);
+
+      // 9. c. Assert: requiredModule.[[Status]] is either "instantiating", "instantiated", or "evaluated".
+      // 9. d. Assert: requiredModule.[[Status]] is "instantiating" if and only if requiredModule is in stack.
+      // 9. e. If requiredModule.[[Status]] is "instantiating", then
+      if (requiredModule instanceof $SourceFile && requiredModule.Status === 'instantiating') {
+        // 9. e. i. Assert: requiredModule is a Cyclic Module Record.
+        this.logger.warn(`[_InnerModuleInstantiation] ${requiredModule.$file.name} is a cyclic module record`);
+
+        // 9. e. ii. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
+        this.DFSAncestorIndex = Math.min(this.DFSAncestorIndex, requiredModule.DFSAncestorIndex!);
+      }
+    }
+
+    // 10. Perform ? module.InitializeEnvironment().
+    this.InitializeEnvironment();
+
+    // 11. Assert: module occurs exactly once in stack.
+    // 12. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
+    // 13. If module.[[DFSAncestorIndex]] equals module.[[DFSIndex]], then
+    if (this.DFSAncestorIndex === this.DFSIndex) {
+      // 13. a. Let done be false.
+      let done = false;
+
+      // 13. b. Repeat, while done is false,
+      while (!done) {
+        // 13. b. i. Let requiredModule be the last element in stack.
+        // 13. b. ii. Remove the last element of stack.
+        const requiredModule = stack.pop()!;
+
+        // 13. b. iii. Set requiredModule.[[Status]] to "instantiated".
+        requiredModule.Status = 'instantiated';
+        // 13. b. iv. If requiredModule and module are the same Module Record, set done to true.
+        if (requiredModule === this) {
+          done = true;
+        }
+      }
+    }
+
+    // 14. Return index.
+    return index;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
   public InitializeEnvironment(): void {
-    this.logger.info(`Initializing environment`);
+    this.logger.info(`[InitializeEnvironment] starting`);
 
     // 1. Let module be this Source Text Module Record.
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
@@ -4319,7 +4429,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 16. Return NormalCompletion(empty).
 
-    this.logger.info(`Finished initializing environment`);
+    this.logger.info(`[InitializeEnvironment] done`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames

@@ -4073,6 +4073,8 @@ export class $SourceFile implements I$Node, IModule {
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
+    this['[[Environment]]'] = intrinsics.undefined;
+    this['[[Namespace]]'] = intrinsics.undefined;
 
     this.logger = pkg.container.get(ILogger).root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
 

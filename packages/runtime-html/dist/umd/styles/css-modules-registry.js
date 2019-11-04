@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/runtime", "../observation/class-attribute-accessor"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
+    const class_attribute_accessor_1 = require("../observation/class-attribute-accessor");
     class CSSModulesProcessorRegistry {
         register(container, ...params) {
             const classLookup = Object.assign({}, ...params);
@@ -26,7 +27,7 @@
                         this.element.className = '';
                         return;
                     }
-                    this.element.className = this.value.split(' ')
+                    this.element.className = class_attribute_accessor_1.getClassesToAdd(this.value)
                         .map(x => classLookup[x] || x)
                         .join(' ');
                 }

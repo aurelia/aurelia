@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime-html", "./attribute-patterns", "./binding-commands", "./html-attribute-syntax-transformer", "./template-compiler", "./template-element-factory"], factory);
+        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime-html", "./binding-commands", "./html-attribute-syntax-transformer", "./template-compiler", "./template-element-factory"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,7 +12,6 @@
     const jit_1 = require("@aurelia/jit");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const attribute_patterns_1 = require("./attribute-patterns");
     const binding_commands_1 = require("./binding-commands");
     const html_attribute_syntax_transformer_1 = require("./html-attribute-syntax-transformer");
     const template_compiler_1 = require("./template-compiler");
@@ -29,14 +28,6 @@
         exports.ITemplateCompilerRegistration,
         exports.ITemplateElementFactoryRegistration,
         exports.IAttrSyntaxTransformerRegistation
-    ];
-    /**
-     * Default HTML-specific (but environment-agnostic) implementations for style binding
-     */
-    exports.JitAttrBindingSyntax = [
-        attribute_patterns_1.StyleAttributePattern,
-        attribute_patterns_1.ClassAttributePattern,
-        attribute_patterns_1.AttrAttributePattern
     ];
     exports.RefBindingCommandRegistration = binding_commands_1.RefBindingCommand;
     exports.TriggerBindingCommandRegistration = binding_commands_1.TriggerBindingCommand;
@@ -74,7 +65,7 @@
         register(container) {
             return runtime_html_1.RuntimeHtmlConfiguration
                 .register(container)
-                .register(...jit_1.DefaultComponents, ...jit_1.DefaultBindingSyntax, ...exports.JitAttrBindingSyntax, ...jit_1.DefaultBindingLanguage, ...exports.DefaultComponents, ...exports.DefaultBindingLanguage);
+                .register(...jit_1.DefaultComponents, ...jit_1.DefaultBindingSyntax, ...jit_1.DefaultBindingLanguage, ...exports.DefaultComponents, ...exports.DefaultBindingLanguage);
         },
         /**
          * Create a new container with this configuration applied to it.

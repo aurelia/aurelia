@@ -1,7 +1,6 @@
 import { DefaultBindingLanguage as JitDefaultBindingLanguage, DefaultBindingSyntax as JitDefaultBindingSyntax, DefaultComponents as JitDefaultComponents } from '@aurelia/jit';
 import { DI } from '@aurelia/kernel';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
-import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
 import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, RefBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-commands';
 import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
@@ -18,14 +17,6 @@ export const DefaultComponents = [
     ITemplateCompilerRegistration,
     ITemplateElementFactoryRegistration,
     IAttrSyntaxTransformerRegistation
-];
-/**
- * Default HTML-specific (but environment-agnostic) implementations for style binding
- */
-export const JitAttrBindingSyntax = [
-    StyleAttributePattern,
-    ClassAttributePattern,
-    AttrAttributePattern
 ];
 export const RefBindingCommandRegistration = RefBindingCommand;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand;
@@ -63,7 +54,7 @@ export const JitHtmlConfiguration = {
     register(container) {
         return RuntimeHtmlConfiguration
             .register(container)
-            .register(...JitDefaultComponents, ...JitDefaultBindingSyntax, ...JitAttrBindingSyntax, ...JitDefaultBindingLanguage, ...DefaultComponents, ...DefaultBindingLanguage);
+            .register(...JitDefaultComponents, ...JitDefaultBindingSyntax, ...JitDefaultBindingLanguage, ...DefaultComponents, ...DefaultBindingLanguage);
     },
     /**
      * Create a new container with this configuration applied to it.

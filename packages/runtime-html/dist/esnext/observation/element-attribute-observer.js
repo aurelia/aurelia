@@ -144,7 +144,7 @@ const startObservation = (element, subscription) => {
 };
 const stopObservation = (element, subscription) => {
     const $eMObservers = element.$eMObservers;
-    if ($eMObservers.delete(subscription)) {
+    if ($eMObservers && $eMObservers.delete(subscription)) {
         if ($eMObservers.size === 0) {
             element.$mObserver.disconnect();
             element.$mObserver = undefined;

@@ -35,7 +35,7 @@ export class ClassAttributeAccessor {
             const { currentValue, nameIndex } = this;
             let { version } = this;
             this.oldValue = currentValue;
-            const classesToAdd = this.getClassesToAdd(currentValue);
+            const classesToAdd = getClassesToAdd(currentValue);
             // Get strings split on a space not including empties
             if (classesToAdd.length > 0) {
                 this.addClassesAndUpdateIndex(classesToAdd);
@@ -73,59 +73,59 @@ export class ClassAttributeAccessor {
             this.task = null;
         }
     }
-    splitClassString(classString) {
-        const matches = classString.match(/\S+/g);
-        if (matches === null) {
-            return PLATFORM.emptyArray;
-        }
-        return matches;
-    }
-    getClassesToAdd(object) {
-        if (typeof object === 'string') {
-            return this.splitClassString(object);
-        }
-        if (object instanceof Array) {
-            const len = object.length;
-            if (len > 0) {
-                const classes = [];
-                for (let i = 0; i < len; ++i) {
-                    classes.push(...this.getClassesToAdd(object[i]));
-                }
-                return classes;
-            }
-            else {
-                return PLATFORM.emptyArray;
-            }
-        }
-        else if (object instanceof Object) {
-            const classes = [];
-            for (const property in object) {
-                // Let non typical values also evaluate true so disable bool check
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
-                if (!!object[property]) {
-                    // We must do this in case object property has a space in the name which results in two classes
-                    if (property.includes(' ')) {
-                        classes.push(...this.splitClassString(property));
-                    }
-                    else {
-                        classes.push(property);
-                    }
-                }
-            }
-            return classes;
-        }
-        return PLATFORM.emptyArray;
-    }
     addClassesAndUpdateIndex(classes) {
         const node = this.obj;
-        for (let i = 0, length = classes.length; i < length; i++) {
+        for (let i = 0, ii = classes.length; i < ii; i++) {
             const className = classes[i];
-            if (!className.length) {
+            if (className.length === 0) {
                 continue;
             }
             this.nameIndex[className] = this.version;
             node.classList.add(className);
         }
     }
+}
+export function getClassesToAdd(object) {
+    function splitClassString(classString) {
+        const matches = classString.match(/\S+/g);
+        if (matches === null) {
+            return PLATFORM.emptyArray;
+        }
+        return matches;
+    }
+    if (typeof object === 'string') {
+        return splitClassString(object);
+    }
+    if (object instanceof Array) {
+        const len = object.length;
+        if (len > 0) {
+            const classes = [];
+            for (let i = 0; i < len; ++i) {
+                classes.push(...getClassesToAdd(object[i]));
+            }
+            return classes;
+        }
+        else {
+            return PLATFORM.emptyArray;
+        }
+    }
+    else if (object instanceof Object) {
+        const classes = [];
+        for (const property in object) {
+            // Let non typical values also evaluate true so disable bool check
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
+            if (Boolean(object[property])) {
+                // We must do this in case object property has a space in the name which results in two classes
+                if (property.includes(' ')) {
+                    classes.push(...splitClassString(property));
+                }
+                else {
+                    classes.push(property);
+                }
+            }
+        }
+        return classes;
+    }
+    return PLATFORM.emptyArray;
 }
 //# sourceMappingURL=class-attribute-accessor.js.map

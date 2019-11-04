@@ -98,6 +98,7 @@ export class StyleAttributeAccessor {
                 name = tuple[0];
                 value = tuple[1];
                 this.setProperty(name, value);
+                styles[name] = version;
             }
             this.styles = styles;
             this.version += 1;

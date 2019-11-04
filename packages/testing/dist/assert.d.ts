@@ -35,6 +35,8 @@ export declare function isCustomElementType(actual: any, message?: string): void
 export declare function isCustomAttributeType(actual: any, message?: string): void;
 declare function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node): void;
 declare function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, message?: string, root?: Node): void;
+declare function computedStyle(element: Node, expectedStyles: Record<string, string>, message?: string): void;
+declare function notComputedStyle(element: Node, expectedStyles: Record<string, string>, message?: string): void;
 declare const assert: Readonly<{
     throws: typeof throws;
     doesNotThrow: typeof doesNotThrow;
@@ -76,6 +78,8 @@ declare const assert: Readonly<{
     html: {
         textContent: typeof isTextContentEqual;
         value: typeof isValueEqual;
+        computedStyle: typeof computedStyle;
+        notComputedStyle: typeof notComputedStyle;
     };
 }>;
 export { assert };

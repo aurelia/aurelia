@@ -1,5 +1,4 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
 export declare const ITemplateCompilerRegistration: IRegistry;
 export declare const ITemplateElementFactoryRegistration: IRegistry;
 export declare const IAttrSyntaxTransformerRegistation: IRegistry;
@@ -9,10 +8,6 @@ export declare const IAttrSyntaxTransformerRegistation: IRegistry;
  * - `ITemplateElementFactory`
  */
 export declare const DefaultComponents: IRegistry[];
-/**
- * Default HTML-specific (but environment-agnostic) implementations for style binding
- */
-export declare const JitAttrBindingSyntax: (typeof AttrAttributePattern | typeof StyleAttributePattern | typeof ClassAttributePattern)[];
 export declare const RefBindingCommandRegistration: IRegistry;
 export declare const TriggerBindingCommandRegistration: IRegistry;
 export declare const DelegateBindingCommandRegistration: IRegistry;

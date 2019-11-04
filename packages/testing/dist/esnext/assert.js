@@ -549,6 +549,42 @@ function isValueEqual(inputElementOrSelector, expected, message, root) {
         });
     }
 }
+function matchStyle(element, expectedStyles) {
+    const styles = DOM.window.getComputedStyle(element);
+    for (const [property, expected] of Object.entries(expectedStyles)) {
+        const actual = styles[property];
+        if (actual !== expected) {
+            return { isMatch: false, property, actual, expected };
+        }
+    }
+    return { isMatch: true };
+}
+function computedStyle(element, expectedStyles, message) {
+    const result = matchStyle(element, expectedStyles);
+    if (!result.isMatch) {
+        const { property, actual, expected } = result;
+        innerFail({
+            actual: `${property}:${actual}`,
+            expected: `${property}:${expected}`,
+            message,
+            operator: '==',
+            stackStartFn: computedStyle
+        });
+    }
+}
+function notComputedStyle(element, expectedStyles, message) {
+    const result = matchStyle(element, expectedStyles);
+    if (result.isMatch) {
+        const display = Object.entries(expectedStyles).map(([key, value]) => `${key}:${value}`).join(',');
+        innerFail({
+            actual: display,
+            expected: display,
+            message,
+            operator: '!=',
+            stackStartFn: notComputedStyle
+        });
+    }
+}
 const isSchedulerEmpty = (function () {
     function priorityToString(priority) {
         switch (priority) {
@@ -687,7 +723,9 @@ const assert = Object_freeze({
     },
     html: {
         textContent: isTextContentEqual,
-        value: isValueEqual
+        value: isValueEqual,
+        computedStyle: computedStyle,
+        notComputedStyle: notComputedStyle
     }
 });
 export { assert };

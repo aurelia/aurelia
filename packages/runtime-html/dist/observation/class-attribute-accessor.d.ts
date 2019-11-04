@@ -17,8 +17,7 @@ export declare class ClassAttributeAccessor implements IAccessor<unknown> {
     flushChanges(flags: LifecycleFlags): void;
     bind(flags: LifecycleFlags): void;
     unbind(flags: LifecycleFlags): void;
-    private splitClassString;
-    private getClassesToAdd;
     private addClassesAndUpdateIndex;
 }
+export declare function getClassesToAdd(object: Record<string, unknown> | [] | string): string[];
 //# sourceMappingURL=class-attribute-accessor.d.ts.map

@@ -186,7 +186,7 @@ export {
   // InterfaceSymbol,
   InstanceProvider,
   Resolved,
-  Transformer,
+  // Transformer,
 
   Class,
   Constructable,
@@ -225,21 +225,21 @@ export {
   // WritableKeys,
 
   // metadata,
-  // Metadata,
+  Metadata,
 
   // IConsoleLike,
-  // ColorOptions,
+  ColorOptions,
   // ILogConfig,
   // ILogEvent,
   // ILogEventFactory,
   // ISink,
-  // ILogger,
+  ILogger,
   // LogConfig,
   // DefaultLogEvent,
   // DefaultLogEventFactory,
   // DefaultLogger,
   // ConsoleSink,
-  // LoggerConfiguration,
+  LoggerConfiguration,
 
   // relativeToFile,
   // join,
@@ -284,7 +284,7 @@ export {
   // mergeDistinct,
   // isNumberOrBigInt,
   // isStringOrDate,
-  // bound,
+  bound,
   // mergeArrays,
   // mergeObjects,
   // firstDefined,
@@ -618,15 +618,15 @@ export {
   // Clock,
   // IClock,
   // IClockSettings,
-  // IScheduler,
+  IScheduler,
   // ITask,
   // ITaskQueue,
   // QueueTaskOptions,
   // Task,
   // TaskAbortError,
   // TaskCallback,
-  TaskQueue,
-  // TaskQueuePriority,
+  // TaskQueue,
+  TaskQueuePriority,
   // TaskStatus,
   // QueueTaskTargetOptions,
 
@@ -967,5 +967,5 @@ export {
   // DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
   // RuntimeHtmlBrowserConfiguration
   // BrowserDOMInitializer,
-  BrowserScheduler
+  // BrowserScheduler
 } from '@aurelia/runtime-html-browser';

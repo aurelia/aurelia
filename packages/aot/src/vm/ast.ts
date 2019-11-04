@@ -1085,6 +1085,7 @@ export class $VariableStatement implements I$Node {
     public readonly node: VariableStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1264,6 +1265,7 @@ export class $FunctionDeclaration implements I$Node {
     public readonly node: FunctionDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1539,6 +1541,7 @@ export class $ClassDeclaration implements I$Node {
     public readonly node: ClassDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1681,6 +1684,7 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly node: InterfaceDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1746,6 +1750,7 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly node: TypeAliasDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1828,6 +1833,7 @@ export class $EnumDeclaration implements I$Node {
     public readonly node: EnumDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1899,6 +1905,7 @@ export class $VariableDeclaration implements I$Node {
     public readonly node: VariableDeclaration,
     public readonly parent: $VariableDeclarationList | $CatchClause,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -1975,6 +1982,7 @@ export class $VariableDeclarationList implements I$Node {
     public readonly node: VariableDeclarationList,
     public readonly parent: $VariableStatement | $ForStatement | $ForOfStatement | $ForInStatement,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2019,6 +2027,7 @@ export class $EnumMember implements I$Node {
     public readonly node: EnumMember,
     public readonly parent: $EnumDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2062,6 +2071,7 @@ export class $HeritageClause implements I$Node {
     public readonly node: HeritageClause,
     public readonly parent: $$NodeWithHeritageClauses,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2081,6 +2091,7 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly node: ExpressionWithTypeArguments,
     public readonly parent: $HeritageClause,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2102,6 +2113,7 @@ export class $Decorator implements I$Node {
     public readonly node: Decorator,
     public readonly parent: $NodeWithDecorators,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2132,6 +2144,7 @@ export class $ThisExpression implements I$Node {
     public readonly node: ThisExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2147,6 +2160,7 @@ export class $SuperExpression implements I$Node {
     public readonly node: SuperExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2219,6 +2233,7 @@ export class $ArrayLiteralExpression implements I$Node {
     public readonly node: ArrayLiteralExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2299,6 +2314,7 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly node: ObjectLiteralExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2321,6 +2337,7 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly node: PropertyAccessExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2344,6 +2361,7 @@ export class $ElementAccessExpression implements I$Node {
     public readonly node: ElementAccessExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2367,6 +2385,7 @@ export class $CallExpression implements I$Node {
     public readonly node: CallExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2390,6 +2409,7 @@ export class $NewExpression implements I$Node {
     public readonly node: NewExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2418,6 +2438,7 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly node: TaggedTemplateExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2479,6 +2500,7 @@ export class $FunctionExpression implements I$Node {
     public readonly node: FunctionExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2553,6 +2575,7 @@ export class $TemplateExpression implements I$Node {
     public readonly node: TemplateExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2578,6 +2601,7 @@ export class $ParenthesizedExpression implements I$Node {
     public readonly node: ParenthesizedExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2621,6 +2645,7 @@ export class $ClassExpression implements I$Node {
     public readonly node: ClassExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2683,6 +2708,7 @@ export class $NonNullExpression implements I$Node {
     public readonly node: NonNullExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2704,6 +2730,7 @@ export class $MetaProperty implements I$Node {
     public readonly node: MetaProperty,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2729,6 +2756,7 @@ export class $DeleteExpression implements I$Node {
     public readonly node: DeleteExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2750,6 +2778,7 @@ export class $TypeOfExpression implements I$Node {
     public readonly node: TypeOfExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2771,6 +2800,7 @@ export class $VoidExpression implements I$Node {
     public readonly node: VoidExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2792,6 +2822,7 @@ export class $AwaitExpression implements I$Node {
     public readonly node: AwaitExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2813,6 +2844,7 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly node: PrefixUnaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2834,6 +2866,7 @@ export class $PostfixUnaryExpression implements I$Node {
     public readonly node: PostfixUnaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2855,6 +2888,7 @@ export class $TypeAssertion implements I$Node {
     public readonly node: TypeAssertion,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2881,6 +2915,7 @@ export class $BinaryExpression implements I$Node {
     public readonly node: BinaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2905,6 +2940,7 @@ export class $ConditionalExpression implements I$Node {
     public readonly node: ConditionalExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -2969,6 +3005,7 @@ export class $ArrowFunction implements I$Node {
     public readonly node: ArrowFunction,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3030,6 +3067,7 @@ export class $YieldExpression implements I$Node {
     public readonly node: YieldExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3051,6 +3089,7 @@ export class $AsExpression implements I$Node {
     public readonly node: AsExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3074,6 +3113,7 @@ export class $TemplateHead implements I$Node {
     public readonly node: TemplateHead,
     public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3089,6 +3129,7 @@ export class $TemplateMiddle implements I$Node {
     public readonly node: TemplateMiddle,
     public readonly parent: $TemplateExpression | $TemplateSpan,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3104,6 +3145,7 @@ export class $TemplateTail implements I$Node {
     public readonly node: TemplateTail,
     public readonly parent: $TemplateExpression | $TemplateSpan,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3122,6 +3164,7 @@ export class $TemplateSpan implements I$Node {
     public readonly node: TemplateSpan,
     public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3175,6 +3218,7 @@ export class $Identifier implements I$Node {
     public readonly node: Identifier,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3250,6 +3294,7 @@ export class $JsxElement implements I$Node {
     public readonly node: JsxElement,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3307,6 +3352,7 @@ export class $JsxSelfClosingElement implements I$Node {
     public readonly node: JsxSelfClosingElement,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3331,6 +3377,7 @@ export class $JsxFragment implements I$Node {
     public readonly node: JsxFragment,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3352,6 +3399,7 @@ export class $JsxText implements I$Node {
     public readonly node: JsxText,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3370,6 +3418,7 @@ export class $JsxOpeningElement implements I$Node {
     public readonly node: JsxOpeningElement,
     public readonly parent: $JsxElement,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3390,6 +3439,7 @@ export class $JsxClosingElement implements I$Node {
     public readonly node: JsxClosingElement,
     public readonly parent: $JsxElement,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3407,6 +3457,7 @@ export class $JsxOpeningFragment implements I$Node {
     public readonly node: JsxOpeningFragment,
     public readonly parent: $JsxFragment,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3422,6 +3473,7 @@ export class $JsxClosingFragment implements I$Node {
     public readonly node: JsxClosingFragment,
     public readonly parent: $JsxFragment,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3440,6 +3492,7 @@ export class $JsxAttribute implements I$Node {
     public readonly node: JsxAttribute,
     public readonly parent: $JsxAttributes,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3473,6 +3526,7 @@ export class $JsxAttributes implements I$Node {
     public readonly node: JsxAttributes,
     public readonly parent: $$JsxOpeningLikeElement,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3496,6 +3550,7 @@ export class $JsxSpreadAttribute implements I$Node {
     public readonly node: JsxSpreadAttribute,
     public readonly parent: $JsxAttributes,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3515,6 +3570,7 @@ export class $JsxExpression implements I$Node {
     public readonly node: JsxExpression,
     public readonly parent: $$JsxParent | $$JsxAttributeLike,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3546,6 +3602,7 @@ export class $NumericLiteral implements I$Node {
     public readonly node: NumericLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3574,6 +3631,7 @@ export class $BigIntLiteral implements I$Node {
     public readonly node: BigIntLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3605,6 +3663,7 @@ export class $StringLiteral implements I$Node {
     public readonly node: StringLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3637,6 +3696,7 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly node: RegularExpressionLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3665,6 +3725,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly node: NoSubstitutionTemplateLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3691,6 +3752,7 @@ export class $NullLiteral implements I$Node {
     public readonly node: NullLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3717,6 +3779,7 @@ export class $BooleanLiteral implements I$Node {
     public readonly node: BooleanLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3742,6 +3805,7 @@ export class $PropertyDeclaration implements I$Node {
     public readonly node: PropertyDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3779,6 +3843,7 @@ export class $MethodDeclaration implements I$Node {
     public readonly node: MethodDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3819,6 +3884,7 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly node: GetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3858,6 +3924,7 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly node: SetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3888,6 +3955,7 @@ export class $SemicolonClassElement implements I$Node {
     public readonly node: SemicolonClassElement,
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3909,6 +3977,7 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly node: ConstructorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -3952,7 +4021,7 @@ export class $SourceFile implements I$Node, IModule {
   public readonly $kind = SyntaxKind.SourceFile;
   public readonly id: number;
 
-  public readonly root: $SourceFile = this;
+  public readonly sourceFile: $SourceFile = this;
   public readonly parent: $SourceFile = this;
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
@@ -4738,6 +4807,7 @@ export class $ModuleDeclaration implements I$Node {
     public readonly node: ModuleDeclaration,
     public readonly parent: $SourceFile | $$ModuleBody,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -4813,6 +4883,7 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly node: ImportEqualsDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -4863,6 +4934,7 @@ export class $ImportDeclaration implements I$Node {
     public readonly node: ImportDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -4914,6 +4986,7 @@ export class $ImportClause implements I$Node {
     public readonly node: ImportClause,
     public readonly parent: $ImportDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -4975,6 +5048,7 @@ export class $NamedImports implements I$Node {
     public readonly node: NamedImports,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5005,6 +5079,7 @@ export class $ImportSpecifier implements I$Node {
     public readonly node: ImportSpecifier,
     public readonly parent: $NamedImports,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5062,6 +5137,7 @@ export class $NamespaceImport implements I$Node {
     public readonly node: NamespaceImport,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5123,6 +5199,7 @@ export class $ExportAssignment implements I$Node {
     public readonly node: ExportAssignment,
     public readonly parent: $SourceFile,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5170,6 +5247,7 @@ export class $ExportDeclaration implements I$Node {
     public readonly node: ExportDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5232,6 +5310,7 @@ export class $NamedExports implements I$Node {
     public readonly node: NamedExports,
     public readonly parent: $ExportDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5265,6 +5344,7 @@ export class $ExportSpecifier implements I$Node {
     public readonly node: ExportSpecifier,
     public readonly parent: $NamedExports,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5350,6 +5430,7 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly node: NamespaceExportDeclaration,
     public readonly parent: $$ModuleDeclarationParent,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5372,6 +5453,7 @@ export class $ModuleBlock implements I$Node {
     public readonly node: ModuleBlock,
     public readonly parent: $ModuleDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5389,6 +5471,7 @@ export class $ExternalModuleReference implements I$Node {
     public readonly node: ExternalModuleReference,
     public readonly parent: $ImportEqualsDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5419,6 +5502,7 @@ export class $QualifiedName implements I$Node {
     public readonly node: QualifiedName,
     public readonly parent: $$NodeWithQualifiedName,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5459,6 +5543,7 @@ export class $ComputedPropertyName implements I$Node {
     public readonly node: ComputedPropertyName,
     public readonly parent: $$NamedDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5497,6 +5582,7 @@ export class $ParameterDeclaration implements I$Node {
     public readonly node: ParameterDeclaration,
     public readonly parent: $$SignatureDeclaration,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5549,6 +5635,7 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly node: ObjectBindingPattern,
     public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5626,6 +5713,7 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly node: ArrayBindingPattern,
     public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5677,6 +5765,7 @@ export class $BindingElement implements I$Node {
     public readonly node: BindingElement,
     public readonly parent: $$BindingPattern,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5742,6 +5831,7 @@ export class $SpreadElement implements I$Node {
     public readonly node: SpreadElement,
     public readonly parent: $NodeWithSpreadElements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5767,6 +5857,7 @@ export class $PropertyAssignment implements I$Node {
     public readonly node: PropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5797,6 +5888,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly node: ShorthandPropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5824,6 +5916,7 @@ export class $SpreadAssignment implements I$Node {
     public readonly node: SpreadAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5850,6 +5943,7 @@ export class $OmittedExpression implements I$Node {
     public readonly node: OmittedExpression,
     public readonly parent: $ArrayBindingPattern | $ArrayLiteralExpression | $NewExpression | $CallExpression,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5881,6 +5975,7 @@ export class $Block implements I$Node {
     public readonly node: Block,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5949,6 +6044,7 @@ export class $EmptyStatement implements I$Node {
     public readonly node: EmptyStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -5977,6 +6073,7 @@ export class $ExpressionStatement implements I$Node {
     public readonly node: ExpressionStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6001,6 +6098,7 @@ export class $IfStatement implements I$Node {
     public readonly node: IfStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6038,6 +6136,7 @@ export class $DoStatement implements I$Node {
     public readonly node: DoStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6064,6 +6163,7 @@ export class $WhileStatement implements I$Node {
     public readonly node: WhileStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6097,6 +6197,7 @@ export class $ForStatement implements I$Node {
     public readonly node: ForStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6146,6 +6247,7 @@ export class $ForInStatement implements I$Node {
     public readonly node: ForInStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6191,6 +6293,7 @@ export class $ForOfStatement implements I$Node {
     public readonly node: ForOfStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6233,6 +6336,7 @@ export class $ContinueStatement implements I$Node {
     public readonly node: ContinueStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6255,6 +6359,7 @@ export class $BreakStatement implements I$Node {
     public readonly node: BreakStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6277,6 +6382,7 @@ export class $ReturnStatement implements I$Node {
     public readonly node: ReturnStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6304,6 +6410,7 @@ export class $WithStatement implements I$Node {
     public readonly node: WithStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6330,6 +6437,7 @@ export class $SwitchStatement implements I$Node {
     public readonly node: SwitchStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6365,6 +6473,7 @@ export class $LabeledStatement implements I$Node {
     public readonly node: LabeledStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6402,6 +6511,7 @@ export class $ThrowStatement implements I$Node {
     public readonly node: ThrowStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6426,6 +6536,7 @@ export class $TryStatement implements I$Node {
     public readonly node: TryStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6474,6 +6585,7 @@ export class $DebuggerStatement implements I$Node {
     public readonly node: DebuggerStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6498,6 +6610,7 @@ export class $CaseBlock implements I$Node {
     public readonly node: CaseBlock,
     public readonly parent: $SwitchStatement,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6527,6 +6640,7 @@ export class $CaseClause implements I$Node {
     public readonly node: CaseClause,
     public readonly parent: $CaseBlock,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6552,6 +6666,7 @@ export class $DefaultClause implements I$Node {
     public readonly node: DefaultClause,
     public readonly parent: $CaseBlock,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {
@@ -6577,6 +6692,7 @@ export class $CatchClause implements I$Node {
     public readonly node: CatchClause,
     public readonly parent: $TryStatement,
     public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
   ) {

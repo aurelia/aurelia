@@ -1082,6 +1082,45 @@ export class $ECMAScriptFunction<
 
     // 7. Return NormalCompletion(undefined).
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-setfunctionname
+  public SetFunctionName(name: $String | $Symbol, prefix?: $String): $Boolean {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Assert: F is an extensible object that does not have a name own property.
+    // 2. Assert: Type(name) is either Symbol or String.
+    // 3. Assert: If prefix is present, then Type(prefix) is String.
+    // 4. If Type(name) is Symbol, then
+    if (name.isSymbol) {
+      // 4. a. Let description be name's [[Description]] value.
+      const description = name.Description;
+
+      // 4. b. If description is undefined, set name to the empty String.
+      if (description.isUndefined) {
+        name = intrinsics[''];
+      }
+      // 4. c. Else, set name to the string-concatenation of "[", description, and "]".
+      else {
+        name = new $String(realm, `[${description.value}]`);
+      }
+    }
+
+    // 5. If prefix is present, then
+    if (prefix !== void 0) {
+      // 5. a. Set name to the string-concatenation of prefix, the code unit 0x0020 (SPACE), and name.
+      name = new $String(realm, `${prefix.value} ${name.value}`);
+    }
+
+    // 6. Return ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
+    const Desc = new $PropertyDescriptor(realm, intrinsics.$prototype);
+    Desc['[[Value]]'] = name;
+    Desc['[[Writable]]'] = intrinsics.false;
+    Desc['[[Enumerable]]'] = intrinsics.false;
+    Desc['[[Configurable]]'] = intrinsics.true;
+
+    return $DefinePropertyOrThrow(this, intrinsics.$name, Desc);
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects

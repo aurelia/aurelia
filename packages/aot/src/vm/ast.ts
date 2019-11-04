@@ -4177,12 +4177,30 @@ export class $SourceFile implements I$Node, IModule {
           break;
         case SyntaxKind.InterfaceDeclaration:
           $stmt = $statements[s++] = new $InterfaceDeclaration(stmt, this, ctx);
+
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
           break;
         case SyntaxKind.TypeAliasDeclaration:
           $stmt = $statements[s++] = new $TypeAliasDeclaration(stmt, this, ctx);
+
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
           break;
         case SyntaxKind.EnumDeclaration:
           $stmt = $statements[s++] = new $EnumDeclaration(stmt, this, ctx);
+
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
           break;
         case SyntaxKind.Block:
           $stmt = $statements[s++] = new $Block(stmt, this, ctx);

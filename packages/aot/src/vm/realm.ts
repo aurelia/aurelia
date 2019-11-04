@@ -324,7 +324,7 @@ export class Realm {
     const pkg = referencingModule.pkg;
 
     if (isRelative) {
-      this.logger.info(`[ResolveImport] resolving internal relative module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+      this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier.value}' for ${referencingModule.$file.name}`);
 
       const filePath = resolvePath(dirname(referencingModule.$file.path), specifier);
       const files = pkg.files.filter(x => x.shortPath === filePath || x.path === filePath).sort(comparePathLength);
@@ -348,7 +348,7 @@ export class Realm {
     } else {
       const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(n.refName + '/'));
       if (pkgDep === void 0) {
-        this.logger.info(`[ResolveImport] resolving internal absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+        this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
 
         if (referencingModule.matcher !== null) {
           const file = referencingModule.matcher.findMatch(pkg.files, specifier);
@@ -357,7 +357,7 @@ export class Realm {
           throw new Error(`Cannot resolve absolute file path without path mappings in tsconfig`);
         }
       } else {
-        this.logger.info(`[ResolveImport] resolving external absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+        this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
 
         const container = referencingModule.pkg.container;
         const { rootDir } = container.get(IOptions);
@@ -419,7 +419,7 @@ export class Realm {
   }
 
   private loadEntryPackage(opts: IOptions): Promise<NPMPackage> {
-    this.logger.debug(`loadEntryPackage(${JSON.stringify(opts)})`);
+    this.logger.trace(`loadEntryPackage(${JSON.stringify(opts)})`);
 
     const container = this.container.createChild();
     Registration.instance(IOptions, opts).register(container);

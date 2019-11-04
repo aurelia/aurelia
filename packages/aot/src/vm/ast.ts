@@ -4158,18 +4158,18 @@ export class $SourceFile implements I$Node, IModule {
     this.StarExportEntries = starExportEntries;
 
 
-    this.logger.debug(`RequestedModules: `, requestedModules);
+    this.logger.trace(`RequestedModules: `, requestedModules);
 
-    this.logger.debug(`ImportEntries: `, importEntries);
+    this.logger.trace(`ImportEntries: `, importEntries);
 
-    this.logger.debug(`IndirectExportEntries: `, indirectExportEntries);
-    this.logger.debug(`LocalExportEntries: `, localExportEntries);
-    this.logger.debug(`StarExportEntries: `, starExportEntries);
+    this.logger.trace(`IndirectExportEntries: `, indirectExportEntries);
+    this.logger.trace(`LocalExportEntries: `, localExportEntries);
+    this.logger.trace(`StarExportEntries: `, starExportEntries);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
   public Instantiate(): void {
-    this.logger.info(`[Instantiate] starting`);
+    this.logger.debug(`[Instantiate] starting`);
 
     // 1. Let module be this Cyclic Module Record.
     // 2. Assert: module.[[Status]] is not "instantiating" or "evaluating".
@@ -4192,7 +4192,7 @@ export class $SourceFile implements I$Node, IModule {
     // 7. Assert: stack is empty.
     // 8. Return undefined.
 
-    this.logger.info(`[Instantiate] done`);
+    this.logger.debug(`[Instantiate] done`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
@@ -4279,7 +4279,7 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
   public InitializeEnvironment(): void {
-    this.logger.info(`[InitializeEnvironment] starting`);
+    this.logger.debug(`[InitializeEnvironment] starting`);
 
     // 1. Let module be this Source Text Module Record.
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
@@ -4429,7 +4429,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 16. Return NormalCompletion(empty).
 
-    this.logger.info(`[InitializeEnvironment] done`);
+    this.logger.debug(`[InitializeEnvironment] done`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames
@@ -4511,7 +4511,7 @@ export class $SourceFile implements I$Node, IModule {
       // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
       if (exportName.is(e.ExportName)) {
         // 4. a. i. Assert: module provides the direct binding for this export.
-        this.logger.info(`[ResolveExport] found direct binding for ${exportName.value}`);
+        this.logger.debug(`[ResolveExport] found direct binding for ${exportName.value}`);
 
         // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
         return new ResolvedBindingRecord(this, e.LocalName as $String);
@@ -4525,7 +4525,7 @@ export class $SourceFile implements I$Node, IModule {
       // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
       if (exportName.is(e.ExportName)) {
         // 5. a. i. Assert: module imports a specific binding for this export.
-        this.logger.info(`[ResolveExport] found specific imported binding for ${exportName.value}`);
+        this.logger.debug(`[ResolveExport] found specific imported binding for ${exportName.value}`);
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
         const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);

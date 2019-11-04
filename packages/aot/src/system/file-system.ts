@@ -142,13 +142,13 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public realpath(path: string): Promise<string> {
-    this.logger.debug(`realpath(path: ${path})`);
+    this.logger.trace(`realpath(path: ${path})`);
 
     return realpath(path);
   }
 
   public realpathSync(path: string): string {
-    this.logger.debug(`realpathSync(path: ${path})`);
+    this.logger.trace(`realpathSync(path: ${path})`);
 
     return realpathSync(path);
   }
@@ -156,7 +156,7 @@ export class NodeFileSystem implements IFileSystem {
   public readdir(path: string): Promise<readonly string[]>;
   public readdir(path: string, withFileTypes: true): Promise<readonly Dirent[]>;
   public readdir(path: string, withFileTypes?: true): Promise<readonly string[] | readonly Dirent[]> {
-    this.logger.debug(`readdir(path: ${path}, withFileTypes: ${withFileTypes})`);
+    this.logger.trace(`readdir(path: ${path}, withFileTypes: ${withFileTypes})`);
 
     if (withFileTypes === true) {
       return readdir(path, { withFileTypes: true });
@@ -168,7 +168,7 @@ export class NodeFileSystem implements IFileSystem {
   public readdirSync(path: string): readonly string[];
   public readdirSync(path: string, withFileTypes: true): readonly Dirent[];
   public readdirSync(path: string, withFileTypes?: true): readonly string[] | readonly Dirent[] {
-    this.logger.debug(`readdirSync(path: ${path}, withFileTypes: ${withFileTypes})`);
+    this.logger.trace(`readdirSync(path: ${path}, withFileTypes: ${withFileTypes})`);
 
     if (withFileTypes === true) {
       return readdirSync(path, { withFileTypes: true });
@@ -178,19 +178,19 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public mkdir(path: string): Promise<void> {
-    this.logger.debug(`mkdir(path: ${path})`);
+    this.logger.trace(`mkdir(path: ${path})`);
 
     return mkdir(path, { recursive: true });
   }
 
   public mkdirSync(path: string): void {
-    this.logger.debug(`mkdirSync(path: ${path})`);
+    this.logger.trace(`mkdirSync(path: ${path})`);
 
     mkdirSync(path, { recursive: true });
   }
 
   public async fileExists(path: string): Promise<boolean> {
-    this.logger.debug(`fileExists(path: ${path})`);
+    this.logger.trace(`fileExists(path: ${path})`);
 
     try {
       return (await stat(path)).isFile();
@@ -200,7 +200,7 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public fileExistsSync(path: string): boolean {
-    this.logger.debug(`fileExistsSync(path: ${path})`);
+    this.logger.trace(`fileExistsSync(path: ${path})`);
 
     try {
       return statSync(path).isFile();
@@ -210,43 +210,43 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public stat(path: string): Promise<Stats> {
-    this.logger.debug(`stat(path: ${path})`);
+    this.logger.trace(`stat(path: ${path})`);
 
     return stat(path);
   }
 
   public statSync(path: string): Stats {
-    this.logger.debug(`statSync(path: ${path})`);
+    this.logger.trace(`statSync(path: ${path})`);
 
     return statSync(path);
   }
 
   public lstat(path: string): Promise<Stats> {
-    this.logger.debug(`lstat(path: ${path})`);
+    this.logger.trace(`lstat(path: ${path})`);
 
     return lstat(path);
   }
 
   public lstatSync(path: string): Stats {
-    this.logger.debug(`lstatSync(path: ${path})`);
+    this.logger.trace(`lstatSync(path: ${path})`);
 
     return lstatSync(path);
   }
 
   public readFile(path: string, encoding: Encoding): Promise<string> {
-    this.logger.debug(`readFile(path: ${path}, encoding: ${encoding})`);
+    this.logger.trace(`readFile(path: ${path}, encoding: ${encoding})`);
 
     return readFile(path, { encoding }) as Promise<string>;
   }
 
   public readFileSync(path: string, encoding: Encoding): string {
-    this.logger.debug(`readFileSync(path: ${path}, encoding: ${encoding})`);
+    this.logger.trace(`readFileSync(path: ${path}, encoding: ${encoding})`);
 
     return readFileSync(path, encoding);
   }
 
   public async ensureDir(path: string): Promise<void> {
-    this.logger.debug(`ensureDir(path: ${path})`);
+    this.logger.trace(`ensureDir(path: ${path})`);
 
     if (await new Promise<boolean>(res => { exists(path, res); })) {
       return;
@@ -256,7 +256,7 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public ensureDirSync(path: string): void {
-    this.logger.debug(`ensureDirSync(path: ${path})`);
+    this.logger.trace(`ensureDirSync(path: ${path})`);
 
     if (existsSync(path)) {
       return;
@@ -266,7 +266,7 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public async writeFile(path: string, content: string, encoding: Encoding): Promise<void> {
-    this.logger.debug(`writeFile(path: ${path}, content: ${content}, encoding: ${encoding})`);
+    this.logger.trace(`writeFile(path: ${path}, content: ${content}, encoding: ${encoding})`);
 
     await this.ensureDir(dirname(path));
 
@@ -274,7 +274,7 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public writeFileSync(path: string, content: string, encoding: Encoding): void {
-    this.logger.debug(`readFileSync(path: ${path}, content: ${content}, encoding: ${encoding})`);
+    this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${encoding})`);
 
     this.ensureDirSync(dirname(path));
 
@@ -282,7 +282,7 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public async rimraf(path: string): Promise<void> {
-    this.logger.debug(`rimraf(path: ${path})`);
+    this.logger.trace(`rimraf(path: ${path})`);
 
     try {
       const stats = await lstat(path);

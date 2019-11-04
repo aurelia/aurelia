@@ -29,9 +29,9 @@ export class PatternMatcher {
     for (let i = 0; i < len; ++i) {
       match = sources[i].findMatch(files, specifier);
       if (match === null) {
-        this.logger.debug(`Source pattern "${sources[i].pattern}" (path "${sources[i].patternPath}") is NOT a match for specifier "${specifier}"`);
+        this.logger.trace(`Source pattern "${sources[i].pattern}" (path "${sources[i].patternPath}") is NOT a match for specifier "${specifier}"`);
       } else {
-        this.logger.info(`Source pattern "${sources[i].pattern}" is a match for specifier "${specifier}"`);
+        this.logger.debug(`Source pattern "${sources[i].pattern}" is a match for specifier "${specifier}"`);
         return match;
       }
     }

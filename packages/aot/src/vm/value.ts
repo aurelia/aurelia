@@ -1041,6 +1041,47 @@ export class $ECMAScriptFunction<
     // 5. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
     return this.FunctionInitialize(F, kind, node, Scope);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-makeconstructor
+  public MakeConstructor(writablePrototype?: $Boolean, prototype?: $Object): void {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const F = this;
+
+    // 1. Assert: F is an ECMAScript function object.
+    // 2. Assert: IsConstructor(F) is true.
+    // 3. Assert: F is an extensible object that does not have a prototype own property.
+    // 4. If writablePrototype is not present, set writablePrototype to true.
+    if (writablePrototype === void 0) {
+      writablePrototype = intrinsics.true;
+    }
+
+    // 5. If prototype is not present, then
+    if (prototype === void 0) {
+      // 5. a. Set prototype to ObjectCreate(%ObjectPrototype%).
+      prototype = $Object.ObjectCreate('constructor', intrinsics['%ObjectPrototype%']);
+
+      // 5. b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+      const Desc = new $PropertyDescriptor(realm, intrinsics.$constructor);
+      Desc['[[Value]]'] = F;
+      Desc['[[Writable]]'] = writablePrototype;
+      Desc['[[Enumerable]]'] = intrinsics.false;
+      Desc['[[Configurable]]'] = intrinsics.true;
+
+      $DefinePropertyOrThrow(prototype, intrinsics.$constructor, Desc);
+    }
+
+    // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
+    const Desc = new $PropertyDescriptor(realm, intrinsics.$prototype);
+    Desc['[[Value]]'] = prototype;
+    Desc['[[Writable]]'] = writablePrototype;
+    Desc['[[Enumerable]]'] = intrinsics.false;
+    Desc['[[Configurable]]'] = intrinsics.false;
+
+    $DefinePropertyOrThrow(F, intrinsics.$prototype, Desc);
+
+    // 7. Return NormalCompletion(undefined).
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects

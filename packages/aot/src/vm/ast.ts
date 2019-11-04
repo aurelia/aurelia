@@ -1078,6 +1078,9 @@ export class $VariableStatement implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   public readonly ModuleRequests: readonly $String[];
 
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
   public constructor(
     public readonly node: VariableStatement,
     public readonly parent: $NodeWithStatements,
@@ -1253,6 +1256,9 @@ export class $FunctionDeclaration implements I$Node {
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   public readonly ModuleRequests: readonly $String[] = emptyArray;
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
 
   public constructor(
     public readonly node: FunctionDeclaration,
@@ -1526,6 +1532,9 @@ export class $ClassDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   public readonly ModuleRequests: readonly $String[];
 
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
   public constructor(
     public readonly node: ClassDeclaration,
     public readonly parent: $NodeWithStatements,
@@ -1654,9 +1663,16 @@ export class $InterfaceDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
-  // Stubbed for static semantics
+  public readonly BoundNames: readonly [$String];
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public readonly ExportedBindings: readonly $String[];
+  public readonly ExportedNames: readonly $String[];
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+
+  public readonly TypeDeclarations: readonly [$InterfaceDeclaration];
+  public readonly IsType: true = true;
 
   public readonly $name: $Identifier;
   public readonly $heritageClauses: readonly $HeritageClause[];
@@ -1669,13 +1685,41 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     ctx = clearBit(ctx, Context.InTopLevel) | Context.InTypeElement;
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+      ctx |= Context.InExport;
+    }
+
+    const $name = this.$name = $identifier(node.name, this, ctx);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
+
+    const BoundNames = this.BoundNames = $name.BoundNames;
+    this.TypeDeclarations = [this];
+
+    if (hasBit(ctx, Context.InExport)) {
+      const [localName] = BoundNames;
+
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
+        new ExportEntryRecord(
+          /* source */this,
+          /* ExportName */localName,
+          /* ModuleRequest */intrinsics.null,
+          /* ImportName */intrinsics.null,
+          /* LocalName */localName,
+        ),
+      ];
+    } else {
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+    }
   }
 }
 
@@ -1685,9 +1729,16 @@ export class $TypeAliasDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
-  // Stubbed for static semantics
+  public readonly BoundNames: readonly [$String];
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public readonly ExportedBindings: readonly $String[];
+  public readonly ExportedNames: readonly $String[];
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+
+  public readonly TypeDeclarations: readonly [$TypeAliasDeclaration];
+  public readonly IsType: true = true;
 
   public readonly $name: $Identifier;
 
@@ -1699,12 +1750,40 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
 
     ctx = clearBit(ctx, Context.InTopLevel) | Context.InTypeElement;
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+      ctx |= Context.InExport;
+    }
+
+    const $name = this.$name = $identifier(node.name, this, ctx);
+
+    const BoundNames = this.BoundNames = $name.BoundNames;
+    this.TypeDeclarations = [this];
+
+    if (hasBit(ctx, Context.InExport)) {
+      const [localName] = BoundNames;
+
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
+        new ExportEntryRecord(
+          /* source */this,
+          /* ExportName */localName,
+          /* ModuleRequest */intrinsics.null,
+          /* ImportName */intrinsics.null,
+          /* LocalName */localName,
+        ),
+      ];
+    } else {
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+    }
   }
 }
 
@@ -1731,9 +1810,16 @@ export class $EnumDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
-  // Stubbed for static semantics
+  public readonly BoundNames: readonly [$String];
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public readonly ExportedBindings: readonly $String[];
+  public readonly ExportedNames: readonly $String[];
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+
+  public readonly TypeDeclarations: readonly [$EnumDeclaration];
+  public readonly IsType: true = true;
 
   public readonly $name: $Identifier;
   public readonly $members: readonly $EnumMember[];
@@ -1748,11 +1834,39 @@ export class $EnumDeclaration implements I$Node {
     this.id = realm.registerNode(this);
 
     ctx = clearBit(ctx, Context.InTopLevel);
+    const intrinsics = realm['[[Intrinsics]]'];
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+      ctx |= Context.InExport;
+    }
+
+    const $name = this.$name = $identifier(node.name, this, ctx);
     this.$members = $enumMemberList(node.members, this, ctx);
+
+    const BoundNames = this.BoundNames = $name.BoundNames;
+    this.TypeDeclarations = [this];
+
+    if (hasBit(ctx, Context.InExport)) {
+      const [localName] = BoundNames;
+
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
+        new ExportEntryRecord(
+          /* source */this,
+          /* ExportName */localName,
+          /* ModuleRequest */intrinsics.null,
+          /* ImportName */intrinsics.null,
+          /* LocalName */localName,
+        ),
+      ];
+    } else {
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+    }
   }
 }
 
@@ -2358,6 +2472,9 @@ export class $FunctionExpression implements I$Node {
 
   public readonly DirectivePrologue: DirectivePrologue;
 
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
   public constructor(
     public readonly node: FunctionExpression,
     public readonly parent: $AnyParentNode,
@@ -2844,6 +2961,9 @@ export class $ArrowFunction implements I$Node {
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly DirectivePrologue: DirectivePrologue;
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
 
   public constructor(
     public readonly node: ArrowFunction,
@@ -3860,6 +3980,9 @@ export class $SourceFile implements I$Node, IModule {
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
 
   public Status: ModuleStatus;
   public DFSIndex: number | undefined;
@@ -4978,7 +5101,7 @@ export class $NamespaceImport implements I$Node {
  */
 export class ExportEntryRecord {
   public constructor(
-    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $SourceFile,
+    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $SourceFile | $TypeAliasDeclaration | $InterfaceDeclaration | $EnumDeclaration,
     public readonly ExportName: $String | $Null,
     public readonly ModuleRequest: $String | $Null,
     public readonly ImportName: $String | $Null,
@@ -5039,6 +5162,9 @@ export class $ExportDeclaration implements I$Node {
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   public readonly ModuleRequests: readonly $String[];
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
 
   public constructor(
     public readonly node: ExportDeclaration,
@@ -5748,6 +5874,9 @@ export class $Block implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
   public constructor(
     public readonly node: Block,
     public readonly parent: $NodeWithStatements,
@@ -6228,6 +6357,9 @@ export class $LabeledStatement implements I$Node {
   public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
 
   public constructor(
     public readonly node: LabeledStatement,

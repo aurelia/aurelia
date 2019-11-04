@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean, $Number } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
 const {
@@ -3601,6 +3601,8 @@ export class $NumericLiteral implements I$Node {
   public readonly $kind = SyntaxKind.NumericLiteral;
   public readonly id: number;
 
+  public readonly Value: $Number;
+
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
   public readonly PropName: $String;
 
@@ -3625,7 +3627,15 @@ export class $NumericLiteral implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    this.PropName = new $String(realm, Number(node.text).toString(), this);
+    const num = Number(node.text);
+    this.PropName = new $String(realm, num.toString(), this);
+    this.Value = new $Number(realm, num, this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  public Evaluate(): $Number {
+    // 1. Return the number whose value is MV of NumericLiteral as defined in 11.8.3.
+    return this.Value;
   }
 }
 

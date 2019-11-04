@@ -274,6 +274,7 @@ export class $Number<T extends number = number> {
   public constructor(
     public readonly realm: Realm,
     public readonly value: T,
+    public readonly sourceNode: $NumericLiteral | null = null,
   ) {}
 
   public is(other: $Any): other is $Number<T> {

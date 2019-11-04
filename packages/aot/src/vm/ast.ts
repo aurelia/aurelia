@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
 const {
@@ -3781,6 +3781,8 @@ export class $BooleanLiteral implements I$Node {
   public readonly $kind: SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword;
   public readonly id: number;
 
+  public readonly Value: $Boolean;
+
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   public readonly CoveredParenthesizedExpression: $BooleanLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
@@ -3802,6 +3804,17 @@ export class $BooleanLiteral implements I$Node {
   ) {
     this.id = realm.registerNode(this);
     this.$kind = node.kind;
+
+    this.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  public Evaluate(): $Boolean {
+    // Literal : BooleanLiteral
+
+    // 1. If BooleanLiteral is the token false, return false.
+    // 2. If BooleanLiteral is the token true, return true.
+    return this.Value;
   }
 }
 

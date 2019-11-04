@@ -42,10 +42,23 @@ export class $DeclarativeEnvRec {
 
   public readonly bindings: Map<string, $Binding> = new Map();
 
+  // Everything is false because an environment record should not appear like any kind of normal ES value.
+  public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): false { return false; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): false { return false; }
+  public get isObject(): false { return false; }
+  public get isFunction(): false { return false; }
+
   // http://www.ecma-international.org/ecma-262/#sec-newdeclarativeenvironment
   public constructor(
     public readonly realm: Realm,
-    public readonly outer: $EnvRec | null,
+    public readonly outer: $EnvRec | $Null,
   ) {
     // 1. Let env be a new Lexical Environment.
     // 2. Let envRec be a new declarative Environment Record containing no bindings.
@@ -261,10 +274,23 @@ export class $ObjectEnvRec {
 
   public withEnvironment: boolean = false;
 
+  // Everything is false because an environment record should not appear like any kind of normal ES value.
+  public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): false { return false; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): false { return false; }
+  public get isObject(): false { return false; }
+  public get isFunction(): false { return false; }
+
   // http://www.ecma-international.org/ecma-262/#sec-newobjectenvironment
   public constructor(
     public readonly realm: Realm,
-    public readonly outer: $EnvRec | null,
+    public readonly outer: $EnvRec | $Null,
     public readonly bindingObject: $Object,
   ) {
     // 1. Let env be a new Lexical Environment.
@@ -453,6 +479,19 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   public '[[HomeObject]]': $Object | $Undefined;
   public '[[NewTarget]]': $Object | $Undefined;
 
+  // Everything is false because an environment record should not appear like any kind of normal ES value.
+  public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): false { return false; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): false { return false; }
+  public get isObject(): false { return false; }
+  public get isFunction(): false { return false; }
+
   // http://www.ecma-international.org/ecma-262/#sec-newfunctionenvironment
   public constructor(
     realm: Realm,
@@ -597,18 +636,35 @@ export class $GlobalEnvRec {
   public '[[DeclarativeRecord]]': $DeclarativeEnvRec;
   public '[[VarNames]]': string[];
 
+  public readonly outer: $Null;
+
+  // Everything is false because an environment record should not appear like any kind of normal ES value.
+  public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): false { return false; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): false { return false; }
+  public get isObject(): false { return false; }
+  public get isFunction(): false { return false; }
+
   // http://www.ecma-international.org/ecma-262/#sec-newglobalenvironment
   public constructor(
     public readonly realm: Realm,
     G: $Object,
     thisValue: $Object,
   ) {
+    this.outer = realm['[[Intrinsics]]'].null;
+
     // 1. Let env be a new Lexical Environment.
     // 2. Let objRec be a new object Environment Record containing G as the binding object.
-    const objRec = new $ObjectEnvRec(realm, null, G);
+    const objRec = new $ObjectEnvRec(realm, realm['[[Intrinsics]]'].null, G);
 
     // 3. Let dclRec be a new declarative Environment Record containing no bindings.
-    const dclRec = new $DeclarativeEnvRec(realm, null);
+    const dclRec = new $DeclarativeEnvRec(realm, realm['[[Intrinsics]]'].null);
 
     // 4. Let globalRec be a new global Environment Record.
     const globalRec = this;
@@ -1087,7 +1143,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean<true>): $Any {
+  public GetBindingValue(N: $String, S: $Boolean): $Any {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Assert: S is true.

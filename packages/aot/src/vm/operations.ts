@@ -1,7 +1,8 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
+import { $EnvRec } from './environment';
 
 export type CallableFunction = (
   thisArgument: $Any,
@@ -455,4 +456,36 @@ export function $SetImmutablePrototype(O: $Object, V: $Object | $Null): $Boolean
 
   // 4. Return false.
   return intrinsics.false;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-getidentifierreference
+export function $GetIdentifierReference(lex: $EnvRec | $Null, name: $String, strict: $Boolean): $Reference {
+  const realm = lex.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If lex is the value null, then
+  if (lex.isNull) {
+    // 1. a. Return a value of type Reference whose base value component is undefined, whose referenced name component is name, and whose strict reference flag is strict.
+    return new $Reference(realm, intrinsics.undefined, name, strict, intrinsics.undefined);
+  }
+
+  // 2. Let envRec be lex's EnvironmentRecord.
+  const envRec = lex;
+
+  // 3. Let exists be ? envRec.HasBinding(name).
+  const exists = envRec.HasBinding(name);
+
+  // 4. If exists is true, then
+  if (exists.isTruthy) {
+    // 4. a. Return a value of type Reference whose base value component is envRec, whose referenced name component is name, and whose strict reference flag is strict.
+    return new $Reference(realm, envRec, name, strict, intrinsics.undefined);
+  }
+  // 5. Else,
+  else {
+    // 5. a. Let outer be the value of lex's outer environment reference.
+    const outer = lex.outer;
+
+    // 5. b. Return ? GetIdentifierReference(outer, name, strict).
+    return $GetIdentifierReference(outer, name, strict);
+  }
 }

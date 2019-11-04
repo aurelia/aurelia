@@ -9,9 +9,9 @@ import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../s
 import { dirname } from 'path';
 import { Intrinsics } from './intrinsics';
 import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec } from './environment';
-import { $Undefined, $Object, $Function, $Null, $String } from './value';
+import { $Undefined, $Object, $Function, $Null, $String, $Reference } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $DefinePropertyOrThrow } from './operations';
+import { $DefinePropertyOrThrow, $GetIdentifierReference } from './operations';
 import { JSDOM } from 'jsdom';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
@@ -419,6 +419,22 @@ export class Realm {
 
     // We're throwing here for now. Not sure in which scenario this could be null that would not throw at some point.
     throw new Error(`GetActiveScriptOrModule: stack has no execution context with an active module`);
+  }
+
+// http://www.ecma-international.org/ecma-262/#sec-resolvebinding
+  public ResolveBinding(name: $String, env?: $EnvRec): $Reference {
+    // 1. If env is not present or if env is undefined, then
+    if (env === void 0) {
+      // 1. a. Set env to the running execution context's LexicalEnvironment.
+      env = this.stack.top.LexicalEnvironment;
+    }
+
+    // 2. Assert: env is a Lexical Environment.
+    // 3. If the code matching the syntactic production that is being evaluated is contained in strict mode code, let strict be true, else let strict be false.
+    const strict = this['[[Intrinsics]]'].true; // TODO: pass strict mode from source node
+
+    // 4. Return ? GetIdentifierReference(env, name, strict).
+    return $GetIdentifierReference(env, name, strict);
   }
 
   public registerNode(node: I$Node): number {

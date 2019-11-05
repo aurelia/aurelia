@@ -586,12 +586,12 @@ export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $A
   }
 
   // 4. j. If ny is +∞, return true.
-  if (nx.isPositiveInfinity) {
+  if (ny.isPositiveInfinity) {
     return intrinsics.true;
   }
 
   // 4. k. If ny is -∞, return false.
-  if (nx.isNegativeInfinity) {
+  if (ny.isNegativeInfinity) {
     return intrinsics.false;
   }
 

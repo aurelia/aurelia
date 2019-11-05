@@ -1188,26 +1188,36 @@ describe('Router', function () {
     const Parent2 = CustomElement.define({ name: 'parent2', template: '!parent2!<au-viewport name="parent2"></au-viewport>' }, class {
       public static routes = [
         { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
+        // { path: ':id', instructions: [{ component: 'child', viewport: 'parent' }] },
       ];
     });
-    const Child = CustomElement.define({ name: 'child', template: '!child!<au-viewport name="child"></au-viewport>' }, class {
+    const Child = CustomElement.define({ name: 'child', template: '!child${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>' }, class {
       public static routes = [
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
       ];
+      public param: string;
+      public enter(params) {
+        if (params.id !== void 0) {
+          this.param = params.id;
+        }
+      }
     });
-    const Child2 = CustomElement.define({ name: 'child2', template: '!child2!<au-viewport name="child2"></au-viewport>' }, class {
+    const Child2 = CustomElement.define({ name: 'child2', template: '!child2${param ? ":" + param : ""}!<au-viewport name="child2"></au-viewport>' }, class {
       public static routes = [
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
       ];
+      public static parameters = ['id'];
+      public param: string;
+      public enter(params) {
+        if (params.id !== void 0) {
+          this.param = params.id;
+        }
+      }
     });
 
     const Grandchild = CustomElement.define({ name: 'grandchild', template: '!grandchild!' });
     const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
 
-    // const { scheduler, container, host, router, $teardown } = await $setup(void 0,
-    //   [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
-    //   [{ path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }]
-    // );
     let scheduler, container, host, router, $teardown, App;
     before(async function () {
       ({ scheduler, container, host, router, $teardown, App } = await $setup(void 0,
@@ -1215,8 +1225,11 @@ describe('Router', function () {
         [
           { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
           { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
+          { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
           { path: 'parent-config/child2', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
           { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+          // { path: 'parent-config/child2(abc)', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
+          // { path: 'parent-config/child2(abc)@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
         ]
       ));
     });
@@ -1244,18 +1257,23 @@ describe('Router', function () {
       { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!' },
 
 
+      { path: '/parent-config/abc', result: '!parent!!child:abc!' },
+      { path: '/parent2@default/child2(abc)@parent2', result: '!parent2!!child2:abc!' },
 
-      // { path: '/parent-config/abc/grandchild-config', result: '!parent!!child!!grandchild!' },
-      // { path: '/parent2/child2(abc)/grandchild2', result: '!parent2!!child2!!grandchild2!' },
+      // { path: '/parent-config/child2(abc)@parent', result: '!parent!!child2:abc!' },
+      // { path: '/parent2@default/abc', result: '!parent2!!child:abc!' },
 
-      // { path: '/parent-config/abc/grandchild2', result: '!parent!!child!!grandchild2!' },
-      // { path: '/parent2/child2(abc)/grandchild-config', result: '!parent2!!child2!!grandchild!' },
+      { path: '/parent-config/abc/grandchild-config', result: '!parent!!child:abc!!grandchild!' },
+      { path: '/parent2@default/child2(abc)@parent2/grandchild2@child2', result: '!parent2!!child2:abc!!grandchild2!' },
 
-      // { path: '/parent-config/child2(abc)/grandchild-config', result: '!parent!!child2!!grandchild!' },
-      // { path: '/parent2/abc/grandchild2', result: '!parent2!!child!!grandchild2!' },
+      { path: '/parent-config/abc/grandchild2@child', result: '!parent!!child:abc!!grandchild2!' },
+      { path: '/parent2@default/child2(abc)@parent2/grandchild-config', result: '!parent2!!child2:abc!!grandchild!' },
 
-      // { path: '/parent-config/child2(abc)/grandchild2', result: '!parent!!child2!!grandchild2!' },
-      // { path: '/parent2/abc/grandchild-config', result: '!parent2!!child!!grandchild!' },
+      // { path: '/parent-config/child2(abc)@parent/grandchild-config', result: '!parent!!child2:abc!!grandchild!' },
+      // { path: '/parent2@default/abc/grandchild2@child', result: '!parent2!!child:abc!!grandchild2!' },
+
+      // { path: '/parent-config/child2(abc)@parent/grandchild2@child2', result: '!parent!!child2:abc!!grandchild2!' },
+      // { path: '/parent2@default/abc/grandchild-config', result: '!parent2!!child:abc!!grandchild!' },
     ];
 
     for (const test of tests) {

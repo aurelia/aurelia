@@ -3060,7 +3060,7 @@ export class $ParenthesizedExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $Any | $Reference {
     // PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList
 
     // 1. Let expr be CoveredParenthesizedExpression of CoverParenthesizedExpressionAndArrowParameterList.
@@ -3069,7 +3069,7 @@ export class $ParenthesizedExpression implements I$Node {
     // ParenthesizedExpression : ( Expression )
 
     // 1. Return the result of evaluating Expression. This may be of type Reference.
-    return null as any; // TODO: implement this
+    return this.$expression.Evaluate();
   }
 }
 

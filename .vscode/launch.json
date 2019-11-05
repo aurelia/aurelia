@@ -53,6 +53,14 @@
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Run AOT",
+        "cwd": "${workspaceFolder}",
+        "program": "${workspaceFolder}\\packages\\aot\\dist\\esnext\\index.js",
+        "runtimeArgs": ["-r", "esm"]
     }
   ]
 }

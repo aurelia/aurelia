@@ -449,15 +449,17 @@ export class Viewport {
       const instruction = viewportInstructions[i];
       instruction.needsViewportDescribed = true;
       for (const name in availableViewports) {
-        const viewport: Viewport | null = availableViewports[name];
-        // TODO: Also check if (resolved) component wants a specific viewport
-        if (viewport && viewport.wantComponent(instruction.componentName as string)) {
-          const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
-          foundViewports.push(instruction);
-          remainingInstructions.push(...remaining);
-          availableViewports[name] = null;
-          viewportInstructions.splice(i--, 1);
-          break;
+        if (availableViewports.hasOwnProperty(name)) {
+          const viewport: Viewport | null = availableViewports[name];
+          // TODO: Also check if (resolved) component wants a specific viewport
+          if (viewport && viewport.wantComponent(instruction.componentName as string)) {
+            const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
+            foundViewports.push(instruction);
+            remainingInstructions.push(...remaining);
+            availableViewports[name] = null;
+            viewportInstructions.splice(i--, 1);
+            break;
+          }
         }
       }
     }
@@ -491,9 +493,11 @@ export class Viewport {
       const instruction = viewportInstructions[i];
       const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
-        const viewport: Viewport | null = availableViewports[name];
-        if (viewport && viewport.acceptComponent(instruction.componentName as string)) {
-          remainingViewports.push(viewport);
+        if (availableViewports.hasOwnProperty(name)) {
+          const viewport: Viewport | null = availableViewports[name];
+          if (viewport && viewport.acceptComponent(instruction.componentName as string)) {
+            remainingViewports.push(viewport);
+          }
         }
       }
       if (remainingViewports.length === 1) {
@@ -584,30 +588,6 @@ export class Viewport {
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
-    // let viewports: Viewport[] = [];
-    // if (includeReplaced || this.nextContent === null) {
-    //   viewports.push(...this.children.filter((viewport) => viewport.enabled || includeDisabled));
-    // }
-    // if (this.nextContent !== null) {
-    //   viewports.push(...this.router.instructionResolver
-    //     .flattenViewportInstructions([this.nextContent.content])
-    //     .filter(instruction => instruction.viewport !== null)
-    //     .map(instruction => instruction.viewport) as Viewport[]);
-    // }
-
-    // let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
-    // if (!includeReplaced && this.nextContent !== null) {
-    //   const nextViewports: Viewport[] = this.router.instructionResolver
-    //     .flattenViewportInstructions([this.nextContent.content])
-    //     .filter(instruction => instruction.viewport !== null)
-    //     .map(instruction => instruction.viewport) as Viewport[];
-    //   let replacedViewports: Viewport[] = (this.router.instructionResolver
-    //     .flattenViewportInstructions([this.content.content]) as ViewportInstruction[])
-    //     .filter(instruction => instruction.viewport !== null)
-    //     .map(instruction => instruction.viewport) as Viewport[];
-    //   replacedViewports = replacedViewports.filter(replaced => !nextViewports.includes(replaced));
-    //   viewports = viewports.filter(viewport => !replacedViewports.includes(viewport));
-    // }
     for (const scope of viewports) {
       viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
     }

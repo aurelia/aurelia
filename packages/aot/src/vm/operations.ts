@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference, $Primitive } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 
@@ -488,4 +488,104 @@ export function $GetIdentifierReference(lex: $EnvRec | $Null, name: $String, str
     // 5. b. Return ? GetIdentifierReference(outer, name, strict).
     return $GetIdentifierReference(outer, name, strict);
   }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-abstract-relational-comparison
+export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $Any): $Boolean | $Undefined {
+  const realm = x.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  let px: $Primitive;
+  let py: $Primitive;
+
+  // 1. If the LeftFirst flag is true, then
+  if (leftFirst) {
+    // 1. a. Let px be ? ToPrimitive(x, hint Number).
+    px = x.ToPrimitive('number');
+
+    // 1. b. Let py be ? ToPrimitive(y, hint Number).
+    py = y.ToPrimitive('number');
+  }
+  // 2. Else the order of evaluation needs to be reversed to preserve left to right evaluation,
+  else {
+    // 2. a. Let py be ? ToPrimitive(y, hint Number).
+    py = y.ToPrimitive('number');
+
+    // 2. b. Let px be ? ToPrimitive(x, hint Number).
+    px = x.ToPrimitive('number');
+  }
+
+  // 3. If Type(px) is String and Type(py) is String, then
+  if (px.isString && py.isString) {
+    // 3. a. If IsStringPrefix(py, px) is true, return false.
+    // 3. b. If IsStringPrefix(px, py) is true, return true.
+    // 3. c. Let k be the smallest nonnegative integer such that the code unit at index k within px is different from the code unit at index k within py. (There must be such a k, for neither String is a prefix of the other.)
+    // 3. d. Let m be the integer that is the numeric value of the code unit at index k within px.
+    // 3. e. Let n be the integer that is the numeric value of the code unit at index k within py.
+    // 3. f. If m < n, return true. Otherwise, return false.
+    if (px.value < py.value) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+  // 4. Else,
+  // 4. a. NOTE: Because px and py are primitive values evaluation order is not important.
+  // 4. b. Let nx be ? ToNumber(px).
+  const nx = px.ToNumber();
+
+  // 4. c. Let ny be ? ToNumber(py).
+  const ny = py.ToNumber();
+
+  // 4. d. If nx is NaN, return undefined.
+  if (nx.isNaN) {
+    return intrinsics.undefined;
+  }
+
+  // 4. e. If ny is NaN, return undefined.
+  if (ny.isNaN) {
+    return intrinsics.undefined;
+  }
+
+  // 4. f. If nx and ny are the same Number value, return false.
+  if (nx.equals(ny)) {
+    return intrinsics.false;
+  }
+
+  // 4. g. If nx is +0 and ny is -0, return false.
+  if (nx.isPositiveZero && ny.isNegativeZero) {
+    return intrinsics.false;
+  }
+
+  // 4. h. If nx is -0 and ny is +0, return false.
+  if (nx.isNegativeZero && ny.isPositiveZero) {
+    return intrinsics.false;
+  }
+
+  // 4. i. If nx is +∞, return false.
+  if (nx.isPositiveInfinity) {
+    return intrinsics.false;
+  }
+
+  // 4. j. If ny is +∞, return true.
+  if (nx.isPositiveInfinity) {
+    return intrinsics.true;
+  }
+
+  // 4. k. If ny is -∞, return false.
+  if (nx.isNegativeInfinity) {
+    return intrinsics.false;
+  }
+
+  // 4. l. If nx is -∞, return true.
+  if (nx.isNegativeInfinity) {
+    return intrinsics.true;
+  }
+
+  // 4. m. If the mathematical value of nx is less than the mathematical value of ny—note that these mathematical values are both finite and not both zero—return true. Otherwise, return false.
+  if ((px.value as number) < (py.value as number)) {
+    return intrinsics.true;
+  }
+
+  return intrinsics.false;
 }

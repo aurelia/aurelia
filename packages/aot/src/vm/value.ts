@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set, $Get } from './operations';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set, $Get, $Construct } from './operations';
 import { $EnvRec } from './environment';
 import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction, $BooleanLiteral, $NullLiteral } from './ast';
 import { SyntaxKind } from 'typescript';
@@ -24,7 +24,8 @@ export type $Any = (
   $Empty |
   $Primitive |
   $Object |
-  $Function
+  $Function |
+  $BoundFunctionExoticObject
 );
 
 export type $PropertyKey = (
@@ -57,6 +58,7 @@ export class $SpeculativeValue {
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): false { return false; }
   public get isSpeculative(): true { return true; }
@@ -146,6 +148,7 @@ export class $Empty {
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
@@ -283,6 +286,7 @@ export class $Undefined {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
@@ -420,6 +424,7 @@ export class $Null {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
@@ -555,6 +560,7 @@ export class $Boolean<T extends boolean = boolean> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): T { return this.value; }
   public get isFalsey(): T extends true ? false : true { return !this.value as T extends true ? false : true; }
   public get isSpeculative(): false { return false; }
@@ -687,6 +693,7 @@ export class $String<T extends string = string> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value.length > 0; }
   public get isFalsey(): boolean { return this.value.length === 0; }
   public get isSpeculative(): false { return false; }
@@ -819,6 +826,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): true { return true; }
   public get isFalsey(): false { return false; }
   public get isSpeculative(): false { return false; }
@@ -961,6 +969,7 @@ export class $Number<T extends number = number> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value !== 0 && !isNaN(this.value); }
   public get isFalsey(): boolean { return this.value === 0 || isNaN(this.value); }
   public get isSpeculative(): false { return false; }
@@ -1103,6 +1112,7 @@ export class $Object<
   public get isPrimitive(): false { return false; }
   public get isObject(): true { return true; }
   public get isFunction(): boolean { return false; }
+  public get isBoundFunction(): boolean { return false; }
   public get isTruthy(): true { return true; }
   public get isFalsey(): false { return false; }
   public get isSpeculative(): false { return false; }
@@ -1863,6 +1873,95 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
+export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
+  public '[[BoundTargetFunction]]': $Function;
+  public '[[BoundThis]]': $Any;
+  public '[[BoundArguments]]': $Any[];
+
+  public get isBoundFunction(): true { return true; }
+
+  // http://www.ecma-international.org/ecma-262/#sec-boundfunctioncreate
+  public constructor(
+    realm: Realm,
+    targetFunction: $Function,
+    boundThis: $Any,
+    boundArgs: $Any[],
+  ) {
+    // 1. Assert: Type(targetFunction) is Object.
+    // 2. Let proto be ? targetFunction.[[GetPrototypeOf]]().
+    // 3. Let obj be a newly created object.
+    // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 9.1.
+    // 5. Set obj.[[Call]] as described in 9.4.1.1.
+    // 6. If IsConstructor(targetFunction) is true, then
+    // 6. a. Set obj.[[Construct]] as described in 9.4.1.2.
+    // 7. Set obj.[[Prototype]] to proto.
+    super(realm, 'BoundFunctionExoticObject', targetFunction['[[GetPrototypeOf]]']());
+
+    // 8. Set obj.[[Extensible]] to true.
+    // 9. Set obj.[[BoundTargetFunction]] to targetFunction.
+    this['[[BoundTargetFunction]]'] = targetFunction;
+
+    // 10. Set obj.[[BoundThis]] to boundThis.
+    this['[[BoundThis]]'] = boundThis;
+
+    // 11. Set obj.[[BoundArguments]] to boundArgs.
+    this['[[BoundArguments]]'] = boundArgs;
+
+    // 12. Return obj.
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
+  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+    const F = this;
+
+    // 1. Let target be F.[[BoundTargetFunction]].
+    const target = F['[[BoundTargetFunction]]'];
+
+    // 2. Let boundThis be F.[[BoundThis]].
+    const boundThis = F['[[BoundThis]]'];
+
+    // 3. Let boundArgs be F.[[BoundArguments]].
+    const boundArgs = F['[[BoundArguments]]'];
+
+    // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
+    const args = [
+      ...boundArgs,
+      ...argumentsList,
+    ];
+
+    // 5. Return ? Call(target, boundThis, args).
+    return $Call(target, boundThis, args);
+  }
+
+
+  // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any) {
+    const F = this;
+
+    // 1. Let target be F.[[BoundTargetFunction]].
+    const target = F['[[BoundTargetFunction]]'];
+
+    // 2. Assert: IsConstructor(target) is true.
+    // 3. Let boundArgs be F.[[BoundArguments]].
+    const boundArgs = F['[[BoundArguments]]'];
+
+    // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
+    const args = [
+      ...boundArgs,
+      ...argumentsList,
+    ];
+
+    // 5. If SameValue(F, newTarget) is true, set newTarget to target.
+    if (F.is(newTarget)) {
+      newTarget = target;
+    }
+
+    // 6. Return ? Construct(target, args, newTarget).
+    return $Construct(target, args, newTarget);
+  }
+}
+
 // http://www.ecma-international.org/ecma-262/#table-6
 export class $Function<
   T extends string = string,
@@ -1881,6 +1980,12 @@ export class $Function<
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
   public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+    // TODO
+    return {} as any;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any): $Object {
     // TODO
     return {} as any;
   }

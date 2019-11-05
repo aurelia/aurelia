@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean, $Number } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean, $Number, $Any } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
 const {
@@ -1140,6 +1140,85 @@ export class $VariableStatement implements I$Node {
     }
 
     this.ModuleRequests = emptyArray;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
+
+    // LexicalDeclaration : LetOrConst BindingList ;
+
+    // 1. Let next be the result of evaluating BindingList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return NormalCompletion(empty).
+
+    // BindingList : BindingList , LexicalBinding
+
+    // 1. Let next be the result of evaluating BindingList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return the result of evaluating LexicalBinding.
+
+    // LexicalBinding : BindingIdentifier
+
+    // 1. Let lhs be ResolveBinding(StringValue of BindingIdentifier).
+    // 2. Return InitializeReferencedBinding(lhs, undefined).
+
+    // LexicalBinding : BindingIdentifier Initializer
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ResolveBinding(bindingId).
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 3. a. Let value be the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. Else,
+    // 4. a. Let rhs be the result of evaluating Initializer.
+    // 4. b. Let value be ? GetValue(rhs).
+    // 5. Return InitializeReferencedBinding(lhs, value).
+
+    // LexicalBinding : BindingPattern Initializer
+
+    // 1. Let rhs be the result of evaluating Initializer.
+    // 2. Let value be ? GetValue(rhs).
+    // 3. Let env be the running execution context's LexicalEnvironment.
+    // 4. Return the result of performing BindingInitialization for BindingPattern using value and env as the arguments.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
+
+    // VariableStatement : var VariableDeclarationList ;
+
+    // 1. Let next be the result of evaluating VariableDeclarationList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return NormalCompletion(empty).
+
+    // VariableDeclarationList : VariableDeclarationList , VariableDeclaration
+
+    // 1. Let next be the result of evaluating VariableDeclarationList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return the result of evaluating VariableDeclaration.
+
+    // VariableDeclaration : BindingIdentifier
+
+    // 1. Return NormalCompletion(empty).
+
+    // VariableDeclaration : BindingIdentifier Initializer
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ? ResolveBinding(bindingId).
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 3. a. Let value be the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. Else,
+    // 4. a. Let rhs be the result of evaluating Initializer.
+    // 4. b. Let value be ? GetValue(rhs).
+    // 5. Return ? PutValue(lhs, value).
+
+    // VariableDeclaration : BindingPattern Initializer
+
+    // 1. Let rhs be the result of evaluating Initializer.
+    // 2. Let rval be ? GetValue(rhs).
+    // 3. Return the result of performing BindingInitialization for BindingPattern passing rval and undefined as arguments.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2150,6 +2229,14 @@ export class $ThisExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // PrimaryExpression : this
+
+    // 1. Return ? ResolveThisBinding().
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $SuperExpression implements I$Node {
@@ -2165,6 +2252,40 @@ export class $SuperExpression implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // SuperProperty : super [ Expression ]
+
+    // 1. Let env be GetThisEnvironment().
+    // 2. Let actualThis be ? env.GetThisBinding().
+    // 3. Let propertyNameReference be the result of evaluating Expression.
+    // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
+    // 5. Let propertyKey be ? ToPropertyKey(propertyNameValue).
+    // 6. If the code matched by this SuperProperty is strict mode code, let strict be true, else let strict be false.
+    // 7. Return ? MakeSuperPropertyReference(actualThis, propertyKey, strict).
+
+    // SuperProperty : super . IdentifierName
+
+    // 1. Let env be GetThisEnvironment().
+    // 2. Let actualThis be ? env.GetThisBinding().
+    // 3. Let propertyKey be StringValue of IdentifierName.
+    // 4. If the code matched by this SuperProperty is strict mode code, let strict be true, else let strict be false.
+    // 5. Return ? MakeSuperPropertyReference(actualThis, propertyKey, strict).
+
+    // SuperCall : super Arguments
+
+    // 1. Let newTarget be GetNewTarget().
+    // 2. Assert: Type(newTarget) is Object.
+    // 3. Let func be ? GetSuperConstructor().
+    // 4. Let argList be ArgumentListEvaluation of Arguments.
+    // 5. ReturnIfAbrupt(argList).
+    // 6. Let result be ? Construct(func, argList, newTarget).
+    // 7. Let thisER be GetThisEnvironment().
+    // 8. Return ? thisER.BindThisValue(result).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2242,6 +2363,37 @@ export class $ArrayLiteralExpression implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-array-initializer-runtime-semantics-evaluation
+  public Evaluate(): $Object {
+    // ArrayLiteral : [ Elision opt ]
+
+    // 1. Let array be ! ArrayCreate(0).
+    // 2. Let pad be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
+    // 3. Perform Set(array, "length", ToUint32(pad), false).
+    // 4. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
+    // 5. Return array.
+
+    // ArrayLiteral : [ ElementList ]
+
+    // 1. Let array be ! ArrayCreate(0).
+    // 2. Let len be the result of performing ArrayAccumulation for ElementList with arguments array and 0.
+    // 3. ReturnIfAbrupt(len).
+    // 4. Perform Set(array, "length", ToUint32(len), false).
+    // 5. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
+    // 6. Return array.
+
+    // ArrayLiteral : [ ElementList , Elision opt ]
+
+    // 1. Let array be ! ArrayCreate(0).
+    // 2. Let len be the result of performing ArrayAccumulation for ElementList with arguments array and 0.
+    // 3. ReturnIfAbrupt(len).
+    // 4. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
+    // 5. Perform Set(array, "length", ToUint32(padding + len), false).
+    // 6. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
+    // 7. Return array.
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2324,6 +2476,39 @@ export class $ObjectLiteralExpression implements I$Node {
 
     this.$properties = $$objectLiteralElementLikeList(node.properties, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  public Evaluate(): $Object {
+    // ObjectLiteral : { }
+
+    // 1. Return ObjectCreate(%ObjectPrototype%).
+
+    // ObjectLiteral : { PropertyDefinitionList } { PropertyDefinitionList , }
+
+    // 1. Let obj be ObjectCreate(%ObjectPrototype%).
+    // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with arguments obj and true.
+    // 3. Return obj.
+
+    // LiteralPropertyName : IdentifierName
+
+    // 1. Return StringValue of IdentifierName.
+
+    // LiteralPropertyName : StringLiteral
+
+    // 1. Return the String value whose code units are the SV of the StringLiteral.
+
+    // LiteralPropertyName : NumericLiteral
+
+    // 1. Let nbr be the result of forming the value of the NumericLiteral.
+    // 2. Return ! ToString(nbr).
+
+    // ComputedPropertyName : [ AssignmentExpression ]
+
+    // 1. Let exprValue be the result of evaluating AssignmentExpression.
+    // 2. Let propName be ? GetValue(exprValue).
+    // 3. Return ? ToPropertyKey(propName).
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $PropertyAccessExpression implements I$Node {
@@ -2347,6 +2532,20 @@ export class $PropertyAccessExpression implements I$Node {
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // MemberExpression : MemberExpression . IdentifierName
+
+    // 1. Let baseReference be the result of evaluating MemberExpression.
+    // 2. Let baseValue be ? GetValue(baseReference).
+    // 3. Let bv be ? RequireObjectCoercible(baseValue).
+    // 4. Let propertyNameString be StringValue of IdentifierName.
+    // 5. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
+    // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2372,6 +2571,22 @@ export class $ElementAccessExpression implements I$Node {
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // MemberExpression : MemberExpression [ Expression ]
+
+    // 1. Let baseReference be the result of evaluating MemberExpression.
+    // 2. Let baseValue be ? GetValue(baseReference).
+    // 3. Let propertyNameReference be the result of evaluating Expression.
+    // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
+    // 5. Let bv be ? RequireObjectCoercible(baseValue).
+    // 6. Let propertyKey be ? ToPropertyKey(propertyNameValue).
+    // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
+    // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $CallExpression implements I$Node {
@@ -2396,6 +2611,39 @@ export class $CallExpression implements I$Node {
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // CallExpression : CoverCallExpressionAndAsyncArrowHead
+
+    // 1. Let expr be CoveredCallExpression of CoverCallExpressionAndAsyncArrowHead.
+    // 2. Let memberExpr be the MemberExpression of expr.
+    // 3. Let arguments be the Arguments of expr.
+    // 4. Let ref be the result of evaluating memberExpr.
+    // 5. Let func be ? GetValue(ref).
+    // 6. If Type(ref) is Reference and IsPropertyReference(ref) is false and GetReferencedName(ref) is "eval", then
+    // 6. a. If SameValue(func, %eval%) is true, then
+    // 6. a. i. Let argList be ? ArgumentListEvaluation of arguments.
+    // 6. a. ii. If argList has no elements, return undefined.
+    // 6. a. iii. Let evalText be the first element of argList.
+    // 6. a. iv. If the source code matching this CallExpression is strict mode code, let strictCaller be true. Otherwise let strictCaller be false.
+    // 6. a. v. Let evalRealm be the current Realm Record.
+    // 6. a. vi. Perform ? HostEnsureCanCompileStrings(evalRealm, evalRealm).
+    // 6. a. vii. Return ? PerformEval(evalText, evalRealm, strictCaller, true).
+    // 7. Let thisCall be this CallExpression.
+    // 8. Let tailCall be IsInTailPosition(thisCall).
+    // 9. Return ? EvaluateCall(func, ref, arguments, tailCall).
+
+    // CallExpression : CallExpression Arguments
+
+    // 1. Let ref be the result of evaluating CallExpression.
+    // 2. Let func be ? GetValue(ref).
+    // 3. Let thisCall be this CallExpression.
+    // 4. Let tailCall be IsInTailPosition(thisCall).
+    // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $NewExpression implements I$Node {
@@ -2419,6 +2667,19 @@ export class $NewExpression implements I$Node {
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // NewExpression : new NewExpression
+
+    // 1. Return ? EvaluateNew(NewExpression, empty).
+
+    // MemberExpression : new MemberExpression Arguments
+
+    // 1. Return ? EvaluateNew(MemberExpression, Arguments).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2453,6 +2714,27 @@ export class $TaggedTemplateExpression implements I$Node {
     } else {
       this.$template = new $TemplateExpression(node.template, this, ctx);
     }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // MemberExpression : MemberExpression TemplateLiteral
+
+    // 1. Let tagRef be the result of evaluating MemberExpression.
+    // 2. Let tagFunc be ? GetValue(tagRef).
+    // 3. Let thisCall be this MemberExpression.
+    // 4. Let tailCall be IsInTailPosition(thisCall).
+    // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
+
+    // CallExpression : CallExpression TemplateLiteral
+
+    // 1. Let tagRef be the result of evaluating CallExpression.
+    // 2. Let tagFunc be ? GetValue(tagRef).
+    // 3. Let thisCall be this CallExpression.
+    // 4. Let tailCall be IsInTailPosition(thisCall).
+    // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2534,6 +2816,125 @@ export class $FunctionExpression implements I$Node {
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
+  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+
+    // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+
+    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
+
+    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
+    // 4. Perform MakeConstructor(closure).
+    // 5. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
+    // 6. Return closure.
+
+    // FunctionExpression : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+
+    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the running execution context's LexicalEnvironment.
+    // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform envRec.CreateImmutableBinding(name, false).
+    // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
+    // 8. Perform MakeConstructor(closure).
+    // 9. Perform SetFunctionName(closure, name).
+    // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
+    // 11. Perform envRec.InitializeBinding(name, closure).
+    // 12. Return closure.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+
+    // GeneratorExpression : function * ( FormalParameters ) { GeneratorBody }
+
+    // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, scope, strict).
+    // 4. Let prototype be ObjectCreate(%GeneratorPrototype%).
+    // 5. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 6. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
+    // 7. Return closure.
+
+    // GeneratorExpression : function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
+
+    // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the running execution context's LexicalEnvironment.
+    // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform envRec.CreateImmutableBinding(name, false).
+    // 7. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, funcEnv, strict).
+    // 8. Let prototype be ObjectCreate(%GeneratorPrototype%).
+    // 9. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 10. Perform SetFunctionName(closure, name).
+    // 11. Perform envRec.InitializeBinding(name, closure).
+    // 12. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
+    // 13. Return closure.
+
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
+
+    // AsyncGeneratorExpression : async function * ( FormalParameters ) { AsyncGeneratorBody }
+
+    // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, scope, strict).
+    // 4. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
+    // 5. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 6. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
+    // 7. Return closure.
+
+    // AsyncGeneratorExpression : async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+
+    // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the running execution context's LexicalEnvironment.
+    // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform ! envRec.CreateImmutableBinding(name).
+    // 7. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, funcEnv, strict).
+    // 8. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
+    // 9. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 10. Perform ! SetFunctionName(closure, name).
+    // 11. Perform ! envRec.InitializeBinding(name, closure).
+    // 12. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
+    // 13. Return closure.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+
+    // AsyncFunctionExpression : async function ( FormalParameters ) { AsyncFunctionBody }
+
+    // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, scope, strict).
+    // 4. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
+    // 5. Return closure.
+
+    // AsyncFunctionExpression : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+
+    // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform ! envRec.CreateImmutableBinding(name).
+    // 7. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, funcEnv, strict).
+    // 8. Perform ! SetFunctionName(closure, name).
+    // 9. Perform ! envRec.InitializeBinding(name, closure).
+    // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
+    // 11. Return closure.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 function $$templateSpanList(
@@ -2586,6 +2987,50 @@ export class $TemplateExpression implements I$Node {
     this.$head = new $TemplateHead(node.head, this, ctx)
     this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  public Evaluate(): $String {
+    // SubstitutionTemplate : TemplateHead Expression TemplateSpans
+
+    // 1. Let head be the TV of TemplateHead as defined in 11.8.6.
+    // 2. Let subRef be the result of evaluating Expression.
+    // 3. Let sub be ? GetValue(subRef).
+    // 4. Let middle be ? ToString(sub).
+    // 5. Let tail be the result of evaluating TemplateSpans.
+    // 6. ReturnIfAbrupt(tail).
+    // 7. Return the string-concatenation of head, middle, and tail.
+
+    // TemplateSpans : TemplateTail
+
+    // 1. Let tail be the TV of TemplateTail as defined in 11.8.6.
+    // 2. Return the String value consisting of the code units of tail.
+
+    // TemplateSpans : TemplateMiddleList TemplateTail
+
+    // 1. Let head be the result of evaluating TemplateMiddleList.
+    // 2. ReturnIfAbrupt(head).
+    // 3. Let tail be the TV of TemplateTail as defined in 11.8.6.
+    // 4. Return the string-concatenation of head and tail.
+
+    // TemplateMiddleList : TemplateMiddle Expression
+
+    // 1. Let head be the TV of TemplateMiddle as defined in 11.8.6.
+    // 2. Let subRef be the result of evaluating Expression.
+    // 3. Let sub be ? GetValue(subRef).
+    // 4. Let middle be ? ToString(sub).
+    // 5. Return the sequence of code units consisting of the code units of head followed by the elements of middle.
+
+    // TemplateMiddleList : TemplateMiddleList TemplateMiddle Expression
+
+    // 1. Let rest be the result of evaluating TemplateMiddleList.
+    // 2. ReturnIfAbrupt(rest).
+    // 3. Let middle be the TV of TemplateMiddle as defined in 11.8.6.
+    // 4. Let subRef be the result of evaluating Expression.
+    // 5. Let sub be ? GetValue(subRef).
+    // 6. Let last be ? ToString(sub).
+    // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $ParenthesizedExpression implements I$Node {
@@ -2612,6 +3057,19 @@ export class $ParenthesizedExpression implements I$Node {
     const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.CoveredParenthesizedExpression = $expression;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList
+
+    // 1. Let expr be CoveredParenthesizedExpression of CoverParenthesizedExpressionAndArrowParameterList.
+    // 2. Return the result of evaluating expr.
+
+    // ParenthesizedExpression : ( Expression )
+
+    // 1. Return the result of evaluating Expression. This may be of type Reference.
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2696,6 +3154,20 @@ export class $ClassExpression implements I$Node {
 
     this.HasName = $name !== void 0;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ClassExpression : class BindingIdentifier opt ClassTail
+
+    // 1. If BindingIdentifieropt is not present, let className be undefined.
+    // 2. Else, let className be StringValue of BindingIdentifier.
+    // 3. Let value be the result of ClassDefinitionEvaluation of ClassTail with arguments className and className.
+    // 4. ReturnIfAbrupt(value).
+    // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
+    // 6. Return value.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $NonNullExpression implements I$Node {
@@ -2718,6 +3190,11 @@ export class $NonNullExpression implements I$Node {
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
+
+  // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
+  public Evaluate(): $Any | $Reference {
+    return this.$expression.Evaluate();
+  }
 }
 
 export class $MetaProperty implements I$Node {
@@ -2739,6 +3216,15 @@ export class $MetaProperty implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$name = $identifier(node.name, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // NewTarget : new . target
+
+    // 1. Return GetNewTarget().
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2766,6 +3252,27 @@ export class $DeleteExpression implements I$Node {
 
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // 1. Let ref be the result of evaluating UnaryExpression.
+    // 2. ReturnIfAbrupt(ref).
+    // 3. If Type(ref) is not Reference, return true.
+    // 4. If IsUnresolvableReference(ref) is true, then
+    // 4. a. Assert: IsStrictReference(ref) is false.
+    // 4. b. Return true.
+    // 5. If IsPropertyReference(ref) is true, then
+    // 5. a. If IsSuperReference(ref) is true, throw a ReferenceError exception.
+    // 5. b. Let baseObj be ! ToObject(GetBase(ref)).
+    // 5. c. Let deleteStatus be ? baseObj.[[Delete]](GetReferencedName(ref)).
+    // 5. d. If deleteStatus is false and IsStrictReference(ref) is true, throw a TypeError exception.
+    // 5. e. Return deleteStatus.
+    // 6. Else ref is a Reference to an Environment Record binding,
+    // 6. a. Let bindings be GetBase(ref).
+    // 6. b. Return ? bindings.DeleteBinding(GetReferencedName(ref)).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $TypeOfExpression implements I$Node {
@@ -2787,6 +3294,19 @@ export class $TypeOfExpression implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // UnaryExpression : typeof UnaryExpression
+
+    // 1. Let val be the result of evaluating UnaryExpression.
+    // 2. If Type(val) is Reference, then
+    // 2. a. If IsUnresolvableReference(val) is true, return "undefined".
+    // 3. Set val to ? GetValue(val).
+    // 4. Return a String according to Table 35.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2810,6 +3330,17 @@ export class $VoidExpression implements I$Node {
 
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-void-operator
+  public Evaluate(): $Any {
+    // UnaryExpression : void UnaryExpression
+
+    // 1. Let expr be the result of evaluating UnaryExpression.
+    // 2. Perform ? GetValue(expr).
+    // 3. Return undefined.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $AwaitExpression implements I$Node {
@@ -2831,6 +3362,17 @@ export class $AwaitExpression implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // AwaitExpression : await UnaryExpression
+
+    // 1. Let exprRef be the result of evaluating UnaryExpression.
+    // 2. Let value be ? GetValue(exprRef).
+    // 3. Return ? Await(value).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2854,6 +3396,53 @@ export class $PrefixUnaryExpression implements I$Node {
 
     this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
+
+    // UpdateExpression : ++ UnaryExpression
+
+    // 1. Let expr be the result of evaluating UnaryExpression.
+    // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
+    // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
+    // 4. Perform ? PutValue(expr, newValue).
+    // 5. Return newValue.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
+
+    // UpdateExpression : -- UnaryExpression
+
+    // 1. Let expr be the result of evaluating UnaryExpression.
+    // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
+    // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
+    // 4. Perform ? PutValue(expr, newValue).
+    // 5. Return newValue.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
+
+    // UnaryExpression : + UnaryExpression
+
+    // 1. Let expr be the result of evaluating UnaryExpression.
+    // 2. Return ? ToNumber(? GetValue(expr)).
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
+
+    // UnaryExpression : - UnaryExpression
+
+    // 1. Let expr be the result of evaluating UnaryExpression.
+    // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
+    // 3. If oldValue is NaN, return NaN.
+    // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $PostfixUnaryExpression implements I$Node {
@@ -2876,6 +3465,33 @@ export class $PostfixUnaryExpression implements I$Node {
 
     this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, this, ctx);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
+
+    // UpdateExpression : LeftHandSideExpression ++
+
+    // 1. Let lhs be the result of evaluating LeftHandSideExpression.
+    // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
+    // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
+    // 4. Perform ? PutValue(lhs, newValue).
+    // 5. Return oldValue.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
+
+    // UpdateExpression : LeftHandSideExpression --
+
+    // 1. Let lhs be the result of evaluating LeftHandSideExpression.
+    // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
+    // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
+    // 4. Perform ? PutValue(lhs, newValue).
+    // 5. Return oldValue.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $TypeAssertion implements I$Node {
@@ -2897,6 +3513,11 @@ export class $TypeAssertion implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
+  }
+
+  // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
+  public Evaluate(): $Any | $Reference {
+    return this.$expression.Evaluate();
   }
 }
 
@@ -2925,6 +3546,281 @@ export class $BinaryExpression implements I$Node {
 
     this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
     this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
+
+    // ExponentiationExpression : UpdateExpression ** ExponentiationExpression
+
+    // 1. Let left be the result of evaluating UpdateExpression.
+    // 2. Let leftValue be ? GetValue(left).
+    // 3. Let right be the result of evaluating ExponentiationExpression.
+    // 4. Let rightValue be ? GetValue(right).
+    // 5. Let base be ? ToNumber(leftValue).
+    // 6. Let exponent be ? ToNumber(rightValue).
+    // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+
+    // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
+
+    // 1. Let left be the result of evaluating MultiplicativeExpression.
+    // 2. Let leftValue be ? GetValue(left).
+    // 3. Let right be the result of evaluating ExponentiationExpression.
+    // 4. Let rightValue be ? GetValue(right).
+    // 5. Let lnum be ? ToNumber(leftValue).
+    // 6. Let rnum be ? ToNumber(rightValue).
+    // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
+
+    // AdditiveExpression : AdditiveExpression + MultiplicativeExpression
+
+    // 1. Let lref be the result of evaluating AdditiveExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating MultiplicativeExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let lprim be ? ToPrimitive(lval).
+    // 6. Let rprim be ? ToPrimitive(rval).
+    // 7. If Type(lprim) is String or Type(rprim) is String, then
+    // 7. a. Let lstr be ? ToString(lprim).
+    // 7. b. Let rstr be ? ToString(rprim).
+    // 7. c. Return the string-concatenation of lstr and rstr.
+    // 8. Let lnum be ? ToNumber(lprim).
+    // 9. Let rnum be ? ToNumber(rprim).
+    // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
+
+    // AdditiveExpression : AdditiveExpression - MultiplicativeExpression
+
+    // 1. Let lref be the result of evaluating AdditiveExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating MultiplicativeExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let lnum be ? ToNumber(lval).
+    // 6. Let rnum be ? ToNumber(rval).
+    // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
+
+    // ShiftExpression : ShiftExpression << AdditiveExpression
+
+    // 1. Let lref be the result of evaluating ShiftExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating AdditiveExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let lnum be ? ToInt32(lval).
+    // 6. Let rnum be ? ToUint32(rval).
+    // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+    // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
+
+    // ShiftExpression : ShiftExpression >> AdditiveExpression
+
+    // 1. Let lref be the result of evaluating ShiftExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating AdditiveExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let lnum be ? ToInt32(lval).
+    // 6. Let rnum be ? ToUint32(rval).
+    // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+    // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
+
+    // ShiftExpression : ShiftExpression >>> AdditiveExpression
+
+    // 1. Let lref be the result of evaluating ShiftExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating AdditiveExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let lnum be ? ToUint32(lval).
+    // 6. Let rnum be ? ToUint32(rval).
+    // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+    // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
+
+    // RelationalExpression : RelationalExpression < ShiftExpression
+
+    // 1. Let lref be the result of evaluating RelationalExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating ShiftExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
+    // 6. ReturnIfAbrupt(r).
+    // 7. If r is undefined, return false. Otherwise, return r.
+
+    // RelationalExpression : RelationalExpression > ShiftExpression
+
+    // 1. Let lref be the result of evaluating RelationalExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating ShiftExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
+    // 6. ReturnIfAbrupt(r).
+    // 7. If r is undefined, return false. Otherwise, return r.
+
+    // RelationalExpression : RelationalExpression <= ShiftExpression
+
+    // 1. Let lref be the result of evaluating RelationalExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating ShiftExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
+    // 6. ReturnIfAbrupt(r).
+    // 7. If r is true or undefined, return false. Otherwise, return true.
+
+    // RelationalExpression : RelationalExpression >= ShiftExpression
+
+    // 1. Let lref be the result of evaluating RelationalExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating ShiftExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
+    // 6. ReturnIfAbrupt(r).
+    // 7. If r is true or undefined, return false. Otherwise, return true.
+
+    // RelationalExpression : RelationalExpression instanceof ShiftExpression
+
+    // 1. Let lref be the result of evaluating RelationalExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating ShiftExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Return ? InstanceofOperator(lval, rval).
+
+    // RelationalExpression : RelationalExpression in ShiftExpression
+
+    // 1. Let lref be the result of evaluating RelationalExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating ShiftExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. If Type(rval) is not Object, throw a TypeError exception.
+    // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
+
+    // EqualityExpression : EqualityExpression == RelationalExpression
+
+    // 1. Let lref be the result of evaluating EqualityExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating RelationalExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Return the result of performing Abstract Equality Comparison rval == lval.
+
+    // EqualityExpression : EqualityExpression != RelationalExpression
+
+    // 1. Let lref be the result of evaluating EqualityExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating RelationalExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
+    // 6. If r is true, return false. Otherwise, return true.
+
+    // EqualityExpression : EqualityExpression === RelationalExpression
+
+    // 1. Let lref be the result of evaluating EqualityExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating RelationalExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Return the result of performing Strict Equality Comparison rval === lval.
+
+    // EqualityExpression : EqualityExpression !== RelationalExpression
+
+    // 1. Let lref be the result of evaluating EqualityExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating RelationalExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
+    // 6. If r is true, return false. Otherwise, return true.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+
+    // 1. Let lref be the result of evaluating A.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating B.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let lnum be ? ToInt32(lval).
+    // 6. Let rnum be ? ToInt32(rval).
+    // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
+
+    // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
+
+    // 1. Let lref be the result of evaluating LogicalANDExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let lbool be ToBoolean(lval).
+    // 4. If lbool is false, return lval.
+    // 5. Let rref be the result of evaluating BitwiseORExpression.
+    // 6. Return ? GetValue(rref).
+
+    // LogicalORExpression : LogicalORExpression || LogicalANDExpression
+
+    // 1. Let lref be the result of evaluating LogicalORExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let lbool be ToBoolean(lval).
+    // 4. If lbool is true, return lval.
+    // 5. Let rref be the result of evaluating LogicalANDExpression.
+    // 6. Return ? GetValue(rref).
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
+
+    // AssignmentExpression : LeftHandSideExpression = AssignmentExpression
+
+    // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
+    // 1. a. Let lref be the result of evaluating LeftHandSideExpression.
+    // 1. b. ReturnIfAbrupt(lref).
+    // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
+    // 1. c. i. Let rval be the result of performing NamedEvaluation for AssignmentExpression with argument GetReferencedName(lref).
+    // 1. d. Else,
+    // 1. d. i. Let rref be the result of evaluating AssignmentExpression.
+    // 1. d. ii. Let rval be ? GetValue(rref).
+    // 1. e. Perform ? PutValue(lref, rval).
+    // 1. f. Return rval.
+    // 2. Let assignmentPattern be the AssignmentPattern that is covered by LeftHandSideExpression.
+    // 3. Let rref be the result of evaluating AssignmentExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
+    // 6. Return rval.
+
+    // AssignmentExpression : LeftHandSideExpression AssignmentOperator AssignmentExpression
+
+    // 1. Let lref be the result of evaluating LeftHandSideExpression.
+    // 2. Let lval be ? GetValue(lref).
+    // 3. Let rref be the result of evaluating AssignmentExpression.
+    // 4. Let rval be ? GetValue(rref).
+    // 5. Let op be the @ where AssignmentOperator is @=.
+    // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
+    // 7. Perform ? PutValue(lref, r).
+    // 8. Return r.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -2956,6 +3852,22 @@ export class $ConditionalExpression implements I$Node {
 
     this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx)
     this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx)
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
+
+    // 1. Let lref be the result of evaluating LogicalORExpression.
+    // 2. Let lval be ToBoolean(? GetValue(lref)).
+    // 3. If lval is true, then
+    // 3. a. Let trueRef be the result of evaluating the first AssignmentExpression.
+    // 3. b. Return ? GetValue(trueRef).
+    // 4. Else,
+    // 4. a. Let falseRef be the result of evaluating the second AssignmentExpression.
+    // 4. b. Return ? GetValue(falseRef).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3055,6 +3967,20 @@ export class $ArrowFunction implements I$Node {
       this.VarScopedDeclarations = emptyArray;
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ArrowFunction : ArrowParameters => ConciseBody
+
+    // 1. If the function code for this ArrowFunction is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let parameters be CoveredFormalsList of ArrowParameters.
+    // 4. Let closure be FunctionCreate(Arrow, parameters, ConciseBody, scope, strict).
+    // 5. Set closure.[[SourceText]] to the source text matched by ArrowFunction.
+    // 6. Return closure.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $YieldExpression implements I$Node {
@@ -3076,6 +4002,77 @@ export class $YieldExpression implements I$Node {
     ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
+  }
+// http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // YieldExpression : yield
+
+    // 1. Let generatorKind be ! GetGeneratorKind().
+    // 2. If generatorKind is async, then return ? AsyncGeneratorYield(undefined).
+    // 3. Otherwise, return ? GeneratorYield(CreateIterResultObject(undefined, false)).
+
+    // YieldExpression : yield AssignmentExpression
+
+    // 1. Let generatorKind be ! GetGeneratorKind().
+    // 2. Let exprRef be the result of evaluating AssignmentExpression.
+    // 3. Let value be ? GetValue(exprRef).
+    // 4. If generatorKind is async, then return ? AsyncGeneratorYield(value).
+    // 5. Otherwise, return ? GeneratorYield(CreateIterResultObject(value, false)).
+
+    // YieldExpression : yield * AssignmentExpression
+
+    // 1. Let generatorKind be ! GetGeneratorKind().
+    // 2. Let exprRef be the result of evaluating AssignmentExpression.
+    // 3. Let value be ? GetValue(exprRef).
+    // 4. Let iteratorRecord be ? GetIterator(value, generatorKind).
+    // 5. Let iterator be iteratorRecord.[[Iterator]].
+    // 6. Let received be NormalCompletion(undefined).
+    // 7. Repeat,
+    // 7. a. If received.[[Type]] is normal, then
+    // 7. a. i. Let innerResult be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « received.[[Value]] »).
+    // 7. a. ii. If generatorKind is async, then set innerResult to ? Await(innerResult).
+    // 7. a. iii. If Type(innerResult) is not Object, throw a TypeError exception.
+    // 7. a. iv. Let done be ? IteratorComplete(innerResult).
+    // 7. a. v. If done is true, then
+    // 7. a. v. 1. Return ? IteratorValue(innerResult).
+    // 7. a. vi. If generatorKind is async, then set received to AsyncGeneratorYield(? IteratorValue(innerResult)).
+    // 7. a. vii. Else, set received to GeneratorYield(innerResult).
+    // 7. b. Else if received.[[Type]] is throw, then
+    // 7. b. i. Let throw be ? GetMethod(iterator, "throw").
+    // 7. b. ii. If throw is not undefined, then
+    // 7. b. ii. 1. Let innerResult be ? Call(throw, iterator, « received.[[Value]] »).
+    // 7. b. ii. 2. If generatorKind is async, then set innerResult to ? Await(innerResult).
+    // 7. b. ii. 3. NOTE: Exceptions from the inner iterator throw method are propagated. Normal completions from an inner throw method are processed similarly to an inner next.
+    // 7. b. ii. 4. If Type(innerResult) is not Object, throw a TypeError exception.
+    // 7. b. ii. 5. Let done be ? IteratorComplete(innerResult).
+    // 7. b. ii. 6. If done is true, then
+    // 7. b. ii. 6. a. Return ? IteratorValue(innerResult).
+    // 7. b. ii. 7. If generatorKind is async, then set received to AsyncGeneratorYield(? IteratorValue(innerResult)).
+    // 7. b. ii. 8. Else, set received to GeneratorYield(innerResult).
+    // 7. b. iii. Else,
+    // 7. b. iii. 1. NOTE: If iterator does not have a throw method, this throw is going to terminate the yield* loop. But first we need to give iterator a chance to clean up.
+    // 7. b. iii. 2. Let closeCompletion be Completion { [[Type]]: normal, [[Value]]: empty, [[Target]]: empty }.
+    // 7. b. iii. 3. If generatorKind is async, perform ? AsyncIteratorClose(iteratorRecord, closeCompletion).
+    // 7. b. iii. 4. Else, perform ? IteratorClose(iteratorRecord, closeCompletion).
+    // 7. b. iii. 5. NOTE: The next step throws a TypeError to indicate that there was a yield* protocol violation: iterator does not have a throw method.
+    // 7. b. iii. 6. Throw a TypeError exception.
+    // 7. c. Else,
+    // 7. c. i. Assert: received.[[Type]] is return.
+    // 7. c. ii. Let return be ? GetMethod(iterator, "return").
+    // 7. c. iii. If return is undefined, then
+    // 7. c. iii. 1. If generatorKind is async, then set received.[[Value]] to ? Await(received.[[Value]]).
+    // 7. c. iii. 2. Return Completion(received).
+    // 7. c. iv. Let innerReturnResult be ? Call(return, iterator, « received.[[Value]] »).
+    // 7. c. v. If generatorKind is async, then set innerReturnResult to ? Await(innerReturnResult).
+    // 7. c. vi. If Type(innerReturnResult) is not Object, throw a TypeError exception.
+    // 7. c. vii. Let done be ? IteratorComplete(innerReturnResult).
+    // 7. c. viii. If done is true, then
+    // 7. c. viii. 1. Let value be ? IteratorValue(innerReturnResult).
+    // 7. c. viii. 2. Return Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
+    // 7. c. ix. If generatorKind is async, then set received to AsyncGeneratorYield(? IteratorValue(innerReturnResult)).
+    // 7. c. x. Else, set received to GeneratorYield(innerReturnResult).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3099,6 +4096,11 @@ export class $AsExpression implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx) as $$UpdateExpressionOrHigher
   }
+
+  // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
+  public Evaluate(): $Any | $Reference {
+    return this.$expression.Evaluate();
+  }
 }
 
 // #endregion
@@ -3119,6 +4121,12 @@ export class $TemplateHead implements I$Node {
   ) {
     this.id = realm.registerNode(this);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $TemplateMiddle implements I$Node {
@@ -3135,6 +4143,12 @@ export class $TemplateMiddle implements I$Node {
   ) {
     this.id = realm.registerNode(this);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $TemplateTail implements I$Node {
@@ -3150,6 +4164,17 @@ export class $TemplateTail implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+
+    // TemplateSpans : TemplateTail
+
+    // 1. Let tail be the TV of TemplateTail as defined in 11.8.6.
+    // 2. Return the String value consisting of the code units of tail.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3176,6 +4201,36 @@ export class $TemplateSpan implements I$Node {
     } else {
       this.$literal = new $TemplateTail(node.literal, this, ctx);
     }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // TemplateSpans : TemplateMiddleList TemplateTail
+
+    // 1. Let head be the result of evaluating TemplateMiddleList.
+    // 2. ReturnIfAbrupt(head).
+    // 3. Let tail be the TV of TemplateTail as defined in 11.8.6.
+    // 4. Return the string-concatenation of head and tail.
+
+    // TemplateMiddleList : TemplateMiddle Expression
+
+    // 1. Let head be the TV of TemplateMiddle as defined in 11.8.6.
+    // 2. Let subRef be the result of evaluating Expression.
+    // 3. Let sub be ? GetValue(subRef).
+    // 4. Let middle be ? ToString(sub).
+    // 5. Return the sequence of code units consisting of the code units of head followed by the elements of middle.
+
+    // TemplateMiddleList : TemplateMiddleList TemplateMiddle Expression
+
+    // 1. Let rest be the result of evaluating TemplateMiddleList.
+    // 2. ReturnIfAbrupt(rest).
+    // 3. Let middle be the TV of TemplateMiddle as defined in 11.8.6.
+    // 4. Let subRef be the result of evaluating Expression.
+    // 5. Let sub be ? GetValue(subRef).
+    // 6. Let last be ? ToString(sub).
+    // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3323,6 +4378,11 @@ export class $JsxElement implements I$Node {
     this.$children = $$jsxChildList(node.children, this, ctx);
     this.$closingElement = new $JsxClosingElement(node.closingElement, this, ctx);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 type $$JsxNamed = (
@@ -3380,6 +4440,11 @@ export class $JsxSelfClosingElement implements I$Node {
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxFragment implements I$Node {
@@ -3406,6 +4471,11 @@ export class $JsxFragment implements I$Node {
     this.$children = $$jsxChildList(node.children, this, ctx);
     this.$closingFragment = new $JsxClosingFragment(node.closingFragment, this, ctx);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxText implements I$Node {
@@ -3421,6 +4491,11 @@ export class $JsxText implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3444,6 +4519,11 @@ export class $JsxOpeningElement implements I$Node {
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxClosingElement implements I$Node {
@@ -3464,6 +4544,11 @@ export class $JsxClosingElement implements I$Node {
 
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxOpeningFragment implements I$Node {
@@ -3480,6 +4565,11 @@ export class $JsxOpeningFragment implements I$Node {
   ) {
     this.id = realm.registerNode(this);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxClosingFragment implements I$Node {
@@ -3495,6 +4585,11 @@ export class $JsxClosingFragment implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3555,6 +4650,11 @@ export class $JsxAttributes implements I$Node {
         : new $JsxSpreadAttribute(x, this, ctx)
     );
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxSpreadAttribute implements I$Node {
@@ -3575,6 +4675,11 @@ export class $JsxSpreadAttribute implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $JsxExpression implements I$Node {
@@ -3594,6 +4699,11 @@ export class $JsxExpression implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+  }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3663,6 +4773,11 @@ export class $BigIntLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -3742,6 +4857,16 @@ export class $RegularExpressionLiteral implements I$Node {
 
     this.StringValue = node.text;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-regular-expression-literals-runtime-semantics-evaluation
+  public Evaluate(): $Object {
+    // PrimaryExpression : RegularExpressionLiteral
+
+    // 1. Let pattern be the String value consisting of the UTF16Encoding of each code point of BodyText of RegularExpressionLiteral.
+    // 2. Let flags be the String value consisting of the UTF16Encoding of each code point of FlagText of RegularExpressionLiteral.
+    // 3. Return RegExpCreate(pattern, flags).
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $NoSubstitutionTemplateLiteral implements I$Node {
@@ -3768,6 +4893,14 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  public Evaluate(): $String {
+    // TemplateLiteral : NoSubstitutionTemplate
+
+    // 1. Return the String value whose code units are the elements of the TV of NoSubstitutionTemplate as defined in 11.8.6.
+    return null as any; // TODO: implement this
   }
 }
 
@@ -4871,6 +6004,33 @@ export class $SourceFile implements I$Node, IModule {
 
     // 9. Return starResolution.
     return starResolution;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // Module : [empty]
+
+    // 1. Return NormalCompletion(undefined).
+
+    // ModuleBody : ModuleItemList
+
+    // 1. Let result be the result of evaluating ModuleItemList.
+    // 2. If result.[[Type]] is normal and result.[[Value]] is empty, then
+    // 2. a. Return NormalCompletion(undefined).
+    // 3. Return Completion(result).
+
+    // ModuleItemList : ModuleItemList ModuleItem
+
+    // 1. Let sl be the result of evaluating ModuleItemList.
+    // 2. ReturnIfAbrupt(sl).
+    // 3. Let s be the result of evaluating ModuleItem.
+    // 4. Return Completion(UpdateEmpty(s, sl)).
+
+    // ModuleItem : ImportDeclaration
+
+    // 1. Return NormalCompletion(empty).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6175,6 +7335,32 @@ export class $Block implements I$Node {
       }
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // Block : { }
+
+    // 1. Return NormalCompletion(empty).
+
+    // Block : { StatementList }
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
+    // 4. Set the running execution context's LexicalEnvironment to blockEnv.
+    // 5. Let blockValue be the result of evaluating StatementList.
+    // 6. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 7. Return blockValue.
+
+    // StatementList : StatementList StatementListItem
+
+    // 1. Let sl be the result of evaluating StatementList.
+    // 2. ReturnIfAbrupt(sl).
+    // 3. Let s be the result of evaluating StatementListItem.
+    // 4. Return Completion(UpdateEmpty(s, sl)).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $EmptyStatement implements I$Node {
@@ -6193,6 +7379,15 @@ export class $EmptyStatement implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // EmptyStatement : ;
+
+    // 1. Return NormalCompletion(empty).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6224,6 +7419,16 @@ export class $ExpressionStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx | Context.InExpressionStatement);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ExpressionStatement : Expression ;
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Return ? GetValue(exprRef).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6264,6 +7469,31 @@ export class $IfStatement implements I$Node {
       ];
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // IfStatement : if ( Expression ) Statement else Statement
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+    // 3. If exprValue is true, then
+    // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
+    // 4. Else,
+    // 4. a. Let stmtCompletion be the result of evaluating the second Statement.
+    // 5. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+
+    // IfStatement : if ( Expression ) Statement
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+    // 3. If exprValue is false, then
+    // 3. a. Return NormalCompletion(undefined).
+    // 4. Else,
+    // 4. a. Let stmtCompletion be the result of evaluating Statement.
+    // 4. b. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $DoStatement implements I$Node {
@@ -6291,6 +7521,22 @@ export class $DoStatement implements I$Node {
 
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(): $Any {
+    // IterationStatement : do Statement while ( Expression ) ;
+
+    // 1. Let V be undefined.
+    // 2. Repeat,
+    // 2. a. Let stmtResult be the result of evaluating Statement.
+    // 2. b. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
+    // 2. c. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+    // 2. d. Let exprRef be the result of evaluating Expression.
+    // 2. e. Let exprValue be ? GetValue(exprRef).
+    // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $WhileStatement implements I$Node {
@@ -6317,6 +7563,22 @@ export class $WhileStatement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(): $Any {
+    // IterationStatement : while ( Expression ) Statement
+
+    // 1. Let V be undefined.
+    // 2. Repeat,
+    // 2. a. Let exprRef be the result of evaluating Expression.
+    // 2. b. Let exprValue be ? GetValue(exprRef).
+    // 2. c. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+    // 2. d. Let stmtResult be the result of evaluating Statement.
+    // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
+    // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6373,6 +7635,46 @@ export class $ForStatement implements I$Node {
       }
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(): $Any {
+    // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
+
+    // 1. If the first Expression is present, then
+    // 1. a. Let exprRef be the result of evaluating the first Expression.
+    // 1. b. Perform ? GetValue(exprRef).
+    // 2. Return ? ForBodyEvaluation(the second Expression, the third Expression, Statement, « », labelSet).
+
+    // IterationStatement : for ( var VariableDeclarationList ; Expression opt ; Expression opt ) Statement
+
+    // 1. Let varDcl be the result of evaluating VariableDeclarationList.
+    // 2. ReturnIfAbrupt(varDcl).
+    // 3. Return ? ForBodyEvaluation(the first Expression, the second Expression, Statement, « », labelSet).
+
+    // IterationStatement : for ( LexicalDeclaration Expression opt ; Expression opt ) Statement
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    // 2. Let loopEnv be NewDeclarativeEnvironment(oldEnv).
+    // 3. Let loopEnvRec be loopEnv's EnvironmentRecord.
+    // 4. Let isConst be the result of performing IsConstantDeclaration of LexicalDeclaration.
+    // 5. Let boundNames be the BoundNames of LexicalDeclaration.
+    // 6. For each element dn of boundNames, do
+    // 6. a. If isConst is true, then
+    // 6. a. i. Perform ! loopEnvRec.CreateImmutableBinding(dn, true).
+    // 6. b. Else,
+    // 6. b. i. Perform ! loopEnvRec.CreateMutableBinding(dn, false).
+    // 7. Set the running execution context's LexicalEnvironment to loopEnv.
+    // 8. Let forDcl be the result of evaluating LexicalDeclaration.
+    // 9. If forDcl is an abrupt completion, then
+    // 9. a. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 9. b. Return Completion(forDcl).
+    // 10. If isConst is false, let perIterationLets be boundNames; otherwise let perIterationLets be « ».
+    // 11. Let bodyResult be ForBodyEvaluation(the first Expression, the second Expression, Statement, perIterationLets, labelSet).
+    // 12. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 13. Return Completion(bodyResult).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $ForInStatement implements I$Node {
@@ -6418,6 +7720,66 @@ export class $ForInStatement implements I$Node {
       this.BoundNames = emptyArray;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(): $Any {
+    // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, enumerate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, enumerate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, enumerate, lexicalBinding, labelSet).
+
+    // IterationStatement : for ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet).
+
+    // IterationStatement : for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet, async).
+
+    // IterationStatement : for await ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet, async).
+
+    // IterationStatement : for await ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
+
+    return null as any; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ForBinding : BindingIdentifier
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Return ? ResolveBinding(bindingId).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6465,6 +7827,62 @@ export class $ForOfStatement implements I$Node {
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(): $Any {
+    // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, enumerate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, enumerate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, enumerate, lexicalBinding, labelSet).
+
+    // IterationStatement : for ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet).
+
+    // IterationStatement : for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet, async).
+
+    // IterationStatement : for await ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet, async).
+
+    // IterationStatement : for await ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
+
+    return null as any; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $ContinueStatement implements I$Node {
@@ -6488,6 +7906,20 @@ export class $ContinueStatement implements I$Node {
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ContinueStatement : continue ;
+
+    // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
+
+    // ContinueStatement : continue LabelIdentifier ;
+
+    // 1. Let label be the StringValue of LabelIdentifier.
+    // 2. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $BreakStatement implements I$Node {
@@ -6510,6 +7942,20 @@ export class $BreakStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // BreakStatement : break ;
+
+    // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
+
+    // BreakStatement : break LabelIdentifier ;
+
+    // 1. Let label be the StringValue of LabelIdentifier.
+    // 2. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6538,6 +7984,22 @@ export class $ReturnStatement implements I$Node {
       this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-return-statement
+  public Evaluate(): $Any {
+    // ReturnStatement : return ;
+
+    // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
+
+    // ReturnStatement : return Expression ;
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Let exprValue be ? GetValue(exprRef).
+    // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue).
+    // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $WithStatement implements I$Node {
@@ -6565,6 +8027,23 @@ export class $WithStatement implements I$Node {
 
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // WithStatement : with ( Expression ) Statement
+
+    // 1. Let val be the result of evaluating Expression.
+    // 2. Let obj be ? ToObject(? GetValue(val)).
+    // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    // 4. Let newEnv be NewObjectEnvironment(obj, oldEnv).
+    // 5. Set the withEnvironment flag of newEnv's EnvironmentRecord to true.
+    // 6. Set the running execution context's LexicalEnvironment to newEnv.
+    // 7. Let C be the result of evaluating Statement.
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 9. Return Completion(UpdateEmpty(C, undefined)).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $SwitchStatement implements I$Node {
@@ -6591,6 +8070,39 @@ export class $SwitchStatement implements I$Node {
     const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
 
     this.VarScopedDeclarations = $caseBlock.VarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // SwitchStatement : switch ( Expression ) CaseBlock
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Let switchValue be ? GetValue(exprRef).
+    // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    // 6. Set the running execution context's LexicalEnvironment to blockEnv.
+    // 7. Let R be the result of performing CaseBlockEvaluation of CaseBlock with argument switchValue.
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 9. Return R.
+
+    // CaseClause : case Expression :
+
+    // 1. Return NormalCompletion(empty).
+
+    // CaseClause : case Expression : StatementList
+
+    // 1. Return the result of evaluating StatementList.
+
+    // DefaultClause : default :
+
+    // 1. Return NormalCompletion(empty).
+
+    // DefaultClause : default : StatementList
+
+    // 1. Return the result of evaluating StatementList.
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6640,6 +8152,41 @@ export class $LabeledStatement implements I$Node {
       this.VarScopedDeclarations = $statement.VarScopedDeclarations
     };
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(): $Any {
+    // LabelledStatement : LabelIdentifier : LabelledItem
+
+    // 1. Let label be the StringValue of LabelIdentifier.
+    // 2. Append label as an element of labelSet.
+    // 3. Let stmtResult be LabelledEvaluation of LabelledItem with argument labelSet.
+    // 4. If stmtResult.[[Type]] is break and SameValue(stmtResult.[[Target]], label) is true, then
+    // 4. a. Set stmtResult to NormalCompletion(stmtResult.[[Value]]).
+    // 5. Return Completion(stmtResult).
+
+    // LabelledItem : Statement
+
+    // 1. If Statement is either a LabelledStatement or a BreakableStatement, then
+    // 1. a. Return LabelledEvaluation of Statement with argument labelSet.
+    // 2. Else,
+    // 2. a. Return the result of evaluating Statement.
+
+    // LabelledItem : FunctionDeclaration
+
+    // 1. Return the result of evaluating FunctionDeclaration.
+
+    return null as any; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // LabelledStatement : LabelIdentifier : LabelledItem
+
+    // 1. Let newLabelSet be a new empty List.
+    // 2. Return LabelledEvaluation of this LabelledStatement with argument newLabelSet.
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $ThrowStatement implements I$Node {
@@ -6662,6 +8209,17 @@ export class $ThrowStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // ThrowStatement : throw Expression ;
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Let exprValue be ? GetValue(exprRef).
+    // 3. Return ThrowCompletion(exprValue).
+
+    return null as any; // TODO: implement this
   }
 }
 
@@ -6716,6 +8274,34 @@ export class $TryStatement implements I$Node {
       ];
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // TryStatement : try Block Catch
+
+    // 1. Let B be the result of evaluating Block.
+    // 2. If B.[[Type]] is throw, let C be CatchClauseEvaluation of Catch with argument B.[[Value]].
+    // 3. Else, let C be B.
+    // 4. Return Completion(UpdateEmpty(C, undefined)).
+
+    // TryStatement : try Block Finally
+
+    // 1. Let B be the result of evaluating Block.
+    // 2. Let F be the result of evaluating Finally.
+    // 3. If F.[[Type]] is normal, set F to B.
+    // 4. Return Completion(UpdateEmpty(F, undefined)).
+
+    // TryStatement : try Block Catch Finally
+
+    // 1. Let B be the result of evaluating Block.
+    // 2. If B.[[Type]] is throw, let C be CatchClauseEvaluation of Catch with argument B.[[Value]].
+    // 3. Else, let C be B.
+    // 4. Let F be the result of evaluating Finally.
+    // 5. If F.[[Type]] is normal, set F to C.
+    // 6. Return Completion(UpdateEmpty(F, undefined)).
+
+    return null as any; // TODO: implement this
+  }
 }
 
 export class $DebuggerStatement implements I$Node {
@@ -6734,6 +8320,20 @@ export class $DebuggerStatement implements I$Node {
     public readonly depth: number = parent.depth + 1,
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
+  public Evaluate(): $Any {
+    // DebuggerStatement : debugger ;
+
+    // 1. If an implementation-defined debugging facility is available and enabled, then
+    // 1. a. Perform an implementation-defined debugging action.
+    // 1. b. Let result be an implementation-defined Completion value.
+    // 2. Else,
+    // 2. a. Let result be NormalCompletion(empty).
+    // 3. Return result.
+
+    return null as any; // TODO: implement this
   }
 }
 

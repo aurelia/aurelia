@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set } from './operations';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set, $Get } from './operations';
 import { $EnvRec } from './environment';
 import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction, $BooleanLiteral, $NullLiteral } from './ast';
 import { SyntaxKind } from 'typescript';
@@ -74,6 +74,18 @@ export class $SpeculativeValue {
     return other instanceof $SpeculativeValue && this.id === other.id;
   }
 
+  public ToObject(): $Object {
+    throw new TypeError(`Cannot convert SpeculativeValue to object`);
+  }
+
+  public ToPrimitive(): $Primitive {
+    throw new TypeError(`Cannot convert SpeculativeValue to primitive`);
+  }
+
+  public ToNumber(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to number`);
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -110,6 +122,18 @@ export class $Empty {
 
   public is(other: $Any): other is $Empty {
     return other instanceof $Empty;
+  }
+
+  public ToObject(): $Object {
+    throw new TypeError(`Cannot convert empty to object`);
+  }
+
+  public ToPrimitive(): $Primitive {
+    throw new TypeError(`Cannot convert empty to primitive`);
+  }
+
+  public ToNumber(): $Number {
+    throw new TypeError(`Cannot convert empty to number`);
   }
 
   public GetValue(): this {
@@ -155,6 +179,19 @@ export class $Undefined {
     throw new TypeError(`Cannot convert undefined to object`);
   }
 
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -196,6 +233,19 @@ export class $Null {
 
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert null to object`);
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -240,6 +290,19 @@ export class $Boolean<T extends boolean = boolean> {
     return $Object.ObjectCreate('boolean', this.realm['[[Intrinsics]]']['%BooleanPrototype%'], { '[[BooleanData]]': this });
   }
 
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -280,6 +343,19 @@ export class $String<T extends string = string> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('string', this.realm['[[Intrinsics]]']['%StringPrototype%'], { '[[StringData]]': this });
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -324,6 +400,19 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     return $Object.ObjectCreate('symbol', this.realm['[[Intrinsics]]']['%SymbolPrototype%'], { '[[SymbolData]]': this });
   }
 
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -356,6 +445,7 @@ export class $Number<T extends number = number> {
     public readonly realm: Realm,
     public readonly value: T,
     public readonly sourceNode: $NumericLiteral | null = null,
+    public readonly conversionSource: $Any | null = null,
   ) {}
 
   public is(other: $Any): other is $Number<T> {
@@ -364,6 +454,14 @@ export class $Number<T extends number = number> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return this;
   }
 
   public GetValue(): this {
@@ -433,8 +531,160 @@ export class $Object<
     return this.id === other.id;
   }
 
+  public ToObject(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return this.ToPrimitive('number').ToNumber();
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-toprimitive
+  public ToPrimitive(PreferredType: 'default' | 'string' | 'number' = 'default'): $Primitive {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const input = this;
+
+    // 1. Assert: input is an ECMAScript language value.
+    // 2. If Type(input) is Object, then
+    // 2. a. If PreferredType is not present, let hint be "default".
+    // 2. b. Else if PreferredType is hint String, let hint be "string".
+    // 2. c. Else PreferredType is hint Number, let hint be "number".
+    let hint = intrinsics[PreferredType];
+
+    // 2. d. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
+    const exoticToPrim = input.GetMethod(intrinsics['@@toPrimitive']);
+
+    // 2. e. If exoticToPrim is not undefined, then
+    if (!exoticToPrim.isUndefined) {
+      // 2. e. i. Let result be ? Call(exoticToPrim, input, « hint »).
+      const result = $Call(exoticToPrim, input, [hint]);
+
+      // 2. e. ii. If Type(result) is not Object, return result.
+      if (result.isPrimitive) {
+        return result;
+      }
+
+      // 2. e. iii. Throw a TypeError exception.
+      throw new TypeError('2. e. iii. Throw a TypeError exception.');
+    }
+
+    // 2. f. If hint is "default", set hint to "number".
+    if (hint.value === 'default') {
+      hint = intrinsics.number;
+    }
+
+    // 2. g. Return ? OrdinaryToPrimitive(input, hint).
+    return input.OrdinaryToPrimitive(hint.value);
+
+    // 3. Return input.
+    // N/A since this is always an object
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinarytoprimitive
+  public OrdinaryToPrimitive(hint: 'string' | 'number'): $Primitive {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const O = this;
+
+    // 1. Assert: Type(O) is Object.
+    // 2. Assert: Type(hint) is String and its value is either "string" or "number".
+    // 3. If hint is "string", then
+    if (hint === 'string') {
+      // 3. a. Let methodNames be « "toString", "valueOf" ».
+      // 5. For each name in methodNames in List order, do
+      // 5. a. Let method be ? Get(O, name).
+      let method = $Get(O, intrinsics.$toString);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      method = $Get(O, intrinsics.$valueOf);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      // 6. Throw a TypeError exception.
+      throw new TypeError('6. Throw a TypeError exception.');
+    }
+    // 4. Else,
+    else {
+      // 4. a. Let methodNames be « "valueOf", "toString" ».
+      // 5. For each name in methodNames in List order, do
+      // 5. a. Let method be ? Get(O, name).
+      let method = $Get(O, intrinsics.$valueOf);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      method = $Get(O, intrinsics.$toString);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      // 6. Throw a TypeError exception.
+      throw new TypeError('6. Throw a TypeError exception.');
+    }
+  }
+
   public GetValue(): this {
     return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-getmethod
+  public GetMethod(P: $PropertyKey): $Function | $Undefined {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const V = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let func be ? GetV(V, P).
+    const func = V['[[Get]]'](P, V);
+
+    // 3. If func is either undefined or null, return undefined.
+    if (func.isNil) {
+      return intrinsics.undefined;
+    }
+
+    // 4. If IsCallable(func) is false, throw a TypeError exception.
+    if (!func.isFunction) {
+      throw new TypeError('If IsCallable(func) is false, throw a TypeError exception.');
+    }
+
+    // 5. Return func.
+    return func as $Function;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
@@ -723,10 +973,6 @@ export class $Object<
 
     // 5. Return false.
     return intrinsics.false;
-  }
-
-  public ToObject(): $Object {
-    return this;
   }
 }
 

@@ -144,10 +144,14 @@ export class Intrinsics {
   public readonly '*': $String<'*'>;
   public readonly '*default*': $String<'*default*'>;
   public readonly 'default': $String<'default'>;
+  public readonly 'string': $String<'string'>;
+  public readonly 'number': $String<'number'>;
   public readonly 'length': $String<'length'>;
   public readonly '$constructor': $String<'constructor'>;
   public readonly '$prototype': $String<'prototype'>;
   public readonly '$name': $String<'name'>;
+  public readonly '$toString': $String<'toString'>;
+  public readonly '$valueOf': $String<'valueOf'>;
 
   public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
   public readonly '@@hasInstance': $Symbol<$String<'Symbol.hasInstance'>>;
@@ -307,10 +311,14 @@ export class Intrinsics {
     this['*'] = new $String(realm, '*');
     this['*default*'] = new $String(realm, '*default*');
     this['default'] = new $String(realm, 'default');
+    this['string'] = new $String(realm, 'string');
+    this['number'] = new $String(realm, 'number');
     this['length'] = new $String(realm, 'length');
     this['$constructor'] = new $String(realm, 'constructor');
     this['$prototype'] = new $String(realm, 'prototype');
     this['$name'] = new $String(realm, 'name');
+    this['$toString'] = new $String(realm, 'toString');
+    this['$valueOf'] = new $String(realm, 'valueOf');
 
     this['@@asyncIterator'] = new $Symbol(realm, new $String(realm, 'Symbol.asyncIterator'));
     this['@@hasInstance'] = new $Symbol(realm, new $String(realm, 'Symbol.hasInstance'));

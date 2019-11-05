@@ -80,6 +80,14 @@ export class $SpeculativeValue {
     throw new TypeError(`Cannot convert SpeculativeValue to object`);
   }
 
+  public ToPropertyKey(): $String {
+    throw new TypeError(`Cannot convert SpeculativeValue to property key`);
+  }
+
+  public ToLength(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to length`);
+  }
+
   public ToPrimitive(): $Primitive {
     throw new TypeError(`Cannot convert SpeculativeValue to primitive`);
   }
@@ -165,6 +173,14 @@ export class $Empty {
 
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert empty to object`);
+  }
+
+  public ToPropertyKey(): $String {
+    throw new TypeError(`Cannot convert empty to property key`);
+  }
+
+  public ToLength(): $Number {
+    throw new TypeError(`Cannot convert empty to length`);
   }
 
   public ToPrimitive(): $Primitive {
@@ -305,6 +321,14 @@ export class $Undefined {
     throw new TypeError(`Cannot convert undefined to object`);
   }
 
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
   public ToPrimitive(): this {
     return this;
   }
@@ -441,6 +465,14 @@ export class $Null {
 
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert null to object`);
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
   }
 
   public ToPrimitive(): this {
@@ -581,6 +613,14 @@ export class $Boolean<T extends boolean = boolean> {
     return $Object.ObjectCreate('boolean', this.realm['[[Intrinsics]]']['%BooleanPrototype%'], { '[[BooleanData]]': this });
   }
 
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
   public ToPrimitive(): this {
     return this;
   }
@@ -714,6 +754,14 @@ export class $String<T extends string = string> {
     return $Object.ObjectCreate('string', this.realm['[[Intrinsics]]']['%StringPrototype%'], { '[[StringData]]': this });
   }
 
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
   public ToPrimitive(): this {
     return this;
   }
@@ -844,6 +892,14 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('symbol', this.realm['[[Intrinsics]]']['%SymbolPrototype%'], { '[[SymbolData]]': this });
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
   }
 
   public ToPrimitive(): this {
@@ -994,6 +1050,10 @@ export class $Number<T extends number = number> {
     return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
   }
 
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
   public ToPrimitive(): this {
     return this;
   }
@@ -1008,6 +1068,64 @@ export class $Number<T extends number = number> {
   }
 
   public ToNumber(): $Number {
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-tointeger
+  public ToInteger(): $Number {
+    // 1. Let number be ? ToNumber(argument).
+
+    const value = this.value;
+    if (isNaN(value)) {
+      // 2. If number is NaN, return +0.
+      return new $Number(
+        /* realm */this.realm,
+        /* value */0,
+        /* sourceNode */null,
+        /* conversionSource */this,
+      );
+    }
+
+    // 3. If number is +0, -0, +∞, or -∞, return number.
+    if (Object.is(value, +0) || Object.is(value, -0) || Object.is(value, +Infinity) || Object.is(value, -Infinity)) {
+      return this;
+    }
+
+    // 4. Return the number value that is the same sign as number and whose magnitude is floor(abs(number)).
+    const sign = value < 0 ? -1 : 1;
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Math.floor(Math.abs(value)) * sign,
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-tolength
+  public ToLength(): $Number {
+    // 1. Let len be ? ToInteger(argument).
+    const len = this.ToInteger();
+
+    // 2. If len ≤ +0, return +0.
+    if (len.value < 0) {
+      return new $Number(
+        /* realm */this.realm,
+        /* value */0,
+        /* sourceNode */null,
+        /* conversionSource */this,
+      );
+    }
+
+    // 3. Return min(len, 253 - 1).
+    if (len.value > (2 ** 53 - 1)) {
+      return new $Number(
+        /* realm */this.realm,
+        /* value */(2 ** 53 - 1),
+        /* sourceNode */null,
+        /* conversionSource */this,
+      );
+    }
+
     return this;
   }
 
@@ -1153,6 +1271,14 @@ export class $Object<
 
   public ToObject(): this {
     return this;
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
   }
 
   public ToBoolean(): $Boolean {

@@ -3560,265 +3560,334 @@ export class $BinaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
-
-    // ExponentiationExpression : UpdateExpression ** ExponentiationExpression
-
-    // 1. Let left be the result of evaluating UpdateExpression.
-    // 2. Let leftValue be ? GetValue(left).
-    // 3. Let right be the result of evaluating ExponentiationExpression.
-    // 4. Let rightValue be ? GetValue(right).
-    // 5. Let base be ? ToNumber(leftValue).
-    // 6. Let exponent be ? ToNumber(rightValue).
-    // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
-
-    // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
-
-    // 1. Let left be the result of evaluating MultiplicativeExpression.
-    // 2. Let leftValue be ? GetValue(left).
-    // 3. Let right be the result of evaluating ExponentiationExpression.
-    // 4. Let rightValue be ? GetValue(right).
-    // 5. Let lnum be ? ToNumber(leftValue).
-    // 6. Let rnum be ? ToNumber(rightValue).
-    // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
-
-    // AdditiveExpression : AdditiveExpression + MultiplicativeExpression
-
-    // 1. Let lref be the result of evaluating AdditiveExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating MultiplicativeExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let lprim be ? ToPrimitive(lval).
-    // 6. Let rprim be ? ToPrimitive(rval).
-    // 7. If Type(lprim) is String or Type(rprim) is String, then
-    // 7. a. Let lstr be ? ToString(lprim).
-    // 7. b. Let rstr be ? ToString(rprim).
-    // 7. c. Return the string-concatenation of lstr and rstr.
-    // 8. Let lnum be ? ToNumber(lprim).
-    // 9. Let rnum be ? ToNumber(rprim).
-    // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
-
-    // AdditiveExpression : AdditiveExpression - MultiplicativeExpression
-
-    // 1. Let lref be the result of evaluating AdditiveExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating MultiplicativeExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let lnum be ? ToNumber(lval).
-    // 6. Let rnum be ? ToNumber(rval).
-    // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
-
-    // ShiftExpression : ShiftExpression << AdditiveExpression
-
-    // 1. Let lref be the result of evaluating ShiftExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating AdditiveExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let lnum be ? ToInt32(lval).
-    // 6. Let rnum be ? ToUint32(rval).
-    // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-    // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
-
-    // ShiftExpression : ShiftExpression >> AdditiveExpression
-
-    // 1. Let lref be the result of evaluating ShiftExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating AdditiveExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let lnum be ? ToInt32(lval).
-    // 6. Let rnum be ? ToUint32(rval).
-    // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-    // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
-
-    // ShiftExpression : ShiftExpression >>> AdditiveExpression
-
-    // 1. Let lref be the result of evaluating ShiftExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating AdditiveExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let lnum be ? ToUint32(lval).
-    // 6. Let rnum be ? ToUint32(rval).
-    // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-    // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
-
-    // RelationalExpression : RelationalExpression < ShiftExpression
-
-    // 1. Let lref be the result of evaluating RelationalExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating ShiftExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
-    // 6. ReturnIfAbrupt(r).
-    // 7. If r is undefined, return false. Otherwise, return r.
-
-    // RelationalExpression : RelationalExpression > ShiftExpression
-
-    // 1. Let lref be the result of evaluating RelationalExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating ShiftExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
-    // 6. ReturnIfAbrupt(r).
-    // 7. If r is undefined, return false. Otherwise, return r.
-
-    // RelationalExpression : RelationalExpression <= ShiftExpression
-
-    // 1. Let lref be the result of evaluating RelationalExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating ShiftExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
-    // 6. ReturnIfAbrupt(r).
-    // 7. If r is true or undefined, return false. Otherwise, return true.
-
-    // RelationalExpression : RelationalExpression >= ShiftExpression
-
-    // 1. Let lref be the result of evaluating RelationalExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating ShiftExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
-    // 6. ReturnIfAbrupt(r).
-    // 7. If r is true or undefined, return false. Otherwise, return true.
-
-    // RelationalExpression : RelationalExpression instanceof ShiftExpression
-
-    // 1. Let lref be the result of evaluating RelationalExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating ShiftExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Return ? InstanceofOperator(lval, rval).
-
-    // RelationalExpression : RelationalExpression in ShiftExpression
-
-    // 1. Let lref be the result of evaluating RelationalExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating ShiftExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. If Type(rval) is not Object, throw a TypeError exception.
-    // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
-
-    // EqualityExpression : EqualityExpression == RelationalExpression
-
-    // 1. Let lref be the result of evaluating EqualityExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating RelationalExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Return the result of performing Abstract Equality Comparison rval == lval.
-
-    // EqualityExpression : EqualityExpression != RelationalExpression
-
-    // 1. Let lref be the result of evaluating EqualityExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating RelationalExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
-    // 6. If r is true, return false. Otherwise, return true.
-
-    // EqualityExpression : EqualityExpression === RelationalExpression
-
-    // 1. Let lref be the result of evaluating EqualityExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating RelationalExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Return the result of performing Strict Equality Comparison rval === lval.
-
-    // EqualityExpression : EqualityExpression !== RelationalExpression
-
-    // 1. Let lref be the result of evaluating EqualityExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating RelationalExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
-    // 6. If r is true, return false. Otherwise, return true.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
-
-    // 1. Let lref be the result of evaluating A.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating B.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let lnum be ? ToInt32(lval).
-    // 6. Let rnum be ? ToInt32(rval).
-    // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
-
-    // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
-
-    // 1. Let lref be the result of evaluating LogicalANDExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let lbool be ToBoolean(lval).
-    // 4. If lbool is false, return lval.
-    // 5. Let rref be the result of evaluating BitwiseORExpression.
-    // 6. Return ? GetValue(rref).
-
-    // LogicalORExpression : LogicalORExpression || LogicalANDExpression
-
-    // 1. Let lref be the result of evaluating LogicalORExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let lbool be ToBoolean(lval).
-    // 4. If lbool is true, return lval.
-    // 5. Let rref be the result of evaluating LogicalANDExpression.
-    // 6. Return ? GetValue(rref).
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
-
-    // AssignmentExpression : LeftHandSideExpression = AssignmentExpression
-
-    // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
-    // 1. a. Let lref be the result of evaluating LeftHandSideExpression.
-    // 1. b. ReturnIfAbrupt(lref).
-    // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
-    // 1. c. i. Let rval be the result of performing NamedEvaluation for AssignmentExpression with argument GetReferencedName(lref).
-    // 1. d. Else,
-    // 1. d. i. Let rref be the result of evaluating AssignmentExpression.
-    // 1. d. ii. Let rval be ? GetValue(rref).
-    // 1. e. Perform ? PutValue(lref, rval).
-    // 1. f. Return rval.
-    // 2. Let assignmentPattern be the AssignmentPattern that is covered by LeftHandSideExpression.
-    // 3. Let rref be the result of evaluating AssignmentExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
-    // 6. Return rval.
-
-    // AssignmentExpression : LeftHandSideExpression AssignmentOperator AssignmentExpression
-
-    // 1. Let lref be the result of evaluating LeftHandSideExpression.
-    // 2. Let lval be ? GetValue(lref).
-    // 3. Let rref be the result of evaluating AssignmentExpression.
-    // 4. Let rval be ? GetValue(rref).
-    // 5. Let op be the @ where AssignmentOperator is @=.
-    // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
-    // 7. Perform ? PutValue(lref, r).
-    // 8. Return r.
+    const left = this.$left.Evaluate();
+    const leftValue = left.GetValue();
+
+    const right = this.$right.Evaluate();
+    const rightValue = right.GetValue();
+
+    switch (this.node.operatorToken.kind) {
+      case SyntaxKind.AsteriskAsteriskToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
+
+        // ExponentiationExpression : UpdateExpression ** ExponentiationExpression
+
+        // 1. Let left be the result of evaluating UpdateExpression.
+        // 2. Let leftValue be ? GetValue(left).
+        // 3. Let right be the result of evaluating ExponentiationExpression.
+        // 4. Let rightValue be ? GetValue(right).
+        // 5. Let base be ? ToNumber(leftValue).
+        // 6. Let exponent be ? ToNumber(rightValue).
+        // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.AsteriskToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+
+        // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
+
+        // 1. Let left be the result of evaluating MultiplicativeExpression.
+        // 2. Let leftValue be ? GetValue(left).
+        // 3. Let right be the result of evaluating ExponentiationExpression.
+        // 4. Let rightValue be ? GetValue(right).
+        // 5. Let lnum be ? ToNumber(leftValue).
+        // 6. Let rnum be ? ToNumber(rightValue).
+        // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.SlashToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
+
+        // AdditiveExpression : AdditiveExpression + MultiplicativeExpression
+
+        // 1. Let lref be the result of evaluating AdditiveExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating MultiplicativeExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let lprim be ? ToPrimitive(lval).
+        // 6. Let rprim be ? ToPrimitive(rval).
+        // 7. If Type(lprim) is String or Type(rprim) is String, then
+        // 7. a. Let lstr be ? ToString(lprim).
+        // 7. b. Let rstr be ? ToString(rprim).
+        // 7. c. Return the string-concatenation of lstr and rstr.
+        // 8. Let lnum be ? ToNumber(lprim).
+        // 9. Let rnum be ? ToNumber(rprim).
+        // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
+
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.PercentToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
+
+        // AdditiveExpression : AdditiveExpression - MultiplicativeExpression
+
+        // 1. Let lref be the result of evaluating AdditiveExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating MultiplicativeExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let lnum be ? ToNumber(lval).
+        // 6. Let rnum be ? ToNumber(rval).
+        // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
+
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.PlusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
+
+        // ShiftExpression : ShiftExpression << AdditiveExpression
+
+        // 1. Let lref be the result of evaluating ShiftExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating AdditiveExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let lnum be ? ToInt32(lval).
+        // 6. Let rnum be ? ToUint32(rval).
+        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+        // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
+
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.MinusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
+
+        // ShiftExpression : ShiftExpression >> AdditiveExpression
+
+        // 1. Let lref be the result of evaluating ShiftExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating AdditiveExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let lnum be ? ToInt32(lval).
+        // 6. Let rnum be ? ToUint32(rval).
+        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+        // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
+
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.LessThanLessThanToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
+
+        // ShiftExpression : ShiftExpression >>> AdditiveExpression
+
+        // 1. Let lref be the result of evaluating ShiftExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating AdditiveExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let lnum be ? ToUint32(lval).
+        // 6. Let rnum be ? ToUint32(rval).
+        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+        // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
+
+        return null as any; // TODO: implement this
+      }
+      // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
+      case SyntaxKind.GreaterThanGreaterThanToken: {
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.LessThanToken: {
+        // RelationalExpression : RelationalExpression < ShiftExpression
+
+        // 1. Let lref be the result of evaluating RelationalExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating ShiftExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
+        // 6. ReturnIfAbrupt(r).
+        // 7. If r is undefined, return false. Otherwise, return r.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.GreaterThanToken: {
+        // RelationalExpression : RelationalExpression > ShiftExpression
+
+        // 1. Let lref be the result of evaluating RelationalExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating ShiftExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
+        // 6. ReturnIfAbrupt(r).
+        // 7. If r is undefined, return false. Otherwise, return r.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.LessThanEqualsToken: {
+        // RelationalExpression : RelationalExpression <= ShiftExpression
+
+        // 1. Let lref be the result of evaluating RelationalExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating ShiftExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
+        // 6. ReturnIfAbrupt(r).
+        // 7. If r is true or undefined, return false. Otherwise, return true.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.GreaterThanEqualsToken: {
+        // RelationalExpression : RelationalExpression >= ShiftExpression
+
+        // 1. Let lref be the result of evaluating RelationalExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating ShiftExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
+        // 6. ReturnIfAbrupt(r).
+        // 7. If r is true or undefined, return false. Otherwise, return true.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.InstanceOfKeyword: {
+        // RelationalExpression : RelationalExpression instanceof ShiftExpression
+
+        // 1. Let lref be the result of evaluating RelationalExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating ShiftExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Return ? InstanceofOperator(lval, rval).
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.InKeyword: {
+        // RelationalExpression : RelationalExpression in ShiftExpression
+
+        // 1. Let lref be the result of evaluating RelationalExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating ShiftExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. If Type(rval) is not Object, throw a TypeError exception.
+        // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
+        return null as any; // TODO: implement this
+      }
+      // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
+      case SyntaxKind.EqualsEqualsToken: {
+        // EqualityExpression : EqualityExpression == RelationalExpression
+
+        // 1. Let lref be the result of evaluating EqualityExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating RelationalExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Return the result of performing Abstract Equality Comparison rval == lval.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.ExclamationEqualsToken: {
+        // EqualityExpression : EqualityExpression != RelationalExpression
+
+        // 1. Let lref be the result of evaluating EqualityExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating RelationalExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
+        // 6. If r is true, return false. Otherwise, return true.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.EqualsEqualsEqualsToken: {
+        // EqualityExpression : EqualityExpression === RelationalExpression
+
+        // 1. Let lref be the result of evaluating EqualityExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating RelationalExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Return the result of performing Strict Equality Comparison rval === lval.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.ExclamationEqualsEqualsToken: {
+        // EqualityExpression : EqualityExpression !== RelationalExpression
+
+        // 1. Let lref be the result of evaluating EqualityExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating RelationalExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
+        // 6. If r is true, return false. Otherwise, return true.
+        return null as any; // TODO: implement this
+      }
+      // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+
+      // 1. Let lref be the result of evaluating A.
+      // 2. Let lval be ? GetValue(lref).
+      // 3. Let rref be the result of evaluating B.
+      // 4. Let rval be ? GetValue(rref).
+      // 5. Let lnum be ? ToInt32(lval).
+      // 6. Let rnum be ? ToInt32(rval).
+      // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+      case SyntaxKind.AmpersandToken: {
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.CaretToken: {
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.BarToken: {
+        return null as any; // TODO: implement this
+      }
+      // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
+      case SyntaxKind.AmpersandAmpersandToken: {
+
+        // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
+
+        // 1. Let lref be the result of evaluating LogicalANDExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let lbool be ToBoolean(lval).
+        // 4. If lbool is false, return lval.
+        // 5. Let rref be the result of evaluating BitwiseORExpression.
+        // 6. Return ? GetValue(rref).
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.BarBarToken: {
+        // LogicalORExpression : LogicalORExpression || LogicalANDExpression
+
+        // 1. Let lref be the result of evaluating LogicalORExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let lbool be ToBoolean(lval).
+        // 4. If lbool is true, return lval.
+        // 5. Let rref be the result of evaluating LogicalANDExpression.
+        // 6. Return ? GetValue(rref).
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.EqualsToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
+
+        // AssignmentExpression : LeftHandSideExpression = AssignmentExpression
+
+        // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
+        // 1. a. Let lref be the result of evaluating LeftHandSideExpression.
+        // 1. b. ReturnIfAbrupt(lref).
+        // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
+        // 1. c. i. Let rval be the result of performing NamedEvaluation for AssignmentExpression with argument GetReferencedName(lref).
+        // 1. d. Else,
+        // 1. d. i. Let rref be the result of evaluating AssignmentExpression.
+        // 1. d. ii. Let rval be ? GetValue(rref).
+        // 1. e. Perform ? PutValue(lref, rval).
+        // 1. f. Return rval.
+        // 2. Let assignmentPattern be the AssignmentPattern that is covered by LeftHandSideExpression.
+        // 3. Let rref be the result of evaluating AssignmentExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
+        // 6. Return rval.
+        return null as any; // TODO: implement this
+      }
+      case SyntaxKind.AsteriskAsteriskEqualsToken:
+      case SyntaxKind.AsteriskEqualsToken:
+      case SyntaxKind.SlashEqualsToken:
+      case SyntaxKind.PercentEqualsToken:
+      case SyntaxKind.PlusEqualsToken:
+      case SyntaxKind.MinusEqualsToken:
+      case SyntaxKind.LessThanLessThanEqualsToken:
+      case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+      case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+      case SyntaxKind.AmpersandEqualsToken:
+      case SyntaxKind.CaretEqualsToken:
+      case SyntaxKind.BarEqualsToken: {
+        // AssignmentExpression : LeftHandSideExpression AssignmentOperator AssignmentExpression
+
+        // 1. Let lref be the result of evaluating LeftHandSideExpression.
+        // 2. Let lval be ? GetValue(lref).
+        // 3. Let rref be the result of evaluating AssignmentExpression.
+        // 4. Let rval be ? GetValue(rref).
+        // 5. Let op be the @ where AssignmentOperator is @=.
+        // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
+        // 7. Perform ? PutValue(lref, r).
+        // 8. Return r.
+        return null as any; // TODO: implement this
+      }
+    }
 
     return null as any; // TODO: implement this
   }

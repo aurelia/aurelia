@@ -66,6 +66,10 @@ export class $Empty {
   public is(other: $Any): other is $Empty {
     return other instanceof $Empty;
   }
+
+  public GetValue(): this {
+    return this;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
@@ -102,6 +106,10 @@ export class $Undefined {
 
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert undefined to object`);
+  }
+
+  public GetValue(): this {
+    return this;
   }
 }
 
@@ -140,6 +148,10 @@ export class $Null {
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert null to object`);
   }
+
+  public GetValue(): this {
+    return this;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-boolean-type
@@ -175,6 +187,10 @@ export class $Boolean<T extends boolean = boolean> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('boolean', this.realm['[[Intrinsics]]']['%BooleanPrototype%'], { '[[BooleanData]]': this });
+  }
+
+  public GetValue(): this {
+    return this;
   }
 }
 
@@ -212,6 +228,10 @@ export class $String<T extends string = string> {
   public ToObject(): $Object {
     return $Object.ObjectCreate('string', this.realm['[[Intrinsics]]']['%StringPrototype%'], { '[[StringData]]': this });
   }
+
+  public GetValue(): this {
+    return this;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
@@ -248,6 +268,10 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public ToObject(): $Object {
     return $Object.ObjectCreate('symbol', this.realm['[[Intrinsics]]']['%SymbolPrototype%'], { '[[SymbolData]]': this });
   }
+
+  public GetValue(): this {
+    return this;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-number-type
@@ -283,6 +307,10 @@ export class $Number<T extends number = number> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
+  }
+
+  public GetValue(): this {
+    return this;
   }
 }
 
@@ -344,6 +372,10 @@ export class $Object<
 
   public is(other: $Any): other is $Object<T> {
     return this.id === other.id;
+  }
+
+  public GetValue(): this {
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof

@@ -20,7 +20,7 @@
     "gulp": "^4.0.2",
     "gulp-typescript": "^5.0.1",
     "gulp-util": "^3.0.8",
-    "http-server": "^0.11.1",
+    "http-server": "0.9.0",
     "path": "^0.12.7",
     "rimraf": "^3.0.0",
     "tsify": "^4.0.1",

@@ -23,7 +23,7 @@
     "chai": "^4.2.0",
     "chromedriver": "^76.0.1",
     "cross-env": "^6.0.3",
-    "http-server": "^0.11.1",
+    "http-server": "0.9.0",
     "mocha": "~6.1.4",
     "path": "^0.12.7",
     "rimraf": "^3.0.0",

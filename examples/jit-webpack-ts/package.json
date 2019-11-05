@@ -15,15 +15,15 @@
     "aurelia": "dev"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "html-loader": "latest",
+    "@types/node": "^10.14.13",
+    "html-loader": "^0.5.5",
     "html-webpack-plugin": "latest",
-    "http-server": "latest",
-    "rimraf": "latest",
-    "ts-loader": "latest",
-    "typescript": "latest",
-    "webpack-cli": "latest",
-    "webpack-dev-server": "latest",
-    "webpack": "latest"
+    "http-server": "0.9.0",
+    "rimraf": "^3.0.0",
+    "ts-loader": "^6.2.0",
+    "typescript": "^3.6.4",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2",
+    "webpack": "^4.41.2"
   }
 }

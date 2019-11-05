@@ -36,6 +36,49 @@ export type $NonNumberPrimitive = Exclude<$Primitive, $Number>;
 export type $NonNilPrimitive = Exclude<$Primitive, $Undefined | $Null>;
 export type $NonNil = Exclude<$Any, $Undefined | $Null>;
 
+function getPath(obj: { path: string }): string {
+  return obj.path;
+}
+
+export class $SpeculativeValue {
+  public readonly '<$SpeculativeValue>': unknown;
+
+  public readonly path: string;
+  public readonly id: number = ++esValueId;
+
+  public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): false { return false; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): false { return false; }
+  public get isObject(): false { return false; }
+  public get isFunction(): false { return false; }
+  public get isTruthy(): false { return false; }
+  public get isFalsey(): false { return false; }
+  public get isSpeculative(): true { return true; }
+  public get hasValue(): false { return false; }
+
+  public constructor(
+    public readonly realm: Realm,
+    public readonly sourceNode: $$AssignmentExpressionOrHigher,
+    public readonly antecedents: readonly $SpeculativeValue[],
+  ) {
+    this.path = `((${antecedents.map(getPath).join('+')})/${this.id})`;
+  }
+
+  public is(other: $Any): other is $Empty {
+    return other instanceof $SpeculativeValue && this.id === other.id;
+  }
+
+  public GetValue(): this {
+    return this;
+  }
+}
+
 export class $Empty {
   public readonly '<$Empty>': unknown;
 
@@ -57,6 +100,8 @@ export class $Empty {
   public get isFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,
@@ -94,6 +139,8 @@ export class $Undefined {
   public get isFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -135,6 +182,8 @@ export class $Null {
   public get isFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -174,6 +223,8 @@ export class $Boolean<T extends boolean = boolean> {
   public get isFunction(): false { return false; }
   public get isTruthy(): T { return this.value; }
   public get isFalsey(): T extends true ? false : true { return !this.value as T extends true ? false : true; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -214,6 +265,8 @@ export class $String<T extends string = string> {
   public get isFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value.length > 0; }
   public get isFalsey(): boolean { return this.value.length === 0; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -254,6 +307,8 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isFunction(): false { return false; }
   public get isTruthy(): true { return true; }
   public get isFalsey(): false { return false; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -294,6 +349,8 @@ export class $Number<T extends number = number> {
   public get isFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value !== 0 && !isNaN(this.value); }
   public get isFalsey(): boolean { return this.value === 0 || isNaN(this.value); }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -340,6 +397,8 @@ export class $Object<
   public get isFunction(): boolean { return false; }
   public get isTruthy(): true { return true; }
   public get isFalsey(): false { return false; }
+  public get isSpeculative(): false { return false; }
+  public get hasValue(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,

@@ -148,6 +148,7 @@ import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
 import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean, $Number, $Any } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 const {
   emptyArray,
   emptyObject,
@@ -3560,11 +3561,8 @@ export class $BinaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    const left = this.$left.Evaluate();
-    const leftValue = left.GetValue();
-
-    const right = this.$right.Evaluate();
-    const rightValue = right.GetValue();
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     switch (this.node.operatorToken.kind) {
       case SyntaxKind.AsteriskAsteriskToken: {
@@ -3573,13 +3571,25 @@ export class $BinaryExpression implements I$Node {
         // ExponentiationExpression : UpdateExpression ** ExponentiationExpression
 
         // 1. Let left be the result of evaluating UpdateExpression.
+        const left = this.$left.Evaluate();
+
         // 2. Let leftValue be ? GetValue(left).
+        const leftValue = left.GetValue();
+
         // 3. Let right be the result of evaluating ExponentiationExpression.
+        const right = this.$right.Evaluate();
+
         // 4. Let rightValue be ? GetValue(right).
+        const rightValue = right.GetValue();
+
         // 5. Let base be ? ToNumber(leftValue).
+        const base = leftValue.ToNumber();
+
         // 6. Let exponent be ? ToNumber(rightValue).
+        const exponent = rightValue.ToNumber();
+
         // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
-        return null as any; // TODO: implement this
+        return new $Number(realm, base.value ** exponent.value); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.AsteriskToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -3587,235 +3597,515 @@ export class $BinaryExpression implements I$Node {
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
         // 1. Let left be the result of evaluating MultiplicativeExpression.
-        // 2. Let leftValue be ? GetValue(left).
-        // 3. Let right be the result of evaluating ExponentiationExpression.
-        // 4. Let rightValue be ? GetValue(right).
-        // 5. Let lnum be ? ToNumber(leftValue).
-        // 6. Let rnum be ? ToNumber(rightValue).
-        // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+        const left = this.$left.Evaluate();
 
-        return null as any; // TODO: implement this
+        // 2. Let leftValue be ? GetValue(left).
+        const leftValue = left.GetValue();
+
+        // 3. Let right be the result of evaluating ExponentiationExpression.
+        const right = this.$right.Evaluate();
+
+        // 4. Let rightValue be ? GetValue(right).
+        const rightValue = right.GetValue();
+
+        // 5. Let lnum be ? ToNumber(leftValue).
+        const lnum = leftValue.ToNumber();
+
+        // 6. Let rnum be ? ToNumber(rightValue).
+        const rnum = rightValue.ToNumber();
+
+        // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+        return new $Number(realm, lnum.value * rnum.value); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.SlashToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+
+        // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
+
+        // 1. Let left be the result of evaluating MultiplicativeExpression.
+        const left = this.$left.Evaluate();
+
+        // 2. Let leftValue be ? GetValue(left).
+        const leftValue = left.GetValue();
+
+        // 3. Let right be the result of evaluating ExponentiationExpression.
+        const right = this.$right.Evaluate();
+
+        // 4. Let rightValue be ? GetValue(right).
+        const rightValue = right.GetValue();
+
+        // 5. Let lnum be ? ToNumber(leftValue).
+        const lnum = leftValue.ToNumber();
+
+        // 6. Let rnum be ? ToNumber(rightValue).
+        const rnum = rightValue.ToNumber();
+
+        // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+        return new $Number(realm, lnum.value / rnum.value); // TODO: add temporal state snapshot for tracing
+      }
+      case SyntaxKind.PercentToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+
+        // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
+
+        // 1. Let left be the result of evaluating MultiplicativeExpression.
+        const left = this.$left.Evaluate();
+
+        // 2. Let leftValue be ? GetValue(left).
+        const leftValue = left.GetValue();
+
+        // 3. Let right be the result of evaluating ExponentiationExpression.
+        const right = this.$right.Evaluate();
+
+        // 4. Let rightValue be ? GetValue(right).
+        const rightValue = right.GetValue();
+
+        // 5. Let lnum be ? ToNumber(leftValue).
+        const lnum = leftValue.ToNumber();
+
+        // 6. Let rnum be ? ToNumber(rightValue).
+        const rnum = rightValue.ToNumber();
+
+        // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+        return new $Number(realm, lnum.value % rnum.value); // TODO: add temporal state snapshot for tracing
+      }
+      case SyntaxKind.PlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
 
         // AdditiveExpression : AdditiveExpression + MultiplicativeExpression
 
         // 1. Let lref be the result of evaluating AdditiveExpression.
-        // 2. Let lval be ? GetValue(lref).
-        // 3. Let rref be the result of evaluating MultiplicativeExpression.
-        // 4. Let rval be ? GetValue(rref).
-        // 5. Let lprim be ? ToPrimitive(lval).
-        // 6. Let rprim be ? ToPrimitive(rval).
-        // 7. If Type(lprim) is String or Type(rprim) is String, then
-        // 7. a. Let lstr be ? ToString(lprim).
-        // 7. b. Let rstr be ? ToString(rprim).
-        // 7. c. Return the string-concatenation of lstr and rstr.
-        // 8. Let lnum be ? ToNumber(lprim).
-        // 9. Let rnum be ? ToNumber(rprim).
-        // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
+        const lref = this.$left.Evaluate();
 
-        return null as any; // TODO: implement this
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating MultiplicativeExpression.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lprim be ? ToPrimitive(lval).
+        const lprim = lval.ToPrimitive();
+
+        // 6. Let rprim be ? ToPrimitive(rval).
+        const rprim = rval.ToPrimitive();
+
+        // 7. If Type(lprim) is String or Type(rprim) is String, then
+        if (lprim.isString || rprim.isString) {
+          // 7. a. Let lstr be ? ToString(lprim).
+          const lstr = lprim.ToString();
+
+          // 7. b. Let rstr be ? ToString(rprim).
+          const rstr = rprim.ToString();
+
+          // 7. c. Return the string-concatenation of lstr and rstr.
+          return new $String(realm, lstr.value + rstr.value); // TODO: add temporal state snapshot for tracing
+        }
+
+        // 8. Let lnum be ? ToNumber(lprim).
+        const lnum = lprim.ToNumber();
+
+        // 9. Let rnum be ? ToNumber(rprim).
+        const rnum = rprim.ToNumber();
+
+        // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
+        return new $Number(realm, lnum.value + rnum.value); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.PercentToken: {
+      case SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
 
         // AdditiveExpression : AdditiveExpression - MultiplicativeExpression
 
         // 1. Let lref be the result of evaluating AdditiveExpression.
-        // 2. Let lval be ? GetValue(lref).
-        // 3. Let rref be the result of evaluating MultiplicativeExpression.
-        // 4. Let rval be ? GetValue(rref).
-        // 5. Let lnum be ? ToNumber(lval).
-        // 6. Let rnum be ? ToNumber(rval).
-        // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
+        const lref = this.$left.Evaluate();
 
-        return null as any; // TODO: implement this
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating MultiplicativeExpression.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToNumber(lval).
+        const lnum = lval.ToNumber();
+
+        // 6. Let rnum be ? ToNumber(rval).
+        const rnum = rval.ToNumber();
+
+        // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
+        return new $Number(realm, lnum.value - rnum.value); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.PlusToken: {
+      case SyntaxKind.LessThanLessThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
 
         // ShiftExpression : ShiftExpression << AdditiveExpression
 
         // 1. Let lref be the result of evaluating ShiftExpression.
-        // 2. Let lval be ? GetValue(lref).
-        // 3. Let rref be the result of evaluating AdditiveExpression.
-        // 4. Let rval be ? GetValue(rref).
-        // 5. Let lnum be ? ToInt32(lval).
-        // 6. Let rnum be ? ToUint32(rval).
-        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-        // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
+        const lref = this.$left.Evaluate();
 
-        return null as any; // TODO: implement this
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating AdditiveExpression.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToInt32(lval).
+        const lnum = lval.ToInt32();
+
+        // 6. Let rnum be ? ToUint32(rval).
+        const rnum = rval.ToUint32();
+
+        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+        const shiftCount = rnum.value & 0b11111;
+
+        // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
+        return new $Number(realm, lnum.value << shiftCount); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.MinusToken: {
+      case SyntaxKind.GreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
 
         // ShiftExpression : ShiftExpression >> AdditiveExpression
 
         // 1. Let lref be the result of evaluating ShiftExpression.
-        // 2. Let lval be ? GetValue(lref).
-        // 3. Let rref be the result of evaluating AdditiveExpression.
-        // 4. Let rval be ? GetValue(rref).
-        // 5. Let lnum be ? ToInt32(lval).
-        // 6. Let rnum be ? ToUint32(rval).
-        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-        // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
+        const lref = this.$left.Evaluate();
 
-        return null as any; // TODO: implement this
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating AdditiveExpression.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToInt32(lval).
+        const lnum = lval.ToInt32();
+
+        // 6. Let rnum be ? ToUint32(rval).
+        const rnum = rval.ToUint32();
+
+        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+        const shiftCount = rnum.value & 0b11111;
+
+        // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
+        return new $Number(realm, lnum.value >> shiftCount); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.LessThanLessThanToken: {
+      case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
 
         // ShiftExpression : ShiftExpression >>> AdditiveExpression
 
         // 1. Let lref be the result of evaluating ShiftExpression.
-        // 2. Let lval be ? GetValue(lref).
-        // 3. Let rref be the result of evaluating AdditiveExpression.
-        // 4. Let rval be ? GetValue(rref).
-        // 5. Let lnum be ? ToUint32(lval).
-        // 6. Let rnum be ? ToUint32(rval).
-        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-        // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
+        const lref = this.$left.Evaluate();
 
-        return null as any; // TODO: implement this
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating AdditiveExpression.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToUint32(lval).
+        const lnum = lval.ToUint32();
+
+        // 6. Let rnum be ? ToUint32(rval).
+        const rnum = rval.ToUint32();
+
+        // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+        const shiftCount = rnum.value & 0b11111;
+
+        // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
+        return new $Number(realm, lnum.value >>> shiftCount); // TODO: add temporal state snapshot for tracing
       }
       // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
-      case SyntaxKind.GreaterThanGreaterThanToken: {
-        return null as any; // TODO: implement this
-      }
-      case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
-        return null as any; // TODO: implement this
-      }
       case SyntaxKind.LessThanToken: {
         // RelationalExpression : RelationalExpression < ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating ShiftExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
+        const r = $AbstractRelationalComparison(true, lval, rval);
+
         // 6. ReturnIfAbrupt(r).
         // 7. If r is undefined, return false. Otherwise, return r.
-        return null as any; // TODO: implement this
+        return r.isUndefined ? intrinsics.false : r;
       }
       case SyntaxKind.GreaterThanToken: {
         // RelationalExpression : RelationalExpression > ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating ShiftExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
+        const r = $AbstractRelationalComparison(false, rval, lval);
+
         // 6. ReturnIfAbrupt(r).
         // 7. If r is undefined, return false. Otherwise, return r.
-        return null as any; // TODO: implement this
+        return r.isUndefined ? intrinsics.false : r;
       }
       case SyntaxKind.LessThanEqualsToken: {
         // RelationalExpression : RelationalExpression <= ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating ShiftExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
+        const r = $AbstractRelationalComparison(false, rval, lval);
+
         // 6. ReturnIfAbrupt(r).
         // 7. If r is true or undefined, return false. Otherwise, return true.
-        return null as any; // TODO: implement this
+        return r.isTruthy || r.isUndefined ? intrinsics.false : intrinsics.true;
       }
       case SyntaxKind.GreaterThanEqualsToken: {
         // RelationalExpression : RelationalExpression >= ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating ShiftExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
+        const r = $AbstractRelationalComparison(true, lval, rval);
+
         // 6. ReturnIfAbrupt(r).
         // 7. If r is true or undefined, return false. Otherwise, return true.
-        return null as any; // TODO: implement this
+        return r.isTruthy || r.isUndefined ? intrinsics.false : intrinsics.true;
       }
       case SyntaxKind.InstanceOfKeyword: {
         // RelationalExpression : RelationalExpression instanceof ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating ShiftExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Return ? InstanceofOperator(lval, rval).
-        return null as any; // TODO: implement this
+        return $InstanceOfOperator(lval, rval);
       }
       case SyntaxKind.InKeyword: {
         // RelationalExpression : RelationalExpression in ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating ShiftExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. If Type(rval) is not Object, throw a TypeError exception.
+        if (!rval.isObject) {
+          throw new TypeError('5. If Type(rval) is not Object, throw a TypeError exception.');
+        }
+
         // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
-        return null as any; // TODO: implement this
+        return $HasProperty(rval, lval.ToPropertyKey());
       }
       // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
       case SyntaxKind.EqualsEqualsToken: {
         // EqualityExpression : EqualityExpression == RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating RelationalExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Return the result of performing Abstract Equality Comparison rval == lval.
-        return null as any; // TODO: implement this
+        return $AbstractEqualityComparison(rval, lval);
       }
       case SyntaxKind.ExclamationEqualsToken: {
         // EqualityExpression : EqualityExpression != RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating RelationalExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
+        const r = $AbstractEqualityComparison(rval, lval);
+
         // 6. If r is true, return false. Otherwise, return true.
-        return null as any; // TODO: implement this
+        return r.isTruthy ? intrinsics.false : intrinsics.true;
       }
       case SyntaxKind.EqualsEqualsEqualsToken: {
         // EqualityExpression : EqualityExpression === RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let rref be the result of evaluating RelationalExpression.
+        const rref = this.$right.Evaluate();
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
         // 5. Return the result of performing Strict Equality Comparison rval === lval.
-        return null as any; // TODO: implement this
+        return $StrictEqualityComparison(rval, lval);
       }
       case SyntaxKind.ExclamationEqualsEqualsToken: {
         // EqualityExpression : EqualityExpression !== RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
-        // 2. Let lval be ? GetValue(lref).
-        // 3. Let rref be the result of evaluating RelationalExpression.
-        // 4. Let rval be ? GetValue(rref).
-        // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
-        // 6. If r is true, return false. Otherwise, return true.
-        return null as any; // TODO: implement this
-      }
-      // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+        const lref = this.$left.Evaluate();
 
-      // 1. Let lref be the result of evaluating A.
-      // 2. Let lval be ? GetValue(lref).
-      // 3. Let rref be the result of evaluating B.
-      // 4. Let rval be ? GetValue(rref).
-      // 5. Let lnum be ? ToInt32(lval).
-      // 6. Let rnum be ? ToInt32(rval).
-      // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating RelationalExpression.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
+        const r = $StrictEqualityComparison(rval, lval);
+
+        // 6. If r is true, return false. Otherwise, return true.
+        return r.isTruthy ? intrinsics.false : intrinsics.true;
+      }
       case SyntaxKind.AmpersandToken: {
-        return null as any; // TODO: implement this
+        // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+
+        // 1. Let lref be the result of evaluating A.
+        const lref = this.$left.Evaluate();
+
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating B.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToInt32(lval).
+        const lnum = lval.ToInt32();
+
+        // 6. Let rnum be ? ToInt32(rval).
+        const rnum = rval.ToInt32();
+
+        // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+        return new $Number(realm, lnum.value & rnum.value); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.CaretToken: {
-        return null as any; // TODO: implement this
+        // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+
+        // 1. Let lref be the result of evaluating A.
+        const lref = this.$left.Evaluate();
+
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating B.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToInt32(lval).
+        const lnum = lval.ToInt32();
+
+        // 6. Let rnum be ? ToInt32(rval).
+        const rnum = rval.ToInt32();
+
+        // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+        return new $Number(realm, lnum.value ^ rnum.value); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.BarToken: {
-        return null as any; // TODO: implement this
+        // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+
+        // 1. Let lref be the result of evaluating A.
+        const lref = this.$left.Evaluate();
+
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
+        // 3. Let rref be the result of evaluating B.
+        const rref = this.$right.Evaluate();
+
+        // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue();
+
+        // 5. Let lnum be ? ToInt32(lval).
+        const lnum = lval.ToInt32();
+
+        // 6. Let rnum be ? ToInt32(rval).
+        const rnum = rval.ToInt32();
+
+        // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+        return new $Number(realm, lnum.value | rnum.value); // TODO: add temporal state snapshot for tracing
       }
       // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
       case SyntaxKind.AmpersandAmpersandToken: {
@@ -3823,23 +4113,47 @@ export class $BinaryExpression implements I$Node {
         // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
 
         // 1. Let lref be the result of evaluating LogicalANDExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let lbool be ToBoolean(lval).
+        const lbool = lval.ToBoolean();
+
         // 4. If lbool is false, return lval.
+        if (lbool.isFalsey) {
+          return lval;
+        }
+
         // 5. Let rref be the result of evaluating BitwiseORExpression.
+        const rref = this.$right.Evaluate();
+
         // 6. Return ? GetValue(rref).
-        return null as any; // TODO: implement this
+        return rref.GetValue();
       }
       case SyntaxKind.BarBarToken: {
         // LogicalORExpression : LogicalORExpression || LogicalANDExpression
 
         // 1. Let lref be the result of evaluating LogicalORExpression.
+        const lref = this.$left.Evaluate();
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue();
+
         // 3. Let lbool be ToBoolean(lval).
+        const lbool = lval.ToBoolean();
+
         // 4. If lbool is true, return lval.
+        if (lbool.isTruthy) {
+          return lval;
+        }
+
         // 5. Let rref be the result of evaluating LogicalANDExpression.
+        const rref = this.$right.Evaluate();
+
         // 6. Return ? GetValue(rref).
-        return null as any; // TODO: implement this
+        return rref.GetValue();
       }
       case SyntaxKind.EqualsToken: {
         // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation

@@ -86,6 +86,10 @@ export class $SpeculativeValue {
     throw new TypeError(`Cannot convert SpeculativeValue to number`);
   }
 
+  public ToString(): $String {
+    throw new TypeError(`Cannot convert SpeculativeValue to string`);
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -134,6 +138,10 @@ export class $Empty {
 
   public ToNumber(): $Number {
     throw new TypeError(`Cannot convert empty to number`);
+  }
+
+  public ToString(): $String {
+    throw new TypeError(`Cannot convert empty to string`);
   }
 
   public GetValue(): this {
@@ -187,6 +195,15 @@ export class $Undefined {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -248,6 +265,15 @@ export class $Null {
     );
   }
 
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -303,6 +329,15 @@ export class $Boolean<T extends boolean = boolean> {
     );
   }
 
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -335,6 +370,7 @@ export class $String<T extends string = string> {
     public readonly realm: Realm,
     public readonly value: T,
     public readonly sourceNode: $Identifier | $StringLiteral | $NumericLiteral | null = null,
+    public readonly conversionSource: $Any | null = null,
   ) {}
 
   public is(other: $Any): other is $String<T> {
@@ -356,6 +392,10 @@ export class $String<T extends string = string> {
       /* sourceNode */null,
       /* conversionSource */this,
     );
+  }
+
+  public ToString(): this {
+    return this;
   }
 
   public GetValue(): this {
@@ -413,6 +453,15 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
@@ -462,6 +511,15 @@ export class $Number<T extends number = number> {
 
   public ToNumber(): $Number {
     return this;
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -537,6 +595,10 @@ export class $Object<
 
   public ToNumber(): $Number {
     return this.ToPrimitive('number').ToNumber();
+  }
+
+  public ToString(): $String {
+    return this.ToPrimitive('string').ToString();
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-toprimitive

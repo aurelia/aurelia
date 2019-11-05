@@ -82,16 +82,48 @@ export class $SpeculativeValue {
     throw new TypeError(`Cannot convert SpeculativeValue to primitive`);
   }
 
+  public ToBoolean(): $Boolean {
+    throw new TypeError(`Cannot convert SpeculativeValue to boolean`);
+  }
+
   public ToNumber(): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to number`);
+  }
+
+  public ToInt32(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Int32`);
+  }
+
+  public ToUint32(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint32`);
+  }
+
+  public ToInt16(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Int16`);
+  }
+
+  public ToUint16(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint16`);
+  }
+
+  public ToInt8(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Int8`);
+  }
+
+  public ToUint8(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint8`);
+  }
+
+  public ToUint8Clamp(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint8Clamp`);
   }
 
   public ToString(): $String {
     throw new TypeError(`Cannot convert SpeculativeValue to string`);
   }
 
-  public GetValue(): this {
-    return this;
+  public GetValue(): never {
+    throw new TypeError(`SpeculativeValue has no evaluatable value`);
   }
 }
 
@@ -136,18 +168,100 @@ export class $Empty {
     throw new TypeError(`Cannot convert empty to primitive`);
   }
 
+  public ToBoolean(): $Boolean {
+    throw new TypeError(`Cannot convert empty to boolean`);
+  }
+
   public ToNumber(): $Number {
     throw new TypeError(`Cannot convert empty to number`);
+  }
+
+  public ToInt32(): $Number {
+    throw new TypeError(`Cannot convert empty to Int32`);
+  }
+
+  public ToUint32(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint32`);
+  }
+
+  public ToInt16(): $Number {
+    throw new TypeError(`Cannot convert empty to Int16`);
+  }
+
+  public ToUint16(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint16`);
+  }
+
+  public ToInt8(): $Number {
+    throw new TypeError(`Cannot convert empty to Int8`);
+  }
+
+  public ToUint8(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint8`);
+  }
+
+  public ToUint8Clamp(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint8Clamp`);
   }
 
   public ToString(): $String {
     throw new TypeError(`Cannot convert empty to string`);
   }
 
-  public GetValue(): this {
-    return this;
+  public GetValue(): never {
+    throw new TypeError(`empty has no evaluatable value`);
   }
 }
+
+const Int32 = (function () {
+  const $ = new Int32Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint32 = (function () {
+  const $ = new Uint32Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Int16 = (function () {
+  const $ = new Int16Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint16 = (function () {
+  const $ = new Uint16Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Int8 = (function () {
+  const $ = new Int8Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint8 = (function () {
+  const $ = new Uint8Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint8Clamp = (function () {
+  const $ = new Uint8ClampedArray(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {
@@ -191,10 +305,82 @@ export class $Undefined {
     return this;
   }
 
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -256,10 +442,82 @@ export class $Null {
     return this;
   }
 
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -306,6 +564,7 @@ export class $Boolean<T extends boolean = boolean> {
     public readonly realm: Realm,
     public readonly value: T,
     public readonly sourceNode: $BooleanLiteral | null = null,
+    public readonly conversionSource: $Any | null = null,
   ) {}
 
   public is(other: $Any): other is $Boolean<T> {
@@ -320,10 +579,77 @@ export class $Boolean<T extends boolean = boolean> {
     return this;
   }
 
+  public ToBoolean(): this {
+    return this;
+  }
+
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -385,10 +711,82 @@ export class $String<T extends string = string> {
     return this;
   }
 
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -444,10 +842,82 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     return this;
   }
 
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -467,6 +937,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   }
 }
 
+
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-number-type
 export class $Number<T extends number = number> {
   public readonly '<$Number>': unknown;
@@ -474,6 +945,11 @@ export class $Number<T extends number = number> {
   public readonly id: number = ++esValueId;
   public readonly IntrinsicName: 'number' = 'number' as const;
 
+  public get isNaN(): boolean { return isNaN(this.value); }
+  public get isPositiveZero(): boolean { return Object.is(this.value, +0); }
+  public get isNegativeZero(): boolean { return Object.is(this.value, -0); }
+  public get isPositiveInfinity(): boolean { return Object.is(this.value, +Infinity); }
+  public get isNegativeInfinity(): boolean { return Object.is(this.value, -Infinity); }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -501,6 +977,10 @@ export class $Number<T extends number = number> {
     return other instanceof $Number && Object.is(this.value, other.value);
   }
 
+  public equals(other: $Number): boolean {
+    return Object.is(this.value, other.value);
+  }
+
   public ToObject(): $Object {
     return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
   }
@@ -509,8 +989,80 @@ export class $Number<T extends number = number> {
     return this;
   }
 
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public ToNumber(): $Number {
     return this;
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public ToString(): $String {
@@ -593,8 +1145,40 @@ export class $Object<
     return this;
   }
 
+  public ToBoolean(): $Boolean {
+    return this.ToPrimitive('number').ToBoolean();
+  }
+
   public ToNumber(): $Number {
     return this.ToPrimitive('number').ToNumber();
+  }
+
+  public ToInt32(): $Number {
+    return this.ToPrimitive('number').ToInt32();
+  }
+
+  public ToUint32(): $Number {
+    return this.ToPrimitive('number').ToUint32();
+  }
+
+  public ToInt16(): $Number {
+    return this.ToPrimitive('number').ToInt16();
+  }
+
+  public ToUint16(): $Number {
+    return this.ToPrimitive('number').ToUint16();
+  }
+
+  public ToInt8(): $Number {
+    return this.ToPrimitive('number').ToInt8();
+  }
+
+  public ToUint8(): $Number {
+    return this.ToPrimitive('number').ToUint8();
+  }
+
+  public ToUint8Clamp(): $Number {
+    return this.ToPrimitive('number').ToUint8Clamp();
   }
 
   public ToString(): $String {

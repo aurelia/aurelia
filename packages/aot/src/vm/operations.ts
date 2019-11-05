@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference, $Primitive } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference, $Primitive, $ECMAScriptFunction, $BoundFunctionExoticObject } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 
@@ -208,6 +208,24 @@ export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $
 
   // 3. Return ? F.[[Call]](V, argumentsList).
   return F['[[Call]]'](V, argumentsList);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-construct
+export function $Construct(F: $Function, argumentsList?: readonly $Any[], newTarget?: $Any): $Object {
+  // 1. If newTarget is not present, set newTarget to F.
+  if (newTarget === void 0) {
+    newTarget = F;
+  }
+
+  // 2. If argumentsList is not present, set argumentsList to a new empty List.
+  if (argumentsList === void 0) {
+    argumentsList = [];
+  }
+
+  // 3. Assert: IsConstructor(F) is true.
+  // 4. Assert: IsConstructor(newTarget) is true.
+  // 5. Return ? F.[[Construct]](argumentsList, newTarget).
+  return F['[[Construct]]'](argumentsList, newTarget);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-definepropertyorthrow
@@ -588,4 +606,82 @@ export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $A
   }
 
   return intrinsics.false;
+}
+
+
+// http://www.ecma-international.org/ecma-262/#sec-instanceofoperator
+export function $InstanceOfOperator(V: $Any, target: $Any): $Boolean {
+  const realm = V.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!target.isObject) {
+    throw new TypeError('1. If Type(target) is not Object, throw a TypeError exception.');
+  }
+
+  // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
+  const instOfhandler = target.GetMethod(intrinsics['@@hasInstance']);
+
+  // 3. If instOfHandler is not undefined, then
+  if (!instOfhandler.isUndefined) {
+    // 3. a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
+    return $Call(instOfhandler, target, [V]).ToBoolean();
+  }
+
+  // 4. If IsCallable(target) is false, throw a TypeError exception.
+  if (!target.isFunction) {
+    throw new TypeError('4. If IsCallable(target) is false, throw a TypeError exception.');
+  }
+
+  // 5. Return ? OrdinaryHasInstance(target, V).
+  return $OrdinaryHasInstance(target, V);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-ordinaryhasinstance
+export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
+  const realm = C.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If IsCallable(C) is false, return false.
+  if (!C.isFunction) {
+    return intrinsics.false;
+  }
+
+  // 2. If C has a [[BoundTargetFunction]] internal slot, then
+  if (C.isBoundFunction) {
+    // 2. a. Let BC be C.[[BoundTargetFunction]].
+    const BC = (C as $BoundFunctionExoticObject)['[[BoundTargetFunction]]'];
+
+    // 2. b. Return ? InstanceofOperator(O, BC).
+    return $InstanceOfOperator(O, BC);
+  }
+
+  // 3. If Type(O) is not Object, return false.
+  if (!O.isObject) {
+    return intrinsics.false;
+  }
+
+  // 4. Let P be ? Get(C, "prototype").
+  const P = $Get(C, intrinsics.$prototype);
+
+  // 5. If Type(P) is not Object, throw a TypeError exception.
+  if (!P.isObject) {
+    throw new TypeError('5. If Type(P) is not Object, throw a TypeError exception.');
+  }
+
+  // 6. Repeat,
+  while (true) {
+    // 6. a. Set O to ? O.[[GetPrototypeOf]]().
+    O = (O as $Object)['[[GetPrototypeOf]]']();
+
+    // 6. b. If O is null, return false.
+    if (O.isNull) {
+      return intrinsics.false;
+    }
+
+    // 6. c. If SameValue(P, O) is true, return true.
+    if (P.is(O)) {
+      return intrinsics.true;
+    }
+  }
 }

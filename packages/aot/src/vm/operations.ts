@@ -608,6 +608,99 @@ export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $A
   return intrinsics.false;
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-abstract-equality-comparison
+export function $AbstractEqualityComparison(x: $Any, y: $Any): $Boolean {
+  const realm = x.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If Type(x) is the same as Type(y), then
+  if (x.constructor === y.constructor) {
+    // 1. a. Return the result of performing Strict Equality Comparison x === y.
+    return $StrictEqualityComparison(x, y);
+  }
+
+  // 2. If x is null and y is undefined, return true.
+  // 3. If x is undefined and y is null, return true.
+  if (x.isNil && y.isNil) {
+    return intrinsics.true;
+  }
+
+  // 4. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
+  if (x.isNumber && y.isString) {
+    if (x.is(y.ToNumber())) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 5. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
+  if (x.isString && y.isNumber) {
+    if (x.ToNumber().is(y)) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 6. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
+  if (x.isBoolean) {
+    if (x.ToNumber().is(y)) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 7. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
+  if (y.isBoolean) {
+    if (x.is(y.ToNumber())) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 8. If Type(x) is either String, Number, or Symbol and Type(y) is Object, return the result of the comparison x == ToPrimitive(y).
+  if ((x.isString || x.isNumber || x.isSymbol) && y.isObject) {
+    if (x.is(y.ToPrimitive())) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 9. If Type(x) is Object and Type(y) is either String, Number, or Symbol, return the result of the comparison ToPrimitive(x) == y.
+  if (x.isObject && (y.isString || y.isNumber || y.isSymbol)) {
+    if (x.ToPrimitive().is(y)) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 10. Return false.
+  return intrinsics.false;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-strict-equality-comparison
+export function $StrictEqualityComparison(x: $Any, y: $Any): $Boolean {
+  // 1. If Type(x) is different from Type(y), return false.
+  // 2. If Type(x) is Number, then
+  // 2. a. If x is NaN, return false.
+  // 2. b. If y is NaN, return false.
+  // 2. c. If x is the same Number value as y, return true.
+  // 2. d. If x is +0 and y is -0, return true.
+  // 2. e. If x is -0 and y is +0, return true.
+  // 2. f. Return false.
+  // 3. Return SameValueNonNumber(x, y).
+  if (x.is(y)) {
+    return x.realm['[[Intrinsics]]'].true;
+  }
+
+  return x.realm['[[Intrinsics]]'].false;
+}
+
 
 // http://www.ecma-international.org/ecma-262/#sec-instanceofoperator
 export function $InstanceOfOperator(V: $Any, target: $Any): $Boolean {

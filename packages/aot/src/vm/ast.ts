@@ -2235,7 +2235,7 @@ export class $ThisExpression implements I$Node {
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
-    return null as any; // TODO: implement this
+    return this.realm.ResolveThisBinding();
   }
 }
 

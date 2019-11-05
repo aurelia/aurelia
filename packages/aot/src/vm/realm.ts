@@ -8,8 +8,8 @@ import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname } from 'path';
 import { Intrinsics } from './intrinsics';
-import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec } from './environment';
-import { $Undefined, $Object, $Function, $Null, $String, $Reference } from './value';
+import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $ObjectEnvRec, $FunctionEnvRec } from './environment';
+import { $Undefined, $Object, $Function, $Null, $String, $Reference, $Any } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $DefinePropertyOrThrow, $GetIdentifierReference } from './operations';
 import { JSDOM } from 'jsdom';
@@ -435,6 +435,36 @@ export class Realm {
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
     return $GetIdentifierReference(env, name, strict);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-getthisenvironment
+  public GetThisEnvironment(): $FunctionEnvRec | $GlobalEnvRec | $ModuleEnvRec {
+    // 1. Let lex be the running execution context's LexicalEnvironment.
+    let envRec = this.stack.top.LexicalEnvironment;
+
+    // 2. Repeat,
+    while (true) {
+      // 2. a. Let envRec be lex's EnvironmentRecord.
+      // 2. b. Let exists be envRec.HasThisBinding().
+      if (envRec.HasThisBinding().isTruthy) {
+        // 2. c. If exists is true, return envRec.
+        return envRec as $FunctionEnvRec | $GlobalEnvRec | $ModuleEnvRec;
+      }
+
+      // 2. d. Let outer be the value of lex's outer environment reference.
+      // 2. e. Assert: outer is not null.
+      // 2. f. Set lex to outer.
+      envRec = envRec.outer as $EnvRec;
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-resolvethisbinding
+  public ResolveThisBinding(): $Any {
+    // 1. Let envRec be GetThisEnvironment().
+    const envRec = this.GetThisEnvironment();
+
+    // 2. Return ? envRec.GetThisBinding().
+    return envRec.GetThisBinding();
   }
 
   public registerNode(node: I$Node): number {

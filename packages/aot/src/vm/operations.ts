@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference, $Primitive, $ECMAScriptFunction, $BoundFunctionExoticObject } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 
@@ -208,6 +208,24 @@ export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $
 
   // 3. Return ? F.[[Call]](V, argumentsList).
   return F['[[Call]]'](V, argumentsList);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-construct
+export function $Construct(F: $Function, argumentsList?: readonly $Any[], newTarget?: $Any): $Object {
+  // 1. If newTarget is not present, set newTarget to F.
+  if (newTarget === void 0) {
+    newTarget = F;
+  }
+
+  // 2. If argumentsList is not present, set argumentsList to a new empty List.
+  if (argumentsList === void 0) {
+    argumentsList = [];
+  }
+
+  // 3. Assert: IsConstructor(F) is true.
+  // 4. Assert: IsConstructor(newTarget) is true.
+  // 5. Return ? F.[[Construct]](argumentsList, newTarget).
+  return F['[[Construct]]'](argumentsList, newTarget);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-definepropertyorthrow
@@ -487,5 +505,276 @@ export function $GetIdentifierReference(lex: $EnvRec | $Null, name: $String, str
 
     // 5. b. Return ? GetIdentifierReference(outer, name, strict).
     return $GetIdentifierReference(outer, name, strict);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-abstract-relational-comparison
+export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $Any): $Boolean | $Undefined {
+  const realm = x.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  let px: $Primitive;
+  let py: $Primitive;
+
+  // 1. If the LeftFirst flag is true, then
+  if (leftFirst) {
+    // 1. a. Let px be ? ToPrimitive(x, hint Number).
+    px = x.ToPrimitive('number');
+
+    // 1. b. Let py be ? ToPrimitive(y, hint Number).
+    py = y.ToPrimitive('number');
+  }
+  // 2. Else the order of evaluation needs to be reversed to preserve left to right evaluation,
+  else {
+    // 2. a. Let py be ? ToPrimitive(y, hint Number).
+    py = y.ToPrimitive('number');
+
+    // 2. b. Let px be ? ToPrimitive(x, hint Number).
+    px = x.ToPrimitive('number');
+  }
+
+  // 3. If Type(px) is String and Type(py) is String, then
+  if (px.isString && py.isString) {
+    // 3. a. If IsStringPrefix(py, px) is true, return false.
+    // 3. b. If IsStringPrefix(px, py) is true, return true.
+    // 3. c. Let k be the smallest nonnegative integer such that the code unit at index k within px is different from the code unit at index k within py. (There must be such a k, for neither String is a prefix of the other.)
+    // 3. d. Let m be the integer that is the numeric value of the code unit at index k within px.
+    // 3. e. Let n be the integer that is the numeric value of the code unit at index k within py.
+    // 3. f. If m < n, return true. Otherwise, return false.
+    if (px.value < py.value) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+  // 4. Else,
+  // 4. a. NOTE: Because px and py are primitive values evaluation order is not important.
+  // 4. b. Let nx be ? ToNumber(px).
+  const nx = px.ToNumber();
+
+  // 4. c. Let ny be ? ToNumber(py).
+  const ny = py.ToNumber();
+
+  // 4. d. If nx is NaN, return undefined.
+  if (nx.isNaN) {
+    return intrinsics.undefined;
+  }
+
+  // 4. e. If ny is NaN, return undefined.
+  if (ny.isNaN) {
+    return intrinsics.undefined;
+  }
+
+  // 4. f. If nx and ny are the same Number value, return false.
+  if (nx.equals(ny)) {
+    return intrinsics.false;
+  }
+
+  // 4. g. If nx is +0 and ny is -0, return false.
+  if (nx.isPositiveZero && ny.isNegativeZero) {
+    return intrinsics.false;
+  }
+
+  // 4. h. If nx is -0 and ny is +0, return false.
+  if (nx.isNegativeZero && ny.isPositiveZero) {
+    return intrinsics.false;
+  }
+
+  // 4. i. If nx is +∞, return false.
+  if (nx.isPositiveInfinity) {
+    return intrinsics.false;
+  }
+
+  // 4. j. If ny is +∞, return true.
+  if (ny.isPositiveInfinity) {
+    return intrinsics.true;
+  }
+
+  // 4. k. If ny is -∞, return false.
+  if (ny.isNegativeInfinity) {
+    return intrinsics.false;
+  }
+
+  // 4. l. If nx is -∞, return true.
+  if (nx.isNegativeInfinity) {
+    return intrinsics.true;
+  }
+
+  // 4. m. If the mathematical value of nx is less than the mathematical value of ny—note that these mathematical values are both finite and not both zero—return true. Otherwise, return false.
+  if ((px.value as number) < (py.value as number)) {
+    return intrinsics.true;
+  }
+
+  return intrinsics.false;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-abstract-equality-comparison
+export function $AbstractEqualityComparison(x: $Any, y: $Any): $Boolean {
+  const realm = x.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If Type(x) is the same as Type(y), then
+  if (x.constructor === y.constructor) {
+    // 1. a. Return the result of performing Strict Equality Comparison x === y.
+    return $StrictEqualityComparison(x, y);
+  }
+
+  // 2. If x is null and y is undefined, return true.
+  // 3. If x is undefined and y is null, return true.
+  if (x.isNil && y.isNil) {
+    return intrinsics.true;
+  }
+
+  // 4. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
+  if (x.isNumber && y.isString) {
+    if (x.is(y.ToNumber())) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 5. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
+  if (x.isString && y.isNumber) {
+    if (x.ToNumber().is(y)) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 6. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
+  if (x.isBoolean) {
+    if (x.ToNumber().is(y)) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 7. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
+  if (y.isBoolean) {
+    if (x.is(y.ToNumber())) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 8. If Type(x) is either String, Number, or Symbol and Type(y) is Object, return the result of the comparison x == ToPrimitive(y).
+  if ((x.isString || x.isNumber || x.isSymbol) && y.isObject) {
+    if (x.is(y.ToPrimitive())) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 9. If Type(x) is Object and Type(y) is either String, Number, or Symbol, return the result of the comparison ToPrimitive(x) == y.
+  if (x.isObject && (y.isString || y.isNumber || y.isSymbol)) {
+    if (x.ToPrimitive().is(y)) {
+      return intrinsics.true;
+    }
+
+    return intrinsics.false;
+  }
+
+  // 10. Return false.
+  return intrinsics.false;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-strict-equality-comparison
+export function $StrictEqualityComparison(x: $Any, y: $Any): $Boolean {
+  // 1. If Type(x) is different from Type(y), return false.
+  // 2. If Type(x) is Number, then
+  // 2. a. If x is NaN, return false.
+  // 2. b. If y is NaN, return false.
+  // 2. c. If x is the same Number value as y, return true.
+  // 2. d. If x is +0 and y is -0, return true.
+  // 2. e. If x is -0 and y is +0, return true.
+  // 2. f. Return false.
+  // 3. Return SameValueNonNumber(x, y).
+  if (x.is(y)) {
+    return x.realm['[[Intrinsics]]'].true;
+  }
+
+  return x.realm['[[Intrinsics]]'].false;
+}
+
+
+// http://www.ecma-international.org/ecma-262/#sec-instanceofoperator
+export function $InstanceOfOperator(V: $Any, target: $Any): $Boolean {
+  const realm = V.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!target.isObject) {
+    throw new TypeError('1. If Type(target) is not Object, throw a TypeError exception.');
+  }
+
+  // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
+  const instOfhandler = target.GetMethod(intrinsics['@@hasInstance']);
+
+  // 3. If instOfHandler is not undefined, then
+  if (!instOfhandler.isUndefined) {
+    // 3. a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
+    return $Call(instOfhandler, target, [V]).ToBoolean();
+  }
+
+  // 4. If IsCallable(target) is false, throw a TypeError exception.
+  if (!target.isFunction) {
+    throw new TypeError('4. If IsCallable(target) is false, throw a TypeError exception.');
+  }
+
+  // 5. Return ? OrdinaryHasInstance(target, V).
+  return $OrdinaryHasInstance(target, V);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-ordinaryhasinstance
+export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
+  const realm = C.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If IsCallable(C) is false, return false.
+  if (!C.isFunction) {
+    return intrinsics.false;
+  }
+
+  // 2. If C has a [[BoundTargetFunction]] internal slot, then
+  if (C.isBoundFunction) {
+    // 2. a. Let BC be C.[[BoundTargetFunction]].
+    const BC = (C as $BoundFunctionExoticObject)['[[BoundTargetFunction]]'];
+
+    // 2. b. Return ? InstanceofOperator(O, BC).
+    return $InstanceOfOperator(O, BC);
+  }
+
+  // 3. If Type(O) is not Object, return false.
+  if (!O.isObject) {
+    return intrinsics.false;
+  }
+
+  // 4. Let P be ? Get(C, "prototype").
+  const P = $Get(C, intrinsics.$prototype);
+
+  // 5. If Type(P) is not Object, throw a TypeError exception.
+  if (!P.isObject) {
+    throw new TypeError('5. If Type(P) is not Object, throw a TypeError exception.');
+  }
+
+  // 6. Repeat,
+  while (true) {
+    // 6. a. Set O to ? O.[[GetPrototypeOf]]().
+    O = (O as $Object)['[[GetPrototypeOf]]']();
+
+    // 6. b. If O is null, return false.
+    if (O.isNull) {
+      return intrinsics.false;
+    }
+
+    // 6. c. If SameValue(P, O) is true, return true.
+    if (P.is(O)) {
+      return intrinsics.true;
+    }
   }
 }

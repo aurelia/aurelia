@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set } from './operations';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set, $Get, $Construct } from './operations';
 import { $EnvRec } from './environment';
 import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction, $BooleanLiteral, $NullLiteral } from './ast';
 import { SyntaxKind } from 'typescript';
@@ -24,7 +24,8 @@ export type $Any = (
   $Empty |
   $Primitive |
   $Object |
-  $Function
+  $Function |
+  $BoundFunctionExoticObject
 );
 
 export type $PropertyKey = (
@@ -57,6 +58,7 @@ export class $SpeculativeValue {
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): false { return false; }
   public get isSpeculative(): true { return true; }
@@ -74,8 +76,64 @@ export class $SpeculativeValue {
     return other instanceof $SpeculativeValue && this.id === other.id;
   }
 
-  public GetValue(): this {
-    return this;
+  public ToObject(): $Object {
+    throw new TypeError(`Cannot convert SpeculativeValue to object`);
+  }
+
+  public ToPropertyKey(): $String {
+    throw new TypeError(`Cannot convert SpeculativeValue to property key`);
+  }
+
+  public ToLength(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to length`);
+  }
+
+  public ToPrimitive(): $Primitive {
+    throw new TypeError(`Cannot convert SpeculativeValue to primitive`);
+  }
+
+  public ToBoolean(): $Boolean {
+    throw new TypeError(`Cannot convert SpeculativeValue to boolean`);
+  }
+
+  public ToNumber(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to number`);
+  }
+
+  public ToInt32(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Int32`);
+  }
+
+  public ToUint32(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint32`);
+  }
+
+  public ToInt16(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Int16`);
+  }
+
+  public ToUint16(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint16`);
+  }
+
+  public ToInt8(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Int8`);
+  }
+
+  public ToUint8(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint8`);
+  }
+
+  public ToUint8Clamp(): $Number {
+    throw new TypeError(`Cannot convert SpeculativeValue to Uint8Clamp`);
+  }
+
+  public ToString(): $String {
+    throw new TypeError(`Cannot convert SpeculativeValue to string`);
+  }
+
+  public GetValue(): never {
+    throw new TypeError(`SpeculativeValue has no evaluatable value`);
   }
 }
 
@@ -98,6 +156,7 @@ export class $Empty {
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
@@ -112,10 +171,116 @@ export class $Empty {
     return other instanceof $Empty;
   }
 
-  public GetValue(): this {
-    return this;
+  public ToObject(): $Object {
+    throw new TypeError(`Cannot convert empty to object`);
+  }
+
+  public ToPropertyKey(): $String {
+    throw new TypeError(`Cannot convert empty to property key`);
+  }
+
+  public ToLength(): $Number {
+    throw new TypeError(`Cannot convert empty to length`);
+  }
+
+  public ToPrimitive(): $Primitive {
+    throw new TypeError(`Cannot convert empty to primitive`);
+  }
+
+  public ToBoolean(): $Boolean {
+    throw new TypeError(`Cannot convert empty to boolean`);
+  }
+
+  public ToNumber(): $Number {
+    throw new TypeError(`Cannot convert empty to number`);
+  }
+
+  public ToInt32(): $Number {
+    throw new TypeError(`Cannot convert empty to Int32`);
+  }
+
+  public ToUint32(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint32`);
+  }
+
+  public ToInt16(): $Number {
+    throw new TypeError(`Cannot convert empty to Int16`);
+  }
+
+  public ToUint16(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint16`);
+  }
+
+  public ToInt8(): $Number {
+    throw new TypeError(`Cannot convert empty to Int8`);
+  }
+
+  public ToUint8(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint8`);
+  }
+
+  public ToUint8Clamp(): $Number {
+    throw new TypeError(`Cannot convert empty to Uint8Clamp`);
+  }
+
+  public ToString(): $String {
+    throw new TypeError(`Cannot convert empty to string`);
+  }
+
+  public GetValue(): never {
+    throw new TypeError(`empty has no evaluatable value`);
   }
 }
+
+const Int32 = (function () {
+  const $ = new Int32Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint32 = (function () {
+  const $ = new Uint32Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Int16 = (function () {
+  const $ = new Int16Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint16 = (function () {
+  const $ = new Uint16Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Int8 = (function () {
+  const $ = new Int8Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint8 = (function () {
+  const $ = new Uint8Array(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
+const Uint8Clamp = (function () {
+  const $ = new Uint8ClampedArray(1);
+  return function (value: unknown): number {
+    $[0] = Number(value);
+    return $[0];
+  };
+})();
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {
@@ -137,6 +302,7 @@ export class $Undefined {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
@@ -153,6 +319,108 @@ export class $Undefined {
 
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert undefined to object`);
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -180,6 +448,7 @@ export class $Null {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
@@ -196,6 +465,108 @@ export class $Null {
 
   public ToObject(): $Object {
     throw new TypeError(`Cannot convert null to object`);
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -221,6 +592,7 @@ export class $Boolean<T extends boolean = boolean> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): T { return this.value; }
   public get isFalsey(): T extends true ? false : true { return !this.value as T extends true ? false : true; }
   public get isSpeculative(): false { return false; }
@@ -230,6 +602,7 @@ export class $Boolean<T extends boolean = boolean> {
     public readonly realm: Realm,
     public readonly value: T,
     public readonly sourceNode: $BooleanLiteral | null = null,
+    public readonly conversionSource: $Any | null = null,
   ) {}
 
   public is(other: $Any): other is $Boolean<T> {
@@ -238,6 +611,103 @@ export class $Boolean<T extends boolean = boolean> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('boolean', this.realm['[[Intrinsics]]']['%BooleanPrototype%'], { '[[BooleanData]]': this });
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToBoolean(): this {
+    return this;
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -263,6 +733,7 @@ export class $String<T extends string = string> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value.length > 0; }
   public get isFalsey(): boolean { return this.value.length === 0; }
   public get isSpeculative(): false { return false; }
@@ -272,6 +743,7 @@ export class $String<T extends string = string> {
     public readonly realm: Realm,
     public readonly value: T,
     public readonly sourceNode: $Identifier | $StringLiteral | $NumericLiteral | null = null,
+    public readonly conversionSource: $Any | null = null,
   ) {}
 
   public is(other: $Any): other is $String<T> {
@@ -280,6 +752,103 @@ export class $String<T extends string = string> {
 
   public ToObject(): $Object {
     return $Object.ObjectCreate('string', this.realm['[[Intrinsics]]']['%StringPrototype%'], { '[[StringData]]': this });
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): this {
+    return this;
   }
 
   public GetValue(): this {
@@ -305,6 +874,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): true { return true; }
   public get isFalsey(): false { return false; }
   public get isSpeculative(): false { return false; }
@@ -324,10 +894,113 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     return $Object.ObjectCreate('symbol', this.realm['[[Intrinsics]]']['%SymbolPrototype%'], { '[[SymbolData]]': this });
   }
 
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToNumber(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Number(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
   public GetValue(): this {
     return this;
   }
 }
+
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-number-type
 export class $Number<T extends number = number> {
@@ -336,6 +1009,11 @@ export class $Number<T extends number = number> {
   public readonly id: number = ++esValueId;
   public readonly IntrinsicName: 'number' = 'number' as const;
 
+  public get isNaN(): boolean { return isNaN(this.value); }
+  public get isPositiveZero(): boolean { return Object.is(this.value, +0); }
+  public get isNegativeZero(): boolean { return Object.is(this.value, -0); }
+  public get isPositiveInfinity(): boolean { return Object.is(this.value, +Infinity); }
+  public get isNegativeInfinity(): boolean { return Object.is(this.value, -Infinity); }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -347,6 +1025,7 @@ export class $Number<T extends number = number> {
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
   public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value !== 0 && !isNaN(this.value); }
   public get isFalsey(): boolean { return this.value === 0 || isNaN(this.value); }
   public get isSpeculative(): false { return false; }
@@ -356,14 +1035,170 @@ export class $Number<T extends number = number> {
     public readonly realm: Realm,
     public readonly value: T,
     public readonly sourceNode: $NumericLiteral | null = null,
+    public readonly conversionSource: $Any | null = null,
   ) {}
 
   public is(other: $Any): other is $Number<T> {
     return other instanceof $Number && Object.is(this.value, other.value);
   }
 
+  public equals(other: $Number): boolean {
+    return Object.is(this.value, other.value);
+  }
+
   public ToObject(): $Object {
     return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToPrimitive(): this {
+    return this;
+  }
+
+  public ToBoolean(): $Boolean {
+    return new $Boolean(
+      /* realm */this.realm,
+      /* value */Boolean(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToNumber(): $Number {
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-tointeger
+  public ToInteger(): $Number {
+    // 1. Let number be ? ToNumber(argument).
+
+    const value = this.value;
+    if (isNaN(value)) {
+      // 2. If number is NaN, return +0.
+      return new $Number(
+        /* realm */this.realm,
+        /* value */0,
+        /* sourceNode */null,
+        /* conversionSource */this,
+      );
+    }
+
+    // 3. If number is +0, -0, +∞, or -∞, return number.
+    if (Object.is(value, +0) || Object.is(value, -0) || Object.is(value, +Infinity) || Object.is(value, -Infinity)) {
+      return this;
+    }
+
+    // 4. Return the number value that is the same sign as number and whose magnitude is floor(abs(number)).
+    const sign = value < 0 ? -1 : 1;
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Math.floor(Math.abs(value)) * sign,
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-tolength
+  public ToLength(): $Number {
+    // 1. Let len be ? ToInteger(argument).
+    const len = this.ToInteger();
+
+    // 2. If len ≤ +0, return +0.
+    if (len.value < 0) {
+      return new $Number(
+        /* realm */this.realm,
+        /* value */0,
+        /* sourceNode */null,
+        /* conversionSource */this,
+      );
+    }
+
+    // 3. Return min(len, 253 - 1).
+    if (len.value > (2 ** 53 - 1)) {
+      return new $Number(
+        /* realm */this.realm,
+        /* value */(2 ** 53 - 1),
+        /* sourceNode */null,
+        /* conversionSource */this,
+      );
+    }
+
+    return this;
+  }
+
+  public ToInt32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint32(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint32(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint16(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint16(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToInt8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Int8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToUint8Clamp(): $Number {
+    return new $Number(
+      /* realm */this.realm,
+      /* value */Uint8Clamp(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
+  }
+
+  public ToString(): $String {
+    return new $String(
+      /* realm */this.realm,
+      /* value */String(this.value),
+      /* sourceNode */null,
+      /* conversionSource */this,
+    );
   }
 
   public GetValue(): this {
@@ -395,6 +1230,7 @@ export class $Object<
   public get isPrimitive(): false { return false; }
   public get isObject(): true { return true; }
   public get isFunction(): boolean { return false; }
+  public get isBoundFunction(): boolean { return false; }
   public get isTruthy(): true { return true; }
   public get isFalsey(): false { return false; }
   public get isSpeculative(): false { return false; }
@@ -433,8 +1269,204 @@ export class $Object<
     return this.id === other.id;
   }
 
+  public ToObject(): this {
+    return this;
+  }
+
+  public ToPropertyKey(): $String {
+    return this.ToString();
+  }
+
+  public ToLength(): $Number {
+    return this.ToNumber().ToLength();
+  }
+
+  public ToBoolean(): $Boolean {
+    return this.ToPrimitive('number').ToBoolean();
+  }
+
+  public ToNumber(): $Number {
+    return this.ToPrimitive('number').ToNumber();
+  }
+
+  public ToInt32(): $Number {
+    return this.ToPrimitive('number').ToInt32();
+  }
+
+  public ToUint32(): $Number {
+    return this.ToPrimitive('number').ToUint32();
+  }
+
+  public ToInt16(): $Number {
+    return this.ToPrimitive('number').ToInt16();
+  }
+
+  public ToUint16(): $Number {
+    return this.ToPrimitive('number').ToUint16();
+  }
+
+  public ToInt8(): $Number {
+    return this.ToPrimitive('number').ToInt8();
+  }
+
+  public ToUint8(): $Number {
+    return this.ToPrimitive('number').ToUint8();
+  }
+
+  public ToUint8Clamp(): $Number {
+    return this.ToPrimitive('number').ToUint8Clamp();
+  }
+
+  public ToString(): $String {
+    return this.ToPrimitive('string').ToString();
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-toprimitive
+  public ToPrimitive(PreferredType: 'default' | 'string' | 'number' = 'default'): $Primitive {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const input = this;
+
+    // 1. Assert: input is an ECMAScript language value.
+    // 2. If Type(input) is Object, then
+    // 2. a. If PreferredType is not present, let hint be "default".
+    // 2. b. Else if PreferredType is hint String, let hint be "string".
+    // 2. c. Else PreferredType is hint Number, let hint be "number".
+    let hint = intrinsics[PreferredType];
+
+    // 2. d. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
+    const exoticToPrim = input.GetMethod(intrinsics['@@toPrimitive']);
+
+    // 2. e. If exoticToPrim is not undefined, then
+    if (!exoticToPrim.isUndefined) {
+      // 2. e. i. Let result be ? Call(exoticToPrim, input, « hint »).
+      const result = $Call(exoticToPrim, input, [hint]);
+
+      // 2. e. ii. If Type(result) is not Object, return result.
+      if (result.isPrimitive) {
+        return result;
+      }
+
+      // 2. e. iii. Throw a TypeError exception.
+      throw new TypeError('2. e. iii. Throw a TypeError exception.');
+    }
+
+    // 2. f. If hint is "default", set hint to "number".
+    if (hint.value === 'default') {
+      hint = intrinsics.number;
+    }
+
+    // 2. g. Return ? OrdinaryToPrimitive(input, hint).
+    return input.OrdinaryToPrimitive(hint.value);
+
+    // 3. Return input.
+    // N/A since this is always an object
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinarytoprimitive
+  public OrdinaryToPrimitive(hint: 'string' | 'number'): $Primitive {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const O = this;
+
+    // 1. Assert: Type(O) is Object.
+    // 2. Assert: Type(hint) is String and its value is either "string" or "number".
+    // 3. If hint is "string", then
+    if (hint === 'string') {
+      // 3. a. Let methodNames be « "toString", "valueOf" ».
+      // 5. For each name in methodNames in List order, do
+      // 5. a. Let method be ? Get(O, name).
+      let method = $Get(O, intrinsics.$toString);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      method = $Get(O, intrinsics.$valueOf);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      // 6. Throw a TypeError exception.
+      throw new TypeError('6. Throw a TypeError exception.');
+    }
+    // 4. Else,
+    else {
+      // 4. a. Let methodNames be « "valueOf", "toString" ».
+      // 5. For each name in methodNames in List order, do
+      // 5. a. Let method be ? Get(O, name).
+      let method = $Get(O, intrinsics.$valueOf);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      method = $Get(O, intrinsics.$toString);
+
+      // 5. b. If IsCallable(method) is true, then
+      if (method.isFunction) {
+        // 5. b. i. Let result be ? Call(method, O).
+        const result = $Call(method as $Function, O);
+
+        // 5. b. ii. If Type(result) is not Object, return result.
+        if (result.isPrimitive) {
+          return result;
+        }
+      }
+
+      // 6. Throw a TypeError exception.
+      throw new TypeError('6. Throw a TypeError exception.');
+    }
+  }
+
   public GetValue(): this {
     return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-getmethod
+  public GetMethod(P: $PropertyKey): $Function | $Undefined {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const V = this;
+
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let func be ? GetV(V, P).
+    const func = V['[[Get]]'](P, V);
+
+    // 3. If func is either undefined or null, return undefined.
+    if (func.isNil) {
+      return intrinsics.undefined;
+    }
+
+    // 4. If IsCallable(func) is false, throw a TypeError exception.
+    if (!func.isFunction) {
+      throw new TypeError('If IsCallable(func) is false, throw a TypeError exception.');
+    }
+
+    // 5. Return func.
+    return func as $Function;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
@@ -724,10 +1756,6 @@ export class $Object<
     // 5. Return false.
     return intrinsics.false;
   }
-
-  public ToObject(): $Object {
-    return this;
-  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
@@ -971,6 +1999,95 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
+export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
+  public '[[BoundTargetFunction]]': $Function;
+  public '[[BoundThis]]': $Any;
+  public '[[BoundArguments]]': $Any[];
+
+  public get isBoundFunction(): true { return true; }
+
+  // http://www.ecma-international.org/ecma-262/#sec-boundfunctioncreate
+  public constructor(
+    realm: Realm,
+    targetFunction: $Function,
+    boundThis: $Any,
+    boundArgs: $Any[],
+  ) {
+    // 1. Assert: Type(targetFunction) is Object.
+    // 2. Let proto be ? targetFunction.[[GetPrototypeOf]]().
+    // 3. Let obj be a newly created object.
+    // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 9.1.
+    // 5. Set obj.[[Call]] as described in 9.4.1.1.
+    // 6. If IsConstructor(targetFunction) is true, then
+    // 6. a. Set obj.[[Construct]] as described in 9.4.1.2.
+    // 7. Set obj.[[Prototype]] to proto.
+    super(realm, 'BoundFunctionExoticObject', targetFunction['[[GetPrototypeOf]]']());
+
+    // 8. Set obj.[[Extensible]] to true.
+    // 9. Set obj.[[BoundTargetFunction]] to targetFunction.
+    this['[[BoundTargetFunction]]'] = targetFunction;
+
+    // 10. Set obj.[[BoundThis]] to boundThis.
+    this['[[BoundThis]]'] = boundThis;
+
+    // 11. Set obj.[[BoundArguments]] to boundArgs.
+    this['[[BoundArguments]]'] = boundArgs;
+
+    // 12. Return obj.
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
+  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+    const F = this;
+
+    // 1. Let target be F.[[BoundTargetFunction]].
+    const target = F['[[BoundTargetFunction]]'];
+
+    // 2. Let boundThis be F.[[BoundThis]].
+    const boundThis = F['[[BoundThis]]'];
+
+    // 3. Let boundArgs be F.[[BoundArguments]].
+    const boundArgs = F['[[BoundArguments]]'];
+
+    // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
+    const args = [
+      ...boundArgs,
+      ...argumentsList,
+    ];
+
+    // 5. Return ? Call(target, boundThis, args).
+    return $Call(target, boundThis, args);
+  }
+
+
+  // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any) {
+    const F = this;
+
+    // 1. Let target be F.[[BoundTargetFunction]].
+    const target = F['[[BoundTargetFunction]]'];
+
+    // 2. Assert: IsConstructor(target) is true.
+    // 3. Let boundArgs be F.[[BoundArguments]].
+    const boundArgs = F['[[BoundArguments]]'];
+
+    // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
+    const args = [
+      ...boundArgs,
+      ...argumentsList,
+    ];
+
+    // 5. If SameValue(F, newTarget) is true, set newTarget to target.
+    if (F.is(newTarget)) {
+      newTarget = target;
+    }
+
+    // 6. Return ? Construct(target, args, newTarget).
+    return $Construct(target, args, newTarget);
+  }
+}
+
 // http://www.ecma-international.org/ecma-262/#table-6
 export class $Function<
   T extends string = string,
@@ -989,6 +2106,12 @@ export class $Function<
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
   public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+    // TODO
+    return {} as any;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any): $Object {
     // TODO
     return {} as any;
   }

@@ -1,6 +1,7 @@
 {
   "name": "js-framework-benchmark",
   "version": "1.0.0",
+  "private": true,
   "description": "Simple Benchmark for Javascript client side rendering",
   "scripts": {
     "clean": "node cleanup.js",

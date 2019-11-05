@@ -1167,7 +1167,17 @@ describe('Router', function () {
         ctx.doc.body.removeChild(host);
       }
 
-      return { ctx, container, scheduler, host, au, router, $teardown };
+      return { ctx, container, scheduler, host, au, router, $teardown, App };
+    }
+
+    function $removeViewport(instructions) {
+      for (const instruction of instructions) {
+        instruction.viewport = null;
+        instruction.viewportName = null;
+        if (Array.isArray(instruction.nextScopeInstructions)) {
+          $removeViewport(instruction.nextScopeInstructions);
+        }
+      }
     }
 
     const Parent = CustomElement.define({ name: 'parent', template: '!parent!<au-viewport name="parent"></au-viewport>' }, class {
@@ -1198,9 +1208,9 @@ describe('Router', function () {
     //   [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
     //   [{ path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] }]
     // );
-    let scheduler, container, host, router, $teardown;
+    let scheduler, container, host, router, $teardown, App;
     before(async function () {
-      ({ scheduler, container, host, router, $teardown } = await $setup(void 0,
+      ({ scheduler, container, host, router, $teardown, App } = await $setup(void 0,
         [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
         [
           { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
@@ -1233,26 +1243,6 @@ describe('Router', function () {
       { path: '/parent-config/child2@parent/grandchild2@child2', result: '!parent!!child2!!grandchild2!' },
       { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!' },
 
-      { path: '/parent-config', result: '!parent!' },
-      { path: '/parent2', result: '!parent2!' },
-
-      { path: '/parent-config/child-config', result: '!parent!!child!' },
-      { path: '/parent2/child2', result: '!parent2!!child2!' },
-
-      { path: '/parent-config/child2', result: '!parent!!child2!' },
-      { path: '/parent2/child-config', result: '!parent2!!child!' },
-
-      { path: '/parent-config/child-config/grandchild-config', result: '!parent!!child!!grandchild!' },
-      { path: '/parent2/child2/grandchild2', result: '!parent2!!child2!!grandchild2!' },
-
-      { path: '/parent-config/child-config/grandchild2', result: '!parent!!child!!grandchild2!' },
-      { path: '/parent2/child2/grandchild-config', result: '!parent2!!child2!!grandchild!' },
-
-      { path: '/parent-config/child2/grandchild-config', result: '!parent!!child2!!grandchild!' },
-      { path: '/parent2/child-config/grandchild2', result: '!parent2!!child!!grandchild2!' },
-
-      { path: '/parent-config/child2/grandchild2', result: '!parent!!child2!!grandchild2!' },
-      { path: '/parent2/child-config/grandchild-config', result: '!parent2!!child!!grandchild!' },
 
 
       // { path: '/parent-config/abc/grandchild-config', result: '!parent!!child!!grandchild!' },
@@ -1271,11 +1261,38 @@ describe('Router', function () {
     for (const test of tests) {
       it(`to load route ${test.path}`, async function () {
         await $goto(test.path, router, scheduler);
-        // assert.match(host.textContent.replace(/\n/g, ''), test.result, `host.textContent`);
-        // assert.exactMatch(host.textContent, test.result.toString().replace(/\.\*\?/g, '').replace(/\//g, ''), `host.textContent`);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
       });
+    }
+    for (const test of tests) {
+      let path = test.path.replace(/@\w+/g, '');
+      it(`to load route ${path}`, async function () {
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+      });
+    }
 
+    let removedViewports = false;
+    for (const test of tests) {
+      it(`to load route (without viewports) ${test.path}`, async function () {
+        if (!removedViewports) {
+          removedViewports = true;
+          for (const type of [App, Parent, Parent2, Child, Child2]) {
+            for (const route of type.routes) {
+              $removeViewport(route.instructions);
+            }
+          }
+        }
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+      });
+    }
+    for (const test of tests) {
+      let path = test.path.replace(/@\w+/g, '');
+      it(`to load route (without viewports) ${path}`, async function () {
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+      });
     }
 
     after(async function () {

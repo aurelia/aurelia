@@ -91,6 +91,17 @@ export class ViewportInstruction {
     }
   }
 
+  // This only works with objects added to objects!
+  public addParameters(parameters: Record<string, unknown>): void {
+    if (this.parametersType === ParametersType.none) {
+      return this.setParameters(parameters);
+    }
+    if (this.parametersType !== ParametersType.object) {
+      throw new Error('Can\'t add object parameters to existing non-object parameters!');
+    }
+    this.setParameters({...this.parameters, ...parameters});
+  }
+
   public isEmpty(): boolean {
     return !this.isComponentName() && !this.isComponentType() && !this.isComponentInstance();
   }

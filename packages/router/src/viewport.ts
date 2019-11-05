@@ -37,6 +37,7 @@ export class Viewport {
 
   public parent: Viewport | null = null;
   public children: Viewport[] = [];
+  public replacedChildren: Viewport[] = [];
 
   public routeTable: RouteTable | null = null;
   public path: string | null = null;
@@ -104,6 +105,10 @@ export class Viewport {
       }
     }
 
+    // Children that will be replaced (unless added again) by next content. Will
+    // be re-enabled on cancel
+    this.replacedChildren = [];
+
     // If we get the same _instance_, don't do anything (happens with cached and history)
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
       this.nextContent = null;
@@ -113,7 +118,12 @@ export class Viewport {
     // ReentryBehavior 'refresh' takes precedence
     if (!this.content.equalComponent(this.nextContent) ||
       (instruction.navigation as INavigatorFlags).refresh ||
-      this.content.reentryBehavior() === ReentryBehavior.refresh) {
+      this.content.reentryBehavior() === ReentryBehavior.refresh
+    ) {
+      this.replacedChildren = this.children.filter(viewport => viewport.enabled);
+      for (const viewport of this.replacedChildren) {
+        viewport.enabled = false;
+      }
       return true;
     }
 
@@ -132,6 +142,10 @@ export class Viewport {
       this.nextContent.content.setComponent(this.content.componentInstance!);
       this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.reentry = this.content.reentry;
+      this.replacedChildren = this.children.filter(viewport => viewport.enabled);
+      for (const viewport of this.replacedChildren) {
+        viewport.enabled = false;
+      }
       return true;
     }
 
@@ -293,8 +307,12 @@ export class Viewport {
 
   public finalizeContentChange(): void {
     this.previousViewportState = null;
+    this.replacedChildren = [];
   }
   public async abortContentChange(): Promise<void> {
+    for (const viewport of this.replacedChildren) {
+      viewport.enabled = true;
+    }
     await (this.nextContent as ViewportContent).freeContent(
       this.element as Element,
       (this.nextContent as ViewportContent).instruction,
@@ -397,7 +415,7 @@ export class Viewport {
   }
 
   public getOwnedViewports(includeDisabled: boolean = false): Viewport[] {
-    return this.router.allViewports(includeDisabled).filter(viewport => viewport.owningScope === this);
+    return this.allViewports(includeDisabled).filter(viewport => viewport.owningScope === this);
   }
 
   public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], disregardViewports: boolean = false): IFindViewportsResult {
@@ -566,18 +584,30 @@ export class Viewport {
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
-    if (!includeReplaced && this.nextContent !== null) {
-      const nextViewports: Viewport[] = this.router.instructionResolver
-        .flattenViewportInstructions([this.nextContent.content])
-        .filter(instruction => instruction.viewport !== null)
-        .map(instruction => instruction.viewport) as Viewport[];
-      let replacedViewports: Viewport[] = (this.router.instructionResolver
-        .flattenViewportInstructions([this.content.content]) as ViewportInstruction[])
-        .filter(instruction => instruction.viewport !== null)
-        .map(instruction => instruction.viewport) as Viewport[];
-      replacedViewports = replacedViewports.filter(replaced => !nextViewports.includes(replaced));
-      viewports = viewports.filter(viewport => !replacedViewports.includes(viewport));
-    }
+    // let viewports: Viewport[] = [];
+    // if (includeReplaced || this.nextContent === null) {
+    //   viewports.push(...this.children.filter((viewport) => viewport.enabled || includeDisabled));
+    // }
+    // if (this.nextContent !== null) {
+    //   viewports.push(...this.router.instructionResolver
+    //     .flattenViewportInstructions([this.nextContent.content])
+    //     .filter(instruction => instruction.viewport !== null)
+    //     .map(instruction => instruction.viewport) as Viewport[]);
+    // }
+
+    // let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
+    // if (!includeReplaced && this.nextContent !== null) {
+    //   const nextViewports: Viewport[] = this.router.instructionResolver
+    //     .flattenViewportInstructions([this.nextContent.content])
+    //     .filter(instruction => instruction.viewport !== null)
+    //     .map(instruction => instruction.viewport) as Viewport[];
+    //   let replacedViewports: Viewport[] = (this.router.instructionResolver
+    //     .flattenViewportInstructions([this.content.content]) as ViewportInstruction[])
+    //     .filter(instruction => instruction.viewport !== null)
+    //     .map(instruction => instruction.viewport) as Viewport[];
+    //   replacedViewports = replacedViewports.filter(replaced => !nextViewports.includes(replaced));
+    //   viewports = viewports.filter(viewport => !replacedViewports.includes(viewport));
+    // }
     for (const scope of viewports) {
       viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
     }

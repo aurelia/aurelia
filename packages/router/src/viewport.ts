@@ -675,8 +675,13 @@ export class Viewport {
       if (found.foundConfiguration) {
         // clone it so config doesn't get modified
         found.instructions = this.router.instructionResolver.cloneViewportInstructions(found.match!.instructions as ViewportInstruction[]);
-        for (const instruction of found.instructions) {
-          instruction.setParameters(params);
+        const instructions: ViewportInstruction[] = found.instructions.slice();
+        while (instructions.length > 0) {
+          const instruction: ViewportInstruction = instructions.shift() as ViewportInstruction;
+          instruction.addParameters(params);
+          if (instruction.nextScopeInstructions !== null) {
+            instructions.unshift(...instruction.nextScopeInstructions);
+          }
         }
       }
       return found;

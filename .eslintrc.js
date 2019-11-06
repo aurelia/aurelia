@@ -177,14 +177,14 @@ module.exports = {
     '@typescript-eslint/no-floating-promises': 'warn',
     '@typescript-eslint/no-misused-promises': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
-    '@typescript-eslint/no-unnecessary-condition': 'warn',
+    '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
     '@typescript-eslint/no-use-before-define': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
-    '@typescript-eslint/unbound-method': 'warn',
+    '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far
     'jsdoc/check-examples': 'off',
     'jsdoc/check-param-names': 'off',
     'jsdoc/match-description': 'off',

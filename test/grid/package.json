@@ -6,6 +6,7 @@
     "npm": ">=6.1.0"
   },
   "version": "0.3.0",
+  "private": true,
   "scripts": {
     "watch": "webpack-dev-server",
     "build": "rimraf dist && webpack --config webpack.config.js",

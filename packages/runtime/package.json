@@ -39,7 +39,7 @@
     "@aurelia/kernel": "0.4.0"
   },
   "devDependencies": {
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "tslib": "^1.10.0",
     "typescript": "^3.6.4"
   }

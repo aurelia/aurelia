@@ -15,7 +15,7 @@
     "aurelia": "dev"
   },
   "devDependencies": {
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "babel-core": "latest",
     "babel-plugin-transform-class-properties": "latest",
     "babel-plugin-transform-decorators-legacy": "latest",

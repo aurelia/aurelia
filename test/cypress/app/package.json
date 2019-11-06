@@ -25,7 +25,7 @@
     "@aurelia/store": "dev"
   },
   "devDependencies": {
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "css-loader": "latest",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "latest",

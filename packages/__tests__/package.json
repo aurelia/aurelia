@@ -60,7 +60,7 @@
     "@types/jsdom": "^12.2.4",
     "@types/karma": "^3.0.3",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "@types/webpack": "^4.39.3",
     "@types/webpack-env": "^1.14.1",
     "@types/vinyl": "^2.0.3",

@@ -21,7 +21,7 @@
     "font-awesome": "^4.6.3"
   },
   "devDependencies": {
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "css-loader": "^3.2.0",
     "file-loader": "^4.2.0",
     "html-loader": "^0.5.5",

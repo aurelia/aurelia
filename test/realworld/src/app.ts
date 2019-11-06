@@ -5,11 +5,11 @@ import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@au
 import { Article } from './components/article/article';
 import { Auth } from './components/auth/auth';
 import { Editor } from './components/editor/editor';
-import { FooterLayout } from './shared/layouts/footer-layout';
-import { HeaderLayout } from './shared/layouts/header-layout';
 import { Home } from './components/home/home';
 import { Profile } from './components/profile/profile';
 import { Settings } from './components/settings/settings';
+import { FooterLayout } from './shared/layouts/footer-layout';
+import { HeaderLayout } from './shared/layouts/header-layout';
 import { SharedState } from './shared/state/shared-state';
 import { UserService } from './shared/services/user-service';
 

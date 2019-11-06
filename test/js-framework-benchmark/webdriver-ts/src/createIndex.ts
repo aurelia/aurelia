@@ -14,7 +14,8 @@ async function main() {
     '../index.html',
     dots.index({
       frameworks
-    }), {
+    }),
+    {
       encoding: 'utf8'
     }
   );

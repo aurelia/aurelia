@@ -108,7 +108,7 @@ export class Viewport {
 
     // Children that will be replaced (unless added again) by next content. Will
     // be re-enabled on cancel
-    this.replacedChildren = [];
+    this.clearReplacedChildren();
 
     // If we get the same _instance_, don't do anything (happens with cached and history)
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
@@ -121,10 +121,7 @@ export class Viewport {
       (instruction.navigation as INavigatorFlags).refresh ||
       this.content.reentryBehavior() === ReentryBehavior.refresh
     ) {
-      this.replacedChildren = this.children.filter(viewport => viewport.enabled);
-      for (const viewport of this.replacedChildren) {
-        viewport.enabled = false;
-      }
+      this.disableReplacedChildren();
       return true;
     }
 
@@ -134,24 +131,28 @@ export class Viewport {
       return false;
     }
 
-    // ReentryBehavior is now 'enter' or 'default'
-
-    if (!this.content.equalParameters(this.nextContent) ||
-      this.content.reentryBehavior() === ReentryBehavior.enter) {
+    // Explicitly re-enter same component again
+    if (this.content.reentryBehavior() === ReentryBehavior.enter) {
       this.content.reentry = true;
 
       this.nextContent.content.setComponent(this.content.componentInstance!);
       this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.reentry = this.content.reentry;
-      this.replacedChildren = this.children.filter(viewport => viewport.enabled);
-      for (const viewport of this.replacedChildren) {
-        viewport.enabled = false;
-      }
       return true;
     }
 
-    this.nextContent = null;
-    return false;
+    // ReentryBehavior is now 'default'
+
+    // Requires updated parameters if viewport stateful
+    if (this.options.stateful &&
+      this.content.equalParameters(this.nextContent)) {
+      this.nextContent = null;
+      return false;
+    }
+
+    // Default is to trigger a refresh (without a check of parameters)
+    this.disableReplacedChildren();
+    return true;
   }
 
   public setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void {
@@ -278,6 +279,8 @@ export class Viewport {
     if ((this.nextContent as ViewportContent).componentInstance) {
       if (this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
         (this.nextContent as ViewportContent).addComponent(this.element as Element);
+      } else {
+        this.reenableReplacedChildren();
       }
       // Only when next component activation is done
       if (this.content.componentInstance) {
@@ -311,12 +314,10 @@ export class Viewport {
 
   public finalizeContentChange(): void {
     this.previousViewportState = null;
-    this.replacedChildren = [];
+    this.clearReplacedChildren();
   }
   public async abortContentChange(): Promise<void> {
-    for (const viewport of this.replacedChildren) {
-      viewport.enabled = true;
-    }
+    this.reenableReplacedChildren();
     await (this.nextContent as ViewportContent).freeContent(
       this.element as Element,
       (this.nextContent as ViewportContent).instruction,
@@ -706,6 +707,21 @@ export class Viewport {
     await this.content.terminateComponent(this.router.statefulHistory || this.options.stateful);
     this.content.unloadComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
     this.content.destroyComponent();
+  }
+
+  private clearReplacedChildren(): void {
+    this.replacedChildren = [];
+  }
+  private disableReplacedChildren(): void {
+    this.replacedChildren = this.children.filter(viewport => viewport.enabled);
+    for (const viewport of this.replacedChildren) {
+      viewport.enabled = false;
+    }
+  }
+  private reenableReplacedChildren(): void {
+    for (const viewport of this.replacedChildren) {
+      viewport.enabled = true;
+    }
   }
 
   private clearState(): void {

@@ -20,6 +20,7 @@ export interface IViewportOptions {
   scope?: boolean;
   usedBy?: string | string[];
   default?: string;
+  fallback?: string;
   noLink?: boolean;
   noHistory?: boolean;
   stateful?: boolean;
@@ -166,6 +167,9 @@ export class Viewport {
       if (options.default) {
         this.options.default = options.default;
       }
+      if (options.fallback) {
+        this.options.fallback = options.fallback;
+      }
       if (options.noLink) {
         this.options.noLink = options.noLink;
       }
@@ -240,7 +244,7 @@ export class Viewport {
 
     await this.waitForElement();
 
-    (this.nextContent as ViewportContent).createComponent(this.context as IRenderContext);
+    (this.nextContent as ViewportContent).createComponent(this.context as IRenderContext, this.options.fallback);
 
     return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
   }

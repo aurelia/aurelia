@@ -17,6 +17,7 @@ export class ViewportCustomElement {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
+  @bindable public fallback: string = '';
   @bindable public noScope: boolean = false;
   @bindable public noLink: boolean = false;
   @bindable public noHistory: boolean = false;
@@ -83,6 +84,9 @@ export class ViewportCustomElement {
     }
     if (this.default && this.default.length) {
       options.default = this.default;
+    }
+    if (this.fallback && this.fallback.length) {
+      options.fallback = this.fallback;
     }
     if (this.element.hasAttribute('no-link')) {
       options.noLink = true;

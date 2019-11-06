@@ -536,3 +536,14 @@ export function toLookup(...objs: {}[]): Readonly<{}> {
 export function isObject<T extends object = Object | Function>(value: unknown): value is T {
   return typeof value === 'object' && value !== null || typeof value === 'function';
 }
+
+/**
+ * Determine whether a value is `null` or `undefined`.
+ *
+ * @param value - The value to test.
+ * @returns `true` if the value is `null` or `undefined`, otherwise `false`.
+ * Also performs a type assertion that ensures TypeScript treats the value appropriately in the `if` and `else` branches after this check.
+ */
+export function isNullOrUndefined(value: unknown): value is null | undefined {
+  return value === null || value === void 0;
+}

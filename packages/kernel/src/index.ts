@@ -133,4 +133,5 @@ export {
   firstDefined,
   getPrototypeChain,
   isObject,
+  isNullOrUndefined,
 } from './functions';

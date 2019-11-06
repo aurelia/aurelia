@@ -10,8 +10,8 @@ import { Profile } from './components/profile/profile';
 import { Settings } from './components/settings/settings';
 import { FooterLayout } from './shared/layouts/footer-layout';
 import { HeaderLayout } from './shared/layouts/header-layout';
-import { SharedState } from './shared/state/shared-state';
 import { UserService } from './shared/services/user-service';
+import { SharedState } from './shared/state/shared-state';
 
 import template from './app.html';
 

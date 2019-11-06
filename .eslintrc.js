@@ -201,6 +201,7 @@ module.exports = {
     'sonarjs/no-extra-arguments': 'warn',
     'sonarjs/no-inverted-boolean-check': 'warn',
     'sonarjs/no-small-switch': 'off',
+    'sort-keys': 'off',
     'sonarjs/prefer-immediate-return': 'warn',
     'default-param-last': ['warn'],
     'eqeqeq': 'warn',

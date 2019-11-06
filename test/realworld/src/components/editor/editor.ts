@@ -1,8 +1,9 @@
-import { inject } from "@aurelia/kernel";
-import { IRouter, lifecycleLogger } from "@aurelia/router";
-import { bindable, BindingMode } from "@aurelia/runtime";
-import { Article } from "shared/models/article";
-import { ArticleService } from "shared/services/article-service";
+import { inject } from '@aurelia/kernel';
+import { IRouter, lifecycleLogger } from '@aurelia/router';
+import { bindable, BindingMode } from '@aurelia/runtime';
+
+import { Article } from 'shared/models/article';
+import { ArticleService } from 'shared/services/article-service';
 
 @lifecycleLogger('editor')
 @inject(ArticleService, IRouter)
@@ -58,7 +59,7 @@ export class Editor {
   }
 
   public removeTag(tag: string) {
-    this.article.tagList!.splice(this.article.tagList!.indexOf(tag), 1);
+    this.article!.tagList!.splice(this.article!.tagList!.indexOf(tag), 1);
   }
 
   public publishArticle() {

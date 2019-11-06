@@ -1,9 +1,10 @@
-import { inject } from "@aurelia/kernel";
-import { Article as ArticleModel} from "shared/models/article";
-import { Comment } from "shared/models/comment";
-import { ArticleService } from "shared/services/article-service";
-import { CommentService } from "shared/services/comment-service";
-import { SharedState } from "shared/state/shared-state";
+import { inject } from '@aurelia/kernel';
+
+import { Article as ArticleModel} from 'shared/models/article';
+import { Comment } from 'shared/models/comment';
+import { ArticleService } from 'shared/services/article-service';
+import { CommentService } from 'shared/services/comment-service';
+import { SharedState } from 'shared/state/shared-state';
 
 @inject(ArticleService, CommentService, SharedState)
 export class Article {

@@ -1,4 +1,5 @@
 import { inject } from '@aurelia/kernel';
+
 import { User } from 'models/user';
 import { SharedState } from 'shared/state/shared-state';
 import { ApiService } from './api-service';

@@ -1,5 +1,6 @@
 import { Interceptor } from '@aurelia/fetch-client';
 import { inject } from '@aurelia/kernel';
+
 import { JwtService } from './jwt-service';
 
 const AUTHORIZATION_HEADER = 'Authorization';

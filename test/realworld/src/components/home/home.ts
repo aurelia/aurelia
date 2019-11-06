@@ -1,9 +1,10 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter, NavRoute } from '@aurelia/router';
+
 import { Article } from 'models/article';
 import { ArticleRequest } from 'models/article-request';
 import { getPages } from 'shared/get-pages';
-import { ArticleService } from "shared/services/article-service";
+import { ArticleService } from 'shared/services/article-service';
 import { TagService } from 'shared/services/tag-service';
 import { SharedState } from 'shared/state/shared-state';
 
@@ -65,7 +66,8 @@ export class Home {
           title: 'Global Feed',
           consideredActive: () => this.shownList === 'all' && !this.filterTag,
         },
-      ], {
+      ],
+      {
         ul: 'nav nav-pills outline-active',
         li: 'nav-item',
         a: 'nav-link',

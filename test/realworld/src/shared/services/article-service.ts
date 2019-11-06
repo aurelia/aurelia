@@ -1,4 +1,5 @@
 import { inject } from '@aurelia/kernel';
+
 import { Article } from 'shared/models/article';
 import { ApiService } from './api-service';
 

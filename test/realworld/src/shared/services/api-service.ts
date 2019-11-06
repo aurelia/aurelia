@@ -1,5 +1,6 @@
 import { HttpClient, json } from '@aurelia/fetch-client';
 import { inject } from '@aurelia/kernel';
+
 import * as qs from 'querystringify';
 import { config } from './config';
 import { HttpInterceptor } from './http-interceptor';

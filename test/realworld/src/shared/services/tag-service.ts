@@ -1,4 +1,5 @@
 import { inject } from '@aurelia/kernel';
+
 import { ApiService } from './api-service';
 
 @inject(ApiService)

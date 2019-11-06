@@ -1,5 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
+
 import { User } from 'shared/models/user';
 import { UserService } from 'shared/services/user-service';
 

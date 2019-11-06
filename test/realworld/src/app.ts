@@ -1,6 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { INavRoute, IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
+
 import { UserService } from './shared/services/user-service';
 import { SharedState } from './shared/state/shared-state';
 import { FooterLayout } from './shared/layouts/footer-layout';
@@ -11,6 +12,7 @@ import { Editor } from './components/editor/editor';
 import { Home } from './components/home/home';
 import { Profile } from './components/profile/profile';
 import { Settings } from './components/settings/settings';
+
 import template from './app.html';
 
 @inject(IRouter, UserService, SharedState)

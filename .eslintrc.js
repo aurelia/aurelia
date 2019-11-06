@@ -239,7 +239,8 @@ module.exports = {
   settings: {
     polyfills: [
       'fetch',
-      'Reflect'
+      'Reflect',
+      'Promise'
     ]
   }
 };

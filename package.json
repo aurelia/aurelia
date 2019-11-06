@@ -12,8 +12,8 @@
     "bootstrap": "lerna bootstrap --ci",
     "postinstall": "lerna bootstrap --ci",
     "rebuild": "npm run clean && npm run build",
-    "build": "lerna run build",
-    "build:release": "lerna run build --ignore @aurelia/__tests__ --ignore @aurelia/__e2e__",
+    "build": "lerna run build --scope @aurelia/* --scope aurelia",
+    "build:release": "lerna run build --scope @aurelia/* --ignore @aurelia/__tests__ --ignore @aurelia/__e2e__",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:overwrite:umd && npm run build:release && npm run change-tsconfigs:restore",
     "build:test": "lerna run build:test",
@@ -55,7 +55,7 @@
     "@types/loader-utils": "^1.1.3",
     "@types/marked": "^0.6.5",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "@types/parse5": "^5.0.2",
     "@types/pixi.js": "^4.8.9",
     "@types/querystringify": "^2.0.0",
@@ -67,6 +67,7 @@
     "@typescript-eslint/parser": "^2.4.0",
     "chalk": "^2.4.2",
     "codecov": "^3.6.1",
+    "command-exists": "^1.2.8",
     "commitizen": "^4.0.3",
     "cross-env": "^6.0.3",
     "css-loader": "^3.2.0",
@@ -81,6 +82,7 @@
     "eslint-plugin-sonarjs": "^0.4.0",
     "esm": "^3.2.25",
     "fancy-log": "^1.3.3",
+    "fs-extra": "^8.1.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "htmlhint": "^0.11.0",
@@ -102,6 +104,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^4.0.2",
     "lerna": "^3.18.1",
+    "lodash": "4.17.15",
     "magic-string": "^0.25.4",
     "marked": "^0.7.0",
     "mocha": "~6.1.4",
@@ -127,7 +130,8 @@
     "vinyl": "^2.2.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.2"
+    "webpack-dev-server": "^3.8.2",
+    "yargs": "^14.2.0"
   },
   "config": {
     "commitizen": {

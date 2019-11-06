@@ -1,6 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { bindable } from '@aurelia/runtime';
+
 import { Article } from 'shared/models/article';
 import { ArticleService } from 'shared/services/article-service';
 import { SharedState } from 'shared/state/shared-state';
@@ -10,10 +11,11 @@ export class FavoriteButton {
   @bindable public article?: Article;
   @bindable public toggle?: (toggled: boolean) => void;
 
-  public constructor(private readonly router: IRouter,
+  public constructor(
+    private readonly router: IRouter,
     private readonly sharedState: SharedState,
-    private readonly articleService: ArticleService) {
-  }
+    private readonly articleService: ArticleService,
+  ) {}
 
   public onToggleFavorited() {
     if (!this.sharedState.isAuthenticated) {

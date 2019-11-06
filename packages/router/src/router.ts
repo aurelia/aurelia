@@ -380,7 +380,8 @@ export class Router implements IRouter {
       if (configuredRoute.hasRemaining &&
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
-        let configured = new FoundRoute(); const routeViewports: Viewport[] = alreadyFoundInstructions
+        let configured = new FoundRoute();
+        const routeViewports: Viewport[] = alreadyFoundInstructions
           .filter(instr => instr.viewport !== null && instr.viewport.path === configuredRoutePath)
           .map(instr => instr.viewport)
           .filter((value, index, arr) => arr.indexOf(value) === index) as Viewport[];

@@ -9,16 +9,16 @@ import { parseError, status } from './service-helper';
 
 @inject(HttpClient, JwtService, HttpInterceptor)
 export class ApiService {
-
-  public constructor(private readonly http: HttpClient,
+  public constructor(
+    private readonly http: HttpClient,
     private readonly jwtService: JwtService,
-    private readonly interceptor: HttpInterceptor) {
+    private readonly interceptor: HttpInterceptor,
+  ) {
     http.configure((httpConfiguration) => {
       httpConfiguration
         .withInterceptor(interceptor);
       return httpConfiguration;
     });
-
   }
 
   public setHeaders() {

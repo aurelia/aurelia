@@ -7,11 +7,11 @@ import { JwtService } from './jwt-service';
 
 @inject(ApiService, JwtService, SharedState)
 export class UserService {
-
-  public constructor(private readonly apiService: ApiService,
+  public constructor(
+    private readonly apiService: ApiService,
     private readonly jwtService: JwtService,
-    private readonly sharedState: SharedState) {
-  }
+    private readonly sharedState: SharedState,
+  ) {}
 
   // Verify JWT in localstorage with server & load user's info.
   // This runs once on application startup.

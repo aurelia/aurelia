@@ -13,10 +13,11 @@ export class Article {
   private myComment: string = '';
   private slug: any;
 
-  public constructor(private readonly articleService: ArticleService,
+  public constructor(
+    private readonly articleService: ArticleService,
     private readonly commentService: CommentService,
-    private readonly sharedState: SharedState) {
-  }
+    private readonly sharedState: SharedState,
+  ) {}
 
   public async enter(params: { slug: any }) {
     this.slug = params.slug;

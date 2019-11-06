@@ -12,7 +12,10 @@ export class Editor {
   private article?: Article;
   private slug?: string;
 
-  public constructor(private readonly articleService: ArticleService, private readonly router: IRouter) { }
+  public constructor(
+    private readonly articleService: ArticleService,
+    private readonly router: IRouter,
+  ) {}
 
   public created() { return; }
   public binding() { return; }

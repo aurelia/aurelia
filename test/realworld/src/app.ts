@@ -2,16 +2,16 @@ import { inject } from '@aurelia/kernel';
 import { INavRoute, IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 
-import { UserService } from './shared/services/user-service';
-import { SharedState } from './shared/state/shared-state';
-import { FooterLayout } from './shared/layouts/footer-layout';
-import { HeaderLayout } from './shared/layouts/header-layout';
 import { Article } from './components/article/article';
 import { Auth } from './components/auth/auth';
 import { Editor } from './components/editor/editor';
+import { FooterLayout } from './shared/layouts/footer-layout';
+import { HeaderLayout } from './shared/layouts/header-layout';
 import { Home } from './components/home/home';
 import { Profile } from './components/profile/profile';
 import { Settings } from './components/settings/settings';
+import { SharedState } from './shared/state/shared-state';
+import { UserService } from './shared/services/user-service';
 
 import template from './app.html';
 
@@ -44,12 +44,19 @@ export class App implements IViewModel {
 
   public async binding() {
     this.router.guardian.addGuard(
-      (instructions) => {
-        if (this.state.isAuthenticated) { return true; }
+      () => {
+        if (this.state.isAuthenticated) {
+          return true;
+        }
         this.router.goto(`auth(type=login)`);
         return [];
-      }
-      , { include: [{ component: 'editor' }, { component: 'settings' }] },
+      },
+      {
+        include: [
+          { component: 'editor' },
+          { component: 'settings' },
+        ],
+      },
     );
     const observerLocator = this.router.container.get(IObserverLocator);
     const observer = observerLocator.getObserver(LifecycleFlags.none, this.state, 'isAuthenticated') as any;

@@ -10,9 +10,9 @@ export interface ArticleResponse {
 
 @inject(ApiService)
 export class ArticleService {
-
-  public constructor(private readonly apiService: ApiService) {
-  }
+  public constructor(
+    private readonly apiService: ApiService,
+  ) {}
 
   public getList(type: string, params: any): Promise<ArticleResponse> {
     return this.apiService.get(`/articles${type === 'feed' ? '/feed' : ''}`, params);

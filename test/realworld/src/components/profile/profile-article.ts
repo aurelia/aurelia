@@ -15,8 +15,9 @@ export class ProfileArticle {
   private readonly limit = 10;
   private username?: string;
 
-  public constructor(private readonly articleService: ArticleService) {
-  }
+  public constructor(
+    private readonly articleService: ArticleService,
+  ) {}
 
   public enter(params: any) {
     this.username = params.name;

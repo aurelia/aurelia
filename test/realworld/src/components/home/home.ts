@@ -23,7 +23,8 @@ export class Home {
     private readonly sharedState: SharedState,
     private readonly router: IRouter,
     private readonly articleService: ArticleService,
-    private readonly tagService: TagService) { }
+    private readonly tagService: TagService,
+  ) {}
 
   public attached() {
     this.getArticles();

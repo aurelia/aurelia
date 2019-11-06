@@ -15,8 +15,9 @@ export class ProfileFavorites {
   private readonly limit = 10;
   private username: any;
 
-  public constructor(private readonly articleService: ArticleService) {
-  }
+  public constructor(
+    private readonly articleService: ArticleService,
+  ) {}
 
   public async enter(params: { name: string }) {
     this.username = params.name;

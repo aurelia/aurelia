@@ -16,8 +16,8 @@ export class Profile {
   public constructor(
     private readonly sharedState: SharedState,
     private readonly profileService: ProfileService,
-    private readonly router: IRouter) {
-  }
+    private readonly router: IRouter,
+  ) {}
 
   public async enter(parameters: { name: string }) {
     this.username = parameters.name;

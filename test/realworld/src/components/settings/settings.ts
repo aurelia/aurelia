@@ -7,12 +7,11 @@ import { SharedState } from 'shared/state/shared-state';
 @lifecycleLogger('settings')
 @inject(UserService, SharedState, IRouter)
 export class Settings {
-
   public constructor(
     private readonly userService: UserService,
     private readonly sharedState: SharedState,
-    private readonly router: IRouter) {
-  }
+    private readonly router: IRouter,
+  ) {}
 
   public created() { return; }
   public binding() { return; }

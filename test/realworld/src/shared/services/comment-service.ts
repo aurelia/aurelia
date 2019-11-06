@@ -5,9 +5,9 @@ import { ApiService } from './api-service';
 
 @inject(ApiService)
 export class CommentService {
-
-  public constructor(private readonly apiService: ApiService) {
-  }
+  public constructor(
+    private readonly apiService: ApiService,
+  ) {}
 
   public async add(slug: string, payload: string): Promise<Comment> {
     const data = await this.apiService.post(`/articles/${slug}/comments`, { comment: { body: payload } });

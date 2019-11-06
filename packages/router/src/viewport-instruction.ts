@@ -99,7 +99,7 @@ export class ViewportInstruction {
     if (this.parametersType !== ParametersType.object) {
       throw new Error('Can\'t add object parameters to existing non-object parameters!');
     }
-    this.setParameters({...this.parameters, ...parameters});
+    this.setParameters({ ...this.parameters, ...parameters });
   }
 
   public isEmpty(): boolean {

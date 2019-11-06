@@ -66,13 +66,27 @@ export class ViewportContent {
     return this.content.sameComponent(other.content, true);
   }
 
-  public createComponent(context: IRenderContext | IContainer): void {
+  public createComponent(context: IRenderContext | IContainer, fallback?: string): void {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
-      this.content.componentInstance = this.toComponentInstance(context);
+      try {
+        this.content.componentInstance = this.toComponentInstance(context);
+      } catch (e) {
+        if (fallback !== void 0) {
+          this.content.setParameters({ id: this.content.componentName });
+          this.content.setComponent(fallback);
+          try {
+            this.content.componentInstance = this.toComponentInstance(context);
+          } catch (ee) {
+            throw [e, ee];
+          }
+        } else {
+          throw e;
+        }
+      }
     }
     this.contentStatus = ContentStatus.created;
   }

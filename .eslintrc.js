@@ -103,7 +103,7 @@ module.exports = {
     'import/no-self-import': 'error',
     'import/no-unassigned-import': 'error',
     'import/no-useless-path-segments': ['error'],
-    'import/order': ['error', { 'groups': [], 'newlines-between': 'never' }],
+    'import/order': ['error', { 'groups': [], 'newlines-between': 'ignore' }],
     'import/no-deprecated': 'error',
     'jsdoc/check-alignment': 'error',
     'jsdoc/check-indentation': 'error',

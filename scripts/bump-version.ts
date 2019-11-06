@@ -15,7 +15,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
-        if (depName.startsWith("@aurelia")) {
+        if (depName.startsWith('@aurelia') || depName === 'aurelia') {
           log(`  dep ${name.npm} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);
           deps[depName] = newVersion;
         }

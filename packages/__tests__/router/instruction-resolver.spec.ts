@@ -173,6 +173,24 @@ describe('InstructionResolver', function () {
       await tearDown();
     });
   }
+
+  const parametersStrings: string[] = [
+    'a=1,b=2,3,d=4',
+  ];
+
+  for (const parameters of parametersStrings) {
+    it(`parses and stringifies component parameters: ${parameters}`, async function () {
+      const { host, router, tearDown } = await setup();
+
+      const parsed = router.instructionResolver.parseComponentParameters(parameters);
+      console.log('parsed', parsed);
+      const stringifiedParameters = router.instructionResolver.stringifyComponentParameters(parsed);
+      console.log('stringifiedParameters', stringifiedParameters);
+      assert.strictEqual(stringifiedParameters, parameters, `stringifiedParameters`);
+
+      await tearDown();
+    });
+  }
 });
 
 async function setup() {

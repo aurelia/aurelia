@@ -1,12 +1,12 @@
 /* eslint-disable */
 import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
 import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression, $DocumentFragment } from './ast';
-import { IFileSystem, FileKind, IFile, IOptions } from '../system/interfaces';
-import { NodeFileSystem } from '../system/file-system';
+import { IFileSystem, FileKind, IFile, IOptions, Encoding } from '../system/interfaces';
+import { NodeFileSystem, File } from '../system/file-system';
 import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
 import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
-import { dirname } from 'path';
+import { dirname, basename } from 'path';
 import { Intrinsics } from './intrinsics';
 import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $ObjectEnvRec, $FunctionEnvRec } from './environment';
 import { $Undefined, $Object, $Function, $Null, $String, $Reference, $Any } from './value';
@@ -141,8 +141,9 @@ export class Realm {
   private readonly moduleCache: Map<string, IModule> = new Map();
 
   private constructor(
-    private readonly container: IContainer,
+    public readonly container: IContainer,
     private readonly logger: ILogger,
+    private readonly fs: IFileSystem,
   ) {
     this.jsdom = new JSDOM('');
   }
@@ -158,10 +159,11 @@ export class Realm {
     }
 
     const logger = container.get(ILogger).root.scopeTo('Realm');
+    const fs = container.get(IFileSystem);
     logger.info('Creating new realm');
 
     // 1. Let realmRec be a new Realm Record.
-    const realm = new Realm(container, logger);
+    const realm = new Realm(container, logger, fs);
 
     // 2. Perform CreateIntrinsics(realmRec).
     new Intrinsics(realm);
@@ -321,11 +323,28 @@ export class Realm {
     return this.getESModule(pkg.entryFile, pkg);
   }
 
+  public async loadFile(file: IFile): Promise<$SourceFile> {
+    return this.getESModule(file, null)
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-hostresolveimportedmodule
   public HostResolveImportedModule(referencingModule: $SourceFile, $specifier: $String): IModule {
     const specifier = normalizePath($specifier.value);
     const isRelative = isRelativeModulePath(specifier);
     const pkg = referencingModule.pkg;
+
+    // Single file scenario; lazily resolve the import
+    if (pkg === null) {
+      if (!isRelative) {
+        throw new Error(`Absolute module resolution not yet implemented for single-file scenario.`);
+      }
+      // TODO: this is currently just for the 262 test suite but we need to resolve the other stuff properly too for end users that don't want to use the package eager load mechanism
+      const dir = referencingModule.$file.dir;
+      const ext = '.js';
+      const path = joinPath(dir, `${specifier}${ext}`);
+      const file = new File(this.fs, path, dir, path, name, basename(specifier), ext)
+      return this.getESModule(file, null);
+    }
 
     if (isRelative) {
       this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier.value}' for ${referencingModule.$file.name}`);
@@ -369,7 +388,7 @@ export class Realm {
       } else {
         this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
 
-        const externalPkg = referencingModule.pkg.loader.getCachedPackage(pkgDep.refName);
+        const externalPkg = pkg.loader.getCachedPackage(pkgDep.refName);
         if (pkgDep.refName !== specifier) {
           if (externalPkg.entryFile.shortName === specifier) {
             return this.getESModule(externalPkg.entryFile, externalPkg);
@@ -499,7 +518,7 @@ export class Realm {
     return hm as $DocumentFragment;
   }
 
-  private getESModule(file: IFile, pkg: NPMPackage): $SourceFile {
+  private getESModule(file: IFile, pkg: NPMPackage | null): $SourceFile {
     let esm = this.moduleCache.get(file.path);
     if (esm === void 0) {
       const compilerOptions = this.getCompilerOptions(file.path, pkg);
@@ -513,14 +532,14 @@ export class Realm {
     return esm as $SourceFile;
   }
 
-  private getCompilerOptions(path: string, pkg: NPMPackage): CompilerOptions {
+  private getCompilerOptions(path: string, pkg: NPMPackage | null): CompilerOptions {
     // TODO: this is a very simple/naive impl, needs more work for inheritance etc
     path = normalizePath(path);
 
     let compilerOptions = this.compilerOptionsCache.get(path);
     if (compilerOptions === void 0) {
       const dir = normalizePath(dirname(path));
-      if (dir === path) {
+      if (dir === path || pkg === null/* TODO: maybe still try to find tsconfig? */) {
         compilerOptions = {};
       } else {
         const tsConfigPath = joinPath(path, 'tsconfig.json');

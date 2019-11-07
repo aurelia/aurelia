@@ -5647,7 +5647,7 @@ export class $SourceFile implements I$Node, IModule {
     public readonly $file: IFile,
     public readonly node: SourceFile,
     public readonly realm: Realm,
-    public readonly pkg: NPMPackage,
+    public readonly pkg: NPMPackage | null,
     public readonly compilerOptions: CompilerOptions,
   ) {
     this.id = realm.registerNode(this);
@@ -5655,9 +5655,9 @@ export class $SourceFile implements I$Node, IModule {
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
-    this.logger = pkg.container.get(ILogger).root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
+    this.logger = realm.container.get(ILogger).root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
 
-    this.matcher = PatternMatcher.getOrCreate(compilerOptions, pkg.container);
+    this.matcher = PatternMatcher.getOrCreate(compilerOptions, realm.container);
 
     let ctx = Context.InTopLevel;
     this.DirectivePrologue = GetDirectivePrologue(node.statements);

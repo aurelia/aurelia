@@ -1,4 +1,5 @@
 import { ViewportInstruction } from './viewport-instruction';
+import { ComponentParameters } from './interfaces';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;
@@ -15,10 +16,17 @@ interface ISeparators {
   noScope: string;
   parameters: string;
   parametersEnd: string;
+  parameterSeparator: string;
+  parameterKeySeparator: string;
   parameter?: string;
   add: string;
   clear: string;
   action: string;
+}
+
+export interface IComponentParameter {
+  key?: string | undefined;
+  value: unknown;
 }
 
 export class InstructionResolver {
@@ -31,6 +39,8 @@ export class InstructionResolver {
     noScope: '!',
     parameters: '(', // '='
     parametersEnd: ')', // ''
+    parameterSeparator: ',',
+    parameterKeySeparator: '=',
     parameter: '&',
     add: '+',
     clear: '-',
@@ -82,6 +92,7 @@ export class InstructionResolver {
       return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
       let excludeCurrentViewport: boolean = excludeViewport;
+      let excludeCurrentComponent: boolean = false;
       if (viewportContext) {
         if (instruction.viewport && instruction.viewport.options.noLink) {
           return '';
@@ -89,10 +100,13 @@ export class InstructionResolver {
         if (!instruction.needsViewportDescribed && instruction.viewport && !instruction.viewport.options.forceDescription) {
           excludeCurrentViewport = true;
         }
+        if (instruction.viewport && instruction.viewport.options.fallback === instruction.componentName) {
+          excludeCurrentComponent = true;
+        }
       }
       let stringified: string = instruction.route !== null
         ? instruction.route
-        : this.stringifyAViewportInstruction(instruction, excludeCurrentViewport);
+        : this.stringifyAViewportInstruction(instruction, excludeCurrentViewport, excludeCurrentComponent);
       if (instruction.nextScopeInstructions && instruction.nextScopeInstructions.length) {
         stringified += instruction.nextScopeInstructions.length === 1
           ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}`
@@ -174,6 +188,51 @@ export class InstructionResolver {
       clones.push(clone);
     }
     return clones;
+  }
+
+  // TODO: Deal with separators in data and complex types
+  public parseComponentParameters(parameters: ComponentParameters, uriComponent: boolean = false): IComponentParameter[] {
+    if (parameters === undefined || parameters === null || parameters.length === 0) {
+      return [];
+    }
+    if (typeof parameters === 'string') {
+      const list: IComponentParameter[] = [];
+      const params: string[] = parameters.split(this.separators.parameterSeparator);
+      for (const param of params) {
+        let key: string | undefined;
+        let value: string;
+        [key, value] = param.split(this.separators.parameterKeySeparator);
+        if (value === void 0) {
+          value = uriComponent ? decodeURIComponent(key) : key;
+          key = void 0;
+        } else if (uriComponent) {
+          key = decodeURIComponent(key);
+          value = decodeURIComponent(value);
+        }
+        list.push({ key, value });
+      }
+      return list;
+    }
+    if (Array.isArray(parameters)) {
+      return parameters.map(param => ({ key: void 0, value: param }));
+    }
+    const keys: string[] = Object.keys(parameters);
+    keys.sort();
+    return keys.map(key => ({ key, value: parameters[key] }));
+  }
+  // TODO: Deal with separators in data and complex types
+  public stringifyComponentParameters(parameters: IComponentParameter[], uriComponent: boolean = false): string {
+    if (!Array.isArray(parameters) || parameters.length === 0) {
+      return '';
+    }
+    const seps: ISeparators = this.separators;
+    return parameters
+      .map(param => {
+        const key: string | undefined = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
+        const value: string = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
+        return key !== void 0 ? key + seps.parameterKeySeparator + value : value;
+      })
+      .join(seps.parameterSeparator);
   }
 
   private parseViewportInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: ViewportInstruction[]; remaining: string } {
@@ -280,14 +339,16 @@ export class InstructionResolver {
       instruction = `${token}${instruction}`;
     }
 
-    return { instruction: new ViewportInstruction(component, viewport, parametersString, scope), remaining: instruction };
+    const viewportInstruction: ViewportInstruction =
+      new ViewportInstruction(component, viewport, parametersString, scope);
+    return { instruction: viewportInstruction, remaining: instruction };
   }
 
-  private stringifyAViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
+  private stringifyAViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false, excludeComponent: boolean = false): string {
     if (typeof instruction === 'string') {
-      return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
+      return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport, excludeComponent);
     } else {
-      let instructionString = instruction.componentName;
+      let instructionString = !excludeComponent ? instruction.componentName : '';
       if (instruction.parametersString) {
         // TODO: Review parameters in ViewportInstruction
         instructionString += this.separators.parameters + instruction.parametersString + this.separators.parametersEnd;

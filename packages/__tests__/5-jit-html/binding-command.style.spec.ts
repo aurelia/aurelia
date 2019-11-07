@@ -1,8 +1,9 @@
-import { PLATFORM, Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElement, ILifecycle, LifecycleFlags, IScheduler } from '@aurelia/runtime';
-import { IEventManager } from '@aurelia/runtime-html';
 import { JitHtmlConfiguration } from '@aurelia/jit-html';
-import { TestContext, eachCartesianJoin, assert } from '@aurelia/testing';
+import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Aurelia, CustomElement, IScheduler } from '@aurelia/runtime';
+import { IEventManager } from '@aurelia/runtime-html';
+import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
+import { StyleAttributePattern } from './attribute-pattern';
 
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
 function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
@@ -147,6 +148,7 @@ describe('template-compiler.binding-commands.style', function() {
           class App {
             public value: string = ruleValue;
           },
+          StyleAttributePattern,
           JitHtmlConfiguration,
           CustomElement.define(
             {

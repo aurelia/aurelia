@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/check-indentation */
 import { customElement, valueConverter } from '@aurelia/runtime';
 import * as template from './let-demo.html';
 

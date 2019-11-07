@@ -3,7 +3,9 @@ import { HttpClient } from '@aurelia/fetch-client';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
+
 import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
+
 import { App } from './app';
 import { Auth } from './components/auth/auth';
 import { DateValueConverter } from './resources/value-converters/date';
@@ -22,9 +24,9 @@ const globalResources = [
 
   SharedState,
   HttpClient,
-] as any;
+];
 
-(global as any).au = new Aurelia()
+new Aurelia()
   .register(
     JitHtmlBrowserConfiguration,
     DebugConfiguration,

@@ -20,7 +20,7 @@ const fields = ['main', 'module'];
 (async function (): Promise<void> {
   const ref = process.argv.slice(2)[0];
 
-  for (const { name } of project.packages) {
+  for (const { name } of project.packages.filter(p => p.folder === 'packages')) {
     log(`changing package.json fields to ${ref} for: ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson('packages', name.kebab);
     for (const field of fields) {

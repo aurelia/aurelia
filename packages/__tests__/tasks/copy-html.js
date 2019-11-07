@@ -9,7 +9,7 @@ const argv = require('yargs').argv;
 const path = require('path');
 const fs = require('fs');
 
-const htmlSourceDirs = ['integration'];
+const sourceDirs = ['integration'];
 const baseOutDir = path.join('dist', 'esnext', '__tests__');
 const toWatch = argv.watch;
 const verbose = argv.watch;
@@ -71,7 +71,7 @@ function handleChange(eventName, src) {
   }
 }
 
-const watched = htmlSourceDirs.map((dir) => path.join(cwd, dir, '**/*.html'));
+const watched = sourceDirs.flatMap((dir) => [path.join(cwd, dir, '**/*.html'), path.join(cwd, dir, '**/*.css')]);
 
 const watcher = chokidar.watch(watched, {
   awaitWriteFinish: true

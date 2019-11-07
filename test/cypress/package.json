@@ -2,6 +2,7 @@
   "name": "cypress-e2e",
   "version": "1.0.0",
   "description": "The Cypress integration tests.",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "e2e": "npm i && cypress open",
@@ -10,6 +11,6 @@
   "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "cypress": "^3.4.1"
+    "cypress": "^3.5.0"
   }
 }

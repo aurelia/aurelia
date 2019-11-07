@@ -31,7 +31,7 @@
     "build": "tsc -b",
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aot",
     "dev": "tsc -b -w",
-    "test": "node -r esm dist/esnext/index.js"
+    "test": "node -r esm dist/esnext/test.js"
   },
   "publishConfig": {
     "access": "public"

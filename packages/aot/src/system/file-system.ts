@@ -49,10 +49,6 @@ const {
   writeFile,
 } = promises;
 
-function toLowerCase(str: string) {
-  return str.toLowerCase();
-}
-
 function compareFilePath(a: File, b: File) {
   return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
 }
@@ -343,7 +339,7 @@ export class NodeFileSystem implements IFileSystem {
   public async getChildren(path: string): Promise<string[]> {
     let children = this.childrenCache[path];
     if (children === void 0) {
-      children = this.childrenCache[path] = (await readdir(path)).filter(shouldTraverse).map(toLowerCase);
+      children = this.childrenCache[path] = (await readdir(path)).filter(shouldTraverse);
     }
     return children;
   }
@@ -351,7 +347,7 @@ export class NodeFileSystem implements IFileSystem {
   public getChildrenSync(path: string): string[] {
     let children = this.childrenCache[path];
     if (children === void 0) {
-      children = this.childrenCache[path] = readdirSync(path).filter(shouldTraverse).map(toLowerCase);
+      children = this.childrenCache[path] = readdirSync(path).filter(shouldTraverse);
     }
     return children;
   }

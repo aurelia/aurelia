@@ -321,7 +321,6 @@ export class NPMPackage {
     if (entryFilePath === void 0) {
       entryFile = determineEntryFileByConvention(files, isEntryPoint);
     } else {
-      entryFilePath = entryFilePath.toLowerCase();
       if (entryFilePath.startsWith('.')) {
         entryFilePath = entryFilePath.slice(1);
       }

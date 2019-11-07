@@ -8,7 +8,7 @@ export const normalizePath = (function () {
   return function (path: string) {
     let normalized = cache[path];
     if (normalized === void 0) {
-      normalized = cache[path] = path.replace(regex, '/').toLowerCase();
+      normalized = cache[path] = path.replace(regex, '/');
     }
     return normalized;
   };

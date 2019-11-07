@@ -341,8 +341,10 @@ export class Realm {
       // TODO: this is currently just for the 262 test suite but we need to resolve the other stuff properly too for end users that don't want to use the package eager load mechanism
       const dir = referencingModule.$file.dir;
       const ext = '.js';
-      const path = joinPath(dir, `${specifier}${ext}`);
-      const file = new File(this.fs, path, dir, specifier, name, basename(specifier), ext)
+      const name = basename(specifier);
+      const shortName = name.slice(0, -3);
+      const path = joinPath(dir, name);
+      const file = new File(this.fs, path, dir, specifier, name, shortName, ext);
       return this.getESModule(file, null);
     }
 

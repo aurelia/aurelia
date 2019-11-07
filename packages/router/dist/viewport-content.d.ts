@@ -20,7 +20,7 @@ export declare class ViewportContent {
     reentry: boolean;
     private taggedNodes;
     constructor(content?: ViewportInstruction, instruction?: INavigatorInstruction, context?: IRenderContext | IContainer | null);
-    readonly componentInstance: IRouteableComponent | null;
+    get componentInstance(): IRouteableComponent | null;
     equalComponent(other: ViewportContent): boolean;
     equalParameters(other: ViewportContent): boolean;
     reentryBehavior(): ReentryBehavior;

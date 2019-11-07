@@ -6,7 +6,8 @@ export interface AttributePatternDefinition {
 }
 export declare class Interpretation {
     parts: readonly string[];
-    pattern: string | null;
+    get pattern(): string | null;
+    set pattern(value: string | null);
     private _pattern;
     private readonly currentRecord;
     private readonly partsRecord;

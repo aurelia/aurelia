@@ -78,7 +78,7 @@ export declare class Navigator {
     private router;
     private readonly uninitializedEntry;
     constructor();
-    readonly queued: number;
+    get queued(): number;
     activate(router: IRouter, options?: INavigatorOptions): void;
     deactivate(): void;
     navigate(entry: INavigatorEntry): Promise<void>;
@@ -86,7 +86,7 @@ export declare class Navigator {
     refresh(): Promise<void>;
     go(movement: number): Promise<void>;
     setEntryTitle(title: string): Promise<void>;
-    readonly titles: string[];
+    get titles(): string[];
     getState(): INavigatorState;
     loadState(): void;
     saveState(push?: boolean): Promise<void>;

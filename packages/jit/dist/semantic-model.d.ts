@@ -43,9 +43,9 @@ export declare class TemplateControllerSymbol<TText extends INode = INode, TElem
     templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null;
     marker: TMarker;
     private _bindings;
-    readonly bindings: BindingSymbol[];
+    get bindings(): BindingSymbol[];
     private _parts;
-    readonly parts: ReplacePartSymbol<TText, TElement, TMarker>[];
+    get parts(): ReplacePartSymbol<TText, TElement, TMarker>[];
     constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null, res?: string);
 }
 /**
@@ -71,7 +71,7 @@ export declare class CustomAttributeSymbol {
     res: string;
     flags: SymbolFlags;
     private _bindings;
-    readonly bindings: BindingSymbol[];
+    get bindings(): BindingSymbol[];
     constructor(syntax: AttrSyntax, info: AttrInfo, res?: string);
 }
 /**
@@ -118,15 +118,15 @@ export declare class CustomElementSymbol<TText extends INode = INode, TElement e
     isContainerless: boolean;
     marker: TMarker;
     private _customAttributes;
-    readonly customAttributes: CustomAttributeSymbol[];
+    get customAttributes(): CustomAttributeSymbol[];
     private _plainAttributes;
-    readonly plainAttributes: PlainAttributeSymbol[];
+    get plainAttributes(): PlainAttributeSymbol[];
     private _bindings;
-    readonly bindings: BindingSymbol[];
+    get bindings(): BindingSymbol[];
     private _childNodes;
-    readonly childNodes: NodeSymbol<TText, TElement, TMarker>[];
+    get childNodes(): NodeSymbol<TText, TElement, TMarker>[];
     private _parts;
-    readonly parts: ReplacePartSymbol<TText, TElement, TMarker>[];
+    get parts(): ReplacePartSymbol<TText, TElement, TMarker>[];
     constructor(dom: IDOM, physicalNode: TElement, info: ElementInfo, res?: string, bindables?: Record<string, BindableInfo | undefined>);
 }
 export declare class LetElementSymbol<TElement extends INode = INode, TMarker extends INode = INode> {
@@ -135,7 +135,7 @@ export declare class LetElementSymbol<TElement extends INode = INode, TMarker ex
     flags: SymbolFlags;
     toBindingContext: boolean;
     private _bindings;
-    readonly bindings: BindingSymbol[];
+    get bindings(): BindingSymbol[];
     constructor(dom: IDOM, physicalNode: TElement, marker?: TMarker);
 }
 /**
@@ -150,11 +150,11 @@ export declare class PlainElementSymbol<TText extends INode = INode, TElement ex
     templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null;
     hasSlots: boolean;
     private _customAttributes;
-    readonly customAttributes: CustomAttributeSymbol[];
+    get customAttributes(): CustomAttributeSymbol[];
     private _plainAttributes;
-    readonly plainAttributes: PlainAttributeSymbol[];
+    get plainAttributes(): PlainAttributeSymbol[];
     private _childNodes;
-    readonly childNodes: NodeSymbol<TText, TElement, TMarker>[];
+    get childNodes(): NodeSymbol<TText, TElement, TMarker>[];
     constructor(dom: IDOM, physicalNode: TElement);
 }
 /**

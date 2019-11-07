@@ -79,15 +79,16 @@ export declare class MockBrowserHistoryLocation {
     private readonly states;
     private readonly paths;
     private index;
-    readonly length: number;
-    readonly state: Record<string, unknown>;
-    readonly path: string;
-    readonly pathname: string;
-    readonly search: string;
-    hash: string;
+    get length(): number;
+    get state(): Record<string, unknown>;
+    get path(): string;
+    get pathname(): string;
+    get search(): string;
+    get hash(): string;
+    set hash(value: string);
     activate(): void;
     deactivate(): void;
-    private readonly parts;
+    private get parts();
     pushState(data: Record<string, unknown>, title: string, path: string): void;
     replaceState(data: Record<string, unknown>, title: string, path: string): void;
     go(movement: number): void;
@@ -96,8 +97,8 @@ export declare class MockBrowserHistoryLocation {
 export declare class ChangeSet implements IDisposable {
     readonly index: number;
     readonly flags: LifecycleFlags;
-    readonly newValue: any;
-    readonly oldValue: any;
+    get newValue(): any;
+    get oldValue(): any;
     private _newValue;
     private _oldValue;
     constructor(index: number, flags: LifecycleFlags, newValue: any, oldValue: any);
@@ -107,8 +108,8 @@ export declare class ProxyChangeSet implements IDisposable {
     readonly index: number;
     readonly flags: LifecycleFlags;
     readonly key: PropertyKey;
-    readonly newValue: any;
-    readonly oldValue: any;
+    get newValue(): any;
+    get oldValue(): any;
     private _newValue;
     private _oldValue;
     constructor(index: number, flags: LifecycleFlags, key: PropertyKey, newValue: any, oldValue: any);
@@ -117,19 +118,19 @@ export declare class ProxyChangeSet implements IDisposable {
 export declare class CollectionChangeSet implements IDisposable {
     readonly index: number;
     readonly flags: LifecycleFlags;
-    readonly indexMap: IndexMap;
+    get indexMap(): IndexMap;
     private _indexMap;
     constructor(index: number, flags: LifecycleFlags, indexMap: IndexMap);
     dispose(): void;
 }
 export declare class SpySubscriber implements IDisposable {
-    readonly changes: ChangeSet[];
-    readonly proxyChanges: ProxyChangeSet[];
-    readonly collectionChanges: CollectionChangeSet[];
-    readonly hasChanges: boolean;
-    readonly hasProxyChanges: boolean;
-    readonly hasCollectionChanges: boolean;
-    readonly callCount: number;
+    get changes(): ChangeSet[];
+    get proxyChanges(): ProxyChangeSet[];
+    get collectionChanges(): CollectionChangeSet[];
+    get hasChanges(): boolean;
+    get hasProxyChanges(): boolean;
+    get hasCollectionChanges(): boolean;
+    get callCount(): number;
     private _changes?;
     private _proxyChanges?;
     private _collectionChanges?;

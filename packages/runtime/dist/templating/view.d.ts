@@ -10,7 +10,7 @@ export declare class ViewFactory<T extends INode = INode> implements IViewFactor
     private readonly template;
     private readonly lifecycle;
     static maxCacheSize: number;
-    readonly parentContextId: number;
+    get parentContextId(): number;
     isCaching: boolean;
     parts: PartialCustomElementDefinitionParts;
     private cache;

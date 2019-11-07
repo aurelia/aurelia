@@ -17,8 +17,8 @@ export declare class NavCustomElement {
     level: number;
     classes: INavClasses;
     constructor(router: IRouter);
-    readonly navRoutes: NavRoute[];
-    readonly navClasses: INavClasses;
+    get navRoutes(): NavRoute[];
+    get navClasses(): INavClasses;
     active(route: NavRoute): string;
 }
 //# sourceMappingURL=nav.d.ts.map

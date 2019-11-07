@@ -21,7 +21,7 @@ interface ISeparators {
 export declare class InstructionResolver {
     separators: ISeparators;
     activate(options?: IInstructionResolverOptions): void;
-    readonly clearViewportInstruction: string;
+    get clearViewportInstruction(): string;
     isClearViewportInstruction(instruction: string | ViewportInstruction): boolean;
     isClearAllViewportsInstruction(instruction: string | ViewportInstruction): boolean;
     parseViewportInstructions(instructions: string): ViewportInstruction[];

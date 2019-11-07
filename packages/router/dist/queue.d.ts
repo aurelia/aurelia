@@ -19,7 +19,7 @@ export interface IQueueOptions {
  */
 export declare class Queue<T> {
     private readonly callback;
-    readonly isActive: boolean;
+    get isActive(): boolean;
     readonly pending: QueueItem<T>[];
     processing: QueueItem<T> | null;
     allowedExecutionCostWithinTick: number | null;
@@ -27,7 +27,7 @@ export declare class Queue<T> {
     private scheduler;
     private task;
     constructor(callback: (item: QueueItem<T>) => void);
-    readonly length: number;
+    get length(): number;
     activate(options: IQueueOptions): void;
     deactivate(): void;
     enqueue(item: T, cost?: number): Promise<void>;

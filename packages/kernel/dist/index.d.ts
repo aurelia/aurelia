@@ -8,5 +8,5 @@ export { ITraceInfo, ITraceWriter, ILiveLoggingOptions, Reporter, Tracer, LogLev
 export { Profiler } from './profiler';
 export { IResourceDescriptions, IResourceKind, PartialResourceDefinition, Protocol, ResourceDefinition, ResourceType, RuntimeCompilationResources, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
 export { EventAggregator, EventAggregatorCallback, IEventAggregator, } from './eventaggregator';
-export { isNumeric, camelCase, kebabCase, pascalCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, bound, mergeArrays, mergeObjects, firstDefined, getPrototypeChain, } from './functions';
+export { isNumeric, camelCase, kebabCase, pascalCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, bound, mergeArrays, mergeObjects, firstDefined, getPrototypeChain, isObject, isNullOrUndefined, } from './functions';
 //# sourceMappingURL=index.d.ts.map

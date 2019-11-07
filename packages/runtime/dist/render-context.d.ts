@@ -9,9 +9,9 @@ export declare class RenderContext implements IRenderContext {
     private readonly parentContainer;
     private readonly dependencies;
     private readonly componentType?;
-    readonly id: number;
-    readonly path: string;
-    readonly parentId: number;
+    get id(): number;
+    get path(): string;
+    get parentId(): number;
     private readonly container;
     private readonly renderableProvider;
     private readonly elementProvider;

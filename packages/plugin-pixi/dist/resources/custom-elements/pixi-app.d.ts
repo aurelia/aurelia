@@ -2,7 +2,7 @@ import { Key } from '@aurelia/kernel';
 import { Application, ApplicationOptions, Container } from 'pixi.js';
 export declare class PixiApp {
     static readonly inject: readonly Key[];
-    readonly app: Application | null;
+    get app(): Application | null;
     stage: Container | null;
     options?: ApplicationOptions;
     width?: number;

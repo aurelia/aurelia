@@ -82,8 +82,8 @@ export declare class Router implements IRouter {
     private processingNavigation;
     private lastNavigation;
     constructor(container: IContainer, navigator: Navigator, navigation: BrowserNavigator, routeTransformer: IRouteTransformer, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
-    readonly isNavigating: boolean;
-    readonly statefulHistory: boolean;
+    get isNavigating(): boolean;
+    get statefulHistory(): boolean;
     activate(options?: IRouterOptions): void;
     loadUrl(): Promise<void>;
     deactivate(): void;

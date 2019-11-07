@@ -31,10 +31,10 @@ export declare class CompositionRoot<T extends INode = INode> {
 }
 export declare class Aurelia<TNode extends INode = INode> {
     readonly container: IContainer;
-    readonly isRunning: boolean;
-    readonly isStarting: boolean;
-    readonly isStopping: boolean;
-    readonly root: CompositionRoot<TNode>;
+    get isRunning(): boolean;
+    get isStarting(): boolean;
+    get isStopping(): boolean;
+    get root(): CompositionRoot<TNode>;
     private task;
     private _isRunning;
     private _isStarting;

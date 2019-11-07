@@ -75,5 +75,7 @@
     exports.mergeObjects = functions_1.mergeObjects;
     exports.firstDefined = functions_1.firstDefined;
     exports.getPrototypeChain = functions_1.getPrototypeChain;
+    exports.isObject = functions_1.isObject;
+    exports.isNullOrUndefined = functions_1.isNullOrUndefined;
 });
 //# sourceMappingURL=index.js.map

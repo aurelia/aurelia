@@ -15,7 +15,7 @@ export declare class NavRoute {
     visible: boolean;
     active: string;
     constructor(nav: Nav, route: INavRoute);
-    readonly hasChildren: string;
+    get hasChildren(): string;
     update(): void;
     executeAction(event: Event): void;
     toggleActive(): void;

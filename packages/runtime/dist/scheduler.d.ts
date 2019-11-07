@@ -110,7 +110,7 @@ export declare class TaskQueue {
     private taskPoolSize;
     private lastRequest;
     private microTaskRequestFlushTask;
-    readonly isEmpty: boolean;
+    get isEmpty(): boolean;
     constructor({ clock, priority, scheduler }: TaskQueueOptions);
     flush(): void;
     cancel(): void;
@@ -156,9 +156,9 @@ export declare class Task<T = any> implements ITask {
     private resolve;
     private reject;
     private _result;
-    readonly result: Promise<T>;
+    get result(): Promise<T>;
     private _status;
-    readonly status: TaskStatus;
+    get status(): TaskStatus;
     readonly priority: TaskQueuePriority;
     constructor(taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, reusable: boolean, callback: TaskCallback<T>);
     run(): void;

@@ -17,9 +17,9 @@ export declare class BrowserNavigator implements INavigatorStore, INavigatorView
     constructor(scheduler: IScheduler, dom: HTMLDOM);
     activate(options: IBrowserNavigatorOptions): void;
     deactivate(): void;
-    readonly length: number;
-    readonly state: Record<string, unknown>;
-    readonly viewerState: INavigatorViewerState;
+    get length(): number;
+    get state(): Record<string, unknown>;
+    get viewerState(): INavigatorViewerState;
     go(delta?: number, suppressPopstate?: boolean): Promise<void>;
     pushNavigatorState(state: INavigatorState): Promise<void>;
     replaceNavigatorState(state: INavigatorState): Promise<void>;

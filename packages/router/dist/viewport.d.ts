@@ -37,7 +37,7 @@ export declare class Viewport {
     private cache;
     private historyCache;
     constructor(router: IRouter, name: string, element: Element | null, context: IRenderContext | IContainer | null, owningScope: Viewport | null, scope: boolean, options?: IViewportOptions);
-    readonly doForceRemove: boolean;
+    get doForceRemove(): boolean;
     setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean;
     setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void;
     remove(element: Element | null, context: IRenderContext | IContainer | null): Promise<boolean>;

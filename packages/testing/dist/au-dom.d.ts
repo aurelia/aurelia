@@ -8,11 +8,13 @@ export declare class AuNode implements INode {
     $start: AuNode | null;
     $nodes: INodeSequence<AuNode> | Readonly<{}> | null;
     isTarget: boolean;
-    isConnected: boolean;
+    get isConnected(): boolean;
+    set isConnected(value: boolean);
     isMounted: boolean;
     parentNode: AuNode | null;
     childNodes: AuNode[];
-    textContent: string;
+    get textContent(): string;
+    set textContent(value: string);
     nextSibling: AuNode | null;
     previousSibling: AuNode | null;
     firstChild: AuNode | null;
@@ -62,7 +64,7 @@ export declare class AuProjectorLocator implements IProjectorLocator {
 export declare class AuProjector implements IElementProjector {
     host: CustomElementHost<AuNode>;
     constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>);
-    readonly children: ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>>;
+    get children(): ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>>;
     subscribeToChildrenChange(callback: () => void): void;
     provideEncapsulationSource(): AuNode;
     project(nodes: INodeSequence): void;

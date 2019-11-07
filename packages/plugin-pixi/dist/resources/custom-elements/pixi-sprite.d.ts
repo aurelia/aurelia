@@ -1,7 +1,7 @@
 import { IController } from '@aurelia/runtime';
 import { Circle, Container, DisplayObject, Ellipse, Filter, Graphics, Matrix, ObservablePoint, Polygon, Rectangle, RoundedRectangle, Shader, Sprite, Texture, TransformBase } from 'pixi.js';
 export declare class PixiSprite {
-    readonly sprite: Sprite & {
+    get sprite(): Sprite & {
         [key: string]: unknown;
     };
     container?: Container;
@@ -14,10 +14,10 @@ export declare class PixiSprite {
     filters?: Filter<Object>[];
     hitArea?: Rectangle | Circle | Ellipse | Polygon | RoundedRectangle;
     interactive?: boolean;
-    readonly localTransform: Matrix;
+    get localTransform(): Matrix;
     mask?: Graphics;
     name?: string;
-    readonly parent: Container;
+    get parent(): Container;
     pivotX?: number;
     pivotY?: number;
     positionX?: number;
@@ -30,13 +30,13 @@ export declare class PixiSprite {
     skewY?: number;
     transform?: TransformBase;
     visible?: boolean;
-    readonly worldAlpha: number;
-    readonly worldTransform: Matrix;
-    readonly worldVisible: boolean;
+    get worldAlpha(): number;
+    get worldTransform(): Matrix;
+    get worldVisible(): boolean;
     x?: number;
     y?: number;
     zIndex?: number;
-    readonly children: DisplayObject[];
+    get children(): DisplayObject[];
     height?: number;
     interactiveChildren?: boolean;
     sortableChildren?: boolean;
@@ -44,7 +44,7 @@ export declare class PixiSprite {
     width?: number;
     anchor?: ObservablePoint;
     blendMode?: number;
-    readonly isSprite: boolean;
+    get isSprite(): boolean;
     pluginName?: string;
     roundPixels?: boolean;
     shader?: Filter<Object> | Shader;

@@ -1396,11 +1396,11 @@ export class $FunctionDeclaration implements I$Node {
           const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
-          this.ExportedNames = [intrinsics['*default*']];
+          this.ExportedNames = [intrinsics['default']];
           this.ExportEntries = [
             new ExportEntryRecord(
               /* source */this,
-              /* ExportName */intrinsics['*default*'],
+              /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
               /* LocalName */localName,
@@ -1410,11 +1410,11 @@ export class $FunctionDeclaration implements I$Node {
           const BoundNames = this.BoundNames = [intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
-          this.ExportedNames = BoundNames;
+          this.ExportedNames = [intrinsics['default']];
           this.ExportEntries = [
             new ExportEntryRecord(
               /* source */this,
-              /* ExportName */intrinsics['*default*'],
+              /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
               /* LocalName */intrinsics['*default*'],
@@ -1683,11 +1683,11 @@ export class $ClassDeclaration implements I$Node {
           const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
-          this.ExportedNames = [intrinsics['*default*']];
+          this.ExportedNames = [intrinsics['default']];
           this.ExportEntries = [
             new ExportEntryRecord(
               /* source */this,
-              /* ExportName */intrinsics['*default*'],
+              /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
               /* LocalName */localName,
@@ -1697,11 +1697,11 @@ export class $ClassDeclaration implements I$Node {
           const BoundNames = this.BoundNames = [intrinsics['*default*']];
 
           this.ExportedBindings = BoundNames;
-          this.ExportedNames = BoundNames;
+          this.ExportedNames = [intrinsics['default']];
           this.ExportEntries = [
             new ExportEntryRecord(
               /* source */this,
-              /* ExportName */intrinsics['*default*'],
+              /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
               /* LocalName */intrinsics['*default*'],

@@ -369,21 +369,22 @@ export class Realm {
       } else {
         this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
 
-        const container = referencingModule.pkg.container;
-        const { rootDir } = container.get(IOptions);
-        const fs = container.get(IFileSystem);
-        let pkgPath = joinPath(rootDir, 'node_modules', pkgDep.refName, 'package.json');
-        pkgPath = normalizePath(fs.getRealPathSync(pkgPath));
-
-        const modulePath = joinPath(rootDir, 'node_modules', specifier);
-        const externalPkg = referencingModule.pkg.loader.getCachedPackage(pkgPath);
+        const externalPkg = referencingModule.pkg.loader.getCachedPackage(pkgDep.refName);
         if (pkgDep.refName !== specifier) {
-          let file = externalPkg.files.find(x => x.shortPath === modulePath && x.ext === '.js');
+          if (externalPkg.entryFile.shortName === specifier) {
+            return this.getESModule(externalPkg.entryFile, externalPkg);
+          }
+
+          let file = externalPkg.files.find(x => x.shortPath === externalPkg.dir && x.ext === '.js');
           if (file === void 0) {
-            const indexModulePath = joinPath(modulePath, 'index');
+            const indexModulePath = joinPath(externalPkg.dir, 'index');
             file = externalPkg.files.find(f => f.shortPath === indexModulePath && f.ext === '.js');
             if (file === void 0) {
-              throw new Error(`Unable to resolve file "${modulePath}" or "${indexModulePath}"`);
+              const partialAbsolutePath = joinPath('node_modules', specifier);
+              file = externalPkg.files.find(f => f.shortPath.endsWith(partialAbsolutePath) && f.ext === '.js');
+              if (file === void 0) {
+                throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
+              }
             }
           }
 

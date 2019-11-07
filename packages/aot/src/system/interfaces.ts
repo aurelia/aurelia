@@ -55,6 +55,9 @@ export interface IFileSystem {
   mkdir(path: string): Promise<void>;
   mkdirSync(path: string): void;
 
+  isReadable(path: string): Promise<boolean>;
+  isReadableSync(path: string): boolean;
+
   fileExists(path: string): Promise<boolean>;
   fileExistsSync(path: string): boolean;
 

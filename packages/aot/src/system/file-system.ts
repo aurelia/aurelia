@@ -1,5 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import {
+  accessSync,
+  constants,
   Dirent,
   exists,
   existsSync,
@@ -35,6 +37,7 @@ import {
 } from './path-utils';
 
 const {
+  access,
   lstat,
   mkdir,
   readdir,
@@ -187,6 +190,28 @@ export class NodeFileSystem implements IFileSystem {
     this.logger.trace(`mkdirSync(path: ${path})`);
 
     mkdirSync(path, { recursive: true });
+  }
+
+  public async isReadable(path: string): Promise<boolean> {
+    this.logger.trace(`isReadable(path: ${path})`);
+
+    try {
+      await access(path, constants.F_OK);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  public isReadableSync(path: string): boolean {
+    this.logger.trace(`isReadableSync(path: ${path})`);
+
+    try {
+      accessSync(path, constants.F_OK);
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   public async fileExists(path: string): Promise<boolean> {

@@ -2,8 +2,8 @@
 import { ILogger, PLATFORM, IContainer } from '@aurelia/kernel';
 import { Char } from '@aurelia/jit';
 import { IFileSystem, IFile } from './interfaces';
-import { normalizePath, joinPath, isRelativeModulePath } from './path-utils';
-import { basename } from 'path';
+import { normalizePath, joinPath } from './path-utils';
+import { basename, dirname } from 'path';
 import { Package } from './package-types';
 
 function countSlashes(path: string): number {
@@ -141,6 +141,9 @@ export class NPMPackageLoader {
   private readonly pkgCache: Map<string, NPMPackage> = new Map();
   private readonly pkgPromiseCache: Map<string, Promise<NPMPackage>> = new Map();
 
+  private readonly pkgResolveCache: Map<string, string> = new Map();
+  private readonly pkgResolvePromiseCache: Map<string, Promise<string>> = new Map();
+
   public static get inject() { return [IContainer, ILogger, IFileSystem]; }
 
   public constructor(
@@ -159,8 +162,8 @@ export class NPMPackageLoader {
     this.logger.info(`load()`);
 
     projectDir = normalizePath(projectDir);
-    const nodeModulesDir = joinPath(projectDir, 'node_modules');
-    const entryPkg = await this.loadPackage(nodeModulesDir, projectDir, null);
+
+    const entryPkg = await this.loadPackageCore(projectDir, null);
     await entryPkg.loadDependencies();
 
     this.pkgPromiseCache.clear();
@@ -179,49 +182,45 @@ export class NPMPackageLoader {
     return entryPkg;
   }
 
-  public getCachedPackage(path: string): NPMPackage {
-    const pkg = this.pkgCache.get(path);
+  public getCachedPackage(refName: string): NPMPackage {
+    const pkg = this.pkgCache.get(refName);
     if (pkg === void 0) {
-      throw new Error(`Cannot resolve package ${path}`);
+      throw new Error(`Cannot resolve package ${refName}`);
     }
     return pkg;
   }
 
   /** @internal */
-  public async loadPackage(
-    nodeModulesDir: string,
-    dir: string,
-    issuer: NPMPackageDependency | null,
-  ): Promise<NPMPackage> {
-    const fs = this.fs;
+  public async loadPackage(issuer: NPMPackageDependency): Promise<NPMPackage> {
     const pkgPromiseCache = this.pkgPromiseCache;
 
-    const pkgPath = normalizePath(await fs.getRealPath(joinPath(dir, 'package.json')));
-    let pkgPromise = pkgPromiseCache.get(pkgPath);
+    let pkgPromise = pkgPromiseCache.get(issuer.refName);
     if (pkgPromise === void 0) {
-      pkgPromise = this.loadPackageCore(nodeModulesDir, pkgPath, issuer);
+      pkgPromise = this.loadPackageCore(null, issuer);
       // Multiple deps may request the same package to load before one of them finished
       // so we store the promise to ensure the action is only invoked once.
-      pkgPromiseCache.set(pkgPath, pkgPromise);
+      pkgPromiseCache.set(issuer.refName, pkgPromise);
     }
 
     return pkgPromise;
   }
 
-  private async loadPackageCore(
-    nodeModulesDir: string,
-    pkgPath: string,
-    issuer: NPMPackageDependency | null,
-  ): Promise<NPMPackage> {
-    this.logger.info(`loadPackageCore(\n  pkgPath: ${pkgPath},\n  issuer: ${issuer === null ? 'null' : issuer.issuer.pkgName}\n)`);
+  private async loadPackageCore(dir: null, issuer: NPMPackageDependency): Promise<NPMPackage>;
+  private async loadPackageCore(dir: string, issuer: null): Promise<NPMPackage>;
+  private async loadPackageCore(dir: string | null, issuer: NPMPackageDependency | null): Promise<NPMPackage> {
+    this.logger.info(`loadPackageCore(\n  dir: ${dir},\n  issuer: ${issuer === null ? 'null' : issuer.issuer.pkgName}\n)`);
 
     const fs = this.fs;
     const pkgCache = this.pkgCache;
 
-    let pkg = pkgCache.get(pkgPath);
+    const refName = dir === null ? issuer!.refName : dir!;
+    let pkg = pkgCache.get(refName);
     if (pkg === void 0) {
-      const pkgDir = pkgPath.slice(0, -'package.json'.length - 1);
-      const files = await fs.getFiles(pkgDir);
+      if (dir === null) {
+        dir = await this.resolvePackagePath(issuer!);
+      }
+      const pkgPath = joinPath(dir, 'package.json');
+      const files = await fs.getFiles(dir);
 
       const pkgJsonFile = files.find(x => x.path === pkgPath);
       if (pkgJsonFile === void 0) {
@@ -229,11 +228,65 @@ export class NPMPackageLoader {
       }
 
       const pkgJsonFileContent = await pkgJsonFile.getContent();
-      pkg = new NPMPackage(nodeModulesDir, this, files, issuer, pkgJsonFile, pkgDir, pkgJsonFileContent);
-      pkgCache.set(pkgPath, pkg);
+      pkg = new NPMPackage(this, files, issuer, pkgJsonFile, dir, pkgJsonFileContent);
+      pkgCache.set(refName, pkg);
     }
 
     return pkg;
+  }
+
+  private async resolvePackagePath(dep: NPMPackageDependency): Promise<string> {
+    const pkgResolvePromiseCache = this.pkgResolvePromiseCache;
+    const refName = dep.refName;
+
+    let resolvePromise = pkgResolvePromiseCache.get(refName);
+    if (resolvePromise === void 0) {
+      resolvePromise = this.resolvePackagePathCore(dep);
+
+      // Multiple deps may request the same refName to be resolved before one of them finished
+      // so we store the promise to ensure the action is only invoked once.
+      pkgResolvePromiseCache.set(refName, resolvePromise);
+    }
+
+    return resolvePromise;
+  }
+
+  private async resolvePackagePathCore(dep: NPMPackageDependency): Promise<string> {
+    const fs = this.fs;
+    const pkgResolveCache = this.pkgResolveCache;
+    const refName = dep.refName;
+
+    let resolvedPath = pkgResolveCache.get(refName);
+    if (resolvedPath === void 0) {
+      let dir = dep.issuer.dir;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        resolvedPath = joinPath(dir, 'node_modules', refName, 'package.json');
+        // eslint-disable-next-line no-await-in-loop
+        if (await fs.isReadable(resolvedPath)) {
+          break;
+        }
+
+        const parent = normalizePath(dirname(dir));
+        if (parent === dir) {
+          throw new Error(`Unable to resolve npm dependency "${refName}"`);
+        }
+
+        dir = parent;
+      }
+
+      const realPath = normalizePath(await fs.getRealPath(resolvedPath));
+      if (realPath === resolvedPath) {
+        this.logger.debug(`resolved "${refName}" directly to "${dirname(realPath)}"`);
+      } else {
+        this.logger.debug(`resolved "${refName}" to "${dirname(realPath)}" via symlink "${dirname(resolvedPath)}"`);
+
+      }
+      resolvedPath = normalizePath(dirname(realPath));
+      pkgResolveCache.set(refName, resolvedPath);
+    }
+
+    return resolvedPath;
   }
 }
 
@@ -248,12 +301,11 @@ export class NPMPackage {
   public readonly container: IContainer;
 
   public constructor(
-    public readonly nodeModulesDir: string,
     public readonly loader: NPMPackageLoader,
     public readonly files: readonly IFile[],
     public readonly issuer: NPMPackageDependency | null,
     public readonly pkgJsonFile: IFile,
-    dir: string,
+    public readonly dir: string,
     pkgJsonFileContent: string,
   ) {
     this.container = loader.container;
@@ -320,14 +372,10 @@ export class NPMPackageDependency {
   private _pkg: NPMPackage | undefined = void 0;
   private loadPromise: Promise<void> | undefined = void 0;
 
-  public readonly dir: string;
-
   public constructor(
     public readonly issuer: NPMPackage,
     public readonly refName: string,
-  ) {
-    this.dir = isRelativeModulePath(refName) ? refName : joinPath(issuer.nodeModulesDir, refName);
-  }
+  ) {}
 
   /** @internal */
   public async load(): Promise<void> {
@@ -343,7 +391,7 @@ export class NPMPackageDependency {
   }
 
   private async loadCore(): Promise<void> {
-    this._pkg = await this.issuer.loader.loadPackage(this.issuer.nodeModulesDir, this.dir, this);
+    this._pkg = await this.issuer.loader.loadPackage(this);
 
     this.loadPromise = void 0;
 

@@ -15,6 +15,7 @@ import {
   IFile,
 } from '@aurelia/aot';
 import { resolve } from 'path';
+import { $SourceFile } from '@aurelia/aot/dist/vm/ast';
 
 class TestMetadataNegative {
   public constructor(
@@ -77,7 +78,12 @@ class TestCase {
           return;
         case 'resolution': {
           const realm = Realm.Create(container);
-          const mod = await realm.loadFile(file);
+          let mod: $SourceFile;
+          try {
+            mod = await realm.loadFile(file);
+          } catch (err) {
+            throw new Error(`FAIL - Expected ${meta.negative.type} but got error at building AST: ${err.message} ${err.stack} - Resolution error test file: ${file.rootlessPath}`);
+          }
 
           let err: Error;
           try {
@@ -94,12 +100,22 @@ class TestCase {
             throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Resolution error test file: ${file.rootlessPath}`);
           }
 
-          logger.info('PASS - Resolution error test file: ${file.rootlessPath}');
+          logger.info(`PASS - Resolution error test file: ${file.rootlessPath}`);
         }
         case 'runtime': {
           const realm = Realm.Create(container);
-          const mod = await realm.loadFile(file);
-          mod.Instantiate();
+          let mod: $SourceFile;
+          try {
+            mod = await realm.loadFile(file);
+          } catch (err) {
+            throw new Error(`FAIL - Expected ${meta.negative.type} but got error at building AST: ${err.message} ${err.stack} - Runtime error test file: ${file.rootlessPath}`);
+          }
+
+          try {
+            mod.Instantiate();
+          } catch ($err) {
+            throw new Error(`FAIL - Expected ${meta.negative.type} at runtime, but got error at instantiate: ${$err.name} - Runtime error test file: ${file.rootlessPath}`);
+          }
 
           let err: Error;
           try {
@@ -121,9 +137,24 @@ class TestCase {
       }
     } else {
       const realm = Realm.Create(container);
-      const mod = await realm.loadFile(file);
-      mod.Instantiate();
-      mod.Evaluate();
+      let mod: $SourceFile;
+      try {
+        mod = await realm.loadFile(file);
+      } catch (err) {
+        throw new Error(`FAIL - Expected test case to run without error, but got error at building AST: ${err.message} ${err.stack} - Valid test file: ${file.rootlessPath}`);
+      }
+
+      try {
+        mod.Instantiate();
+      } catch (err) {
+        throw new Error(`FAIL - Expected test case to run without error, but got error at instantiate: ${err.message} ${err.stack} - Valid test file: ${file.rootlessPath}`);
+      }
+
+      try {
+        mod.Evaluate();
+      } catch (err) {
+        throw new Error(`FAIL - Expected test case to run without error, but got error at runtime: ${err.message} ${err.stack} - Valid test file: ${file.rootlessPath}`);
+      }
 
       logger.info(`PASS - Valid test file: ${file.rootlessPath}`);
     }

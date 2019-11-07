@@ -68,6 +68,12 @@ class TestCase {
     const file = this.file;
     const meta = this.meta;
 
+    if (file.path.includes('/dynamic-import/')) {
+      // Not yet implemented, see https://tc39.es/proposal-dynamic-import
+      logger.info(`SKIP - dynamic import test file: ${file.rootlessPath}`);
+      return;
+    }
+
     if (meta !== null && meta.negative !== null) {
       switch (meta.negative.phase) {
         case 'parse': // Parse errors should be caught by TypeScript

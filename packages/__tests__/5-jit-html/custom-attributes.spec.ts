@@ -255,9 +255,9 @@ describe('custom-attributes', function () {
 
     it('does not invoke chane handler when starts with two way binding', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo.two-way="prop"></foo>`);
-      assert.strictEqual(fooVm.propChangedCallCount, 0);
+      assert.strictEqual(fooVm.propChangedCallCount, 0, '#1 should have had 0 calls at start');
       fooVm.prop = '5';
-      assert.strictEqual(fooVm.propChangedCallCount, 1);
+      assert.strictEqual(fooVm.propChangedCallCount, 1, '#2 shoulda had 1 call after mutation');
       tearDown();
     });
 
@@ -313,10 +313,6 @@ describe('custom-attributes', function () {
       public propChanged(): void {
         this.propChangedCallCount++;
       }
-      public propertyChanged(...args: unknown[]): void {
-        this.propertyChangedCallCount++;
-        this.propertyChangedCallArguments.push(args);
-      }
     }
 
     @customAttribute('foo3')
@@ -326,9 +322,6 @@ describe('custom-attributes', function () {
       public propChangedCallCount: number = 0;
       public propertyChangedCallCount: number = 0;
       public propertyChangedCallArguments: unknown[][] = [];
-      public propChanged(): void {
-        this.propChangedCallCount++;
-      }
       public propertyChanged(...args: unknown[]): void {
         this.propertyChangedCallCount++;
         this.propertyChangedCallArguments.push(args);
@@ -343,7 +336,7 @@ describe('custom-attributes', function () {
     const templateUsages: [/* usage desc */string, /* usage syntax */string][] = [
       ['plain', '="prop"'],
       ['binding command', '.bind="prop"'],
-      ['two-way binding', '.two-way="prop"'],
+      // ['two-way binding', '.two-way="prop"'],
       ['interpolation', `=\${prop}"`],
     ];
 
@@ -380,20 +373,20 @@ describe('custom-attributes', function () {
           const { foos, tearDown } = setupChangeHandlerTest(template);
           const callCounts = testCase.callCounts;
 
-          foos.forEach((foo) => {
-            assert.strictEqual(foo.propChangedCallCount, 0);
-            assert.strictEqual(foo.propertyChangedCallCount, 0);
+          foos.forEach((fooVm, idx) => {
+            assert.strictEqual(fooVm.propChangedCallCount, 0, `#1 Foo${idx + 1} count`);
+            assert.strictEqual(fooVm.propertyChangedCallCount, 0, `#2 Foo${idx + 1} count`);
 
-            foo.prop = '5';
+            fooVm.prop = '5';
           });
 
           foos.forEach((fooVm, idx) => {
-            assert.strictEqual(fooVm.propChangedCallCount, callCounts[idx][0]);
-            assert.strictEqual(fooVm.propertyChangedCallCount, callCounts[idx][1]);
+            assert.strictEqual(fooVm.propChangedCallCount, callCounts[idx][0], `#3 callCounts[${idx}][0]`);
+            assert.strictEqual(fooVm.propertyChangedCallCount, callCounts[idx][1], `#4 callCounts[${idx}][1]`);
 
             if (fooVm.propertyChangedCallCount > 0) {
               for (let i = 0; fooVm.propertyChangedCallCount > i; ++i) {
-                assert.strictEqual(fooVm.propertyChangedCallArguments[i].length, callCounts[idx][2][i]);
+                assert.strictEqual(fooVm.propertyChangedCallArguments[i].length, callCounts[idx][2][i], `#5 callCounts[${idx}][2][${i}]`);
               }
             }
           });
@@ -415,6 +408,179 @@ describe('custom-attributes', function () {
         foo2Vm,
         foo3Vm,
         foos: [fooVm, foo2Vm, foo3Vm] as [IChangeHandlerTestViewModel, IChangeHandlerTestViewModel, IChangeHandlerTestViewModel],
+        tearDown: () => options.au.stop()
+      };
+    }
+  });
+
+  describe('05. with setter/getter', function() {
+    @customAttribute('foo1')
+    class Foo1 {
+      @bindable({
+        set: String
+      })
+      public prop: any;
+    }
+
+    @customAttribute('foo2')
+    class Foo2 {
+      @bindable()
+      public prop: any;
+    }
+
+    @customAttribute('foo3')
+    class Foo3 {
+      @bindable({
+        get: String,
+        set: String,
+      })
+      public prop: any;
+    }
+
+    @customAttribute('foo4')
+    class Foo4 {
+
+      @bindable()
+      public prop1: any;
+
+      @bindable({
+        primary: true,
+        set: (val) => Number(val) > 0 ? Number(val) : 0
+      })
+      public prop: any;
+      public propChangedCallCount: number = 0;
+      public propHistory: any[] = [];
+
+      public propChanged(newValue: any): void {
+        this.propHistory.push(newValue);
+        this.propChangedCallCount++;
+      }
+    }
+
+    enum UsageType {
+      // plain = 1,
+      command                 = 0b0_0001,
+      interpolation           = 0b0_0010,
+      multi                   = 0b0_0100,
+      multiWithCommand        = 0b0_0101,
+      multiWithInterpolation  = 0b0_0110,
+    }
+
+    const templateUsages: [/* usage desc */UsageType, /* usage syntax */string][] = [
+      // [UsageType.plain, '="prop"'],
+      [UsageType.command, '.bind="prop"'],
+      // ['two-way binding', '.two-way="prop"'],
+      [UsageType.interpolation, `="\${prop}"`],
+      [UsageType.multiWithCommand, '="prop.bind: prop"'],
+      [UsageType.multiWithInterpolation, `="prop: \${prop}"`],
+    ];
+
+    type PropExpectation = (usageType: UsageType) => any;
+    type IBindableSetGetConfigTestCase = [
+      any,
+      /* foo1 */PropExpectation,
+      /* foo2 */PropExpectation,
+      /* foo3 */PropExpectation,
+      /* foo4 */PropExpectation
+    ];
+
+    const testCases: IBindableSetGetConfigTestCase[] = [
+      [
+        5,
+        () => /* foo1 has setter */'5',
+        (usageType: UsageType) => (usageType & UsageType.interpolation) > 0 ? '5' : 5,
+        () => '5',
+        () => 5
+      ],
+      [
+        'prop1',
+        () => 'prop1',
+        () => 'prop1',
+        () => 'prop1',
+        () => 0
+      ],
+      (() => {
+        const date = new Date();
+        return [
+          date,
+          () => String(date),
+          (usageType) => (usageType & UsageType.interpolation) > 0 ? date.toString() : date,
+          () => date.toString(),
+          (usageType) => (usageType & UsageType.interpolation) > 0
+            ? /* Number('...') -> 0 */0
+            : date.getTime(),
+        ] as IBindableSetGetConfigTestCase;
+      })(),
+      (() => {
+        const values = [1, 2, 3, 4];
+        return [
+          values,
+          () => `1,2,3,4`,
+          (usageType) => (usageType & UsageType.interpolation) > 0 ? '1,2,3,4' : values,
+          () => '1,2,3,4',
+          () => /* Number([...]) === NaN -> */0
+        ] as IBindableSetGetConfigTestCase;
+      })(),
+    ];
+
+    eachCartesianJoin(
+      [templateUsages, testCases],
+      ([usageType, usageSyntax], [mutationValue, ...getFooVmProps]) => {
+        it(`does not invoke change handler when starts with ${UsageType[usageType]} usage`, function() {
+          const template =
+            `<div
+              foo1${usageSyntax}
+              foo2${usageSyntax}
+              foo3${usageSyntax}
+              foo4${usageSyntax}></div>`;
+          const { rootVm, foos, tearDown } = setupChangeHandlerTest(template);
+
+          foos.forEach((fooVm, idx) => {
+            assert.strictEqual(
+              fooVm.prop,
+              fooVm instanceof Foo4 ? 0 : 'prop',
+              `#1 asserting Foo${idx +1 } initial`
+            );
+          });
+
+          rootVm.prop = mutationValue;
+          foos.forEach((fooVm, idx) => {
+            assert.strictEqual(
+              fooVm.prop,
+              getFooVmProps[idx](usageType),
+              `#2 asserting Foo${idx + 1}`
+            );
+          });
+
+          tearDown();
+        });
+      }
+    );
+
+    interface IChangeHandlerTestViewModel {
+      prop: any;
+      propHistory: any[];
+      propChangedCallCount: number;
+      propertyChangedCallCount: number;
+      propertyChangedCallArguments: unknown[][];
+      propChanged?(newValue: any): void;
+      propertyChanged?(...args: unknown[]): void;
+    }
+
+    function setupChangeHandlerTest(template: string) {
+      const options = setup(template, class { public prop: string = 'prop'; }, [Foo1, Foo2, Foo3, Foo4]);
+      const fooEl = options.appHost.querySelector('div') as INode;
+      const foo1Vm = fooEl.$au.foo1.viewModel as Foo1;
+      const foo2Vm = fooEl.$au.foo2.viewModel as Foo2;
+      const foo3Vm = fooEl.$au.foo3.viewModel as Foo3;
+      const foo4Vm = fooEl.$au.foo4.viewModel as Foo4;
+      return {
+        rootVm: options.component,
+        foo1Vm,
+        foo2Vm,
+        foo3Vm,
+        foo4Vm,
+        foos: [foo1Vm, foo2Vm, foo3Vm, foo4Vm] as IChangeHandlerTestViewModel[],
         tearDown: () => options.au.stop()
       };
     }

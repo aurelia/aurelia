@@ -14,6 +14,7 @@ interface IMayHavePropertyChangedCallback {
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
+/* eslint-disable @typescript-eslint/unbound-method */
 @subscriberCollection()
 export class BindableObserver {
   public currentValue: unknown = void 0;
@@ -26,6 +27,8 @@ export class BindableObserver {
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];
   private readonly hasPropertyChangedCallback: boolean;
+  private readonly shouldInterceptGet: boolean;
+  private readonly shouldInterceptSet: boolean;
 
   public constructor(
     public readonly lifecycle: ILifecycle,
@@ -47,15 +50,26 @@ export class BindableObserver {
 
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
 
-    if (this.callback === void 0 && !hasPropertyChangedCallback) {
+    const shouldInterceptGet = this.shouldInterceptGet = getterInterceptor !== PLATFORM.noop;
+    const shouldInterceptSet = this.shouldInterceptSet = setterInterceptor !== PLATFORM.noop;
+    // when user declare @bindable({ set, get })
+    // it's expected to work from the start,
+    // regardless where the assignment comes from: either direct view model assignment or from binding during render
+    // so if either getter/setter config is present, alter the accessor straight await
+    const shouldCreateGetterSetter = shouldInterceptGet || shouldInterceptSet;
+
+    if (this.callback === void 0 && !hasPropertyChangedCallback && !shouldCreateGetterSetter) {
       this.observing = false;
     } else {
       this.observing = true;
-      this.currentValue = obj[propertyKey];
+
+      const currentValue = obj[propertyKey];
+      this.currentValue = shouldInterceptSet
+        ? currentValue
+        : setterInterceptor(currentValue);
       if (!isProxy) {
         this.createGetterSetter();
       }
@@ -68,10 +82,17 @@ export class BindableObserver {
   }
 
   public getValue(): unknown {
-    return this.currentValue;
+    const currentValue = this.currentValue;
+    return this.shouldInterceptGet
+      ? this.getterInterceptor(currentValue)
+      : currentValue;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    if (this.shouldInterceptSet) {
+      newValue = this.setterInterceptor(newValue);
+    }
+
     if (this.observing) {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
@@ -118,47 +139,14 @@ export class BindableObserver {
         {
           enumerable: true,
           configurable: true,
-          get: this.createGetter(),
-          set: this.createSetter(),
+          get: () => this.getValue(),
+          set: (value: unknown) => {
+            this.setValue(value, LifecycleFlags.none);
+          }
         }
       )
     ) {
       Reporter.write(1, this.propertyKey, this.obj);
     }
   }
-
-  private createGetter(): () => unknown {
-    const getter = this.getterInterceptor === PLATFORM.noop
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      ? this.plainGetter
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      : this.interceptedGetter;
-    return getter.bind(this);
-  }
-
-  private plainGetter(): unknown {
-    return this.currentValue;
-  }
-
-  private interceptedGetter(): unknown {
-    return this.getterInterceptor(this.currentValue);
-  }
-
-  private createSetter(): InterceptorFunc {
-    const setterFn = this.setterInterceptor === PLATFORM.noop
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      ? this.plainSetter
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      : this.interceptedSetter;
-    return setterFn.bind(this);
-  }
-
-  private plainSetter(value: unknown): void {
-    this.setValue(value, LifecycleFlags.none);
-  }
-
-  private interceptedSetter(value: unknown): void {
-    this.setValue(this.setterInterceptor(value), LifecycleFlags.none);
-  }
-
 }

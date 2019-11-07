@@ -62,16 +62,55 @@ function shouldTraverse(path: string) {
 }
 
 export class File implements IFile {
+  /**
+   * Similar to `shortName`, but includes the rest of the path including the root.
+   *
+   * Used for conventional matching, e.g. "try adding .js, .ts, /index.js", etc.
+   */
   public readonly shortPath: string;
   public readonly kind: FileKind;
 
   public constructor(
     private readonly fs: IFileSystem,
+    /**
+     * The full, absolute, real path to the file.
+     *
+     * @example
+     * 'd:/foo/bar.ts' // 'd:/foo/bar.ts' is the path
+     */
     public readonly path: string,
+    /**
+     * The full, absolute, real path to the folder containing the file.
+     *
+     * @example
+     * 'd:/foo/bar.ts' // 'd:/foo' is the path
+     */
     public readonly dir: string,
+    /**
+     * A loosely defined human-readable identifier for the file, usually with the common root directory removed for improved clarity in logs.
+     */
     public readonly rootlessPath: string,
+    /**
+     * The leaf file name, including the extension.
+     *
+     * @example
+     * './foo/bar.ts' // 'bar.ts' is the name
+     */
     public readonly name: string,
+    /**
+     * The leaf file name, excluding the extension.
+     *
+     * @example
+     * './foo/bar.ts' // 'bar' is the shortName
+     */
     public readonly shortName: string,
+    /**
+     * The file extension, including the period. For .d.ts files, the whole part ".d.ts" must be included.
+     *
+     * @example
+     * './foo/bar.ts' // '.ts' is the extension
+     * './foo/bar.d.ts' // '.d.ts' is the extension
+     */
     public readonly ext: string,
   ) {
     this.shortPath = `${dir}/${shortName}`;

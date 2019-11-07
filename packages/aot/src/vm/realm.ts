@@ -160,7 +160,7 @@ export class Realm {
 
     const logger = container.get(ILogger).root.scopeTo('Realm');
     const fs = container.get(IFileSystem);
-    logger.info('Creating new realm');
+    logger.debug('Creating new realm');
 
     // 1. Let realmRec be a new Realm Record.
     const realm = new Realm(container, logger, fs);
@@ -309,7 +309,7 @@ export class Realm {
     // 11. Create any implementation-defined global object properties on globalObj.
     // 12. Return NormalCompletion(empty).
 
-    logger.info('Finished initializing realm');
+    logger.debug('Finished initializing realm');
     return realm;
   }
 

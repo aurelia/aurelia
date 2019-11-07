@@ -6096,7 +6096,7 @@ export class $SourceFile implements I$Node, IModule {
     // 8. Return undefined.
 
     const end = PLATFORM.now();
-    this.logger.info(`[Instantiate] done in ${Math.round(end - start)}ms`);
+    this.logger.debug(`[Instantiate] done in ${Math.round(end - start)}ms`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation

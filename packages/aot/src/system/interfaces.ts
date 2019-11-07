@@ -39,8 +39,8 @@ export interface IFile {
   readonly shortName: string;
   readonly ext: string;
 
-  getContent(): Promise<string>;
-  getContentSync(): string;
+  getContent(force?: boolean): Promise<string>;
+  getContentSync(force?: boolean): string;
 }
 
 export interface IFileSystem {
@@ -67,8 +67,8 @@ export interface IFileSystem {
   lstat(path: string): Promise<IStats>;
   lstatSync(path: string): IStats;
 
-  readFile(path: string, encoding: Encoding): Promise<string>;
-  readFileSync(path: string, encoding: Encoding): string;
+  readFile(path: string, encoding: Encoding, cache?: boolean, force?: boolean): Promise<string>;
+  readFileSync(path: string, encoding: Encoding, cache?: boolean, force?: boolean): string;
 
   ensureDir(path: string): Promise<void>;
   ensureDirSync(path: string): void;
@@ -84,8 +84,8 @@ export interface IFileSystem {
   getChildren(path: string): Promise<readonly string[]>;
   getChildrenSync(path: string): readonly string[];
 
-  getFiles(packageDir: string): Promise<readonly IFile[]>;
-  getFilesSync(packageDir: string): readonly IFile[];
+  getFiles(dir: string, loadContent?: boolean): Promise<readonly IFile[]>;
+  getFilesSync(dir: string, loadContent?: boolean): readonly IFile[];
 }
 
 export interface IOptions {

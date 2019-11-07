@@ -120,18 +120,37 @@ export class File implements IFile {
     }
   }
 
-  public getContent(): Promise<string> {
-    return this.fs.readFile(this.path, Encoding.utf8);
+  public getContent(cache: boolean = false, force: boolean = false): Promise<string> {
+    return this.fs.readFile(this.path, Encoding.utf8, cache, force);
   }
 
-  public getContentSync(): string {
-    return this.fs.readFileSync(this.path, Encoding.utf8);
+  public getContentSync(cache: boolean = false, force: boolean = false): string {
+    return this.fs.readFileSync(this.path, Encoding.utf8, cache, force);
   }
 }
 
+const tick = {
+  current: void 0 as (undefined | Promise<void>),
+  wait() {
+    if (tick.current === void 0) {
+      tick.current = new Promise(function (resolve) {
+        setTimeout(function () {
+          tick.current = void 0;
+          resolve();
+        });
+      });
+    }
+    return tick.current;
+  }
+};
+
 export class NodeFileSystem implements IFileSystem {
-  private readonly childrenCache: Record<string, string[] | undefined> = Object.create(null);
-  private readonly realPathCache: Record<string, string | undefined> = Object.create(null);
+  private readonly childrenCache: Map<string, string[]> = new Map();
+  private readonly realPathCache: Map<string, string> = new Map();
+  private readonly contentCache: Map<string, string> = new Map();
+
+  private pendingReads = 0;
+  private maxConcurrentReads = 0;
 
   public constructor(
     @ILogger private readonly logger: ILogger,
@@ -254,16 +273,51 @@ export class NodeFileSystem implements IFileSystem {
     return lstatSync(path);
   }
 
-  public readFile(path: string, encoding: Encoding): Promise<string> {
-    this.logger.trace(`readFile(path: ${path}, encoding: ${encoding})`);
+  public async readFile(path: string, encoding: Encoding, cache: boolean = false, force: boolean = false): Promise<string> {
+    this.logger.trace(`readFile(path: ${path}, encoding: ${encoding}, cache: ${cache}, force: ${force})`);
 
-    return readFile(path, { encoding }) as Promise<string>;
+    const contentCache = this.contentCache;
+
+    let content = contentCache.get(path);
+    if (content === void 0 || force) {
+      try {
+        while (this.maxConcurrentReads > 0 && this.maxConcurrentReads < this.pendingReads) {
+          await tick.wait();
+        }
+        ++this.pendingReads;
+        content = await readFile(path, encoding) as string;
+        --this.pendingReads;
+      } catch (err) {
+        if (err.code === 'EMFILE') {
+          --this.pendingReads;
+          this.maxConcurrentReads = this.pendingReads;
+          await tick.wait();
+          return this.readFile(path, encoding, cache, force);
+        }
+        throw err;
+      }
+
+      if (cache) {
+        contentCache.set(path, content);
+      }
+    }
+
+    return content;
   }
 
-  public readFileSync(path: string, encoding: Encoding): string {
-    this.logger.trace(`readFileSync(path: ${path}, encoding: ${encoding})`);
+  public readFileSync(path: string, encoding: Encoding, cache: boolean = false, force: boolean = false): string {
+    this.logger.trace(`readFileSync(path: ${path}, encoding: ${encoding}, cache: ${cache}, force: ${force})`);
 
-    return readFileSync(path, encoding);
+    const contentCache = this.contentCache;
+    let content = contentCache.get(path);
+    if (content === void 0 || force) {
+      content = readFileSync(path, encoding);
+      if (cache) {
+        contentCache.set(path, content);
+      }
+    }
+
+    return content;
   }
 
   public async ensureDir(path: string): Promise<void> {
@@ -320,39 +374,53 @@ export class NodeFileSystem implements IFileSystem {
 
   public async getRealPath(path: string): Promise<string> {
     path = normalizePath(path);
-    let real = this.realPathCache[path];
+
+    const realPathCache = this.realPathCache;
+    let real = realPathCache.get(path);
     if (real === void 0) {
-      real = this.realPathCache[path] = normalizePath(await realpath(path));
+      real = normalizePath(await realpath(path));
+      realPathCache.set(path, real);
     }
+
     return real;
   }
 
   public getRealPathSync(path: string): string {
     path = normalizePath(path);
-    let real = this.realPathCache[path];
+
+    const realPathCache = this.realPathCache;
+    let real = realPathCache.get(path);
     if (real === void 0) {
-      real = this.realPathCache[path] = normalizePath(realpathSync(path));
+      real = normalizePath(realpathSync(path));
+      realPathCache.set(path, real);
     }
+
     return real;
   }
 
   public async getChildren(path: string): Promise<string[]> {
-    let children = this.childrenCache[path];
+    const childrenCache = this.childrenCache;
+    let children = childrenCache.get(path);
     if (children === void 0) {
-      children = this.childrenCache[path] = (await readdir(path)).filter(shouldTraverse);
+      children = (await readdir(path)).filter(shouldTraverse);
+      childrenCache.set(path, children);
     }
+
     return children;
   }
 
   public getChildrenSync(path: string): string[] {
-    let children = this.childrenCache[path];
+    const childrenCache = this.childrenCache;
+    let children = childrenCache.get(path);
     if (children === void 0) {
-      children = this.childrenCache[path] = readdirSync(path).filter(shouldTraverse);
+      children = readdirSync(path).filter(shouldTraverse);
+      childrenCache.set(path, children);
     }
+
     return children;
   }
 
-  public async getFiles(root: string): Promise<File[]> {
+  public async getFiles(root: string, loadContent: boolean = false): Promise<File[]> {
     const files: File[] = [];
     const seen: Record<string, true | undefined> = {};
 
@@ -370,7 +438,11 @@ export class NodeFileSystem implements IFileSystem {
           if (ext !== void 0) {
             const rootlessPath = path.slice(dirname(root).length);
             const shortName = name.slice(0, -ext.length);
-            files.push(new File(this, path, dir, rootlessPath, name, shortName, ext));
+            const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
+            if (loadContent) {
+              await this.readFile(path, Encoding.utf8, true);
+            }
+            files.push(file);
           }
         } else if (stats.isDirectory()) {
           await Promise.all((await this.getChildren(path)).map(x => walk(path, x)));
@@ -383,7 +455,7 @@ export class NodeFileSystem implements IFileSystem {
     return files.sort(compareFilePath);
   }
 
-  public getFilesSync(root: string): File[] {
+  public getFilesSync(root: string, loadContent: boolean = false): File[] {
     const files: File[] = [];
     const seen: Record<string, true | undefined> = {};
 
@@ -401,7 +473,11 @@ export class NodeFileSystem implements IFileSystem {
           if (ext !== void 0) {
             const rootlessPath = path.slice(dirname(root).length);
             const shortName = name.slice(0, -ext.length);
-            files.push(new File(this, path, dir, rootlessPath, name, shortName, ext));
+            const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
+            if (loadContent) {
+              this.readFileSync(path, Encoding.utf8, true);
+            }
+            files.push(file);
           }
         } else if (stats.isDirectory()) {
           this.getChildrenSync(path).forEach(x => { walk(path, x); });

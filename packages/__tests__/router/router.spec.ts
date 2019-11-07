@@ -1227,16 +1227,16 @@ describe('Router', function () {
     });
 
     const tests = [
-      { path: 'parent(a)@default', result: '!parent:a!', url: 'parent(a)' },
-      { path: 'b@default', result: '!parent:b!', url: 'b' },
-      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'parent(c)/child(d)' },
-      { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'e/f' },
-      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'parent(g)/child(h)/grandchild(i)' },
-      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'j/k/l' },
+      { path: 'parent(a)@default', result: '!parent:a!', url: 'id=a' },
+      { path: 'b@default', result: '!parent:b!', url: 'id=b' },
+      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'id=c/id=d' },
+      { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'id=e/id=f' },
+      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'id=g/id=h/id=i' },
+      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'id=j/id=k/id=l' },
     ];
 
     for (const test of tests) {
-      it(`to load route ${test.path}`, async function () {
+      it(`to load route ${test.path} => ${test.url}`, async function () {
         await $goto(test.path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
@@ -1244,10 +1244,11 @@ describe('Router', function () {
     }
     for (const test of tests) {
       let path = test.path.replace(/@\w+/g, '');
-      it(`to load route ${path}`, async function () {
+      let url = test.url.replace(/@\w+/g, '');
+      it(`to load route ${path} => ${url}`, async function () {
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
-        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
       });
     }
 

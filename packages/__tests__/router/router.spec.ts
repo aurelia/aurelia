@@ -14,7 +14,31 @@ describe('Router', function () {
     return router;
   }
 
-  async function setup(config?, App?) {
+  function spyNavigationStates(router, spy) {
+    let _pushState;
+    let _replaceState;
+    if (spy) {
+      _pushState = router.navigation.location.pushState;
+      router.navigation.location.pushState = function (data, title, path) {
+        spy('push', data, title, path);
+        _pushState.call(router.navigation.location, data, title, path);
+      }
+      _replaceState = router.navigation.location.replaceState;
+      router.navigation.location.replaceState = function (data, title, path) {
+        spy('replace', data, title, path);
+        _replaceState.call(router.navigation.location, data, title, path);
+      }
+    }
+    return { _pushState, _replaceState };
+  }
+  function unspyNavigationStates(router, _push, _replace) {
+    if (_push) {
+      router.navigation.location.pushState = _push;
+      router.navigation.location.replaceState = _replace;
+    }
+  }
+
+  async function setup(config?, App?, stateSpy?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler } = ctx;
 
@@ -104,12 +128,14 @@ describe('Router', function () {
       .app({ host: host, component: App });
 
     const router = getModifiedRouter(container);
+    const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
     await au.start().wait();
 
     async function tearDown() {
+      unspyNavigationStates(router, _pushState, _replaceState);
       router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
@@ -640,11 +666,11 @@ describe('Router', function () {
 
     await $goto('plugh(456)@left', router, scheduler);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     await $goto('plugh(456)@left', router, scheduler);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     await tearDown();
   });
@@ -723,8 +749,8 @@ describe('Router', function () {
 
   if (PLATFORM.isBrowserLike) {
     // TODO: figure out why this works in nodejs locally but not in CI and fix it
-    it('keeps input when stateful', async function () {
-      this.timeout(5000);
+    it.skip('keeps input when stateful', async function () {
+      this.timeout(15000);
 
       const { scheduler, host, router, tearDown } = await setup();
 
@@ -742,6 +768,9 @@ describe('Router', function () {
 
       (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
+      await scheduler.yieldAll();
+
+      // NOT going to work since it loads non-stateful parent grault
       await $goto('grault@left/corge@grault', router, scheduler);
 
       assert.notIncludes(host.textContent, 'garply', `host.textContent`);
@@ -883,7 +912,7 @@ describe('Router', function () {
   describe('local deps', function () {
     this.timeout(5000);
 
-    async function $setup(dependencies: any[] = []) {
+    async function $setup(dependencies: any[] = [], stateSpy?) {
       const ctx = TestContext.createHTMLTestContext();
 
       const { container, scheduler } = ctx;
@@ -1131,10 +1160,100 @@ describe('Router', function () {
     });
   });
 
+  describe('can define fallback component', function () {
+    this.timeout(30000);
+
+    async function $setup(App, config?, stateSpy?) {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const { container, scheduler } = ctx;
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
+
+      const au = new Aurelia(container)
+        .register(
+          DebugConfiguration,
+          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          App)
+        .app({ host: host, component: App });
+
+      const router = getModifiedRouter(container);
+      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+      await au.start().wait();
+
+      async function $teardown() {
+        unspyNavigationStates(router, _pushState, _replaceState);
+        router.deactivate();
+        await au.stop().wait();
+        ctx.doc.body.removeChild(host);
+      }
+
+      return { ctx, container, scheduler, host, au, router, $teardown };
+    }
+
+    const names = ['parent', 'child', 'grandchild'];
+    const dependencies = [];
+    for (let i = 0, ii = names.length; i < ii; i++) {
+      const name = names[i];
+      const fallback = i < ii - 1 ? names[i + 1] : null;
+      const viewport = fallback ? `<au-viewport name="${name}"${fallback ? ` fallback="${fallback}"` : ''}></au-viewport>` : '';
+      const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
+      dependencies.push(CustomElement.define({ name, template }, class {
+        public static parameters = ['id'];
+        public param: string;
+        public enter(params) {
+          if (params.id !== void 0) {
+            this.param = params.id;
+          }
+        }
+      }));
+    }
+
+    const App = CustomElement.define({
+      name: 'app',
+      template: '<au-viewport fallback="parent"></au-viewport>',
+      dependencies
+    });
+
+    let scheduler, container, host, router, $teardown;
+    before(async function () {
+      ({ scheduler, container, host, router, $teardown } = await $setup(App));
+    });
+
+    const tests = [
+      { path: 'parent(a)@default', result: '!parent:a!' },
+      { path: 'b@default', result: '!parent:b!' },
+      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!' },
+      { path: 'e@default/f@parent', result: '!parent:e!!child:f!' },
+      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!' },
+      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!' },
+    ];
+
+    for (const test of tests) {
+      it(`to load route ${test.path}`, async function () {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+      });
+    }
+    for (const test of tests) {
+      let path = test.path.replace(/@\w+/g, '');
+      it(`to load route ${path}`, async function () {
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+      });
+    }
+
+    after(async function () {
+      await $teardown();
+    });
+  });
+
   describe('can use configuration', function () {
     this.timeout(30000);
 
-    async function $setup(config?, dependencies: any[] = [], routes = []) {
+    async function $setup(config?, dependencies: any[] = [], routes = [], stateSpy?) {
       const ctx = TestContext.createHTMLTestContext();
 
       const { container, scheduler } = ctx;
@@ -1158,10 +1277,12 @@ describe('Router', function () {
         .app({ host: host, component: App });
 
       const router = getModifiedRouter(container);
+      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
       await au.start().wait();
 
       async function $teardown() {
+        unspyNavigationStates(router, _pushState, _replaceState);
         router.deactivate();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
@@ -1219,6 +1340,7 @@ describe('Router', function () {
     const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
 
     let scheduler, container, host, router, $teardown, App;
+    let locationPath;
     before(async function () {
       ({ scheduler, container, host, router, $teardown, App } = await $setup(void 0,
         [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
@@ -1230,44 +1352,48 @@ describe('Router', function () {
           { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
           // { path: 'parent-config/child2(abc)', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
           // { path: 'parent-config/child2(abc)@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
-        ]
+        ],
+        (type, data, title, path) => {
+          // console.log(type, data, title, path);
+          locationPath = path;
+        }
       ));
     });
 
     const tests = [
-      { path: '/parent-config', result: '!parent!' },
-      { path: '/parent2@default', result: '!parent2!' },
+      { path: '/parent-config', result: '!parent!', url: 'parent-config' },
+      { path: '/parent2@default', result: '!parent2!', url: 'parent2' },
 
-      { path: '/parent-config/child-config', result: '!parent!!child!' },
-      { path: '/parent2@default/child2@parent2', result: '!parent2!!child2!' },
+      { path: '/parent-config/child-config', result: '!parent!!child!', url: 'parent-config/child-config' },
+      { path: '/parent2@default/child2@parent2', result: '!parent2!!child2!', url: 'parent2/child2' },
 
-      { path: '/parent-config/child2@parent', result: '!parent!!child2!' },
-      { path: '/parent2@default/child-config', result: '!parent2!!child!' },
+      { path: '/parent-config/child2@parent', result: '!parent!!child2!', url: 'parent-config/child2@parent' }, // Specific config
+      { path: '/parent2@default/child-config', result: '!parent2!!child!', url: 'parent2/child-config' },
 
-      { path: '/parent-config/child-config/grandchild-config', result: '!parent!!child!!grandchild!' },
-      { path: '/parent2@default/child2@parent2/grandchild2@child2', result: '!parent2!!child2!!grandchild2!' },
+      { path: '/parent-config/child-config/grandchild-config', result: '!parent!!child!!grandchild!', url: 'parent-config/child-config/grandchild-config' },
+      { path: '/parent2@default/child2@parent2/grandchild2@child2', result: '!parent2!!child2!!grandchild2!', url: 'parent2/child2/grandchild2' },
 
-      { path: '/parent-config/child-config/grandchild2@child', result: '!parent!!child!!grandchild2!' },
-      { path: '/parent2@default/child2@parent2/grandchild-config', result: '!parent2!!child2!!grandchild!' },
+      { path: '/parent-config/child-config/grandchild2@child', result: '!parent!!child!!grandchild2!', url: 'parent-config/child-config/grandchild2' },
+      { path: '/parent2@default/child2@parent2/grandchild-config', result: '!parent2!!child2!!grandchild!', url: 'parent2/child2/grandchild-config' },
 
-      { path: '/parent-config/child2@parent/grandchild-config', result: '!parent!!child2!!grandchild!' },
-      { path: '/parent2@default/child-config/grandchild2@child', result: '!parent2!!child!!grandchild2!' },
+      { path: '/parent-config/child2@parent/grandchild-config', result: '!parent!!child2!!grandchild!', url: 'parent-config/child2@parent/grandchild-config' }, // Specific config
+      { path: '/parent2@default/child-config/grandchild2@child', result: '!parent2!!child!!grandchild2!', url: 'parent2/child-config/grandchild2' },
 
-      { path: '/parent-config/child2@parent/grandchild2@child2', result: '!parent!!child2!!grandchild2!' },
-      { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!' },
+      { path: '/parent-config/child2@parent/grandchild2@child2', result: '!parent!!child2!!grandchild2!', url: 'parent-config/child2@parent/grandchild2' }, // Specific config
+      { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!', url: 'parent2/child-config/grandchild-config' },
 
 
-      { path: '/parent-config/abc', result: '!parent!!child:abc!' },
-      { path: '/parent2@default/child2(abc)@parent2', result: '!parent2!!child2:abc!' },
+      { path: '/parent-config/abc', result: '!parent!!child:abc!', url: 'parent-config/abc' },
+      { path: '/parent2@default/child2(abc)@parent2', result: '!parent2!!child2:abc!', url: 'parent2/child2(abc)' },
 
       // { path: '/parent-config/child2(abc)@parent', result: '!parent!!child2:abc!' },
       // { path: '/parent2@default/abc', result: '!parent2!!child:abc!' },
 
-      { path: '/parent-config/abc/grandchild-config', result: '!parent!!child:abc!!grandchild!' },
-      { path: '/parent2@default/child2(abc)@parent2/grandchild2@child2', result: '!parent2!!child2:abc!!grandchild2!' },
+      { path: '/parent-config/abc/grandchild-config', result: '!parent!!child:abc!!grandchild!', url: 'parent-config/abc/grandchild-config' },
+      { path: '/parent2@default/child2(abc)@parent2/grandchild2@child2', result: '!parent2!!child2:abc!!grandchild2!', url: 'parent2/child2(abc)/grandchild2' },
 
-      { path: '/parent-config/abc/grandchild2@child', result: '!parent!!child:abc!!grandchild2!' },
-      { path: '/parent2@default/child2(abc)@parent2/grandchild-config', result: '!parent2!!child2:abc!!grandchild!' },
+      { path: '/parent-config/abc/grandchild2@child', result: '!parent!!child:abc!!grandchild2!', url: 'parent-config/abc/grandchild2' },
+      { path: '/parent2@default/child2(abc)@parent2/grandchild-config', result: '!parent2!!child2:abc!!grandchild!', url: 'parent2/child2(abc)/grandchild-config' },
 
       // { path: '/parent-config/child2(abc)@parent/grandchild-config', result: '!parent!!child2:abc!!grandchild!' },
       // { path: '/parent2@default/abc/grandchild2@child', result: '!parent2!!child:abc!!grandchild2!' },
@@ -1277,9 +1403,12 @@ describe('Router', function () {
     ];
 
     for (const test of tests) {
-      it(`to load route ${test.path}`, async function () {
+      it(`to load route ${test.path} => ${test.url}`, async function () {
         await $goto(test.path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        // if (test.url) {
+          assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+        // }
       });
     }
     for (const test of tests) {

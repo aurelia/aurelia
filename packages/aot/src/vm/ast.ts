@@ -1089,6 +1089,7 @@ export class $VariableStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VariableStatement'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1146,6 +1147,7 @@ export class $VariableStatement implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
 
     // LexicalDeclaration : LetOrConst BindingList ;
@@ -1348,6 +1350,7 @@ export class $FunctionDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('FunctionDeclaration'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1624,6 +1627,7 @@ export class $ClassDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ClassDeclaration'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1767,6 +1771,7 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('InterfaceDeclaration'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1833,6 +1838,7 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TypeAliasDeclaration'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1916,6 +1922,7 @@ export class $EnumDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('EnumDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -1988,6 +1995,7 @@ export class $VariableDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VariableDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2065,6 +2073,7 @@ export class $VariableDeclarationList implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VariableDeclarationList'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2110,6 +2119,7 @@ export class $EnumMember implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('EnumMember'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2154,6 +2164,7 @@ export class $HeritageClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('HeritageClause'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2174,6 +2185,7 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExpressionWithTypeArguments'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2196,6 +2208,7 @@ export class $Decorator implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('Decorator'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2227,12 +2240,14 @@ export class $ThisExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ThisExpression'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
@@ -2251,12 +2266,14 @@ export class $SuperExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SuperExpression'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // SuperProperty : super [ Expression ]
 
     // 1. Let env be GetThisEnvironment().
@@ -2358,6 +2375,7 @@ export class $ArrayLiteralExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ArrayLiteralExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2470,6 +2488,7 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ObjectLiteralExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2526,6 +2545,7 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('PropertyAccessExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2537,6 +2557,7 @@ export class $PropertyAccessExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -2564,6 +2585,7 @@ export class $ElementAccessExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ElementAccessExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2575,6 +2597,7 @@ export class $ElementAccessExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // MemberExpression : MemberExpression [ Expression ]
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -2604,6 +2627,7 @@ export class $CallExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CallExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2615,6 +2639,7 @@ export class $CallExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // CallExpression : CoverCallExpressionAndAsyncArrowHead
 
     // 1. Let expr be CoveredCallExpression of CoverCallExpressionAndAsyncArrowHead.
@@ -2661,6 +2686,7 @@ export class $NewExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NewExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2672,6 +2698,7 @@ export class $NewExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // NewExpression : new NewExpression
 
     // 1. Return ? EvaluateNew(NewExpression, empty).
@@ -2703,6 +2730,7 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TaggedTemplateExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2719,6 +2747,7 @@ export class $TaggedTemplateExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // MemberExpression : MemberExpression TemplateLiteral
 
     // 1. Let tagRef be the result of evaluating MemberExpression.
@@ -2786,6 +2815,7 @@ export class $FunctionExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('FunctionExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -2823,6 +2853,7 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
 
@@ -2980,6 +3011,7 @@ export class $TemplateExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TemplateExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3050,6 +3082,7 @@ export class $ParenthesizedExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ParenthesizedExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3107,6 +3140,7 @@ export class $ClassExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ClassExpression'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -3158,6 +3192,7 @@ export class $ClassExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ClassExpression : class BindingIdentifier opt ClassTail
 
     // 1. If BindingIdentifieropt is not present, let className be undefined.
@@ -3184,6 +3219,7 @@ export class $NonNullExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NonNullExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3211,6 +3247,7 @@ export class $MetaProperty implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('MetaProperty'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3221,6 +3258,7 @@ export class $MetaProperty implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // NewTarget : new . target
 
     // 1. Return GetNewTarget().
@@ -3246,6 +3284,7 @@ export class $DeleteExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DeleteExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3256,6 +3295,7 @@ export class $DeleteExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // 1. Let ref be the result of evaluating UnaryExpression.
     // 2. ReturnIfAbrupt(ref).
     // 3. If Type(ref) is not Reference, return true.
@@ -3289,6 +3329,7 @@ export class $TypeOfExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TypeOfExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3299,6 +3340,7 @@ export class $TypeOfExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // UnaryExpression : typeof UnaryExpression
 
     // 1. Let val be the result of evaluating UnaryExpression.
@@ -3324,6 +3366,7 @@ export class $VoidExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VoidExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3334,6 +3377,7 @@ export class $VoidExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // UnaryExpression : void UnaryExpression
 
     // 1. Let expr be the result of evaluating UnaryExpression.
@@ -3357,6 +3401,7 @@ export class $AwaitExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('AwaitExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3367,6 +3412,7 @@ export class $AwaitExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // AwaitExpression : await UnaryExpression
 
     // 1. Let exprRef be the result of evaluating UnaryExpression.
@@ -3390,6 +3436,7 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('PrefixUnaryExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3403,6 +3450,7 @@ export class $PrefixUnaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
     // UpdateExpression : ++ UnaryExpression
@@ -3459,6 +3507,7 @@ export class $PostfixUnaryExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('PostfixUnaryExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3470,6 +3519,7 @@ export class $PostfixUnaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
     // UpdateExpression : LeftHandSideExpression ++
@@ -3508,6 +3558,7 @@ export class $TypeAssertion implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TypeAssertion'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3540,6 +3591,7 @@ export class $BinaryExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('BinaryExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -3561,6 +3613,7 @@ export class $BinaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -4222,6 +4275,7 @@ export class $ConditionalExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ConditionalExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4239,6 +4293,7 @@ export class $ConditionalExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
 
     // 1. Let lref be the result of evaluating LogicalORExpression.
@@ -4303,6 +4358,7 @@ export class $ArrowFunction implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ArrowFunction'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4353,6 +4409,7 @@ export class $ArrowFunction implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ArrowFunction : ArrowParameters => ConciseBody
 
     // 1. If the function code for this ArrowFunction is strict mode code, let strict be true. Otherwise let strict be false.
@@ -4379,6 +4436,7 @@ export class $YieldExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('YieldExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4388,6 +4446,7 @@ export class $YieldExpression implements I$Node {
   }
 // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // YieldExpression : yield
 
     // 1. Let generatorKind be ! GetGeneratorKind().
@@ -4472,6 +4531,7 @@ export class $AsExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('AsExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4501,12 +4561,14 @@ export class $TemplateHead implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TemplateHead'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4523,12 +4585,14 @@ export class $TemplateMiddle implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TemplateMiddle'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4545,12 +4609,14 @@ export class $TemplateTail implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TemplateTail'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     // TemplateSpans : TemplateTail
 
@@ -4575,6 +4641,7 @@ export class $TemplateSpan implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TemplateSpan'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4588,6 +4655,7 @@ export class $TemplateSpan implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // TemplateSpans : TemplateMiddleList TemplateTail
 
     // 1. Let head be the result of evaluating TemplateMiddleList.
@@ -4659,6 +4727,7 @@ export class $Identifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('Identifier'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4752,6 +4821,7 @@ export class $JsxElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxElement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4763,6 +4833,7 @@ export class $JsxElement implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4815,6 +4886,7 @@ export class $JsxSelfClosingElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxSelfClosingElement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4825,6 +4897,7 @@ export class $JsxSelfClosingElement implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4845,6 +4918,7 @@ export class $JsxFragment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxFragment'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4856,6 +4930,7 @@ export class $JsxFragment implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4872,11 +4947,13 @@ export class $JsxText implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxText'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4896,6 +4973,7 @@ export class $JsxOpeningElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxOpeningElement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4904,6 +4982,7 @@ export class $JsxOpeningElement implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4922,6 +5001,7 @@ export class $JsxClosingElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxClosingElement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -4929,6 +5009,7 @@ export class $JsxClosingElement implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4945,11 +5026,13 @@ export class $JsxOpeningFragment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxOpeningFragment'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4966,11 +5049,13 @@ export class $JsxClosingFragment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxClosingFragment'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -4990,6 +5075,7 @@ export class $JsxAttribute implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxAttribute'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5024,6 +5110,7 @@ export class $JsxAttributes implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxAttributes'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5035,6 +5122,7 @@ export class $JsxAttributes implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -5053,6 +5141,7 @@ export class $JsxSpreadAttribute implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxSpreadAttribute'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5060,6 +5149,7 @@ export class $JsxSpreadAttribute implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -5078,6 +5168,7 @@ export class $JsxExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('JsxExpression'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5085,6 +5176,7 @@ export class $JsxExpression implements I$Node {
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -5117,6 +5209,7 @@ export class $NumericLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NumericLiteral'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5154,11 +5247,13 @@ export class $BigIntLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('BigIntLiteral'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -5193,6 +5288,7 @@ export class $StringLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('StringLiteral'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5235,6 +5331,7 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('RegularExpressionLiteral'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5274,6 +5371,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NoSubstitutionTemplateLiteral'),
   ) {
     this.id = realm.registerNode(this);
   }
@@ -5311,6 +5409,7 @@ export class $NullLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NullLiteral'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5350,6 +5449,7 @@ export class $BooleanLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('BooleanLiteral'),
   ) {
     this.id = realm.registerNode(this);
     this.$kind = node.kind;
@@ -5387,6 +5487,7 @@ export class $PropertyDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('PropertyDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5425,6 +5526,7 @@ export class $MethodDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('MethodDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5466,6 +5568,7 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('GetAccessorDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5506,6 +5609,7 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SetAccessorDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -5537,6 +5641,7 @@ export class $SemicolonClassElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SemicolonClassElement'),
   ) {
     this.id = realm.registerNode(this);
   }
@@ -5559,6 +5664,7 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ConstructorDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -6391,6 +6497,12 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
+    const realm = this.realm;
+    const stack = realm.stack;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const $statements = this.$statements;
+
     // Module : [empty]
 
     // 1. Return NormalCompletion(undefined).
@@ -6405,13 +6517,114 @@ export class $SourceFile implements I$Node, IModule {
     // ModuleItemList : ModuleItemList ModuleItem
 
     // 1. Let sl be the result of evaluating ModuleItemList.
-    // 2. ReturnIfAbrupt(sl).
+    // 2. ReturnIfAbrufpt(sl).
     // 3. Let s be the result of evaluating ModuleItem.
     // 4. Return Completion(UpdateEmpty(s, sl)).
 
     // ModuleItem : ImportDeclaration
 
     // 1. Return NormalCompletion(empty).
+
+    let $statement: $$TSModuleItem;
+    let sl: $Any;
+    for (let i = 0, ii = $statements.length; i < ii; ++i) {
+      $statement = $statements[i];
+
+      switch ($statement.$kind) {
+        case SyntaxKind.ModuleDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.NamespaceExportDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ImportEqualsDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ImportDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ExportAssignment:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ExportDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.VariableStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.FunctionDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ClassDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.InterfaceDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.TypeAliasDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.EnumDeclaration:
+          // sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.Block:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.EmptyStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ExpressionStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.IfStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.DoStatement:
+          sl = $statement.EvaluateLabelled();
+          break;
+        case SyntaxKind.WhileStatement:
+          sl = $statement.EvaluateLabelled();
+          break;
+        case SyntaxKind.ForStatement:
+          sl = $statement.EvaluateLabelled();
+          break;
+        case SyntaxKind.ForInStatement:
+          sl = $statement.EvaluateLabelled();
+          break;
+        case SyntaxKind.ForOfStatement:
+          sl = $statement.EvaluateLabelled();
+          break;
+        case SyntaxKind.ContinueStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.BreakStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.ReturnStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.WithStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.SwitchStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.LabeledStatement:
+          sl = $statement.EvaluateLabelled();
+          break;
+        case SyntaxKind.ThrowStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.TryStatement:
+          sl = $statement.Evaluate();
+          break;
+        case SyntaxKind.DebuggerStatement:
+          sl = $statement.Evaluate();
+          break;
+        default:
+          throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
+      }
+    }
 
     return null as any; // TODO: implement this
   }
@@ -6495,6 +6708,7 @@ export class $ModuleDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ModuleDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -6571,6 +6785,7 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ImportEqualsDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -6622,6 +6837,7 @@ export class $ImportDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ImportDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -6674,6 +6890,7 @@ export class $ImportClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ImportClause'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -6736,6 +6953,7 @@ export class $NamedImports implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NamedImports'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -6767,6 +6985,7 @@ export class $ImportSpecifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ImportSpecifier'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -6825,6 +7044,7 @@ export class $NamespaceImport implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NamespaceImport'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -6887,6 +7107,7 @@ export class $ExportAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExportAssignment'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -6935,6 +7156,7 @@ export class $ExportDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExportDeclaration'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -6998,6 +7220,7 @@ export class $NamedExports implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NamedExports'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7032,6 +7255,7 @@ export class $ExportSpecifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExportSpecifier'),
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -7120,6 +7344,7 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('NamespaceExportDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7143,6 +7368,7 @@ export class $ModuleBlock implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ModuleBlock'),
   ) {
     this.id = realm.registerNode(this);
   }
@@ -7161,6 +7387,7 @@ export class $ExternalModuleReference implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExternalModuleReference'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7192,6 +7419,7 @@ export class $QualifiedName implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('QualifiedName'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7233,6 +7461,7 @@ export class $ComputedPropertyName implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ComputedPropertyName'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7272,6 +7501,7 @@ export class $ParameterDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ParameterDeclaration'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7325,6 +7555,7 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ObjectBindingPattern'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7403,6 +7634,7 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ArrayBindingPattern'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7455,6 +7687,7 @@ export class $BindingElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('BindingElement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7521,6 +7754,7 @@ export class $SpreadElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SpreadElement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7547,6 +7781,7 @@ export class $PropertyAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('PropertyAssignment'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7578,6 +7813,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ShorthandPropertyAssignment'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7606,6 +7842,7 @@ export class $SpreadAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SpreadAssignment'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7633,6 +7870,7 @@ export class $OmittedExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('OmittedExpression'),
   ) {
     this.id = realm.registerNode(this);
   }
@@ -7665,6 +7903,7 @@ export class $Block implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('Block'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7721,6 +7960,8 @@ export class $Block implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
+
     // Block : { }
 
     // 1. Return NormalCompletion(empty).
@@ -7760,12 +8001,14 @@ export class $EmptyStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('EmptyStatement'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
@@ -7798,6 +8041,7 @@ export class $ExpressionStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExpressionStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7806,6 +8050,7 @@ export class $ExpressionStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ExpressionStatement : Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -7833,6 +8078,7 @@ export class $IfStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('IfStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7855,6 +8101,7 @@ export class $IfStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // IfStatement : if ( Expression ) Statement else Statement
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -7896,6 +8143,7 @@ export class $DoStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DoStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7907,6 +8155,7 @@ export class $DoStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
   public EvaluateLabelled(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // IterationStatement : do Statement while ( Expression ) ;
 
     // 1. Let V be undefined.
@@ -7939,6 +8188,7 @@ export class $WhileStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('WhileStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -7950,6 +8200,7 @@ export class $WhileStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
   public EvaluateLabelled(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // IterationStatement : while ( Expression ) Statement
 
     // 1. Let V be undefined.
@@ -7989,6 +8240,7 @@ export class $ForStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ForStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8021,6 +8273,7 @@ export class $ForStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
   public EvaluateLabelled(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
 
     // 1. If the first Expression is present, then
@@ -8079,6 +8332,7 @@ export class $ForInStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ForInStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8107,6 +8361,7 @@ export class $ForInStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
   public EvaluateLabelled(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
@@ -8157,6 +8412,7 @@ export class $ForInStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ForBinding : BindingIdentifier
 
     // 1. Let bindingId be StringValue of BindingIdentifier.
@@ -8185,6 +8441,7 @@ export class $ForOfStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ForOfStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8213,6 +8470,7 @@ export class $ForOfStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
   public EvaluateLabelled(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
@@ -8263,6 +8521,7 @@ export class $ForOfStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
   }
@@ -8284,6 +8543,7 @@ export class $ContinueStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ContinueStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8292,6 +8552,7 @@ export class $ContinueStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ContinueStatement : continue ;
 
     // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
@@ -8321,6 +8582,7 @@ export class $BreakStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('BreakStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8329,6 +8591,7 @@ export class $BreakStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // BreakStatement : break ;
 
     // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
@@ -8358,6 +8621,7 @@ export class $ReturnStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ReturnStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8370,6 +8634,7 @@ export class $ReturnStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-return-statement
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ReturnStatement : return ;
 
     // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
@@ -8402,6 +8667,7 @@ export class $WithStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('WithStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8413,6 +8679,7 @@ export class $WithStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // WithStatement : with ( Expression ) Statement
 
     // 1. Let val be the result of evaluating Expression.
@@ -8446,6 +8713,7 @@ export class $SwitchStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SwitchStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8457,6 +8725,7 @@ export class $SwitchStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // SwitchStatement : switch ( Expression ) CaseBlock
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -8515,6 +8784,7 @@ export class $LabeledStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('LabeledStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8538,6 +8808,7 @@ export class $LabeledStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
   public EvaluateLabelled(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let label be the StringValue of LabelIdentifier.
@@ -8563,6 +8834,7 @@ export class $LabeledStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let newLabelSet be a new empty List.
@@ -8588,6 +8860,7 @@ export class $ThrowStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ThrowStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8596,6 +8869,7 @@ export class $ThrowStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // ThrowStatement : throw Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -8624,6 +8898,7 @@ export class $TryStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TryStatement'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8660,6 +8935,7 @@ export class $TryStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // TryStatement : try Block Catch
 
     // 1. Let B be the result of evaluating Block.
@@ -8701,12 +8977,14 @@ export class $DebuggerStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DebuggerStatement'),
   ) {
     this.id = realm.registerNode(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    this.logger.debug('EvaluateLabelled()');
     // DebuggerStatement : debugger ;
 
     // 1. If an implementation-defined debugging facility is available and enabled, then
@@ -8740,6 +9018,7 @@ export class $CaseBlock implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CaseBlock'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8770,6 +9049,7 @@ export class $CaseClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CaseClause'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8796,6 +9076,7 @@ export class $DefaultClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DefaultClause'),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8822,6 +9103,7 @@ export class $CatchClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CatchClause'),
   ) {
     this.id = realm.registerNode(this);
 

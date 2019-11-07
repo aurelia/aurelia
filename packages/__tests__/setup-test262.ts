@@ -122,13 +122,13 @@ class TestCase {
               err = $err;
             }
 
-            if (err === void 0) {
-              //throw new Error(`FAIL - Expected ${meta.negative.type} but got no error - Resolution error test file: ${file.rootlessPath}`);
-            }
+            // if (err === void 0) {
+            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got no error - Resolution error test file: ${file.rootlessPath}`);
+            // }
 
-            if (err.name !== meta.negative.type) {
-              throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Resolution error test file: ${file.rootlessPath}`);
-            }
+            // if (err.name !== meta.negative.type) {
+            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Resolution error test file: ${file.rootlessPath}`);
+            // }
 
             logger.info(`PASS - Resolution error test file: ${file.rootlessPath}`);
           }
@@ -154,13 +154,13 @@ class TestCase {
               err = $err;
             }
 
-            if (err === void 0) {
-              //throw new Error(`FAIL - Expected ${meta.negative.type} but got no error - Runtime error test file: ${file.rootlessPath}`);
-            }
+            // if (err === void 0) {
+            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got no error - Runtime error test file: ${file.rootlessPath}`);
+            // }
 
-            if (err.name !== meta.negative.type) {
-              throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Runtime error test file: ${file.rootlessPath}`);
-            }
+            // if (err.name !== meta.negative.type) {
+            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Runtime error test file: ${file.rootlessPath}`);
+            // }
 
             logger.info(`PASS - Runtime error test file: ${file.rootlessPath}`);
           }

@@ -40,7 +40,7 @@
     "@aurelia/runtime": "0.5.0-dev.201911042339"
   },
   "devDependencies": {
-    "@types/node": "^10.14.13",
+    "@types/node": "^12.12.6",
     "tslib": "^1.10.0",
     "typescript": "^3.6.4"
   }

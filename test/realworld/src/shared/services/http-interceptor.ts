@@ -1,14 +1,15 @@
 import { Interceptor } from '@aurelia/fetch-client';
 import { inject } from '@aurelia/kernel';
+
 import { JwtService } from './jwt-service';
 
 const AUTHORIZATION_HEADER = 'Authorization';
 
 @inject(JwtService)
 export class HttpInterceptor implements Interceptor {
-
-  public constructor(private readonly jwtService: JwtService) {
-  }
+  public constructor(
+    private readonly jwtService: JwtService,
+  ) {}
 
   public request(request: Request) {
     if (!this.jwtService.isTokenValid()) {

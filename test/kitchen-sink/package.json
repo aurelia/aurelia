@@ -1,6 +1,7 @@
 {
   "name": "kitchen-sink",
   "license": "MIT",
+  "private": true,
   "engines": {
     "node": ">=10.16.0",
     "npm": ">=6.1.0"
@@ -15,31 +16,31 @@
     "bulma": "latest",
     "faker": "latest",
     "perf-monitor": "latest",
-    "@aurelia/debug": "file:../../packages/debug",
-    "@aurelia/jit-html": "file:../../packages/jit-html",
-    "@aurelia/jit-html-browser": "file:../../packages/jit-html-browser",
-    "@aurelia/jit": "file:../../packages/jit",
-    "@aurelia/kernel": "file:../../packages/kernel",
-    "@aurelia/runtime-html": "file:../../packages/runtime-html",
-    "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser",
-    "@aurelia/runtime": "file:../../packages/runtime",
-    "@aurelia/router": "file:../../packages/router"
+    "@aurelia/debug": "0.4.0",
+    "@aurelia/jit-html": "0.4.0",
+    "@aurelia/jit-html-browser": "0.4.0",
+    "@aurelia/jit": "0.4.0",
+    "@aurelia/kernel": "0.4.0",
+    "@aurelia/runtime-html": "0.4.0",
+    "@aurelia/runtime-html-browser": "0.4.0",
+    "@aurelia/runtime": "0.4.0",
+    "@aurelia/router": "0.4.0"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "^12.12.6",
     "@types/faker": "latest",
     "autoprefixer": "latest",
-    "html-loader": "latest",
-    "http-server": "latest",
+    "html-loader": "^0.5.5",
+    "http-server": "0.9.0",
     "node-sass": "latest",
     "postcss-loader": "latest",
-    "rimraf": "latest",
+    "rimraf": "^3.0.0",
     "sass-loader": "latest",
-    "style-loader": "latest",
-    "ts-loader": "latest",
-    "typescript": "latest",
-    "webpack-cli": "latest",
-    "webpack-dev-server": "latest",
-    "webpack": "latest"
+    "style-loader": "^1.0.0",
+    "ts-loader": "^6.2.0",
+    "typescript": "^3.6.4",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2",
+    "webpack": "^4.41.2"
   }
 }

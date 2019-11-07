@@ -31,7 +31,17 @@
     "packages/store",
     "packages/testing",
     "packages/validation",
-    "packages/webpack-loader"
+    "packages/webpack-loader",
+    "test/1kcomponents",
+    "test/browserstack",
+    "test/cypress",
+    "test/fractals-tree",
+    "test/grid",
+    "test/js-framework-benchmark",
+    "test/kitchen-sink",
+    "test/rainbow-spiral",
+    "test/realworld",
+    "test/sierpinski-triangle"
   ],
   "version": "0.5.0-dev.201911042339"
 }

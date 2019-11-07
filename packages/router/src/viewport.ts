@@ -593,7 +593,8 @@ export class Viewport {
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
-    for (const scope of viewports) {
+    const scopes: Viewport[] = viewports.slice();
+    for (const scope of scopes) {
       viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
     }
     return viewports;
@@ -684,9 +685,13 @@ export class Viewport {
         while (instructions.length > 0) {
           const instruction: ViewportInstruction = instructions.shift() as ViewportInstruction;
           instruction.addParameters(params);
+          instruction.route = '';
           if (instruction.nextScopeInstructions !== null) {
             instructions.unshift(...instruction.nextScopeInstructions);
           }
+        }
+        if (found.instructions.length > 0) {
+          found.instructions[0].route = found.matching;
         }
       }
       return found;

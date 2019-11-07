@@ -175,10 +175,21 @@ jobs:
         default: "test"
       e:
         type: executor
+      submodules:
+        type: boolean
+        default: false
     executor: << parameters.e >>
     steps:
       - checkout_install_bootstrap
       - run: npm run build
+      - when:
+          condition: << parameters.submodules >>
+          steps:
+            - run:
+                name: "Pull Submodules"
+                command: |
+                  git submodule init
+                  git submodule update --remote
       - run:
           name: "Run unit tests"
           command: |
@@ -482,6 +493,12 @@ workflows:
          e: docker-circleci
          npm_command: "test-node"
          coverage: false
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: test_test262
+         e: docker-circleci
+         npm_command: "test-test262"
+         coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
@@ -529,6 +546,7 @@ workflows:
             - unit_test_chrome
             - unit_test_firefox
             - unit_test_node
+            - test_test262
             - lint_packages
             - e2e_browserstack
             - e2e_cypress
@@ -591,6 +609,12 @@ workflows:
          e: docker-circleci
          npm_command: "test-node"
          coverage: false
+      - unit_test:
+         <<: *filter_only_tag
+         name: test_test262
+         e: docker-circleci
+         npm_command: "test-test262"
+         coverage: false
       - lint_packages:
           <<: *filter_only_tag
       - e2e_browserstack:
@@ -605,6 +629,7 @@ workflows:
             - unit_test_chrome
             - unit_test_firefox
             - unit_test_node
+            - test_test262
             - lint_packages
             - e2e_browserstack
             - e2e_cypress

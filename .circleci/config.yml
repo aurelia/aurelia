@@ -497,7 +497,7 @@ workflows:
          <<: *filter_ignore_develop_release
          name: test_test262
          e: docker-circleci
-         npm_command: "test-test262"
+         npm_command: "test262"
          coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
@@ -613,7 +613,7 @@ workflows:
          <<: *filter_only_tag
          name: test_test262
          e: docker-circleci
-         npm_command: "test-test262"
+         npm_command: "test262"
          coverage: false
       - lint_packages:
           <<: *filter_only_tag

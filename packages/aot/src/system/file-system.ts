@@ -372,7 +372,7 @@ export class NodeFileSystem implements IFileSystem {
           const ext = File.getExtension(path);
 
           if (ext !== void 0) {
-            const rootlessPath = path.replace(dirname(root), '');
+            const rootlessPath = path.slice(dirname(root).length);
             const shortName = name.slice(0, -ext.length);
             files.push(new File(this, path, dir, rootlessPath, name, shortName, ext));
           }
@@ -403,7 +403,7 @@ export class NodeFileSystem implements IFileSystem {
           const ext = File.getExtension(path);
 
           if (ext !== void 0) {
-            const rootlessPath = path.replace(dirname(root), '');
+            const rootlessPath = path.slice(dirname(root).length);
             const shortName = name.slice(0, -ext.length);
             files.push(new File(this, path, dir, rootlessPath, name, shortName, ext));
           }

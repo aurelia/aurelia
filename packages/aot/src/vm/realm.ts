@@ -342,7 +342,7 @@ export class Realm {
       const dir = referencingModule.$file.dir;
       const ext = '.js';
       const path = joinPath(dir, `${specifier}${ext}`);
-      const file = new File(this.fs, path, dir, path, name, basename(specifier), ext)
+      const file = new File(this.fs, path, dir, specifier, name, basename(specifier), ext)
       return this.getESModule(file, null);
     }
 

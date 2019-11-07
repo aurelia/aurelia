@@ -4,6 +4,7 @@ import { ComponentAppellation, ComponentParameters, IRouteableComponent, Routeab
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
+import { IComponentParameter } from './instruction-resolver';
 
 export const enum ParametersType {
   none = 'none',
@@ -19,8 +20,9 @@ export class ViewportInstruction {
   public viewportName: string | null = null;
   public viewport: Viewport | null = null;
   public parametersString: string | null = null;
-  public parameters: Record<string, unknown> | null = null;
+  public parametersRecord: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
+  public parameters: IComponentParameter[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
   public scope: Viewport | null = null;
@@ -72,6 +74,8 @@ export class ViewportInstruction {
     }
   }
 
+  // TODO: Convert strings to array or object
+  // String is always generated based on array or object
   public setParameters(parameters?: ComponentParameters | null): void {
     // TODO: Initialize parameters better and more of them and just fix this
     if (parameters === undefined || parameters === null || parameters === '') {
@@ -80,15 +84,15 @@ export class ViewportInstruction {
     } else if (typeof parameters === 'string') {
       this.parametersType = ParametersType.string;
       this.parametersString = parameters;
-      this.parameters = { id: parameters };
+      this.parametersRecord = { id: parameters };
     } else if (Array.isArray(parameters)) {
       this.parametersType = ParametersType.array;
       this.parametersList = parameters;
       this.parametersString = this.parametersList.join(',');
     } else {
       this.parametersType = ParametersType.object;
-      this.parameters = parameters;
-      this.parametersString = Object.keys(this.parameters!).map(param => `${param}=${this.parameters![param]}`).join(',');
+      this.parametersRecord = parameters;
+      this.parametersString = Object.keys(this.parametersRecord!).map(param => `${param}=${this.parametersRecord![param]}`).join(',');
     }
   }
 
@@ -100,7 +104,7 @@ export class ViewportInstruction {
     if (this.parametersType !== ParametersType.object) {
       throw new Error('Can\'t add object parameters to existing non-object parameters!');
     }
-    this.setParameters({ ...this.parameters, ...parameters });
+    this.setParameters({ ...this.parametersRecord, ...parameters });
   }
 
   public isEmpty(): boolean {

@@ -59,7 +59,7 @@
         "request": "launch",
         "name": "Run AOT",
         "cwd": "${workspaceFolder}",
-        "program": "${workspaceFolder}\\packages\\aot\\dist\\esnext\\index.js",
+        "program": "${workspaceFolder}\\packages\\__tests__\\dist\\esnext\\__tests__\\setup-test262.js",
         "runtimeArgs": ["-r", "esm"]
     }
   ]

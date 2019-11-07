@@ -25,6 +25,7 @@ export class ViewportInstruction {
 
   public scope: Viewport | null = null;
   public needsViewportDescribed: boolean = false;
+  public route: string | null = null;
 
   public default: boolean = false;
 

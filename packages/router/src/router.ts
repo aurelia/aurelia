@@ -822,9 +822,9 @@ export class Router implements IRouter {
     }
 
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-    if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
+    // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
       instruction.path = state + query;
-    }
+    // }
 
     const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
     fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));

@@ -20,7 +20,7 @@
     "rimraf": "^3.0.0",
     "stringify": "latest",
     "tsify": "latest",
-    "typescript": "^3.6.4",
+    "typescript": "^3.7.2",
     "vinyl-source-stream": "latest",
     "watchify": "latest"
   }

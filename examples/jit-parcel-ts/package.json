@@ -23,6 +23,6 @@
     "parcel-bundler": "latest",
     "parcel-plugin-typescript": "latest",
     "rimraf": "^3.0.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   }
 }

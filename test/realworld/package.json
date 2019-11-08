@@ -37,7 +37,7 @@
     "style-loader": "^1.0.0",
     "ts-loader": "^6.2.0",
     "tslint": "^5.20.0",
-    "typescript": "^3.6.4",
+    "typescript": "^3.7.2",
     "typescript-tslint-plugin": "^0.5.4",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",

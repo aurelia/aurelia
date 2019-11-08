@@ -25,7 +25,7 @@
     "@aurelia/webpack-loader": "dev",
     "ts-loader": "^6.2.0",
     "@types/node": "^12.11.1",
-    "typescript": "^3.6.4",
+    "typescript": "^3.7.2",
     "tslint": "^5.20.0",
     "cypress": "^3.4.1",
     "babel-eslint": "^10.0.3",

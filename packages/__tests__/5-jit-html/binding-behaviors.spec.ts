@@ -50,7 +50,9 @@ describe('binding-behaviors', function () {
     class FooAttr5 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {
@@ -63,7 +65,9 @@ describe('binding-behaviors', function () {
     class FooAttr4 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {

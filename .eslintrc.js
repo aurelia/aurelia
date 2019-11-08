@@ -243,7 +243,9 @@ module.exports = {
       'Promise',
       'Map',
       'Set',
-      'Object.assign'
+      'Object.assign',
+      'WeakMap',
+      'WeakSet'
     ]
   }
 };

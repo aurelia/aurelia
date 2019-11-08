@@ -6,9 +6,14 @@ export class GotoCustomAttribute {
   public value: unknown;
 
   private hasHref: boolean | null = null;
+
+  private readonly element: HTMLElement;
+
   public constructor(
-    @INode private readonly element: HTMLElement,
-  ) { }
+    @INode element: INode,
+  ) {
+    this.element = element as HTMLElement;
+  }
 
   public binding(): void {
     this.updateValue();

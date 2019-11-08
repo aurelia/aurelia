@@ -149,6 +149,7 @@ import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $N
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
+import { AssertionError } from 'assert';
 const {
   emptyArray,
   emptyObject,
@@ -1146,7 +1147,7 @@ export class $VariableStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
 
@@ -1271,7 +1272,7 @@ function getContainsExpression<T>(obj: { ContainsExpression: T }): T { return ob
 function getHasInitializer<T>(obj: { HasInitializer: T }): T { return obj.HasInitializer; }
 function getIsSimpleParameterList<T>(obj: { IsSimpleParameterList: T }): T { return obj.IsSimpleParameterList; }
 function getBoundNames<T>(obj: { BoundNames: T }): T { return obj.BoundNames; }
-function getVarScopedDeclarations<T>(obj: { VarScopedDeclarations: T }): T {  return obj.VarScopedDeclarations; }
+function getVarScopedDeclarations<T>(obj: { VarScopedDeclarations: T }): T { return obj.VarScopedDeclarations; }
 function getLocalName<T>(obj: { LocalName: T }): T { return obj.LocalName; }
 function getImportEntriesForModule<T>(obj: { ImportEntriesForModule: T }): T { return obj.ImportEntriesForModule; }
 function getExportedNames<T>(obj: { ExportedNames: T }): T { return obj.ExportedNames; }
@@ -1485,13 +1486,13 @@ export class $FunctionDeclaration implements I$Node {
     const F = $ECMAScriptFunction.FunctionCreate('normal', this, Scope, strict);
 
     // 4. Perform MakeConstructor(F).
-      F.MakeConstructor();
+    F.MakeConstructor();
 
     // 5. Perform SetFunctionName(F, name).
-      F.SetFunctionName(name);
+    F.SetFunctionName(name);
 
     // 6. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-      F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need sourceFile for this)
+    F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need sourceFile for this)
 
     // 7. Return F.
     return F;
@@ -4444,7 +4445,7 @@ export class $YieldExpression implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
-// http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // YieldExpression : yield
@@ -6033,7 +6034,7 @@ export class $SourceFile implements I$Node, IModule {
       }
       // 11. b. Else if ee.[[ImportName]] is "*", then
       else if (ee.ImportName.value === '*') {
-      // 11. b. i. Append ee to starExportEntries.
+        // 11. b. i. Append ee to starExportEntries.
         starExportEntries.push(ee);
       }
       // 11. c. Else,
@@ -6526,7 +6527,7 @@ export class $SourceFile implements I$Node, IModule {
     // 1. Return NormalCompletion(empty).
 
     let $statement: $$TSModuleItem;
-    let sl: $Any;
+    let sl: CompletionRecord;
     for (let i = 0, ii = $statements.length; i < ii; ++i) {
       $statement = $statements[i];
 
@@ -7959,7 +7960,7 @@ export class $Block implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
 
     // Block : { }
@@ -8007,7 +8008,7 @@ export class $EmptyStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // EmptyStatement : ;
 
@@ -8049,7 +8050,7 @@ export class $ExpressionStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // ExpressionStatement : Expression ;
 
@@ -8100,29 +8101,86 @@ export class $IfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
-    // IfStatement : if ( Expression ) Statement else Statement
 
-    // 1. Let exprRef be the result of evaluating Expression.
-    // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
-    // 3. If exprValue is true, then
-    // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
-    // 4. Else,
-    // 4. a. Let stmtCompletion be the result of evaluating the second Statement.
-    // 5. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+    const { $expression, $thenStatement, $elseStatement, realm } = this;
+    const intrinsics = realm['[[Intrinsics]]'];
 
-    // IfStatement : if ( Expression ) Statement
+    const exprRef = $expression.Evaluate();
+    const exprValue = exprRef.GetValue().ToBoolean();
 
-    // 1. Let exprRef be the result of evaluating Expression.
-    // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
-    // 3. If exprValue is false, then
-    // 3. a. Return NormalCompletion(undefined).
-    // 4. Else,
-    // 4. a. Let stmtCompletion be the result of evaluating Statement.
-    // 4. b. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+    const evaluateStatement = (statement: $$ESStatement) => {
+      let stmtCompletion: CompletionRecord;
+      switch (statement.$kind) {
+        case SyntaxKind.Block:
+        case SyntaxKind.VariableStatement:
+        case SyntaxKind.EmptyStatement:
+        case SyntaxKind.ExpressionStatement:
+        case SyntaxKind.IfStatement:
+        case SyntaxKind.SwitchStatement:
+        case SyntaxKind.ContinueStatement:
+        case SyntaxKind.BreakStatement:
+        case SyntaxKind.ReturnStatement:
+        case SyntaxKind.WithStatement:
+        case SyntaxKind.LabeledStatement:
+        case SyntaxKind.ThrowStatement:
+        case SyntaxKind.TryStatement:
+        case SyntaxKind.DebuggerStatement:
+          stmtCompletion = statement.Evaluate();
+          break;
+        case SyntaxKind.DoStatement:
+        case SyntaxKind.WhileStatement:
+        case SyntaxKind.ForStatement:
+        case SyntaxKind.ForInStatement:
+        case SyntaxKind.ForOfStatement:
+          stmtCompletion = statement.EvaluateLabelled();
+        default:
+          stmtCompletion = new CompletionRecord(CompletionKind.normal, intrinsics.empty, intrinsics.empty, realm);
+          this.logger.warn(`Unsupported then statement kind ${$thenStatement.$kind}`);
+          break;
+      }
+      return stmtCompletion;
+    }
 
-    return null as any; // TODO: implement this
+    if ($elseStatement !== undefined) {
+      // IfStatement : if ( Expression ) Statement else Statement
+
+      // 1. Let exprRef be the result of evaluating Expression.
+      // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+
+      let stmtCompletion: CompletionRecord;
+      // 3. If exprValue is true, then
+      if (exprValue.is(intrinsics.true)) {
+        // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
+        stmtCompletion = evaluateStatement($thenStatement);
+      } else {
+        // 4. Else,
+        // 4. a. Let stmtCompletion be the result of evaluating the second Statement.
+        stmtCompletion = evaluateStatement($elseStatement);
+      }
+      // 5. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+      stmtCompletion.UpdateEmpty(intrinsics.undefined);
+      return stmtCompletion;
+    } else {
+      // IfStatement : if ( Expression ) Statement
+
+      // 1. Let exprRef be the result of evaluating Expression.
+      // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+      let stmtCompletion: CompletionRecord;
+      // 3. If exprValue is false, then
+      if (exprValue.is(intrinsics.false)) {
+        // 3. a. Return NormalCompletion(undefined).
+        return new CompletionRecord(CompletionKind.normal, intrinsics.undefined, intrinsics.empty, realm);
+      } else {
+        // 4. Else,
+        // 4. a. Let stmtCompletion be the result of evaluating Statement.
+        stmtCompletion = evaluateStatement($thenStatement);
+        // 4. b. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+        stmtCompletion.UpdateEmpty(intrinsics.undefined);
+        return stmtCompletion;
+      }
+    }
   }
 }
 
@@ -8154,7 +8212,7 @@ export class $DoStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : do Statement while ( Expression ) ;
 
@@ -8199,7 +8257,7 @@ export class $WhileStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : while ( Expression ) Statement
 
@@ -8272,7 +8330,7 @@ export class $ForStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
 
@@ -8360,7 +8418,7 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
@@ -8411,7 +8469,7 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // ForBinding : BindingIdentifier
 
@@ -8469,7 +8527,7 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
@@ -8520,7 +8578,7 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -8551,7 +8609,7 @@ export class $ContinueStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // ContinueStatement : continue ;
 
@@ -8590,7 +8648,7 @@ export class $BreakStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // BreakStatement : break ;
 
@@ -8633,7 +8691,7 @@ export class $ReturnStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-return-statement
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // ReturnStatement : return ;
 
@@ -8678,7 +8736,7 @@ export class $WithStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // WithStatement : with ( Expression ) Statement
 
@@ -8724,7 +8782,7 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // SwitchStatement : switch ( Expression ) CaseBlock
 
@@ -8807,7 +8865,7 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
@@ -8833,7 +8891,7 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
@@ -8868,7 +8926,7 @@ export class $ThrowStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // ThrowStatement : throw Expression ;
 
@@ -8934,7 +8992,7 @@ export class $TryStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // TryStatement : try Block Catch
 
@@ -8983,7 +9041,7 @@ export class $DebuggerStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     // DebuggerStatement : debugger ;
 
@@ -9120,7 +9178,37 @@ export class $CatchClause implements I$Node {
   }
 }
 
-  // #endregion
+// #endregion
 
+export enum CompletionKind {
+  normal,
+  break,
+  continue,
+  return,
+  throw
+}
+export class CompletionRecord {
+  constructor(
+    public Type: CompletionKind,
+    public Value: $Any | $Empty,
+    public Target: $String | $Empty,
+    public realm: Realm,
+  ) { }
 
-  // #endregion
+  // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  public UpdateEmpty(value: $Any) {
+    const { Type, Value, realm } = this;
+    const isEmpty = Value.is(realm['[[Intrinsics]]'].empty);
+    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
+    if ((this.Type === CompletionKind.return || this.Type === CompletionKind.throw) && isEmpty) {
+      throw new AssertionError()
+    }
+
+    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
+    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
+    if (isEmpty) {
+      this.Value = value;
+    }
+  }
+}
+// #endregion

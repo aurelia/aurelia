@@ -3,10 +3,12 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
+  INode,
 } from '@aurelia/runtime';
 import { PLATFORM } from '@aurelia/kernel';
 
 export class ClassAttributeAccessor implements IAccessor<unknown> {
+  public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
@@ -23,8 +25,9 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
   public constructor(
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    public readonly obj: HTMLElement,
+    obj: INode,
   ) {
+    this.obj = obj as HTMLElement;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 

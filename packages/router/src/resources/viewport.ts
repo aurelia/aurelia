@@ -32,10 +32,14 @@ export class ViewportCustomElement {
 
   public $controller!: IController; // This is set by the controller after this instance is constructed
 
+  private readonly element: Element;
+
   public constructor(
     @IRouter private readonly router: IRouter,
-    @INode private readonly element: Element,
-  ) {}
+    @INode element: INode,
+  ) {
+    this.element = element as HTMLElement;
+  }
 
   // public created(...rest): void {
   //   console.log('Created', rest);

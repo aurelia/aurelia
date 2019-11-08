@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { $Any, $Object, $String, $Boolean, $Undefined, $Null, $Empty, $ECMAScriptFunction } from './value';
+import { $Any, $Object, $String, $Boolean, $Undefined, $Null, $Empty, $Function } from './value';
 import { IModule, Realm } from './realm';
 import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from './operations';
 import { $PropertyDescriptor } from './property-descriptor';
@@ -475,7 +475,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   public '[[ThisValue]]': $Any;
   public '[[ThisBindingStatus]]': BindingStatus;
-  public '[[FunctionObject]]': $ECMAScriptFunction;
+  public '[[FunctionObject]]': $Function;
   public '[[HomeObject]]': $Object | $Undefined;
   public '[[NewTarget]]': $Object | $Undefined;
 
@@ -495,7 +495,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   // http://www.ecma-international.org/ecma-262/#sec-newfunctionenvironment
   public constructor(
     realm: Realm,
-    F: $ECMAScriptFunction,
+    F: $Function,
     newTarget: $Object | $Undefined,
   ) {
     super(realm, F['[[Environment]]']);

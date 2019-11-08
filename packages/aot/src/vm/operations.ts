@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Function, $Undefined, $Null, $String, $Reference, $Primitive, $ECMAScriptFunction, $BoundFunctionExoticObject } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $Null, $String, $Reference, $Primitive, $Function, $BoundFunctionExoticObject } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 

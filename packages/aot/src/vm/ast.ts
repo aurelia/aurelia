@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $ECMAScriptFunction, $Reference, $Boolean, $Number, $Any } from './value';
+import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
@@ -1482,14 +1482,14 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
   public InstantiateFunctionObject(
     Scope: $EnvRec,
-  ): $ECMAScriptFunction {
+  ): $Function {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // FunctionDeclaration : function ( FormalParameters ) { FunctionBody }
     if (this.$name === void 0) {
       // 1. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, true).
-      const F = $ECMAScriptFunction.FunctionCreate('normal', this, Scope, intrinsics.true);
+      const F = $Function.FunctionCreate('normal', this, Scope, intrinsics.true);
 
       // 2. Perform MakeConstructor(F).
       F.MakeConstructor();
@@ -1513,7 +1513,7 @@ export class $FunctionDeclaration implements I$Node {
     const name = this.$name.StringValue;
 
     // 3. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
-    const F = $ECMAScriptFunction.FunctionCreate('normal', this, Scope, strict);
+    const F = $Function.FunctionCreate('normal', this, Scope, strict);
 
     // 4. Perform MakeConstructor(F).
     F.MakeConstructor();

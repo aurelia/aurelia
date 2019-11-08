@@ -1,8 +1,8 @@
 /* eslint-disable */
-import { Realm, IModule, ResolveSet, ResolvedBindingRecord } from './realm';
+import { Realm, IModule, ResolveSet, ResolvedBindingRecord, ExecutionContext } from './realm';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, $SetImmutablePrototype, $DefinePropertyOrThrow, $Set, $Get, $Construct } from './operations';
-import { $EnvRec } from './environment';
+import { $EnvRec, $FunctionEnvRec } from './environment';
 import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction, $BooleanLiteral, $NullLiteral } from './ast';
 import { SyntaxKind } from 'typescript';
 
@@ -2089,43 +2089,13 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
 }
 
 // http://www.ecma-international.org/ecma-262/#table-6
+// http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
 export class $Function<
   T extends string = string,
 > extends $Object<T> {
   public readonly '<$Function>': unknown;
 
   public get isFunction(): true { return true; }
-
-  public constructor(
-    realm: Realm,
-    IntrinsicName: T,
-    proto: $Object,
-  ) {
-    super(realm, IntrinsicName, proto);
-  }
-
-  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
-    // TODO
-    return {} as any;
-  }
-
-  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any): $Object {
-    // TODO
-    return {} as any;
-  }
-}
-
-export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';
-export type ConstructorKind = 'base' | 'derived';
-export type ThisMode = 'lexical' | 'strict' | 'global';
-
-// http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
-export class $ECMAScriptFunction<
-  T extends string = string,
-> extends $Function<T> {
-  public readonly '<$ECMAScriptFunction>': unknown;
 
   public ['[[Environment]]']: $EnvRec;
   public ['[[FormalParameters]]']: readonly $ParameterDeclaration[];
@@ -2147,12 +2117,24 @@ export class $ECMAScriptFunction<
     super(realm, IntrinsicName, proto);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
+  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+    // TODO
+    return {} as any;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any): $Object {
+    // TODO
+    return {} as any;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-functionallocate
   public static FunctionAllocate(
     functionPrototype: $Object,
     strict: $Boolean,
     functionKind: 'normal' | 'non-constructor' | 'generator' | 'async' | 'async generator',
-  ): $ECMAScriptFunction {
+  ): $Function {
     // 1. Assert: Type(functionPrototype) is Object.
     // 2. Assert: functionKind is either "normal", "non-constructor", "generator", "async", or "async generator".
     // 3. If functionKind is "normal", let needsConstruct be true.
@@ -2168,7 +2150,7 @@ export class $ECMAScriptFunction<
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 6. Let F be a newly created ECMAScript function object with the internal slots listed in Table 27. All of those internal slots are initialized to undefined.
-    const F = new $ECMAScriptFunction(realm, 'function', functionPrototype);
+    const F = new $Function(realm, 'function', functionPrototype);
 
     // 7. Set F's essential internal methods to the default ordinary object definitions specified in 9.1.
     // 8. Set F.[[Call]] to the definition specified in 9.2.1.
@@ -2200,11 +2182,11 @@ export class $ECMAScriptFunction<
 
   // http://www.ecma-international.org/ecma-262/#sec-functioninitialize
   public static FunctionInitialize(
-    F: $ECMAScriptFunction,
+    F: $Function,
     kind: 'normal' | 'method' | 'arrow',
     node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
     Scope: $EnvRec,
-  ): $ECMAScriptFunction {
+  ): $Function {
     const realm = F['[[Realm]]'];
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2366,6 +2348,10 @@ export class $ECMAScriptFunction<
     return $DefinePropertyOrThrow(this, intrinsics.$name, Desc);
   }
 }
+
+export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';
+export type ConstructorKind = 'base' | 'derived';
+export type ThisMode = 'lexical' | 'strict' | 'global';
 
 // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects
 export class $BuiltinFunction<

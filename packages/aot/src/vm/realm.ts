@@ -572,4 +572,8 @@ export class ExecutionContext {
   public ScriptOrModule!: $SourceFile | $Null;
   public LexicalEnvironment!: $EnvRec;
   public VariableEnvironment!: $EnvRec;
+
+  public suspend(): void {
+
+  }
 }

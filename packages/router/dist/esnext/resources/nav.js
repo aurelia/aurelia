@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { inject } from '@aurelia/kernel';
 import { bindable, customElement, INode } from '@aurelia/runtime';
 import { IRouter } from '../router';
@@ -34,16 +34,20 @@ let NavCustomElement = class NavCustomElement {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], NavCustomElement.prototype, "name", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], NavCustomElement.prototype, "routes", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], NavCustomElement.prototype, "level", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], NavCustomElement.prototype, "classes", void 0);
 NavCustomElement = __decorate([
     inject(IRouter, INode),
@@ -62,7 +66,8 @@ NavCustomElement = __decorate([
     </li>
   </ul>
 </template>`
-    })
+    }),
+    __metadata("design:paramtypes", [Object])
 ], NavCustomElement);
 export { NavCustomElement };
 //# sourceMappingURL=nav.js.map

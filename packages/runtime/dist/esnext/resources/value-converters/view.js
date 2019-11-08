@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { IViewLocator } from '../../templating/view';
 import { valueConverter } from '../value-converter';
 let ViewValueConverter = class ViewValueConverter {
@@ -11,7 +11,8 @@ let ViewValueConverter = class ViewValueConverter {
 };
 ViewValueConverter = __decorate([
     valueConverter('view'),
-    __param(0, IViewLocator)
+    __param(0, IViewLocator),
+    __metadata("design:paramtypes", [Object])
 ], ViewValueConverter);
 export { ViewValueConverter };
 //# sourceMappingURL=view.js.map

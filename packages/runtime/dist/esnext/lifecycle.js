@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, Registration, } from '@aurelia/kernel';
 export var ViewModelKind;
 (function (ViewModelKind) {
@@ -87,7 +87,8 @@ let BoundQueue = class BoundQueue {
     }
 };
 BoundQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], BoundQueue);
 export { BoundQueue };
 let UnboundQueue = class UnboundQueue {
@@ -160,7 +161,8 @@ let UnboundQueue = class UnboundQueue {
     }
 };
 UnboundQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], UnboundQueue);
 export { UnboundQueue };
 let AttachedQueue = class AttachedQueue {
@@ -235,7 +237,8 @@ let AttachedQueue = class AttachedQueue {
     }
 };
 AttachedQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], AttachedQueue);
 export { AttachedQueue };
 let DetachedQueue = class DetachedQueue {
@@ -310,7 +313,8 @@ let DetachedQueue = class DetachedQueue {
     }
 };
 DetachedQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], DetachedQueue);
 export { DetachedQueue };
 let MountQueue = class MountQueue {
@@ -374,7 +378,8 @@ let MountQueue = class MountQueue {
     }
 };
 MountQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], MountQueue);
 export { MountQueue };
 let UnmountQueue = class UnmountQueue {
@@ -436,7 +441,8 @@ let UnmountQueue = class UnmountQueue {
     }
 };
 UnmountQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], UnmountQueue);
 export { UnmountQueue };
 let BatchQueue = class BatchQueue {
@@ -483,7 +489,8 @@ let BatchQueue = class BatchQueue {
     }
 };
 BatchQueue = __decorate([
-    __param(0, ILifecycle)
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
 ], BatchQueue);
 export { BatchQueue };
 export class Lifecycle {

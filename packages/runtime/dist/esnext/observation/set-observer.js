@@ -1,4 +1,5 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
+import { ILifecycle } from '../lifecycle';
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -159,7 +160,8 @@ let SetObserver = class SetObserver {
     }
 };
 SetObserver = __decorate([
-    collectionSubscriberCollection()
+    collectionSubscriberCollection(),
+    __metadata("design:paramtypes", [Number, Object, Object])
 ], SetObserver);
 export { SetObserver };
 export function getSetObserver(flags, lifecycle, observedSet) {

@@ -1,5 +1,5 @@
-import { __decorate } from "tslib";
-import { subscriberCollection, } from '@aurelia/runtime';
+import { __decorate, __metadata } from "tslib";
+import { IDOM, IObserverLocator, subscriberCollection, IScheduler, } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 const childObserverOptions = {
     childList: true,
@@ -254,10 +254,14 @@ let SelectValueObserver = class SelectValueObserver {
     }
 };
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
 ], SelectValueObserver.prototype, "handleNodeChange", null);
 SelectValueObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Number, Object, Object, Object, Object])
 ], SelectValueObserver);
 export { SelectValueObserver };
 //# sourceMappingURL=select-value-observer.js.map

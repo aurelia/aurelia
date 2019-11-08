@@ -26,7 +26,8 @@
     };
     RelativeTimeValueConverter = tslib_1.__decorate([
         runtime_1.valueConverter("rt" /* relativeTimeValueConverterName */),
-        tslib_1.__param(0, i18n_1.I18N)
+        tslib_1.__param(0, i18n_1.I18N),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], RelativeTimeValueConverter);
     exports.RelativeTimeValueConverter = RelativeTimeValueConverter;
 });

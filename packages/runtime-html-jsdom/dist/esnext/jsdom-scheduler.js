@@ -1,7 +1,8 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 /* eslint-disable no-await-in-loop */
 import { PLATFORM, bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueue, IClock, DOM } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 function createNextTickFlushRequestor(flush) {
     return (function ($flush) {
         const callFlush = function () {
@@ -357,26 +358,45 @@ let JSDOMScheduler = class JSDOMScheduler {
     }
 };
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldMicroTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldRenderTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldMacroTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldPostRenderTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldIdleTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldAll", null);
 JSDOMScheduler = __decorate([
     __param(0, IClock),
-    __param(1, IDOM)
+    __param(1, IDOM),
+    __metadata("design:paramtypes", [Object, HTMLDOM])
 ], JSDOMScheduler);
 export { JSDOMScheduler };
 //# sourceMappingURL=jsdom-scheduler.js.map

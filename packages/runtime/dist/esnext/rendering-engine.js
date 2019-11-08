@@ -1,7 +1,7 @@
 var ChildrenObserver_1;
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, IContainer, Reporter, Metadata, } from '@aurelia/kernel';
-import { ILifecycle, } from './lifecycle';
+import { IController, ILifecycle, } from './lifecycle';
 import { subscriberCollection } from './observation/subscriber-collection';
 import { RenderContext } from './render-context';
 import { CustomElement, CustomElementDefinition, } from './resources/custom-element';
@@ -120,7 +120,8 @@ RenderingEngine = __decorate([
     __param(0, IContainer),
     __param(1, ITemplateFactory),
     __param(2, ILifecycle),
-    __param(3, ITemplateCompiler)
+    __param(3, ITemplateCompiler),
+    __metadata("design:paramtypes", [Object, Object, Object, Object])
 ], RenderingEngine);
 export { RenderingEngine };
 /** @internal */
@@ -175,7 +176,8 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
     }
 };
 ChildrenObserver = ChildrenObserver_1 = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
 ], ChildrenObserver);
 export { ChildrenObserver };
 function defaultChildQuery(projector) {

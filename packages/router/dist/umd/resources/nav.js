@@ -45,16 +45,20 @@
         }
     };
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], NavCustomElement.prototype, "name", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], NavCustomElement.prototype, "routes", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], NavCustomElement.prototype, "level", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], NavCustomElement.prototype, "classes", void 0);
     NavCustomElement = tslib_1.__decorate([
         kernel_1.inject(router_1.IRouter, runtime_1.INode),
@@ -73,7 +77,8 @@
     </li>
   </ul>
 </template>`
-        })
+        }),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], NavCustomElement);
     exports.NavCustomElement = NavCustomElement;
 });

@@ -19,12 +19,12 @@
     class DataAttributeAccessor {
         constructor(scheduler, flags, obj, propertyKey) {
             this.scheduler = scheduler;
-            this.obj = obj;
             this.propertyKey = propertyKey;
             this.currentValue = null;
             this.oldValue = null;
             this.hasChanges = false;
             this.task = null;
+            this.obj = obj;
             this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
         }
         getValue() {

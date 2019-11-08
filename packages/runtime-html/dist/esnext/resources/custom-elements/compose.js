@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { nextId, PLATFORM, } from '@aurelia/kernel';
 import { BindingMode, ContinuationTask, IController, IDOM, IRenderingEngine, ITargetedInstruction, LifecycleTask, PromiseTask, bindable, customElement, } from '@aurelia/runtime';
 import { createElement, } from '../../create-element';
@@ -183,17 +183,20 @@ let Compose = class Compose {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], Compose.prototype, "subject", void 0);
 __decorate([
-    bindable({ mode: BindingMode.fromView })
+    bindable({ mode: BindingMode.fromView }),
+    __metadata("design:type", Boolean)
 ], Compose.prototype, "composing", void 0);
 Compose = __decorate([
     customElement({ name: 'au-compose', template: null, containerless: true }),
     __param(0, IDOM),
     __param(1, IController),
     __param(2, ITargetedInstruction),
-    __param(3, IRenderingEngine)
+    __param(3, IRenderingEngine),
+    __metadata("design:paramtypes", [Object, Object, Object, Object])
 ], Compose);
 export { Compose };
 //# sourceMappingURL=compose.js.map

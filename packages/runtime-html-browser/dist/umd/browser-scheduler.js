@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     /* eslint-disable no-await-in-loop */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const runtime_html_1 = require("@aurelia/runtime-html");
     // Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
     // Just want to start off with something as robust as possible, add many tests first so that we're sure it all works, etc.
     // Once all the proper tests are in place, we can then start simplifying and rely on those tests to tell us precisely which things are necessary and which aren't.
@@ -422,26 +423,45 @@
         }
     };
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldMicroTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldRenderTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldMacroTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldPostRenderTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldIdleTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", [Number]),
+        tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldAll", null);
     BrowserScheduler = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IClock),
-        tslib_1.__param(1, runtime_1.IDOM)
+        tslib_1.__param(1, runtime_1.IDOM),
+        tslib_1.__metadata("design:paramtypes", [Object, runtime_html_1.HTMLDOM])
     ], BrowserScheduler);
     exports.BrowserScheduler = BrowserScheduler;
 });

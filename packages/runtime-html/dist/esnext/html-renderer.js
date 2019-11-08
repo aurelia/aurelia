@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -31,7 +31,8 @@ TextBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], TextBindingRenderer);
 export { TextBindingRenderer };
 let ListenerBindingRenderer = 
@@ -52,7 +53,8 @@ ListenerBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IEventManager)
+    __param(1, IEventManager),
+    __metadata("design:paramtypes", [Object, Object])
 ], ListenerBindingRenderer);
 export { ListenerBindingRenderer };
 let SetAttributeRenderer = 
@@ -103,7 +105,8 @@ StylePropertyBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], StylePropertyBindingRenderer);
 export { StylePropertyBindingRenderer };
 let AttributeBindingRenderer = 
@@ -124,7 +127,8 @@ AttributeBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], AttributeBindingRenderer);
 export { AttributeBindingRenderer };
 // http://jsben.ch/7n5Kt

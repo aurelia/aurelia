@@ -18,10 +18,10 @@
     const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
     let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         constructor(target, observerLocator, locator) {
-            this.target = target;
             this.observerLocator = observerLocator;
             this.locator = locator;
             this.contentAttributes = contentAttributes;
+            this.target = target;
             this.$state = 0 /* none */;
             this.i18n = this.locator.get(i18n_1.I18N);
             const ea = this.locator.get(kernel_1.IEventAggregator);
@@ -191,7 +191,8 @@
         }
     };
     TranslationBinding = TranslationBinding_1 = tslib_1.__decorate([
-        runtime_1.connectable()
+        runtime_1.connectable(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object])
     ], TranslationBinding);
     exports.TranslationBinding = TranslationBinding;
 });

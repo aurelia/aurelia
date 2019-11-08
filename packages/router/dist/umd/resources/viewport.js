@@ -15,7 +15,6 @@
     let ViewportCustomElement = class ViewportCustomElement {
         constructor(router, element) {
             this.router = router;
-            this.element = element;
             this.name = 'default';
             this.usedBy = '';
             this.default = '';
@@ -24,6 +23,7 @@
             this.noHistory = false;
             this.stateful = false;
             this.viewport = null;
+            this.element = element;
         }
         // public created(...rest): void {
         //   console.log('Created', rest);
@@ -112,25 +112,32 @@
         }
     };
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], ViewportCustomElement.prototype, "name", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], ViewportCustomElement.prototype, "usedBy", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], ViewportCustomElement.prototype, "default", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "noScope", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "noLink", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "noHistory", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "stateful", void 0);
     ViewportCustomElement = tslib_1.__decorate([
         runtime_1.customElement({
@@ -144,7 +151,8 @@
   `.replace(/\s+/g, '')
         }),
         tslib_1.__param(0, router_1.IRouter),
-        tslib_1.__param(1, runtime_1.INode)
+        tslib_1.__param(1, runtime_1.INode),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], ViewportCustomElement);
     exports.ViewportCustomElement = ViewportCustomElement;
 });

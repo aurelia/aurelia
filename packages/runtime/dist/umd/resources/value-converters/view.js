@@ -22,7 +22,8 @@
     };
     ViewValueConverter = tslib_1.__decorate([
         value_converter_1.valueConverter('view'),
-        tslib_1.__param(0, view_1.IViewLocator)
+        tslib_1.__param(0, view_1.IViewLocator),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], ViewValueConverter);
     exports.ViewValueConverter = ViewValueConverter;
 });

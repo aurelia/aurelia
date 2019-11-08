@@ -2,7 +2,6 @@ import { PLATFORM } from '@aurelia/kernel';
 export class ClassAttributeAccessor {
     constructor(scheduler, flags, obj) {
         this.scheduler = scheduler;
-        this.obj = obj;
         this.currentValue = '';
         this.oldValue = '';
         this.doNotCache = true;
@@ -11,6 +10,7 @@ export class ClassAttributeAccessor {
         this.hasChanges = false;
         this.isActive = false;
         this.task = null;
+        this.obj = obj;
         this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
     }
     getValue() {

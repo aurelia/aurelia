@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { bound } from '@aurelia/kernel';
 /**
  * A first-in-first-out queue that only processes the next queued item
@@ -93,6 +93,9 @@ export class Queue {
     }
 }
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
 ], Queue.prototype, "dequeue", null);
 //# sourceMappingURL=queue.js.map

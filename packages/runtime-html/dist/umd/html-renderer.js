@@ -42,7 +42,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, runtime_1.IObserverLocator)
+        tslib_1.__param(1, runtime_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], TextBindingRenderer);
     exports.TextBindingRenderer = TextBindingRenderer;
     let ListenerBindingRenderer = 
@@ -63,7 +64,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, event_manager_1.IEventManager)
+        tslib_1.__param(1, event_manager_1.IEventManager),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], ListenerBindingRenderer);
     exports.ListenerBindingRenderer = ListenerBindingRenderer;
     let SetAttributeRenderer = 
@@ -114,7 +116,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, runtime_1.IObserverLocator)
+        tslib_1.__param(1, runtime_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], StylePropertyBindingRenderer);
     exports.StylePropertyBindingRenderer = StylePropertyBindingRenderer;
     let AttributeBindingRenderer = 
@@ -135,7 +138,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, runtime_1.IObserverLocator)
+        tslib_1.__param(1, runtime_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], AttributeBindingRenderer);
     exports.AttributeBindingRenderer = AttributeBindingRenderer;
     // http://jsben.ch/7n5Kt

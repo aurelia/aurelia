@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { valueConverter } from '@aurelia/runtime';
 import { I18N } from '../i18n';
 let TranslationValueConverter = class TranslationValueConverter {
@@ -12,7 +12,8 @@ let TranslationValueConverter = class TranslationValueConverter {
 };
 TranslationValueConverter = __decorate([
     valueConverter("t" /* translationValueConverterName */),
-    __param(0, I18N)
+    __param(0, I18N),
+    __metadata("design:paramtypes", [Object])
 ], TranslationValueConverter);
 export { TranslationValueConverter };
 //# sourceMappingURL=translation-value-converter.js.map

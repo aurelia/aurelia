@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     /* eslint-disable no-await-in-loop */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const runtime_html_1 = require("@aurelia/runtime-html");
     function createNextTickFlushRequestor(flush) {
         return (function ($flush) {
             const callFlush = function () {
@@ -368,26 +369,45 @@
         }
     };
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], JSDOMScheduler.prototype, "yieldMicroTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], JSDOMScheduler.prototype, "yieldRenderTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], JSDOMScheduler.prototype, "yieldMacroTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], JSDOMScheduler.prototype, "yieldPostRenderTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", Promise)
     ], JSDOMScheduler.prototype, "yieldIdleTask", null);
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", [Number]),
+        tslib_1.__metadata("design:returntype", Promise)
     ], JSDOMScheduler.prototype, "yieldAll", null);
     JSDOMScheduler = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IClock),
-        tslib_1.__param(1, runtime_1.IDOM)
+        tslib_1.__param(1, runtime_1.IDOM),
+        tslib_1.__metadata("design:paramtypes", [Object, runtime_html_1.HTMLDOM])
     ], JSDOMScheduler);
     exports.JSDOMScheduler = JSDOMScheduler;
 });

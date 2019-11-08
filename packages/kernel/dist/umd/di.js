@@ -459,6 +459,9 @@
             invokeWithDynamicDependencies
         };
         return function (Type) {
+            if (functions_1.isNativeFunction(Type)) {
+                reporter_1.Reporter.write(5, Type.name);
+            }
             const dependencies = DI.getDependencies(Type);
             const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
             return new Factory(Type, invoker, dependencies);
@@ -775,9 +778,7 @@
     exports.InstanceProvider = InstanceProvider;
     /** @internal */
     function validateKey(key) {
-        // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
-        // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
-        if (key == null || key === Object) {
+        if (key === null || key === void 0) {
             throw reporter_1.Reporter.error(5);
         }
     }

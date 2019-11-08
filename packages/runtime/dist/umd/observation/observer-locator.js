@@ -171,7 +171,8 @@
         tslib_1.__param(1, scheduler_1.IScheduler),
         tslib_1.__param(2, dirty_checker_1.IDirtyChecker),
         tslib_1.__param(3, exports.ITargetObserverLocator),
-        tslib_1.__param(4, exports.ITargetAccessorLocator)
+        tslib_1.__param(4, exports.ITargetAccessorLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, Object, Object])
     ], ObserverLocator);
     exports.ObserverLocator = ObserverLocator;
     function getCollectionObserver(flags, lifecycle, collection) {

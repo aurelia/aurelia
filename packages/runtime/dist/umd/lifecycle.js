@@ -98,7 +98,8 @@
         }
     };
     BoundQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], BoundQueue);
     exports.BoundQueue = BoundQueue;
     let UnboundQueue = class UnboundQueue {
@@ -171,7 +172,8 @@
         }
     };
     UnboundQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], UnboundQueue);
     exports.UnboundQueue = UnboundQueue;
     let AttachedQueue = class AttachedQueue {
@@ -246,7 +248,8 @@
         }
     };
     AttachedQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], AttachedQueue);
     exports.AttachedQueue = AttachedQueue;
     let DetachedQueue = class DetachedQueue {
@@ -321,7 +324,8 @@
         }
     };
     DetachedQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], DetachedQueue);
     exports.DetachedQueue = DetachedQueue;
     let MountQueue = class MountQueue {
@@ -385,7 +389,8 @@
         }
     };
     MountQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], MountQueue);
     exports.MountQueue = MountQueue;
     let UnmountQueue = class UnmountQueue {
@@ -447,7 +452,8 @@
         }
     };
     UnmountQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], UnmountQueue);
     exports.UnmountQueue = UnmountQueue;
     let BatchQueue = class BatchQueue {
@@ -494,7 +500,8 @@
         }
     };
     BatchQueue = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILifecycle)
+        tslib_1.__param(0, exports.ILifecycle),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], BatchQueue);
     exports.BatchQueue = BatchQueue;
     class Lifecycle {

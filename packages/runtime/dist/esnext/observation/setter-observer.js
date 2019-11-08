@@ -1,5 +1,6 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { Reporter } from '@aurelia/kernel';
+import { ILifecycle } from '../lifecycle';
 import { subscriberCollection } from './subscriber-collection';
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
@@ -70,7 +71,8 @@ let SetterObserver = class SetterObserver {
     }
 };
 SetterObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Number, Object, String])
 ], SetterObserver);
 export { SetterObserver };
 //# sourceMappingURL=setter-observer.js.map

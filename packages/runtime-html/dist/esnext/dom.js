@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { CompiledTemplate, DOM, IDOM, INode, ITemplateFactory, NodeSequence } from '@aurelia/runtime';
 export var NodeType;
@@ -357,7 +357,8 @@ let HTMLTemplateFactory = class HTMLTemplateFactory {
     }
 };
 HTMLTemplateFactory = __decorate([
-    __param(0, IDOM)
+    __param(0, IDOM),
+    __metadata("design:paramtypes", [Object])
 ], HTMLTemplateFactory);
 export { HTMLTemplateFactory };
 //# sourceMappingURL=dom.js.map

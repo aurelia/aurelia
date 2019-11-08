@@ -45,7 +45,8 @@
     };
     AttributeParser = tslib_1.__decorate([
         tslib_1.__param(0, attribute_pattern_1.ISyntaxInterpreter),
-        tslib_1.__param(1, kernel_1.all(attribute_pattern_1.IAttributePattern))
+        tslib_1.__param(1, kernel_1.all(attribute_pattern_1.IAttributePattern)),
+        tslib_1.__metadata("design:paramtypes", [Object, Array])
     ], AttributeParser);
     exports.AttributeParser = AttributeParser;
 });

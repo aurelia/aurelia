@@ -1,6 +1,6 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { IDOM } from '@aurelia/runtime';
-import { DOM } from '@aurelia/runtime-html';
+import { DOM, HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { RetryInterceptor } from './retry-interceptor';
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
@@ -260,7 +260,8 @@ let HttpClient = class HttpClient {
     }
 };
 HttpClient = __decorate([
-    __param(0, IDOM)
+    __param(0, IDOM),
+    __metadata("design:paramtypes", [HTMLDOM])
 ], HttpClient);
 export { HttpClient };
 function parseHeaderValues(headers) {

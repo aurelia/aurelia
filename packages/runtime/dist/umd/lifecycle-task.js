@@ -158,7 +158,8 @@
         }
     };
     StartTaskManager = tslib_1.__decorate([
-        tslib_1.__param(0, kernel_1.IServiceLocator)
+        tslib_1.__param(0, kernel_1.IServiceLocator),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], StartTaskManager);
     exports.StartTaskManager = StartTaskManager;
     class PromiseTask {

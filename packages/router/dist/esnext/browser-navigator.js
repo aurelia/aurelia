@@ -1,6 +1,7 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { IDOM, IScheduler } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 import { Queue } from './queue';
 let BrowserNavigator = class BrowserNavigator {
     constructor(scheduler, dom) {
@@ -156,7 +157,8 @@ let BrowserNavigator = class BrowserNavigator {
 };
 BrowserNavigator = __decorate([
     __param(0, IScheduler),
-    __param(1, IDOM)
+    __param(1, IDOM),
+    __metadata("design:paramtypes", [Object, HTMLDOM])
 ], BrowserNavigator);
 export { BrowserNavigator };
 //# sourceMappingURL=browser-navigator.js.map

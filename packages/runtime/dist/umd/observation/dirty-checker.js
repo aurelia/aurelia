@@ -104,7 +104,8 @@
         }
     };
     DirtyChecker = tslib_1.__decorate([
-        tslib_1.__param(0, scheduler_1.IScheduler)
+        tslib_1.__param(0, scheduler_1.IScheduler),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], DirtyChecker);
     exports.DirtyChecker = DirtyChecker;
     let DirtyCheckProperty = class DirtyCheckProperty {
@@ -136,7 +137,8 @@
         }
     };
     DirtyCheckProperty = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, String])
     ], DirtyCheckProperty);
     exports.DirtyCheckProperty = DirtyCheckProperty;
 });

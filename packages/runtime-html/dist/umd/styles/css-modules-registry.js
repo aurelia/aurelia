@@ -33,11 +33,13 @@
                 }
             };
             tslib_1.__decorate([
-                runtime_1.bindable
+                runtime_1.bindable,
+                tslib_1.__metadata("design:type", String)
             ], ClassCustomAttribute.prototype, "value", void 0);
             ClassCustomAttribute = tslib_1.__decorate([
                 runtime_1.customAttribute('class'),
-                tslib_1.__param(0, runtime_1.INode)
+                tslib_1.__param(0, runtime_1.INode),
+                tslib_1.__metadata("design:paramtypes", [Object])
             ], ClassCustomAttribute);
             container.register(ClassCustomAttribute);
         }

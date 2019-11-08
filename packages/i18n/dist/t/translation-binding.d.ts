@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { ICallBindingInstruction, IController, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IRenderContext, IScope, IsExpression, LifecycleFlags, State } from '@aurelia/runtime';
+import { ICallBindingInstruction, IController, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IRenderContext, IScope, IsExpression, LifecycleFlags, State, INode } from '@aurelia/runtime';
 import i18next from 'i18next';
 interface TranslationBindingCreationContext {
     parser: IExpressionParser;
@@ -11,7 +11,6 @@ interface TranslationBindingCreationContext {
     isParameterContext?: boolean;
 }
 export declare class TranslationBinding implements IPartialConnectableBinding {
-    readonly target: HTMLElement;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     id: number;
@@ -25,7 +24,8 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private scope;
     private isInterpolatedSourceExpr;
     private readonly targetObservers;
-    constructor(target: HTMLElement, observerLocator: IObserverLocator, locator: IServiceLocator);
+    readonly target: HTMLElement;
+    constructor(target: INode, observerLocator: IObserverLocator, locator: IServiceLocator);
     static create({ parser, observerLocator, context, renderable, target, instruction, isParameterContext }: TranslationBindingCreationContext): void;
     private static getBinding;
     $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;

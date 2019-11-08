@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, } from '@aurelia/kernel';
 import { BindingMode, } from '../flags';
 export function bindable(configOrTarget, prop) {
@@ -165,7 +165,8 @@ function apiTypeCheck() {
         bindable({ callback: 'propChanged' }),
         bindable({ attribute: 'prop' }),
         bindable({ primary: true }),
-        bindable({ mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
+        bindable({ mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true }),
+        __metadata("design:type", Object)
     ], Foo.prototype, "prop", void 0);
     Foo = __decorate([
         bindable('prop')

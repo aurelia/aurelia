@@ -138,7 +138,8 @@
         }
     };
     DefaultLogEventFactory = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILogConfig)
+        tslib_1.__param(0, exports.ILogConfig),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], DefaultLogEventFactory);
     exports.DefaultLogEventFactory = DefaultLogEventFactory;
     class ConsoleSink {
@@ -238,7 +239,8 @@
     DefaultLogger = tslib_1.__decorate([
         tslib_1.__param(0, exports.ILogConfig),
         tslib_1.__param(1, exports.ILogEventFactory),
-        tslib_1.__param(2, di_1.all(exports.ISink))
+        tslib_1.__param(2, di_1.all(exports.ISink)),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Array, Array, Object])
     ], DefaultLogger);
     exports.DefaultLogger = DefaultLogger;
     exports.LoggerConfiguration = functions_1.toLookup({

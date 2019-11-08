@@ -162,4 +162,11 @@ export declare function isObject<T extends object = Object | Function>(value: un
  * Also performs a type assertion that ensures TypeScript treats the value appropriately in the `if` and `else` branches after this check.
  */
 export declare function isNullOrUndefined(value: unknown): value is null | undefined;
+/**
+ * Determine whether the value is a native function.
+ *
+ * @param fn - The function to check.
+ * @returns `true` is the function is a native function, otherwise `false`
+ */
+export declare const isNativeFunction: (fn: Function) => boolean;
 //# sourceMappingURL=functions.d.ts.map

@@ -41,7 +41,8 @@
     Replaceable = tslib_1.__decorate([
         custom_attribute_1.templateController('replaceable'),
         tslib_1.__param(0, lifecycle_1.IViewFactory),
-        tslib_1.__param(1, dom_1.IRenderLocation)
+        tslib_1.__param(1, dom_1.IRenderLocation),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], Replaceable);
     exports.Replaceable = Replaceable;
 });

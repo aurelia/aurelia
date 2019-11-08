@@ -1,9 +1,9 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { customAttribute, INode, bindable, BindingMode } from '@aurelia/runtime';
 let GotoCustomAttribute = class GotoCustomAttribute {
     constructor(element) {
-        this.element = element;
         this.hasHref = null;
+        this.element = element;
     }
     binding() {
         this.updateValue();
@@ -23,11 +23,13 @@ let GotoCustomAttribute = class GotoCustomAttribute {
     }
 };
 __decorate([
-    bindable({ mode: BindingMode.toView })
+    bindable({ mode: BindingMode.toView }),
+    __metadata("design:type", Object)
 ], GotoCustomAttribute.prototype, "value", void 0);
 GotoCustomAttribute = __decorate([
     customAttribute('goto'),
-    __param(0, INode)
+    __param(0, INode),
+    __metadata("design:paramtypes", [Object])
 ], GotoCustomAttribute);
 export { GotoCustomAttribute };
 //# sourceMappingURL=goto.js.map

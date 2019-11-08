@@ -1,5 +1,5 @@
-import { __decorate } from "tslib";
-import { subscriberCollection, } from '@aurelia/runtime';
+import { __decorate, __metadata } from "tslib";
+import { IObserverLocator, subscriberCollection, IScheduler, } from '@aurelia/runtime';
 function defaultMatcher(a, b) {
     return a === b;
 }
@@ -175,7 +175,8 @@ let CheckedObserver = class CheckedObserver {
     }
 };
 CheckedObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Number, Object, Object, Object])
 ], CheckedObserver);
 export { CheckedObserver };
 //# sourceMappingURL=checked-observer.js.map

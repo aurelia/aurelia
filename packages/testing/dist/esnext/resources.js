@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { bindable, customElement, valueConverter } from '@aurelia/runtime';
 let SortValueConverter = class SortValueConverter {
     toView(arr, prop, dir = 'asc') {
@@ -33,7 +33,8 @@ export { JsonValueConverter };
 let NameTag = class NameTag {
 };
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", String)
 ], NameTag.prototype, "name", void 0);
 NameTag = __decorate([
     customElement({

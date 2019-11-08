@@ -57,7 +57,8 @@
         }
     };
     JSDOMInitializer = tslib_1.__decorate([
-        tslib_1.__param(0, kernel_1.IContainer)
+        tslib_1.__param(0, kernel_1.IContainer),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], JSDOMInitializer);
     exports.JSDOMInitializer = JSDOMInitializer;
     exports.IDOMInitializerRegistration = JSDOMInitializer;

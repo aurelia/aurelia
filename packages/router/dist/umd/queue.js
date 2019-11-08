@@ -104,7 +104,10 @@
         }
     }
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", [Number]),
+        tslib_1.__metadata("design:returntype", void 0)
     ], Queue.prototype, "dequeue", null);
     exports.Queue = Queue;
 });

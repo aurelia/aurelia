@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { AttrSyntax, getTarget, } from '@aurelia/jit';
 import { BindingMode, IExpressionParser, instructionRenderer, IObserverLocator } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
@@ -38,7 +38,8 @@ let TranslationBindingRenderer = class TranslationBindingRenderer {
 TranslationBindingRenderer = __decorate([
     instructionRenderer(TranslationInstructionType),
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], TranslationBindingRenderer);
 export { TranslationBindingRenderer };
 export const TranslationBindInstructionType = 'tbt';
@@ -78,7 +79,8 @@ let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
 TranslationBindBindingRenderer = __decorate([
     instructionRenderer(TranslationBindInstructionType),
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], TranslationBindBindingRenderer);
 export { TranslationBindBindingRenderer };
 //# sourceMappingURL=translation-renderer.js.map

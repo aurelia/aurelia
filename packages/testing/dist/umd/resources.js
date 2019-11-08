@@ -44,7 +44,8 @@
     let NameTag = class NameTag {
     };
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", String)
     ], NameTag.prototype, "name", void 0);
     NameTag = tslib_1.__decorate([
         runtime_1.customElement({

@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, Registration, Reporter, } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { getArrayObserver } from './array-observer';
@@ -160,7 +160,8 @@ ObserverLocator = __decorate([
     __param(1, IScheduler),
     __param(2, IDirtyChecker),
     __param(3, ITargetObserverLocator),
-    __param(4, ITargetAccessorLocator)
+    __param(4, ITargetAccessorLocator),
+    __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
 ], ObserverLocator);
 export { ObserverLocator };
 export function getCollectionObserver(flags, lifecycle, collection) {

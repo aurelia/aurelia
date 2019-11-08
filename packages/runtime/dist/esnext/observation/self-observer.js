@@ -1,6 +1,7 @@
 var SelfObserver_1;
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { Reporter } from '@aurelia/kernel';
+import { ILifecycle } from '../lifecycle';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
 let SelfObserver = SelfObserver_1 = class SelfObserver {
@@ -88,7 +89,8 @@ let SelfObserver = SelfObserver_1 = class SelfObserver {
     }
 };
 SelfObserver = SelfObserver_1 = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Number, Object, String, String])
 ], SelfObserver);
 export { SelfObserver };
 //# sourceMappingURL=self-observer.js.map

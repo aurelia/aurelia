@@ -1,4 +1,4 @@
-import { IAccessor, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, IScheduler, ITask, INode } from '@aurelia/runtime';
 export declare class ClassAttributeAccessor implements IAccessor<unknown> {
     readonly scheduler: IScheduler;
     readonly obj: HTMLElement;
@@ -11,7 +11,7 @@ export declare class ClassAttributeAccessor implements IAccessor<unknown> {
     hasChanges: boolean;
     isActive: boolean;
     task: ITask | null;
-    constructor(scheduler: IScheduler, flags: LifecycleFlags, obj: HTMLElement);
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, obj: INode);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;

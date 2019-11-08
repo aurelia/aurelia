@@ -194,17 +194,20 @@
         }
     };
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], Compose.prototype, "subject", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable({ mode: runtime_1.BindingMode.fromView })
+        runtime_1.bindable({ mode: runtime_1.BindingMode.fromView }),
+        tslib_1.__metadata("design:type", Boolean)
     ], Compose.prototype, "composing", void 0);
     Compose = tslib_1.__decorate([
         runtime_1.customElement({ name: 'au-compose', template: null, containerless: true }),
         tslib_1.__param(0, runtime_1.IDOM),
         tslib_1.__param(1, runtime_1.IController),
         tslib_1.__param(2, runtime_1.ITargetedInstruction),
-        tslib_1.__param(3, runtime_1.IRenderingEngine)
+        tslib_1.__param(3, runtime_1.IRenderingEngine),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, Object])
     ], Compose);
     exports.Compose = Compose;
 });

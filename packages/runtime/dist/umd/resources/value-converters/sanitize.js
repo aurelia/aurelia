@@ -39,7 +39,8 @@
     };
     SanitizeValueConverter = tslib_1.__decorate([
         value_converter_1.valueConverter('sanitize'),
-        tslib_1.__param(0, exports.ISanitizer)
+        tslib_1.__param(0, exports.ISanitizer),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], SanitizeValueConverter);
     exports.SanitizeValueConverter = SanitizeValueConverter;
 });

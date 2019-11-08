@@ -166,12 +166,14 @@
         }
     };
     tslib_1.__decorate([
-        bindable_1.bindable
+        bindable_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], If.prototype, "value", void 0);
     If = tslib_1.__decorate([
         custom_attribute_1.templateController('if'),
         tslib_1.__param(0, lifecycle_1.IViewFactory),
-        tslib_1.__param(1, dom_1.IRenderLocation)
+        tslib_1.__param(1, dom_1.IRenderLocation),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], If);
     exports.If = If;
     let Else = class Else {
@@ -193,7 +195,8 @@
     };
     Else = tslib_1.__decorate([
         custom_attribute_1.templateController('else'),
-        tslib_1.__param(0, lifecycle_1.IViewFactory)
+        tslib_1.__param(0, lifecycle_1.IViewFactory),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], Else);
     exports.Else = Else;
 });

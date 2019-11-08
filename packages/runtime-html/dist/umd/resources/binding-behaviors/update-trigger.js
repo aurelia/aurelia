@@ -45,7 +45,8 @@
     };
     UpdateTriggerBindingBehavior = tslib_1.__decorate([
         runtime_1.bindingBehavior('updateTrigger'),
-        tslib_1.__param(0, runtime_1.IObserverLocator)
+        tslib_1.__param(0, runtime_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], UpdateTriggerBindingBehavior);
     exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
 });

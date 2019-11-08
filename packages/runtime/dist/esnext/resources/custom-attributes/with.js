@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
@@ -39,12 +39,14 @@ let With = class With {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], With.prototype, "value", void 0);
 With = __decorate([
     templateController('with'),
     __param(0, IViewFactory),
-    __param(1, IRenderLocation)
+    __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
 ], With);
 export { With };
 //# sourceMappingURL=with.js.map

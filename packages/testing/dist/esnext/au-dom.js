@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration } from '@aurelia/kernel';
 import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
@@ -511,6 +511,8 @@ AuTextRenderer = __decorate([
     inject(IObserverLocator),
     instructionRenderer('au')
     /** @internal */
+    ,
+    __metadata("design:paramtypes", [Object])
 ], AuTextRenderer);
 export { AuTextRenderer };
 export const AuDOMConfiguration = {

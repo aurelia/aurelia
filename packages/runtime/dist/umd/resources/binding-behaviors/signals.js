@@ -56,7 +56,8 @@
     };
     SignalBindingBehavior = tslib_1.__decorate([
         binding_behavior_1.bindingBehavior('signal'),
-        tslib_1.__param(0, signaler_1.ISignaler)
+        tslib_1.__param(0, signaler_1.ISignaler),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], SignalBindingBehavior);
     exports.SignalBindingBehavior = SignalBindingBehavior;
 });

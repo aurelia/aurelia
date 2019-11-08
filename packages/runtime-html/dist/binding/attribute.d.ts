@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State, IScheduler } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State, IScheduler, INode } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
@@ -7,7 +7,6 @@ export interface AttributeBinding extends IConnectableBinding {
  */
 export declare class AttributeBinding implements IPartialConnectableBinding {
     sourceExpression: IsBindingBehavior | IForOfStatement;
-    target: Element;
     targetAttribute: string;
     targetProperty: string;
     mode: BindingMode;
@@ -23,7 +22,8 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
      */
     targetObserver: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
-    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: Element, targetAttribute: string, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
+    target: Element;
+    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: INode, targetAttribute: string, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;

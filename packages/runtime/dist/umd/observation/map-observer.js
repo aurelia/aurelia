@@ -4,12 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "../observation", "./collection-size-observer", "./subscriber-collection"], factory);
+        define(["require", "exports", "tslib", "../lifecycle", "../observation", "./collection-size-observer", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
+    const lifecycle_1 = require("../lifecycle");
     const observation_1 = require("../observation");
     const collection_size_observer_1 = require("./collection-size-observer");
     const subscriber_collection_1 = require("./subscriber-collection");
@@ -185,7 +186,8 @@
         }
     };
     MapObserver = tslib_1.__decorate([
-        subscriber_collection_1.collectionSubscriberCollection()
+        subscriber_collection_1.collectionSubscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Number, Object, Object])
     ], MapObserver);
     exports.MapObserver = MapObserver;
     function getMapObserver(flags, lifecycle, map) {

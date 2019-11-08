@@ -1,7 +1,8 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 /* eslint-disable no-await-in-loop */
 import { bound } from '@aurelia/kernel';
 import { IDOM, IScheduler, TaskQueue, IClock, DOM } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 // Note on the flush requestors: we're probably overdoing it here with the binds and all the wrapping.
 // Just want to start off with something as robust as possible, add many tests first so that we're sure it all works, etc.
 // Once all the proper tests are in place, we can then start simplifying and rely on those tests to tell us precisely which things are necessary and which aren't.
@@ -411,26 +412,45 @@ let BrowserScheduler = class BrowserScheduler {
     }
 };
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldMicroTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldRenderTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldMacroTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldPostRenderTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldIdleTask", null);
 __decorate([
-    bound
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldAll", null);
 BrowserScheduler = __decorate([
     __param(0, IClock),
-    __param(1, IDOM)
+    __param(1, IDOM),
+    __metadata("design:paramtypes", [Object, HTMLDOM])
 ], BrowserScheduler);
 export { BrowserScheduler };
 //# sourceMappingURL=browser-scheduler.js.map

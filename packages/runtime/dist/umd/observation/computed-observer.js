@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./subscriber-collection"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./observer-locator", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
+    const observer_locator_1 = require("./observer-locator");
     const subscriber_collection_1 = require("./subscriber-collection");
     function computed(config) {
         return function (target, key) {
@@ -91,7 +92,8 @@
         }
     };
     CustomSetterObserver = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, String, Object])
     ], CustomSetterObserver);
     exports.CustomSetterObserver = CustomSetterObserver;
     // Used when there is no setter, and the getter is dependent on other properties of the object;
@@ -184,7 +186,8 @@
         }
     };
     GetterObserver = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Number, Object, Object, String, Object, Object])
     ], GetterObserver);
     exports.GetterObserver = GetterObserver;
     const toStringTag = Object.prototype.toString;

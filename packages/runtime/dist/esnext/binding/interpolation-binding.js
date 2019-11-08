@@ -1,5 +1,7 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
+import { IServiceLocator } from '@aurelia/kernel';
 import { BindingMode, } from '../flags';
+import { IObserverLocator } from '../observation/observer-locator';
 import { connectable, } from './connectable';
 const { toView, oneTime } = BindingMode;
 export class MultiInterpolationBinding {
@@ -125,7 +127,8 @@ let InterpolationBinding = class InterpolationBinding {
     }
 };
 InterpolationBinding = __decorate([
-    connectable()
+    connectable(),
+    __metadata("design:paramtypes", [Object, Object, Object, String, Number, Object, Object, Boolean])
 ], InterpolationBinding);
 export { InterpolationBinding };
 //# sourceMappingURL=interpolation-binding.js.map

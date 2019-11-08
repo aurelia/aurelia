@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { BindingMode, IDOM, IObserverLocator, bindingBehavior } from '@aurelia/runtime';
 import { EventSubscriber } from '../../observation/event-manager';
@@ -34,7 +34,8 @@ let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
 };
 UpdateTriggerBindingBehavior = __decorate([
     bindingBehavior('updateTrigger'),
-    __param(0, IObserverLocator)
+    __param(0, IObserverLocator),
+    __metadata("design:paramtypes", [Object])
 ], UpdateTriggerBindingBehavior);
 export { UpdateTriggerBindingBehavior };
 //# sourceMappingURL=update-trigger.js.map

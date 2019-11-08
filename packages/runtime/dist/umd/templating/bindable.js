@@ -178,7 +178,8 @@
             bindable({ callback: 'propChanged' }),
             bindable({ attribute: 'prop' }),
             bindable({ primary: true }),
-            bindable({ mode: flags_1.BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
+            bindable({ mode: flags_1.BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true }),
+            tslib_1.__metadata("design:type", Object)
         ], Foo.prototype, "prop", void 0);
         Foo = tslib_1.__decorate([
             bindable('prop')

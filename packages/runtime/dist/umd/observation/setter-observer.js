@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./subscriber-collection"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
+    const lifecycle_1 = require("../lifecycle");
     const subscriber_collection_1 = require("./subscriber-collection");
     /**
      * Observer for the mutation of object property value employing getter-setter strategy.
@@ -81,7 +82,8 @@
         }
     };
     SetterObserver = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, Number, Object, String])
     ], SetterObserver);
     exports.SetterObserver = SetterObserver;
 });

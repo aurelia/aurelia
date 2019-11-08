@@ -166,7 +166,8 @@
         tslib_1.__param(0, i18next_wrapper_1.I18nWrapper),
         tslib_1.__param(1, i18n_configuration_options_1.I18nInitOptions),
         tslib_1.__param(2, kernel_1.IEventAggregator),
-        tslib_1.__param(3, runtime_1.ISignaler)
+        tslib_1.__param(3, runtime_1.ISignaler),
+        tslib_1.__metadata("design:paramtypes", [i18next_wrapper_1.I18nextWrapper, Object, Object, Object])
     ], I18nService);
     exports.I18nService = I18nService;
 });

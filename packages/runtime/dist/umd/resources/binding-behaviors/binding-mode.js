@@ -32,7 +32,8 @@
         }
     };
     OneTimeBindingBehavior = tslib_1.__decorate([
-        binding_behavior_1.bindingBehavior('oneTime')
+        binding_behavior_1.bindingBehavior('oneTime'),
+        tslib_1.__metadata("design:paramtypes", [])
     ], OneTimeBindingBehavior);
     exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
     let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
@@ -41,7 +42,8 @@
         }
     };
     ToViewBindingBehavior = tslib_1.__decorate([
-        binding_behavior_1.bindingBehavior('toView')
+        binding_behavior_1.bindingBehavior('toView'),
+        tslib_1.__metadata("design:paramtypes", [])
     ], ToViewBindingBehavior);
     exports.ToViewBindingBehavior = ToViewBindingBehavior;
     let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
@@ -50,7 +52,8 @@
         }
     };
     FromViewBindingBehavior = tslib_1.__decorate([
-        binding_behavior_1.bindingBehavior('fromView')
+        binding_behavior_1.bindingBehavior('fromView'),
+        tslib_1.__metadata("design:paramtypes", [])
     ], FromViewBindingBehavior);
     exports.FromViewBindingBehavior = FromViewBindingBehavior;
     let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
@@ -59,7 +62,8 @@
         }
     };
     TwoWayBindingBehavior = tslib_1.__decorate([
-        binding_behavior_1.bindingBehavior('twoWay')
+        binding_behavior_1.bindingBehavior('twoWay'),
+        tslib_1.__metadata("design:paramtypes", [])
     ], TwoWayBindingBehavior);
     exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
 });

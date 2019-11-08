@@ -1,6 +1,7 @@
-import { __decorate } from "tslib";
-import { Reporter, } from '@aurelia/kernel';
+import { __decorate, __metadata } from "tslib";
+import { IServiceLocator, Reporter, } from '@aurelia/kernel';
 import { ILifecycle, } from '../lifecycle';
+import { IObserverLocator } from '../observation/observer-locator';
 import { connectable, } from './connectable';
 let LetBinding = class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
@@ -70,7 +71,8 @@ let LetBinding = class LetBinding {
     }
 };
 LetBinding = __decorate([
-    connectable()
+    connectable(),
+    __metadata("design:paramtypes", [Object, String, Object, Object, Boolean])
 ], LetBinding);
 export { LetBinding };
 //# sourceMappingURL=let-binding.js.map

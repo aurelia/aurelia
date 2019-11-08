@@ -1,8 +1,8 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
 import { ISignaler, PromiseTask } from '@aurelia/runtime';
 import { I18nInitOptions } from './i18n-configuration-options';
-import { I18nWrapper } from './i18next-wrapper';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 var TimeSpan;
 (function (TimeSpan) {
     TimeSpan[TimeSpan["Second"] = 1000] = "Second";
@@ -154,7 +154,8 @@ I18nService = __decorate([
     __param(0, I18nWrapper),
     __param(1, I18nInitOptions),
     __param(2, IEventAggregator),
-    __param(3, ISignaler)
+    __param(3, ISignaler),
+    __metadata("design:paramtypes", [I18nextWrapper, Object, Object, Object])
 ], I18nService);
 export { I18nService };
 //# sourceMappingURL=i18n.js.map

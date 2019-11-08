@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 import { IScheduler } from '../scheduler';
@@ -93,7 +93,8 @@ let DirtyChecker = class DirtyChecker {
     }
 };
 DirtyChecker = __decorate([
-    __param(0, IScheduler)
+    __param(0, IScheduler),
+    __metadata("design:paramtypes", [Object])
 ], DirtyChecker);
 export { DirtyChecker };
 let DirtyCheckProperty = class DirtyCheckProperty {
@@ -125,7 +126,8 @@ let DirtyCheckProperty = class DirtyCheckProperty {
     }
 };
 DirtyCheckProperty = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Object, String])
 ], DirtyCheckProperty);
 export { DirtyCheckProperty };
 //# sourceMappingURL=dirty-checker.js.map

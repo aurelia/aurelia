@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, Registration } from '@aurelia/kernel';
 import { IDOM } from '@aurelia/runtime';
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
@@ -57,7 +57,8 @@ let HTMLTemplateElementFactory = class HTMLTemplateElementFactory {
     }
 };
 HTMLTemplateElementFactory = __decorate([
-    __param(0, IDOM)
+    __param(0, IDOM),
+    __metadata("design:paramtypes", [Object])
 ], HTMLTemplateElementFactory);
 export { HTMLTemplateElementFactory };
 //# sourceMappingURL=template-element-factory.js.map

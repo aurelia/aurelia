@@ -1,6 +1,7 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { nextId, } from '@aurelia/kernel';
 import { bindable, ContinuationTask, IDOM, IRenderLocation, IViewFactory, LifecycleTask, templateController, TerminalTask } from '@aurelia/runtime';
+import { HTMLDOM, } from '../../dom';
 function toTask(maybePromiseOrTask) {
     if (maybePromiseOrTask == null) {
         return LifecycleTask.done;
@@ -147,34 +148,43 @@ let Portal = class Portal {
     }
 };
 __decorate([
-    bindable({ primary: true })
+    bindable({ primary: true }),
+    __metadata("design:type", Object)
 ], Portal.prototype, "target", void 0);
 __decorate([
-    bindable({ callback: 'targetChanged' })
+    bindable({ callback: 'targetChanged' }),
+    __metadata("design:type", Object)
 ], Portal.prototype, "renderContext", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Boolean)
 ], Portal.prototype, "strict", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Function)
 ], Portal.prototype, "deactivating", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Function)
 ], Portal.prototype, "activating", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Function)
 ], Portal.prototype, "deactivated", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Function)
 ], Portal.prototype, "activated", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Object)
 ], Portal.prototype, "callbackContext", void 0);
 Portal = __decorate([
     templateController('portal'),
     __param(0, IViewFactory),
     __param(1, IRenderLocation),
-    __param(2, IDOM)
+    __param(2, IDOM),
+    __metadata("design:paramtypes", [Object, Object, HTMLDOM])
 ], Portal);
 export { Portal };
 //# sourceMappingURL=portal.js.map

@@ -186,7 +186,8 @@
         }
     };
     CheckedObserver = tslib_1.__decorate([
-        runtime_1.subscriberCollection()
+        runtime_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, Number, Object, Object, Object])
     ], CheckedObserver);
     exports.CheckedObserver = CheckedObserver;
 });

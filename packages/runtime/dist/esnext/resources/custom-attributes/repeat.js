@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { compareNumber, nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IController, IViewFactory } from '../../lifecycle';
@@ -420,13 +420,15 @@ let Repeat = class Repeat {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], Repeat.prototype, "items", void 0);
 Repeat = __decorate([
     templateController('repeat'),
     __param(0, IRenderLocation),
     __param(1, IController),
-    __param(2, IViewFactory)
+    __param(2, IViewFactory),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], Repeat);
 export { Repeat };
 let prevIndices;

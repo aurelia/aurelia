@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { all, Registration, Reporter, Metadata, } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
@@ -84,7 +84,8 @@ let Renderer = class Renderer {
     }
 };
 Renderer = __decorate([
-    __param(0, all(IInstructionRenderer))
+    __param(0, all(IInstructionRenderer)),
+    __metadata("design:paramtypes", [Array])
 ], Renderer);
 export { Renderer };
 export function ensureExpression(parser, srcOrExpr, bindingType) {
@@ -266,7 +267,8 @@ TemplateControllerRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IRenderingEngine),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], TemplateControllerRenderer);
 export { TemplateControllerRenderer };
 let LetElementRenderer = 
@@ -296,7 +298,8 @@ LetElementRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], LetElementRenderer);
 export { LetElementRenderer };
 let CallBindingRenderer = 
@@ -317,7 +320,8 @@ CallBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], CallBindingRenderer);
 export { CallBindingRenderer };
 let RefBindingRenderer = 
@@ -336,7 +340,8 @@ RefBindingRenderer = __decorate([
     instructionRenderer("rj" /* refBinding */)
     /** @internal */
     ,
-    __param(0, IExpressionParser)
+    __param(0, IExpressionParser),
+    __metadata("design:paramtypes", [Object])
 ], RefBindingRenderer);
 export { RefBindingRenderer };
 let InterpolationBindingRenderer = 
@@ -363,7 +368,8 @@ InterpolationBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], InterpolationBindingRenderer);
 export { InterpolationBindingRenderer };
 let PropertyBindingRenderer = 
@@ -384,7 +390,8 @@ PropertyBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], PropertyBindingRenderer);
 export { PropertyBindingRenderer };
 let IteratorBindingRenderer = 
@@ -405,7 +412,8 @@ IteratorBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
 ], IteratorBindingRenderer);
 export { IteratorBindingRenderer };
 //# sourceMappingURL=renderer.js.map

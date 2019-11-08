@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { subscriberCollection } from './subscriber-collection';
 let CollectionSizeObserver = class CollectionSizeObserver {
     constructor(obj) {
@@ -17,7 +17,8 @@ let CollectionSizeObserver = class CollectionSizeObserver {
     }
 };
 CollectionSizeObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object])
 ], CollectionSizeObserver);
 export { CollectionSizeObserver };
 //# sourceMappingURL=collection-size-observer.js.map

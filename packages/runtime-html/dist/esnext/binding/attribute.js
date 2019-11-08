@@ -1,6 +1,6 @@
-import { __decorate } from "tslib";
-import { Reporter, } from '@aurelia/kernel';
-import { BindingMode, connectable, hasBind, hasUnbind, IScheduler, } from '@aurelia/runtime';
+import { __decorate, __metadata } from "tslib";
+import { IServiceLocator, Reporter, } from '@aurelia/kernel';
+import { BindingMode, connectable, hasBind, hasUnbind, IObserverLocator, IScheduler, INode, } from '@aurelia/runtime';
 import { AttributeObserver, } from '../observation/element-attribute-observer';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -18,7 +18,6 @@ let AttributeBinding = class AttributeBinding {
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
     targetAttribute, targetProperty, mode, observerLocator, locator) {
         this.sourceExpression = sourceExpression;
-        this.target = target;
         this.targetAttribute = targetAttribute;
         this.targetProperty = targetProperty;
         this.mode = mode;
@@ -27,6 +26,7 @@ let AttributeBinding = class AttributeBinding {
         this.$state = 0 /* none */;
         this.$scope = null;
         this.persistentFlags = 0 /* none */;
+        this.target = target;
         connectable.assignIdTo(this);
         this.$scheduler = locator.get(IScheduler);
     }
@@ -143,7 +143,8 @@ let AttributeBinding = class AttributeBinding {
     }
 };
 AttributeBinding = __decorate([
-    connectable()
+    connectable(),
+    __metadata("design:paramtypes", [Object, Object, String, String, Number, Object, Object])
 ], AttributeBinding);
 export { AttributeBinding };
 //# sourceMappingURL=attribute.js.map

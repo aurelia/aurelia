@@ -1,9 +1,8 @@
-import { IController, LifecycleFlags } from '@aurelia/runtime';
+import { IController, INode, LifecycleFlags } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
     private readonly router;
-    private readonly element;
     name: string;
     usedBy: string;
     default: string;
@@ -13,7 +12,8 @@ export declare class ViewportCustomElement {
     stateful: boolean;
     viewport: Viewport | null;
     $controller: IController;
-    constructor(router: IRouter, element: Element);
+    private readonly element;
+    constructor(router: IRouter, element: INode);
     bound(): void;
     unbound(): void;
     attached(): void;

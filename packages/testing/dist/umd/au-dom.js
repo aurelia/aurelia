@@ -532,6 +532,8 @@
         kernel_1.inject(runtime_1.IObserverLocator),
         runtime_1.instructionRenderer('au')
         /** @internal */
+        ,
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], AuTextRenderer);
     exports.AuTextRenderer = AuTextRenderer;
     exports.AuDOMConfiguration = {

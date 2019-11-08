@@ -4,13 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "../flags", "./connectable"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../flags", "../observation/observer-locator", "./connectable"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
+    const kernel_1 = require("@aurelia/kernel");
     const flags_1 = require("../flags");
+    const observer_locator_1 = require("../observation/observer-locator");
     const connectable_1 = require("./connectable");
     const { toView, oneTime } = flags_1.BindingMode;
     class MultiInterpolationBinding {
@@ -137,7 +139,8 @@
         }
     };
     InterpolationBinding = tslib_1.__decorate([
-        connectable_1.connectable()
+        connectable_1.connectable(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, String, Number, Object, Object, Boolean])
     ], InterpolationBinding);
     exports.InterpolationBinding = InterpolationBinding;
 });

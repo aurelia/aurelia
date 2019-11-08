@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { BindingMode } from '../../flags';
 import { bindingBehavior } from '../binding-behavior';
 export class BindingModeBehavior {
@@ -20,7 +20,8 @@ let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBeh
     }
 };
 OneTimeBindingBehavior = __decorate([
-    bindingBehavior('oneTime')
+    bindingBehavior('oneTime'),
+    __metadata("design:paramtypes", [])
 ], OneTimeBindingBehavior);
 export { OneTimeBindingBehavior };
 let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
@@ -29,7 +30,8 @@ let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehav
     }
 };
 ToViewBindingBehavior = __decorate([
-    bindingBehavior('toView')
+    bindingBehavior('toView'),
+    __metadata("design:paramtypes", [])
 ], ToViewBindingBehavior);
 export { ToViewBindingBehavior };
 let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
@@ -38,7 +40,8 @@ let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeB
     }
 };
 FromViewBindingBehavior = __decorate([
-    bindingBehavior('fromView')
+    bindingBehavior('fromView'),
+    __metadata("design:paramtypes", [])
 ], FromViewBindingBehavior);
 export { FromViewBindingBehavior };
 let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
@@ -47,7 +50,8 @@ let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehav
     }
 };
 TwoWayBindingBehavior = __decorate([
-    bindingBehavior('twoWay')
+    bindingBehavior('twoWay'),
+    __metadata("design:paramtypes", [])
 ], TwoWayBindingBehavior);
 export { TwoWayBindingBehavior };
 //# sourceMappingURL=binding-mode.js.map

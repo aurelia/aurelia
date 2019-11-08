@@ -46,7 +46,8 @@
     InfrequentMutations = tslib_1.__decorate([
         custom_attribute_1.templateController('infrequent-mutations'),
         tslib_1.__param(0, lifecycle_1.IViewFactory),
-        tslib_1.__param(1, dom_1.IRenderLocation)
+        tslib_1.__param(1, dom_1.IRenderLocation),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], InfrequentMutations);
     exports.InfrequentMutations = InfrequentMutations;
     let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
@@ -57,7 +58,8 @@
     FrequentMutations = tslib_1.__decorate([
         custom_attribute_1.templateController('frequent-mutations'),
         tslib_1.__param(0, lifecycle_1.IViewFactory),
-        tslib_1.__param(1, dom_1.IRenderLocation)
+        tslib_1.__param(1, dom_1.IRenderLocation),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], FrequentMutations);
     exports.FrequentMutations = FrequentMutations;
     let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
@@ -68,7 +70,8 @@
     ObserveShallow = tslib_1.__decorate([
         custom_attribute_1.templateController('observe-shallow'),
         tslib_1.__param(0, lifecycle_1.IViewFactory),
-        tslib_1.__param(1, dom_1.IRenderLocation)
+        tslib_1.__param(1, dom_1.IRenderLocation),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], ObserveShallow);
     exports.ObserveShallow = ObserveShallow;
 });

@@ -1,5 +1,5 @@
 var ProxyObserver_1;
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
 const lookup = new WeakMap();
@@ -30,7 +30,8 @@ let ProxySubscriberCollection = class ProxySubscriberCollection {
     }
 };
 ProxySubscriberCollection = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], ProxySubscriberCollection);
 export { ProxySubscriberCollection };
 let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
@@ -160,7 +161,8 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
     }
 };
 ProxyObserver = ProxyObserver_1 = __decorate([
-    proxySubscriberCollection()
+    proxySubscriberCollection(),
+    __metadata("design:paramtypes", [Object])
 ], ProxyObserver);
 export { ProxyObserver };
 //# sourceMappingURL=proxy-observer.js.map

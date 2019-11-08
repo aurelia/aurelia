@@ -1,16 +1,16 @@
 var TranslationBinding_1;
-import { __decorate } from "tslib";
-import { IEventAggregator, toArray } from '@aurelia/kernel';
-import { addBinding, connectable, CustomElement, CustomExpression, DOM, ensureExpression, Interpolation } from '@aurelia/runtime';
+import { __decorate, __metadata } from "tslib";
+import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
+import { addBinding, connectable, CustomElement, CustomExpression, DOM, ensureExpression, Interpolation, IObserverLocator, INode } from '@aurelia/runtime';
 import { I18N } from '../i18n';
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
     constructor(target, observerLocator, locator) {
-        this.target = target;
         this.observerLocator = observerLocator;
         this.locator = locator;
         this.contentAttributes = contentAttributes;
+        this.target = target;
         this.$state = 0 /* none */;
         this.i18n = this.locator.get(I18N);
         const ea = this.locator.get(IEventAggregator);
@@ -180,7 +180,8 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
     }
 };
 TranslationBinding = TranslationBinding_1 = __decorate([
-    connectable()
+    connectable(),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], TranslationBinding);
 export { TranslationBinding };
 //# sourceMappingURL=translation-binding.js.map

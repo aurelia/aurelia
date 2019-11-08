@@ -52,7 +52,8 @@
     TranslationBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer(exports.TranslationInstructionType),
         tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, runtime_1.IObserverLocator)
+        tslib_1.__param(1, runtime_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], TranslationBindingRenderer);
     exports.TranslationBindingRenderer = TranslationBindingRenderer;
     exports.TranslationBindInstructionType = 'tbt';
@@ -95,7 +96,8 @@
     TranslationBindBindingRenderer = tslib_1.__decorate([
         runtime_1.instructionRenderer(exports.TranslationBindInstructionType),
         tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, runtime_1.IObserverLocator)
+        tslib_1.__param(1, runtime_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], TranslationBindBindingRenderer);
     exports.TranslationBindBindingRenderer = TranslationBindBindingRenderer;
 });

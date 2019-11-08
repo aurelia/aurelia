@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { bindable, customElement } from '@aurelia/runtime';
 import { Application } from 'pixi.js';
 let PixiApp = class PixiApp {
@@ -64,61 +64,80 @@ let PixiApp = class PixiApp {
 };
 PixiApp.inject = [Element];
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], PixiApp.prototype, "options", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiApp.prototype, "width", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiApp.prototype, "height", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", HTMLCanvasElement)
 ], PixiApp.prototype, "view", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "transparent", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "antialias", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "preserveDrawingBuffer", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiApp.prototype, "resolution", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "forceCanvas", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiApp.prototype, "backgroundColor", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "clearBeforeRender", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "roundPixels", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "forceFXAA", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "legacy", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", WebGLRenderingContext)
 ], PixiApp.prototype, "context", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiApp.prototype, "autoResize", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], PixiApp.prototype, "powerPreference", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Function)
 ], PixiApp.prototype, "tick", void 0);
 PixiApp = __decorate([
-    customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' })
+    customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' }),
+    __metadata("design:paramtypes", [Object])
 ], PixiApp);
 export { PixiApp };
 //# sourceMappingURL=pixi-app.js.map

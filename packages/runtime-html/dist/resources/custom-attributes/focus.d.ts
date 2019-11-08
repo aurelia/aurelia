@@ -1,9 +1,9 @@
+import { INode } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 /**
  * Focus attribute for element focus binding
  */
 export declare class Focus {
-    private readonly element;
     private readonly dom;
     value: unknown;
     /**
@@ -11,7 +11,8 @@ export declare class Focus {
      */
     private needsApply;
     private readonly $controller;
-    constructor(element: HTMLElement, dom: HTMLDOM);
+    private readonly element;
+    constructor(element: INode, dom: HTMLDOM);
     binding(): void;
     /**
      * Invoked everytime the bound value changes.

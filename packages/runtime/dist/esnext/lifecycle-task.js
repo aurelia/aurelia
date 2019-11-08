@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, IServiceLocator, Registration, } from '@aurelia/kernel';
 export const LifecycleTask = {
     done: {
@@ -147,7 +147,8 @@ let StartTaskManager = class StartTaskManager {
     }
 };
 StartTaskManager = __decorate([
-    __param(0, IServiceLocator)
+    __param(0, IServiceLocator),
+    __metadata("design:paramtypes", [Object])
 ], StartTaskManager);
 export { StartTaskManager };
 export class PromiseTask {

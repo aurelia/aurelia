@@ -132,7 +132,8 @@
         tslib_1.__param(0, kernel_1.IContainer),
         tslib_1.__param(1, exports.ITemplateFactory),
         tslib_1.__param(2, lifecycle_1.ILifecycle),
-        tslib_1.__param(3, exports.ITemplateCompiler)
+        tslib_1.__param(3, exports.ITemplateCompiler),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, Object])
     ], RenderingEngine);
     exports.RenderingEngine = RenderingEngine;
     /** @internal */
@@ -187,7 +188,8 @@
         }
     };
     ChildrenObserver = ChildrenObserver_1 = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
     ], ChildrenObserver);
     exports.ChildrenObserver = ChildrenObserver;
     function defaultChildQuery(projector) {

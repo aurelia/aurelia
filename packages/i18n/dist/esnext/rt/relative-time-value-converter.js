@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { valueConverter } from '@aurelia/runtime';
 import { I18N } from '../i18n';
 let RelativeTimeValueConverter = class RelativeTimeValueConverter {
@@ -15,7 +15,8 @@ let RelativeTimeValueConverter = class RelativeTimeValueConverter {
 };
 RelativeTimeValueConverter = __decorate([
     valueConverter("rt" /* relativeTimeValueConverterName */),
-    __param(0, I18N)
+    __param(0, I18N),
+    __metadata("design:paramtypes", [Object])
 ], RelativeTimeValueConverter);
 export { RelativeTimeValueConverter };
 //# sourceMappingURL=relative-time-value-converter.js.map

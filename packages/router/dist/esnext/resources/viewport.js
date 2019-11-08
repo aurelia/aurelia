@@ -1,10 +1,9 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { bindable, INode, customElement, } from '@aurelia/runtime';
 import { IRouter } from '../router';
 let ViewportCustomElement = class ViewportCustomElement {
     constructor(router, element) {
         this.router = router;
-        this.element = element;
         this.name = 'default';
         this.usedBy = '';
         this.default = '';
@@ -13,6 +12,7 @@ let ViewportCustomElement = class ViewportCustomElement {
         this.noHistory = false;
         this.stateful = false;
         this.viewport = null;
+        this.element = element;
     }
     // public created(...rest): void {
     //   console.log('Created', rest);
@@ -101,25 +101,32 @@ let ViewportCustomElement = class ViewportCustomElement {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], ViewportCustomElement.prototype, "name", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], ViewportCustomElement.prototype, "usedBy", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], ViewportCustomElement.prototype, "default", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], ViewportCustomElement.prototype, "noScope", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], ViewportCustomElement.prototype, "noLink", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], ViewportCustomElement.prototype, "noHistory", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], ViewportCustomElement.prototype, "stateful", void 0);
 ViewportCustomElement = __decorate([
     customElement({
@@ -133,7 +140,8 @@ ViewportCustomElement = __decorate([
   `.replace(/\s+/g, '')
     }),
     __param(0, IRouter),
-    __param(1, INode)
+    __param(1, INode),
+    __metadata("design:paramtypes", [Object, Object])
 ], ViewportCustomElement);
 export { ViewportCustomElement };
 //# sourceMappingURL=viewport.js.map

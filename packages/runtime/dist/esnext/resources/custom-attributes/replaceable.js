@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
@@ -30,7 +30,8 @@ let Replaceable = class Replaceable {
 Replaceable = __decorate([
     templateController('replaceable'),
     __param(0, IViewFactory),
-    __param(1, IRenderLocation)
+    __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
 ], Replaceable);
 export { Replaceable };
 //# sourceMappingURL=replaceable.js.map

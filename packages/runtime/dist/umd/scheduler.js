@@ -533,7 +533,10 @@
         }
     }
     tslib_1.__decorate([
-        kernel_1.bound
+        kernel_1.bound,
+        tslib_1.__metadata("design:type", Function),
+        tslib_1.__metadata("design:paramtypes", []),
+        tslib_1.__metadata("design:returntype", void 0)
     ], TaskQueue.prototype, "requestFlush", null);
     exports.TaskQueue = TaskQueue;
     class TaskAbortError extends Error {

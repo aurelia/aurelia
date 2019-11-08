@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "./queue"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "./queue"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,6 +12,7 @@
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const runtime_html_1 = require("@aurelia/runtime-html");
     const queue_1 = require("./queue");
     let BrowserNavigator = class BrowserNavigator {
         constructor(scheduler, dom) {
@@ -167,7 +168,8 @@
     };
     BrowserNavigator = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IScheduler),
-        tslib_1.__param(1, runtime_1.IDOM)
+        tslib_1.__param(1, runtime_1.IDOM),
+        tslib_1.__metadata("design:paramtypes", [Object, runtime_html_1.HTMLDOM])
     ], BrowserNavigator);
     exports.BrowserNavigator = BrowserNavigator;
 });

@@ -75,61 +75,80 @@
     };
     PixiApp.inject = [Element];
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], PixiApp.prototype, "options", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiApp.prototype, "width", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiApp.prototype, "height", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", HTMLCanvasElement)
     ], PixiApp.prototype, "view", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "transparent", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "antialias", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "preserveDrawingBuffer", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiApp.prototype, "resolution", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "forceCanvas", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiApp.prototype, "backgroundColor", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "clearBeforeRender", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "roundPixels", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "forceFXAA", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "legacy", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", WebGLRenderingContext)
     ], PixiApp.prototype, "context", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiApp.prototype, "autoResize", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], PixiApp.prototype, "powerPreference", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Function)
     ], PixiApp.prototype, "tick", void 0);
     PixiApp = tslib_1.__decorate([
-        runtime_1.customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' })
+        runtime_1.customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' }),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], PixiApp);
     exports.PixiApp = PixiApp;
 });

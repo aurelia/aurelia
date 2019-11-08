@@ -28,7 +28,8 @@
         }
     };
     CollectionSizeObserver = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], CollectionSizeObserver);
     exports.CollectionSizeObserver = CollectionSizeObserver;
 });

@@ -1,4 +1,5 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
+import { ILifecycle } from '../lifecycle';
 import { createIndexMap } from '../observation';
 import { CollectionLengthObserver } from './collection-length-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -432,7 +433,8 @@ let ArrayObserver = class ArrayObserver {
     }
 };
 ArrayObserver = __decorate([
-    collectionSubscriberCollection()
+    collectionSubscriberCollection(),
+    __metadata("design:paramtypes", [Number, Object, Object])
 ], ArrayObserver);
 export { ArrayObserver };
 export function getArrayObserver(flags, lifecycle, array) {

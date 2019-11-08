@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { all, DI } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 import { AttributePattern, IAttributePattern, ISyntaxInterpreter } from './attribute-pattern';
@@ -34,7 +34,8 @@ let AttributeParser = class AttributeParser {
 };
 AttributeParser = __decorate([
     __param(0, ISyntaxInterpreter),
-    __param(1, all(IAttributePattern))
+    __param(1, all(IAttributePattern)),
+    __metadata("design:paramtypes", [Object, Array])
 ], AttributeParser);
 export { AttributeParser };
 //# sourceMappingURL=attribute-parser.js.map

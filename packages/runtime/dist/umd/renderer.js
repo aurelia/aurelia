@@ -96,7 +96,8 @@
         }
     };
     Renderer = tslib_1.__decorate([
-        tslib_1.__param(0, kernel_1.all(rendering_engine_1.IInstructionRenderer))
+        tslib_1.__param(0, kernel_1.all(rendering_engine_1.IInstructionRenderer)),
+        tslib_1.__metadata("design:paramtypes", [Array])
     ], Renderer);
     exports.Renderer = Renderer;
     function ensureExpression(parser, srcOrExpr, bindingType) {
@@ -283,7 +284,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, rendering_engine_1.IRenderingEngine),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(1, observer_locator_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], TemplateControllerRenderer);
     exports.TemplateControllerRenderer = TemplateControllerRenderer;
     let LetElementRenderer = 
@@ -313,7 +315,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(1, observer_locator_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], LetElementRenderer);
     exports.LetElementRenderer = LetElementRenderer;
     let CallBindingRenderer = 
@@ -334,7 +337,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(1, observer_locator_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], CallBindingRenderer);
     exports.CallBindingRenderer = CallBindingRenderer;
     let RefBindingRenderer = 
@@ -353,7 +357,8 @@
         instructionRenderer("rj" /* refBinding */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser)
+        tslib_1.__param(0, expression_parser_1.IExpressionParser),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], RefBindingRenderer);
     exports.RefBindingRenderer = RefBindingRenderer;
     let InterpolationBindingRenderer = 
@@ -380,7 +385,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(1, observer_locator_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], InterpolationBindingRenderer);
     exports.InterpolationBindingRenderer = InterpolationBindingRenderer;
     let PropertyBindingRenderer = 
@@ -401,7 +407,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(1, observer_locator_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], PropertyBindingRenderer);
     exports.PropertyBindingRenderer = PropertyBindingRenderer;
     let IteratorBindingRenderer = 
@@ -422,7 +429,8 @@
         /** @internal */
         ,
         tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator)
+        tslib_1.__param(1, observer_locator_1.IObserverLocator),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], IteratorBindingRenderer);
     exports.IteratorBindingRenderer = IteratorBindingRenderer;
 });

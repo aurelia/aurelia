@@ -1,4 +1,4 @@
-import { IScheduler } from '@aurelia/runtime';
+import { INode, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 declare const unset: unique symbol;
 export declare class BlurManager {
@@ -17,7 +17,6 @@ export interface HasContains {
     contains(el: Element): boolean;
 }
 export declare class Blur {
-    private readonly element;
     private readonly dom;
     value: boolean | typeof unset;
     onBlur: () => void;
@@ -43,7 +42,8 @@ export declare class Blur {
      * Determine from which node/ nodes, search for elements
      */
     linkingContext: string | Element | null;
-    constructor(element: HTMLElement, dom: HTMLDOM, scheduler: IScheduler);
+    private readonly element;
+    constructor(element: INode, dom: HTMLDOM, scheduler: IScheduler);
     attached(): void;
     detaching(): void;
     handleEventTarget(target: EventTarget): void;

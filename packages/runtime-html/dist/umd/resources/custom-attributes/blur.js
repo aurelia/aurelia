@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "../../dom"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,6 +12,7 @@
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const dom_1 = require("../../dom");
     const unset = Symbol();
     // Using passive to help with performance
     const defaultCaptureEventInit = {
@@ -82,8 +83,8 @@
     exports.BlurManager = BlurManager;
     let Blur = class Blur {
         constructor(element, dom, scheduler) {
-            this.element = element;
             this.dom = dom;
+            this.element = element;
             /**
              * By default, the behavior should be least surprise possible, that:
              *
@@ -192,28 +193,35 @@
         }
     };
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", Object)
     ], Blur.prototype, "value", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", Function)
     ], Blur.prototype, "onBlur", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", Object)
     ], Blur.prototype, "linkedWith", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", Boolean)
     ], Blur.prototype, "linkedMultiple", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", Boolean)
     ], Blur.prototype, "searchSubTree", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable()
+        runtime_1.bindable(),
+        tslib_1.__metadata("design:type", Object)
     ], Blur.prototype, "linkingContext", void 0);
     Blur = tslib_1.__decorate([
         runtime_1.customAttribute('blur'),
         tslib_1.__param(0, runtime_1.INode),
         tslib_1.__param(1, runtime_1.IDOM),
-        tslib_1.__param(2, runtime_1.IScheduler)
+        tslib_1.__param(2, runtime_1.IScheduler),
+        tslib_1.__metadata("design:paramtypes", [Object, dom_1.HTMLDOM, Object])
     ], Blur);
     exports.Blur = Blur;
     const containsElementOrShadowRoot = (container, target) => {

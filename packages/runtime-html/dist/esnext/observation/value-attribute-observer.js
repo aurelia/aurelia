@@ -1,5 +1,5 @@
-import { __decorate } from "tslib";
-import { subscriberCollection, } from '@aurelia/runtime';
+import { __decorate, __metadata } from "tslib";
+import { subscriberCollection, IScheduler, } from '@aurelia/runtime';
 // TODO: handle file attribute properly again, etc
 /**
  * Observer for non-radio, non-checkbox input.
@@ -85,7 +85,8 @@ let ValueAttributeObserver = class ValueAttributeObserver {
     }
 };
 ValueAttributeObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Number, Object, Object, String])
 ], ValueAttributeObserver);
 export { ValueAttributeObserver };
 //# sourceMappingURL=value-attribute-observer.js.map

@@ -108,124 +108,164 @@
         }
     };
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", pixi_js_1.Container)
     ], PixiSprite.prototype, "container", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], PixiSprite.prototype, "src", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "alpha", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "buttomMode", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "cacheAsBitmap", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], PixiSprite.prototype, "cursor", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", pixi_js_1.Rectangle)
     ], PixiSprite.prototype, "filterArea", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Array)
     ], PixiSprite.prototype, "filters", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], PixiSprite.prototype, "hitArea", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "interactive", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", pixi_js_1.Graphics)
     ], PixiSprite.prototype, "mask", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], PixiSprite.prototype, "name", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "pivotX", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "pivotY", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "positionX", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "positionY", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "renderable", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "rotation", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "scaleX", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "scaleY", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "skewX", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "skewY", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", pixi_js_1.TransformBase)
     ], PixiSprite.prototype, "transform", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "visible", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "x", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "y", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "zIndex", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "height", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "interactiveChildren", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "sortableChildren", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "sortDirty", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "width", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", pixi_js_1.ObservablePoint)
     ], PixiSprite.prototype, "anchor", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "blendMode", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
     ], PixiSprite.prototype, "pluginName", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Boolean)
     ], PixiSprite.prototype, "roundPixels", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Object)
     ], PixiSprite.prototype, "shader", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", pixi_js_1.Texture)
     ], PixiSprite.prototype, "texture", void 0);
     tslib_1.__decorate([
-        runtime_1.bindable
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", Number)
     ], PixiSprite.prototype, "tint", void 0);
     PixiSprite = tslib_1.__decorate([
-        runtime_1.customElement({ name: 'pixi-sprite', template: '<template></template>' })
+        runtime_1.customElement({ name: 'pixi-sprite', template: '<template></template>' }),
+        tslib_1.__metadata("design:paramtypes", [])
     ], PixiSprite);
     exports.PixiSprite = PixiSprite;
     for (const prop of directProps) {

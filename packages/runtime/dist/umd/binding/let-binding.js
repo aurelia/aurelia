@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "./connectable"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "../observation/observer-locator", "./connectable"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,6 +12,7 @@
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("../lifecycle");
+    const observer_locator_1 = require("../observation/observer-locator");
     const connectable_1 = require("./connectable");
     let LetBinding = class LetBinding {
         constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
@@ -81,7 +82,8 @@
         }
     };
     LetBinding = tslib_1.__decorate([
-        connectable_1.connectable()
+        connectable_1.connectable(),
+        tslib_1.__metadata("design:paramtypes", [Object, String, Object, Object, Boolean])
     ], LetBinding);
     exports.LetBinding = LetBinding;
 });

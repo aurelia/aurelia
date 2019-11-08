@@ -1,7 +1,8 @@
-import { __decorate } from "tslib";
-import { Reporter, } from '@aurelia/kernel';
+import { __decorate, __metadata } from "tslib";
+import { IServiceLocator, Reporter, } from '@aurelia/kernel';
 import { BindingMode, } from '../flags';
 import { ILifecycle } from '../lifecycle';
+import { IObserverLocator } from '../observation/observer-locator';
 import { hasBind, hasUnbind, } from './ast';
 import { connectable, } from './connectable';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
@@ -134,7 +135,8 @@ let PropertyBinding = class PropertyBinding {
     }
 };
 PropertyBinding = __decorate([
-    connectable()
+    connectable(),
+    __metadata("design:paramtypes", [Object, Object, String, Number, Object, Object])
 ], PropertyBinding);
 export { PropertyBinding };
 //# sourceMappingURL=property-binding.js.map

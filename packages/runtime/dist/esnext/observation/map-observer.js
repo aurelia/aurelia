@@ -1,4 +1,5 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
+import { ILifecycle } from '../lifecycle';
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -172,7 +173,8 @@ let MapObserver = class MapObserver {
     }
 };
 MapObserver = __decorate([
-    collectionSubscriberCollection()
+    collectionSubscriberCollection(),
+    __metadata("design:paramtypes", [Number, Object, Object])
 ], MapObserver);
 export { MapObserver };
 export function getMapObserver(flags, lifecycle, map) {

@@ -13,8 +13,8 @@
     const runtime_1 = require("@aurelia/runtime");
     let GotoCustomAttribute = class GotoCustomAttribute {
         constructor(element) {
-            this.element = element;
             this.hasHref = null;
+            this.element = element;
         }
         binding() {
             this.updateValue();
@@ -34,11 +34,13 @@
         }
     };
     tslib_1.__decorate([
-        runtime_1.bindable({ mode: runtime_1.BindingMode.toView })
+        runtime_1.bindable({ mode: runtime_1.BindingMode.toView }),
+        tslib_1.__metadata("design:type", Object)
     ], GotoCustomAttribute.prototype, "value", void 0);
     GotoCustomAttribute = tslib_1.__decorate([
         runtime_1.customAttribute('goto'),
-        tslib_1.__param(0, runtime_1.INode)
+        tslib_1.__param(0, runtime_1.INode),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], GotoCustomAttribute);
     exports.GotoCustomAttribute = GotoCustomAttribute;
 });

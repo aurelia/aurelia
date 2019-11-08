@@ -1,16 +1,17 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { bindable, BindingMode, customAttribute, IDOM, INode } from '@aurelia/runtime';
+import { HTMLDOM } from '../../dom';
 /**
  * Focus attribute for element focus binding
  */
 let Focus = class Focus {
     constructor(element, dom) {
-        this.element = element;
         this.dom = dom;
         /**
          * Indicates whether `apply` should be called when `attached` callback is invoked
          */
         this.needsApply = false;
+        this.element = element;
     }
     binding() {
         this.valueChanged();
@@ -91,12 +92,14 @@ let Focus = class Focus {
     }
 };
 __decorate([
-    bindable({ mode: BindingMode.twoWay })
+    bindable({ mode: BindingMode.twoWay }),
+    __metadata("design:type", Object)
 ], Focus.prototype, "value", void 0);
 Focus = __decorate([
     customAttribute('focus'),
     __param(0, INode),
-    __param(1, IDOM)
+    __param(1, IDOM),
+    __metadata("design:paramtypes", [Object, HTMLDOM])
 ], Focus);
 export { Focus };
 //# sourceMappingURL=focus.js.map

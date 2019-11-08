@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { valueConverter } from '@aurelia/runtime';
 import { I18N } from '../i18n';
 let DateFormatValueConverter = class DateFormatValueConverter {
@@ -24,7 +24,8 @@ let DateFormatValueConverter = class DateFormatValueConverter {
 };
 DateFormatValueConverter = __decorate([
     valueConverter("df" /* dateFormatValueConverterName */),
-    __param(0, I18N)
+    __param(0, I18N),
+    __metadata("design:paramtypes", [Object])
 ], DateFormatValueConverter);
 export { DateFormatValueConverter };
 //# sourceMappingURL=date-format-value-converter.js.map

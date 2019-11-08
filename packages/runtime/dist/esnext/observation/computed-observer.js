@@ -1,5 +1,6 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
 export function computed(config) {
     return function (target, key) {
@@ -78,7 +79,8 @@ let CustomSetterObserver = class CustomSetterObserver {
     }
 };
 CustomSetterObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, String, Object])
 ], CustomSetterObserver);
 export { CustomSetterObserver };
 // Used when there is no setter, and the getter is dependent on other properties of the object;
@@ -171,7 +173,8 @@ let GetterObserver = class GetterObserver {
     }
 };
 GetterObserver = __decorate([
-    subscriberCollection()
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Number, Object, Object, String, Object, Object])
 ], GetterObserver);
 export { GetterObserver };
 const toStringTag = Object.prototype.toString;

@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { Registration } from '@aurelia/kernel';
 import { IDOM, ITargetAccessorLocator, ITargetObserverLocator, SetterObserver } from '@aurelia/runtime';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
@@ -109,7 +109,8 @@ let TargetObserverLocator = class TargetObserverLocator {
 };
 TargetObserverLocator = __decorate([
     __param(0, IDOM),
-    __param(1, ISVGAnalyzer)
+    __param(1, ISVGAnalyzer),
+    __metadata("design:paramtypes", [Object, Object])
 ], TargetObserverLocator);
 export { TargetObserverLocator };
 let TargetAccessorLocator = class TargetAccessorLocator {
@@ -154,7 +155,8 @@ let TargetAccessorLocator = class TargetAccessorLocator {
 };
 TargetAccessorLocator = __decorate([
     __param(0, IDOM),
-    __param(1, ISVGAnalyzer)
+    __param(1, ISVGAnalyzer),
+    __metadata("design:paramtypes", [Object, Object])
 ], TargetAccessorLocator);
 export { TargetAccessorLocator };
 const IsDataAttribute = {};

@@ -1,6 +1,7 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { bindable, customAttribute, IDOM, INode, IScheduler } from '@aurelia/runtime';
+import { HTMLDOM } from '../../dom';
 const unset = Symbol();
 // Using passive to help with performance
 const defaultCaptureEventInit = {
@@ -70,8 +71,8 @@ export class BlurManager {
 }
 let Blur = class Blur {
     constructor(element, dom, scheduler) {
-        this.element = element;
         this.dom = dom;
+        this.element = element;
         /**
          * By default, the behavior should be least surprise possible, that:
          *
@@ -180,28 +181,35 @@ let Blur = class Blur {
     }
 };
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Object)
 ], Blur.prototype, "value", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Function)
 ], Blur.prototype, "onBlur", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Object)
 ], Blur.prototype, "linkedWith", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Boolean)
 ], Blur.prototype, "linkedMultiple", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Boolean)
 ], Blur.prototype, "searchSubTree", void 0);
 __decorate([
-    bindable()
+    bindable(),
+    __metadata("design:type", Object)
 ], Blur.prototype, "linkingContext", void 0);
 Blur = __decorate([
     customAttribute('blur'),
     __param(0, INode),
     __param(1, IDOM),
-    __param(2, IScheduler)
+    __param(2, IScheduler),
+    __metadata("design:paramtypes", [Object, HTMLDOM, Object])
 ], Blur);
 export { Blur };
 const containsElementOrShadowRoot = (container, target) => {

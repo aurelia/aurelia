@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { DI, IContainer, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, IScheduler, DOM } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
@@ -40,7 +40,8 @@ let BrowserDOMInitializer = class BrowserDOMInitializer {
     }
 };
 BrowserDOMInitializer = __decorate([
-    __param(0, IContainer)
+    __param(0, IContainer),
+    __metadata("design:paramtypes", [Object])
 ], BrowserDOMInitializer);
 export const IDOMInitializerRegistration = BrowserDOMInitializer;
 export const IBrowserSchedulerRegistration = BrowserScheduler;

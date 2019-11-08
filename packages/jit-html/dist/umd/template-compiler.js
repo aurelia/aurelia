@@ -295,7 +295,8 @@
         tslib_1.__param(0, template_element_factory_1.ITemplateElementFactory),
         tslib_1.__param(1, jit_1.IAttributeParser),
         tslib_1.__param(2, runtime_1.IExpressionParser),
-        tslib_1.__param(3, attribute_syntax_transformer_1.IAttrSyntaxTransformer)
+        tslib_1.__param(3, attribute_syntax_transformer_1.IAttrSyntaxTransformer),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, Object])
     ], TemplateCompiler);
     exports.TemplateCompiler = TemplateCompiler;
 });

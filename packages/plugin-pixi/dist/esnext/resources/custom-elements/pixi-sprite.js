@@ -1,6 +1,6 @@
-import { __decorate } from "tslib";
+import { __decorate, __metadata } from "tslib";
 import { bindable, customElement } from '@aurelia/runtime';
-import { loader, Sprite } from 'pixi.js';
+import { Container, Graphics, loader, ObservablePoint, Rectangle, Sprite, Texture, TransformBase } from 'pixi.js';
 const directProps = [
     'alpha',
     'buttomMode',
@@ -97,124 +97,164 @@ let PixiSprite = class PixiSprite {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Container)
 ], PixiSprite.prototype, "container", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], PixiSprite.prototype, "src", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "alpha", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "buttomMode", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "cacheAsBitmap", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], PixiSprite.prototype, "cursor", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Rectangle)
 ], PixiSprite.prototype, "filterArea", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Array)
 ], PixiSprite.prototype, "filters", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], PixiSprite.prototype, "hitArea", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "interactive", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Graphics)
 ], PixiSprite.prototype, "mask", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], PixiSprite.prototype, "name", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "pivotX", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "pivotY", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "positionX", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "positionY", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "renderable", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "rotation", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "scaleX", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "scaleY", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "skewX", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "skewY", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", TransformBase)
 ], PixiSprite.prototype, "transform", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "visible", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "x", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "y", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "zIndex", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "height", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "interactiveChildren", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "sortableChildren", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "sortDirty", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "width", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", ObservablePoint)
 ], PixiSprite.prototype, "anchor", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "blendMode", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", String)
 ], PixiSprite.prototype, "pluginName", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], PixiSprite.prototype, "roundPixels", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Object)
 ], PixiSprite.prototype, "shader", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Texture)
 ], PixiSprite.prototype, "texture", void 0);
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Number)
 ], PixiSprite.prototype, "tint", void 0);
 PixiSprite = __decorate([
-    customElement({ name: 'pixi-sprite', template: '<template></template>' })
+    customElement({ name: 'pixi-sprite', template: '<template></template>' }),
+    __metadata("design:paramtypes", [])
 ], PixiSprite);
 export { PixiSprite };
 for (const prop of directProps) {

@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { toLookup } from './functions';
 import { DI, all, Registration } from './di';
 export var ColorOptions;
@@ -125,7 +125,8 @@ let DefaultLogEventFactory = class DefaultLogEventFactory {
     }
 };
 DefaultLogEventFactory = __decorate([
-    __param(0, ILogConfig)
+    __param(0, ILogConfig),
+    __metadata("design:paramtypes", [Object])
 ], DefaultLogEventFactory);
 export { DefaultLogEventFactory };
 export class ConsoleSink {
@@ -224,7 +225,8 @@ let DefaultLogger = class DefaultLogger {
 DefaultLogger = __decorate([
     __param(0, ILogConfig),
     __param(1, ILogEventFactory),
-    __param(2, all(ISink))
+    __param(2, all(ISink)),
+    __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
 ], DefaultLogger);
 export { DefaultLogger };
 export const LoggerConfiguration = toLookup({

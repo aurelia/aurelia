@@ -77,5 +77,6 @@
     exports.getPrototypeChain = functions_1.getPrototypeChain;
     exports.isObject = functions_1.isObject;
     exports.isNullOrUndefined = functions_1.isNullOrUndefined;
+    exports.isNativeFunction = functions_1.isNativeFunction;
 });
 //# sourceMappingURL=index.js.map

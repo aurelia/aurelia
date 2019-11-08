@@ -120,7 +120,8 @@
     };
     TargetObserverLocator = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IDOM),
-        tslib_1.__param(1, svg_analyzer_1.ISVGAnalyzer)
+        tslib_1.__param(1, svg_analyzer_1.ISVGAnalyzer),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], TargetObserverLocator);
     exports.TargetObserverLocator = TargetObserverLocator;
     let TargetAccessorLocator = class TargetAccessorLocator {
@@ -165,7 +166,8 @@
     };
     TargetAccessorLocator = tslib_1.__decorate([
         tslib_1.__param(0, runtime_1.IDOM),
-        tslib_1.__param(1, svg_analyzer_1.ISVGAnalyzer)
+        tslib_1.__param(1, svg_analyzer_1.ISVGAnalyzer),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], TargetAccessorLocator);
     exports.TargetAccessorLocator = TargetAccessorLocator;
     const IsDataAttribute = {};

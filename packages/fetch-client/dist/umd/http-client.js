@@ -271,7 +271,8 @@
         }
     };
     HttpClient = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IDOM)
+        tslib_1.__param(0, runtime_1.IDOM),
+        tslib_1.__metadata("design:paramtypes", [runtime_html_1.HTMLDOM])
     ], HttpClient);
     exports.HttpClient = HttpClient;
     function parseHeaderValues(headers) {

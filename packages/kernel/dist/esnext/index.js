@@ -7,5 +7,5 @@ export { Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';
 export { Protocol, RuntimeCompilationResources, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
 export { EventAggregator, IEventAggregator, } from './eventaggregator';
-export { isNumeric, camelCase, kebabCase, pascalCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, bound, mergeArrays, mergeObjects, firstDefined, getPrototypeChain, isObject, isNullOrUndefined, } from './functions';
+export { isNumeric, camelCase, kebabCase, pascalCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, bound, mergeArrays, mergeObjects, firstDefined, getPrototypeChain, isObject, isNullOrUndefined, isNativeFunction, } from './functions';
 //# sourceMappingURL=index.js.map

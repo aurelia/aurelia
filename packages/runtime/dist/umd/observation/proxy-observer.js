@@ -41,7 +41,8 @@
         }
     };
     ProxySubscriberCollection = tslib_1.__decorate([
-        subscriber_collection_1.subscriberCollection()
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object])
     ], ProxySubscriberCollection);
     exports.ProxySubscriberCollection = ProxySubscriberCollection;
     let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
@@ -171,7 +172,8 @@
         }
     };
     ProxyObserver = ProxyObserver_1 = tslib_1.__decorate([
-        subscriber_collection_1.proxySubscriberCollection()
+        subscriber_collection_1.proxySubscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], ProxyObserver);
     exports.ProxyObserver = ProxyObserver;
 });

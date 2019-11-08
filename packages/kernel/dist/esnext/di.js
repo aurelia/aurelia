@@ -2,7 +2,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric } from './functions';
+import { isNumeric, isNativeFunction } from './functions';
 function cloneArrayWithPossibleProps(source) {
     const clone = source.slice();
     const keys = Object.keys(source);
@@ -443,6 +443,9 @@ const createFactory = (function () {
         invokeWithDynamicDependencies
     };
     return function (Type) {
+        if (isNativeFunction(Type)) {
+            Reporter.write(5, Type.name);
+        }
         const dependencies = DI.getDependencies(Type);
         const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
         return new Factory(Type, invoker, dependencies);
@@ -756,9 +759,7 @@ export class InstanceProvider {
 }
 /** @internal */
 export function validateKey(key) {
-    // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
-    // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
-    if (key == null || key === Object) {
+    if (key === null || key === void 0) {
         throw Reporter.error(5);
     }
 }

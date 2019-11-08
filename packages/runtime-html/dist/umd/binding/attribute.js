@@ -29,7 +29,6 @@
         // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
         targetAttribute, targetProperty, mode, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
-            this.target = target;
             this.targetAttribute = targetAttribute;
             this.targetProperty = targetProperty;
             this.mode = mode;
@@ -38,6 +37,7 @@
             this.$state = 0 /* none */;
             this.$scope = null;
             this.persistentFlags = 0 /* none */;
+            this.target = target;
             runtime_1.connectable.assignIdTo(this);
             this.$scheduler = locator.get(runtime_1.IScheduler);
         }
@@ -154,7 +154,8 @@
         }
     };
     AttributeBinding = tslib_1.__decorate([
-        runtime_1.connectable()
+        runtime_1.connectable(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, String, String, Number, Object, Object])
     ], AttributeBinding);
     exports.AttributeBinding = AttributeBinding;
 });

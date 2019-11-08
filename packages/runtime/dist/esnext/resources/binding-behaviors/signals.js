@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { ISignaler } from '../../observation/signaler';
 import { bindingBehavior } from '../binding-behavior';
@@ -45,7 +45,8 @@ let SignalBindingBehavior = class SignalBindingBehavior {
 };
 SignalBindingBehavior = __decorate([
     bindingBehavior('signal'),
-    __param(0, ISignaler)
+    __param(0, ISignaler),
+    __metadata("design:paramtypes", [Object])
 ], SignalBindingBehavior);
 export { SignalBindingBehavior };
 //# sourceMappingURL=signals.js.map

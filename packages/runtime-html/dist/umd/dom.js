@@ -372,7 +372,8 @@
         }
     };
     HTMLTemplateFactory = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IDOM)
+        tslib_1.__param(0, runtime_1.IDOM),
+        tslib_1.__metadata("design:paramtypes", [Object])
     ], HTMLTemplateFactory);
     exports.HTMLTemplateFactory = HTMLTemplateFactory;
 });

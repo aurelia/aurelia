@@ -1,4 +1,4 @@
-import { __decorate, __param } from "tslib";
+import { __decorate, __metadata, __param } from "tslib";
 import { nextId } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
@@ -155,12 +155,14 @@ let If = class If {
     }
 };
 __decorate([
-    bindable
+    bindable,
+    __metadata("design:type", Boolean)
 ], If.prototype, "value", void 0);
 If = __decorate([
     templateController('if'),
     __param(0, IViewFactory),
-    __param(1, IRenderLocation)
+    __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
 ], If);
 export { If };
 let Else = class Else {
@@ -182,7 +184,8 @@ let Else = class Else {
 };
 Else = __decorate([
     templateController('else'),
-    __param(0, IViewFactory)
+    __param(0, IViewFactory),
+    __metadata("design:paramtypes", [Object])
 ], Else);
 export { Else };
 //# sourceMappingURL=if.js.map

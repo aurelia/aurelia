@@ -33,7 +33,9 @@ describe('value-converters', function () {
     class FooAttribute {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {
@@ -46,7 +48,9 @@ describe('value-converters', function () {
     class FooAttribute2 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {

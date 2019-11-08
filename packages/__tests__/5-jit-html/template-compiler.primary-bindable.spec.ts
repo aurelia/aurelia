@@ -44,7 +44,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -69,7 +72,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: number;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -95,7 +101,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -120,7 +129,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -147,7 +159,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public diameter: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -175,7 +190,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -202,7 +220,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding() {
             this.el.style.background = this.color;
@@ -224,7 +245,11 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         @customAttribute({ name: 'square' })
         class Square {
           public value: string;
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
+
           public binding() {
             this.el.style.background = this.value;
           }
@@ -247,7 +272,11 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @customAttribute({ name: 'square' })
           class Square {
             public value: string;
-            public constructor(@INode private readonly el: HTMLElement) {}
+            private readonly el: HTMLElement;
+            public constructor(el: INode) {
+              this.el = el as HTMLElement;
+            }
+
             public binding() {
               const value = this.value === 'literal:literal' ? 'red' : this.value;
               this.el.style.background = value;
@@ -293,7 +322,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
         }
         return [Square];
       },
@@ -316,7 +348,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable({ primary: true })
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
         }
         return [Square];
       },
@@ -342,7 +377,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
@@ -369,7 +407,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
@@ -399,7 +440,10 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: HTMLElement) {}
+          private readonly el: HTMLElement;
+          public constructor(el: INode) {
+            this.el = el as HTMLElement;
+          }
 
           public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;

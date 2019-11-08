@@ -329,7 +329,7 @@
             }
             processTemplateControllers(this.dom, manifestProxy, manifest);
             let replace = node.getAttribute('replace');
-            if (replace === '' || replace === null && manifestRoot !== null && manifestRoot.isContainerless) {
+            if (replace === '' || (replace === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & 16 /* isCustomElement */) > 0))) {
                 replace = 'default';
             }
             const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;

@@ -556,7 +556,7 @@ export function isNullOrUndefined(value: unknown): value is null | undefined {
  */
 export const isNativeFunction = (function () {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  const lookup: Map<Function, boolean> = new Map();
+  const lookup: WeakMap<Function, boolean> = new WeakMap();
 
   let isNative = false as boolean | undefined;
   let sourceText = '';

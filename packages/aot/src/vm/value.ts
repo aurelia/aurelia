@@ -2349,6 +2349,50 @@ export class $Function<
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-prepareforordinarycall
+function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined): ExecutionContext {
+  const realm = F.realm;
+  const stack = realm.stack;
+
+  // 1. Assert: Type(newTarget) is Undefined or Object.
+  // 2. Let callerContext be the running execution context.
+  const callerContext = stack.top;
+
+  // 3. Let calleeContext be a new ECMAScript code execution context.
+  const calleeContext = new ExecutionContext();
+
+  // 4. Set the Function of calleeContext to F.
+  calleeContext.Function = F;
+
+  // 5. Let calleeRealm be F.[[Realm]].
+  const calleeRealm = realm;
+
+  // 6. Set the Realm of calleeContext to calleeRealm.
+  calleeContext.Realm = calleeRealm;
+
+  // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
+  callerContext.ScriptOrModule = F['[[ScriptOrModule]]'];
+
+  // 8. Let localEnv be NewFunctionEnvironment(F, newTarget).
+  const localEnv = new $FunctionEnvRec(realm, F, newTarget);
+
+  // 9. Set the LexicalEnvironment of calleeContext to localEnv.
+  calleeContext.LexicalEnvironment = localEnv;
+
+  // 10. Set the VariableEnvironment of calleeContext to localEnv.
+  callerContext.VariableEnvironment = localEnv;
+
+  // 11. If callerContext is not already suspended, suspend callerContext.
+  callerContext.suspend();
+
+  // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
+  stack.push(calleeContext);
+
+  // 13. NOTE: Any exception objects produced after this point are associated with calleeRealm.
+  // 14. Return calleeContext.
+  return calleeContext;
+}
+
 export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';
 export type ConstructorKind = 'base' | 'derived';
 export type ThisMode = 'lexical' | 'strict' | 'global';

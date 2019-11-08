@@ -26,10 +26,14 @@ export class Focus {
   // This is set by the controller after this instance is constructed
   private readonly $controller!: IController;
 
+  private readonly element: HTMLElement;
+
   public constructor(
-    @INode private readonly element: HTMLElement,
+    @INode element: INode,
     @IDOM private readonly dom: HTMLDOM
-  ) {}
+  ) {
+    this.element = element as HTMLElement;
+  }
 
   public binding(): void {
     this.valueChanged();

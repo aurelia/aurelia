@@ -128,6 +128,26 @@ describe('replaceable', function () {
 
   });
 
+  it(`replaceable - default bind to target containerless template nested`, function () {
+
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template><div>\${baz}</div></template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable/></template>`, containerless: true }, class { public baz = 'abc'; });
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+
+  });
+
   // TODO: these passing were false positives, use case still needs to be fixed
   it.skip(`replaceable - default bind to parent containerless no element short template`, function () {
 

@@ -400,14 +400,14 @@ export class TemplateBinder {
     }
     if (node.tagName === 'INPUT') {
       const type = (node as HTMLInputElement).type;
-      if(type === 'checkbox' || type === 'radio') {
+      if (type === 'checkbox' || type === 'radio') {
         this.ensureAttributeOrder(manifest);
       }
     }
     processTemplateControllers(this.dom, manifestProxy, manifest);
 
     let replace = node.getAttribute('replace');
-    if (replace === '' || replace === null && manifestRoot !== null && manifestRoot.isContainerless) {
+    if (replace === '' || (replace === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & SymbolFlags.isCustomElement) > 0))) {
       replace = 'default';
     }
 

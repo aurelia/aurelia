@@ -3,6 +3,7 @@ import { Aurelia, BindingMode, CustomElement, ILifecycle, LifecycleFlags, ISched
 import { IEventManager } from '@aurelia/runtime-html';
 import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
+import { ClassAttributePattern } from './attribute-pattern';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.class', function() {
@@ -135,6 +136,7 @@ describe('template-compiler.binding-commands.class', function() {
           class App {
             public value: unknown = true;
           },
+          ClassAttributePattern,
           JitHtmlConfiguration,
           CustomElement.define(
             {

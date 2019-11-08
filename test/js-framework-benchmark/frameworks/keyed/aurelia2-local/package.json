@@ -11,13 +11,13 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@aurelia/jit-html": "file:../../../../../packages/jit-html",
-    "@aurelia/jit-html-browser": "file:../../../../../packages/jit-html-browser",
-    "@aurelia/jit": "file:../../../../../packages/jit",
-    "@aurelia/kernel": "file:../../../../../packages/kernel",
-    "@aurelia/runtime-html": "file:../../../../../packages/runtime-html",
-    "@aurelia/runtime-html-browser": "file:../../../../../packages/runtime-html-browser",
-    "@aurelia/runtime": "file:../../../../../packages/runtime"
+    "@aurelia/jit-html": "0.4.0",
+    "@aurelia/jit-html-browser": "0.4.0",
+    "@aurelia/jit": "0.4.0",
+    "@aurelia/kernel": "0.4.0",
+    "@aurelia/runtime-html": "0.4.0",
+    "@aurelia/runtime-html-browser": "0.4.0",
+    "@aurelia/runtime": "0.4.0"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.0.4",
@@ -31,7 +31,7 @@
     "style-loader": "^1.0.0",
     "ts-loader": "^6.2.0",
     "tslint": "^5.20.0",
-    "typescript": "^3.6.4",
+    "typescript": "^3.7.2",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.2"

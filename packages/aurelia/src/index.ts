@@ -50,9 +50,9 @@ export {
   bindingCommand,
   // BindingCommand,
   BindingCommandInstance,
-  // IBindingCommandDefinition,
-  // IBindingCommandResource,
-  // IBindingCommandType,
+  // BindingCommandDefinition,
+  // BindingCommandKind,
+  // BindingCommandType,
   getTarget,
 
   // CallBindingCommand,
@@ -103,24 +103,22 @@ export {
   // ElementInfo,
   // AttrInfo,
 
+  // AnySymbol,
   // BindingSymbol,
   // CustomAttributeSymbol,
   // CustomElementSymbol,
-  // ICustomAttributeSymbol,
-  // IPlainAttributeSymbol,
-  // IElementSymbol,
-  // INodeSymbol,
-  // IParentNodeSymbol,
-  // IResourceAttributeSymbol,
-  // ISymbol,
-  // ISymbolWithBindings,
-  // ISymbolWithMarker,
-  // ISymbolWithTemplate,
+  // ElementSymbol,
   // LetElementSymbol,
+  // NodeSymbol,
+  // ParentNodeSymbol,
   // PlainAttributeSymbol,
   // PlainElementSymbol,
   // ReplacePartSymbol,
+  // ResourceAttributeSymbol,
   // SymbolFlags,
+  // SymbolWithBindings,
+  // SymbolWithMarker,
+  // SymbolWithTemplate,
   // TemplateControllerSymbol,
   // TextSymbol
 } from '@aurelia/jit';
@@ -188,6 +186,7 @@ export {
   // InterfaceSymbol,
   InstanceProvider,
   Resolved,
+  // Transformer,
 
   Class,
   Constructable,
@@ -225,6 +224,23 @@ export {
   // ReadonlyKeys,
   // WritableKeys,
 
+  // metadata,
+  Metadata,
+
+  // IConsoleLike,
+  ColorOptions,
+  // ILogConfig,
+  // ILogEvent,
+  // ILogEventFactory,
+  // ISink,
+  ILogger,
+  // LogConfig,
+  // DefaultLogEvent,
+  // DefaultLogEventFactory,
+  // DefaultLogger,
+  // ConsoleSink,
+  LoggerConfiguration,
+
   // relativeToFile,
   // join,
   // buildQueryString,
@@ -249,6 +265,9 @@ export {
   // ResourceDescription,
   // ResourcePartDescription,
   RuntimeCompilationResources,
+  // fromAnnotationOrDefinitionOrTypeOrDefault,
+  // fromAnnotationOrTypeOrDefault,
+  // fromDefinitionOrDefault,
 
   EventAggregator,
   EventAggregatorCallback,
@@ -257,11 +276,19 @@ export {
   isNumeric,
   camelCase,
   kebabCase,
+  pascalCase,
   toArray,
   // nextId,
   // resetId,
   // compareNumber,
   // mergeDistinct,
+  // isNumberOrBigInt,
+  // isStringOrDate,
+  bound,
+  // mergeArrays,
+  // mergeObjects,
+  // firstDefined,
+  // getPrototypeChain,
 } from '@aurelia/kernel';
 
 export {
@@ -279,6 +306,8 @@ export {
   // IGuardOptions,
   // Guardian,
 
+  // InstructionResolver,
+
   // GuardFunction,
   // GuardTarget,
   // INavigatorInstruction,
@@ -287,6 +316,9 @@ export {
   // IViewportInstruction,
   // NavigationInstruction,
   // ReentryBehavior,
+
+  // lifecycleLogger,
+  // LifecycleClass,
 
   INavRoute,
   // Nav,
@@ -328,10 +360,6 @@ export {
   IRouter,
   Router,
 
-  // IFindViewportsResult,
-  // ChildContainer,
-  // Scope as RouterScope, // duplicated in @aurelia/runtime
-
   // IViewportOptions,
   // Viewport,
 
@@ -348,6 +376,8 @@ export {
   // ViewportCustomElementRegistration,
   // NavCustomElement,
   // NavCustomElementRegistration,
+  // GotoCustomAttribute,
+  // GotoCustomAttributeRegistration
 } from '@aurelia/router';
 
 export {
@@ -517,9 +547,11 @@ export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorInstance,
-  // IBindingBehaviorDefinition,
-  // IBindingBehaviorResource,
-  // IBindingBehaviorType,
+  // PartialBindingBehaviorDefinition,
+  // BindingBehaviorKind,
+  // BindingBehaviorDecorator,
+  // BindingBehaviorInstance,
+  // BindingBehaviorType,
 
   // BindingModeBehavior,
   // OneTimeBindingBehavior,
@@ -527,23 +559,20 @@ export {
   // FromViewBindingBehavior,
   // TwoWayBindingBehavior,
 
-  // DebounceableBinding,
   // DebounceBindingBehavior,
-
-  // PriorityBindingBehavior,
 
   // SignalableBinding,
   // SignalBindingBehavior,
 
-  // ThrottleableBinding,
   // ThrottleBindingBehavior,
 
   customAttribute,
-  // CustomAttributeConstructor,
   // CustomAttributeDecorator,
   CustomAttribute,
-  // ICustomAttributeResource,
-  // ICustomAttributeType,
+  // CustomAttributeDefinition
+  // CustomAttributeKind,
+  // CustomAttributeType,
+  // PartialCustomAttributeDefinition,
   templateController,
 
   // FrequentMutations,
@@ -563,33 +592,53 @@ export {
   customElement,
   CustomElementHost,
   CustomElement,
-  // ICustomElementDecorator,
-  // ICustomElementResource,
-  // ICustomElementType,
+  // CustomElementDecorator,
+  // CustomElementKind,
+  // CustomElementType,
+  // CustomElementDefinition,
+  // PartialCustomElementDefinition,
   // IElementProjector,
   // IProjectorLocator,
   useShadowDOM,
 
-  ValueConverterInstance,
-  // IValueConverterDefinition,
-  // IValueConverterResource,
-  // IValueConverterType,
-  valueConverter,
   ValueConverter,
+  // ValueConverterDefinition,
+  // PartialValueConverterDefinition,
+  // ValueConverterKind,
+  // ValueConverterDecorator,
+  ValueConverterInstance,
+  // ValueConverterType,
+  valueConverter,
 
   // ISanitizer,
   // SanitizeValueConverter,
 
   // ViewValueConverter,
 
+  // Clock,
+  // IClock,
+  // IClockSettings,
+  IScheduler,
+  // ITask,
+  // ITaskQueue,
+  // QueueTaskOptions,
+  // Task,
+  // TaskAbortError,
+  // TaskCallback,
+  // TaskQueue,
+  TaskQueuePriority,
+  // TaskStatus,
+  // QueueTaskTargetOptions,
+
   bindable,
-  // BindableDecorator,
-  // WithBindables,
+  // PartialBindableDefinition,
+  // BindableDefinition,
   Bindable,
 
+  // PartialChildrenDefinition,
+  // ChildrenDefinition,
+  // Children,
   children,
-  // ChildrenDecorator,
-  // HasChildrenObservers,
 
   // These exports are temporary until we have a proper way to unit test them
   Controller,
@@ -598,6 +647,7 @@ export {
   // IViewLocator,
   // ViewLocator,
   // view,
+  // Views,
 
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
@@ -616,7 +666,6 @@ export {
   // OneTimeBindingBehaviorRegistration,
   // ToViewBindingBehaviorRegistration,
   // FromViewBindingBehaviorRegistration,
-  // PriorityBindingBehaviorRegistration,
   // SignalBindingBehaviorRegistration,
   // ThrottleBindingBehaviorRegistration,
   // TwoWayBindingBehaviorRegistration,
@@ -638,18 +687,9 @@ export {
   // IRendererRegistration,
   // RuntimeConfiguration,
 
-  // CustomAttributeDefinition,
   // AttributeInstruction,
-  // BindableDefinitions,
-  // BindableSource,
-  // buildTemplateDefinition,
-  // CustomElementConstructor,
   // HooksDefinition,
-  // PartialCustomAttributeDefinition,
-  // BindableDefinition,
-  // IBuildInstruction,
   // ICallBindingInstruction,
-  // IElementHydrationOptions,
   // IHydrateAttributeInstruction,
   // IHydrateElementInstruction,
   // IHydrateLetElementInstruction,
@@ -664,12 +704,10 @@ export {
   // ISetPropertyInstruction,
   // isTargetedInstruction,
   // ITargetedInstruction,
-  // PartialCustomElementDefinition,
   // NodeInstruction,
   // TargetedInstruction,
   // TargetedInstructionType,
-  // CustomElementDefinition,
-  // TemplatePartDefinitions,
+  // PartialCustomElementDefinitionParts,
   alias,
   registerAliases,
 
@@ -711,7 +749,7 @@ export {
   // IRenderContext,
   // IViewCache,
   // IViewFactory,
-  // Priority,
+  // MountStrategy,
 
   // PromiseOrTask,
   // MaybePromiseOrTask,
@@ -773,7 +811,6 @@ export {
   addBinding,
 
   // CompiledTemplate,
-  // createRenderContext,
   // ChildrenObserver,
   // IInstructionRenderer,
   // IInstructionTypeClassifier,
@@ -782,7 +819,9 @@ export {
   // ITemplate,
   // ITemplateCompiler,
   // ITemplateFactory,
-  // ViewCompileFlags
+  // ViewCompileFlags,
+
+  // RenderContext
 } from '@aurelia/runtime';
 
 export {
@@ -840,6 +879,10 @@ export {
 
   // Focus,
 
+  // Portal,
+  // PortalTarget,
+  // PortalLifecycleCallback,
+
   // Subject,
   // Compose,
 
@@ -860,6 +903,8 @@ export {
   // AttributeBindingRendererRegistration,
   // ListenerBindingRendererRegistration,
   // SetAttributeRendererRegistration,
+  // SetClassAttributeRendererRegistration,
+  // SetStyleAttributeRendererRegistration,
   // StylePropertyBindingRendererRegistration,
   // TextBindingRendererRegistration,
 
@@ -892,6 +937,8 @@ export {
   // CaptureBindingInstruction,
   // DelegateBindingInstruction,
   // SetAttributeInstruction,
+  // SetClassAttributeInstruction,
+  // SetStyleAttributeInstruction,
   // StylePropertyBindingInstruction,
   // TextBindingInstruction,
   // TriggerBindingInstruction,
@@ -915,8 +962,10 @@ export {
   // IShadowDOMGlobalStyles
 } from '@aurelia/runtime-html';
 
-// export {
-//   IDOMInitializerRegistration,
-//   DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
-//   RuntimeHtmlBrowserConfiguration
-// } from '@aurelia/runtime-html-browser';
+export {
+  // IDOMInitializerRegistration,
+  // DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
+  // RuntimeHtmlBrowserConfiguration
+  // BrowserDOMInitializer,
+  // BrowserScheduler
+} from '@aurelia/runtime-html-browser';

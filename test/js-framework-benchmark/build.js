@@ -41,8 +41,8 @@ _.each(skippable, ([dir,name]) => console.log(`*** Skipping ${dir}${name}`));
 _.each([].concat(relevant, core), function([dir,name]) {
   const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
-    console.log(`*** Executing npm install in ${fullname}`);
-    exec('npm install --no-package-lock', {
+    console.log(`*** Executing npm i in ${fullname}`);
+    exec('npm i --no-package-lock', {
       cwd: fullname,
       stdio: 'inherit'
     });

@@ -21,19 +21,19 @@
     "font-awesome": "^4.6.3"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "^12.12.6",
     "css-loader": "^3.2.0",
     "file-loader": "^4.2.0",
-    "html-loader": "latest",
+    "html-loader": "^0.5.5",
     "html-webpack-plugin": "latest",
-    "http-server": "^0.11.1",
-    "rimraf": "latest",
+    "http-server": "0.9.0",
+    "rimraf": "^3.0.0",
     "style-loader": "^1.0.0",
-    "ts-loader": "latest",
-    "typescript": "latest",
+    "ts-loader": "^6.2.0",
+    "typescript": "^3.7.2",
     "url-loader": "^2.2.0",
-    "webpack": "latest",
-    "webpack-cli": "latest",
-    "webpack-dev-server": "latest"
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2"
   }
 }

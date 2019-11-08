@@ -120,50 +120,61 @@ We have very precise rules over how our git commit messages can be formatted. Th
 
 ### Commit Message Format
 
-Each commit message consists of a **header**, a **body** and a **footer**. The header has a special format that includes a **type**, a **scope**, and a **subject**:
+Each commit message consists of a **type** (mandatory), a **scope** (optional) and a **description** (mandatory).
 
 ```
-<type>(<scope>): <subject>
-<BLANK LINE>
-<body>
-<BLANK LINE>
-<footer>
+<type>(<scope>): <description>
 ```
 
-The subject line of the commit message cannot be longer 100 characters. This allows the message to be easier to read on GitHub as well as in various git tools.
+or
+
+```
+<type>: <description>
+```
+
+Examples:
+```
+feat(custom-element): add the strict option to the @customElement decorator
+fix(metadata): do not throw when a function is passed into decorate
+chore(all): fix no-unused-vars violations
+ci: fix an issue with the e2e test job
+docs: make some adjustments to git commit guidelines
+```
+
+
+The description should preferably be less than 100 characters, but if a few more characters is needed for a more accurate description, adding `--no-verify` after the `git commit` command can be used to override the automated verification.
 
 #### Type
 
 Please use one of the following:
 
-* **feat**: A new feature
-* **fix**: A bug fix
-* **docs**: Documentation only changes
-* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
-* **refactor**: A code change that neither fixes a bug or adds a feature
-* **perf**: A code change that improves performance
-* **test**: Adding missing tests
-* **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation
+> Note: the semver bump is always at minimum "patch", so in practice, everything that is not "feat" will behave like "fix".
+We make the distinction, however, for the purpose of this document because it adds a clearer meaning to the idea of "affects the semver bump".
+
+|            | Semver bump | Changelog header         | Applicable to | Clarification |
+| -----------|-------------|--------------------------|---------------|---------------|
+| "feat"     | minor       | Features                 | Code that is published to npm | New capabilities / additions to public api |
+| "fix"      | patch       | Bugfixes                 | Code that is published to npm | Bugfixes, directly or indirectly related to public api |
+| "perf"     | -           | Performance improvements | Code that is published to npm | Performance improvements, directly or indirectly related to public api |
+| "refactor" | -           | Refactorings             | Code that is published to npm | Improvements, directly or indirectly related to public api, that don't fit the description of any other type |
+| "docs"     | -           | -                        | Code/content that may or may not be published to npm | Markdown documents, jsdoc comments |
+| "style"    | -           | -                        | Code that may or may not be published to npm | Linting fixes in code |
+| "test"     | -           | -                        | Code that is NOT published to npm | Code that tests code that is published to npm: additions/changes to unit, integration, e2e tests |
+| "build"    | -           | -                        | Code/config that is NOT published to npm | Code or config that produces the artifacts that are published to npm |
+| "ci"       | -           | -                        | Code/config that is NOT published to npm | Code or config that affects the CI/CD pipeline |
+| "chore"    | -           | -                        | Anything that may or may not be published to npm | Any kind of house-keeping that does not clearly belong to any other type |
+| "revert"   | -           | -                        | A specific commit that has been committed before and affects the changelog | Will cancel out the addition of said commit in the changelog (not yet implemented) |
+
+For practical reasons, different degrees of strictness apply depending on the type of commit.
+
+- The types "feat", "fix", "perf" and "refactor" MUST be used when they are applicable as per the description above, and not in any other case.
+- The types "perf" and "refactor" MAY be used interchangeably if the changes in code have aspects of both these types (pick the intended or dominant type).
+- Type types "feat" and "fix" MUST be used exclusively in isolation. If necessary, split up the changes into multiple commits to ensure that a single commit does not contain fixes as well as features, or multiple fixes / multiple features.
+- In all other cases, when in doubt, "chore" MAY be used as a 'catch-all' type, because nothing else ends up in the change log, but for clarity of the commit history it is still preferable to be as precise as possible.
 
 #### Scope
 
-The scope could be anything specifying the location of the commit change. For example `template-compiler` or `reporter`.
-
-#### Subject
-
-The subject contains a succinct description of the change:
-
-* Use the imperative, present tense: "change" not "changed" nor "changes".
-* Don't capitalize the first letter.
-* Do not add a dot (.) at the end.
-
-#### Body
-
-The body should include the motivation for the change and contrast this with previous behavior.
-
-#### Footer
-
-The footer should contain any information about **Breaking Changes** and is also the place to reference GitHub issues that this commit **Closes**.
+The scope could be anything specifying the package, file, or theme of the commit change. For example `kernel`, `di` or `examples`.
 
 ## Signing the CLA
 

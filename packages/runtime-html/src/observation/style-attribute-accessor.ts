@@ -3,10 +3,12 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
+  INode,
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
 
 export class StyleAttributeAccessor implements IAccessor<unknown> {
+  public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
@@ -21,8 +23,9 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public constructor(
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    public readonly obj: HTMLElement,
+    obj: INode,
   ) {
+    this.obj = obj as HTMLElement;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -125,6 +128,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
         name = tuple[0];
         value = tuple[1];
         this.setProperty(name, value);
+        styles[name] = version;
       }
 
       this.styles = styles;

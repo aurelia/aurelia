@@ -1,15 +1,20 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
-import { toArray, PLATFORM } from '@aurelia/kernel';
+import { toArray } from '@aurelia/kernel';
 import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
 import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
-import { startup, TestExecutionContext } from './app/startup';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
+import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
+import { Cards } from './app/molecules/cards/cards';
+import { RandomGenerator } from './app/molecules/random-generator/random-generator';
 
 describe('app', function () {
-  function createTestFunction(testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
+  function createTestFunction(
+    testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
+    startupConfiguration?: StartupConfiguration,
+  ) {
     return async function () {
-      const ctx = await startup();
+      const ctx = await startup(startupConfiguration);
       try {
         await testFunction(ctx);
       } catch (e) {
@@ -19,14 +24,14 @@ describe('app', function () {
       }
     };
   }
-  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    it(title, createTestFunction(testFunction));
+  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+    it(title, createTestFunction(testFunction, startupConfiguration));
   }
-  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    it.skip(title, createTestFunction(testFunction));
+  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+    it.skip(title, createTestFunction(testFunction, startupConfiguration));
   };
-  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void) {
-    it.only(title, createTestFunction(testFunction));
+  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
+    it.only(title, createTestFunction(testFunction, startupConfiguration));
   };
 
   function getViewModel<T>(element: Element) {
@@ -810,4 +815,132 @@ describe('app', function () {
       }
     })
   );
+
+  [
+    { useCSSModule: false, selectedHeaderColor: 'rgb(255, 0, 0)', selectedDetailsColor: 'rgb(106, 106, 106)' },
+    { useCSSModule: true, selectedHeaderColor: 'rgb(0, 0, 255)', selectedDetailsColor: 'rgb(203, 203, 203)' },
+  ].map(({ useCSSModule, selectedHeaderColor, selectedDetailsColor }) =>
+    $it(`uses cards to display topic details which marks the selected topic with a specific color - useCSSModule:${useCSSModule}`,
+      async function ({ host, ctx }) {
+        const container1 = host.querySelector('cards #cards1');
+        const container2 = host.querySelector('cards #cards2');
+        const cards1 = toArray(container1.querySelectorAll('div'));
+        const cards2 = toArray(container2.querySelectorAll('div'));
+
+        assert.html.computedStyle(container1, { display: 'flex' }, 'incorrect container1 display');
+        assert.html.computedStyle(container2, { display: 'flex' }, 'incorrect container2 display');
+        assert.equal(cards1.every((card) => card.querySelector('footer').classList.contains('foo-bar')), true);
+        assert.html.computedStyle(cards1[0], { backgroundColor: selectedHeaderColor }, 'incorrect selected background1 - container1');
+        assert.html.computedStyle(cards1[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container1');
+        assert.html.computedStyle(cards2[0], { backgroundColor: selectedHeaderColor }, 'incorrect selected background1 - container2');
+        assert.html.computedStyle(cards2[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container2');
+
+        cards1[1].click();
+        await ctx.scheduler.yieldAll();
+
+        assert.html.computedStyle(cards1[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container1');
+        assert.html.computedStyle(cards1[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container1');
+        assert.html.computedStyle(cards1[1], { backgroundColor: selectedHeaderColor }, 'incorrect selected background2 - container1');
+        assert.html.computedStyle(cards1[1].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color2 - container1');
+
+        assert.html.computedStyle(cards2[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container2');
+        assert.html.computedStyle(cards2[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container2');
+        assert.html.computedStyle(cards2[1], { backgroundColor: selectedHeaderColor }, 'incorrect selected background2 - container2');
+        assert.html.computedStyle(cards2[1].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color2 - container2');
+      },
+      { useCSSModule }));
+
+  $it(`cards uses inline styles`, async function ({ host, ctx }) {
+    const cardsEl = host.querySelector('cards');
+    const cardsVm = getViewModel<Cards>(cardsEl);
+
+    for (const id of ['simple-style', 'inline-bound-style', 'bound-style-obj', 'bound-style-array', 'bound-style-str']) {
+      assert.html.computedStyle(
+        cardsEl.querySelector(`p#${id}`),
+        { backgroundColor: 'rgb(255, 0, 0)', fontWeight: '700' },
+        `style ${id}`
+      );
+    }
+
+    cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
+    cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
+    cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
+    await ctx.scheduler.yieldAll();
+
+    for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
+      const para = cardsEl.querySelector(`p#${id}`);
+      assert.html.computedStyle(
+        para,
+        {
+          backgroundColor: 'rgb(0, 0, 255)',
+          borderTopWidth: '1px',
+          borderBottomWidth: '1px',
+          borderRightWidth: '1px',
+          borderLeftWidth: '1px',
+          borderTopStyle: 'solid',
+          borderBottomStyle: 'solid',
+          borderRightStyle: 'solid',
+          borderLeftStyle: 'solid',
+          borderTopColor: 'rgb(0, 255, 0)',
+          borderBottomColor: 'rgb(0, 255, 0)',
+          borderRightColor: 'rgb(0, 255, 0)',
+          borderLeftColor: 'rgb(0, 255, 0)',
+        },
+        `style ${id} - post change`);
+      assert.html.notComputedStyle(
+        para,
+        { fontWeight: '700' },
+        `font-weight ${id} - post change`);
+    }
+  });
+
+  $it(`cards have image`, async function ({ host, ctx }) {
+    const images: HTMLImageElement[] = toArray(host.querySelectorAll('cards #cards1 div img'));
+    const { heroes } = getViewModel<App>(host);
+
+    for (let i = 0; i < images.length; i++) {
+      assert.equal(images[i].src.endsWith(heroes[i].imgSrc), true, `incorrect img src#${i + 1}`);
+    }
+
+    heroes[0].imgSrc = undefined;
+    await ctx.scheduler.yieldAll();
+    assert.equal(images[0].src, '', `expected null img src`);
+
+    const imgSrc = "foobar.jpg";
+    heroes[0].imgSrc = imgSrc;
+    await ctx.scheduler.yieldAll();
+    assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
+  });
+
+  $it(`uses random-generator which generates a random number iff the container div is clicked`, async function ({ host, ctx }) {
+    const ce = host.querySelector("random-generator");
+    const vm = getViewModel<RandomGenerator>(ce);
+    const container = ce.querySelector("div");
+    const button = container.querySelector("button");
+
+    let prev = vm.random;
+    const assertAttr = () => {
+      assert.equal(container['foobar'], vm.random);
+      assert.equal(container.getAttribute('foobar'), undefined);
+      assert.equal(container['foo-bar'], undefined);
+      assert.equal(container.getAttribute('foo-bar'), vm.random);
+    };
+    assertAttr();
+
+    // self BB
+    container.click();
+    await ctx.scheduler.yieldAll();
+    assert.notEqual(vm.random, prev, 'new random expected1');
+    assertAttr();
+
+    prev = vm.random;
+    button.click();
+    await ctx.scheduler.yieldAll();
+    assert.equal(vm.random, prev, 'new random not expected');
+
+    container.click();
+    await ctx.scheduler.yieldAll();
+    assert.notEqual(vm.random, prev, 'new random expected2');
+    assertAttr();
+  });
 });

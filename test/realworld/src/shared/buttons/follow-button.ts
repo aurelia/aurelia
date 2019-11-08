@@ -1,6 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { bindable } from '@aurelia/runtime';
+
 import { ProfileService } from 'shared/services/profile-service';
 import { SharedState } from 'shared/state/shared-state';
 
@@ -9,10 +10,11 @@ export class FollowButton {
   @bindable public article: any;
   @bindable public toggle: any;
 
-  public constructor(private readonly router: IRouter,
+  public constructor(
+    private readonly router: IRouter,
     private readonly sharedState: SharedState,
-    private readonly profileService: ProfileService) {
-  }
+    private readonly profileService: ProfileService,
+  ) {}
 
   public onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {

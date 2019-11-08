@@ -57,7 +57,8 @@ export class App {
       'table',
       {
         class: 'table is-fullwidth',
-      },[
+      },
+      [
         createElement<Node>(dom, 'thead', {}, [
           createElement<Node>(dom, 'tr', {
             $1: new HydrateTemplateController({

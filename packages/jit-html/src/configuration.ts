@@ -6,11 +6,6 @@ import {
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import {
-  AttrAttributePattern,
-  ClassAttributePattern,
-  StyleAttributePattern
-} from './attribute-patterns';
-import {
   AttrBindingCommand,
   CaptureBindingCommand,
   ClassBindingCommand,
@@ -36,15 +31,6 @@ export const DefaultComponents = [
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
   IAttrSyntaxTransformerRegistation
-];
-
-/**
- * Default HTML-specific (but environment-agnostic) implementations for style binding
- */
-export const JitAttrBindingSyntax = [
-  StyleAttributePattern,
-  ClassAttributePattern,
-  AttrAttributePattern
 ];
 
 export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
@@ -88,7 +74,6 @@ export const JitHtmlConfiguration = {
       .register(
         ...JitDefaultComponents,
         ...JitDefaultBindingSyntax,
-        ...JitAttrBindingSyntax,
         ...JitDefaultBindingLanguage,
         ...DefaultComponents,
         ...DefaultBindingLanguage

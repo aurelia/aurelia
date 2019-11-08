@@ -132,4 +132,7 @@ export {
   mergeObjects,
   firstDefined,
   getPrototypeChain,
+  isObject,
+  isNullOrUndefined,
+  isNativeFunction,
 } from './functions';

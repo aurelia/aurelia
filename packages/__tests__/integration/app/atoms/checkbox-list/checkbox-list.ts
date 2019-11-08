@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/check-indentation */
 import { customElement, bindable } from '@aurelia/runtime';
 import * as template from './checkbox-list.html';
 

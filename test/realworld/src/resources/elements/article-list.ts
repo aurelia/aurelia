@@ -1,5 +1,6 @@
-import { bindable } from "@aurelia/runtime";
-import { Article } from "shared/models/article";
+import { bindable } from '@aurelia/runtime';
+
+import { Article } from 'shared/models/article';
 
 export class ArticleList {
   @bindable public articles?: Article[];

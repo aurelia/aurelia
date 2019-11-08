@@ -134,4 +134,5 @@ export {
   getPrototypeChain,
   isObject,
   isNullOrUndefined,
+  isNativeFunction,
 } from './functions';

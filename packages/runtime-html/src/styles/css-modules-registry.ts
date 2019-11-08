@@ -10,9 +10,13 @@ export class CSSModulesProcessorRegistry implements IRegistry {
     class ClassCustomAttribute {
       @bindable public value!: string;
 
+      private element: HTMLElement;
+
       public constructor(
-        @INode private element: HTMLElement,
-      ) {}
+        @INode element: INode,
+      ) {
+        this.element = element as HTMLElement;
+      }
 
       public binding() {
         this.valueChanged();

@@ -34,7 +34,7 @@ describe('value-converters', function () {
       @bindable({ primary: true })
       public value: any;
       private readonly element: Element;
-      public constructor(element: INode) {
+      public constructor(@INode element: INode) {
         this.element = element as Element;
       }
 
@@ -49,7 +49,7 @@ describe('value-converters', function () {
       @bindable({ primary: true })
       public value: any;
       private readonly element: Element;
-      public constructor(element: INode) {
+      public constructor(@INode element: INode) {
         this.element = element as Element;
       }
 

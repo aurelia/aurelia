@@ -45,7 +45,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -73,7 +73,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public diameter: number;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -102,7 +102,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -130,7 +130,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -160,7 +160,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public diameter: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -191,7 +191,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -221,7 +221,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -246,7 +246,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
         class Square {
           public value: string;
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -273,7 +273,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           class Square {
             public value: string;
             private readonly el: HTMLElement;
-            public constructor(el: INode) {
+            public constructor(@INode el: INode) {
               this.el = el as HTMLElement;
             }
 
@@ -323,7 +323,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
         }
@@ -349,7 +349,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
         }
@@ -378,7 +378,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -408,7 +408,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 
@@ -441,7 +441,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
           public color: string;
 
           private readonly el: HTMLElement;
-          public constructor(el: INode) {
+          public constructor(@INode el: INode) {
             this.el = el as HTMLElement;
           }
 

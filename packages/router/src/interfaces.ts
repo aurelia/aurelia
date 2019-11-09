@@ -16,8 +16,8 @@ export type RouteableComponentType<C extends Constructable = Constructable> = Cu
 
 export interface IRouteableComponent<T extends INode = INode> extends IViewModel<T> {
   reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
+  canEnter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  enter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
   canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
   leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
 }
@@ -60,4 +60,4 @@ export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothin
 
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable; // TODO: | IRouteableComponent;
 export type ViewportHandle = string | Viewport;
-export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];
+export type ComponentParameters = string | Record<string, unknown> | unknown[];

@@ -2119,8 +2119,37 @@ export class $Function<
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
   public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
-    // TODO
-    return {} as any;
+    // 1. Assert: F is an ECMAScript function object.
+    const F = this;
+    const realm = F['[[Realm]]'];
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.
+    if (F['[[FunctionKind]]'] === 'classConstructor') {
+      throw new TypeError('2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.');
+    }
+
+    // 3. Let callerContext be the running execution context.
+    const stack = realm.stack;
+    const callerContext = stack.top;
+
+    // 4. Let calleeContext be PrepareForOrdinaryCall(F, undefined).
+    const calleeContext = $PrepareForOrdinaryCall(F, intrinsics.undefined);
+
+    // 5. Assert: calleeContext is now the running execution context.
+    // 6. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
+    $OrdinaryCallBindThis(F, calleeContext, thisArgument);
+
+    // 7. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
+    const result = $OrdinaryCallEvaluateBody(F, argumentsList);
+
+    // 8. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    stack.pop(); // TODO: verify
+
+    // 9. If result.[[Type]] is return, return NormalCompletion(result.[[Value]]).
+    // 10. ReturnIfAbrupt(result).
+    // 11. Return NormalCompletion(undefined).
+    return result;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
@@ -2449,6 +2478,15 @@ function $OrdinaryCallBindThis(
 
   // 10. Return envRec.BindThisValue(thisValue).
   return envRec.BindThisValue(thisValue);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-ordinarycallevaluatebody
+function $OrdinaryCallEvaluateBody(
+  F: $Function,
+  argumentsList: readonly $Any[],
+): $Any {
+  // TODO: hook this up to EvaluateBody
+  return null as any;
 }
 
 export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';

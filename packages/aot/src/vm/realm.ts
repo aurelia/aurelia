@@ -313,7 +313,9 @@ export class Realm {
     return realm;
   }
 
-  public async loadEntryFile(opts: IOptions): Promise<$SourceFile> {
+  public async loadEntryFile(): Promise<$SourceFile> {
+    const opts = this.container.get(IOptions);
+
     this.logger.info(`Loading entry file: ${JSON.stringify(opts)}`);
 
     const pkg = await this.loadEntryPackage(opts);
@@ -499,9 +501,7 @@ export class Realm {
   private loadEntryPackage(opts: IOptions): Promise<NPMPackage> {
     this.logger.trace(`loadEntryPackage(${JSON.stringify(opts)})`);
 
-    const container = this.container.createChild();
-    Registration.instance(IOptions, opts).register(container);
-    const loader = container.get(NPMPackageLoader);
+    const loader = this.container.get(NPMPackageLoader);
 
     return loader.loadEntryPackage(opts.rootDir);
   }

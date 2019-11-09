@@ -5,7 +5,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric } from './functions';
+import { isNumeric, isNativeFunction } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -646,6 +646,9 @@ const createFactory = (function() {
   };
 
   return function <T extends Constructable>(Type: T): Factory<T> {
+    if (isNativeFunction(Type)) {
+      Reporter.write(5, Type.name);
+    }
     const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
     return new Factory<T>(Type, invoker, dependencies);
@@ -1013,9 +1016,7 @@ export class InstanceProvider<K extends Key> implements IResolver<K | null> {
 
 /** @internal */
 export function validateKey(key: any): void {
-  // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
-  // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
-  if (key == null || key === Object) {
+  if (key === null || key === void 0) {
     throw Reporter.error(5);
   }
 }

@@ -19,7 +19,8 @@ import {
   IScope,
   IsExpression,
   LifecycleFlags,
-  State
+  State,
+  INode
 } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -59,11 +60,14 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
+  public readonly target: HTMLElement;
+
   public constructor(
-    public readonly target: HTMLElement,
+    target: INode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
   ) {
+    this.target = target as HTMLElement;
     this.$state = State.none;
     this.i18n = this.locator.get(I18N);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);

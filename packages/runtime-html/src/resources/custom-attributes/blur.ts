@@ -136,11 +136,14 @@ export class Blur {
    */
   private readonly manager: BlurManager;
 
+  private readonly element: HTMLElement;
+
   public constructor(
-    @INode private readonly element: HTMLElement,
+    @INode element: INode,
     @IDOM private readonly dom: HTMLDOM,
     @IScheduler scheduler: IScheduler
   ) {
+    this.element = element as HTMLElement;
     /**
      * By default, the behavior should be least surprise possible, that:
      *

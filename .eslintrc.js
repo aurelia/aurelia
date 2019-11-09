@@ -240,7 +240,12 @@ module.exports = {
     polyfills: [
       'fetch',
       'Reflect',
-      'Promise'
+      'Promise',
+      'Map',
+      'Set',
+      'Object.assign',
+      'WeakMap',
+      'WeakSet'
     ]
   }
 };

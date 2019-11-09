@@ -1057,7 +1057,7 @@ describe(`The Container class`, function () {
   // });
 
   describe(`registerTransformer()`, function () {
-    for (const key of [null, undefined, Object]) {
+    for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = setup();
         assert.throws(() => sut.registerTransformer(key, null as any), /5/, `() => sut.registerTransformer(key, null as any)`);
@@ -1074,7 +1074,7 @@ describe(`The Container class`, function () {
   });
 
   describe(`getResolver()`, function () {
-    for (const key of [null, undefined, Object]) {
+    for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = setup();
         assert.throws(() => sut.getResolver(key, null as any), /5/, `() => sut.getResolver(key, null as any)`);
@@ -1097,7 +1097,7 @@ describe(`The Container class`, function () {
   // });
 
   describe(`get()`, function () {
-    for (const key of [null, undefined, Object]) {
+    for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = setup();
         assert.throws(() => sut.get(key), /5/, `() => sut.get(key)`);
@@ -1107,7 +1107,7 @@ describe(`The Container class`, function () {
   });
 
   describe(`getAll()`, function () {
-    for (const key of [null, undefined, Object]) {
+    for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = setup();
         assert.throws(() => sut.getAll(key), /5/, `() => sut.getAll(key)`);

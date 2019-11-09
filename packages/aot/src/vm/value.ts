@@ -2063,7 +2063,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
 
 
   // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any) {
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Object) {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].

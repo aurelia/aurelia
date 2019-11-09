@@ -211,7 +211,7 @@ export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-construct
-export function $Construct(F: $Function, argumentsList?: readonly $Any[], newTarget?: $Any): $Object {
+export function $Construct(F: $Function, argumentsList?: readonly $Any[], newTarget?: $Object): $Object {
   // 1. If newTarget is not present, set newTarget to F.
   if (newTarget === void 0) {
     newTarget = F;

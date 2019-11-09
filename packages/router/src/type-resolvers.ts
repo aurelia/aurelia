@@ -79,13 +79,13 @@ export const NavigationInstructionResolver = {
         instructions.push(instruction);
       } else if ((instruction as IViewportInstruction).component) {
         const viewportComponent = instruction as IViewportInstruction;
-        const newInstruction = new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
+        const newInstruction = router.createViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
           newInstruction.nextScopeInstructions = NavigationInstructionResolver.toViewportInstructions(router, viewportComponent.children);
         }
         instructions.push(newInstruction);
       } else {
-        instructions.push(new ViewportInstruction(instruction as ComponentAppellation));
+        instructions.push(router.createViewportInstruction(instruction as ComponentAppellation));
       }
     }
     return instructions;

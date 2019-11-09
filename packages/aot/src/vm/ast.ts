@@ -1045,6 +1045,36 @@ function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
   return (parent.node as Node).kind === SyntaxKind.CallExpression && (parent as $CallExpression).node.expression === prev.node;
 }
 
+function evaluateStatement(statement: $$ESStatement) {
+  let stmtCompletion: CompletionRecord;
+  switch (statement.$kind) {
+    case SyntaxKind.Block:
+    case SyntaxKind.VariableStatement:
+    case SyntaxKind.EmptyStatement:
+    case SyntaxKind.ExpressionStatement:
+    case SyntaxKind.IfStatement:
+    case SyntaxKind.SwitchStatement:
+    case SyntaxKind.ContinueStatement:
+    case SyntaxKind.BreakStatement:
+    case SyntaxKind.ReturnStatement:
+    case SyntaxKind.WithStatement:
+    case SyntaxKind.LabeledStatement:
+    case SyntaxKind.ThrowStatement:
+    case SyntaxKind.TryStatement:
+    case SyntaxKind.DebuggerStatement:
+      stmtCompletion = statement.Evaluate();
+      break;
+    case SyntaxKind.DoStatement:
+    case SyntaxKind.WhileStatement:
+    case SyntaxKind.ForStatement:
+    case SyntaxKind.ForInStatement:
+    case SyntaxKind.ForOfStatement:
+      stmtCompletion = statement.EvaluateLabelled();
+      break;
+    // Note that no default case is needed here as the cases above are exhausetive $$ESStatement (http://www.ecma-international.org/ecma-262/#prod-Statement)
+  }
+  return stmtCompletion;
+}
 // #endregion
 
 // #region AST
@@ -7088,7 +7118,7 @@ export class ExportEntryRecord {
     public readonly ModuleRequest: $String | $Null,
     public readonly ImportName: $String | $Null,
     public readonly LocalName: $String | $Null,
-  ) {}
+  ) { }
 }
 
 export class $ExportAssignment implements I$Node {
@@ -8109,39 +8139,6 @@ export class $IfStatement implements I$Node {
 
     const exprRef = $expression.Evaluate();
     const exprValue = exprRef.GetValue().ToBoolean();
-
-    const evaluateStatement = (statement: $$ESStatement) => {
-      let stmtCompletion: CompletionRecord;
-      switch (statement.$kind) {
-        case SyntaxKind.Block:
-        case SyntaxKind.VariableStatement:
-        case SyntaxKind.EmptyStatement:
-        case SyntaxKind.ExpressionStatement:
-        case SyntaxKind.IfStatement:
-        case SyntaxKind.SwitchStatement:
-        case SyntaxKind.ContinueStatement:
-        case SyntaxKind.BreakStatement:
-        case SyntaxKind.ReturnStatement:
-        case SyntaxKind.WithStatement:
-        case SyntaxKind.LabeledStatement:
-        case SyntaxKind.ThrowStatement:
-        case SyntaxKind.TryStatement:
-        case SyntaxKind.DebuggerStatement:
-          stmtCompletion = statement.Evaluate();
-          break;
-        case SyntaxKind.DoStatement:
-        case SyntaxKind.WhileStatement:
-        case SyntaxKind.ForStatement:
-        case SyntaxKind.ForInStatement:
-        case SyntaxKind.ForOfStatement:
-          stmtCompletion = statement.EvaluateLabelled();
-        default:
-          stmtCompletion = new CompletionRecord(CompletionKind.normal, intrinsics.empty, intrinsics.empty, realm);
-          this.logger.warn(`Unsupported then statement kind ${$thenStatement.$kind}`);
-          break;
-      }
-      return stmtCompletion;
-    }
 
     if ($elseStatement !== undefined) {
       // IfStatement : if ( Expression ) Statement else Statement

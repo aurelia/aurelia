@@ -581,12 +581,12 @@ describe('Router', function () {
 
     const { scheduler, host, router, tearDown } = await setup();
 
-    await $goto('bar(123&OneTwoThree)@left', router, scheduler);
+    await $goto('bar(123,OneTwoThree)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $goto('bar(456&FourFiveSix)@left', router, scheduler);
+    await $goto('bar(456,FourFiveSix)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -599,12 +599,12 @@ describe('Router', function () {
 
     const { scheduler, host, router, tearDown } = await setup();
 
-    await $goto('bar(id=123&name=OneTwoThree)@left', router, scheduler);
+    await $goto('bar(id=123,name=OneTwoThree)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $goto('bar(name=FourFiveSix&id=456)@left', router, scheduler);
+    await $goto('bar(name=FourFiveSix,id=456)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -638,12 +638,12 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
-    await $goto('bar(456&FourFiveSix)@left?id=123&name=OneTwoThree', router, scheduler);
+    await $goto('bar(456,FourFiveSix)@left?id=123&name=OneTwoThree', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
 
-    await $goto('bar(name=SevenEightNine&id=789)@left?id=123&name=OneTwoThree', router, scheduler);
+    await $goto('bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);
@@ -1227,12 +1227,12 @@ describe('Router', function () {
     });
 
     const tests = [
-      { path: 'parent(a)@default', result: '!parent:a!', url: 'id=a' },
-      { path: 'b@default', result: '!parent:b!', url: 'id=b' },
-      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'id=c/id=d' },
-      { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'id=e/id=f' },
-      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'id=g/id=h/id=i' },
-      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'id=j/id=k/id=l' },
+      { path: 'parent(a)@default', result: '!parent:a!', url: 'a' },
+      { path: 'b@default', result: '!parent:b!', url: 'b' },
+      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'c/d' },
+      { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'e/f' },
+      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'g/h/i' },
+      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'j/k/l' },
     ];
 
     for (const test of tests) {

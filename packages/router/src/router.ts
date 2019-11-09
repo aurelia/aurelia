@@ -3,7 +3,7 @@ import { Aurelia, IController, IRenderContext, IViewModel, Controller } from '@a
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
@@ -94,6 +94,7 @@ export interface IRouter {
 
   addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[];
   removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void;
+  createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
 }
 
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
@@ -302,9 +303,10 @@ export class Router implements IRouter {
       clearUsedViewports = true;
       instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
     }
-    const parsedQuery: IParsedQuery = parseQuery(instruction.query);
-    instruction.parameters = parsedQuery.parameters;
-    instruction.parameterList = parsedQuery.list;
+    // TODO: PARAMETERS
+    // const parsedQuery: IParsedQuery = parseQuery(instruction.query);
+    // instruction.parameters = parsedQuery.parameters;
+    // instruction.parameterList = parsedQuery.list;
 
     // TODO: Fetch title (probably when done)
 
@@ -433,7 +435,7 @@ export class Router implements IRouter {
         defaultViewports.length === 0) {
         viewportInstructions = [
           ...viewportInstructions,
-          ...clearViewports.map(viewport => new ViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
+          ...clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
         ];
         clearViewports = [];
       }
@@ -677,6 +679,10 @@ export class Router implements IRouter {
     return viewport.removeRoutes(routes);
   }
 
+  public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
+    return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
+  }
+
   private findInstructions(scope: Viewport, instruction: string | ViewportInstruction[], instructionScope: Viewport, transformUrl: boolean = false): FoundRoute {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
@@ -830,10 +836,10 @@ export class Router implements IRouter {
 
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
-      instruction.path = state + query;
+    instruction.path = state + query;
     // }
 
-    const fullViewportStates = [new ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
+    const fullViewportStates = [this.createViewportInstruction(this.instructionResolver.clearViewportInstruction)];
     fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
     instruction.fullStateInstruction = fullViewportStates;
     return Promise.resolve();

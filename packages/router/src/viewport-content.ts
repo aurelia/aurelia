@@ -1,7 +1,7 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, IController, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
-import { mergeParameters } from './parser';
+import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -108,17 +108,21 @@ export class ViewportContent {
       return Promise.resolve(true);
     }
 
+    // TODO: PARAMETERS
     const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
-    const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
-    this.instruction.parameters = merged.namedParameters;
-    this.instruction.parameterList = merged.parameterList;
-    const result = this.content.componentInstance.canEnter(merged.merged, this.instruction, previousInstruction);
+    this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
+    const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
+    const result = this.content.componentInstance.canEnter(merged, this.instruction, previousInstruction);
+    // const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
+    // this.instruction.parameters = merged.namedParameters;
+    // this.instruction.parameterList = merged.parameterList;
+    // const result = this.content.componentInstance.canEnter(merged.merged, this.instruction, previousInstruction);
     Reporter.write(10000, 'viewport canEnter', result);
     if (typeof result === 'boolean') {
       return Promise.resolve(result);
     }
     if (typeof result === 'string') {
-      return Promise.resolve([new ViewportInstruction(result, viewport)]);
+      return Promise.resolve([viewport.router.createViewportInstruction(result, viewport)]);
     }
     return result as Promise<ViewportInstruction[]>;
   }
@@ -141,11 +145,16 @@ export class ViewportContent {
       return;
     }
     if (this.content.componentInstance && this.content.componentInstance.enter) {
+      // TODO: PARAMETERS
       const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
-      const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
-      this.instruction.parameters = merged.namedParameters;
-      this.instruction.parameterList = merged.parameterList;
-      await this.content.componentInstance.enter(merged.merged, this.instruction, previousInstruction);
+      this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
+      const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
+      await this.content.componentInstance.enter(merged, this.instruction, previousInstruction);
+      // const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
+      // const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
+      // this.instruction.parameters = merged.namedParameters;
+      // this.instruction.parameterList = merged.parameterList;
+      // await this.content.componentInstance.enter(merged.merged, this.instruction, previousInstruction);
     }
     this.entered = true;
   }

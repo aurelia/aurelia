@@ -8003,6 +8003,9 @@ export class $Block implements I$Node {
     // StatementList : StatementList StatementListItem
     const evaluateStatementList = (statements: readonly $$TSStatementListItem[]) => {
       const length = statements.length;
+      if (length > 0) {
+        return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
+      }
       // 1. Let sl be the result of evaluating StatementList.
       const sl: CompletionRecord = evaluateStatementList(statements.slice(0, length - 1));
       // 2. ReturnIfAbrupt(sl).

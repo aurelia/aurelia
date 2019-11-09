@@ -6787,7 +6787,7 @@ export class ImportEntryRecord {
     public readonly ModuleRequest: $String,
     public readonly ImportName: $String,
     public readonly LocalName: $String,
-  ) {}
+  ) { }
 }
 
 type $$ModuleReference = (
@@ -8043,8 +8043,7 @@ export class $EmptyStatement implements I$Node {
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
-
-    return null as any; // TODO: implement this
+    return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].empty, this.realm);
   }
 }
 
@@ -8168,7 +8167,7 @@ export class $IfStatement implements I$Node {
       // 3. If exprValue is false, then
       if (exprValue.is(intrinsics.false)) {
         // 3. a. Return NormalCompletion(undefined).
-        return new CompletionRecord(CompletionKind.normal, intrinsics.undefined, intrinsics.empty, realm);
+        return CompletionRecord.createNormal(intrinsics.undefined, realm);
       } else {
         // 4. Else,
         // 4. a. Let stmtCompletion be the result of evaluating Statement.
@@ -9185,6 +9184,10 @@ export enum CompletionKind {
   throw
 }
 export class CompletionRecord {
+  public static createNormal(value: $Any | $Empty, realm: Realm) {
+    return new CompletionRecord(CompletionKind.normal, value, realm['[[Intrinsics]]'].empty, realm);
+  }
+
   constructor(
     public Type: CompletionKind,
     public Value: $Any | $Empty,
@@ -9197,7 +9200,7 @@ export class CompletionRecord {
     const { Type, Value, realm } = this;
     const isEmpty = Value.is(realm['[[Intrinsics]]'].empty);
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
-    if ((this.Type === CompletionKind.return || this.Type === CompletionKind.throw) && isEmpty) {
+    if ((Type === CompletionKind.return || Type === CompletionKind.throw) && isEmpty) {
       throw new AssertionError()
     }
 

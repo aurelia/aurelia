@@ -82,7 +82,7 @@ export class Viewport {
       if (typeof content === 'string') {
         viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
       } else {
-        viewportInstruction = new ViewportInstruction(content);
+        viewportInstruction = this.router.createViewportInstruction(content);
       }
     }
     viewportInstruction.setViewport(this);

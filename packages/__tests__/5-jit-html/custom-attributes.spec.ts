@@ -15,7 +15,9 @@ describe('custom-attributes', function () {
     class Fooatt5 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {
@@ -28,7 +30,9 @@ describe('custom-attributes', function () {
     class Fooatt4 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {
@@ -42,7 +46,9 @@ describe('custom-attributes', function () {
     class FooMultipleAlias {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: Element) {
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
       }
 
       public bound() {
@@ -135,7 +141,9 @@ describe('custom-attributes', function () {
         @bindable public b: string;
         public aResult: boolean;
         public bResult: string;
-        public constructor(@INode private readonly element: Element) {
+        private readonly element: Element;
+        public constructor(@INode element: INode) {
+          this.element = element as Element;
           this.element.innerHTML = 'Created';
         }
         public bound() {
@@ -160,7 +168,9 @@ describe('custom-attributes', function () {
         @bindable({ primary: true }) public b: string;
         public aResult: boolean;
         public bResult: string;
-        public constructor(@INode private readonly element: Element) {
+        private readonly element: Element;
+        public constructor(@INode element: INode) {
+          this.element = element as Element;
           this.element.innerHTML = 'Created';
         }
         public bound() {

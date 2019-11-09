@@ -2393,6 +2393,64 @@ function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined):
   return calleeContext;
 }
 
+
+// http://www.ecma-international.org/ecma-262/#sec-ordinarycallbindthis
+function $OrdinaryCallBindThis(
+  F: $Function,
+  calleeContext: ExecutionContext,
+  thisArgument: $Any,
+): $Any {
+  const calleeRealm = F['[[Realm]]'];
+  const intrinsics = calleeRealm['[[Intrinsics]]'];
+
+  // 1. Let thisMode be F.[[ThisMode]].
+  const thisMode = F['[[ThisMode]]'];
+
+  // 2. If thisMode is lexical, return NormalCompletion(undefined).
+  if (thisMode === 'lexical') {
+    return intrinsics.undefined;
+  }
+
+  // 3. Let calleeRealm be F.[[Realm]].'];
+  // 4. Let localEnv be the LexicalEnvironment of calleeContext.
+  const localEnv = calleeContext.LexicalEnvironment;
+
+  let thisValue: $Any;
+  // 5. If thisMode is strict, let thisValue be thisArgument.
+  if (thisMode === 'strict') {
+    thisValue = thisArgument;
+  }
+  // 6. Else,
+  else {
+    // 6. a. If thisArgument is undefined or null, then
+    if (thisArgument.isNil) {
+      // 6. a. i. Let globalEnv be calleeRealm.[[GlobalEnv]].
+      // 6. a. ii. Let globalEnvRec be globalEnv's EnvironmentRecord.
+      const globalEnvRec = calleeRealm['[[GlobalEnv]]'];
+
+      // 6. a. iii. Assert: globalEnvRec is a global Environment Record.
+      // 6. a. iv. Let thisValue be globalEnvRec.[[GlobalThisValue]].
+      thisValue = globalEnvRec['[[GlobalThisValue]]'];
+    }
+    // 6. b. Else,
+    else {
+      // 6. b. i. Let thisValue be ! ToObject(thisArgument).
+      thisValue = thisArgument.ToObject();
+
+      // 6. b. ii. NOTE: ToObject produces wrapper objects using calleeRealm.
+    }
+  }
+
+  // 7. Let envRec be localEnv's EnvironmentRecord.
+  const envRec = localEnv as $FunctionEnvRec;
+
+  // 8. Assert: envRec is a function Environment Record.
+  // 9. Assert: The next step never returns an abrupt completion because envRec.[[ThisBindingStatus]] is not "initialized".
+
+  // 10. Return envRec.BindThisValue(thisValue).
+  return envRec.BindThisValue(thisValue);
+}
+
 export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';
 export type ConstructorKind = 'base' | 'derived';
 export type ThisMode = 'lexical' | 'strict' | 'global';

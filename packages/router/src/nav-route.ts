@@ -81,7 +81,7 @@ export class NavRoute {
     const components = this.linkActive as ViewportInstruction[];
     const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
     for (const component of components) {
-      if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
+      if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && component.typedParameters !== null))) {
         return '';
       }
     }

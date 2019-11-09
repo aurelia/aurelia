@@ -5,6 +5,7 @@ import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescript
 import { $EnvRec, $FunctionEnvRec } from './environment';
 import { $ParameterDeclaration, $Block, $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $ClassExpression, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction, $BooleanLiteral, $NullLiteral } from './ast';
 import { SyntaxKind } from 'typescript';
+import { Intrinsics } from './intrinsics';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -2153,9 +2154,57 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Any): $Object {
-    // TODO
-    return {} as any;
+  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Object): $Object {
+    // 1. Assert: F is an ECMAScript function object.
+    const F = this;
+    const realm = F['[[Realm]]'];
+    const intrinsics = realm['[[Intrinsics]]'];
+    const stack = realm.stack;
+
+    // 2. Assert: Type(newTarget) is Object.
+    // 3. Let callerContext be the running execution context.
+    const callerContext = stack.top;
+
+    // 4. Let kind be F.[[ConstructorKind]].
+    const kind = F['[[ConstructorKind]]'];
+
+    let thisArgument: $Any;
+    // 5. If kind is "base", then
+    if (kind === 'base') {
+      // 5. a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%ObjectPrototype%").
+      thisArgument = $OrdinaryCreateFromConstructor(newTarget, '%ObjectPrototype%');
+    } else {
+      thisArgument = intrinsics.undefined;
+    }
+
+    // 6. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
+    const calleeContext = $PrepareForOrdinaryCall(F, newTarget);
+
+    // 7. Assert: calleeContext is now the running execution context.
+    // 8. If kind is "base", perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
+    if (kind === 'base') {
+      $OrdinaryCallBindThis(F, calleeContext, thisArgument);
+    }
+
+    // 9. Let constructorEnv be the LexicalEnvironment of calleeContext.
+    // 10. Let envRec be constructorEnv's EnvironmentRecord.
+    const envRec = calleeContext.LexicalEnvironment;
+
+    // 11. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
+    const result = $OrdinaryCallEvaluateBody(F, argumentsList);
+
+    // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    stack.pop();
+
+    // 13. If result.[[Type]] is return, then
+    // 13. a. If Type(result.[[Value]]) is Object, return NormalCompletion(result.[[Value]]).
+    // 13. b. If kind is "base", return NormalCompletion(thisArgument).
+    // 13. c. If result.[[Value]] is not undefined, throw a TypeError exception.
+    // 14. Else, ReturnIfAbrupt(result).
+    // 15. Return ? envRec.GetThisBinding().
+
+    // TODO: integrate with CompletionRecord
+    return result as $Object;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-functionallocate
@@ -2376,6 +2425,45 @@ export class $Function<
 
     return $DefinePropertyOrThrow(this, intrinsics.$name, Desc);
   }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-ordinarycreatefromconstructor
+function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intrinsics, TSlots extends {} = {}>(
+  constructor: $Object,
+  intrinsicDefaultProto: T,
+  internalSlotsList?: TSlots,
+): $Object<T> & TSlots {
+  // 1. Assert: intrinsicDefaultProto is a String value that is this specification's name of an intrinsic object. The corresponding object must be an intrinsic that is intended to be used as the [[Prototype]] value of an object.
+  // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
+  const proto = $GetPrototypeFromConstructor(constructor, intrinsicDefaultProto);
+
+  // 3. Return ObjectCreate(proto, internalSlotsList).
+  return $Object.ObjectCreate(intrinsicDefaultProto, proto, internalSlotsList);
+}
+
+
+// http://www.ecma-international.org/ecma-262/#sec-getprototypefromconstructor
+function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrinsics>(
+  constructor: $Object,
+  intrinsicDefaultProto: T,
+): $Object {
+  const realm = constructor.realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. Assert: intrinsicDefaultProto is a String value that is this specification's name of an intrinsic object. The corresponding object must be an intrinsic that is intended to be used as the [[Prototype]] value of an object.
+  // 2. Assert: IsCallable(constructor) is true.
+  // 3. Let proto be ? Get(constructor, "prototype").
+  let proto = $Get(constructor, intrinsics.$prototype);
+
+  // 4. If Type(proto) is not Object, then
+  if (!proto.isObject) {
+    // 4. a. Let realm be ? GetFunctionRealm(constructor).
+    // 4. b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+    proto = intrinsics[intrinsicDefaultProto];
+  }
+
+  // 5. Return proto.
+  return proto as $Object;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-prepareforordinarycall

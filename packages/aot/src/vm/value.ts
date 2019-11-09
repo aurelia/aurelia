@@ -2099,9 +2099,8 @@ export class $Function<
   public get isFunction(): true { return true; }
 
   public ['[[Environment]]']: $EnvRec;
-  public ['[[FormalParameters]]']: readonly $ParameterDeclaration[];
   public ['[[FunctionKind]]']: FunctionKind;
-  public ['[[ECMAScriptCode]]']: $Block | $$AssignmentExpressionOrHigher;
+  public ['[[ECMAScriptCode]]']: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction;
   public ['[[ConstructorKind]]']: ConstructorKind;
   public ['[[Realm]]']: Realm;
   public ['[[ScriptOrModule]]']: $SourceFile;
@@ -2286,10 +2285,8 @@ export class $Function<
     F['[[Environment]]'] = Scope;
 
     // 5. Set F.[[FormalParameters]] to ParameterList.
-    F['[[FormalParameters]]'] = node.$parameters;
-
     // 6. Set F.[[ECMAScriptCode]] to Body.
-    F['[[ECMAScriptCode]]'] = node.$body;
+    F['[[ECMAScriptCode]]'] = node;
 
     // 7. Set F.[[ScriptOrModule]] to GetActiveScriptOrModule().
     F['[[ScriptOrModule]]'] = realm.GetActiveScriptOrModule();

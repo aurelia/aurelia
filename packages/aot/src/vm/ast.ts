@@ -1046,7 +1046,7 @@ function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
 }
 
 function evaluateStatement(statement: $$ESStatement) {
-  let stmtCompletion: CompletionRecord;
+  let stmtCompletion: CompletionRecord = null as any; // which one is missing?
   switch (statement.$kind) {
     case SyntaxKind.Block:
     case SyntaxKind.VariableStatement:
@@ -1527,6 +1527,308 @@ export class $FunctionDeclaration implements I$Node {
     // 7. Return F.
     return F;
   }
+}
+
+
+// http://www.ecma-international.org/ecma-262/#sec-functiondeclarationinstantiation
+function $FunctionDeclarationInstantiation(
+  func: $Function,
+  argumentsList: readonly $Any[],
+) {
+  const realm = func['[[Realm]]'];
+  const intrinsics = realm['[[Intrinsics]]'];
+  const stack = realm.stack;
+
+  // 1. Let calleeContext be the running execution context.
+  const calleeContext = stack.top;
+
+  // 2. Let env be the LexicalEnvironment of calleeContext.
+  // 3. Let envRec be env's EnvironmentRecord.
+  const envRec = calleeContext.LexicalEnvironment;
+
+  // 4. Let code be func.[[ECMAScriptCode]].
+  const code = func['[[ECMAScriptCode]]'] as $FunctionDeclaration | $ArrowFunction; // TODO: MethodDeclaration may need to be included as well?
+
+  // 5. Let strict be func.[[Strict]].
+  const strict = func['[[Strict]]'];
+
+  // 6. Let formals be func.[[FormalParameters]].
+  const formals = code.$parameters;
+
+  // 7. Let parameterNames be the BoundNames of formals.
+  const parameterNames = code.BoundNames;
+
+  // 8. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
+  let hasDuplicates = false;
+  const seen = new Set<string>();
+  for (const parameterName of parameterNames) {
+    if (seen.has(parameterName.value)) {
+      hasDuplicates = true;
+      break;
+    } else {
+      seen.add(parameterName.value);
+    }
+  }
+
+  // 9. Let simpleParameterList be IsSimpleParameterList of formals.
+  const simpleParameterList = code.IsSimpleParameterList;
+
+  // 10. Let hasParameterExpressions be ContainsExpression of formals.
+  const hasParameterExpressions = code.ContainsExpression;
+
+  // 11. Let varNames be the VarDeclaredNames of code.
+  const varNames = [] as $String[]; // TODO
+
+  // 12. Let varDeclarations be the VarScopedDeclarations of code.
+  const varDeclarations = code.VarScopedDeclarations;
+
+  // 13. Let lexicalNames be the LexicallyDeclaredNames of code.
+  const lexicalNames = [] as $String[]; // TODO
+
+  // 14. Let functionNames be a new empty List.
+  const functionNames = [] as $String[];
+
+  // 15. Let functionsToInitialize be a new empty List.
+  const functionsToInitialize = [] as ($FunctionDeclaration | $ArrowFunction)[];
+
+  let i = varDeclarations.length;
+  let d: $$ESDeclaration;
+  // 16. For each d in varDeclarations, in reverse list order, do
+  while (--i >= 0) {
+    d = varDeclarations[i];
+
+    // 16. a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
+    if (d instanceof $FunctionDeclaration) {
+      // 16. a. i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+      // 16. a. ii. Let fn be the sole element of the BoundNames of d.
+      const [fn] = d.BoundNames;
+
+      // 16. a. iii. If fn is not an element of functionNames, then
+      if (!functionNames.some(x => x.is(fn))) {
+        // 16. a. iii. 1. Insert fn as the first element of functionNames.
+        functionNames.unshift(fn);
+
+        // 16. a. iii. 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+        // 16. a. iii. 3. Insert d as the first element of functionsToInitialize.
+        functionsToInitialize.unshift(d);
+      }
+    }
+  }
+
+  // 17. Let argumentsObjectNeeded be true.
+  let argumentsObjectNeeded = true;
+
+  // 18. If func.[[ThisMode]] is lexical, then
+  if (func['[[ThisMode]]'] === 'lexical') {
+    // 18. a. NOTE: Arrow functions never have an arguments objects.
+    // 18. b. Set argumentsObjectNeeded to false.
+    argumentsObjectNeeded = false;
+  }
+  // 19. Else if "arguments" is an element of parameterNames, then
+  else if (parameterNames.some(x => x.value === 'arguments')) {
+    // 19. a. Set argumentsObjectNeeded to false.
+    argumentsObjectNeeded = false;
+  }
+  // 20. Else if hasParameterExpressions is false, then
+  else if (!hasParameterExpressions) {
+    // 20. a. If "arguments" is an element of functionNames or if "arguments" is an element of lexicalNames, then
+    if (functionNames.some(x => x.value === 'arguments') || lexicalNames.some(x => x.value === 'arguments')) {
+      // 20. a. i. Set argumentsObjectNeeded to false.
+      argumentsObjectNeeded = false;
+    }
+  }
+
+  // 21. For each String paramName in parameterNames, do
+  for (const paramName of parameterNames) {
+    // 21. a. Let alreadyDeclared be envRec.HasBinding(paramName).
+    const alreadyDeclared = envRec.HasBinding(paramName);
+
+    // 21. b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
+    // 21. c. If alreadyDeclared is false, then
+    if (alreadyDeclared.isFalsey) {
+      // 21. c. i. Perform ! envRec.CreateMutableBinding(paramName, false).
+      envRec.CreateMutableBinding(paramName, intrinsics.false);
+
+      // 21. c. ii. If hasDuplicates is true, then
+      if (hasDuplicates) {
+        // 21. c. ii. 1. Perform ! envRec.InitializeBinding(paramName, undefined).
+        envRec.InitializeBinding(paramName, intrinsics.undefined);
+      }
+    }
+  }
+
+  let parameterBindings: $String[] = []; // TODO
+
+  // 22. If argumentsObjectNeeded is true, then
+  if (argumentsObjectNeeded) {
+    // TODO: implement arguments mapped and unmapped objects
+
+    // 22. a. If strict is true or if simpleParameterList is false, then
+    if (strict.isTruthy || !simpleParameterList) {
+      // 22. a. i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+    }
+    // 22. b. Else,
+    else {
+      // 22. b. i. NOTE: mapped argument object is only provided for non-strict functions that don't have a rest parameter, any parameter default value initializers, or any destructured parameters.
+      // 22. b. ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, envRec).
+    }
+
+    // 22. c. If strict is true, then
+    if (strict.isTruthy) {
+      // 22. c. i. Perform ! envRec.CreateImmutableBinding("arguments", false).
+    }
+    // 22. d. Else,
+    else {
+      // 22. d. i. Perform ! envRec.CreateMutableBinding("arguments", false).
+    }
+
+    // 22. e. Call envRec.InitializeBinding("arguments", ao).
+    // 22. f. Let parameterBindings be a new List of parameterNames with "arguments" appended.
+  }
+  // 23. Else,
+  else {
+    // 23. a. Let parameterBindings be parameterNames.
+  }
+
+  // TODO: implement iterator
+
+  // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
+  // 25. If hasDuplicates is true, then
+  if (hasDuplicates) {
+    // 25. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and undefined as arguments.
+  }
+  // 26. Else,
+  else {
+    // 26. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and env as arguments.
+  }
+
+  let varEnvRec: $EnvRec;
+
+  // 27. If hasParameterExpressions is false, then
+  if (!hasParameterExpressions) {
+    // 27. a. NOTE: Only a single lexical environment is needed for the parameters and top-level vars.
+    // 27. b. Let instantiatedVarNames be a copy of the List parameterBindings.
+    const instantiatedVarNames = parameterBindings.slice();
+
+    // 27. c. For each n in varNames, do
+    for (const n of varNames) {
+      // 27. c. i. If n is not an element of instantiatedVarNames, then
+      if (!instantiatedVarNames.some(x => x.is(n))) {
+        // 27. c. i. 1. Append n to instantiatedVarNames.
+        instantiatedVarNames.push(n);
+
+        // 27. c. i. 2. Perform ! envRec.CreateMutableBinding(n, false).
+        envRec.CreateMutableBinding(n, intrinsics.false);
+
+        // 27. c. i. 3. Call envRec.InitializeBinding(n, undefined).
+        envRec.InitializeBinding(n, intrinsics.undefined);
+      }
+    }
+
+    // 27. d. Let varEnv be env.
+    // 27. e. Let varEnvRec be envRec.
+    varEnvRec = envRec;
+  }
+  // 28. Else,
+  else {
+    // 28. a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
+    // 28. b. Let varEnv be NewDeclarativeEnvironment(env).
+    // 28. c. Let varEnvRec be varEnv's EnvironmentRecord.
+    varEnvRec = new $DeclarativeEnvRec(realm, envRec);
+
+    // 28. d. Set the VariableEnvironment of calleeContext to varEnv.
+    calleeContext.VariableEnvironment = varEnvRec;
+
+    // 28. e. Let instantiatedVarNames be a new empty List.
+    const instantiatedVarNames = [] as $String[];
+
+    // 28. f. For each n in varNames, do
+    for (const n of varNames) {
+      // 28. f. i. If n is not an element of instantiatedVarNames, then
+      if (!varNames.some(x => x.is(n))) {
+        // 28. f. i. 1. Append n to instantiatedVarNames.
+        instantiatedVarNames.push(n);
+
+        // 28. f. i. 2. Perform ! varEnvRec.CreateMutableBinding(n, false).
+        varEnvRec.CreateMutableBinding(n, intrinsics.false);
+
+        let initialValue: $Any;
+
+        // 28. f. i. 3. If n is not an element of parameterBindings or if n is an element of functionNames, let initialValue be undefined.
+        if (!parameterBindings.some(x => x.is(n))) {
+          initialValue = intrinsics.undefined;
+        }
+        // 28. f. i. 4. Else,
+        else {
+          // 28. f. i. 4. a. Let initialValue be ! envRec.GetBindingValue(n, false).
+          initialValue = envRec.GetBindingValue(n, intrinsics.false);
+        }
+
+        // 28. f. i. 5. Call varEnvRec.InitializeBinding(n, initialValue).
+        varEnvRec.InitializeBinding(n, initialValue);
+
+        // 28. f. i. 6. NOTE: vars whose names are the same as a formal parameter, initially have the same value as the corresponding initialized parameter.
+      }
+    }
+  }
+
+  // 29. NOTE: Annex B.3.3.1 adds additional steps at this point.
+
+  let lexEnvRec: $EnvRec;
+
+  // 30. If strict is false, then
+  if (strict.isFalsey) {
+    // 30. a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
+    lexEnvRec = new $DeclarativeEnvRec(realm, varEnvRec);
+
+    // 30. b. NOTE: Non-strict functions use a separate lexical Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
+  }
+  // 31. Else, let lexEnv be varEnv.
+  else {
+    lexEnvRec = varEnvRec;
+  }
+
+  // 32. Let lexEnvRec be lexEnv's EnvironmentRecord.
+  // 33. Set the LexicalEnvironment of calleeContext to lexEnv.
+  calleeContext.LexicalEnvironment = lexEnvRec;
+
+  // 34. Let lexDeclarations be the LexicallyScopedDeclarations of code.
+  const lexDeclarations = code.LexicallyScopedDeclarations;
+
+  // 35. For each element d in lexDeclarations, do
+  for (const d of lexDeclarations) {
+    // 35. a. NOTE: A lexically declared name cannot be the same as a function/generator declaration, formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
+    // 35. b. For each element dn of the BoundNames of d, do
+    for (const dn of d.BoundNames) {
+      // 35. b. i. If IsConstantDeclaration of d is true, then
+      if (d.IsConstantDeclaration) {
+        // 35. b. i. 1. Perform ! lexEnvRec.CreateImmutableBinding(dn, true).
+        lexEnvRec.CreateImmutableBinding(dn, intrinsics.true);
+      }
+      // 35. b. ii. Else,
+      else {
+        // 35. b. ii. 1. Perform ! lexEnvRec.CreateMutableBinding(dn, false).
+        lexEnvRec.CreateMutableBinding(dn, intrinsics.false);
+      }
+    }
+  }
+
+  // 36. For each Parse Node f in functionsToInitialize, do
+  for (const f of functionsToInitialize) {
+    // 36. a. Let fn be the sole element of the BoundNames of f.
+    const [fn] = f.BoundNames;
+
+      // TODO: probably not right
+    if (f instanceof $FunctionDeclaration) {
+      // 36. b. Let fo be the result of performing InstantiateFunctionObject for f with argument lexEnv.
+      const fo = f.InstantiateFunctionObject(lexEnvRec);
+
+      // 36. c. Perform ! varEnvRec.SetMutableBinding(fn, fo, false).
+      varEnvRec.SetMutableBinding(fn, fo, intrinsics.false);
+    }
+  }
+
+  // 37. Return NormalCompletion(empty).
 }
 
 function $heritageClauseList(

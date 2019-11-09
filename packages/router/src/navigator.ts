@@ -44,8 +44,7 @@ export interface IStoredNavigatorEntry {
   path?: string;
   title?: string;
   query?: string;
-  parameters?: Record<string, string>;
-  parameterList?: string[];
+  parameters?: Record<string, unknown>;
   data?: Record<string, unknown>;
 }
 

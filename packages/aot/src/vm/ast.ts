@@ -147,7 +147,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
 import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
-import { $ModuleEnvRec, $EnvRec } from './environment';
+import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 import { AssertionError } from 'assert';
 const {
@@ -7992,29 +7992,86 @@ export class $Block implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
   public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
+    const { $statements, realm } = this;
 
     // Block : { }
-
     // 1. Return NormalCompletion(empty).
-
-    // Block : { StatementList }
-
-    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
-    // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
-    // 4. Set the running execution context's LexicalEnvironment to blockEnv.
-    // 5. Let blockValue be the result of evaluating StatementList.
-    // 6. Set the running execution context's LexicalEnvironment to oldEnv.
-    // 7. Return blockValue.
+    if ($statements.length === 0) {
+      return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
+    }
 
     // StatementList : StatementList StatementListItem
+    const evaluateStatementList = (statements: readonly $$TSStatementListItem[]) => {
+      const length = statements.length;
+      // 1. Let sl be the result of evaluating StatementList.
+      const sl: CompletionRecord = evaluateStatementList(statements.slice(0, length - 1));
+      // 2. ReturnIfAbrupt(sl).
+      if (sl.Type !== CompletionKind.normal) {
+        return sl;
+      }
+      // 3. Let s be the result of evaluating StatementListItem.
+      const s = evaluateStatement(statements[length - 1] as $$ESStatement); // TODO handle the declarations.
+      // 4. Return Completion(UpdateEmpty(s, sl)).
+      s.UpdateEmpty(sl.Value);
+      return s;
+    }
 
-    // 1. Let sl be the result of evaluating StatementList.
-    // 2. ReturnIfAbrupt(sl).
-    // 3. Let s be the result of evaluating StatementListItem.
-    // 4. Return Completion(UpdateEmpty(s, sl)).
+    // Block : { StatementList }
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = realm.stack.top.LexicalEnvironment;
+    // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
 
-    return null as any; // TODO: implement this
+    // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
+    this.BlockDeclarationInstantiation(blockEnv);
+
+    // 4. Set the running execution context's LexicalEnvironment to blockEnv.
+    realm.stack.top.LexicalEnvironment = blockEnv;
+
+    // 5. Let blockValue be the result of evaluating StatementList.
+    const blockValue = evaluateStatementList($statements);
+
+    // 6. Set the running execution context's LexicalEnvironment to oldEnv.
+    realm.stack.top.LexicalEnvironment = oldEnv;
+
+    // 7. Return blockValue.
+    return blockValue;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-blockdeclarationinstantiation
+  private BlockDeclarationInstantiation(envRec: $DeclarativeEnvRec) {
+
+    // 1. Let envRec be env's EnvironmentRecord.
+    // 2. Assert: envRec is a declarative Environment Record.
+    // 3. Let declarations be the LexicallyScopedDeclarations of code.
+
+    // 4. For each element d in declarations, do
+    for (const d of this.LexicallyScopedDeclarations) {
+
+      // 4. a. For each element dn of the BoundNames of d, do
+      for (const dn of d.BoundNames) {
+        // 4. a. i. If IsConstantDeclaration of d is true, then
+        if (d.IsConstantDeclaration) {
+          // 4. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
+          envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].true)
+        } else {
+          // 4. a. ii. Else,
+          // 4. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
+          envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].false)
+        }
+      }
+
+      const dkind = d.$kind;
+      // 4. b. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+      if (dkind === SyntaxKind.FunctionDeclaration /* || dkind === SyntaxKind.GeneratorDeclaration || dkind === SyntaxKind.AsyncFunctionDeclaration || dkind === SyntaxKind.AsyncGeneratorDeclaration */) {
+        // 4. b. i. Let fn be the sole element of the BoundNames of d.
+        const fn = d.BoundNames[0];
+        // 4. b. ii. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
+        const fo = (d as $FunctionDeclaration).InstantiateFunctionObject(envRec);
+        // 4. b. iii. Perform envRec.InitializeBinding(fn, fo).
+        envRec.InitializeBinding(fn, fo);
+      }
+    }
   }
 }
 

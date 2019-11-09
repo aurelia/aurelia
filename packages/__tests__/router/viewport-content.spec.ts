@@ -25,7 +25,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(new ViewportInstruction('global'), null, router.container as unknown as IRenderContext);
+      const viewport = new ViewportContent(router.createViewportInstruction('global'), null, router.container as unknown as IRenderContext);
       assert.strictEqual(viewport.toComponentName(), 'global', `viewport.toComponentName()`);
     });
     it('resolves component name from type', function () {
@@ -34,7 +34,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(new ViewportInstruction('global'), null, router.container as unknown as IRenderContext);
+      const viewport = new ViewportContent(router.createViewportInstruction('global'), null, router.container as unknown as IRenderContext);
       assert.strictEqual(viewport.toComponentName(), 'global', `viewport.toComponentName()`);
     });
 
@@ -44,7 +44,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(new ViewportInstruction('global'), null, router.container as unknown as IRenderContext);
+      const viewport = new ViewportContent(router.createViewportInstruction('global'), null, router.container as unknown as IRenderContext);
       assert.strictEqual(viewport.toComponentType(router.container as unknown as IRenderContext), Global, `viewport.toComponentType(router.container as unknown as IRenderContext)`);
     });
     it('resolves component type from type', function () {
@@ -53,7 +53,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(new ViewportInstruction(Global), null, router.container as unknown as IRenderContext);
+      const viewport = new ViewportContent(router.createViewportInstruction(Global), null, router.container as unknown as IRenderContext);
       assert.strictEqual(viewport.toComponentType(router.container as unknown as IRenderContext), Global, `viewport.toComponentType(router.container as unknown as IRenderContext)`);
     });
 
@@ -63,7 +63,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(new ViewportInstruction('global'), null, router.container as unknown as IRenderContext);
+      const viewport = new ViewportContent(router.createViewportInstruction('global'), null, router.container as unknown as IRenderContext);
       const component = viewport.toComponentInstance(router.container as unknown as IRenderContext);
       assert.strictEqual(component.constructor, Global, `component.constructor`);
     });
@@ -75,7 +75,7 @@ describe('ViewportContent', function () {
       container.register(Global);
       // Registration.alias(CustomElement.keyFrom('global'), Global).register(container);
 
-      const viewport = new ViewportContent(new ViewportInstruction(Global), null, router.container as unknown as IRenderContext);
+      const viewport = new ViewportContent(router.createViewportInstruction(Global), null, router.container as unknown as IRenderContext);
       const component = viewport.toComponentInstance(router.container as unknown as IRenderContext);
       assert.strictEqual(component.constructor, Global, `component.constructor`);
     });

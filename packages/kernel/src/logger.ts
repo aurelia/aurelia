@@ -60,7 +60,7 @@ export interface IConsoleLike {
 }
 
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-const format = toLookup({
+export const format = toLookup({
   red<T extends string>(str: T): T {
     return `\u001b[31m${str}\u001b[39m` as T;
   },

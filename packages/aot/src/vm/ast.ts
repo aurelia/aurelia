@@ -145,11 +145,12 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $NamespaceExoticObject, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any } from './value';
+import { empty, $Undefined, $Object, $String, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 import { AssertionError } from 'assert';
+import { $NamespaceExoticObject } from './exotics/namespace';
 const {
   emptyArray,
   emptyObject,

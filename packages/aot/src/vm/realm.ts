@@ -59,7 +59,7 @@ export class ResolvedBindingRecord {
   public constructor(
     public readonly Module: IModule,
     public readonly BindingName: $String,
-  ) {}
+  ) { }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
@@ -90,7 +90,7 @@ export class DeferredModule implements IModule {
   public constructor(
     public readonly $file: IFile,
     public readonly realm: Realm,
-  ) {}
+  ) { }
 
   public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
     throw new Error('Method not implemented.');
@@ -445,7 +445,7 @@ export class Realm {
     throw new Error(`GetActiveScriptOrModule: stack has no execution context with an active module`);
   }
 
-// http://www.ecma-international.org/ecma-262/#sec-resolvebinding
+  // http://www.ecma-international.org/ecma-262/#sec-resolvebinding
   public ResolveBinding(name: $String, env?: $EnvRec): $Reference {
     // 1. If env is not present or if env is undefined, then
     if (env === void 0) {
@@ -490,6 +490,15 @@ export class Realm {
     // 2. Return ? envRec.GetThisBinding().
     return envRec.GetThisBinding();
   }
+
+  // #region helper methods
+  public GetCurrentLexicalEnvironment(): $EnvRec {
+    return this.stack.top.LexicalEnvironment;
+  }
+  public SetCurrentLexicalEnvironment(envRec: $EnvRec) {
+    this.stack.top.LexicalEnvironment = envRec;
+  }
+  // #endregion
 
   public registerNode(node: I$Node): number {
     const id = this.nodeCount;

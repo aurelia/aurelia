@@ -1075,6 +1075,62 @@ function evaluateStatement(statement: $$ESStatement) {
   }
   return stmtCompletion;
 }
+
+// http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
+// StatementList : StatementList StatementListItem
+function evaluateStatementList(statements: readonly $$TSStatementListItem[], realm: Realm) {
+  const length = statements.length;
+  if (length > 0) {
+    return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
+  }
+  // 1. Let sl be the result of evaluating StatementList.
+  const sl: CompletionRecord = evaluateStatementList(statements.slice(0, length - 1), realm);
+  // 2. ReturnIfAbrupt(sl).
+  if (sl.Type !== CompletionKind.normal) {
+    return sl;
+  }
+  // 3. Let s be the result of evaluating StatementListItem.
+  const s = evaluateStatement(statements[length - 1] as $$ESStatement); // TODO handle the declarations.
+  // 4. Return Completion(UpdateEmpty(s, sl)).
+  s.UpdateEmpty(sl.Value);
+  return s;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-blockdeclarationinstantiation
+function blockDeclarationInstantiation(lexicallyScopedDeclarations: readonly $$ESDeclaration[], envRec: $DeclarativeEnvRec) {
+
+  // 1. Let envRec be env's EnvironmentRecord.
+  // 2. Assert: envRec is a declarative Environment Record.
+  // 3. Let declarations be the LexicallyScopedDeclarations of code.
+
+  // 4. For each element d in declarations, do
+  for (const d of lexicallyScopedDeclarations) {
+
+    // 4. a. For each element dn of the BoundNames of d, do
+    for (const dn of d.BoundNames) {
+      // 4. a. i. If IsConstantDeclaration of d is true, then
+      if (d.IsConstantDeclaration) {
+        // 4. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
+        envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].true)
+      } else {
+        // 4. a. ii. Else,
+        // 4. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
+        envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].false)
+      }
+    }
+
+    const dkind = d.$kind;
+    // 4. b. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+    if (dkind === SyntaxKind.FunctionDeclaration /* || dkind === SyntaxKind.GeneratorDeclaration || dkind === SyntaxKind.AsyncFunctionDeclaration || dkind === SyntaxKind.AsyncGeneratorDeclaration */) {
+      // 4. b. i. Let fn be the sole element of the BoundNames of d.
+      const fn = d.BoundNames[0];
+      // 4. b. ii. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
+      const fo = (d as $FunctionDeclaration).InstantiateFunctionObject(envRec);
+      // 4. b. iii. Perform envRec.InitializeBinding(fn, fo).
+      envRec.InitializeBinding(fn, fo);
+    }
+  }
+}
 // #endregion
 
 // #region AST
@@ -1818,7 +1874,7 @@ function $FunctionDeclarationInstantiation(
     // 36. a. Let fn be the sole element of the BoundNames of f.
     const [fn] = f.BoundNames;
 
-      // TODO: probably not right
+    // TODO: probably not right
     if (f instanceof $FunctionDeclaration) {
       // 36. b. Let fo be the result of performing InstantiateFunctionObject for f with argument lexEnv.
       const fo = f.InstantiateFunctionObject(lexEnvRec);
@@ -8302,81 +8358,26 @@ export class $Block implements I$Node {
       return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
     }
 
-    // StatementList : StatementList StatementListItem
-    const evaluateStatementList = (statements: readonly $$TSStatementListItem[]) => {
-      const length = statements.length;
-      if (length > 0) {
-        return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
-      }
-      // 1. Let sl be the result of evaluating StatementList.
-      const sl: CompletionRecord = evaluateStatementList(statements.slice(0, length - 1));
-      // 2. ReturnIfAbrupt(sl).
-      if (sl.Type !== CompletionKind.normal) {
-        return sl;
-      }
-      // 3. Let s be the result of evaluating StatementListItem.
-      const s = evaluateStatement(statements[length - 1] as $$ESStatement); // TODO handle the declarations.
-      // 4. Return Completion(UpdateEmpty(s, sl)).
-      s.UpdateEmpty(sl.Value);
-      return s;
-    }
-
     // Block : { StatementList }
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
-    const oldEnv = realm.stack.top.LexicalEnvironment;
+    const oldEnv = realm.GetCurrentLexicalEnvironment();
     // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
     const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
-    this.BlockDeclarationInstantiation(blockEnv);
+    blockDeclarationInstantiation(this.LexicallyScopedDeclarations, blockEnv);
 
     // 4. Set the running execution context's LexicalEnvironment to blockEnv.
-    realm.stack.top.LexicalEnvironment = blockEnv;
+    realm.SetCurrentLexicalEnvironment(blockEnv);
 
     // 5. Let blockValue be the result of evaluating StatementList.
-    const blockValue = evaluateStatementList($statements);
+    const blockValue = evaluateStatementList($statements, realm);
 
     // 6. Set the running execution context's LexicalEnvironment to oldEnv.
-    realm.stack.top.LexicalEnvironment = oldEnv;
+    realm.SetCurrentLexicalEnvironment(oldEnv);
 
     // 7. Return blockValue.
     return blockValue;
-  }
-
-  // http://www.ecma-international.org/ecma-262/#sec-blockdeclarationinstantiation
-  private BlockDeclarationInstantiation(envRec: $DeclarativeEnvRec) {
-
-    // 1. Let envRec be env's EnvironmentRecord.
-    // 2. Assert: envRec is a declarative Environment Record.
-    // 3. Let declarations be the LexicallyScopedDeclarations of code.
-
-    // 4. For each element d in declarations, do
-    for (const d of this.LexicallyScopedDeclarations) {
-
-      // 4. a. For each element dn of the BoundNames of d, do
-      for (const dn of d.BoundNames) {
-        // 4. a. i. If IsConstantDeclaration of d is true, then
-        if (d.IsConstantDeclaration) {
-          // 4. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-          envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].true)
-        } else {
-          // 4. a. ii. Else,
-          // 4. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-          envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].false)
-        }
-      }
-
-      const dkind = d.$kind;
-      // 4. b. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-      if (dkind === SyntaxKind.FunctionDeclaration /* || dkind === SyntaxKind.GeneratorDeclaration || dkind === SyntaxKind.AsyncFunctionDeclaration || dkind === SyntaxKind.AsyncGeneratorDeclaration */) {
-        // 4. b. i. Let fn be the sole element of the BoundNames of d.
-        const fn = d.BoundNames[0];
-        // 4. b. ii. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
-        const fo = (d as $FunctionDeclaration).InstantiateFunctionObject(envRec);
-        // 4. b. iii. Perform envRec.InitializeBinding(fn, fo).
-        envRec.InitializeBinding(fn, fo);
-      }
-    }
   }
 }
 
@@ -8448,7 +8449,7 @@ export class $ExpressionStatement implements I$Node {
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Return ? GetValue(exprRef).
 
-    return null as any; // TODO: implement this
+    return this.$expression.Evaluate() as unknown as CompletionRecord; // TODO fix this
   }
 }
 
@@ -9121,6 +9122,8 @@ export class $SwitchStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
     public readonly node: SwitchStatement,
@@ -9137,40 +9140,171 @@ export class $SwitchStatement implements I$Node {
     const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
 
     this.VarScopedDeclarations = $caseBlock.VarScopedDeclarations;
+    const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
+
+    for (const clause of $caseBlock.$clauses) {
+      for (const statement of clause.$statements) {
+        switch (statement.$kind) {
+          case SyntaxKind.FunctionDeclaration:
+          case SyntaxKind.ClassDeclaration:
+            LexicallyScopedDeclarations.push(statement);
+            break;
+          case SyntaxKind.VariableStatement:
+            if (statement.isLexical) {
+              LexicallyScopedDeclarations.push(statement);
+            }
+            break;
+          case SyntaxKind.LabeledStatement:
+            LexicallyScopedDeclarations.push(...statement.LexicallyScopedDeclarations);
+            break;
+        }
+      }
+    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
   public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
+    const { realm } = this;
     // SwitchStatement : switch ( Expression ) CaseBlock
 
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Let switchValue be ? GetValue(exprRef).
+    const switchValue = this.$expression.Evaluate().GetValue();
+
     // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = realm.GetCurrentLexicalEnvironment();
+
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
+
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    blockDeclarationInstantiation(this.LexicallyScopedDeclarations, blockEnv);
+
     // 6. Set the running execution context's LexicalEnvironment to blockEnv.
+    realm.SetCurrentLexicalEnvironment(blockEnv);
+
     // 7. Let R be the result of performing CaseBlockEvaluation of CaseBlock with argument switchValue.
+    const R = this.EvaluateCaseBlock(switchValue);
+
     // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    realm.SetCurrentLexicalEnvironment(oldEnv);
+
     // 9. Return R.
+    return R;
+  }
 
-    // CaseClause : case Expression :
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseblockevaluation
+  private EvaluateCaseBlock(switchValue: $Any) {
+    const { $caseBlock: { $clauses: clauses }, realm } = this;
+    const { undefined: $undefined, empty } = realm['[[Intrinsics]]'];
+    // CaseBlock : { }
+    // 1. Return NormalCompletion(undefined).
+    if (clauses.length === 0) {
+      return CompletionRecord.createNormal($undefined, realm);
+    }
 
-    // 1. Return NormalCompletion(empty).
+    let V: $Any = $undefined;
+    const defaultClauseIndex: number = clauses.findIndex((clause) => clause.$kind === SyntaxKind.DefaultClause);
+    class CaseClausesEvaluationResult {
+      constructor(public result: CompletionRecord, public found: boolean, public isAbrupt: boolean) { }
+    }
+    const evaluateCaseClauses = (inclusiveStartIndex: number, exclusiveEndIndex: number, found = false) => {
+      // 1. Let V be undefined.
+      // 2. Let A be the List of CaseClause items in CaseClauses, in source text order.
+      // 3. Let found be false.
+      // 4. For each CaseClause C in A, do
+      for (let i = inclusiveStartIndex; i < exclusiveEndIndex; i++) {
+        const C = clauses[i] as $CaseClause;
+        // 4. a. If found is false, then
+        if (!found) {
+          // 4. a. i. Set found to ? CaseClauseIsSelected(C, input).
+          found = this.IsCaseClauseSelected(C, switchValue);
+        }
+        // 4. b. If found is true, then
+        if (found) {
+          // 4. b. i. Let R be the result of evaluating C.
+          const R = evaluateStatementList(C.$statements, realm);
+          // 4. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+          if (R.Value !== empty) {
+            V = R.Value;
+          }
+          // 4. b. iii. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+          if (R.Type !== CompletionKind.normal) {
+            R.UpdateEmpty(V);
+            return new CaseClausesEvaluationResult(R, found, true);
+          }
+        }
+      }
+      // 5. Return NormalCompletion(V).
+      return new CaseClausesEvaluationResult(CompletionRecord.createNormal(V, realm), found, false);
+    }
 
-    // CaseClause : case Expression : StatementList
+    // CaseBlock : { CaseClauses }
+    if (defaultClauseIndex === -1) {
+      return evaluateCaseClauses(0, clauses.length).result;
+    }
 
-    // 1. Return the result of evaluating StatementList.
+    // CaseBlock : { CaseClauses opt DefaultClause CaseClauses opt }
+    // 1. Let V be undefined.
+    // 2. If the first CaseClauses is present, then
+    // 2. a. Let A be the List of CaseClause items in the first CaseClauses, in source text order.
+    // 3. Else,
+    // 3. a. Let A be « ».
+    // 4. Let found be false.
+    // 5. For each CaseClause C in A, do
+    // 5. a. If found is false, then
+    // 5. a. i. Set found to ? CaseClauseIsSelected(C, input).
+    // 5. b. If found is true, then
+    // 5. b. i. Let R be the result of evaluating C.
+    // 5. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+    // 5. b. iii. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+    let { result, found, isAbrupt } = evaluateCaseClauses(0, defaultClauseIndex);
+    if (isAbrupt) {
+      return result;
+    }
+    // 6. Let foundInB be false.
+    // 7. If the second CaseClauses is present, then
+    // 7. a. Let B be the List of CaseClause items in the second CaseClauses, in source text order.
+    // 8. Else,
+    // 8. a. Let B be « ».
+    // 9. If found is false, then
+    if (!found) {
+      // 9. a. For each CaseClause C in B, do
+      // 9. a. i. If foundInB is false, then
+      // 9. a. i. 1. Set foundInB to ? CaseClauseIsSelected(C, input).
+      // 9. a. ii. If foundInB is true, then
+      // 9. a. ii. 1. Let R be the result of evaluating CaseClause C.
+      // 9. a. ii. 2. If R.[[Value]] is not empty, set V to R.[[Value]].
+      // 9. a. ii. 3. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+      // 10. If foundInB is true, return NormalCompletion(V).
+      ({ result, isAbrupt, found } = evaluateCaseClauses(defaultClauseIndex + 1, clauses.length));
+      if (isAbrupt || found) {
+        return result;
+      }
+    }
+    // 11. Let R be the result of evaluating DefaultClause.
+    // 12. If R.[[Value]] is not empty, set V to R.[[Value]].
+    // 13. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+    ({ result, isAbrupt } = evaluateCaseClauses(defaultClauseIndex, defaultClauseIndex + 1, true));
+    if (isAbrupt) {
+      return result;
+    }
+    // 14. For each CaseClause C in B (NOTE: this is another complete iteration of the second CaseClauses), do
+    // 14. a. Let R be the result of evaluating CaseClause C.
+    // 14. b. If R.[[Value]] is not empty, set V to R.[[Value]].
+    // 14. c. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+    // 15. Return NormalCompletion(V).
+    return evaluateCaseClauses(defaultClauseIndex + 1, clauses.length, true).result;
+  }
 
-    // DefaultClause : default :
-
-    // 1. Return NormalCompletion(empty).
-
-    // DefaultClause : default : StatementList
-
-    // 1. Return the result of evaluating StatementList.
-
-    return null as any; // TODO: implement this
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseclauseisselected
+  private IsCaseClauseSelected(clause: $CaseClause, switchValue: $Any): boolean {
+    // 1. Assert: C is an instance of the production CaseClause:caseExpression:StatementListopt .
+    // 2. Let exprRef be the result of evaluating the Expression of C.
+    // 3. Let clauseSelector be ? GetValue(exprRef).
+    // 4. Return the result of performing Strict Equality Comparison input === clauseSelector.
+    return clause.$expression.Evaluate().GetValue() === switchValue;
   }
 }
 
@@ -9556,6 +9690,8 @@ export class CompletionRecord {
     public Target: $String | $Empty,
     public realm: Realm,
   ) { }
+
+  public GetValue() { return this.Value; }
 
   // http://www.ecma-international.org/ecma-262/#sec-updateempty
   public UpdateEmpty(value: $Any) {

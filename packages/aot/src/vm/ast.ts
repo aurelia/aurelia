@@ -1079,21 +1079,20 @@ function evaluateStatement(statement: $$ESStatement) {
 // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
 // StatementList : StatementList StatementListItem
 function evaluateStatementList(statements: readonly $$TSStatementListItem[], realm: Realm) {
-  const length = statements.length;
-  if (length > 0) {
-    return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
-  }
   // 1. Let sl be the result of evaluating StatementList.
-  const sl: CompletionRecord = evaluateStatementList(statements.slice(0, length - 1), realm);
   // 2. ReturnIfAbrupt(sl).
-  if (sl.Type !== CompletionKind.normal) {
-    return sl;
-  }
   // 3. Let s be the result of evaluating StatementListItem.
-  const s = evaluateStatement(statements[length - 1] as $$ESStatement); // TODO handle the declarations.
   // 4. Return Completion(UpdateEmpty(s, sl)).
-  s.UpdateEmpty(sl.Value);
-  return s;
+  let sl: CompletionRecord = CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
+  for (const statement of statements) {
+    const s = evaluateStatement(statement as $$ESStatement); // TODO handle the declarations.
+    s.UpdateEmpty(sl.Value);
+    sl = s;
+    if (sl.Type !== CompletionKind.normal) {
+      return sl;
+    }
+  }
+  return sl;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-blockdeclarationinstantiation
@@ -9699,6 +9698,7 @@ export class CompletionRecord {
     const isEmpty = Value.is(realm['[[Intrinsics]]'].empty);
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
     if ((Type === CompletionKind.return || Type === CompletionKind.throw) && isEmpty) {
+      // TODO use Reporter
       throw new AssertionError()
     }
 

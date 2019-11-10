@@ -142,7 +142,7 @@ class TestCase {
     try {
       result.phase = 'runtime';
       const res = mod.Evaluate();
-      result.runtime = new TestPhaseResult('runtime', file, res);
+      result.runtime = new TestPhaseResult('runtime', file, void 0);
     } catch (err) {
       result.runtime = new TestPhaseResult('runtime', file, void 0, err);
       return result;

@@ -1,8 +1,9 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $Null, $String, $Reference, $Primitive, $Function, $BoundFunctionExoticObject } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $Null, $String, $Reference, $Primitive, $Function } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
+import { $BoundFunctionExoticObject } from './exotics/bound-function';
 
 export type CallableFunction = (
   thisArgument: $Any,

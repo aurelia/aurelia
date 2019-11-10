@@ -7,6 +7,7 @@ import {
   IContainer,
   ILogger,
   PLATFORM,
+  format,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -14,8 +15,27 @@ import {
   Realm,
   IFile,
 } from '@aurelia/aot';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { $SourceFile } from '@aurelia/aot/dist/vm/ast';
+
+class TestPhaseResult<T extends 'early' | 'resolution' | 'runtime' = 'early' | 'resolution' | 'runtime'> {
+  public constructor(
+    public readonly phase: T,
+    public readonly file: IFile,
+    public readonly result: unknown,
+    public readonly err: Error | null = null,
+  ) {}
+}
+
+class TestResult {
+  public phase: 'early' | 'resolution' | 'runtime' = 'early';
+  public early: TestPhaseResult<'early'> | null = null;
+  public resolution: TestPhaseResult<'resolution'> | null = null;
+  public runtime: TestPhaseResult<'runtime'> | null = null;
+  public get last(): TestPhaseResult {
+    return this[this.phase];
+  }
+}
 
 class TestMetadataNegative {
   public constructor(
@@ -73,124 +93,87 @@ const excludedFeatures = [
 
 class TestCase {
   public readonly meta: TestMetadata | null;
+  public readonly files: readonly IFile[];
 
   public constructor(
     public readonly container: IContainer,
     public readonly logger: ILogger,
     public readonly file: IFile,
+    public readonly prerequisites: readonly IFile[],
   ) {
     this.meta = TestMetadata.from(file.getContentSync());
+    this.files = [...prerequisites, file];
   }
 
-  public async run(): Promise<void> {
-    const container = this.container;
-    const logger = this.logger;
-    const file = this.file;
-    const meta = this.meta;
+  public async run(): Promise<TestResult> {
+    const realm = Realm.Create(this.container);
+    const files = this.files;
 
-    if (file.shortName.endsWith('FIXTURE')) {
-      return;
-    }
-
-    if (meta !== null) {
-      if (excludedFeatures.some(x => meta.features.includes(x))) {
-        logger.info(`SKIP - ${meta.features} test file: ${file.rootlessPath}`);
-        return;
-      }
-
-      if (meta.negative !== null) {
-        switch (meta.negative.phase) {
-          case 'parse': // Parse errors should be caught by TypeScript
-            logger.info(`SKIP - parse error test file: ${file.rootlessPath}`);
-            return;
-          case 'early': // Early errors should be caught by TypeScript
-            logger.info(`SKIP - early error test file: ${file.rootlessPath}`);
-            return;
-          case 'resolution': {
-            const realm = Realm.Create(container);
-            let mod: $SourceFile;
-            try {
-              mod = await realm.loadFile(file);
-            } catch (err) {
-              throw new Error(`FAIL - Expected ${meta.negative.type} but got error at building AST: ${err.message} ${err.stack} - Resolution error test file: ${file.rootlessPath}`);
-            }
-
-            let err: Error;
-            try {
-              mod.Instantiate();
-            } catch ($err) {
-              err = $err;
-            }
-
-            // if (err === void 0) {
-            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got no error - Resolution error test file: ${file.rootlessPath}`);
-            // }
-
-            // if (err.name !== meta.negative.type) {
-            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Resolution error test file: ${file.rootlessPath}`);
-            // }
-
-            logger.info(`PASS - Resolution error test file: ${file.rootlessPath}`);
-          }
-          case 'runtime': {
-            const realm = Realm.Create(container);
-            let mod: $SourceFile;
-            try {
-              mod = await realm.loadFile(file);
-            } catch (err) {
-              throw new Error(`FAIL - Expected ${meta.negative.type} but got error at building AST: ${err.message} ${err.stack} - Runtime error test file: ${file.rootlessPath}`);
-            }
-
-            try {
-              mod.Instantiate();
-            } catch ($err) {
-              throw new Error(`FAIL - Expected ${meta.negative.type} at runtime, but got error at instantiate: ${$err.name} - Runtime error test file: ${file.rootlessPath}`);
-            }
-
-            let err: Error;
-            try {
-              mod.Evaluate();
-            } catch ($err) {
-              err = $err;
-            }
-
-            // if (err === void 0) {
-            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got no error - Runtime error test file: ${file.rootlessPath}`);
-            // }
-
-            // if (err.name !== meta.negative.type) {
-            //   throw new Error(`FAIL - Expected ${meta.negative.type} but got ${err.name} - Runtime error test file: ${file.rootlessPath}`);
-            // }
-
-            logger.info(`PASS - Runtime error test file: ${file.rootlessPath}`);
-          }
-        }
-        return;
+    for (let i = 0; i < files.length; ++i) {
+      const result = await this.execute(realm, files[i]);
+      if (result.last.err !== null || i === files.length - 1) {
+        return result;
       }
     }
+  }
 
-    const realm = Realm.Create(container);
+  private async execute(realm: Realm, file: IFile): Promise<TestResult> {
+    const result = new TestResult();
+
     let mod: $SourceFile;
     try {
+      result.phase = 'early';
       mod = await realm.loadFile(file);
+      result.early = new TestPhaseResult('early', file, void 0);
     } catch (err) {
-      throw new Error(`FAIL - Expected test case to run without error, but got error at building AST: ${err.message} ${err.stack} - Valid test file: ${file.rootlessPath}`);
+      result.early = new TestPhaseResult('early', file, void 0, err);
+      return result;
     }
 
     try {
+      result.phase = 'resolution';
       mod.Instantiate();
+      result.resolution = new TestPhaseResult('resolution', file, void 0);
     } catch (err) {
-      throw new Error(`FAIL - Expected test case to run without error, but got error at instantiate: ${err.message} ${err.stack} - Valid test file: ${file.rootlessPath}`);
+      result.resolution = new TestPhaseResult('resolution', file, void 0, err);
+      return result;
     }
 
     try {
-      mod.Evaluate();
+      result.phase = 'runtime';
+      const res = mod.Evaluate();
+      result.runtime = new TestPhaseResult('runtime', file, res);
     } catch (err) {
-      throw new Error(`FAIL - Expected test case to run without error, but got error at runtime: ${err.message} ${err.stack} - Valid test file: ${file.rootlessPath}`);
+      result.runtime = new TestPhaseResult('runtime', file, void 0, err);
+      return result;
     }
 
-    logger.info(`PASS - Valid test file: ${file.rootlessPath}`);
+    return result;
   }
+}
+
+function compareFiles(a: IFile, b: IFile): number {
+  const aPath = a.path.toLowerCase();
+  const bPath = b.path.toLowerCase();
+  const aLen = aPath.length;
+  const bLen = bPath.length;
+  let aCh = 0;
+  let bCh = 0;
+
+  for (let i = 0; i < aLen; ++i) {
+    if (i <= bLen) {
+      aCh = aPath.charCodeAt(i);
+      bCh = bPath.charCodeAt(i);
+      if (aCh < bCh) {
+        return -1;
+      } else if (aCh > bCh) {
+        return 1;
+      }
+    } else {
+      return 1;
+    }
+  }
+  return -1;
 }
 
 class TestRunner {
@@ -209,18 +192,60 @@ class TestRunner {
   }
 
   public async load(): Promise<void> {
-    const dir = resolve(__dirname, '..', '..', '..', 'test262', 'test', 'language');
+    const fs = this.fs;
+    const logger = this.logger;
+
+    const root = resolve(__dirname, '..', '..', '..', 'test262');
+
+    const testDir = join(root, 'test');
+    const languageDir = join(testDir, 'language');
+
+    const harnessDir = join(root, 'harness');
+    const harnessFiles = await fs.getFiles(harnessDir, true);
+    const staFile = harnessFiles.find(x => x.name === 'sta.js');
+    const assertFile = harnessFiles.find(x => x.name === 'assert.js');
+    const prerequisites = [staFile, assertFile];
 
     const now = PLATFORM.now();
-    this.logger.info(`Loading test files from ${dir}`);
+    logger.info(`Loading test files from ${languageDir}`);
 
-    const files = await this.fs.getFiles(dir, true);
+    const files = (await fs.getFiles(languageDir)).filter(x => !x.shortName.endsWith('FIXTURE'));
 
-    this.logger.info(`Loaded ${files.length} test files in ${Math.round(PLATFORM.now() - now)}ms`);
+    logger.info(`Discovered ${files.length} test files in ${Math.round(PLATFORM.now() - now)}ms`);
 
-    const testCases = files.slice().sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0).map(x => new TestCase(this.container, this.logger, x));
+    const testCases = files
+      .slice()
+      .sort(compareFiles)
+      .map(x => new TestCase(this.container, logger, x, prerequisites));
+
     for (const tc of testCases) {
-      await tc.run();
+      if (tc.meta != null && tc.meta.negative != null) {
+        // These error types should be caught by typescript
+        if (tc.meta.negative.phase === 'early' || tc.meta.negative.phase === 'parse') {
+          continue;
+        }
+
+        if (excludedFeatures.some(x => tc.meta.features.includes(x))) {
+          continue;
+        }
+      }
+      const result = await tc.run();
+
+      if (tc.meta.negative === null) {
+        if (result.last.err === null) {
+          logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+        } else {
+          logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result.last.err.message} ${result.last.err.stack})`);
+        }
+      } else {
+        if (result.last.err === null) {
+          logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
+        } else if (result.last.err.name !== tc.meta.negative.type) {
+          logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result.last.err.name})`);
+        } else {
+          logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+        }
+      }
     }
   }
 }

@@ -151,6 +151,7 @@ import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 import { AssertionError } from 'assert';
 import { $NamespaceExoticObject } from './exotics/namespace';
+import { ArrayBindingPattern } from '../../../runtime/dist';
 const {
   emptyArray,
   emptyObject,
@@ -169,26 +170,26 @@ function clearBit(flag: number, bit: number): number {
 }
 
 const enum Context {
-  None                      = 0b00000000000000000,
-  InTopLevel                = 0b00000000000000001,
-  InExpressionStatement     = 0b00000000000000010,
-  InVariableStatement       = 0b00000000000000100,
-  IsBindingName             = 0b00000000000001000,
-  InParameterDeclaration    = 0b00000000000010000,
-  InCatchClause             = 0b00000000000100000,
-  InBindingPattern          = 0b00000000001000000,
-  InTypeElement             = 0b00000000010000000,
-  IsPropertyAccessName      = 0b00000000100000000,
-  IsMemberName              = 0b00000001000000000,
-  IsLabel                   = 0b00000010000000000,
-  IsLabelReference          = 0b00000100000000000,
-  InExport                  = 0b00001000000000000,
-  IsConst                   = 0b00010000000000000,
-  IsLet                     = 0b00100000000000000,
-  IsBlockScoped             = 0b00110000000000000,
-  IsVar                     = 0b01000000000000000,
-  IsFunctionScoped          = 0b01000000000000000,
-  InStrictMode              = 0b10000000000000000,
+  None = 0b00000000000000000,
+  InTopLevel = 0b00000000000000001,
+  InExpressionStatement = 0b00000000000000010,
+  InVariableStatement = 0b00000000000000100,
+  IsBindingName = 0b00000000000001000,
+  InParameterDeclaration = 0b00000000000010000,
+  InCatchClause = 0b00000000000100000,
+  InBindingPattern = 0b00000000001000000,
+  InTypeElement = 0b00000000010000000,
+  IsPropertyAccessName = 0b00000000100000000,
+  IsMemberName = 0b00000001000000000,
+  IsLabel = 0b00000010000000000,
+  IsLabelReference = 0b00000100000000000,
+  InExport = 0b00001000000000000,
+  IsConst = 0b00010000000000000,
+  IsLet = 0b00100000000000000,
+  IsBlockScoped = 0b00110000000000000,
+  IsVar = 0b01000000000000000,
+  IsFunctionScoped = 0b01000000000000000,
+  InStrictMode = 0b10000000000000000,
 }
 
 const modifiersToModifierFlags = (function () {
@@ -2414,6 +2415,37 @@ export class $VariableDeclaration implements I$Node {
     } else {
       this.VarScopedDeclarations = emptyArray;
       this.IsConstantDeclaration = hasBit(ctx, Context.IsConst);
+    }
+  }
+
+  public InitializeBinding(value: $Any, envRec: $DeclarativeEnvRec | undefined) {
+    const kind = this.$name.$kind;
+    const boundNames = this.$name.BoundNames;
+    if ((boundNames?.length ?? 0) > 0) {
+      switch (kind) {
+        // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
+        // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
+        case SyntaxKind.Identifier:
+          const name = boundNames![0]?.GetValue();
+          // 1. Assert: Type(name) is String.
+          // 2. If environment is not undefined, then
+          if (envRec !== undefined) {
+            // 2. a. Let env be the EnvironmentRecord component of environment.
+            // 2. b. Perform env.InitializeBinding(name, value).            
+            envRec.InitializeBinding(name, value);
+            // 2. c. Return NormalCompletion(undefined).
+            return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].undefined, this.realm);
+          } else {
+            // 3. Else,
+            // 3. a. Let lhs be ResolveBinding(name).    
+            const lhs = this.realm.ResolveBinding(name);
+            // 3. b. Return ? PutValue(lhs, value).
+            lhs.PutValue(value);
+          }
+        case SyntaxKind.ObjectBindingPattern:
+        case SyntaxKind.ArrayBindingPattern:
+          break;
+      }
     }
   }
 }
@@ -9509,7 +9541,55 @@ export class $TryStatement implements I$Node {
     // 5. If F.[[Type]] is normal, set F to C.
     // 6. Return Completion(UpdateEmpty(F, undefined)).
 
-    return null as any; // TODO: implement this
+    const { $tryBlock, $catchClause, $finallyBlock, realm: { '[[Intrinsics]]': { undefined: $undefined } } } = this;
+    let result = $tryBlock.Evaluate();
+
+    if ($catchClause !== undefined) {
+      result = result.Type === CompletionKind.throw ? this.EvaluateCatchClause(result.Value) : result;
+    }
+    if ($finallyBlock !== undefined) {
+      const F = $finallyBlock.Evaluate();
+      result = F.Type !== CompletionKind.normal ? F : result;
+    }
+    result.UpdateEmpty($undefined);
+
+    return result;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
+  private EvaluateCatchClause(thrownValue: $Any): CompletionRecord {
+
+    const realm = this.realm;
+
+    // Catch : catch ( CatchParameter ) Block
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = realm.GetCurrentLexicalEnvironment();
+
+    // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
+    // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
+    const catchEnvRec = new $DeclarativeEnvRec(realm, oldEnv);
+
+    // 4. For each element argName of the BoundNames of CatchParameter, do
+    // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
+    this.$catchClause?.CreateBinding(catchEnvRec, realm);
+
+    // 5. Set the running execution context's LexicalEnvironment to catchEnv.
+    realm.SetCurrentLexicalEnvironment(catchEnvRec);
+
+    // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
+    this.$catchClause?.$variableDeclaration?.$initializer.
+
+    // 7. If status is an abrupt completion, then
+    // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 7. b. Return Completion(status).
+    // 8. Let B be the result of evaluating Block.
+    // 9. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 10. Return Completion(B).
+
+    // Catch : catch Block
+
+    // 1. Return the result of evaluating Block.
   }
 }
 
@@ -9668,6 +9748,39 @@ export class $CatchClause implements I$Node {
 
     this.VarScopedDeclarations = $block.VarScopedDeclarations;
   }
+
+  //#region helper methods
+  public CreateBinding(catchEnvRec: $DeclarativeEnvRec, realm: Realm) {
+    for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
+      catchEnvRec.CreateMutableBinding(argName, realm['[[Intrinsics]]'].false);
+    }
+  }
+
+  public InitializeCatchParameterBinding(thrownValue: $Any, catchEnvRec: $DeclarativeEnvRec) {
+    const kind = this.$variableDeclaration?.$name.$kind;
+    const boundNames = this.$variableDeclaration?.$name.BoundNames;
+    if ((boundNames?.length ?? 0) > 0) {
+      switch (kind) {
+        case SyntaxKind.Identifier:
+          // 1. Assert: Type(name) is String.
+          // 2. If environment is not undefined, then
+          // 2. a. Let env be the EnvironmentRecord component of environment.
+          // 2. b. Perform env.InitializeBinding(name, value).            
+          catchEnvRec.InitializeBinding(boundNames![0]?.GetValue(), thrownValue);
+          // 2. c. Return NormalCompletion(undefined).
+          return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].undefined, this.realm);
+        // Else is not needed in this case as catchEnvRec is always truthy
+        // 3. Else,
+        // 3. a. Let lhs be ResolveBinding(name).            
+        // 3. b. Return ? PutValue(lhs, value).
+        // break;
+        case SyntaxKind.ObjectBindingPattern:
+        case SyntaxKind.ArrayBindingPattern:
+          break;
+      }
+    }
+  }
+  //#endregion
 }
 
 // #endregion

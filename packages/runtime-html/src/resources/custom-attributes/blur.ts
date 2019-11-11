@@ -3,9 +3,8 @@ import {
   bindable,
   customAttribute,
   IDOM,
-  ILifecycle,
   INode,
-  Priority
+  IScheduler
 } from '@aurelia/runtime';
 import { HTMLDOM, NodeType } from '../../dom';
 
@@ -25,22 +24,19 @@ const defaultBubbleEventInit: AddEventListenerOptions = {
 const blurDocMap = new WeakMap<Document, BlurManager>();
 
 export class BlurManager {
-
-  private readonly blurs: Blur[];
+  private readonly blurs: Blur[] = [];
   private readonly handler: EventListenerObject;
 
   private constructor(
     public readonly dom: HTMLDOM,
-    public readonly lifecycle: ILifecycle
+    public readonly scheduler: IScheduler,
   ) {
     blurDocMap.set(dom.document, this);
-    this.dom = dom;
-    this.blurs = [];
     this.handler = createHandler(this, this.blurs);
   }
 
-  public static createFor(dom: HTMLDOM, lifecycle: ILifecycle): BlurManager {
-    return blurDocMap.get(dom.document) || new BlurManager(dom, lifecycle);
+  public static createFor(dom: HTMLDOM, scheduler: IScheduler): BlurManager {
+    return blurDocMap.get(dom.document) || new BlurManager(dom, scheduler);
   }
 
   public register(blur: Blur): void {
@@ -104,7 +100,7 @@ export class Blur {
   public onBlur!: () => void;
 
   /**
-   * Used to determine which elemens this attribute will be linked with
+   * Used to determine which elements this attribute will be linked with
    * Interacting with a linked element will not trigger blur for this attribute
    */
   @bindable()
@@ -140,11 +136,14 @@ export class Blur {
    */
   private readonly manager: BlurManager;
 
+  private readonly element: HTMLElement;
+
   public constructor(
-    @INode private readonly element: HTMLElement,
+    @INode element: INode,
     @IDOM private readonly dom: HTMLDOM,
-    @ILifecycle lifecycle: ILifecycle
+    @IScheduler scheduler: IScheduler
   ) {
+    this.element = element as HTMLElement;
     /**
      * By default, the behavior should be least surprise possible, that:
      *
@@ -155,7 +154,7 @@ export class Blur {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.createFor(dom, lifecycle);
+    this.manager = BlurManager.createFor(dom, scheduler);
   }
 
   public attached(): void {
@@ -181,11 +180,9 @@ export class Blur {
       return false;
     }
     let els: ArrayLike<Element>;
-    let i: number, ii: number;
+    let i: number;
     let j: number, jj: number;
-    let links: string | HasContains | (string | HasContains)[];
     let link: string | HasContains;
-    let contextNode: Element | null;
 
     const element = this.element;
     if (containsElementOrShadowRoot(element, target)) {
@@ -202,15 +199,15 @@ export class Blur {
     const searchSubTree = this.searchSubTree;
     const linkedMultiple = this.linkedMultiple;
 
-    links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
-    contextNode =
+    const links: string | HasContains | (string | HasContains)[] = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
+    const contextNode: Element | null =
       (typeof linkingContext === 'string'
         ? doc.querySelector(linkingContext)
         : linkingContext
       )
       || doc.body;
 
-    ii = links.length;
+    const ii: number = links.length;
     for (i = 0; ii > i; ++i) {
       link = links[i];
       // When user specify to link with something by a string, it acts as a CSS selector
@@ -320,7 +317,7 @@ const createHandler = (
   };
   const markChecked = () => {
     hasChecked = true;
-    manager.lifecycle.enqueueRAF(revertCheckage, void 0, Priority.preempt, true);
+    manager.scheduler.queueRenderTask(revertCheckage, { preempt: true });
   };
 
   const handleMousedown = (e: MouseEvent): void => {

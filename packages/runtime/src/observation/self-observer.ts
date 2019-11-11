@@ -9,41 +9,30 @@ export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
 
 @subscriberCollection()
 export class SelfObserver {
-  public readonly lifecycle: ILifecycle;
-
-  public readonly obj: IIndexable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
+  public currentValue: unknown = void 0;
+  public oldValue: unknown = void 0;
 
   public readonly persistentFlags: LifecycleFlags;
-  public inBatch: boolean;
+  public inBatch: boolean = false;
   public observing: boolean;
 
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
 
   public constructor(
-    lifecycle: ILifecycle,
+    public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    obj: object,
-    propertyName: string,
-    cbName: string
+    public readonly obj: IIndexable,
+    public readonly propertyKey: string,
+    cbName: string,
   ) {
-    this.lifecycle = lifecycle;
-
     let isProxy = false;
     if (ProxyObserver.isProxy(obj)) {
       isProxy = true;
-      obj.$observer.subscribe(this, propertyName);
-      this.obj = obj.$raw as IIndexable;
+      obj.$observer.subscribe(this, propertyKey);
+      this.obj = obj.$raw;
     } else {
-      this.obj = obj as IIndexable;
+      this.obj = obj;
     }
-    this.propertyKey = propertyName;
-    this.currentValue = void 0;
-    this.oldValue = void 0;
-
-    this.inBatch = false;
 
     this.callback = this.obj[cbName] as typeof SelfObserver.prototype.callback;
 
@@ -51,7 +40,7 @@ export class SelfObserver {
       this.observing = false;
     } else {
       this.observing = true;
-      this.currentValue = this.obj[this.propertyKey];
+      this.currentValue = obj[propertyKey];
       if (!isProxy) {
         this.createGetterSetter();
       }
@@ -72,10 +61,12 @@ export class SelfObserver {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
-        if ((flags & LifecycleFlags.fromBind) === 0) {
-          this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-          if (this.callback !== void 0) {
-            this.callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+        // eslint-disable-next-line sonarjs/no-collapsible-if
+        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSourceExpression) > 0) {
+          const callback = this.callback;
+          if (callback !== void 0) {
+            callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
           }
         }
       } else if (!this.inBatch) {

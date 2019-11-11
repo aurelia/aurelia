@@ -4,7 +4,7 @@ import {
   bindingCommand,
   BindingSymbol,
   getTarget,
-  IBindingCommand,
+  BindingCommandInstance,
   PlainAttributeSymbol
 } from '@aurelia/jit';
 import {
@@ -38,12 +38,14 @@ export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
   public mode: BindingMode.toView = BindingMode.toView;
 
-  public constructor(public from: IsBindingBehavior, public to: string) {
-  }
+  public constructor(
+    public from: IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 @bindingCommand(attribute)
-export class TranslationParametersBindingCommand implements IBindingCommand {
+export class TranslationParametersBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): TranslationParametersBindingInstruction {

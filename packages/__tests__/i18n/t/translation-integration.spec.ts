@@ -1,15 +1,9 @@
-import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand, Signals } from '@aurelia/i18n';
+import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags, ISignaler, CustomElement } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, CustomElement, DOM, INode, ISignaler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('translation-integration', function () {
-  afterEach(function () {
-    TranslationBindingCommand.aliases = ['t'];
-    TranslationAttributePattern.aliases = ['t'];
-    TranslationBindBindingCommand.aliases = ['t'];
-    TranslationBindAttributePattern.aliases = ['t'];
-  });
   @customElement({ name: 'custom-message', template: `<div>\${message}</div>`, isStrictBinding: true })
   class CustomMessage {
     @bindable public message: string;
@@ -575,7 +569,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]pre;[append]post';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
     });
@@ -595,7 +589,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
       app.keyExpr = '[prepend]preHtml;[append]postHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
     });
@@ -615,7 +609,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]preHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
     });
@@ -635,7 +629,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[append]postHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
     });
@@ -655,7 +649,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[html]midHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
     });
@@ -778,7 +772,7 @@ describe('translation-integration', function () {
       const { de, container, ctx } = await setup(host, new App());
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'custom-message div', de.simple.text);
     });
@@ -837,7 +831,7 @@ describe('translation-integration', function () {
       const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', de.simple.text);
     });
   });
@@ -895,7 +889,7 @@ describe('translation-integration', function () {
       const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', de.simple.text);
     });
@@ -951,7 +945,7 @@ describe('translation-integration', function () {
       const { i18n, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '20.8.2019');
     });
 
@@ -965,7 +959,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
 
       app.dt = new Date(2019, 7, 21);
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '8/21/2019');
     });
   });
@@ -1020,7 +1014,7 @@ describe('translation-integration', function () {
       const { i18n, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '20.8.2019');
     });
 
@@ -1034,7 +1028,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
 
       app.dt = new Date(2019, 7, 21);
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '8/21/2019');
     });
   });
@@ -1104,7 +1098,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { ctx, i18n } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
@@ -1117,7 +1111,7 @@ describe('translation-integration', function () {
       const app = new App();
       const { ctx } = await setup(host, app);
       app.num = 123456789.21;
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123,456,789.21');
     });
@@ -1188,7 +1182,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { ctx, i18n } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
@@ -1201,7 +1195,7 @@ describe('translation-integration', function () {
       const app = new App();
       const { ctx } = await setup(host, app);
       app.num = 123456789.21;
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123,456,789.21');
     });
@@ -1287,7 +1281,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { i18n, ctx } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
@@ -1307,12 +1301,14 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '5 hours ago');
     });
 
     it('updates formatted value if rt_signal', async function () {
+      this.timeout(10000);
+
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         public dt: Date = new Date();
@@ -1321,17 +1317,12 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const app = new App();
       const { ctx } = await setup(host, app);
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            resolve();
-          },
-          3000);
-      });
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
-      assertTextContent(host, 'span', '3 seconds ago');
+      await ctx.scheduler.queueMacroTask(delta => {
+        ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
+      }, { delay: 3000 }).result;
     });
   });
 
@@ -1339,13 +1330,13 @@ describe('translation-integration', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
       it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
-        let App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; });
+        const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', `${value}`);
       });
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
-        let App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; });
+        const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', `${value || ''}`);
@@ -1410,7 +1401,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { i18n, ctx } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
@@ -1430,12 +1421,14 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '5 hours ago');
     });
 
     it('updates formatted value if rt_signal', async function () {
+      this.timeout(10000);
+
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         public dt: Date = new Date();
@@ -1444,17 +1437,12 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const app = new App();
       const { ctx } = await setup(host, app);
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            resolve();
-          },
-          3000);
-      });
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
-      assertTextContent(host, 'span', '3 seconds ago');
+      await ctx.scheduler.queueMacroTask(delta => {
+        ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
+      }, { delay: 3000 }).result;
     });
   });
 

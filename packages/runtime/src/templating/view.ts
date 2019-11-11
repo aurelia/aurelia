@@ -1,5 +1,4 @@
-import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
-import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
+import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter, Metadata, Protocol } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
@@ -10,8 +9,9 @@ import {
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ITemplate } from '../rendering-engine';
-import { CustomElement } from '../resources/custom-element';
+import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
+import { PartialCustomElementDefinitionParts } from '../definitions';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -20,25 +20,17 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return this.template.renderContext.parentId;
   }
 
-  public isCaching: boolean;
-  public name: string;
-  public parts: TemplatePartDefinitions;
+  public isCaching: boolean = false;
+  public parts: PartialCustomElementDefinitionParts = PLATFORM.emptyObject;
 
-  private cache: IController<T>[];
-  private cacheSize: number;
-  private readonly lifecycle: ILifecycle;
-  private readonly template: ITemplate<T>;
+  private cache: IController<T>[] = null!;
+  private cacheSize: number = -1;
 
-  public constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
-    this.isCaching = false;
-
-    this.cacheSize = -1;
-    this.cache = null!;
-    this.lifecycle = lifecycle;
-    this.name = name;
-    this.template = template;
-    this.parts = PLATFORM.emptyObject;
-  }
+  public constructor(
+    public name: string,
+    private readonly template: ITemplate<T>,
+    private readonly lifecycle: ILifecycle,
+  ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
@@ -94,28 +86,58 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return controller;
   }
 
-  public addParts(parts: Record<string, ITemplateDefinition>): void {
-    if (this.parts === PLATFORM.emptyObject) {
-      this.parts = { ...parts };
-    } else {
-      Object.assign(this.parts, parts);
+  public addParts(parts: PartialCustomElementDefinitionParts): void {
+    if (Object.keys(parts).length > 0) {
+      this.parts = { ...this.parts, ...parts };
     }
   }
 }
 
-type HasAssociatedViews = {
-  $views: ITemplateDefinition[];
-};
-
-export function view(v: ITemplateDefinition) {
-  return function<T extends Constructable>(target: T & Partial<HasAssociatedViews>) {
-    const views = target.$views || (target.$views = []);
-    views.push(v);
-  };
+const seenViews = new WeakSet();
+function notYetSeen($view: PartialCustomElementDefinition): boolean {
+  return !seenViews.has($view);
+}
+function toCustomElementDefinition($view: PartialCustomElementDefinition): CustomElementDefinition {
+  seenViews.add($view);
+  return CustomElementDefinition.create($view);
 }
 
-function hasAssociatedViews<T>(object: T): object is T & HasAssociatedViews {
-  return object && '$views' in object;
+export const Views = {
+  name: Protocol.resource.keyFor('views'),
+  has(value: object): boolean {
+    return typeof value === 'function' && (Metadata.hasOwn(Views.name, value) || '$views' in value);
+  },
+  get(value: object | Constructable): readonly CustomElementDefinition[] {
+    if (typeof value === 'function' && '$views' in value) {
+      // TODO: a `get` operation with side effects is not a good thing. Should refactor this to a proper resource kind.
+      const $views = (value as { $views: PartialCustomElementDefinition[] }).$views;
+      const definitions = $views.filter(notYetSeen).map(toCustomElementDefinition);
+      for (const def of definitions) {
+        Views.add(value, def);
+      }
+    }
+    let views = Metadata.getOwn(Views.name, value) as CustomElementDefinition[] | undefined;
+    if (views === void 0) {
+      Metadata.define(Views.name, views = [], value);
+    }
+    return views;
+  },
+  add<T extends Constructable>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[] {
+    const definition = CustomElementDefinition.create(partialDefinition);
+    let views = Metadata.getOwn(Views.name, Type) as CustomElementDefinition[] | undefined;
+    if (views === void 0) {
+      Metadata.define(Views.name, views = [definition], Type);
+    } else {
+      views.push(definition);
+    }
+    return views;
+  },
+};
+
+export function view(v: PartialCustomElementDefinition) {
+  return function<T extends Constructable>(target: T) {
+    Views.add(target, v);
+  };
 }
 
 export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
@@ -134,7 +156,7 @@ export type ClassInstance<T> = T & {
 };
 
 export type ComposableObject = Omit<IViewModel, '$controller'>;
-export type ViewSelector = (object: ComposableObject, views: ITemplateDefinition[]) => string;
+export type ViewSelector = (object: ComposableObject, views: readonly PartialCustomElementDefinition[]) => string;
 export type ComposableObjectComponentType<T extends ComposableObject>
   = ConstructableClass<{ viewModel: T } & ComposableObject>;
 
@@ -163,9 +185,7 @@ export class ViewLocator implements IViewLocator {
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {
     if (object) {
-      const availableViews = hasAssociatedViews(object.constructor)
-        ? object.constructor.$views
-        : [];
+      const availableViews = Views.has(object.constructor) ? Views.get(object.constructor) : [];
       const resolvedViewName = typeof viewNameOrSelector === 'function'
         ? viewNameOrSelector(object, availableViews)
         : this.getViewName(availableViews, viewNameOrSelector);
@@ -182,7 +202,7 @@ export class ViewLocator implements IViewLocator {
 
   private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
-    availableViews: ITemplateDefinition[],
+    availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
     let lookup = this.modelInstanceToBoundComponent.get(object);
@@ -202,11 +222,14 @@ export class ViewLocator implements IViewLocator {
         resolvedViewName
       );
 
-      BoundComponent = class extends UnboundComponent {
-        public constructor() {
-          super(object);
+      BoundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+        CustomElement.getDefinition(UnboundComponent),
+        class extends UnboundComponent {
+          public constructor() {
+            super(object);
+          }
         }
-      };
+      );
 
       lookup[resolvedViewName] = BoundComponent;
     }
@@ -216,7 +239,7 @@ export class ViewLocator implements IViewLocator {
 
   private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
     object: T,
-    availableViews: ITemplateDefinition[],
+    availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
   ): ComposableObjectComponentType<T> {
     let lookup = this.modelTypeToUnboundComponent.get(object.constructor);
@@ -267,7 +290,7 @@ export class ViewLocator implements IViewLocator {
     return UnboundComponent;
   }
 
-  private getViewName(views: ITemplateDefinition[], requestedName?: string) {
+  private getViewName(views: readonly CustomElementDefinition[], requestedName?: string) {
     if (requestedName) {
       return requestedName;
     }
@@ -279,7 +302,7 @@ export class ViewLocator implements IViewLocator {
     return 'default-view';
   }
 
-  private getView(views: ITemplateDefinition[], name: string): ITemplateDefinition {
+  private getView(views: readonly CustomElementDefinition[], name: string): CustomElementDefinition {
     const v = views.find(x => x.name === name);
 
     if (v === void 0) {

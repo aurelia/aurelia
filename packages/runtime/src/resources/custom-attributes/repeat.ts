@@ -1,31 +1,9 @@
-import {
-  compareNumber,
-  IContainer,
-  Key,
-  nextId,
-  PLATFORM,
-  Registration,
-} from '@aurelia/kernel';
+import { compareNumber, nextId } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
-import {
-  HooksDefinition,
-  IAttributeDefinition,
-} from '../../definitions';
-import {
-  INode,
-  IRenderLocation
-} from '../../dom';
-import {
-  BindingMode,
-  BindingStrategy,
-  LifecycleFlags as LF,
-  State,
-} from '../../flags';
-import {
-  IController,
-  IViewFactory,
-} from '../../lifecycle';
+import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags as LF, State } from '../../flags';
+import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import {
   AggregateContinuationTask,
   ContinuationTask,
@@ -35,109 +13,46 @@ import {
 import {
   CollectionObserver,
   IndexMap,
-  InlineObserversLookup,
-  IObservable,
   IObservedArray,
   IOverrideContext,
   IScope,
   ObservedCollection,
 } from '../../observation';
-import {
-  applyMutationsToIndices,
-  synchronizeIndices,
-} from '../../observation/array-observer';
-import {
-  BindingContext,
-  Scope
-} from '../../observation/binding-context';
+import { applyMutationsToIndices, synchronizeIndices } from '../../observation/array-observer';
+import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
-import { Bindable } from '../../templating/bindable';
-import {
-  CustomAttribute,
-  ICustomAttributeResource,
-} from '../custom-attribute';
+import { bindable } from '../../templating/bindable';
+import { templateController } from '../custom-attribute';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 
 const isMountedOrAttached = State.isMounted | State.isAttached;
-const isMountedOrAttachedOrAttaching = isMountedOrAttached | State.isAttaching;
-const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
-const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
 
-export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
+@templateController('repeat')
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> {
+  public readonly id: number = nextId('au$component');
 
-  public get items(): Items<C> {
-    return this._items;
-  }
-  public set items(newValue: Items<C>) {
-    const oldValue = this._items;
-    if (oldValue !== newValue) {
-      this._items = newValue;
-      this.itemsChanged(this.$controller.flags);
-    }
-  }
-  public static readonly inject: readonly Key[] = [IRenderLocation, IController, IViewFactory];
-
-  public static readonly kind: ICustomAttributeResource = CustomAttribute;
-  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
-    name: 'repeat',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(Repeat.prototype)),
-  });
-
-  public readonly id: number;
-
-  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
-    items: this,
-  });
+  public hasPendingInstanceMutation: boolean = false;
+  public observer?: CollectionObserver = void 0;
+  public views: IController<T>[] = [];
+  public key?: string = void 0;
 
   public forOf!: ForOfStatement;
-  public hasPendingInstanceMutation: boolean;
   public local!: string;
-  public location: IRenderLocation<T>;
-  public observer?: CollectionObserver;
-  public renderable: IController<T>;
-  public factory: IViewFactory<T>;
-  public views: IController<T>[];
-  public key?: string;
-  public readonly noProxy: true;
 
   public $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  private task: ILifecycleTask;
+  private task: ILifecycleTask = LifecycleTask.done;
 
-  private _items: Items<C>;
+  @bindable public items: Items<C>;
 
-  private normalizedItems?: IObservedArray;
+  private normalizedItems?: IObservedArray = void 0;
 
   public constructor(
-    location: IRenderLocation<T>,
-    renderable: IController<T>,
-    factory: IViewFactory<T>
-  ) {
-    this.id = nextId('au$component');
-
-    this.factory = factory;
-    this.hasPendingInstanceMutation = false;
-    this.location = location;
-    this.observer = void 0;
-    this.renderable = renderable;
-    this.views = [];
-    this.key = void 0;
-    this.noProxy = true;
-    this.normalizedItems = void 0;
-
-    this.task = LifecycleTask.done;
-  }
-
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:repeat', this));
-    container.register(Registration.transient(this, this));
-  }
+    @IRenderLocation public location: IRenderLocation<T>,
+    @IController public renderable: IController<T>,
+    @IViewFactory public factory: IViewFactory<T>
+  ) {}
 
   public binding(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
@@ -282,7 +197,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private normalizeToArray(flags: LF): void {
-    const items: Items<C> = this._items;
+    const items: Items<C> = this.items;
     if (items instanceof Array) {
       this.normalizedItems = items;
       return;
@@ -536,7 +451,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     if (indexMap === void 0) {
       for (let i = 0, ii = views.length; i < ii; ++i) {
         view = views[i];
-        view.hold(location);
+        view.hold(location, MountStrategy.insertBefore);
         view.nodes!.unlink();
         view.attach(flags);
       }
@@ -544,7 +459,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       for (let i = 0, ii = views.length; i < ii; ++i) {
         if (indexMap[i] !== i) {
           view = views[i];
-          view.hold(location);
+          view.hold(location, MountStrategy.insertBefore);
           view.nodes!.unlink();
           view.attach(flags);
         }
@@ -560,7 +475,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.$controller.lifecycle.attached.begin();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
-      view.hold(location);
+      view.hold(location, MountStrategy.insertBefore);
       view.nodes!.unlink();
       view.attach(flags);
     }
@@ -590,7 +505,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       view = views[i];
       if (indexMap[i] === -2) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.hold(location);
+        view.hold(location, MountStrategy.insertBefore);
         view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);

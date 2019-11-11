@@ -10,7 +10,6 @@ import {
 } from '../observation';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
 
-const slice = Array.prototype.slice;
 type Indexable = Record<string | number, unknown>;
 
 const lookup: WeakMap<object, IProxy> = new WeakMap();
@@ -18,18 +17,13 @@ export interface ProxySubscriberCollection extends IPropertyObserver<Indexable, 
 
 @subscriberCollection()
 export class ProxySubscriberCollection<TObj extends object = object> implements ProxySubscriberCollection<TObj> {
-  public inBatch: boolean;
+  public inBatch: boolean = false;
 
-  public readonly proxy: IProxy<TObj>;
-  public readonly raw: TObj;
-  public readonly key: string | number;
-  public constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number) {
-
-    this.inBatch = false;
-
-    this.raw = raw;
-    this.key = key;
-    this.proxy = proxy;
+  public constructor(
+    public readonly proxy: IProxy<TObj>,
+    public readonly raw: TObj,
+    public readonly key: string | number,
+  ) {
     this.subscribe = this.addSubscriber;
     this.unsubscribe = this.removeSubscriber;
     if (raw[key as keyof TObj] instanceof Object) { // Ensure we observe array indices and newly created object properties

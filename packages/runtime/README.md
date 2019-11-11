@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/runtime
+npm i @aurelia/runtime
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/runtime@dev
+npm i @aurelia/runtime@dev
 ```

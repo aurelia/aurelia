@@ -61,6 +61,25 @@ export {
   WritableKeys,
 } from './interfaces';
 export {
+  metadata,
+  Metadata,
+} from './metadata';
+export {
+  IConsoleLike,
+  ColorOptions,
+  ILogConfig,
+  ILogEvent,
+  ILogEventFactory,
+  ISink,
+  ILogger,
+  LogConfig,
+  DefaultLogEvent,
+  DefaultLogEventFactory,
+  DefaultLogger,
+  ConsoleSink,
+  LoggerConfiguration,
+} from './logger';
+export {
   relativeToFile,
   join,
   buildQueryString,
@@ -80,13 +99,16 @@ export {
   Profiler
 } from './profiler';
 export {
-  IResourceDefinition,
   IResourceDescriptions,
   IResourceKind,
-  IResourceType,
-  ResourceDescription,
-  ResourcePartDescription,
-  RuntimeCompilationResources
+  PartialResourceDefinition,
+  Protocol,
+  ResourceDefinition,
+  ResourceType,
+  RuntimeCompilationResources,
+  fromAnnotationOrDefinitionOrTypeOrDefault,
+  fromAnnotationOrTypeOrDefault,
+  fromDefinitionOrDefault,
 } from './resource';
 export {
   EventAggregator,
@@ -97,6 +119,7 @@ export {
   isNumeric,
   camelCase,
   kebabCase,
+  pascalCase,
   toArray,
   nextId,
   resetId,
@@ -104,4 +127,12 @@ export {
   mergeDistinct,
   isNumberOrBigInt,
   isStringOrDate,
+  bound,
+  mergeArrays,
+  mergeObjects,
+  firstDefined,
+  getPrototypeChain,
+  isObject,
+  isNullOrUndefined,
+  isNativeFunction,
 } from './functions';

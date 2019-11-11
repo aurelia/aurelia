@@ -1,13 +1,13 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IViewFactory } from '../../lifecycle';
+import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { templateController } from '../custom-attribute';
 
 @templateController('replaceable')
 export class Replaceable<T extends INode = INode> {
-  public readonly id: number;
+  public readonly id: number = nextId('au$component');
 
   public readonly view: IController<T>;
 
@@ -18,10 +18,8 @@ export class Replaceable<T extends INode = INode> {
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>
   ) {
-    this.id = nextId('au$component');
-
     this.view = this.factory.create();
-    this.view.hold(location);
+    this.view.hold(location, MountStrategy.insertBefore);
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {

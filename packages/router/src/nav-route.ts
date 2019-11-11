@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { IRouteableComponentType, NavigationInstruction } from './interfaces';
+import { RouteableComponentType, NavigationInstruction } from './interfaces';
 import { INavRoute, Nav } from './nav';
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
 import { ViewportInstruction } from './viewport-instruction';
@@ -30,7 +30,7 @@ export class NavRoute {
       this.link = this.computeLink(this.instructions);
     }
     this.linkActive = route.consideredActive ? route.consideredActive : this.link;
-    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as IRouteableComponentType)) {
+    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as RouteableComponentType)) {
       this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction | NavigationInstruction[]);
     }
     this.execute = route.execute;

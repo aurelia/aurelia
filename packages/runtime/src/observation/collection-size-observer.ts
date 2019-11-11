@@ -7,9 +7,9 @@ export interface CollectionSizeObserver extends ISubscriberCollection {}
 @subscriberCollection()
 export class CollectionSizeObserver {
   public currentValue: number;
-  public obj: Set<unknown> | Map<unknown, unknown>;
-  public constructor(obj: Set<unknown> | Map<unknown, unknown>) {
-    this.obj = obj;
+  public constructor(
+    public obj: Set<unknown> | Map<unknown, unknown>,
+  ) {
     this.currentValue = obj.size;
   }
   public getValue(): number {

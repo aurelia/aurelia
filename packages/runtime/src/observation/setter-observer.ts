@@ -6,35 +6,25 @@ import { subscriberCollection } from './subscriber-collection';
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
+/**
+ * Observer for the mutation of object property value employing getter-setter strategy.
+ * This is used for observing object properties that has no decorator.
+ */
 @subscriberCollection()
 export class SetterObserver {
-  public readonly lifecycle: ILifecycle;
-
-  public readonly obj: IIndexable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
+  public currentValue: unknown = void 0;
+  public oldValue: unknown = void 0;
 
   public readonly persistentFlags: LifecycleFlags;
-  public inBatch: boolean;
-  public observing: boolean;
+  public inBatch: boolean = false;
+  public observing: boolean = false;
 
   public constructor(
-    lifecycle: ILifecycle,
+    public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    obj: object,
-    propertyKey: string,
+    public readonly obj: IIndexable,
+    public readonly propertyKey: string,
   ) {
-    this.lifecycle = lifecycle;
-
-    this.obj = obj as IIndexable;
-    this.propertyKey = propertyKey;
-    this.currentValue = void 0;
-    this.oldValue = void 0;
-
-    this.inBatch = false;
-
-    this.observing = false;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
@@ -47,9 +37,7 @@ export class SetterObserver {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
-        if ((flags & LifecycleFlags.fromBind) === 0) {
-          this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        }
+        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
       } else if (!this.inBatch) {
         this.inBatch = true;
         this.oldValue = currentValue;

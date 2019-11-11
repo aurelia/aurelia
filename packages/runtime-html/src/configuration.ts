@@ -6,7 +6,9 @@ import {
   ListenerBindingRenderer,
   SetAttributeRenderer,
   StylePropertyBindingRenderer,
-  TextBindingRenderer
+  TextBindingRenderer,
+  SetClassAttributeRenderer,
+  SetStyleAttributeRenderer
 } from './html-renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
@@ -15,6 +17,7 @@ import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
+import { Portal } from './resources/custom-attributes/portal';
 import { Compose } from './resources/custom-elements/compose';
 
 export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
@@ -36,10 +39,11 @@ export const DefaultComponents = [
   ITemplateFactoryRegistration
 ];
 
-export const AttrBindingBehaviorRegistration = AttrBindingBehavior as IRegistry;
-export const SelfBindingBehaviorRegistration = SelfBindingBehavior as IRegistry;
-export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as IRegistry;
-export const ComposeRegistration = Compose as IRegistry;
+export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
+export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
+export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
+export const ComposeRegistration = Compose as unknown as IRegistry;
+export const PortalRegistration = Portal as unknown as IRegistry;
 export const FocusRegistration = Focus as unknown as IRegistry;
 export const BlurRegistration = Blur as unknown as IRegistry;
 
@@ -47,21 +51,25 @@ export const BlurRegistration = Blur as unknown as IRegistry;
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `attr`, `self`, `updateTrigger`
  * - Custom Elements: `au-compose`
+ * - Custom Attributes: `blur`, `focus`, `portal`
  */
 export const DefaultResources = [
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
   ComposeRegistration,
+  PortalRegistration,
   FocusRegistration,
   BlurRegistration
 ];
 
-export const ListenerBindingRendererRegistration = ListenerBindingRenderer as IRegistry;
-export const AttributeBindingRendererRegistration = AttributeBindingRenderer as IRegistry;
-export const SetAttributeRendererRegistration = SetAttributeRenderer as IRegistry;
-export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as IRegistry;
-export const TextBindingRendererRegistration = TextBindingRenderer as IRegistry;
+export const ListenerBindingRendererRegistration = ListenerBindingRenderer as unknown as IRegistry;
+export const AttributeBindingRendererRegistration = AttributeBindingRenderer as unknown as IRegistry;
+export const SetAttributeRendererRegistration = SetAttributeRenderer as unknown as IRegistry;
+export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as unknown as IRegistry;
+export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
+export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
+export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
 
 /**
  * Default HTML-specfic (but environment-agnostic) renderers for:
@@ -74,6 +82,8 @@ export const DefaultRenderers = [
   ListenerBindingRendererRegistration,
   AttributeBindingRendererRegistration,
   SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration
 ];

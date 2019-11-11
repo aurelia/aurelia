@@ -41,7 +41,7 @@ import {
   ITargetedInstruction,
   ITargetObserverLocator,
   ITemplate,
-  ITemplateDefinition,
+  PartialCustomElementDefinition,
   ITemplateFactory,
   IteratorBindingInstruction,
   LetBindingInstruction,
@@ -50,9 +50,12 @@ import {
   PropertyBinding,
   RuntimeConfiguration,
   TargetedInstruction,
-  TemplateDefinition,
-  ToViewBindingInstruction
+  CustomElementDefinition,
+  ToViewBindingInstruction,
+  ITemplateCompiler,
+  IScheduler
 } from '@aurelia/runtime';
+import { TestContext } from './html-test-context';
 
 const slice = Array.prototype.slice;
 
@@ -383,7 +386,7 @@ export class AuDOM implements IDOM<AuNode> {
 }
 
 export class AuProjectorLocator implements IProjectorLocator {
-  public getElementProjector(dom: IDOM, $component: IController<AuNode>, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
+  public getElementProjector(dom: IDOM, $component: IController<AuNode>, host: CustomElementHost<AuNode>, def: CustomElementDefinition): IElementProjector {
     return new AuProjector($component, host);
   }
 }
@@ -618,19 +621,19 @@ export class AuTemplateFactory implements ITemplateFactory<AuNode> {
     this.dom = dom;
   }
 
-  public create(parentRenderContext: IRenderContext<AuNode>, definition: TemplateDefinition): ITemplate<AuNode> {
+  public create(parentRenderContext: IRenderContext<AuNode>, definition: CustomElementDefinition): ITemplate<AuNode> {
     return new CompiledTemplate<AuNode>(this.dom, definition, new AuNodeSequenceFactory(this.dom, definition.template as AuNode), parentRenderContext);
   }
 }
 
 export class AuObserverLocator implements ITargetAccessorLocator, ITargetObserverLocator {
-  public getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
+  public getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
     return null!;
   }
   public overridesAccessor(obj: unknown, propertyName: string): boolean {
     return false;
   }
-  public getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor {
     return null!;
   }
   public handles(obj: unknown): boolean {
@@ -681,12 +684,15 @@ export const AuDOMConfiguration = {
       Registration.singleton(IProjectorLocator, AuProjectorLocator),
       Registration.singleton(ITargetAccessorLocator, AuObserverLocator),
       Registration.singleton(ITargetObserverLocator, AuObserverLocator),
-      Registration.singleton(ITemplateFactory, AuTemplateFactory)
+      Registration.singleton(ITemplateFactory, AuTemplateFactory),
+      Registration.instance(ITemplateCompiler, {}), // TODO: fix this dep tree
     );
   },
   createContainer(): IContainer {
+    const scheduler = TestContext.createHTMLTestContext().scheduler;
     const container = DI.createContainer();
     container.register(AuDOMConfiguration);
+    Registration.instance(IScheduler, scheduler).register(container);
     return container;
   }
 };
@@ -699,62 +705,62 @@ export const AuDOMTest = {
     const host = AuNode.createHost();
     return { au, container, lifecycle, host };
   },
-  createTextDefinition(expression: string, name: string = `${expression}-text`): ITemplateDefinition {
+  createTextDefinition(expression: string, name: string = `${expression}-text`): PartialCustomElementDefinition {
     return {
-      build: { required: false },
+      needsCompile: false,
       name,
       template: AuNode.createText().makeTarget(),
       instructions: [[new AuTextInstruction(parseExpression(expression))]]
     };
   },
-  createTemplateControllerDefinition(instruction: HydrateTemplateController, name: string = instruction.res): ITemplateDefinition {
+  createTemplateControllerDefinition(instruction: HydrateTemplateController, name: string = instruction.res): PartialCustomElementDefinition {
     return {
-      build: { required: false },
+      needsCompile: false,
       name,
       template: AuNode.createMarker(),
       instructions: [[instruction]]
     };
   },
-  createElementDefinition(instructions: TargetedInstruction[][], name: string): ITemplateDefinition {
+  createElementDefinition(instructions: TargetedInstruction[][], name: string): PartialCustomElementDefinition {
     const template = AuNode.createTemplate();
     instructions.forEach(row => {
       template.appendChild(AuNode.createMarker());
     });
     return {
-      build: { required: false },
+      needsCompile: false,
       name,
       template,
       instructions
     };
   },
-  createIfInstruction(expression: string, def: ITemplateDefinition): HydrateTemplateController {
+  createIfInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'if',
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
-  createElseInstruction(def: ITemplateDefinition): HydrateTemplateController {
+  createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(def, 'else', [], true);
   },
-  createRepeatInstruction(expression: string, def: ITemplateDefinition): HydrateTemplateController {
+  createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'repeat',
       [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')]
     );
   },
-  createReplaceableInstruction(def: ITemplateDefinition): HydrateTemplateController {
+  createReplaceableInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(def, 'replaceable', []);
   },
-  createWithInstruction(expression: string, def: ITemplateDefinition): HydrateTemplateController {
+  createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'with',
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
-  createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, ITemplateDefinition>): HydrateElementInstruction {
+  createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, PartialCustomElementDefinition>): HydrateElementInstruction {
     return new HydrateElementInstruction(
       name,
       bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)),

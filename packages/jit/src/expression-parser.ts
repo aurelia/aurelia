@@ -45,8 +45,6 @@ import {
 } from '@aurelia/runtime';
 import { Access, Char, Precedence, Token, unescapeCode } from './common';
 
-const { enter, leave } = Profiler.createTimer('ExpressionParser');
-
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
@@ -56,29 +54,23 @@ const $parent = AccessThisExpression.$parent;
 
 /** @internal */
 export class ParserState {
-  public index: number;
-  public startIndex: number;
-  public input: string;
-  public lastIndex: number;
+  public index: number = 0;
+  public startIndex: number = 0;
+  public lastIndex: number = 0;
   public length: number;
-  public currentToken: Token;
-  public tokenValue: string | number;
+  public currentToken: Token = Token.EOF;
+  public tokenValue: string | number = '';
   public currentChar: number;
-  public assignable: boolean;
+  public assignable: boolean = true;
   public get tokenRaw(): string {
     return this.input.slice(this.startIndex, this.index);
   }
 
-  public constructor(input: string) {
-    this.index = 0;
-    this.startIndex = 0;
-    this.lastIndex = 0;
-    this.input = input;
+  public constructor(
+    public input: string,
+  ) {
     this.length = input.length;
-    this.currentToken = Token.EOF;
-    this.tokenValue = '';
     this.currentChar = input.charCodeAt(0);
-    this.assignable = true;
   }
 }
 
@@ -743,7 +735,7 @@ function parseTemplate(state: ParserState, access: Access, bindingType: BindingT
 function nextToken(state: ParserState): void {
   while (state.index < state.length) {
     state.startIndex = state.index;
-    if (((state.currentToken = (CharScanners[state.currentChar](state)) as Token)) != null) { // a null token means the character must be skipped
+    if ((state.currentToken = (CharScanners[state.currentChar](state)) as Token) != null) { // a null token means the character must be skipped
       return;
     }
   }

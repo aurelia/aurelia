@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, ICustomElementType } from '@aurelia/runtime';
-import { ComponentAppellation, IRouteableComponent, IRouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
+import { CustomElement } from '@aurelia/runtime';
+import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -9,7 +9,7 @@ export const ComponentAppellationResolver = {
   isName: function (component: ComponentAppellation): component is string {
     return typeof component === 'string';
   },
-  isType: function (component: ComponentAppellation): component is IRouteableComponentType {
+  isType: function (component: ComponentAppellation): component is RouteableComponentType {
     return CustomElement.isType(component);
   },
   isInstance: function (component: ComponentAppellation): component is IRouteableComponent {
@@ -17,21 +17,21 @@ export const ComponentAppellationResolver = {
   },
 
   getName: function (component: ComponentAppellation): string {
-    if (ComponentAppellationResolver.isName(component as string)) {
-      return component as string;
-    } else if (ComponentAppellationResolver.isType(component as ICustomElementType)) {
-      return (component as ICustomElementType).description.name;
+    if (ComponentAppellationResolver.isName(component)) {
+      return component;
+    } else if (ComponentAppellationResolver.isType(component)) {
+      return CustomElement.getDefinition(component).name;
     } else {
-      return ((component as IRouteableComponent).constructor as ICustomElementType).description.name;
+      return ComponentAppellationResolver.getName(component.constructor as Constructable);
     }
   },
-  getType: function (component: ComponentAppellation): IRouteableComponentType | null {
+  getType: function (component: ComponentAppellation): RouteableComponentType | null {
     if (ComponentAppellationResolver.isName(component as Constructable & string)) {
       return null;
-    } else if (ComponentAppellationResolver.isType(component as IRouteableComponentType)) {
-      return component as IRouteableComponentType;
+    } else if (ComponentAppellationResolver.isType(component as RouteableComponentType)) {
+      return component as RouteableComponentType;
     } else {
-      return ((component as IRouteableComponent).constructor as IRouteableComponentType);
+      return ((component as IRouteableComponent).constructor as RouteableComponentType);
     }
   },
   getInstance: function (component: ComponentAppellation): IRouteableComponent | null {

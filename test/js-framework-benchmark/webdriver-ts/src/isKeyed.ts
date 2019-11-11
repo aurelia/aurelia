@@ -4,9 +4,9 @@ import {config, FrameworkData, initializeFrameworks, BenchmarkOptions} from './c
 import { WebDriver, By, WebElement } from 'selenium-webdriver';
 import * as R from 'ramda';
 // necessary to launch without specifiying a path
-var chromedriver: any = require('chromedriver');
+const chromedriver: any = require('chromedriver');
 
-let args = yargs(process.argv)
+const args = yargs(process.argv)
   .usage("$0 [--framework Framework1 Framework2 ...] [--benchmark Benchmark1 Benchmark2 ...]")
   .help('help')
   .default('port', config.PORT)
@@ -15,10 +15,10 @@ let args = yargs(process.argv)
   .boolean('headless')
   .array("framework").argv;
 
-let allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
-let runBenchmarksFromDirectoryNamesArgs = !args.framework;
+const allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.length);
+const runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
-let init = `
+const init = `
 window.nonKeyedDetector_reset = function() {
     window.nonKeyedDetector_tradded = 0;
     window.nonKeyedDetector_trremoved = 0;
@@ -99,8 +99,8 @@ function isKeyedSwapRow(result: any): boolean {
 }
 
 async function assertChildNodes(elem: WebElement, expectedNodes: string[], message: string) {
-  let elements = await elem.findElements(By.css("*"));
-  let allNodes = await Promise.all(elements.map(e => e.getTagName()));
+  const elements = await elem.findElements(By.css("*"));
+  const allNodes = await Promise.all(elements.map(e => e.getTagName()));
   if (!R.equals(allNodes,expectedNodes)) {
     console.log(`ERROR in html structure for ${message}`);
     console.log("  expected:", expectedNodes);
@@ -111,7 +111,7 @@ async function assertChildNodes(elem: WebElement, expectedNodes: string[], messa
 }
 
 async function assertClassesContained(elem: WebElement, expectedClassNames: string[], message: string) {
-  let actualClassNames = (await elem.getAttribute("class")).split(" ");
+  const actualClassNames = (await elem.getAttribute("class")).split(" ");
   if (!expectedClassNames.every(expected => actualClassNames.includes(expected))) {
     console.log(`css class not correct. Expected for ${message} to be ${expectedClassNames} but was ${actualClassNames}`);
     return false;
@@ -120,43 +120,43 @@ async function assertClassesContained(elem: WebElement, expectedClassNames: stri
 }
 
 export async function checkTRcorrect(driver: WebDriver, timeout = config.TIMEOUT): Promise<boolean> {
-  let elem = await shadowRoot(driver);
-  let tr = await findByXPath(elem, '//tbody/tr[1000]');
+  const elem = await shadowRoot(driver);
+  const tr = await findByXPath(elem, '//tbody/tr[1000]');
   if (!await assertChildNodes(tr, [ 'td', 'td', 'a', 'td', 'a', 'span', 'td' ], "tr")) {
     return false;
   }
 
   // first td
-  let td1 = await findByXPath(elem, '//tbody/tr[1000]/td[1]');
+  const td1 = await findByXPath(elem, '//tbody/tr[1000]/td[1]');
   if (!await assertClassesContained(td1, ["col-md-1"], "first td")) {
     return false;
   }
 
   // second td
-  let td2 = await findByXPath(elem, '//tbody/tr[1000]/td[2]');
+  const td2 = await findByXPath(elem, '//tbody/tr[1000]/td[2]');
   if (!await assertClassesContained(td2, ["col-md-4"], "second td")) {
     return false;
   }
 
   // third td
-  let td3 = await findByXPath(elem, '//tbody/tr[1000]/td[3]');
+  const td3 = await findByXPath(elem, '//tbody/tr[1000]/td[3]');
   if (!await assertClassesContained(td3, ["col-md-1"], "third td")) {
     return false;
   }
 
   // span in third td
-  let span = await findByXPath(elem, '//tbody/tr[1000]/td[3]/a/span');
+  const span = await findByXPath(elem, '//tbody/tr[1000]/td[3]/a/span');
   if (!await assertClassesContained(span, ["glyphicon","glyphicon-remove"], "span in a in third td")) {
     return false;
   }
-  let spanAria = (await span.getAttribute("aria-hidden"));
+  const spanAria = (await span.getAttribute("aria-hidden"));
   if ("true"!=spanAria) {
     console.log("Expected to find 'aria-hidden'=true on span in fourth td, but found ", spanAria);
     return false;
   }
 
   // fourth td
-  let td4 = await findByXPath(elem, '//tbody/tr[1000]/td[4]');
+  const td4 = await findByXPath(elem, '//tbody/tr[1000]/td[4]');
   if (!await assertClassesContained(td4, ["col-md-6"], "fourth td")) {
     return false;
   }
@@ -173,22 +173,22 @@ export async function getInnerHTML(driver: WebDriver, xpath: string, timeout = c
 async function runBench(frameworkNames: string[]) {
   let runFrameworks;
   if (!runBenchmarksFromDirectoryNamesArgs) {
-    let frameworks = await initializeFrameworks();
+    const frameworks = await initializeFrameworks();
     runFrameworks = frameworks.filter(f => frameworkNames.some(name => f.fullNameWithKeyedAndVersion.includes(name)));
   } else {
-    let matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName);
+    const matchesDirectoryArg = (directoryName: string) => allArgs.some(arg => arg==directoryName);
     runFrameworks = await initializeFrameworks(matchesDirectoryArg);
   }
   console.log("Frameworks that will be checked", runFrameworks.map(f => f.fullNameWithKeyedAndVersion).join(' '));
 
-  let frameworkMap = new Map<string, FrameworkData>();
+  const frameworkMap = new Map<string, FrameworkData>();
 
   let allCorrect = true;
 
   for (let i=0;i<runFrameworks.length;i++) {
-    let driver = buildDriver(benchmarkOptions);
+    const driver = buildDriver(benchmarkOptions);
     try {
-      let framework = runFrameworks[i];
+      const framework = runFrameworks[i];
       setUseShadowRoot(framework.useShadowRoot);
       await driver.get(`http://localhost:${config.PORT}/${framework.uri}/`);
       await testElementLocatedById(driver, "add");
@@ -196,7 +196,7 @@ async function runBench(frameworkNames: string[]) {
       await testTextContains(driver,'//tbody/tr[1000]/td[1]','1000');
 
       // check html for tr
-      let htmlCorrect = await checkTRcorrect(driver);
+      const htmlCorrect = await checkTRcorrect(driver);
       if (!htmlCorrect) {
         console.log(`ERROR: Framework ${framework.fullNameWithKeyedAndVersion} html is not correct`);
         allCorrect = false;
@@ -210,23 +210,23 @@ async function runBench(frameworkNames: string[]) {
       await clickElementById(driver,'swaprows');
       await testTextContains(driver,'//tbody/tr[2]/td[1]','999');
       let res = await driver.executeScript('return nonKeyedDetector_result()');
-      let keyedSwap = isKeyedSwapRow(res);
+      const keyedSwap = isKeyedSwapRow(res);
       // run
       await driver.executeScript('nonKeyedDetector_storeTr()');
       await driver.executeScript('window.nonKeyedDetector_reset()');
       await clickElementById(driver,'run');
       await testTextContains(driver,'//tbody/tr[1000]/td[1]','2000');
       res = await driver.executeScript('return nonKeyedDetector_result()');
-      let keyedRun =isKeyedRun(res);
+      const keyedRun =isKeyedRun(res);
       // remove
       await driver.executeScript('nonKeyedDetector_storeTr()');
-      let text = await getTextByXPath(driver, `//tbody/tr[2]/td[2]/a`);
+      const text = await getTextByXPath(driver, `//tbody/tr[2]/td[2]/a`);
       await driver.executeScript('window.nonKeyedDetector_reset()');
       await clickElementByXPath(driver, `//tbody/tr[2]/td[3]/a/span[1]`);
       await testTextNotContained(driver, `//tbody/tr[2]/td[2]/a`, text);
       res = await driver.executeScript('return nonKeyedDetector_result()');
-      let keyedRemove = isKeyedRemove(res);
-      let keyed = keyedRemove && keyedRun && keyedSwap;
+      const keyedRemove = isKeyedRemove(res);
+      const keyed = keyedRemove && keyedRun && keyedSwap;
       console.log(`${framework.fullNameWithKeyedAndVersion} is ${
         keyed ? "keyed" : "non-keyed"} for 'run benchmark' and ${
         keyedRemove ? "keyed" : "non-keyed"} for 'remove row benchmark' ${
@@ -248,9 +248,9 @@ async function runBench(frameworkNames: string[]) {
 
 config.PORT = Number(args.port);
 
-let runFrameworks = (args.framework && args.framework.length>0 ? args.framework : [""]).map(v => v.toString());
+const runFrameworks = (args.framework && args.framework.length>0 ? args.framework : [""]).map(v => v.toString());
 
-let benchmarkOptions: BenchmarkOptions = {
+const benchmarkOptions: BenchmarkOptions = {
   port: config.PORT.toFixed(),
   remoteDebuggingPort: config.REMOTE_DEBUGGING_PORT,
   chromePort: config.CHROME_PORT,

@@ -8,7 +8,7 @@ export {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
-  IAttributePatternHandler,
+  AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
 } from './attribute-pattern';
@@ -20,11 +20,11 @@ export {
 } from './attribute-patterns';
 export {
   bindingCommand,
-  BindingCommandResource,
-  IBindingCommand,
-  IBindingCommandDefinition,
-  IBindingCommandResource,
-  IBindingCommandType,
+  BindingCommand ,
+  BindingCommandInstance,
+  BindingCommandDefinition,
+  BindingCommandKind,
+  BindingCommandType,
   getTarget,
 } from './binding-command';
 export {

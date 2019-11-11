@@ -4,18 +4,18 @@ import {JSONResult, initializeFrameworks} from './common';
 import {benchmarks, fileName, BenchmarkInfo} from './benchmarks';
 
 async function main() {
-  let frameworks = await initializeFrameworks();
+  const frameworks = await initializeFrameworks();
 
-  let results: Map<string, Map<string, JSONResult>> = new Map();
+  const results: Map<string, Map<string, JSONResult>> = new Map();
 
   let resultJS = "import {RawResult} from './Common';\n\nexport let results: RawResult[]=[";
 
-  let allBenchmarks: BenchmarkInfo[] = [];
+  const allBenchmarks: BenchmarkInfo[] = [];
 
-  let jsonResult: {framework: string; benchmark: string; values: number[]}[] = [];
+  const jsonResult: {framework: string; benchmark: string; values: number[]}[] = [];
 
   benchmarks.forEach((benchmark, bIdx) => {
-    let r = benchmark.resultKinds ? benchmark.resultKinds() : [benchmark];
+    const r = benchmark.resultKinds ? benchmark.resultKinds() : [benchmark];
     r.forEach((benchmarkInfo) => {
       allBenchmarks.push(benchmarkInfo);
     });
@@ -23,15 +23,15 @@ async function main() {
 
   frameworks.forEach((framework, fIdx) => {
     allBenchmarks.forEach((benchmarkInfo) => {
-      let name = `${fileName(framework, benchmarkInfo)}`;
-      let file = `./results/${name}`;
+      const name = `${fileName(framework, benchmarkInfo)}`;
+      const file = `./results/${name}`;
       if (fs.existsSync(file)) {
-        let data: JSONResult = JSON.parse(fs.readFileSync(file, {
+        const data: JSONResult = JSON.parse(fs.readFileSync(file, {
           encoding:'utf-8'
         }));
         if (data.values.some(v => v==null)) console.log(`Found null value for ${framework.fullNameWithKeyedAndVersion} and benchmark ${benchmarkInfo.id}`);
-        let result = {f:data.framework, b:data.benchmark, v:data.values.filter(v => v!=null)};
-        let resultNice = {framework:data.framework, benchmark:data.benchmark, values:data.values.filter(v => v!=null)};
+        const result = {f:data.framework, b:data.benchmark, v:data.values.filter(v => v!=null)};
+        const resultNice = {framework:data.framework, benchmark:data.benchmark, values:data.values.filter(v => v!=null)};
         resultJS += `\n${JSON.stringify(result)},`;
         jsonResult.push(resultNice);
       } else {

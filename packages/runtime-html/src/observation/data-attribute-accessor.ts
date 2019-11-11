@@ -1,38 +1,35 @@
 import {
   IAccessor,
-  ILifecycle,
   LifecycleFlags,
-  Priority,
+  IScheduler,
+  ITask,
+  INode,
 } from '@aurelia/runtime';
 
+/**
+ * Attribute accessor for HTML elements.
+ * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
+ * Unless the property falls into a special set, then it will use attribute for it.
+ *
+ * @see ElementPropertyAccessor
+ */
 export class DataAttributeAccessor implements IAccessor<string | null> {
-  public readonly lifecycle: ILifecycle;
-
   public readonly obj: HTMLElement;
-  public readonly propertyKey: string;
-  public currentValue: string | null;
-  public oldValue: string | null;
+  public currentValue: string | null = null;
+  public oldValue: string | null = null;
 
   public readonly persistentFlags: LifecycleFlags;
 
-  public hasChanges: boolean;
-  public priority: Priority;
+  public hasChanges: boolean = false;
+  public task: ITask | null = null;
 
   public constructor(
-    lifecycle: ILifecycle,
+    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    obj: HTMLElement,
-    propertyKey: string,
+    obj: INode,
+    public readonly propertyKey: string,
   ) {
-    this.lifecycle = lifecycle;
-
-    this.obj = obj;
-    this.propertyKey = propertyKey;
-    this.currentValue = null;
-    this.oldValue = null;
-
-    this.hasChanges = false;
-    this.priority = Priority.propagate;
+    this.obj = obj as HTMLElement;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -44,13 +41,16 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushRAF(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+      this.flushChanges(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
   }
 
-  public flushRAF(flags: LifecycleFlags): void {
+  public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue } = this;
@@ -65,14 +65,18 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
 
   public bind(flags: LifecycleFlags): void {
     if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+      if (this.task !== null) {
+        this.task.cancel();
+      }
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     }
     this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
   }
 
   public unbind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
     }
   }
 }

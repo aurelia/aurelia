@@ -8,12 +8,6 @@ export interface IOption {
 @customElement({
   name: 'app',
   template: require('./app.html'),
-  build: {
-    required: true,
-    compiler: 'default'
-  },
-  instructions: [],
-  dependencies: []
 })
 export class App {
   public options: IOption[] = [

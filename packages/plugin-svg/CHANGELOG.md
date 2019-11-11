@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.4.0"></a>
+# 0.4.0 (2019-10-26)
+
+### Bug Fixes:
+
+* **svg-analyzer:** fix runtime reference ([6e60798](https://github.com/aurelia/aurelia/commit/6e60798))
+
+
+### Performance Improvements:
+
+* **all): add sideEffect:** false for better tree shaking ([59b5e55](https://github.com/aurelia/aurelia/commit/59b5e55))
+* **all:** pre-declare variables used in loops ([16b9c18](https://github.com/aurelia/aurelia/commit/16b9c18))
+
+
+### Refactorings:
+
+* ***:** linting fixes ([a9e26ad](https://github.com/aurelia/aurelia/commit/a9e26ad))
+* **svg-analyzer:** use document instead of DOM for html browser specific code ([52427aa](https://github.com/aurelia/aurelia/commit/52427aa))
+* **plugin-svg:** strictNullChecks fixes ([63b8a15](https://github.com/aurelia/aurelia/commit/63b8a15))
+* ***:** standardise on "as" type casts ([d0933b8](https://github.com/aurelia/aurelia/commit/d0933b8))
+
 <a name="0.3.0"></a>
 # 0.3.0 (2018-10-12)
 

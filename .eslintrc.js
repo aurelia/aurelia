@@ -103,7 +103,7 @@ module.exports = {
     'import/no-self-import': 'error',
     'import/no-unassigned-import': 'error',
     'import/no-useless-path-segments': ['error'],
-    'import/order': ['error', { 'groups': [], 'newlines-between': 'never' }],
+    'import/order': ['error', { 'groups': [], 'newlines-between': 'ignore' }],
     'import/no-deprecated': 'error',
     'jsdoc/check-alignment': 'error',
     'jsdoc/check-indentation': 'error',
@@ -156,6 +156,8 @@ module.exports = {
     'no-useless-catch': 'error',
     'no-useless-escape': 'error',
     'no-trailing-spaces': 'error',
+    'no-var': 'error',
+    'prefer-const': 'error',
     'prefer-object-spread': 'error',
     'prefer-regex-literals': 'error',
     'prefer-rest-params': 'error',
@@ -175,14 +177,14 @@ module.exports = {
     '@typescript-eslint/no-floating-promises': 'warn',
     '@typescript-eslint/no-misused-promises': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
-    '@typescript-eslint/no-unnecessary-condition': 'warn',
+    '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-use-before-define': 'warn',
+    '@typescript-eslint/no-use-before-define': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
-    '@typescript-eslint/unbound-method': 'warn',
+    '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far
     'jsdoc/check-examples': 'off',
     'jsdoc/check-param-names': 'off',
     'jsdoc/match-description': 'off',
@@ -198,7 +200,8 @@ module.exports = {
     'sonarjs/no-duplicated-branches': 'warn',
     'sonarjs/no-extra-arguments': 'warn',
     'sonarjs/no-inverted-boolean-check': 'warn',
-    'sonarjs/no-small-switch': 'warn',
+    'sonarjs/no-small-switch': 'off',
+    'sort-keys': ['off'],
     'sonarjs/prefer-immediate-return': 'warn',
     'default-param-last': ['warn'],
     'eqeqeq': 'warn',
@@ -210,8 +213,6 @@ module.exports = {
     'no-inner-declarations': 'warn',
     'no-shadow': 'warn',
     'no-undef': 'warn',
-    'no-var': 'warn',
-    'prefer-const': 'warn',
     'require-atomic-updates': 'warn',
 
     // Off for now as they create way to much noise
@@ -238,7 +239,13 @@ module.exports = {
   settings: {
     polyfills: [
       'fetch',
-      'Reflect'
+      'Reflect',
+      'Promise',
+      'Map',
+      'Set',
+      'Object.assign',
+      'WeakMap',
+      'WeakSet'
     ]
   }
 };

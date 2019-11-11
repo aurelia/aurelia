@@ -1,4 +1,4 @@
-import { Class, DI, IContainer, IRegistry, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { Class, Constructable, DI, IContainer, Metadata, PLATFORM, Protocol, Registration, Reporter, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 
 export interface AttributePatternDefinition {
@@ -18,18 +18,14 @@ export interface ICharSpec {
 
 /** @internal */
 export class CharSpec implements ICharSpec {
-  public chars: string;
-  public repeat: boolean;
-  public isSymbol: boolean;
-  public isInverted: boolean;
-
   public has: (char: string) => boolean;
 
-  public constructor(chars: string, repeat: boolean, isSymbol: boolean, isInverted: boolean) {
-    this.chars = chars;
-    this.repeat = repeat;
-    this.isSymbol = isSymbol;
-    this.isInverted = isInverted;
+  public constructor(
+    public chars: string,
+    public repeat: boolean,
+    public isSymbol: boolean,
+    public isInverted: boolean,
+  ) {
     if (isInverted) {
       switch (chars.length) {
         case 0:
@@ -57,9 +53,9 @@ export class CharSpec implements ICharSpec {
 
   public equals(other: ICharSpec): boolean {
     return this.chars === other.chars
-        && this.repeat === other.repeat
-        && this.isSymbol === other.isSymbol
-        && this.isInverted === other.isInverted;
+      && this.repeat === other.repeat
+      && this.isSymbol === other.isSymbol
+      && this.isInverted === other.isInverted;
   }
 
   private hasOfMultiple(char: string): boolean {
@@ -88,7 +84,7 @@ export class CharSpec implements ICharSpec {
 }
 
 export class Interpretation {
-  public parts: readonly string[];
+  public parts: readonly string[] = PLATFORM.emptyArray;
   public get pattern(): string | null {
     const value = this._pattern;
     if (value === '') {
@@ -106,16 +102,9 @@ export class Interpretation {
       this.parts = this.partsRecord[value];
     }
   }
-  private _pattern: string;
-  private readonly currentRecord: Record<string, string>;
-  private readonly partsRecord: Record<string, string[]>;
-
-  public constructor() {
-    this._pattern = '';
-    this.parts = PLATFORM.emptyArray;
-    this.currentRecord = {};
-    this.partsRecord = {};
-  }
+  private _pattern: string = '';
+  private readonly currentRecord: Record<string, string> = {};
+  private readonly partsRecord: Record<string, string[]> = {};
 
   public append(pattern: string, ch: string): void {
     const { currentRecord } = this;
@@ -142,21 +131,19 @@ export class Interpretation {
 
 /** @internal */
 export class State {
-  public charSpec: ICharSpec;
-  public nextStates: State[];
-  public types: SegmentTypes | null;
+  public nextStates: State[] = [];
+  public types: SegmentTypes | null = null;
   public patterns: string[];
-  public isEndpoint: boolean;
+  public isEndpoint: boolean = false;
   public get pattern(): string | null {
     return this.isEndpoint ? this.patterns[0] : null;
   }
 
-  public constructor(charSpec: ICharSpec, ...patterns: string[]) {
-    this.charSpec = charSpec;
-    this.nextStates = [];
-    this.types = null;
+  public constructor(
+    public charSpec: ICharSpec,
+    ...patterns: string[]
+  ) {
     this.patterns = patterns;
-    this.isEndpoint = false;
   }
 
   public findChild(charSpec: ICharSpec): State {
@@ -226,11 +213,12 @@ export interface ISegment {
 
 /** @internal */
 export class StaticSegment implements ISegment {
-  public text: string;
   private readonly len: number;
   private readonly specs: CharSpec[];
 
-  public constructor(text: string) {
+  public constructor(
+    public text: string,
+  ) {
     this.text = text;
     const len = this.len = text.length;
     const specs = this.specs = [] as CharSpec[];
@@ -249,11 +237,10 @@ export class StaticSegment implements ISegment {
 
 /** @internal */
 export class DynamicSegment implements ISegment {
-  public text: string;
+  public text: string = 'PART';
   private readonly spec: CharSpec;
 
   public constructor(symbols: string) {
-    this.text = 'PART';
     this.spec = new CharSpec(symbols, true, false, true);
   }
 
@@ -264,11 +251,11 @@ export class DynamicSegment implements ISegment {
 
 /** @internal */
 export class SymbolSegment implements ISegment {
-  public text: string;
   private readonly spec: CharSpec;
 
-  public constructor(text: string) {
-    this.text = text;
+  public constructor(
+    public text: string,
+  ) {
     this.spec = new CharSpec(text, false, true, false);
   }
 
@@ -279,15 +266,9 @@ export class SymbolSegment implements ISegment {
 
 /** @internal */
 export class SegmentTypes {
-  public statics: number;
-  public dynamics: number;
-  public symbols: number;
-
-  public constructor() {
-    this.statics = 0;
-    this.dynamics = 0;
-    this.symbols = 0;
-  }
+  public statics: number = 0;
+  public dynamics: number = 0;
+  public symbols: number = 0;
 }
 
 export interface ISyntaxInterpreter {
@@ -301,13 +282,8 @@ export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISynta
 
 /** @internal */
 export class SyntaxInterpreter {
-  public rootState: State;
-  private readonly initialStates: State[];
-
-  public constructor() {
-    this.rootState = new State(null!);
-    this.initialStates = [this.rootState];
-  }
+  public rootState: State = new State(null!);
+  private readonly initialStates: State[] = [this.rootState];
 
   public add(def: AttributePatternDefinition): void;
   public add(defs: AttributePatternDefinition[]): void;
@@ -435,7 +411,7 @@ export class SyntaxInterpreter {
   }
 }
 
-function validatePrototype(handler: IAttributePatternHandler, patternDefs: AttributePatternDefinition[]): void {
+function validatePrototype(handler: IAttributePattern, patternDefs: AttributePatternDefinition[]): void {
   for (const def of patternDefs) {
     // note: we're intentionally not throwing here
     if (!(def.pattern in handler)) {
@@ -447,32 +423,62 @@ function validatePrototype(handler: IAttributePatternHandler, patternDefs: Attri
 }
 
 export interface IAttributePattern {
-  $patternDefs: AttributePatternDefinition[];
-}
-
-export interface IAttributePatternHandler {
   [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
 
-type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;
-type DecoratedAttributePattern<TProto, TClass> =  Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;
+type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<{} | IAttributePattern>, TClass>;
+type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern, TClass>;
 
 type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
 
+export interface AttributePattern {
+  readonly name: string;
+  readonly definitionAnnotationKey: string;
+  define<TProto, TClass>(patternDefs: AttributePatternDefinition[], Type: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass>;
+  getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>): AttributePatternDefinition[];
+}
+
 export function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator {
   return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
-    const proto = target.prototype;
-    // Note: the prototype is really meant to be an intersection type between IAttrubutePattern and IAttributePatternHandler, but
-    // a type with an index signature cannot be intersected with anything else that has normal property names.
-    // So we're forced to use a union type and cast it here.
-    validatePrototype(proto as IAttributePatternHandler, patternDefs);
-    proto.$patternDefs = patternDefs;
-
-    target.register = function register(container: IContainer): void {
-      Registration.singleton(IAttributePattern, target).register(container);
-    };
-    return target as DecoratedAttributePattern<TProto, TClass>;
+    return AttributePattern.define(patternDefs, target);
   } as AttributePatternDecorator;
 }
+
+export class AttributePatternResourceDefinition implements ResourceDefinition<Constructable, IAttributePattern> {
+  public name: string = (void 0)!;
+
+  public constructor(
+    public Type: ResourceType<Constructable, Partial<IAttributePattern>>,
+  ) { }
+
+  public register(container: IContainer): void {
+    Registration.singleton(IAttributePattern, this.Type).register(container);
+  }
+}
+
+export const AttributePattern: AttributePattern = Object.freeze({
+  name: Protocol.resource.keyFor('attribute-pattern'),
+  definitionAnnotationKey: 'attribute-pattern-definitions',
+  define<TProto, TClass>(
+    patternDefs: AttributePatternDefinition[],
+    Type: DecoratableAttributePattern<TProto, TClass>,
+  ) {
+
+    validatePrototype(Type.prototype as IAttributePattern, patternDefs);
+
+    const definition = new AttributePatternResourceDefinition(Type);
+    const { name, definitionAnnotationKey } = AttributePattern;
+    Metadata.define(name, definition, Type);
+    Protocol.resource.appendTo(Type, name);
+
+    Protocol.annotation.set(Type, definitionAnnotationKey, patternDefs);
+    Protocol.annotation.appendTo(Type, definitionAnnotationKey);
+
+    return Type as DecoratedAttributePattern<TProto, TClass>;
+  },
+  getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) {
+    return Protocol.annotation.get(Type, AttributePattern.definitionAnnotationKey) as AttributePatternDefinition[];
+  }
+});

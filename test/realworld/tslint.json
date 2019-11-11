@@ -5,6 +5,7 @@
     "quotemark": false,
     "no-implicit-dependencies": false,
     "no-submodule-imports": false,
-    "interface-name": false
+    "interface-name": false,
+    "object-literal-sort-keys": false
   }
 }

@@ -1,4 +1,3 @@
-import { InterfaceSymbol, IRegistry, Key } from '@aurelia/kernel';
 import {
   addBinding,
   BindingMode,
@@ -24,25 +23,19 @@ import {
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   IStylePropertyBindingInstruction,
-  ITextBindingInstruction
+  ITextBindingInstruction,
+  ISetClassAttributeInstruction,
+  ISetStyleAttributeInstruction
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
-
-const slice = Array.prototype.slice;
 
 @instructionRenderer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  public constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: ChildNode, instruction: ITextBindingInstruction): void {
     const next = target.nextSibling;
@@ -63,16 +56,10 @@ export class TextBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IEventManager];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly eventManager: IEventManager;
-
-  public constructor(parser: IExpressionParser, eventManager: IEventManager) {
-    this.parser = parser;
-    this.eventManager = eventManager;
-  }
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IEventManager private readonly eventManager: IEventManager,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IListenerBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
@@ -84,26 +71,32 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.setAttribute)
 /** @internal */
 export class SetAttributeRenderer implements IInstructionRenderer {
-  public static readonly register: IRegistry['register'];
-
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetAttributeInstruction): void {
     target.setAttribute(instruction.to, instruction.value);
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.setClassAttribute)
+export class SetClassAttributeRenderer implements IInstructionRenderer {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
+    addClasses(target.classList, instruction.value);
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.setStyleAttribute)
+export class SetStyleAttributeRenderer implements IInstructionRenderer {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetStyleAttributeInstruction): void {
+    target.style.cssText += instruction.value;
   }
 }
 
 @instructionRenderer(HTMLTargetedInstructionType.stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  public constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
@@ -115,16 +108,10 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.attributeBinding)
 /** @internal */
 export class AttributeBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly InterfaceSymbol[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  public constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IAttributeBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
@@ -138,5 +125,21 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
       context
     );
     addBinding(renderable, binding);
+  }
+}
+
+// http://jsben.ch/7n5Kt
+function addClasses(classList: DOMTokenList, className: string): void {
+  const len = className.length;
+  let start = 0;
+  for (let i = 0; i < len; ++i) {
+    if (className.charCodeAt(i) === 0x20) {
+      if (i !== start) {
+        classList.add(className.slice(start, i));
+      }
+      start = i + 1;
+    } else if (i + 1 === len) {
+      classList.add(className.slice(start));
+    }
   }
 }

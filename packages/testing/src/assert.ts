@@ -27,7 +27,7 @@ import {
   IIndexable,
 } from '@aurelia/kernel';
 import {
-  CompositionRoot, CustomElement, CustomAttribute,
+  CompositionRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
 } from '@aurelia/runtime';
 import {
   isDeepEqual,
@@ -52,10 +52,11 @@ import {
   Object_is,
   Object_keys,
 } from './util';
+import { DOM } from '@aurelia/runtime-html';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
-type ErrorMatcher = string | Error | RegExp;
+type ErrorMatcher = string | Error | RegExp | Function;
 
 const noException = Symbol('noException');
 
@@ -671,6 +672,186 @@ export function isCustomAttributeType(actual: any, message?: string): void {
   }
 }
 
+function getNode(elementOrSelector: string | Node, root: Node = DOM.document) {
+  return typeof elementOrSelector === "string"
+    ? (root as Element).querySelector(elementOrSelector)
+    : elementOrSelector;
+}
+function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node) {
+  const host = getNode(elementOrSelector, root);
+  const actualText = host && getVisibleText((void 0)!, host, true);
+  if (actualText !== expectedText) {
+    innerFail({
+      actual: actualText,
+      expected: expectedText,
+      message,
+      operator: '==' as any,
+      stackStartFn: isTextContentEqual
+    });
+  }
+}
+function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, message?: string, root?: Node) {
+  const input = getNode(inputElementOrSelector, root);
+  const actual = input instanceof HTMLInputElement && input.value;
+  if (actual !== expected) {
+    innerFail({
+      actual: actual,
+      expected: expected,
+      message,
+      operator: '==' as any,
+      stackStartFn: isValueEqual
+    });
+  }
+}
+
+type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
+function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
+  const styles = DOM.window.getComputedStyle(element as Element);
+  for (const [property, expected] of Object.entries(expectedStyles)) {
+    const actual: string = styles[property as any];
+    if (actual !== expected) {
+      return { isMatch: false, property, actual, expected };
+    }
+  }
+  return { isMatch: true };
+}
+function computedStyle(element: Node, expectedStyles: Record<string, string>, message?: string) {
+  const result = matchStyle(element, expectedStyles);
+  if (!result.isMatch) {
+    const { property, actual, expected } = result;
+    innerFail({
+      actual: `${property}:${actual}`,
+      expected: `${property}:${expected}`,
+      message,
+      operator: '==' as any,
+      stackStartFn: computedStyle
+    });
+  }
+}
+function notComputedStyle(element: Node, expectedStyles: Record<string, string>, message?: string) {
+  const result = matchStyle(element, expectedStyles);
+  if (result.isMatch) {
+    const display = Object.entries(expectedStyles).map(([key, value]) => `${key}:${value}`).join(',');
+    innerFail({
+      actual: display,
+      expected: display,
+      message,
+      operator: '!=' as any,
+      stackStartFn: notComputedStyle
+    });
+  }
+}
+
+const isSchedulerEmpty = (function () {
+  function priorityToString(priority: TaskQueuePriority) {
+    switch (priority) {
+      case TaskQueuePriority.microTask:
+        return 'microTask';
+      case TaskQueuePriority.render:
+        return 'render';
+      case TaskQueuePriority.macroTask:
+        return 'macroTask';
+      case TaskQueuePriority.postRender:
+        return 'postRender';
+      case TaskQueuePriority.idle:
+        return 'idle';
+      default:
+        return 'unknown';
+    }
+  }
+
+  function round(num: number) {
+    return ((num * 10 + .5) | 0) / 10;
+  }
+
+  function reportTask(task: any) {
+    const id = task.id;
+    const created = round(task.createdTime);
+    const queue = round(task.queueTime);
+    const preempt = task.preempt;
+    const reusable = task.reusable;
+    const persistent = task.persistent;
+    const status = task._status;
+
+    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+  }
+
+  function toArray(task: any) {
+    const arr = [task];
+    while (task = task.next) {
+      arr.push(task);
+    }
+    return arr;
+  }
+
+  function reportTaskQueue(taskQueue: any) {
+    const processing = taskQueue.processingSize;
+    const pending = taskQueue.pendingSize;
+    const delayed = taskQueue.delayedSize;
+    const flushReq = taskQueue.flushRequested;
+    const prio = taskQueue.priority;
+
+    let info = `${priorityToString(prio)}TaskQueue has processing=${processing} pending=${pending} delayed=${delayed} flushRequested=${flushReq}\n\n`;
+    if (processing > 0) {
+      info += `  Tasks in processing:\n${toArray(taskQueue.processingHead).map(reportTask).join('')}`;
+    }
+    if (pending > 0) {
+      info += `  Tasks in pending:\n${toArray(taskQueue.pendingHead).map(reportTask).join('')}`;
+    }
+    if (delayed > 0) {
+      info += `  Tasks in delayed:\n${toArray(taskQueue.delayedHead).map(reportTask).join('')}`;
+    }
+
+    return info;
+  }
+
+  return function $isSchedulerEmpty() {
+    // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
+    // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
+    // the full test context.
+    const scheduler = (DOM as any)['scheduler'] as IScheduler;
+
+    const microTaskQueue = scheduler.getMicroTaskQueue() as any;
+    const renderTaskQueue = scheduler.getRenderTaskQueue() as any;
+    const macroTaskQueue = scheduler.getMacroTaskQueue() as any;
+    const postRenderTaskQueue = scheduler.getPostRenderTaskQueue() as any;
+    const idleTaskQueue = scheduler.getIdleTaskQueue() as any;
+
+    let isEmpty = true;
+    let message = '';
+    if (!microTaskQueue.isEmpty) {
+      message += `\n${reportTaskQueue(microTaskQueue)}\n\n`;
+      isEmpty = false;
+    }
+    if (!renderTaskQueue.isEmpty) {
+      message += `\n${reportTaskQueue(renderTaskQueue)}\n\n`;
+      isEmpty = false;
+    }
+    if (!macroTaskQueue.isEmpty) {
+      message += `\n${reportTaskQueue(macroTaskQueue)}\n\n`;
+      isEmpty = false;
+    }
+    if (!postRenderTaskQueue.isEmpty) {
+      message += `\n${reportTaskQueue(postRenderTaskQueue)}\n\n`;
+      isEmpty = false;
+    }
+    if (!idleTaskQueue.isEmpty) {
+      message += `\n${reportTaskQueue(idleTaskQueue)}\n\n`;
+      isEmpty = false;
+    }
+
+    if (!isEmpty) {
+      innerFail({
+        actual: void 0,
+        expected: void 0,
+        message,
+        operator: '' as any,
+        stackStartFn: $isSchedulerEmpty
+      });
+    }
+  };
+})();
+
 const assert = Object_freeze({
   throws,
   doesNotThrow,
@@ -700,6 +881,7 @@ const assert = Object_freeze({
   match,
   notMatch,
   visibleTextEqual,
+  isSchedulerEmpty,
   isCustomElementType,
   isCustomAttributeType,
   strict: {
@@ -707,6 +889,12 @@ const assert = Object_freeze({
     notDeepEqual: notDeepStrictEqual,
     equal: strictEqual,
     notEqual: notStrictEqual,
+  },
+  html: {
+    textContent: isTextContentEqual,
+    value: isValueEqual,
+    computedStyle: computedStyle,
+    notComputedStyle: notComputedStyle
   }
 });
 

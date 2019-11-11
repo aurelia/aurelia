@@ -8,14 +8,14 @@ import { getCurrentVersion, getNewVersion } from './get-version-info';
 const log = createLogger('bump-version');
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
-  for (const { name } of project.packages) {
+  for (const { name } of project.packages.filter(p => p.folder === 'packages')) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson('packages', name.kebab);
     pkg.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
-        if (depName.startsWith("@aurelia")) {
+        if (depName.startsWith('@aurelia') || depName === 'aurelia') {
           log(`  dep ${name.npm} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);
           deps[depName] = newVersion;
         }
@@ -48,13 +48,15 @@ function parseArgs(): {tag: string; suffix: string} {
 
 (async function (): Promise<void> {
   const { tag, suffix } = parseArgs();
-  const { major, minor, patch } = getCurrentVersion();
-  const bump = await getRecommendedVersionBump();
-  const newVersion = getNewVersion(major, minor, patch, tag, bump, suffix);
-  if (tag === 'dev') {
-    await updateDependencyVersions(newVersion);
+  if (Boolean(tag)) {
+    const { major, minor, patch } = getCurrentVersion();
+    const bump = await getRecommendedVersionBump();
+    const newVersion = getNewVersion(major, minor, patch, tag, bump, suffix);
+    if (tag === 'dev') {
+      await updateDependencyVersions(newVersion);
+    }
+    log('Done.');
   }
-  log('Done.');
 })().catch(err => {
   log.error(err);
   process.exit(1);

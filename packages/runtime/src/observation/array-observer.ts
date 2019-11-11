@@ -373,8 +373,6 @@ export function disableArrayObservation(): void {
   }
 }
 
-const slice = Array.prototype.slice;
-
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
 @collectionSubscriberCollection()

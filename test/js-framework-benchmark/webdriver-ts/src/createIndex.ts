@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import {initializeFrameworks} from './common';
 
 async function main() {
-  let frameworks = await initializeFrameworks();
+  const frameworks = await initializeFrameworks();
 
   frameworks.sort((a,b) => a.fullNameWithKeyedAndVersion.localeCompare(b.fullNameWithKeyedAndVersion));
 
@@ -14,7 +14,8 @@ async function main() {
     '../index.html',
     dots.index({
       frameworks
-    }), {
+    }),
+    {
       encoding: 'utf8'
     }
   );

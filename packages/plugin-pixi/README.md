@@ -11,11 +11,11 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/plugin-pixi
+npm i @aurelia/plugin-pixi
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/plugin-pixi@dev
+npm i @aurelia/plugin-pixi@dev
 ```

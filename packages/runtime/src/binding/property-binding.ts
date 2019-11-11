@@ -16,7 +16,6 @@ import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
   IBindingTargetObserver,
-  IObservable,
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
@@ -30,8 +29,6 @@ import {
   IPartialConnectableBinding,
 } from './connectable';
 
-const slice = Array.prototype.slice;
-
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 
@@ -43,43 +40,25 @@ export interface PropertyBinding extends IConnectableBinding {}
 @connectable()
 export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
-  public $state: State;
+  public $state: State = State.none;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope;
+  public $scope?: IScope = void 0;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IsBindingBehavior | IForOfStatement;
-  public target: IObservable;
-  public targetProperty: string;
+  public targetObserver?: AccessorOrObserver = void 0;;
 
-  public targetObserver?: AccessorOrObserver;
-
-  public persistentFlags: LifecycleFlags;
+  public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public constructor(
-    sourceExpression: IsBindingBehavior | IForOfStatement,
-    target: object,
-    targetProperty: string,
-    mode: BindingMode,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator,
+    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public target: object,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
   ) {
     connectable.assignIdTo(this);
-    this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = void 0;
-
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target as IObservable;
-    this.targetProperty = targetProperty;
-    this.targetObserver = void 0;
-    this.persistentFlags = LifecycleFlags.none;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

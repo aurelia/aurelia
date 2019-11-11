@@ -5,7 +5,7 @@
 To install and run the app (in watch mode):
 
 ```bash
-npm install
+npm i
 npm build -- -w
 # 2nd
 npm run serve

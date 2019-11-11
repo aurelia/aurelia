@@ -1,0 +1,32 @@
+<div id="cards1">
+  <div repeat.for="item of items" class="card ${item == selected ? 'selected' : ''}" click.delegate="select(item)">
+    <img src.bind="item.imgSrc">
+    <h2>${item.header}</h2>
+    <span class.bind="item == selected ? 'selectedDetails' : ''">${item.details}</span>
+    <footer class.bind="['foo-bar']"></footer>
+  </div>
+</div>
+
+<div id="cards2">
+  <div repeat.for="item of items" class.bind="{'card selected': item == selected, 'card': true}"
+    click.delegate="select(item)">
+    <h2>${item.header}</h2>
+    <span class.bind="{'selectedDetails': item == selected}">${item.details}</span>
+  </div>
+</div>
+
+<p id="simple-style" style="background-color: rgb(255, 0, 0); font-weight: 700;">
+  style-attribute-accessor-test-target
+</p>
+<p id="inline-bound-style" style.bind="{'background-color': 'rgb(255, 0, 0)', 'font-weight': '700'}">
+  style-attribute-accessor-test-target
+</p>
+<p id="bound-style-obj" style.bind="styleObj">
+  style-attribute-accessor-test-target
+</p>
+<p id="bound-style-array" style.bind="styleArray">
+  style-attribute-accessor-test-target
+</p>
+<p id="bound-style-str" style.bind="styleStr">
+  style-attribute-accessor-test-target
+</p>

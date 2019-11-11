@@ -1,5 +1,5 @@
-import { Key, Reporter } from '@aurelia/kernel';
-import { IDOM, ILifecycle } from '@aurelia/runtime';
+import { Reporter } from '@aurelia/kernel';
+import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { Queue, QueueItem } from './queue';
@@ -22,8 +22,6 @@ export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
 }
 
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
-  public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
-
   public window: Window;
   public history: History;
   public location: Location;
@@ -40,8 +38,8 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private forwardedState: ForwardedState = {};
 
   public constructor(
-    public readonly lifecycle: ILifecycle,
-    dom: HTMLDOM
+    @IScheduler public readonly scheduler: IScheduler,
+    @IDOM dom: HTMLDOM
   ) {
     this.window = dom.window;
     this.history = dom.window.history;
@@ -58,7 +56,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
   }
 

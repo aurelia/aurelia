@@ -5,14 +5,12 @@ import {
   IIndexable,
   IResolver,
   IServiceLocator,
-  PLATFORM,
   Registration,
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
   ITargetedInstruction,
-  TemplateDefinition,
-  TemplatePartDefinitions,
+  PartialCustomElementDefinitionParts,
 } from './definitions';
 import {
   INode,
@@ -34,9 +32,8 @@ import {
 } from './observation';
 import {
   IElementProjector,
+  CustomElementDefinition,
 } from './resources/custom-element';
-
-const slice = Array.prototype.slice;
 
 export interface IBinding {
   readonly locator: IServiceLocator;
@@ -61,20 +58,20 @@ export interface IController<
 > {
   readonly id: number;
 
-  nextBound?: IController<T>;
-  nextUnbound?: IController<T>;
-  prevBound?: IController<T>;
-  prevUnbound?: IController<T>;
+  nextBound?: IController<T, C>;
+  nextUnbound?: IController<T, C>;
+  prevBound?: IController<T, C>;
+  prevUnbound?: IController<T, C>;
 
-  nextAttached?: IController<T>;
-  nextDetached?: IController<T>;
-  prevAttached?: IController<T>;
-  prevDetached?: IController<T>;
+  nextAttached?: IController<T, C>;
+  nextDetached?: IController<T, C>;
+  prevAttached?: IController<T, C>;
+  prevDetached?: IController<T, C>;
 
-  nextMount?: IController<T>;
-  nextUnmount?: IController<T>;
-  prevMount?: IController<T>;
-  prevUnmount?: IController<T>;
+  nextMount?: IController<T, C>;
+  nextUnmount?: IController<T, C>;
+  prevMount?: IController<T, C>;
+  prevUnmount?: IController<T, C>;
 
   readonly flags: LifecycleFlags;
   readonly viewCache?: IViewCache<T>;
@@ -107,7 +104,7 @@ export interface IController<
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;
-  hold(location: IRenderLocation<T>): void;
+  hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   release(flags: LifecycleFlags): boolean;
   bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
@@ -125,22 +122,30 @@ export interface IController<
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
 
+/**
+ * Describing characteristics of a mounting operation a controller will perform
+ */
+export const enum MountStrategy {
+  insertBefore = 1,
+  append = 2,
+}
+
 export interface IRenderContext<T extends INode = INode> extends IContainer {
   readonly parentId: number;
   render(
     flags: LifecycleFlags,
     renderable: IController<T>,
     targets: ArrayLike<object>,
-    templateDefinition: TemplateDefinition,
+    templateDefinition: CustomElementDefinition,
     host?: T,
-    parts?: TemplatePartDefinitions,
+    parts?: PartialCustomElementDefinitionParts,
   ): void;
   beginComponentOperation(
     renderable: IController<T>,
     target: object,
     instruction: ITargetedInstruction,
     factory?: IViewFactory<T> | null,
-    parts?: TemplatePartDefinitions,
+    parts?: PartialCustomElementDefinitionParts,
     location?: IRenderLocation<T>,
     locationIsContainer?: boolean,
   ): IDisposable;
@@ -156,9 +161,9 @@ export interface IViewCache<T extends INode = INode> {
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly parentContextId: number;
   readonly name: string;
-  readonly parts: TemplatePartDefinitions;
+  readonly parts: PartialCustomElementDefinitionParts;
   create(flags?: LifecycleFlags): IController<T>;
-  addParts(parts: TemplatePartDefinitions): void;
+  addParts(parts: PartialCustomElementDefinitionParts): void;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
@@ -185,13 +190,6 @@ export interface IHydratedViewModel<T extends INode = INode> extends IViewModel<
 }
 
 export interface ILifecycle {
-  readonly FPS: number;
-  readonly nextFrame: Promise<number>;
-  minFPS: number;
-  maxFPS: number;
-
-  readonly isFlushingRAF: boolean;
-
   readonly batch: IAutoProcessingQueue<IBatchable>;
 
   readonly mount: IProcessingQueue<IController>;
@@ -202,165 +200,9 @@ export interface ILifecycle {
 
   readonly attached: IAutoProcessingQueue<IController>;
   readonly detached: IAutoProcessingQueue<IController>;
-
-  enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
-  enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
-  dequeueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown): void;
-  dequeueRAF(cb: () => void, context?: unknown): void;
-
-  processRAFQueue(flags: LifecycleFlags, timestamp?: number): void;
-
-  startTicking(): void;
-  stopTicking(): void;
-
-  enableTimeslicing(adaptive?: boolean): void;
-  disableTimeslicing(): void;
-}
-
-class LinkedCallback {
-  public cb?: (flags: LifecycleFlags) => void;
-  public context?: unknown;
-  public priority: Priority;
-  public once: boolean;
-
-  public next?: LinkedCallback;
-  public prev?: LinkedCallback;
-
-  public unlinked: boolean;
-
-  public get first(): LinkedCallback {
-    let cur: LinkedCallback = this;
-    while (cur.prev !== void 0 && cur.prev.priority === this.priority) {
-      cur = cur.prev;
-    }
-    return cur;
-  }
-
-  public get last(): LinkedCallback {
-    let cur: LinkedCallback = this;
-    while (cur.next !== void 0 && cur.next.priority === this.priority) {
-      cur = cur.next;
-    }
-    return cur;
-  }
-
-  public constructor(
-    cb?: (() => void) | ((flags: LifecycleFlags) => void),
-    context: unknown = void 0,
-    priority: Priority = Priority.normal,
-    once: boolean = false,
-  ) {
-    this.cb = cb;
-    this.context = context;
-    this.priority = priority;
-    this.once = once;
-
-    this.next = void 0;
-    this.prev = void 0;
-
-    this.unlinked = false;
-  }
-
-  public equals(fn: (() => void) | ((flags: LifecycleFlags) => void), context?: unknown): boolean {
-    return this.cb === fn && this.context === context;
-  }
-
-  public call(flags: LifecycleFlags): LinkedCallback | undefined {
-    if (this.cb !== void 0) {
-      if (this.context !== void 0) {
-        this.cb.call(this.context, flags);
-      } else {
-        this.cb(flags);
-      }
-    }
-
-    if (this.once) {
-      return this.unlink(true);
-    } else if (this.unlinked) {
-      const next = this.next;
-      this.next = void 0;
-
-      return next;
-    } else {
-      return this.next;
-    }
-  }
-
-  public rotate(): void {
-    if (this.prev === void 0 || this.prev.priority > this.priority) {
-      return;
-    }
-
-    const { first, last } = this;
-
-    const firstPrev = first.prev;
-    const lastNext = last.next;
-    const thisPrev = this.prev;
-
-    this.prev = firstPrev;
-    if (firstPrev !== void 0) {
-      firstPrev.next = this;
-    }
-
-    last.next = first;
-    first.prev = last;
-
-    thisPrev.next = lastNext;
-    if (lastNext !== void 0) {
-      lastNext.prev = thisPrev;
-    }
-  }
-
-  public link(prev: LinkedCallback): void {
-    this.prev = prev;
-
-    if (prev.next !== void 0) {
-      prev.next.prev = this;
-    }
-
-    this.next = prev.next;
-    prev.next = this;
-  }
-
-  public unlink(removeNext: boolean = false): LinkedCallback | undefined {
-    this.unlinked = true;
-    this.cb = void 0;
-    this.context = void 0;
-
-    if (this.prev !== void 0) {
-      this.prev.next = this.next;
-    }
-
-    if (this.next !== void 0) {
-      this.next.prev = this.prev;
-    }
-
-    this.prev = void 0;
-
-    if (removeNext) {
-      const { next } = this;
-      this.next = void 0;
-      return next;
-    }
-
-    return this.next;
-  }
-}
-
-export const enum Priority {
-  preempt   = 0x8000,
-  high      = 0x7000,
-  bind      = 0x6000,
-  attach    = 0x5000,
-  normal    = 0x4000,
-  propagate = 0x3000,
-  connect   = 0x2000,
-  low       = 0x1000,
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
-
-const { min, max } = Math;
 
 export interface IProcessingQueue<T> {
   add(requestor: T): void;
@@ -376,21 +218,14 @@ export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
 }
 
 export class BoundQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -460,21 +295,14 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class UnboundQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -544,21 +372,14 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class AttachedQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -630,21 +451,14 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class DetachedQueue implements IAutoProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public depth: number;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.depth = 0;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -716,17 +530,14 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
 }
 
 export class MountQueue implements IProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public depth: number = 0;
 
-  public head?: IController;
-  public tail?: IController;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public add(controller: IController): void {
     if ((controller.state & State.inUnmountQueue) > 0) {
@@ -784,17 +595,12 @@ export class MountQueue implements IProcessingQueue<IController> {
 }
 
 export class UnmountQueue implements IProcessingQueue<IController> {
-  public readonly lifecycle: ILifecycle;
+  public head?: IController = void 0;
+  public tail?: IController = void 0;
 
-  public head?: IController;
-  public tail?: IController;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.head = void 0;
-    this.tail = void 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public add(controller: IController): void {
     if ((controller.state & State.inMountQueue) > 0) {
@@ -851,17 +657,12 @@ export class UnmountQueue implements IProcessingQueue<IController> {
 }
 
 export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
-  public readonly lifecycle: ILifecycle;
+  public queue: IBatchable[] = [];
+  public depth: number = 0;
 
-  public queue: IBatchable[];
-  public depth: number;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.lifecycle = lifecycle;
-
-    this.queue = [];
-    this.depth = 0;
-  }
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
 
   public begin(): void {
     ++this.depth;
@@ -906,292 +707,19 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
   }
 }
 
-export class Lifecycle {
-  public rafHead: LinkedCallback;
-  public rafTail: LinkedCallback;
+export class Lifecycle implements ILifecycle {
+  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
 
-  public isFlushingRAF: boolean;
-  public rafRequestId: number;
-  public rafStartTime: number;
-  public isTicking: boolean;
+  public readonly mount: IProcessingQueue<IController> = new MountQueue(this);
+  public readonly unmount: IProcessingQueue<IController> = new UnmountQueue(this);
 
-  public readonly batch: IAutoProcessingQueue<IBatchable>;
+  public readonly bound: IAutoProcessingQueue<IController> = new BoundQueue(this);
+  public readonly unbound: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
-  public readonly mount: IProcessingQueue<IController>;
-  public readonly unmount: IProcessingQueue<IController>;
-
-  public readonly bound: IAutoProcessingQueue<IController>;
-  public readonly unbound: IAutoProcessingQueue<IController>;
-
-  public readonly attached: IAutoProcessingQueue<IController>;
-  public readonly detached: IAutoProcessingQueue<IController>;
-
-  public minFrameDuration: number;
-  public maxFrameDuration: number;
-  public prevFrameDuration: number;
-
-  public get FPS(): number {
-    return 1000 / this.prevFrameDuration;
-  }
-
-  public get minFPS(): number {
-    return 1000 / this.maxFrameDuration;
-  }
-
-  public set minFPS(fps: number) {
-    this.maxFrameDuration = 1000 / min(max(0, min(this.maxFPS, fps)), 60);
-  }
-
-  public get maxFPS(): number {
-    if (this.minFrameDuration > 0) {
-      return 1000 / this.minFrameDuration;
-    }
-    return 60;
-  }
-
-  public set maxFPS(fps: number) {
-    if (fps >= 60) {
-      this.minFrameDuration = 0;
-    } else {
-      this.minFrameDuration = 1000 / min(max(1, max(this.minFPS, fps)), 60);
-    }
-  }
-
-  public currentTick: number;
-  public nextFrame: Promise<number>;
-  public resolveNextFrame!: (timestamp: number) => void;
-
-  public timeslicingEnabled: boolean;
-  public adaptiveTimeslicing: boolean;
-  public frameDurationFactor: number;
-  public pendingChanges: number;
-
-  private readonly tick: (timestamp: number) => void;
-
-  public constructor() {
-    this.rafHead = new LinkedCallback(void 0, void 0, Infinity);
-    this.rafTail = (void 0)!;
-
-    this.currentTick = 0;
-
-    this.isFlushingRAF = false;
-    this.rafRequestId = -1;
-    this.rafStartTime = -1;
-    this.isTicking = false;
-
-    this.batch = new BatchQueue(this);
-
-    this.mount = new MountQueue(this);
-    this.unmount = new UnmountQueue(this);
-
-    this.bound = new BoundQueue(this);
-    this.unbound = new UnboundQueue(this);
-
-    this.attached = new AttachedQueue(this);
-    this.detached = new DetachedQueue(this);
-
-    this.minFrameDuration = 0;
-    this.maxFrameDuration = 1000 / 30;
-    this.prevFrameDuration = 0;
-
-    this.nextFrame = new Promise(resolve => {
-      this.resolveNextFrame = resolve;
-    });
-
-    this.tick = (timestamp: number) => {
-      this.rafRequestId = -1;
-      if (this.isTicking) {
-        this.processRAFQueue(LifecycleFlags.fromFlush, timestamp);
-        if (this.isTicking && this.rafRequestId === -1 && this.rafHead.next !== void 0) {
-          this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
-        }
-        if (++this.currentTick > 1) {
-          this.resolveNextFrame(timestamp);
-          this.nextFrame = new Promise(resolve => {
-            this.resolveNextFrame = resolve;
-          });
-        }
-      }
-    };
-
-    this.pendingChanges = 0;
-    this.timeslicingEnabled = false;
-    this.adaptiveTimeslicing = false;
-    this.frameDurationFactor = 1;
-  }
+  public readonly attached: IAutoProcessingQueue<IController> = new AttachedQueue(this);
+  public readonly detached: IAutoProcessingQueue<IController> = new DetachedQueue(this);
 
   public static register(container: IContainer): IResolver<ILifecycle> {
     return Registration.singleton(ILifecycle, this).register(container);
-  }
-
-  public startTicking(): void {
-    if (!this.isTicking) {
-      this.isTicking = true;
-      if (this.rafRequestId === -1 && this.rafHead.next !== void 0) {
-        this.rafStartTime = PLATFORM.now();
-        this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
-      }
-    } else if (this.rafRequestId === -1 && this.rafHead.next !== void 0) {
-      this.rafStartTime = PLATFORM.now();
-      this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
-    }
-  }
-
-  public stopTicking(): void {
-    // todo: API for stopping without processing the RAF queue
-    // todo: tests for flushing when stopping
-    this.processRAFQueue(LifecycleFlags.none);
-    if (this.isTicking) {
-      this.isTicking = false;
-      if (this.rafRequestId !== -1) {
-        PLATFORM.cancelAnimationFrame(this.rafRequestId);
-        this.rafRequestId = -1;
-      }
-    } else if (this.rafRequestId !== -1) {
-      PLATFORM.cancelAnimationFrame(this.rafRequestId);
-      this.rafRequestId = -1;
-    }
-  }
-
-  public enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
-  public enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
-  public enqueueRAF(
-    cb: (() => void) | ((flags: LifecycleFlags) => void),
-    context: unknown = void 0,
-    priority: Priority = Priority.normal,
-    once: boolean = false,
-  ): void {
-    const node = new LinkedCallback(cb, context, priority, once);
-
-    let prev = this.rafHead;
-    let current = prev.next;
-    if (current === void 0) {
-      node.link(prev);
-    } else {
-      do {
-        if (priority > current.priority || (priority === current.priority && once && !current.once)) {
-          node.link(prev);
-          break;
-        }
-
-        prev = current;
-        current = current.next;
-      } while (current !== void 0);
-
-      if (node.prev === void 0) {
-        node.link(prev);
-      }
-    }
-
-    if (node.next === void 0) {
-      this.rafTail = node;
-    }
-
-    this.startTicking();
-  }
-
-  public dequeueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown): void;
-  public dequeueRAF(cb: () => void, context?: unknown): void;
-  public dequeueRAF(
-    cb: (() => void) | ((flags: LifecycleFlags) => void),
-    context: unknown = void 0,
-  ): void {
-    let current = this.rafHead.next;
-    while (current !== void 0) {
-      if (current.equals(cb, context)) {
-        current = current.unlink();
-      } else {
-        current = current.next;
-      }
-    }
-  }
-
-  public processRAFQueue(flags: LifecycleFlags, timestamp: number = PLATFORM.now()): void {
-    if (this.isFlushingRAF) {
-      return;
-    }
-
-    this.isFlushingRAF = true;
-
-    if (timestamp >= this.rafStartTime) {
-      const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
-      if (prevFrameDuration + 1 < this.minFrameDuration) {
-        return;
-      }
-
-      let i = 0;
-      if (this.adaptiveTimeslicing && this.maxFrameDuration > 0) {
-        // Clamp the factor between 10 and 0.1 to prevent hanging or unjustified skipping during sudden shifts in workload
-        this.frameDurationFactor = min(max(this.frameDurationFactor * (this.maxFrameDuration / prevFrameDuration), 0.1), 10);
-      } else {
-        this.frameDurationFactor = 1;
-      }
-
-      const deadlineLow = timestamp + max(this.maxFrameDuration * this.frameDurationFactor, 1);
-      const deadlineNormal = timestamp + max(this.maxFrameDuration * this.frameDurationFactor * 5, 5);
-      const deadlineHigh = timestamp + max(this.maxFrameDuration * this.frameDurationFactor * 15, 15);
-      flags |= LifecycleFlags.fromTick;
-      do {
-        this.pendingChanges = 0;
-
-        let current = this.rafHead.next;
-        while (current !== void 0) {
-          // only call performance.now() every 10 calls to reduce the overhead (is this low enough though?)
-          if (++i === 10) {
-            i = 0;
-            if (this.timeslicingEnabled) {
-              const { priority } = current;
-              const now = PLATFORM.now();
-              if (priority <= Priority.low) {
-                if (now >= deadlineLow) {
-                  current.rotate();
-                  if (current.last != void 0 && current.last.next != void 0) {
-                    current = current.last.next;
-                  } else {
-                    break;
-                  }
-                }
-              } else if (priority < Priority.high) {
-                if (now >= deadlineNormal) {
-                  current.rotate();
-                  if (current.last != void 0 && current.last.next != void 0) {
-                    current = current.last.next;
-                  } else {
-                    break;
-                  }
-                }
-              } else {
-                if (now >= deadlineHigh) {
-                  current.rotate();
-                  if (current.last != void 0 && current.last.next != void 0) {
-                    current = current.last.next;
-                  } else {
-                    break;
-                  }
-                }
-              }
-            }
-          }
-
-          current = current.call(flags);
-        }
-      } while (this.pendingChanges > 0);
-
-      if (this.rafHead.next === void 0) {
-        this.stopTicking();
-      }
-    }
-
-    this.rafStartTime = timestamp;
-    this.isFlushingRAF = false;
-  }
-
-  public enableTimeslicing(adaptive: boolean = true): void {
-    this.timeslicingEnabled = true;
-    this.adaptiveTimeslicing = adaptive === true;
-  }
-
-  public disableTimeslicing(): void {
-    this.timeslicingEnabled = false;
   }
 }

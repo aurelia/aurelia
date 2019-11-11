@@ -1,8 +1,8 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
-import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttrSyntax, BindingCommand, BindingCommandInstance, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration, ICallBindingInstruction } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -12,18 +12,6 @@ describe('TranslationParametersAttributePattern', function () {
     container.register(TranslationParametersAttributePattern);
     return container.get(IAttributePattern);
   }
-
-  it('registers the `t-params.bind` attr. pattern', function () {
-    const sut = setup();
-    const pattern = 't-params.bind';
-
-    assert.instanceOf(sut, TranslationParametersAttributePattern);
-    assert.deepEqual(
-      (TranslationParametersAttributePattern.prototype as unknown as IAttributePattern).$patternDefs,
-      [{ pattern, symbols: '' }] as AttributePatternDefinition[]);
-
-    assert.typeOf(sut[pattern], 'function');
-  });
 
   it('creates attribute syntax without `to`', function () {
     const sut = setup();
@@ -42,7 +30,7 @@ describe('TranslationParametersBindingCommand', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(TranslationParametersBindingCommand);
-    return container.get<IBindingCommand>(BindingCommandResource.keyFrom(`t-params.bind`));
+    return container.get<BindingCommandInstance>(BindingCommand.keyFrom(`t-params.bind`));
   }
 
   it('registers the `t-params.bind` command', function () {

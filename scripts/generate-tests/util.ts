@@ -1,5 +1,6 @@
 import { writeFileSync } from 'fs';
 import {
+  addSyntheticLeadingComment,
   ArrayLiteralExpression,
   ClassElement,
   ClassExpression,
@@ -67,7 +68,7 @@ export function emit(path: string, ...nodes: Node[]): void {
       content += `${printer.printNode(EmitHint.Unspecified, node, emptyFile)}\n`;
     }
   }
-  writeFileSync(path, `/* eslint-disable @typescript-eslint/quotes, @typescript-eslint/explicit-member-accessibility, @typescript-eslint/indent, no-template-curly-in-string */\r\n${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
+  writeFileSync(path, `${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
 }
 
 export function addRange(start: number, end: number, ...records: Record<string, boolean>[]): void {
@@ -200,6 +201,10 @@ export function $$new(variable: string, path: [string | Expression | Identifier,
 export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
 export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Statement {
   return $$const(variable, $new(nameOrPath, variablesOrExpressions));
+}
+
+export function $$comment(comment: string, arg: Statement): Statement {
+  return addSyntheticLeadingComment(arg, SyntaxKind.SingleLineCommentTrivia, ` ${comment}`, true);
 }
 
 export function $$const(name: string, initializer: Expression): VariableStatement;

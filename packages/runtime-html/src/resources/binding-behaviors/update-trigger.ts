@@ -1,5 +1,5 @@
-import { IRegistry, Key, Reporter, Writable } from '@aurelia/kernel';
-import { BindingBehavior, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags, PropertyBinding } from '@aurelia/runtime';
+import { Reporter, Writable } from '@aurelia/kernel';
+import { BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
 import { SelectValueObserver } from '../../observation/select-value-observer';
@@ -17,17 +17,13 @@ export type UpdateTriggerableBinding = PropertyBinding & {
   targetObserver: UpdateTriggerableObserver;
 };
 
+@bindingBehavior('updateTrigger')
 export class UpdateTriggerBindingBehavior {
-  public static readonly inject: readonly Key[] = [IObserverLocator];
-
-  public static register: IRegistry['register'];
-
   public persistentFlags!: LifecycleFlags;
-  private readonly observerLocator: IObserverLocator;
 
-  public constructor(observerLocator: IObserverLocator) {
-    this.observerLocator = observerLocator;
-  }
+  public constructor(
+    @IObserverLocator private readonly observerLocator: IObserverLocator
+  ) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
@@ -62,4 +58,3 @@ export class UpdateTriggerBindingBehavior {
     binding.targetObserver.originalHandler = null!;
   }
 }
-BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);

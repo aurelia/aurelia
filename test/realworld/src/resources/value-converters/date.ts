@@ -1,5 +1,5 @@
 import { valueConverter } from '@aurelia/runtime';
-import * as format from 'date-fns/format';
+
 @valueConverter({ name: 'date' })
 export class DateValueConverter {
   /*

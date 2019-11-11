@@ -15,11 +15,7 @@ export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(
 
 /** @internal */
 export class Signaler implements ISignaler {
-  public signals: Record<string, Set<ISubscriber>>;
-
-  public constructor() {
-    this.signals = Object.create(null);
-  }
+  public signals: Record<string, Set<ISubscriber>> = Object.create(null);
 
   public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
     const listeners = this.signals[name];

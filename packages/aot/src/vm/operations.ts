@@ -14,15 +14,13 @@ export type CallableFunction = (
 export type FunctionPrototype = Realm['[[Intrinsics]]']['%FunctionPrototype%'];
 
 // http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction
-export function $CreateBuiltinFunction<
-  T extends string = string,
->(
+export function $CreateBuiltinFunction<T extends string = string, TSlots extends {} = {}>(
   realm: Realm,
   IntrinsicName: T,
   steps: CallableFunction,
-  internalSlotsList: readonly string[],
+  internalSlotsList?: TSlots,
   prototype?: $Object,
-): $BuiltinFunction<T> {
+): $BuiltinFunction<T> & TSlots {
   // 1. Assert: steps is either a set of algorithm steps or other definition of a function's behaviour provided in this specification.
   // 2. If realm is not present, set realm to the current Realm Record.
 
@@ -33,12 +31,15 @@ export function $CreateBuiltinFunction<
   }
 
   // 5. Let func be a new built-in function object that when called performs the action described by steps. The new function object has internal slots whose names are the elements of internalSlotsList. The initial value of each of those internal slots is undefined.
+  const func = new $BuiltinFunction(realm, IntrinsicName, prototype, steps);
+  Object.assign(func, internalSlotsList);
+
   // 6. Set func.[[Realm]] to realm.
   // 7. Set func.[[Prototype]] to prototype.
   // 8. Set func.[[Extensible]] to true.
   // 9. Set func.[[ScriptOrModule]] to null.
   // 10. Return func.
-  return new $BuiltinFunction(realm, IntrinsicName, prototype, steps);
+  return func as $BuiltinFunction<T> & TSlots;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-hasproperty

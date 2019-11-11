@@ -147,6 +147,7 @@ export class Intrinsics {
   public readonly 'string': $String<'string'>;
   public readonly 'number': $String<'number'>;
   public readonly 'length': $String<'length'>;
+  public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
   public readonly '$prototype': $String<'prototype'>;
   public readonly '$name': $String<'name'>;
@@ -314,6 +315,7 @@ export class Intrinsics {
     this['string'] = new $String(realm, 'string');
     this['number'] = new $String(realm, 'number');
     this['length'] = new $String(realm, 'length');
+    this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
     this['$prototype'] = new $String(realm, 'prototype');
     this['$name'] = new $String(realm, 'name');

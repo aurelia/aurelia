@@ -780,3 +780,98 @@ export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
     }
   }
 }
+
+
+// http://www.ecma-international.org/ecma-262/#sec-topropertydescriptor
+export function $ToPropertyDescriptor(realm: Realm, Obj: $Any, key: $PropertyKey): $PropertyDescriptor {
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If Type(Obj) is not Object, throw a TypeError exception.
+  if (!Obj.isObject) {
+    throw new TypeError('1. If Type(Obj) is not Object, throw a TypeError exception.');
+  }
+
+  // 2. Let desc be a new Property Descriptor that initially has no fields.
+  const desc = new $PropertyDescriptor(Obj.realm, key);
+
+  // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
+  // 4. If hasEnumerable is true, then
+  if (Obj['[[HasProperty]]'](intrinsics.$enumerable)) {
+    // 4. a. Let enumerable be ToBoolean(? Get(Obj, "enumerable")).
+    const enumerable = $Get(Obj, intrinsics.$enumerable).ToBoolean();
+
+    // 4. b. Set desc.[[Enumerable]] to enumerable.
+    desc['[[Enumerable]]'] = enumerable;
+  }
+
+  // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
+  // 6. If hasConfigurable is true, then
+  if (Obj['[[HasProperty]]'](intrinsics.$configurable)) {
+    // 6. a. Let configurable be ToBoolean(? Get(Obj, "configurable")).
+    const configurable = $Get(Obj, intrinsics.$configurable).ToBoolean();
+
+    // 6. b. Set desc.[[Configurable]] to configurable.
+    desc['[[Enumerable]]'] = configurable;
+  }
+
+  // 7. Let hasValue be ? HasProperty(Obj, "value").
+  // 8. If hasValue is true, then
+  if (Obj['[[HasProperty]]'](intrinsics.$value)) {
+    // 8. a. Let value be ? Get(Obj, "value").
+    const value = $Get(Obj, intrinsics.$value).ToBoolean();
+
+    // 8. b. Set desc.[[Value]] to value.
+    desc['[[Enumerable]]'] = value;
+  }
+
+  // 9. Let hasWritable be ? HasProperty(Obj, "writable").
+  // 10. If hasWritable is true, then
+  if (Obj['[[HasProperty]]'](intrinsics.$writable)) {
+    // 10. a. Let writable be ToBoolean(? Get(Obj, "writable")).
+    const writable = $Get(Obj, intrinsics.$writable).ToBoolean();
+
+    // 10. b. Set desc.[[Writable]] to writable.
+    desc['[[Enumerable]]'] = writable;
+  }
+
+  // 11. Let hasGet be ? HasProperty(Obj, "get").
+  // 12. If hasGet is true, then
+  if (Obj['[[HasProperty]]'](intrinsics.$get)) {
+    // 12. a. Let getter be ? Get(Obj, "get").
+    const getter = $Get(Obj, intrinsics.$get);
+
+    // 12. b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
+    if (!getter.isFunction && !getter.isUndefined) {
+      throw new TypeError('12. b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.');
+    }
+
+    // 12. c. Set desc.[[Get]] to getter.
+    desc['[[Get]]'] = getter as $Function | $Undefined;
+  }
+
+  // 13. Let hasSet be ? HasProperty(Obj, "set").
+  // 14. If hasSet is true, then
+  if (Obj['[[HasProperty]]'](intrinsics.$set)) {
+    // 14. a. Let setter be ? Get(Obj, "set").
+    const setter = $Get(Obj, intrinsics.$set);
+
+    // 14. b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
+    if (!setter.isFunction && !setter.isUndefined) {
+      throw new TypeError('14. b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.');
+    }
+
+    // 14. c. Set desc.[[Set]] to setter.
+    desc['[[Set]]'] = setter as $Function | $Undefined;
+  }
+
+  // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then
+  if (desc['[[Get]]'].hasValue || desc['[[Set]]'].hasValue) {
+    // 15. a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
+    if (desc['[[Value]]'].hasValue || desc['[[Writable]]'].hasValue) {
+      throw new TypeError('15. a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.');
+    }
+  }
+
+  // 16. Return desc.
+  return desc;
+}

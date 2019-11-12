@@ -56,6 +56,16 @@ export class $PropertyDescriptor {
   public constructor(
     public readonly realm: Realm,
     public readonly name: $PropertyKey,
+    config?: {
+      '[[Enumerable]]'?: $Boolean | $Undefined | $Empty;
+      '[[Configurable]]'?: $Boolean | $Undefined | $Empty;
+
+      '[[Get]]'?: $Function | $Undefined | $Empty;
+      '[[Set]]'?: $Function | $Undefined | $Empty;
+
+      '[[Value]]'?: $Any;
+      '[[Writable]]'?: $Boolean | $Undefined | $Empty;
+    },
   ) {
     const $empty = realm['[[Intrinsics]]'].empty;
 
@@ -67,6 +77,8 @@ export class $PropertyDescriptor {
 
     this['[[Value]]'] = $empty;
     this['[[Writable]]'] = $empty;
+
+    Object.assign(this, config);
   }
 }
 

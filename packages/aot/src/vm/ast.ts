@@ -1358,7 +1358,7 @@ function $decoratorList(
 function getContainsExpression<T>(obj: { ContainsExpression: T }): T { return obj.ContainsExpression; }
 function getHasInitializer<T>(obj: { HasInitializer: T }): T { return obj.HasInitializer; }
 function getIsSimpleParameterList<T>(obj: { IsSimpleParameterList: T }): T { return obj.IsSimpleParameterList; }
-function getBoundNames<T>(obj: { BoundNames: T }): T { return obj.BoundNames; }
+export function getBoundNames<T>(obj: { BoundNames: T }): T { return obj.BoundNames; }
 function getVarScopedDeclarations<T>(obj: { VarScopedDeclarations: T }): T { return obj.VarScopedDeclarations; }
 function getLocalName<T>(obj: { LocalName: T }): T { return obj.LocalName; }
 function getImportEntriesForModule<T>(obj: { ImportEntriesForModule: T }): T { return obj.ImportEntriesForModule; }

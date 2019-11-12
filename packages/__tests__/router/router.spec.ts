@@ -22,12 +22,12 @@ describe('Router', function () {
       router.navigation.location.pushState = function (data, title, path) {
         spy('push', data, title, path);
         _pushState.call(router.navigation.location, data, title, path);
-      }
+      };
       _replaceState = router.navigation.location.replaceState;
       router.navigation.location.replaceState = function (data, title, path) {
         spy('replace', data, title, path);
         _replaceState.call(router.navigation.location, data, title, path);
-      }
+      };
     }
     return { _pushState, _replaceState };
   }
@@ -1220,10 +1220,9 @@ describe('Router', function () {
     let scheduler, container, host, router, $teardown;
     let locationPath;
     before(async function () {
-      ({ scheduler, container, host, router, $teardown } = await $setup(App, void 0,
-        (type, data, title, path) => {
-          locationPath = path;
-        }));
+      ({ scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        locationPath = path;
+      }));
     });
 
     const tests = [
@@ -1243,8 +1242,8 @@ describe('Router', function () {
       });
     }
     for (const test of tests) {
-      let path = test.path.replace(/@\w+/g, '');
-      let url = test.url.replace(/@\w+/g, '');
+      const path = test.path.replace(/@\w+/g, '');
+      const url = test.url.replace(/@\w+/g, '');
       it(`to load route ${path} => ${url}`, async function () {
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
@@ -1319,7 +1318,7 @@ describe('Router', function () {
         // { path: ':id', instructions: [{ component: 'child', viewport: 'parent' }] },
       ];
     });
-    const Child = CustomElement.define({ name: 'child', template: '!child${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>' }, class {
+    const Child = CustomElement.define({ name: 'child', template: `!child\${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>` }, class {
       public static routes = [
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
       ];
@@ -1330,7 +1329,7 @@ describe('Router', function () {
         }
       }
     });
-    const Child2 = CustomElement.define({ name: 'child2', template: '!child2${param ? ":" + param : ""}!<au-viewport name="child2"></au-viewport>' }, class {
+    const Child2 = CustomElement.define({ name: 'child2', template: `!child2\${param ? ":" + param : ""}!<au-viewport name="child2"></au-viewport>` }, class {
       public static routes = [
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
       ];
@@ -1389,7 +1388,6 @@ describe('Router', function () {
       { path: '/parent-config/child2@parent/grandchild2@child2', result: '!parent!!child2!!grandchild2!', url: 'parent-config/child2@parent/grandchild2' }, // Specific config
       { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!', url: 'parent2/child-config/grandchild-config' },
 
-
       { path: '/parent-config/abc', result: '!parent!!child:abc!', url: 'parent-config/abc' },
       { path: '/parent2@default/child2(abc)@parent2', result: '!parent2!!child2:abc!', url: 'parent2/child2(abc)' },
 
@@ -1419,8 +1417,8 @@ describe('Router', function () {
       });
     }
     for (const test of tests) {
-      let path = test.path.replace(/@\w+/g, '');
-      let url = test.url.replace(/@\w+/g, '');
+      const path = test.path.replace(/@\w+/g, '');
+      const url = test.url.replace(/@\w+/g, '');
       it(`to load route ${path} => ${url}`, async function () {
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
@@ -1445,8 +1443,8 @@ describe('Router', function () {
       });
     }
     for (const test of tests) {
-      let path = test.path.replace(/@\w+/g, '');
-      let url = test.url.replace(/@\w+/g, '');
+      const path = test.path.replace(/@\w+/g, '');
+      const url = test.url.replace(/@\w+/g, '');
       it(`to load route (without viewports) ${path} => ${url}`, async function () {
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);

@@ -11,8 +11,6 @@ export class GotoCustomAttribute {
   private listener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
-  private readonly element: HTMLElement;
-
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode private readonly element: HTMLElement,

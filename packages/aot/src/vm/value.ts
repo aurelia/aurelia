@@ -319,6 +319,9 @@ export class $Undefined {
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
 
+  // http://www.ecma-international.org/ecma-262/#array-index
+  public get IsArrayIndex(): false { return false; }
+
   public constructor(
     public readonly realm: Realm,
     public readonly sourceNode: $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
@@ -770,6 +773,18 @@ export class $String<T extends string = string> {
     return this.realm['[[Intrinsics]]'].undefined;
   }
 
+  // http://www.ecma-international.org/ecma-262/#array-index
+  public get IsArrayIndex(): boolean {
+    if (this.value === '-0') {
+      return false;
+    }
+    const num = Number(this.value);
+    if (num.toString() === this.value) {
+      return num >= 0 && num <= (2 ** 32 - 1);
+    }
+    return false;
+  }
+
   public constructor(
     public readonly realm: Realm,
     public readonly value: T,
@@ -912,6 +927,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isFalsey(): false { return false; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+
+  // http://www.ecma-international.org/ecma-262/#array-index
+  public get IsArrayIndex(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,
@@ -1241,6 +1259,12 @@ export class $Number<T extends number = number> {
   }
 }
 
+// Sort two strings numerically instead of alphabetically
+function compareIndices(a: $String, b: $String): number {
+  // Rely on coercion as natively subtracting strings has some shortcuts (for better perf) compared to explicitly converting to number first
+  return (a.value as unknown as number) - (b.value as unknown as number);
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<
   T extends string = string,
@@ -1249,7 +1273,9 @@ export class $Object<
 
   public readonly id: number = ++esValueId;
 
-  public readonly properties: Map<string | symbol, $PropertyDescriptor> = new Map();
+  private readonly propertyMap: Map<string | symbol, number> = new Map();
+  private readonly propertyDescriptors: $PropertyDescriptor[] = [];
+  private readonly propertyKeys: $PropertyKey[] = [];
 
   public ['[[Prototype]]']: $Object | $Null;
   public ['[[Extensible]]']: $Boolean;
@@ -1506,6 +1532,34 @@ export class $Object<
     return func as $Function;
   }
 
+  protected hasProperty(key: $PropertyKey): boolean {
+    return this.propertyMap.has(key.value);
+  }
+
+  protected getProperty(key: $PropertyKey): $PropertyDescriptor {
+    return this.propertyDescriptors[this.propertyMap.get(key.value)!];
+  }
+
+  protected setProperty(desc: $PropertyDescriptor): void {
+    if (this.propertyMap.has(desc.name.value)) {
+      const idx = this.propertyMap.get(desc.name.value)!;
+      this.propertyDescriptors[idx] = desc;
+      this.propertyKeys[idx] = desc.name;
+    } else {
+      const idx = this.propertyDescriptors.length;
+      this.propertyDescriptors[idx] = desc;
+      this.propertyKeys[idx] = desc.name;
+      this.propertyMap.set(desc.name.value, idx);
+    }
+  }
+
+  protected deleteProperty(key: $PropertyKey): void {
+    const idx = this.propertyMap.get(key.value)!;
+    this.propertyMap.delete(key.value);
+    this.propertyDescriptors.splice(idx, 1)
+    this.propertyKeys.splice(idx, 1)
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
   public '[[GetPrototypeOf]]'(): $Object | $Null {
     // 1. Return ! OrdinaryGetPrototypeOf(O)
@@ -1618,7 +1672,7 @@ export class $Object<
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If O does not have an own property with key P, return undefined.
-    if (!O.properties.has(P.value)) {
+    if (!O.hasProperty(P)) {
       return intrinsics.undefined;
     }
 
@@ -1626,7 +1680,7 @@ export class $Object<
     const D = new $PropertyDescriptor(realm, P);
 
     // 4. Let X be O's own property whose key is P.
-    const X = O.properties.get(P.value)!;
+    const X = O.getProperty(P);
 
     // 5. If X is a data property, then
     if (X.isDataDescriptor) {
@@ -1784,7 +1838,7 @@ export class $Object<
     // 4. If desc.[[Configurable]] is true, then
     if (desc['[[Configurable]]'].isTruthy) {
       // 4. a. Remove the own property with name P from O.
-      O.properties.delete(P.value);
+      O.deleteProperty(P);
 
       // 4. b. Return true.
       return intrinsics.true;
@@ -1793,9 +1847,65 @@ export class $Object<
     // 5. Return false.
     return intrinsics.false;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
+  public '[[OwnPropertyKeys]]'(): readonly $PropertyKey[] {
+    // 1. Return ! OrdinaryOwnPropertyKeys(O).
+
+    // http://www.ecma-international.org/ecma-262/#sec-ordinaryownpropertykeys
+
+    // 1. Let keys be a new empty List.
+    const keys = [] as $PropertyKey[];
+    let keysLen = 0;
+
+    let arrayIndexLen = 0;
+    let stringLen = 0;
+    let symbolLen = 0;
+    let arrayIndexProps: $String[] = [];
+    let stringProps: $String[] = [];
+    let symbolProps: $Symbol[] = [];
+
+    const ownPropertyKeys = this.propertyKeys;
+    let ownPropertyKey: $PropertyKey;
+    for (let i = 0, ii = ownPropertyKeys.length; i < ii; ++i) {
+      ownPropertyKey = ownPropertyKeys[i];
+      if (ownPropertyKey.isString) {
+        if (ownPropertyKey.IsArrayIndex) {
+          arrayIndexProps[arrayIndexLen++] = ownPropertyKey;
+        } else {
+          stringProps[stringLen++] = ownPropertyKey;
+        }
+      } else {
+        symbolProps[symbolLen++] = ownPropertyKey;
+      }
+    }
+
+    arrayIndexProps.sort(compareIndices);
+
+    let i = 0;
+
+    // 2. For each own property key P of O that is an array index, in ascending numeric index order, do
+    for (i = 0; i < arrayIndexLen; ++i) {
+      // 2. a. Add P as the last element of keys.
+      keys[keysLen++] = arrayIndexProps[i];
+    }
+
+    // 3. For each own property key P of O that is a String but is not an array index, in ascending chronological order of property creation, do
+    for (i = 0; i < stringLen; ++i) {
+      // 3. a. Add P as the last element of keys.
+      keys[keysLen++] = stringProps[i];
+    }
+
+    // 4. For each own property key P of O that is a Symbol, in ascending chronological order of property creation, do
+    for (i = 0; i < symbolLen; ++i) {
+      // 4. a. Add P as the last element of keys.
+      keys[keysLen++] = symbolProps[i];
+    }
+
+    // 5. Return keys.
+    return keys;
+  }
 }
-
-
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects

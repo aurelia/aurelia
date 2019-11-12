@@ -781,7 +781,6 @@ export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
   }
 }
 
-
 // http://www.ecma-international.org/ecma-262/#sec-topropertydescriptor
 export function $ToPropertyDescriptor(realm: Realm, Obj: $Any, key: $PropertyKey): $PropertyDescriptor {
   const intrinsics = realm['[[Intrinsics]]'];
@@ -874,4 +873,60 @@ export function $ToPropertyDescriptor(realm: Realm, Obj: $Any, key: $PropertyKey
 
   // 16. Return desc.
   return desc;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-frompropertydescriptor
+export function $FromPropertyDescriptor(realm: Realm, Desc: $PropertyDescriptor): $Object;
+export function $FromPropertyDescriptor(realm: Realm, Desc: $Undefined): $Undefined;
+export function $FromPropertyDescriptor(realm: Realm, Desc: $PropertyDescriptor | $Undefined): $Object | $Undefined {
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If Desc is undefined, return undefined.
+  if (Desc.isUndefined) {
+    return intrinsics.undefined;
+  }
+
+  // 2. Let obj be ObjectCreate(%ObjectPrototype%).
+  const obj = $Object.ObjectCreate('PropertyDescriptor', intrinsics['%ObjectPrototype%']);
+
+  // 3. Assert: obj is an extensible ordinary object with no own properties.
+  // 4. If Desc has a [[Value]] field, then
+  if (Desc['[[Value]]'].hasValue) {
+    // 4. a. Perform CreateDataProperty(obj, "value", Desc.[[Value]]).
+    $CreateDataProperty(obj, intrinsics.$value, Desc['[[Value]]']);
+  }
+
+  // 5. If Desc has a [[Writable]] field, then
+  if (Desc['[[Writable]]'].hasValue) {
+    // 5. a. Perform CreateDataProperty(obj, "writable", Desc.[[Writable]]).
+    $CreateDataProperty(obj, intrinsics.$writable, Desc['[[Writable]]']);
+  }
+
+  // 6. If Desc has a [[Get]] field, then
+  if (Desc['[[Get]]'].hasValue) {
+    // 6. a. Perform CreateDataProperty(obj, "get", Desc.[[Get]]).
+    $CreateDataProperty(obj, intrinsics.$get, Desc['[[Get]]']);
+  }
+
+  // 7. If Desc has a [[Set]] field, then
+  if (Desc['[[Set]]'].hasValue) {
+    // 7. a. Perform CreateDataProperty(obj, "set", Desc.[[Set]]).
+    $CreateDataProperty(obj, intrinsics.$set, Desc['[[Set]]']);
+  }
+
+  // 8. If Desc has an [[Enumerable]] field, then
+  if (Desc['[[Enumerable]]'].hasValue) {
+    // 8. a. Perform CreateDataProperty(obj, "enumerable", Desc.[[Enumerable]]).
+    $CreateDataProperty(obj, intrinsics.$enumerable, Desc['[[Enumerable]]']);
+  }
+
+  // 9. If Desc has a [[Configurable]] field, then
+  if (Desc['[[Configurable]]'].hasValue) {
+    // 9. a. Perform CreateDataProperty(obj, "configurable", Desc.[[Configurable]]).
+    $CreateDataProperty(obj, intrinsics.$configurable, Desc['[[Configurable]]']);
+  }
+
+  // 10. Assert: All of the above CreateDataProperty operations return true.
+  // 11. Return obj.
+  return obj;
 }

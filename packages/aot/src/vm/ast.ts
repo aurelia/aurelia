@@ -151,7 +151,6 @@ import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 import { AssertionError } from 'assert';
 import { $NamespaceExoticObject } from './exotics/namespace';
-import { ArrayBindingPattern } from '../../../runtime/dist';
 const {
   emptyArray,
   emptyObject,
@@ -1131,6 +1130,22 @@ function blockDeclarationInstantiation(lexicallyScopedDeclarations: readonly $$E
       envRec.InitializeBinding(fn, fo);
     }
   }
+}
+
+function requireObjectCoercible(value: $Any, realm: Realm) {
+  const { undefined: $undefined, null: $null } = realm['[[Intrinsics]]'];
+  if (value.is($undefined) || value.is($null)) {
+    throw new TypeError("value cannot be null or undefined");
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-isanonymousfunctiondefinition
+function isAnonymousFunctionDefinition(expr: $$AssignmentExpressionOrHigher): expr is $ArrowFunction {
+  // 1. If IsFunctionDefinition of expr is false, return false.
+  // 2. Let hasName be the result of HasName of expr.
+  // 3. If hasName is true, return false.
+  // 4. Return true.
+  return expr instanceof $ArrowFunction;
 }
 // #endregion
 
@@ -7992,6 +8007,135 @@ export class $ObjectBindingPattern implements I$Node {
     this.ContainsExpression = $elements.some(getContainsExpression);
     this.HasInitializer = $elements.some(getHasInitializer);
     this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
+  public InitializeBinding(value: $Any, envRec: $DeclarativeEnvRec) {
+    const { realm, $elements } = this;
+    const { empty, undefined: $undefined } = realm['[[Intrinsics]]'];
+
+    // BindingPattern : ObjectBindingPattern
+
+    // 1. Perform ? RequireObjectCoercible(value).
+    requireObjectCoercible(value, realm);
+
+    // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.
+
+    // ObjectBindingPattern : { }
+    if ($elements.length === 0) {
+      // 1. Return NormalCompletion(empty).
+      return CompletionRecord.createNormal(empty, realm);
+    }
+
+    // ObjectBindingPattern : { BindingPropertyList } { BindingPropertyList , }
+
+    // 1. Perform ? PropertyBindingInitialization for BindingPropertyList using value and environment as the arguments.
+    // 2. Return NormalCompletion(empty).
+
+    // ObjectBindingPattern : { BindingRestProperty }
+
+    // 1. Let excludedNames be a new empty List.
+    // 2. Return the result of performing RestBindingInitialization of BindingRestProperty with value, environment, and excludedNames as the arguments.
+
+    // ObjectBindingPattern : { BindingPropertyList , BindingRestProperty }
+
+    // 1. Let excludedNames be the result of performing ? PropertyBindingInitialization of BindingPropertyList using value and environment as arguments.
+    // 2. Return the result of performing RestBindingInitialization of BindingRestProperty with value, environment, and excludedNames as the arguments.
+
+    // #region PropertyBindingInitialization http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
+
+    // BindingPropertyList : BindingPropertyList , BindingProperty
+
+    // 1. Let boundNames be the result of performing ? PropertyBindingInitialization for BindingPropertyList using value and environment as arguments.
+    // 2. Let nextNames be the result of performing ? PropertyBindingInitialization for BindingProperty using value and environment as arguments.
+    // 3. Append each item in nextNames to the end of boundNames.
+    // 4. Return boundNames.
+
+    // BindingProperty : SingleNameBinding
+
+    // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
+    // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
+    // 3. Return a new List containing name.
+
+    // BindingProperty : PropertyName : BindingElement
+
+    // 1. Let P be the result of evaluating PropertyName.
+    // 2. ReturnIfAbrupt(P).
+    // 3. Perform ? KeyedBindingInitialization of BindingElement with value, environment, and P as the arguments.
+    // 4. Return a new List containing P.
+    for (let i = 0, { length } = $elements; i < length; i++) {
+      const element = $elements[i];
+      const { $name, $initializer } = element;
+
+      switch (true) {
+        case $name instanceof $Identifier:
+          // case#1.1: {a} (SingleNameBinding), 
+          // case#1.2: {a = 1} (SingleNameBinding with Initializer), 
+
+          // BindingProperty : SingleNameBinding
+
+          // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
+          const name = element.BoundNames[0];
+
+          // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
+          // 3. Return a new List containing name.
+
+          // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+          // SingleNameBinding : BindingIdentifier Initializer opt
+          // 1. Let bindingId be StringValue of BindingIdentifier.
+          const bindingId = name; // in this case both are same
+
+          // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+          const lhs = realm.ResolveBinding(bindingId, envRec);
+
+          // 3. Let v be ? GetV(value, propertyName).
+          let v = value.ToObject()['[[Get]]'](name, $undefined);
+
+          // 4. If Initializer is present and v is undefined, then
+          if (element.HasInitializer && v.is($undefined)) {
+            // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+            if (isAnonymousFunctionDefinition($initializer!)) {
+              // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+              v = $initializer.Evaluate()
+            } else {
+              // 4. b. Else,
+              // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+              // 4. b. ii. Set v to ? GetValue(defaultValue).
+            }
+          }
+          // 5. If environment is undefined, return ? PutValue(lhs, v).
+          // 6. Return InitializeReferencedBinding(lhs, v).
+
+          // case#2.0: {a: a1} (PropertyName:BindingElement)
+          break;
+      }
+    }
+    // #endregion 
+
+    // #region KeyedBindingInitialization http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+
+    // BindingElement : BindingPattern Initializer opt
+
+    // 1. Let v be ? GetV(value, propertyName).
+    // 2. If Initializer is present and v is undefined, then
+    // 2. a. Let defaultValue be the result of evaluating Initializer.
+    // 2. b. Set v to ? GetValue(defaultValue).
+    // 3. Return the result of performing BindingInitialization for BindingPattern passing v and environment as arguments.
+
+    // SingleNameBinding : BindingIdentifier Initializer opt
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+    // 3. Let v be ? GetV(value, propertyName).
+    // 4. If Initializer is present and v is undefined, then
+    // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. b. Else,
+    // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+    // 4. b. ii. Set v to ? GetValue(defaultValue).
+    // 5. If environment is undefined, return ? PutValue(lhs, v).
+    // 6. Return InitializeReferencedBinding(lhs, v).
+    // #endregion 
   }
 }
 

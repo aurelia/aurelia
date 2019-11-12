@@ -61,6 +61,14 @@
         "cwd": "${workspaceFolder}",
         "program": "${workspaceFolder}\\packages\\__tests__\\dist\\esnext\\__tests__\\setup-test262.js",
         "runtimeArgs": ["-r", "esm"]
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "ast",
+        "cwd": "${workspaceFolder}",
+        "program": "${workspaceFolder}\\tsc-demo.js",
+        "runtimeArgs": ["-r", "esm"]
     }
   ]
 }

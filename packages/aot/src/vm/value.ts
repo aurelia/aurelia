@@ -6,6 +6,8 @@ import { $EnvRec, $FunctionEnvRec } from './environment';
 import { $$AssignmentExpressionOrHigher, $Identifier, $StringLiteral, $NumericLiteral, $ComputedPropertyName, $FunctionDeclaration, $ExportDeclaration, $ExportSpecifier, $ExportAssignment, $NamespaceImport, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $VariableStatement, $SourceFile, $MethodDeclaration, $ArrowFunction, $BooleanLiteral, $NullLiteral } from './ast';
 import { Intrinsics } from './intrinsics';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
+import { $ArrayExoticObject } from './exotics/array';
+import { $ProxyExoticObject } from './exotics/proxy';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -26,7 +28,9 @@ export type $Any = (
   $Primitive |
   $Object |
   $Function |
-  $BoundFunctionExoticObject
+  $BoundFunctionExoticObject |
+  $ArrayExoticObject |
+  $ProxyExoticObject
 );
 
 export type $PropertyKey = (
@@ -58,6 +62,8 @@ export class $SpeculativeValue {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
@@ -156,6 +162,8 @@ export class $Empty {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): false { return false; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
@@ -302,6 +310,8 @@ export class $Undefined {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
@@ -448,6 +458,8 @@ export class $Null {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): false { return false; }
@@ -592,6 +604,8 @@ export class $Boolean<T extends boolean = boolean> {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): T { return this.value; }
@@ -733,12 +747,28 @@ export class $String<T extends string = string> {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value.length > 0; }
   public get isFalsey(): boolean { return this.value.length === 0; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+
+  // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
+  public get CanonicalNumericIndexString(): $Number | $Undefined {
+    if (this.value === '-0') {
+      return this.realm['[[Intrinsics]]']['-0'];
+    }
+
+    const n = this.ToNumber();
+    if (n.ToString().is(this) as boolean) {
+      return n;
+    }
+
+    return this.realm['[[Intrinsics]]'].undefined;
+  }
 
   public constructor(
     public readonly realm: Realm,
@@ -874,6 +904,8 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isSymbol(): true { return true; }
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): true { return true; }
@@ -1025,6 +1057,8 @@ export class $Number<T extends number = number> {
   public get isSymbol(): false { return false; }
   public get isPrimitive(): true { return true; }
   public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
   public get isTruthy(): boolean { return this.value !== 0 && !isNaN(this.value); }
@@ -1230,6 +1264,8 @@ export class $Object<
   public get isSymbol(): false { return false; }
   public get isPrimitive(): false { return false; }
   public get isObject(): true { return true; }
+  public get isArray(): boolean { return false; }
+  public get isProxy(): boolean { return false; }
   public get isFunction(): boolean { return false; }
   public get isBoundFunction(): boolean { return false; }
   public get isTruthy(): true { return true; }

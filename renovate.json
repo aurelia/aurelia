@@ -19,6 +19,10 @@
   "node": {
     "supportPolicy": ["lts"]
   },
+  "ignoreDeps": [
+    "i18next",
+    "pixi.js"
+  ],
   "packageRules": [
     {
       "depTypeList": ["devDependencies"],

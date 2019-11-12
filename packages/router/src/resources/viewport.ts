@@ -10,8 +10,7 @@ import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 @customElement({
-  name: 'au-viewport',
-  template: `<template></template>`
+  name: 'au-viewport'
 })
 export class ViewportCustomElement {
   @bindable public name: string = 'default';

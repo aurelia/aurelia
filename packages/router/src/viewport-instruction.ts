@@ -262,10 +262,9 @@ export class ViewportInstruction {
       }
     }
     // Add all remaining named
-    let params = parameters.filter(param => param.key !== void 0);
+    const params = parameters.filter(param => param.key !== void 0);
     params.sort((a, b) => (a.key || '') < (b.key || '') ? 1 : (b.key || '') < (a.key || '') ? -1 : 0);
     sorted.push(...params);
-    let index: number = specifications.length;
     // Add all remaining unnamed...
     sorted.push(...parameters.filter(param => param.key === void 0));
 

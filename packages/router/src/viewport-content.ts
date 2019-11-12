@@ -81,7 +81,7 @@ export class ViewportContent {
           try {
             this.content.componentInstance = this.toComponentInstance(context);
           } catch (ee) {
-            throw [e, ee];
+            throw e;
           }
         } else {
           throw e;

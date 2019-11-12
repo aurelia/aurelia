@@ -1217,14 +1217,6 @@ describe('Router', function () {
       dependencies
     });
 
-    let scheduler, container, host, router, $teardown;
-    let locationPath;
-    before(async function () {
-      ({ scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
-        locationPath = path;
-      }));
-    });
-
     const tests = [
       { path: 'parent(a)@default', result: '!parent:a!', url: 'a' },
       { path: 'b@default', result: '!parent:b!', url: 'b' },
@@ -1236,22 +1228,55 @@ describe('Router', function () {
 
     for (const test of tests) {
       it(`to load route ${test.path} => ${test.url}`, async function () {
+        let locationPath: string;
+        const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+          locationPath = path;
+        });
         await $goto(test.path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+        await $teardown();
       });
     }
+    it(`to load above routes in sequence`, async function () {
+      let locationPath: string;
+      const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        locationPath = path;
+      });
+      for (const test of tests) {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
       const url = test.url.replace(/@\w+/g, '');
       it(`to load route ${path} => ${url}`, async function () {
+        let locationPath: string;
+        const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+          locationPath = path;
+        });
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+        await $teardown();
       });
     }
-
-    after(async function () {
+    it(`to load above routes in sequence`, async function () {
+      let locationPath: string;
+      const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        locationPath = path;
+      });
+      for (const test of tests) {
+        const path = test.path.replace(/@\w+/g, '');
+        const url = test.url.replace(/@\w+/g, '');
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+      }
       await $teardown();
     });
   });
@@ -1345,27 +1370,6 @@ describe('Router', function () {
     const Grandchild = CustomElement.define({ name: 'grandchild', template: '!grandchild!' });
     const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
 
-    let scheduler, container, host, router, $teardown, App;
-    let locationPath;
-    before(async function () {
-      ({ scheduler, container, host, router, $teardown, App } = await $setup(void 0,
-        [Parent, Parent2, Child, Child2, Grandchild, Grandchild2],
-        [
-          { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
-          { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
-          { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
-          { path: 'parent-config/child2', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
-          { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
-          // { path: 'parent-config/child2(abc)', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
-          // { path: 'parent-config/child2(abc)@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
-        ],
-        (type, data, title, path) => {
-          // console.log(type, data, title, path);
-          locationPath = path;
-        }
-      ));
-    });
-
     const tests = [
       { path: '/parent-config', result: '!parent!', url: 'parent-config' },
       { path: '/parent2@default', result: '!parent2!', url: 'parent2' },
@@ -1406,29 +1410,74 @@ describe('Router', function () {
       // { path: '/parent-config/child2(abc)@parent/grandchild2@child2', result: '!parent!!child2:abc!!grandchild2!' },
       // { path: '/parent2@default/abc/grandchild-config', result: '!parent2!!child:abc!!grandchild!' },
     ];
-
+    const appDependencies = [Parent, Parent2, Child, Child2, Grandchild, Grandchild2];
+    const appRoutes = [
+      { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
+      { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
+      { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
+      { path: 'parent-config/child2', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+      { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+      // { path: 'parent-config/child2(abc)', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
+      // { path: 'parent-config/child2(abc)@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
+    ];
+    let locationPath: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+    };
     for (const test of tests) {
       it(`to load route ${test.path} => ${test.url}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
         await $goto(test.path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
-        // if (test.url) {
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
-        // }
+
+        await $teardown();
       });
     }
+    it(`to load above routes in sequence`, async function () {
+      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
       const url = test.url.replace(/@\w+/g, '');
       it(`to load route ${path} => ${url}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+
+        await $teardown();
       });
     }
+    it(`to load above routes in sequence`, async function () {
+      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        const path = test.path.replace(/@\w+/g, '');
+        const url = test.url.replace(/@\w+/g, '');
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+      }
+      await $teardown();
+    });
 
     let removedViewports = false;
     for (const test of tests) {
       it(`to load route (without viewports) ${test.path} => ${test.url}`, async function () {
+        const { scheduler, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
         if (!removedViewports) {
           removedViewports = true;
           for (const type of [App, Parent, Parent2, Child, Child2]) {
@@ -1437,22 +1486,48 @@ describe('Router', function () {
             }
           }
         }
+
         await $goto(test.path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+
+        await $teardown();
       });
     }
+    it(`to load above routes (without viewports) in sequence`, async function () {
+      const { scheduler, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
       const url = test.url.replace(/@\w+/g, '');
       it(`to load route (without viewports) ${path} => ${url}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
         await $goto(path, router, scheduler);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+
+        await $teardown();
       });
     }
+    it(`to load above routes (without viewports) in sequence`, async function () {
+      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
-    after(async function () {
+      for (const test of tests) {
+        const path = test.path.replace(/@\w+/g, '');
+        const url = test.url.replace(/@\w+/g, '');
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+      }
       await $teardown();
     });
   });

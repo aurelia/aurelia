@@ -454,7 +454,7 @@ export class Viewport {
       const instruction = viewportInstructions[i];
       instruction.needsViewportDescribed = true;
       for (const name in availableViewports) {
-        if (availableViewports.hasOwnProperty(name)) {
+        if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
           const viewport: Viewport | null = availableViewports[name];
           // TODO: Also check if (resolved) component wants a specific viewport
           if (viewport && viewport.wantComponent(instruction.componentName as string)) {
@@ -498,7 +498,7 @@ export class Viewport {
       const instruction = viewportInstructions[i];
       const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
-        if (availableViewports.hasOwnProperty(name)) {
+        if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
           const viewport: Viewport | null = availableViewports[name];
           if (viewport && viewport.acceptComponent(instruction.componentName as string)) {
             remainingViewports.push(viewport);
@@ -592,7 +592,7 @@ export class Viewport {
   }
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
-    let viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
+    const viewports: Viewport[] = this.children.filter((viewport) => viewport.enabled || includeDisabled);
     const scopes: Viewport[] = viewports.slice();
     for (const scope of scopes) {
       viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
@@ -653,7 +653,7 @@ export class Viewport {
     }
     let routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     if (routes !== null && routes !== void 0) {
-      routes = routes.map(route => this.ensureProperRoute(route))
+      routes = routes.map(route => this.ensureProperRoute(route));
       const recognizableRoutes: ConfigurableRoute[] = routes.map(route => ({ path: route.path, handler: { name: route.id, route } }));
       for (let i: number = 0, ilen: number = recognizableRoutes.length; i < ilen; i++) {
         const newRoute: ConfigurableRoute = { ...recognizableRoutes[i] };

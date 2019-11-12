@@ -303,10 +303,6 @@ export class Router implements IRouter {
       clearUsedViewports = true;
       instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
     }
-    // TODO: PARAMETERS
-    // const parsedQuery: IParsedQuery = parseQuery(instruction.query);
-    // instruction.parameters = parsedQuery.parameters;
-    // instruction.parameterList = parsedQuery.list;
 
     // TODO: Fetch title (probably when done)
 

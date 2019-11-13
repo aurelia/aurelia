@@ -109,7 +109,7 @@ describe('templating-compiler.ref.spec.ts', function() {
             assertFn: (ctx, host, comp) => {
               const div = host.querySelector('div') as INode;
               for (let i = 0, ii = arr.length; ii > i; ++i) {
-                assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+                assert.strictEqual(CustomAttribute.behaviorFor(div, `c-a-${i}`).viewModel, comp[`ca${i}`]);
               }
             }
           },
@@ -120,7 +120,7 @@ describe('templating-compiler.ref.spec.ts', function() {
             assertFn: (ctx, host, comp) => {
               const div = host.querySelector('div') as INode;
               for (let i = 0, ii = arr.length; ii > i; ++i) {
-                assert.strictEqual(div.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+                assert.strictEqual(CustomAttribute.behaviorFor(div, `c-a-${i}`).viewModel, comp[`ca${i}`]);
               }
             }
           },
@@ -130,7 +130,7 @@ describe('templating-compiler.ref.spec.ts', function() {
             resources: Attrs,
             assertFn: (ctx, host: INode, comp) => {
               for (let i = 0, ii = arr.length; ii > i; ++i) {
-                assert.strictEqual(host.$au[`c-a-${i}`].viewModel, comp[`ca${i}`]);
+                assert.strictEqual(CustomAttribute.behaviorFor(host, `c-a-${i}`).viewModel, comp[`ca${i}`]);
               }
             }
           },
@@ -145,9 +145,9 @@ describe('templating-compiler.ref.spec.ts', function() {
             ],
             assertFn: (ctx, host) => {
               const ceEl = host.querySelector('c-e') as CustomElementHost;
-              const $celVm = ceEl.$controller.viewModel as object;
+              const $celVm = CustomElement.behaviorFor(ceEl).viewModel as object;
               for (let i = 0, ii = arr.length; ii > i; ++i) {
-                assert.strictEqual(ceEl.$au[`c-a-${i}`].viewModel, $celVm[`ca${i}`]);
+                assert.strictEqual(CustomAttribute.behaviorFor(ceEl, `c-a-${i}`).viewModel, $celVm[`ca${i}`]);
               }
             }
           }

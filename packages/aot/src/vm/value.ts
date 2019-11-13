@@ -38,6 +38,8 @@ export type $PropertyKey = (
   $Symbol
 );
 
+export type ESType = 'Undefined' | 'Null' | 'Boolean' | 'String' | 'Symbol' | 'Number' | 'Object';
+
 export type $NonNumberPrimitive = Exclude<$Primitive, $Number>;
 export type $NonNilPrimitive = Exclude<$Primitive, $Undefined | $Null>;
 export type $NonNil = Exclude<$Any, $Undefined | $Null>;
@@ -52,6 +54,7 @@ export class $SpeculativeValue {
   public readonly path: string;
   public readonly id: number = ++esValueId;
 
+  public get Type(): ESType { throw new TypeError(); }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -152,6 +155,7 @@ export class $Empty {
 
   public readonly value: empty = empty;
 
+  public get Type(): ESType { throw new TypeError(); }
   public get isEmpty(): true { return true; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -300,6 +304,7 @@ export class $Undefined {
 
   public readonly value: undefined = void 0;
 
+  public get Type(): 'Undefined' { return 'Undefined'; }
   public get isEmpty(): false { return false; }
   public get isUndefined(): true { return true; }
   public get isNull(): false { return false; }
@@ -451,6 +456,7 @@ export class $Null {
 
   public readonly value: null = null;
 
+  public get Type(): 'Null' { return 'Null'; }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): true { return true; }
@@ -597,6 +603,7 @@ export class $Boolean<T extends boolean = boolean> {
   public readonly id: number = ++esValueId;
   public readonly IntrinsicName: 'boolean' = 'boolean' as const;
 
+  public get Type(): 'Boolean' { return 'Boolean'; }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -740,6 +747,7 @@ export class $String<T extends string = string> {
   public readonly id: number = ++esValueId;
   public readonly IntrinsicName: 'string' = 'string' as const;
 
+  public get Type(): 'String' { return 'String'; }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -909,6 +917,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public readonly id: number = ++esValueId;
   public readonly IntrinsicName: 'symbol' = 'symbol' as const;
 
+  public get Type(): 'Symbol' { return 'Symbol'; }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -1060,6 +1069,7 @@ export class $Number<T extends number = number> {
   public readonly id: number = ++esValueId;
   public readonly IntrinsicName: 'number' = 'number' as const;
 
+  public get Type(): 'Number' { return 'Number'; }
   public get isNaN(): boolean { return isNaN(this.value); }
   public get isPositiveZero(): boolean { return Object.is(this.value, +0); }
   public get isNegativeZero(): boolean { return Object.is(this.value, -0); }
@@ -1280,6 +1290,7 @@ export class $Object<
   public ['[[Prototype]]']: $Object | $Null;
   public ['[[Extensible]]']: $Boolean;
 
+  public get Type(): 'Object' { return 'Object'; }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }

@@ -1,6 +1,7 @@
-import { IDOM } from '@aurelia/runtime';
+import { IDOM, CustomAttribute } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { Key } from '@aurelia/kernel';
+import { GotoCustomAttribute } from './resources/goto';
 
 /**
  * Provides information about how to handle an anchor event.
@@ -84,7 +85,8 @@ export class LinkHandler {
       return info;
     }
 
-    const goto: string | null = (target as any).$au !== void 0 && (target as any).$au['goto'] !== void 0 ? (target as any).$au['goto'].viewModel.value : null;
+    const gotoAttr = CustomAttribute.behaviorFor(target, 'goto');
+    const goto: string | null = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
     const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
     if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
       return info;

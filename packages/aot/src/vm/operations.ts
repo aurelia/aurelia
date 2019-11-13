@@ -4,6 +4,7 @@ import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $N
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
+import { $ArrayExoticObject } from './exotics/array';
 
 export type CallableFunction = (
   thisArgument: $Any,
@@ -942,7 +943,11 @@ const defaultElementTypes = [
 ] as const;
 
 // http://www.ecma-international.org/ecma-262/#sec-createlistfromarraylike
-export function $CreateListFromArrayLike(realm: Realm, obj: $Any, elementTypes: readonly ESType[] = defaultElementTypes): $Any[] {
+export function $CreateListFromArrayLike(
+  realm: Realm,
+  obj: $Any,
+  elementTypes: readonly ESType[] = defaultElementTypes,
+): $Any[] {
   // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, Object ».
   // 2. If Type(obj) is not Object, throw a TypeError exception.
   if (!obj.isObject) {
@@ -979,4 +984,30 @@ export function $CreateListFromArrayLike(realm: Realm, obj: $Any, elementTypes: 
 
   // 7. Return list.
   return list;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
+export function $CreateArrayFromList(
+  realm: Realm,
+  elements: readonly $Any[],
+): $ArrayExoticObject {
+  // 1. Assert: elements is a List whose elements are all ECMAScript language values.
+  // 2. Let array be ! ArrayCreate(0).
+  const array = new $ArrayExoticObject(realm, realm['[[Intrinsics]]']['0']);
+
+  // 3. Let n be 0.
+  let n = 0;
+
+  // 4. For each element e of elements, do
+  for (const e of elements) {
+    // 4. a. Let status be CreateDataProperty(array, ! ToString(n), e).
+    const status = $CreateDataProperty(array, new $String(realm, n.toString()), e);
+
+    // 4. b. Assert: status is true.
+    // 4. c. Increment n by 1.
+    ++n;
+  }
+
+  // 5. Return array.
+  return array;
 }

@@ -14,7 +14,6 @@ interface IMayHavePropertyChangedCallback {
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
-/* eslint-disable @typescript-eslint/unbound-method */
 @subscriberCollection()
 export class BindableObserver {
   public currentValue: unknown = void 0;
@@ -44,8 +43,6 @@ export class BindableObserver {
       isProxy = true;
       obj.$observer.subscribe(this, propertyKey);
       this.obj = obj.$raw;
-    } else {
-      this.obj = obj;
     }
 
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
@@ -95,6 +92,10 @@ export class BindableObserver {
 
     if (this.observing) {
       const currentValue = this.currentValue;
+      // eslint-disable-next-line compat/compat
+      if (Object.is(newValue, currentValue)) {
+        return;
+      }
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
@@ -139,6 +140,7 @@ export class BindableObserver {
         {
           enumerable: true,
           configurable: true,
+          // todo: opt memory usage?
           get: () => this.getValue(),
           set: (value: unknown) => {
             this.setValue(value, LifecycleFlags.none);

@@ -3,7 +3,7 @@ import { CustomElementHost, CustomElement } from '@aurelia/runtime';
 export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost | null {
   let el: CustomElementHost<Element> | null = element;
   while (el !== null) {
-    if (CustomElement.behaviorFor(el) !== void 0) {
+    if (CustomElement.for(el) !== void 0) {
       break;
     }
     el = el.parentElement;

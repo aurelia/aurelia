@@ -23,8 +23,8 @@ describe.skip(`determineProjector`, function () {
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
     assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
-    assert.strictEqual(CustomElement.behaviorFor(projector['shadowRoot']), component, `CustomElement.behaviorFor(projector['shadowRoot'])`);
-    assert.strictEqual(CustomElement.behaviorFor(host), component, `CustomElement.behaviorFor(host)`);
+    assert.strictEqual(CustomElement.for(projector['shadowRoot']), component, `CustomElement.for(projector['shadowRoot'])`);
+    assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.strictEqual(projector.children.length, projector['shadowRoot']['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
       assert.deepStrictEqual(projector.children, projector['shadowRoot']['childNodes'], `projector.children`);
@@ -48,8 +48,8 @@ describe.skip(`determineProjector`, function () {
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
     assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
-    assert.strictEqual(CustomElement.behaviorFor(projector['shadowRoot']), component, `CustomElement.behaviorFor(projector['shadowRoot'])`);
-    assert.strictEqual(CustomElement.behaviorFor(host), component, `CustomElement.behaviorFor(host)`);
+    assert.strictEqual(CustomElement.for(projector['shadowRoot']), component, `CustomElement.for(projector['shadowRoot'])`);
+    assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.strictEqual(projector.children.length, projector['shadowRoot']['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
       assert.deepStrictEqual(projector.children, projector['shadowRoot']['childNodes'], `projector.children`);
@@ -132,7 +132,7 @@ describe.skip(`determineProjector`, function () {
     const controller = Controller.forCustomElement(component, ctx.container, host);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
-    assert.strictEqual(CustomElement.behaviorFor(host), component, `CustomElement.behaviorFor(host)`);
+    assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.instanceOf(projector, HostProjector, `projector`);
     assert.strictEqual(projector.children, projector.host.childNodes, `projector.children`);
     assert.strictEqual(projector.provideEncapsulationSource(), host, `projector.provideEncapsulationSource()`);

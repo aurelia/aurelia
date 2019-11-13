@@ -269,8 +269,8 @@ describe('blur.integration.spec.ts', function() {
 
           const $ceA: CustomElementHost & HTMLElement = host.querySelector('ce-a');
           const $ceB: CustomElementHost & HTMLElement = host.querySelector('ce-b');
-          const ceA = CustomElement.behaviorFor($ceA).viewModel as IApp;
-          const ceB = CustomElement.behaviorFor($ceB).viewModel as IApp;
+          const ceA = CustomElement.for($ceA).viewModel as IApp;
+          const ceB = CustomElement.for($ceB).viewModel as IApp;
 
           dispatchEventWith(ctx, host.querySelector('ce-a'), EVENTS.MouseDown);
           assert.equal(component.aHasFocus, true, '.aHasFocus === true');

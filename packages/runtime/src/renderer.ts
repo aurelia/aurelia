@@ -191,19 +191,19 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
   switch (refTargetName) {
     case 'controller':
       // this means it supports returning undefined
-      return CustomElement.behaviorFor(refHost)!;
+      return CustomElement.for(refHost)!;
     case 'view':
       // todo: returns node sequences for fun?
       throw new Error('Not supported API');
     case 'view-model':
       // this means it supports returning undefined
-      return CustomElement.behaviorFor(refHost)!.viewModel!;
+      return CustomElement.for(refHost)!.viewModel!;
     default: {
-      const caController = CustomAttribute.behaviorFor(refHost, refTargetName);
+      const caController = CustomAttribute.for(refHost, refTargetName);
       if (caController !== void 0) {
         return caController.viewModel!;
       }
-      const ceController = CustomElement.behaviorFor(refHost);
+      const ceController = CustomElement.for(refHost);
       if (ceController !== void 0) {
         // TODO: do we want to make sure the name matches?
         return ceController.viewModel!;

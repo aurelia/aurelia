@@ -55,7 +55,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
-  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined;
+  for<T extends INode = INode>(node: T): IController<T> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
   define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
@@ -320,7 +320,7 @@ export const CustomElement: CustomElementKind = {
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
-  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
+  for<T extends INode = INode>(node: T): IController<T> | undefined {
     return Metadata.getOwn(CustomElement.name, node);
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {

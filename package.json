@@ -65,7 +65,7 @@
     "@types/webpack-env": "^1.14.1",
     "@typescript-eslint/eslint-plugin": "^2.4.0",
     "@typescript-eslint/parser": "^2.4.0",
-    "chalk": "^2.4.2",
+    "chalk": "^3.0.0",
     "codecov": "^3.6.1",
     "command-exists": "^1.2.8",
     "commitizen": "^4.0.3",

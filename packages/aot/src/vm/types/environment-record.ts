@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { IModule, Realm } from '../realm';
-import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
+import { $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Any } from './_shared';
 import { $String } from './string';
@@ -320,7 +320,7 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Let foundBinding be ? HasProperty(bindings, N).
-    const foundBinding = $HasProperty(bindings, N);
+    const foundBinding = bindings['[[HasProperty]]'](N);
 
     // 4. If foundBinding is false, return false.
     if (foundBinding.isFalsey) {
@@ -414,7 +414,7 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Let value be ? HasProperty(bindings, N).
-    const value = $HasProperty(bindings, N);
+    const value = bindings['[[HasProperty]]'](N);
 
     // 4. If value is false, then
     if (value.isFalsey) {

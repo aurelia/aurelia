@@ -147,7 +147,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
-import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 import { AssertionError } from 'assert';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
@@ -4405,7 +4405,7 @@ export class $BinaryExpression implements I$Node {
         }
 
         // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
-        return $HasProperty(rval, lval.ToPropertyKey());
+        return rval['[[HasProperty]]'](lval.ToPropertyKey());
       }
       // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
       case SyntaxKind.EqualsEqualsToken: {

@@ -51,14 +51,6 @@ export function $CreateBuiltinFunction<T extends string = string, TSlots extends
   return func as $BuiltinFunction<T> & TSlots;
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-hasproperty
-export function $HasProperty(O: $Object, P: $PropertyKey): $Boolean {
-  // 1. Assert: Type(O) is Object.
-  // 2. Assert: IsPropertyKey(P) is true.
-  // 3. Return ? O.[[HasProperty]](P).
-  return O['[[HasProperty]]'](P);
-}
-
 // http://www.ecma-international.org/ecma-262/#sec-get-o-p
 export function $Get(O: $Object, P: $PropertyKey): $Any {
   // 1. Assert: Type(O) is Object.

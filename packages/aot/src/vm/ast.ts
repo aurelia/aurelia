@@ -1145,7 +1145,7 @@ function isAnonymousFunctionDefinition(expr: $$AssignmentExpressionOrHigher): ex
   // 2. Let hasName be the result of HasName of expr.
   // 3. If hasName is true, return false.
   // 4. Return true.
-  return expr instanceof $ArrowFunction;
+  return expr instanceof $ArrowFunction || expr instanceof $Function && !expr['[[HasProperty]]'](expr.realm['[[Intrinsics]]'].$name);
 }
 // #endregion
 
@@ -2446,13 +2446,13 @@ export class $VariableDeclaration implements I$Node {
           // 2. If environment is not undefined, then
           if (envRec !== undefined) {
             // 2. a. Let env be the EnvironmentRecord component of environment.
-            // 2. b. Perform env.InitializeBinding(name, value).            
+            // 2. b. Perform env.InitializeBinding(name, value).
             envRec.InitializeBinding(name, value);
             // 2. c. Return NormalCompletion(undefined).
             return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].undefined, this.realm);
           } else {
             // 3. Else,
-            // 3. a. Let lhs be ResolveBinding(name).    
+            // 3. a. Let lhs be ResolveBinding(name).
             const lhs = this.realm.ResolveBinding(name);
             // 3. b. Return ? PutValue(lhs, value).
             lhs.PutValue(value);
@@ -8069,8 +8069,8 @@ export class $ObjectBindingPattern implements I$Node {
 
       switch (true) {
         case $name instanceof $Identifier:
-          // case#1.1: {a} (SingleNameBinding), 
-          // case#1.2: {a = 1} (SingleNameBinding with Initializer), 
+          // case#1.1: {a} (SingleNameBinding),
+          // case#1.2: {a = 1} (SingleNameBinding with Initializer),
 
           // BindingProperty : SingleNameBinding
 
@@ -8096,10 +8096,11 @@ export class $ObjectBindingPattern implements I$Node {
             // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
             if (isAnonymousFunctionDefinition($initializer!)) {
               // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
-              v = $initializer.Evaluate()
+              // TODO implement this
             } else {
               // 4. b. Else,
               // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+              const defaultValue = $initializer?.Evaluate();
               // 4. b. ii. Set v to ? GetValue(defaultValue).
             }
           }
@@ -8110,7 +8111,7 @@ export class $ObjectBindingPattern implements I$Node {
           break;
       }
     }
-    // #endregion 
+    // #endregion
 
     // #region KeyedBindingInitialization http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
 
@@ -8135,7 +8136,7 @@ export class $ObjectBindingPattern implements I$Node {
     // 4. b. ii. Set v to ? GetValue(defaultValue).
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     // 6. Return InitializeReferencedBinding(lhs, v).
-    // #endregion 
+    // #endregion
   }
 }
 
@@ -9909,13 +9910,13 @@ export class $CatchClause implements I$Node {
           // 1. Assert: Type(name) is String.
           // 2. If environment is not undefined, then
           // 2. a. Let env be the EnvironmentRecord component of environment.
-          // 2. b. Perform env.InitializeBinding(name, value).            
+          // 2. b. Perform env.InitializeBinding(name, value).
           catchEnvRec.InitializeBinding(boundNames![0]?.GetValue(), thrownValue);
           // 2. c. Return NormalCompletion(undefined).
           return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].undefined, this.realm);
         // Else is not needed in this case as catchEnvRec is always truthy
         // 3. Else,
-        // 3. a. Let lhs be ResolveBinding(name).            
+        // 3. a. Let lhs be ResolveBinding(name).
         // 3. b. Return ? PutValue(lhs, value).
         // break;
         case SyntaxKind.ObjectBindingPattern:

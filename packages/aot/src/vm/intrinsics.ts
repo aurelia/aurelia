@@ -1,14 +1,12 @@
-import {
-  $Empty,
-  $Undefined,
-  $Null,
-  $Boolean,
-  $Number,
-  $String,
-  $Symbol,
-  $Object,
-} from './value';
 import { Realm } from './realm';
+import { $Boolean } from './types/boolean';
+import { $Empty } from './types/empty';
+import { $Undefined } from './types/undefined';
+import { $Null } from './types/null';
+import { $Number } from './types/number';
+import { $String } from './types/string';
+import { $Symbol } from './types/symbol';
+import { $Object } from './types/object';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;

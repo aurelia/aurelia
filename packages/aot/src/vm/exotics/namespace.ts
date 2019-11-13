@@ -1,7 +1,12 @@
-import { $Object, $String, $Boolean, $PropertyKey, $Undefined, $Any } from '../value';
-import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from '../realm';
+import { $Object } from '../types/object';
+import { IModule, ResolveSet, ResolvedBindingRecord } from '../realm';
+import { $String } from '../types/string';
+import { Realm } from '../realm';
+import { $Boolean } from '../types/boolean';
 import { $SetImmutablePrototype } from '../operations';
-import { $PropertyDescriptor } from '../property-descriptor';
+import { $PropertyKey, $Any } from '../types/_shared';
+import { $PropertyDescriptor } from '../types/property-descriptor';
+import { $Undefined } from '../types/undefined';
 
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {

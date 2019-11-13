@@ -1,5 +1,9 @@
-import { $Boolean, $Undefined, $Empty, $Function, $Any, $PropertyKey } from './value';
-import { Realm } from './realm';
+import { Realm } from '../realm';
+import { $Boolean } from './boolean';
+import { $Undefined } from './undefined';
+import { $Empty } from './empty';
+import { $Function } from './function';
+import { $Any, $PropertyKey } from './_shared';
 
 let descriptorId = 0;
 

@@ -1,6 +1,12 @@
-import { $Object, $Boolean, $Null, $PropertyKey, $Undefined, $Any, $String, $Number } from '../value';
+import { $Object } from '../types/object';
+import { $Null } from '../types/null';
+import { $Number } from '../types/number';
+import { $String } from '../types/string';
 import { Realm } from '../realm';
-import { $PropertyDescriptor } from '../property-descriptor';
+import { $PropertyKey, $Any } from '../types/_shared';
+import { $PropertyDescriptor } from '../types/property-descriptor';
+import { $Undefined } from '../types/undefined';
+import { $Boolean } from '../types/boolean';
 
 // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
 export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticObject'> {

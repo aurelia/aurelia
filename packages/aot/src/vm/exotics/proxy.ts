@@ -1,7 +1,14 @@
-import { $Object, $String, $Boolean, $PropertyKey, $Undefined, $Any, $Null, $Symbol, $Function } from '../value';
+import { $Object } from '../types/object';
+import { $Null } from '../types/null';
 import { Realm } from '../realm';
+import { $Any, $PropertyKey } from '../types/_shared';
 import { $Call, $ToPropertyDescriptor, $ValidateAndApplyPropertyDescriptor, $FromPropertyDescriptor, $CreateListFromArrayLike, $CreateArrayFromList, $Construct } from '../operations';
-import { $PropertyDescriptor } from '../property-descriptor';
+import { $Boolean } from '../types/boolean';
+import { $PropertyDescriptor } from '../types/property-descriptor';
+import { $Undefined } from '../types/undefined';
+import { $String } from '../types/string';
+import { $Symbol } from '../types/symbol';
+import { $Function } from '../types/function';
 
 // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots
 export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {

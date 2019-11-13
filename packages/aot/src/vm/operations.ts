@@ -1,11 +1,18 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $Null, $String, $Reference, $Primitive, $Function, ESType } from './value';
-import { $PropertyDescriptor } from './property-descriptor';
-import { $EnvRec } from './environment';
+import { $PropertyDescriptor } from './types/property-descriptor';
+import { $EnvRec } from './types/environment-record';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
 import { $ArrayExoticObject } from './exotics/array';
 import { $ProxyExoticObject } from './exotics/proxy';
+import { $Any, $PropertyKey, $Primitive, ESType } from './types/_shared';
+import { $Object } from './types/object';
+import { $BuiltinFunction, $Function } from './types/function';
+import { $Boolean } from './types/boolean';
+import { $Undefined } from './types/undefined';
+import { $Null } from './types/null';
+import { $String } from './types/string';
+import { $Reference } from './types/reference';
 
 export type CallableFunction = (
   thisArgument: $Any,

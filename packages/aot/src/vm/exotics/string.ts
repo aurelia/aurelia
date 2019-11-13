@@ -1,7 +1,12 @@
-import { $Object, $String, $Boolean, $PropertyKey, $Undefined, $Number } from '../value';
+import { $Object } from '../types/object';
+import { $String } from '../types/string';
 import { Realm } from '../realm';
 import { $DefinePropertyOrThrow, $ValidateAndApplyPropertyDescriptor } from '../operations';
-import { $PropertyDescriptor } from '../property-descriptor';
+import { $PropertyDescriptor } from '../types/property-descriptor';
+import { $Number } from '../types/number';
+import { $PropertyKey } from '../types/_shared';
+import { $Undefined } from '../types/undefined';
+import { $Boolean } from '../types/boolean';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $StringExoticObject extends $Object<'StringExoticObject'> {

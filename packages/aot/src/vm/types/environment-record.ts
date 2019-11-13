@@ -1,8 +1,15 @@
 /* eslint-disable */
-import { $Any, $Object, $String, $Boolean, $Undefined, $Null, $Empty, $Function } from './value';
-import { IModule, Realm } from './realm';
-import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from './operations';
+import { IModule, Realm } from '../realm';
+import { $HasProperty, $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
 import { $PropertyDescriptor } from './property-descriptor';
+import { $Any } from './_shared';
+import { $String } from './string';
+import { $Null } from './null';
+import { $Boolean } from './boolean';
+import { $Empty } from './empty';
+import { $Undefined } from './undefined';
+import { $Object } from './object';
+import { $Function } from './function';
 
 export type $EnvRec = (
   $DeclarativeEnvRec |

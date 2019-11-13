@@ -1,9 +1,16 @@
-import { $Object, $String, $Boolean, $PropertyKey, $Undefined, $Any, $Function, $Number } from '../value';
-import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from '../realm';
-import { $SetImmutablePrototype, $CreateDataProperty, $CreateBuiltinFunction, CallableFunction, $DefinePropertyOrThrow, $HasOwnProperty, $Get, $Set } from '../operations';
-import { $PropertyDescriptor, $IsDataDescriptor, $IsAccessorDescriptor } from '../property-descriptor';
+import { $Object } from '../types/object';
+import { Realm } from '../realm';
+import { $Function } from '../types/function';
 import { $ParameterDeclaration, getBoundNames } from '../ast';
-import { $EnvRec } from '../environment';
+import { $Any, $PropertyKey } from '../types/_shared';
+import { $EnvRec } from '../types/environment-record';
+import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Get, $Set, $CreateBuiltinFunction } from '../operations';
+import { $String } from '../types/string';
+import { $PropertyDescriptor, $IsDataDescriptor } from '../types/property-descriptor';
+import { $Number } from '../types/number';
+import { $Undefined } from '../types/undefined';
+import { $Boolean } from '../types/boolean';
+
 
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
 export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {

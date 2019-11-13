@@ -1,7 +1,11 @@
-import { $Object, $Boolean, $PropertyKey, $Function, $Number } from '../value';
+import { $Object } from '../types/object';
 import { Realm } from '../realm';
+import { $Number } from '../types/number';
+import { $PropertyDescriptor } from '../types/property-descriptor';
+import { $PropertyKey } from '../types/_shared';
+import { $Boolean } from '../types/boolean';
 import { $Get, $GetFunctionRealm, $Construct } from '../operations';
-import { $PropertyDescriptor } from '../property-descriptor';
+import { $Function } from '../types/function';
 
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
 export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {

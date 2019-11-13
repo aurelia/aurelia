@@ -1,5 +1,7 @@
-import { $Object, $Boolean, $Null } from '../value';
+import { $Object } from '../types/object';
+import { $Null } from '../types/null';
 import { Realm } from '../realm';
+import { $Boolean } from '../types/boolean';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototypeExoticObject'> {

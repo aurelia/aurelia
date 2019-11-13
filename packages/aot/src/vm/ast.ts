@@ -145,12 +145,21 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
-import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './environment';
+import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
 import { AssertionError } from 'assert';
 import { $NamespaceExoticObject } from './exotics/namespace';
+import { $String } from './types/string';
+import { $Undefined } from './types/undefined';
+import { $Function } from './types/function';
+import { $Any } from './types/_shared';
+import { $Object } from './types/object';
+import { $Reference } from './types/reference';
+import { $Number } from './types/number';
+import { $Null } from './types/null';
+import { $Boolean } from './types/boolean';
+import { $Empty, empty } from './types/empty';
 const {
   emptyArray,
   emptyObject,

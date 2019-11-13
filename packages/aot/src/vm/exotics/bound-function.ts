@@ -1,4 +1,6 @@
-import { $Object, $Function, $Any } from '../value';
+import { $Object } from '../types/object';
+import { $Function } from '../types/function';
+import { $Any } from '../types/_shared';
 import { Realm } from '../realm';
 import { $Call, $Construct } from '../operations';
 

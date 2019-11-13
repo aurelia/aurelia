@@ -8,11 +8,17 @@ import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname, basename } from 'path';
 import { Intrinsics } from './intrinsics';
-import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $ObjectEnvRec, $FunctionEnvRec } from './environment';
-import { $Undefined, $Object, $Function, $Null, $String, $Reference, $Any } from './value';
-import { $PropertyDescriptor } from './property-descriptor';
+import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $ObjectEnvRec, $FunctionEnvRec } from './types/environment-record';
+import { $PropertyDescriptor } from './types/property-descriptor';
 import { $DefinePropertyOrThrow, $GetIdentifierReference } from './operations';
 import { JSDOM } from 'jsdom';
+import { $String } from './types/string';
+import { $Undefined } from './types/undefined';
+import { $Object } from './types/object';
+import { $Reference } from './types/reference';
+import { $Any } from './types/_shared';
+import { $Function } from './types/function';
+import { $Null } from './types/null';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;

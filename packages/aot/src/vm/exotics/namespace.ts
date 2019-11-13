@@ -236,10 +236,17 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-ownpropertykeys
-  public '[[OwnPropertyKeys]]'() {
+  public '[[OwnPropertyKeys]]'(): readonly $PropertyKey[] {
     // 1. Let exports be a copy of O.[[Exports]].
+    const $exports = this['[[Exports]]'].slice() as $PropertyKey[];
+
     // 2. Let symbolKeys be ! OrdinaryOwnPropertyKeys(O).
+    const symbolKeys = super['[[OwnPropertyKeys]]']();
+
     // 3. Append all the entries of symbolKeys to the end of exports.
+    $exports.push(...symbolKeys);
+
     // 4. Return exports.
+    return $exports;
   }
 }

@@ -4,7 +4,6 @@ import {
   IContainer,
   IRegistry,
   IResolver,
-  Key,
   Registration,
   Reporter,
   Metadata,
@@ -52,7 +51,7 @@ import {
   CustomAttribute,
 } from './resources/custom-attribute';
 import {
-  CustomElement, CustomElementHost, CustomElementDefinition,
+  CustomElement, CustomElementDefinition,
 } from './resources/custom-element';
 import {
   Controller,
@@ -189,45 +188,29 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
   if (refTargetName === 'element') {
     return refHost;
   }
-  const $auRefs = refHost.$au;
-  if ($auRefs === void 0) {
-    // todo: code error code, this message is from v1
-    throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
-  }
-  let refTargetController: IController;
   switch (refTargetName) {
     case 'controller':
       // this means it supports returning undefined
-      return (refHost as CustomElementHost<INode>).$controller as IController;
+      return CustomElement.behaviorFor(refHost)!;
     case 'view':
       // todo: returns node sequences for fun?
       throw new Error('Not supported API');
     case 'view-model':
       // this means it supports returning undefined
-      return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
-    default:
-      refTargetController = $auRefs[refTargetName];
-      if (refTargetController === void 0) {
-        throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+      return CustomElement.behaviorFor(refHost)!.viewModel!;
+    default: {
+      const caController = CustomAttribute.behaviorFor(refHost, refTargetName);
+      if (caController !== void 0) {
+        return caController.viewModel!;
       }
-      return refTargetController.viewModel!;
+      const ceController = CustomElement.behaviorFor(refHost);
+      if (ceController !== void 0) {
+        // TODO: do we want to make sure the name matches?
+        return ceController.viewModel!;
+      }
+      throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+    }
   }
-}
-
-function setControllerReference<T extends INode = INode>(
-  controller: Controller<T>,
-  host: T,
-  referenceName: string
-): void {
-  let $auRefs = host.$au;
-  if ($auRefs === void 0) {
-    $auRefs = host.$au = new ControllersLookup<T>();
-  }
-  $auRefs[referenceName] = controller;
-}
-
-class ControllersLookup<T extends INode> {
-  [key: string]: IController<T>;
 }
 
 @instructionRenderer(TargetedInstructionType.setProperty)
@@ -262,7 +245,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
     instruction: IHydrateElementInstruction,
   ): void {
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null!, target, true);
-    const component = context.get<object>(CustomElement.keyFrom(instruction.res));
+    const key = CustomElement.keyFrom(instruction.res);
+    const component = context.get<object>(key);
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
@@ -274,7 +258,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
       instruction,
     );
 
-    setControllerReference(controller, controller.host!, instruction.res);
+    Metadata.define(key, controller, target);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -300,17 +284,13 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     instruction: IHydrateAttributeInstruction,
   ): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
-    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
+    const key = CustomAttribute.keyFrom(instruction.res);
+    const component = context.get<object>(key);
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomAttribute(
-      component,
-      context,
-      flags,
-    );
-
-    setControllerReference(controller, target, instruction.res);
+    const controller = Controller.forCustomAttribute(component, context, flags);
+    Metadata.define(key, controller, target);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -344,7 +324,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
     const renderLocation = dom.convertToRenderLocation(target);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation, false);
-    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
+    const key = CustomAttribute.keyFrom(instruction.res);
+    const component = context.get<object>(key);
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
     if (instruction.parts !== void 0) {
@@ -362,13 +343,12 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     }
 
     const controller = Controller.forCustomAttribute(component, context, flags);
+    Metadata.define(key, controller, renderLocation);
 
     if (instruction.link) {
       const controllers = renderable.controllers!;
       (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
     }
-
-    setControllerReference(controller, renderLocation, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {

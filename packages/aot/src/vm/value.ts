@@ -1109,6 +1109,14 @@ export class $Number<T extends number = number> {
     return Object.is(this.value, other.value);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-isinteger
+  public get IsInteger(): boolean {
+    if (isNaN(this.value) || Object.is(this.value, Infinity) || Object.is(this.value, -Infinity)) {
+      return false;
+    }
+    return Math.floor(Math.abs(this.value)) === Math.abs(this.value);
+  }
+
   public ToObject(): $Object {
     return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
   }
@@ -1867,7 +1875,6 @@ export class $Object<
 
     // 1. Let keys be a new empty List.
     const keys = [] as $PropertyKey[];
-    let keysLen = 0;
 
     let arrayIndexLen = 0;
     let stringLen = 0;
@@ -1894,6 +1901,7 @@ export class $Object<
     arrayIndexProps.sort(compareIndices);
 
     let i = 0;
+    let keysLen = 0;
 
     // 2. For each own property key P of O that is an array index, in ascending numeric index order, do
     for (i = 0; i < arrayIndexLen; ++i) {

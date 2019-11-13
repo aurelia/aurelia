@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Realm } from './realm';
-import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $Null, $String, $Reference, $Primitive, $Function } from './value';
+import { $Object, $Any, $BuiltinFunction, $PropertyKey, $Boolean, $Undefined, $Null, $String, $Reference, $Primitive, $Function, ESType } from './value';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
@@ -929,4 +929,54 @@ export function $FromPropertyDescriptor(realm: Realm, Desc: $PropertyDescriptor 
   // 10. Assert: All of the above CreateDataProperty operations return true.
   // 11. Return obj.
   return obj;
+}
+
+const defaultElementTypes = [
+  'Undefined',
+  'Null',
+  'Boolean',
+  'String',
+  'Symbol',
+  'Number',
+  'Object',
+] as const;
+
+// http://www.ecma-international.org/ecma-262/#sec-createlistfromarraylike
+export function $CreateListFromArrayLike(realm: Realm, obj: $Any, elementTypes: readonly ESType[] = defaultElementTypes): $Any[] {
+  // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, Object ».
+  // 2. If Type(obj) is not Object, throw a TypeError exception.
+  if (!obj.isObject) {
+    throw new TypeError('2. If Type(obj) is not Object, throw a TypeError exception.');
+  }
+
+  // 3. Let len be ? ToLength(? Get(obj, "length")).
+  const len = $Get(obj, realm['[[Intrinsics]]'].length).ToLength();
+
+  // 4. Let list be a new empty List.
+  const list: $Any[] = [];
+
+  // 5. Let index be 0.
+  let index = 0;
+
+  // 6. Repeat, while index < len
+  while (index < len.value) {
+    // 6. a. Let indexName be ! ToString(index).
+    const indexName = new $String(realm, index.toString());
+
+    // 6. b. Let next be ? Get(obj, indexName).
+    const next = $Get(obj, indexName);
+
+    // 6. c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
+    if (!elementTypes.includes(next.Type)) {
+      throw new TypeError('6. c. If Type(next) is not an element of elementTypes, throw a TypeError exception.');
+    }
+
+    // 6. d. Append next as the last element of list.
+    list[index++] = next;
+
+    // 6. e. Increase index by 1.
+  }
+
+  // 7. Return list.
+  return list;
 }

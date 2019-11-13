@@ -145,7 +145,7 @@ import {
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
-import { empty, $Undefined, $Object, $String, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any } from './value';
+import { empty, $Undefined, $Object, $String, $Empty, $Null, $Function, $Reference, $Boolean, $Number, $Any, $PropertyKey } from './value';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './environment';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $HasProperty, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
@@ -8065,49 +8065,48 @@ export class $ObjectBindingPattern implements I$Node {
     // 4. Return a new List containing P.
     for (let i = 0, { length } = $elements; i < length; i++) {
       const element = $elements[i];
-      const { $name, $initializer } = element;
+      const { $name } = element;
 
       switch (true) {
         case $name instanceof $Identifier:
-          // case#1.1: {a} (SingleNameBinding),
-          // case#1.2: {a = 1} (SingleNameBinding with Initializer),
+          const propertyName = element.$propertyName;
+          if (propertyName === undefined) {
+            // BindingProperty : SingleNameBinding
+            // case#1.1: {a} (SingleNameBinding),
+            // case#1.2: {a = constant_literal} (SingleNameBinding with Initializer),
+            // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
+            const name = element.BoundNames[0];
 
-          // BindingProperty : SingleNameBinding
+            // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
+            this.InitializeKeyedBindingIdentifier(value, envRec, name, element);
+            // 3. Return a new List containing name.
+            return [name];
+          } else {
+            // case#2.1: {a: a1} (PropertyName: BindingElement)
+            // case#2.2: {[a]: a1} (ComputedPropertyName: BindingElement) (example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#Computed_object_property_names_and_destructuring)
+            // 1. Let P be the result of evaluating PropertyName.
+            let P: $Reference | $String<string> | $Number<number>;
+            switch (propertyName.$kind) {
+              case SyntaxKind.Identifier:
+                P = propertyName.Evaluate().GetReferencedName();
+                break;
+              case SyntaxKind.NumericLiteral:
+              case SyntaxKind.StringLiteral:
+                P = propertyName.Evaluate().ToString();
+                break;
 
-          // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
-          const name = element.BoundNames[0];
-
-          // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
-          // 3. Return a new List containing name.
-
-          // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
-          // SingleNameBinding : BindingIdentifier Initializer opt
-          // 1. Let bindingId be StringValue of BindingIdentifier.
-          const bindingId = name; // in this case both are same
-
-          // 2. Let lhs be ? ResolveBinding(bindingId, environment).
-          const lhs = realm.ResolveBinding(bindingId, envRec);
-
-          // 3. Let v be ? GetV(value, propertyName).
-          let v = value.ToObject()['[[Get]]'](name, $undefined);
-
-          // 4. If Initializer is present and v is undefined, then
-          if (element.HasInitializer && v.is($undefined)) {
-            // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-            if (isAnonymousFunctionDefinition($initializer!)) {
-              // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
-              // TODO implement this
-            } else {
-              // 4. b. Else,
-              // 4. b. i. Let defaultValue be the result of evaluating Initializer.
-              const defaultValue = $initializer?.Evaluate();
-              // 4. b. ii. Set v to ? GetValue(defaultValue).
+              case SyntaxKind.ComputedPropertyName:
+                P = propertyName.$expression.Evaluate().GetValue().ToString();
+                break;
             }
-          }
-          // 5. If environment is undefined, return ? PutValue(lhs, v).
-          // 6. Return InitializeReferencedBinding(lhs, v).
+            // 2. ReturnIfAbrupt(P). // TODO ?
 
-          // case#2.0: {a: a1} (PropertyName:BindingElement)
+            // 3. Perform ? KeyedBindingInitialization of BindingElement with value, environment, and P as the arguments.
+            this.InitializeKeyedBindingIdentifier(value, envRec, P.GetValue(), element);
+
+            // 4. Return a new List containing P.
+            return [P];
+          }
           break;
       }
     }
@@ -8137,6 +8136,48 @@ export class $ObjectBindingPattern implements I$Node {
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     // 6. Return InitializeReferencedBinding(lhs, v).
     // #endregion
+  }
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+  // SingleNameBinding : BindingIdentifier Initializer opt
+  private InitializeKeyedBindingIdentifier(
+    value: $Any,
+    envRec: $DeclarativeEnvRec,
+    name: $PropertyKey,
+    element: $BindingElement
+  ) {
+    const realm = this.realm;
+    const { undefined: $undefined } = realm['[[Intrinsics]]'];
+    const { $name: bindingIdentifier, $initializer } = element;
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    const bindingId = (bindingIdentifier as $Identifier).PropName;
+
+    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+    const lhs = realm.ResolveBinding(bindingId, envRec);
+
+    // 3. Let v be ? GetV(value, propertyName).
+    let v = value.ToObject()['[[Get]]'](name, $undefined);
+
+    // 4. If Initializer is present and v is undefined, then
+    if (element.HasInitializer && v.is($undefined)) {
+      // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+      if (isAnonymousFunctionDefinition($initializer!)) {
+        // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+        // TODO implement this
+      } else {
+        // 4. b. Else,
+        // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+        const defaultValue = $initializer?.Evaluate();
+        // 4. b. ii. Set v to ? GetValue(defaultValue).
+        v = defaultValue?.GetValue() ?? $undefined;
+      }
+    }
+    // 5. If environment is undefined, return ? PutValue(lhs, v).
+    if (envRec === undefined) {
+      return lhs.PutValue(v);
+    } else {
+      // 6. Return InitializeReferencedBinding(lhs, v).
+      return lhs.InitializeReferencedBinding(v);
+    }
   }
 }
 

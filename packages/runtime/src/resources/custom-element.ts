@@ -321,7 +321,7 @@ export const CustomElement: CustomElementKind = {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
   behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
-    return (node as CustomElementHost<T>).$controller;
+    return Metadata.getOwn(CustomElement.name, node);
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);

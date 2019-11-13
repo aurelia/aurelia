@@ -185,13 +185,6 @@ export class InstructionResolver {
         viewportInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
         instruction.typedParameters !== null ? instruction.typedParameters : void 0,
       );
-      // const clone: ViewportInstruction = new ViewportInstruction(
-      //   instruction.componentInstance || instruction.componentType || instruction.componentName!,
-      //   viewportInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
-      //   instruction.parametersAny !== null ? instruction.parametersAny : void 0,
-      //   // instruction.parametersString!
-      // );
-      // clone.parameters = Array.isArray(instruction.parameters) ? instruction.parameters.slice() : instruction.parameters;
       clone.needsViewportDescribed = instruction.needsViewportDescribed;
       clone.route = instruction.route;
       clone.scope = viewportInstances ? instruction.scope : null;
@@ -362,7 +355,6 @@ export class InstructionResolver {
       return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport, excludeComponent);
     } else {
       let instructionString = !excludeComponent ? instruction.componentName : '';
-      // TODO: PARAMETERS
       const specification = instruction.componentType ? instruction.componentType.parameters : null;
       const parameters = this.stringifyComponentParameters(instruction.toSortedParameters(specification));
       if (parameters.length > 0) {

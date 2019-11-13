@@ -8,7 +8,8 @@ import {
   IRegistry,
   IResolver,
   Key,
-  Registration
+  Registration,
+  Metadata
 } from '@aurelia/kernel';
 import {
   addBinding,
@@ -53,7 +54,8 @@ import {
   CustomElementDefinition,
   ToViewBindingInstruction,
   ITemplateCompiler,
-  IScheduler
+  IScheduler,
+  CustomElement
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 
@@ -396,7 +398,7 @@ export class AuProjector implements IElementProjector {
 
   public constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
-    this.host.$controller = $controller;
+    Metadata.define(CustomElement.name, $controller, host);
   }
 
   public get children(): ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>> {

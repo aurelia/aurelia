@@ -5,6 +5,7 @@ import { $PropertyDescriptor } from './property-descriptor';
 import { $EnvRec } from './environment';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
 import { $ArrayExoticObject } from './exotics/array';
+import { $ProxyExoticObject } from './exotics/proxy';
 
 export type CallableFunction = (
   thisArgument: $Any,
@@ -1010,4 +1011,38 @@ export function $CreateArrayFromList(
 
   // 5. Return array.
   return array;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-getfunctionrealm
+export function $GetFunctionRealm(realm: Realm, obj: $Any): Realm {
+  // 1. Assert: obj is a callable object.
+  // 2. If obj has a [[Realm]] internal slot, then
+  if ('[[Realm]]' in obj) {
+    // 2. a. Return obj.[[Realm]].
+    return obj['[[Realm]]'];
+  }
+
+  // 3. If obj is a Bound Function exotic object, then
+  if (obj.isBoundFunction) {
+    // 3. a. Let target be obj.[[BoundTargetFunction]].
+    // 3. b. Return ? GetFunctionRealm(target).
+    return $GetFunctionRealm(realm, (obj as $BoundFunctionExoticObject)['[[BoundTargetFunction]]']);
+  }
+
+  // 4. If obj is a Proxy exotic object, then
+  if (obj.isProxy) {
+    // 4. a. If obj.[[ProxyHandler]] is null, throw a TypeError exception.
+    if ((obj as $ProxyExoticObject)['[[ProxyHandler]]'].isNull) {
+      throw new TypeError('4. a. If obj.[[ProxyHandler]] is null, throw a TypeError exception.');
+    }
+
+    // 4. b. Let proxyTarget be obj.[[ProxyTarget]].
+    const proxyTarget = (obj as $ProxyExoticObject)['[[ProxyTarget]]'];
+
+    // 4. c. Return ? GetFunctionRealm(proxyTarget).
+    return $GetFunctionRealm(realm, proxyTarget);
+  }
+
+  // 5. Return the current Realm Record.
+  return realm
 }

@@ -1,9 +1,9 @@
-import { CustomElementHost } from '@aurelia/runtime';
+import { CustomElementHost, CustomElement } from '@aurelia/runtime';
 
 export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost | null {
   let el: CustomElementHost<Element> | null = element;
-  while (el) {
-    if (el.$controller) {
+  while (el !== null) {
+    if (CustomElement.behaviorFor(el) !== void 0) {
       break;
     }
     el = el.parentElement;

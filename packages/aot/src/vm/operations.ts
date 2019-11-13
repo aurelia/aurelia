@@ -294,7 +294,7 @@ export function $ValidateAndApplyPropertyDescriptor(
           newDesc['[[Configurable]]'] = Desc['[[Configurable]]'];
         }
 
-        O.properties.set((P as $PropertyKey).value, newDesc);
+        O['setProperty'](newDesc);
       }
     }
     // 2. d. Else Desc must be an accessor Property Descriptor,
@@ -323,7 +323,7 @@ export function $ValidateAndApplyPropertyDescriptor(
           newDesc['[[Configurable]]'] = Desc['[[Configurable]]'];
         }
 
-        O.properties.set((P as $PropertyKey).value, newDesc);
+        O['setProperty'](newDesc);
       }
     }
 
@@ -371,28 +371,28 @@ export function $ValidateAndApplyPropertyDescriptor(
     if (current.isDataDescriptor) {
       // 6. b. i. If O is not undefined, convert the property named P of object O from a data property to an accessor property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
       if (!O.isUndefined) {
-        const existingDesc = O.properties.get((P as $PropertyKey).value)!;
+        const existingDesc = O['getProperty']((P as $PropertyKey))!;
         const newDesc = new $PropertyDescriptor(realm, P as $PropertyKey);
         newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
         newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
         newDesc['[[Get]]'] = intrinsics.undefined;
         newDesc['[[Set]]'] = intrinsics.undefined;
 
-        O.properties.set((P as $PropertyKey).value, newDesc);
+        O['setProperty'](newDesc);
       }
     }
     // 6. c. Else,
     else {
       // 6. c. i. If O is not undefined, convert the property named P of object O from an accessor property to a data property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
       if (!O.isUndefined) {
-        const existingDesc = O.properties.get((P as $PropertyKey).value)!;
+        const existingDesc = O['getProperty']((P as $PropertyKey))!;
         const newDesc = new $PropertyDescriptor(realm, P as $PropertyKey);
         newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
         newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
         newDesc['[[Writable]]'] = intrinsics.false;
         newDesc['[[Value]]'] = intrinsics.undefined;
 
-        O.properties.set((P as $PropertyKey).value, newDesc);
+        O['setProperty'](newDesc);
       }
     }
   }
@@ -435,7 +435,7 @@ export function $ValidateAndApplyPropertyDescriptor(
 
   // 9. If O is not undefined, then
   if (!O.isUndefined) {
-    const existingDesc = O.properties.get((P as $PropertyKey).value)!;
+    const existingDesc = O['getProperty']((P as $PropertyKey))!;
 
     // 9. a. For each field of Desc that is present, set the corresponding attribute of the property named P of object O to the value of the field.
     if (!Desc['[[Configurable]]'].isEmpty) {

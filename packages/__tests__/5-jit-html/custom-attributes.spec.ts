@@ -264,7 +264,7 @@ describe('custom-attributes', function () {
     function setupChangeHandlerTest(template: string) {
       const options = setup(template, class {}, [Foo]);
       const fooEl = options.appHost.querySelector('div') as INode;
-      const fooVm = CustomAttribute.behaviorFor(fooEl, 'foo').viewModel as Foo;
+      const fooVm = CustomAttribute.for(fooEl, 'foo').viewModel as Foo;
       return {
         fooVm: fooVm,
         tearDown: () => options.au.stop()

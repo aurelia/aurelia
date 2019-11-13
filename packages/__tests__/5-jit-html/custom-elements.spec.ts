@@ -451,7 +451,7 @@ describe('custom-elements', function () {
     function setupChangeHandlerTest(template: string) {
       const options = setup(template, app, [Foo]);
       const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
-      const fooVm = CustomElement.behaviorFor(fooEl).viewModel as Foo;
+      const fooVm = CustomElement.for(fooEl).viewModel as Foo;
       return {
         fooVm: fooVm,
         tearDown: () => options.au.stop()

@@ -1,8 +1,8 @@
-import * as l from 'fancy-log';
 import * as c from 'chalk';
+import * as l from 'fancy-log';
 
-const log = l as unknown as typeof import('fancy-log');
-const chalk = (c.default || c) as import('chalk').Chalk;
+const chalk = ((c as {default?: unknown}).default || c) as typeof import('chalk');
+const log = ((l as {default?: unknown}).default || l) as typeof import('fancy-log');
 
 export function logAction(msg: string) {
   const cap = browser.capabilities;

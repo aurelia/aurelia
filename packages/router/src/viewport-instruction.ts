@@ -31,7 +31,6 @@ export class ViewportInstruction {
   public default: boolean = false;
 
   private instructionResolver: InstructionResolver | null = null;
-  // private parameters: IComponentParameter[] = [];
 
   public constructor(
     component: ComponentAppellation,
@@ -112,23 +111,15 @@ export class ViewportInstruction {
     } else if (typeof parameters === 'string') {
       this.parametersType = ParametersType.string;
       this.parametersString = parameters;
-      // this.parametersRecord = { id: parameters };
     } else if (Array.isArray(parameters)) {
       this.parametersType = ParametersType.array;
       this.parametersList = parameters;
-      // this.parametersString = this.parametersList.join(',');
     } else {
       this.parametersType = ParametersType.object;
       this.parametersRecord = parameters;
-      // this.parametersString = Object.keys(this.parametersRecord!).map(param => `${param}=${this.parametersRecord![param]}`).join(',');
     }
-    // this.updateParameters();
   }
-  // public updateParameters(): void {
-  //   if (this.instructionResolver !== null) {
-  //     this.parameters = this.instructionResolver.parseComponentParameters(this.typedParameters);
-  //   }
-  // }
+
   // This only works with objects added to objects!
   public addParameters(parameters: Record<string, unknown>): void {
     if (this.parametersType === ParametersType.none) {
@@ -141,7 +132,6 @@ export class ViewportInstruction {
   }
   public setInstructionResolver(instructionResolver: InstructionResolver): void {
     this.instructionResolver = instructionResolver;
-    // this.updateParameters();
   }
 
   public isEmpty(): boolean {

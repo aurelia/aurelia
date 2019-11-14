@@ -53,7 +53,7 @@ describe('styles', function () {
     assert.equal(true, withStyleDiv.classList.contains(cssClasses.test));
 
     const withoutStyles = (au.root.viewModel as any).withoutStyles;
-    const withoutStylesRoot = CustomElement.for(withoutStyles).$controller.projector.provideEncapsulationSource() as ShadowRoot;
+    const withoutStylesRoot = CustomElement.for(withoutStyles).projector.provideEncapsulationSource() as ShadowRoot;
     const withoutStylesDiv = withoutStylesRoot.getElementById('target');
 
     assert.equal(true, withoutStylesDiv.classList.contains('test'));

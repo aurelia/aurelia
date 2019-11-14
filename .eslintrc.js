@@ -119,12 +119,7 @@ module.exports = {
     'jsdoc/check-tag-names': ['error', {
       definedTags: [
         'chainable',
-        'internal',
-        // JSDoc gets confused about decorators, so add them as exclusions here
-        // for now. Adding parenthesis to differentiate them from JSDoc tags.
-        // https://github.com/gajus/eslint-plugin-jsdoc/issues/395
-        'transient()',
-        'singleton()'
+        'internal'
       ]
     }],
     'jsdoc/check-syntax': 'error',

@@ -12,7 +12,7 @@
     "@aurelia/runtime": "file:../../../../runtime"
   },
   "devDependencies": {
-    "@types/node": "^12.12.6",
+    "@types/node": "^12.12.7",
     "browser-sync": "latest",
     "browserify": "latest",
     "gulp": "^4.0.2",

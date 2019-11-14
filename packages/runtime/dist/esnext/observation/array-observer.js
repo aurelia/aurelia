@@ -3,6 +3,7 @@ import { ILifecycle } from '../lifecycle';
 import { createIndexMap } from '../observation';
 import { CollectionLengthObserver } from './collection-length-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+const observerLookup = new WeakMap();
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x, y) {
     if (x === y) {
@@ -175,7 +176,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             return $push.apply($this, args);
         }
@@ -200,7 +201,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             return $unshift.apply($this, args);
         }
@@ -221,7 +222,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             return $pop.call($this);
         }
@@ -242,7 +243,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             return $shift.call($this);
         }
@@ -264,7 +265,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             return $splice.apply($this, args);
         }
@@ -306,7 +307,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             $reverse.call($this);
             return this;
@@ -336,7 +337,7 @@ const observe = {
         if ($this.$raw !== void 0) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === void 0) {
             $sort.call($this, compareFn);
             return this;
@@ -397,12 +398,7 @@ let ArrayObserver = class ArrayObserver {
         this.indexMap = createIndexMap(array.length);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
-        Reflect.defineProperty(array, '$observer', {
-            value: this,
-            enumerable: false,
-            writable: true,
-            configurable: true,
-        });
+        observerLookup.set(array, this);
     }
     notify() {
         if (this.lifecycle.batch.depth > 0) {
@@ -438,10 +434,11 @@ ArrayObserver = __decorate([
 ], ArrayObserver);
 export { ArrayObserver };
 export function getArrayObserver(flags, lifecycle, array) {
-    if (array.$observer === void 0) {
-        array.$observer = new ArrayObserver(flags, lifecycle, array);
+    const observer = observerLookup.get(array);
+    if (observer === void 0) {
+        return new ArrayObserver(flags, lifecycle, array);
     }
-    return array.$observer;
+    return observer;
 }
 /**
  * Applies offsets to the non-negative indices in the IndexMap

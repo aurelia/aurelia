@@ -14,6 +14,7 @@
     const observation_1 = require("../observation");
     const collection_length_observer_1 = require("./collection-length-observer");
     const subscriber_collection_1 = require("./subscriber-collection");
+    const observerLookup = new WeakMap();
     // https://tc39.github.io/ecma262/#sec-sortcompare
     function sortCompare(x, y) {
         if (x === y) {
@@ -186,7 +187,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 return $push.apply($this, args);
             }
@@ -211,7 +212,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 return $unshift.apply($this, args);
             }
@@ -232,7 +233,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 return $pop.call($this);
             }
@@ -253,7 +254,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 return $shift.call($this);
             }
@@ -275,7 +276,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 return $splice.apply($this, args);
             }
@@ -317,7 +318,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 $reverse.call($this);
                 return this;
@@ -347,7 +348,7 @@
             if ($this.$raw !== void 0) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === void 0) {
                 $sort.call($this, compareFn);
                 return this;
@@ -410,12 +411,7 @@
             this.indexMap = observation_1.createIndexMap(array.length);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
-            Reflect.defineProperty(array, '$observer', {
-                value: this,
-                enumerable: false,
-                writable: true,
-                configurable: true,
-            });
+            observerLookup.set(array, this);
         }
         notify() {
             if (this.lifecycle.batch.depth > 0) {
@@ -451,10 +447,11 @@
     ], ArrayObserver);
     exports.ArrayObserver = ArrayObserver;
     function getArrayObserver(flags, lifecycle, array) {
-        if (array.$observer === void 0) {
-            array.$observer = new ArrayObserver(flags, lifecycle, array);
+        const observer = observerLookup.get(array);
+        if (observer === void 0) {
+            return new ArrayObserver(flags, lifecycle, array);
         }
-        return array.$observer;
+        return observer;
     }
     exports.getArrayObserver = getArrayObserver;
     /**

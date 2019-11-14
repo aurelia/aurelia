@@ -14,6 +14,7 @@
     const observation_1 = require("../observation");
     const collection_size_observer_1 = require("./collection-size-observer");
     const subscriber_collection_1 = require("./subscriber-collection");
+    const observerLookup = new WeakMap();
     const proto = Set.prototype;
     const $add = proto.add;
     const $clear = proto.clear;
@@ -29,7 +30,7 @@
             if ($this.$raw !== undefined) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === undefined) {
                 $add.call($this, value);
                 return this;
@@ -50,7 +51,7 @@
             if ($this.$raw !== undefined) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === undefined) {
                 return $clear.call($this);
             }
@@ -76,7 +77,7 @@
             if ($this.$raw !== undefined) {
                 $this = $this.$raw;
             }
-            const o = $this.$observer;
+            const o = observerLookup.get($this);
             if (o === undefined) {
                 return $delete.call($this, value);
             }
@@ -142,7 +143,7 @@
             this.indexMap = observation_1.createIndexMap(observedSet.size);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
-            observedSet.$observer = this;
+            observerLookup.set(observedSet, this);
         }
         notify() {
             if (this.lifecycle.batch.depth > 0) {
@@ -178,10 +179,11 @@
     ], SetObserver);
     exports.SetObserver = SetObserver;
     function getSetObserver(flags, lifecycle, observedSet) {
-        if (observedSet.$observer === void 0) {
-            observedSet.$observer = new SetObserver(flags, lifecycle, observedSet);
+        const observer = observerLookup.get(observedSet);
+        if (observer === void 0) {
+            return new SetObserver(flags, lifecycle, observedSet);
         }
-        return observedSet.$observer;
+        return observer;
     }
     exports.getSetObserver = getSetObserver;
 });

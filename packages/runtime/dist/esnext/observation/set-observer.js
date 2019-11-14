@@ -3,6 +3,7 @@ import { ILifecycle } from '../lifecycle';
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+const observerLookup = new WeakMap();
 const proto = Set.prototype;
 const $add = proto.add;
 const $clear = proto.clear;
@@ -18,7 +19,7 @@ const observe = {
         if ($this.$raw !== undefined) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === undefined) {
             $add.call($this, value);
             return this;
@@ -39,7 +40,7 @@ const observe = {
         if ($this.$raw !== undefined) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === undefined) {
             return $clear.call($this);
         }
@@ -65,7 +66,7 @@ const observe = {
         if ($this.$raw !== undefined) {
             $this = $this.$raw;
         }
-        const o = $this.$observer;
+        const o = observerLookup.get($this);
         if (o === undefined) {
             return $delete.call($this, value);
         }
@@ -129,7 +130,7 @@ let SetObserver = class SetObserver {
         this.indexMap = createIndexMap(observedSet.size);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
-        observedSet.$observer = this;
+        observerLookup.set(observedSet, this);
     }
     notify() {
         if (this.lifecycle.batch.depth > 0) {
@@ -165,9 +166,10 @@ SetObserver = __decorate([
 ], SetObserver);
 export { SetObserver };
 export function getSetObserver(flags, lifecycle, observedSet) {
-    if (observedSet.$observer === void 0) {
-        observedSet.$observer = new SetObserver(flags, lifecycle, observedSet);
+    const observer = observerLookup.get(observedSet);
+    if (observer === void 0) {
+        return new SetObserver(flags, lifecycle, observedSet);
     }
-    return observedSet.$observer;
+    return observer;
 }
 //# sourceMappingURL=set-observer.js.map

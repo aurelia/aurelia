@@ -72,7 +72,6 @@ export declare type PropertyObserver = IPropertyObserver<IIndexable, string>;
  */
 export declare type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 interface IObservedCollection<T extends CollectionKind = CollectionKind> {
-    $observer?: ICollectionObserver<T>;
     $raw?: this;
 }
 /**
@@ -110,7 +109,6 @@ export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCo
 }
 export declare type IProxy<TObj extends {} = {}> = TObj & {
     $raw: TObj;
-    $observer: IProxyObserver<TObj>;
 };
 /**
  * Basic interface to normalize getting/setting a value of any property on any object

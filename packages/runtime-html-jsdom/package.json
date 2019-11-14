@@ -39,7 +39,7 @@
     "@aurelia/kernel": "0.4.0",
     "@aurelia/runtime": "0.4.0",
     "@aurelia/runtime-html": "0.4.0",
-    "jsdom": "^15.1.1"
+    "jsdom": "^15.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.7",

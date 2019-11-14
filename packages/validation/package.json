@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation",
-  "version": "0.5.0-dev.201911131543",
+  "version": "0.5.0-dev.201911140044",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,8 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.5.0-dev.201911131543",
-    "@aurelia/runtime": "0.5.0-dev.201911131543"
+    "@aurelia/kernel": "0.5.0-dev.201911140044",
+    "@aurelia/runtime": "0.5.0-dev.201911140044"
   },
   "devDependencies": {
     "@types/node": "^12.12.6",

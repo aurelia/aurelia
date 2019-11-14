@@ -187,37 +187,40 @@ export class HTMLDOM implements IDOM {
    * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), or `null` if this is either the absolute document root or a disconnected node.
    */
   public getEffectiveParentNode(node: Node): Node | null {
+    // TODO: this method needs more tests!
     // First try to get the nearest au-start render location, which would be the containerless parent,
     // otherwise return the normal parent node
+    let containerlessOffset = 0;
     let prev = node.previousSibling;
     while (prev !== null) {
       if (prev.nodeType === NodeType.Comment) {
-        if (prev.textContent === 'au-end') {
-          // The closest comment above this node is au-end, meaning the provided node is not a child of a containerless custom element
-          // so we return the normal parent
-          break;
-        }
-        if (prev.textContent === 'au-start') {
-          return prev;
+        switch (prev.textContent) {
+          case 'au-end':
+            // If the next comment is an au-start, it will be the host of a sibling containerless element rather than a parent.
+            // So we use the offset to ignore the next au-start
+            ++containerlessOffset;
+            break;
+          case 'au-start':
+            if (containerlessOffset-- === 0) {
+              return prev;
+            }
         }
       }
       prev = prev.previousSibling;
     }
 
-    if (node.parentNode === null) {
-      if (node.nodeType === NodeType.DocumentFragment) {
-        // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
-        const controller = CustomElement.for(node);
-        if (controller === void 0) {
-          // Not a shadow root (or at least, not one created by Aurelia)
-          // Nothing more we can try, just return null
-          return null;
-        }
-        const projector = controller.projector!;
-        if (projector instanceof ShadowDOMProjector) {
-          // Now we can use the original host to traverse further up
-          return this.getEffectiveParentNode(projector.host);
-        }
+    if (node.parentNode === null && node.nodeType === NodeType.DocumentFragment) {
+      // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
+      const controller = CustomElement.for(node);
+      if (controller === void 0) {
+        // Not a shadow root (or at least, not one created by Aurelia)
+        // Nothing more we can try, just return null
+        return null;
+      }
+      const projector = controller.projector!;
+      if (projector instanceof ShadowDOMProjector) {
+        // Now we can use the original host to traverse further up
+        return this.getEffectiveParentNode(projector.host);
       }
     }
 

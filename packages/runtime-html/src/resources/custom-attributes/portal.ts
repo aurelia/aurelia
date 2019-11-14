@@ -85,6 +85,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     this.currentTarget = dom.createElement('div');
 
     this.view = this.factory.create();
+    dom.setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
     this.view.hold(originalLoc, MountStrategy.insertBefore);
   }
 

@@ -9,6 +9,8 @@ import {
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
 
+const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
+
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
 const $set = proto.set;
@@ -28,7 +30,7 @@ const observe = {
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       $set.call($this, key, value);
       return this;
@@ -62,7 +64,7 @@ const observe = {
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       return $clear.call($this);
     }
@@ -88,7 +90,7 @@ const observe = {
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       return $delete.call($this, value);
     }
@@ -169,8 +171,7 @@ export class MapObserver {
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
 
-    map.$observer = this;
-
+    observerLookup.set(map, this);
   }
 
   public notify(): void {
@@ -204,8 +205,9 @@ export class MapObserver {
 }
 
 export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  if (map.$observer === void 0) {
-    map.$observer = new MapObserver(flags, lifecycle, map);
+  const observer = observerLookup.get(map);
+  if (observer === void 0) {
+    return new MapObserver(flags, lifecycle, map);
   }
-  return map.$observer;
+  return observer;
 }

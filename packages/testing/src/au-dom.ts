@@ -349,6 +349,9 @@ export class AuDOM implements IDOM<AuNode> {
     // TODO: implement this properly (if we're going to keep AuDOM around)
     return node.parentNode;
   }
+  public setEffectiveParentNode(child: AuNode, parnt: AuNode): void {
+    // TODO: implement this properly (if we're going to keep AuDOM around)
+  }
   public insertBefore(nodeToInsert: AuNode, referenceNode: AuNode): void {
     if (referenceNode.parentNode == null) {
       throw new Error('referenceNode.parentNode is null in insertBefore');

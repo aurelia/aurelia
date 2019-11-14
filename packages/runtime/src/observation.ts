@@ -121,7 +121,6 @@ export type PropertyObserver = IPropertyObserver<IIndexable, string>;
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 interface IObservedCollection<T extends CollectionKind = CollectionKind> {
-  $observer?: ICollectionObserver<T>;
   $raw?: this;
 }
 
@@ -184,7 +183,6 @@ export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCo
 
 export type IProxy<TObj extends {} = {}> = TObj & {
   $raw: TObj;
-  $observer: IProxyObserver<TObj>;
 };
 
 /**

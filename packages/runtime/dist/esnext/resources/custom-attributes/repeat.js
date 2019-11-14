@@ -8,7 +8,6 @@ import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { bindable } from '../../templating/bindable';
 import { templateController } from '../custom-attribute';
-const isMountedOrAttached = 64 /* isMounted */ | 32 /* isAttached */;
 let Repeat = class Repeat {
     constructor(location, renderable, factory) {
         this.location = location;
@@ -147,18 +146,18 @@ let Repeat = class Repeat {
     // todo: subscribe to collection from inner expression
     checkCollectionObserver(flags) {
         const oldObserver = this.observer;
-        if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
+        if ((flags & 8192 /* fromUnbind */)) {
+            if (oldObserver !== void 0) {
+                oldObserver.unsubscribeFromCollection(this);
+            }
+        }
+        else if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
             const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
             if (oldObserver !== newObserver && oldObserver) {
                 oldObserver.unsubscribeFromCollection(this);
             }
             if (newObserver) {
                 newObserver.subscribeToCollection(this);
-            }
-        }
-        else {
-            if (oldObserver !== void 0) {
-                oldObserver.unsubscribeFromCollection(this);
             }
         }
     }

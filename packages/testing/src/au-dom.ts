@@ -157,11 +157,6 @@ export class AuNode implements INode {
     return node;
   }
 
-  public static getEffectiveParentNode(node: AuNode): AuNode | null {
-    // TODO: implement this properly (if we're going to keep AuDOM around)
-    return node.parentNode;
-  }
-
   public static createTemplate(): AuNode {
     return new AuNode('TEMPLATE', true, false, false, false, false, false);
   }
@@ -349,6 +344,10 @@ export class AuDOM implements IDOM<AuNode> {
   }
   public createTextNode(text: string): AuNode {
     return AuNode.createText(text);
+  }
+  public getEffectiveParentNode(node: AuNode): AuNode | null {
+    // TODO: implement this properly (if we're going to keep AuDOM around)
+    return node.parentNode;
   }
   public insertBefore(nodeToInsert: AuNode, referenceNode: AuNode): void {
     if (referenceNode.parentNode == null) {

@@ -32,21 +32,19 @@
     "i18next-fetch-backend": "^2.2.0"
   },
   "devDependencies": {
-    "@cypress/webpack-preprocessor": "^4.1.0",
-    "@types/node": "^12.12.6",
-    "cypress": "^3.5.0",
+    "@cypress/webpack-preprocessor": "^4.1.1",
+    "@types/node": "^12.12.7",
+    "cypress": "^3.6.1",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "http-server": "0.9.0",
     "rimraf": "^3.0.0",
     "start-server-and-test": "^1.10.6",
-    "ts-loader": "^6.2.0",
+    "ts-loader": "^6.2.1",
     "typescript": "^3.7.2",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.2",
-    "copy-webpack-plugin": "^5.0.4"
-  },
-  "main": "dist/umd/index.js",
-  "module": "dist/esnext/index.js"
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0",
+    "copy-webpack-plugin": "^5.0.5"
+  }
 }

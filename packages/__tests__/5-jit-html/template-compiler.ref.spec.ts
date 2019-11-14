@@ -418,7 +418,6 @@ describe('templating-compiler.ref.spec.ts', function() {
     // just to complete the assertion
     ...[
       'view',
-      'controller',
       'view-model',
       'rando'
     ].map(refTarget => {

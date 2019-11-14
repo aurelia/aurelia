@@ -21,7 +21,8 @@
   },
   "ignoreDeps": [
     "i18next",
-    "pixi.js"
+    "pixi.js",
+    "@types/pixi.js"
   ],
   "packageRules": [
     {
@@ -38,7 +39,7 @@
     },
     {
       "packageNames": ["chromedriver"],
-      "allowedVersions": "^74.0.0"
+      "allowedVersions": "^77.0.0"
     },
     {
       "packageNames": ["karma"],
@@ -51,10 +52,6 @@
     {
       "packageNames": ["mocha"],
       "allowedVersions": "~6.1.4"
-    },
-    {
-      "packageNames": ["pixi.js", "@types/pixi.js"],
-      "allowedVersions": "~4.8.8"
     }
   ]
 }

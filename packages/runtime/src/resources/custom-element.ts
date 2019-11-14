@@ -25,7 +25,8 @@ import {
   IDOM,
   INode,
   INodeSequence,
-  IRenderLocation
+  IRenderLocation,
+  DOM
 } from '../dom';
 import {
   IController,
@@ -55,7 +56,9 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
-  for<T extends INode = INode>(node: T): IController<T> | undefined;
+  for<T extends INode = INode>(node: T, searchParents: true): IController<T>;
+  for<T extends INode = INode>(node: T, name: string, searchParents?: boolean): IController<T> | undefined;
+  for<T extends INode = INode>(node: T, searchParents?: false): IController<T> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
   define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
@@ -320,8 +323,48 @@ export const CustomElement: CustomElementKind = {
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
-  for<T extends INode = INode>(node: T): IController<T> | undefined {
-    return Metadata.getOwn(CustomElement.name, node);
+  for<T extends INode = INode>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): IController<T> { // This should be IController | undefined but TS doesn't like that for some reason, even though CustomElementKind is accurately typed.
+    if (nameOrSearchParents === void 0) {
+      return Metadata.getOwn(CustomElement.name, node)!;
+    }
+    if (typeof nameOrSearchParents === 'string') {
+      if (searchParents !== true) {
+        const controller = Metadata.getOwn(CustomElement.name, node);
+        if (controller === void 0) {
+          return (void 0)!;
+        }
+
+        if (controller.is(nameOrSearchParents)) {
+          return controller;
+        }
+
+        return (void 0)!;
+      }
+
+      let cur = node as INode | null;
+      while (cur !== null) {
+        const controller = Metadata.getOwn(CustomElement.name, node);
+        if (controller !== void 0 && controller.is(nameOrSearchParents)) {
+          return controller;
+        }
+
+        cur = DOM.getEffectiveParentNode(node);
+      }
+
+      return (void 0)!;
+    }
+
+    let cur = node as INode | null;
+    while (cur !== null) {
+      const controller = Metadata.getOwn(CustomElement.name, node);
+      if (controller !== void 0) {
+        return controller;
+      }
+
+      cur = DOM.getEffectiveParentNode(node);
+    }
+
+    return (void 0)!;
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);

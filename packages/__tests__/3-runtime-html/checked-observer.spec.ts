@@ -7,7 +7,6 @@ import { CheckedObserver, IInputElement } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 type ObservedInputElement = HTMLInputElement & {
-  $observers: Record<string, IBindingTargetObserver>;
   model: any;
   children: HTMLCollectionOf<ObservedInputElement>;
   matcher(a: any, b: any): boolean;

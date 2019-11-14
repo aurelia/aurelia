@@ -382,7 +382,6 @@ export class ArrayObserver {
   public inBatch: boolean;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
-
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;
       enableArrayObservation();

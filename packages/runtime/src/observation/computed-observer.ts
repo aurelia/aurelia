@@ -5,7 +5,6 @@ import {
   IBindingContext,
   IBindingTargetObserver,
   ICollectionSubscribable,
-  IObservable,
   ISubscribable,
   ISubscriber
 } from '../observation';
@@ -54,7 +53,7 @@ export function createComputedObserver(
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
   lifecycle: ILifecycle,
-  instance: IObservable,
+  instance: IIndexable,
   propertyName: string,
   descriptor: PropertyDescriptor): IBindingTargetObserver {
 
@@ -63,7 +62,7 @@ export function createComputedObserver(
   }
 
   if (descriptor.get) {
-    const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
+    const { constructor: { prototype: { computed: givenOverrides } } }: IIndexable & { constructor: { prototype: ComputedLookup } } = instance;
     const overrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
 
     if (descriptor.set) {
@@ -88,7 +87,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   private observing: boolean = false;
 
   public constructor(
-    public readonly obj: IObservable & IIndexable,
+    public readonly obj: IIndexable & IIndexable,
     public readonly propertyKey: string,
     private readonly descriptor: PropertyDescriptor,
   ) {}
@@ -141,7 +140,7 @@ export class GetterObserver implements GetterObserver {
   public constructor(
     flags: LifecycleFlags,
     private readonly overrides: ComputedOverrides,
-    public readonly obj: IObservable,
+    public readonly obj: IIndexable,
     public readonly propertyKey: string,
     private readonly descriptor: PropertyDescriptor,
     observerLocator: IObserverLocator,
@@ -224,10 +223,6 @@ export class GetterObserver implements GetterObserver {
     return this.currentValue;
   }
 
-  public doNotCollect(key: PropertyKey): boolean {
-    return !this.isCollecting || key === '$observers';
-  }
-
   private unsubscribeAllDependencies(): void {
     this.propertyDeps.forEach(x => { x.unsubscribe(this); });
     this.propertyDeps.length = 0;
@@ -239,9 +234,10 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
+  // eslint-disable-next-line sonarjs/prefer-immediate-return
   const traps = {
-    get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
-      if (observer.doNotCollect(key)) {
+    get: function (target: IIndexable, key: PropertyKey, receiver?: unknown): unknown {
+      if (!observer['isCollecting']) {
         return Reflect.get(target, key, receiver);
       }
 
@@ -249,20 +245,23 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
       // at least) or they will throw.
       switch (toStringTag.call(target)) {
         case '[object Array]':
-          observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
+          observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown as unknown[]));
           if (key === 'length') {
             return Reflect.get(target, key, target);
           }
+          break;
         case '[object Map]':
-          observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
+          observer.addCollectionDep(observerLocator.getMapObserver(flags, target as unknown as Map<unknown, unknown>));
           if (key === 'size') {
             return Reflect.get(target, key, target);
           }
+          break;
         case '[object Set]':
-          observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
+          observer.addCollectionDep(observerLocator.getSetObserver(flags, target as unknown as Set<unknown>));
           if (key === 'size') {
             return Reflect.get(target, key, target);
           }
+          break;
         default:
           observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
       }

@@ -17,7 +17,8 @@ import {
   RuntimeConfiguration,
   Scope,
   SetterObserver,
-  State
+  State,
+  getObserver
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -188,7 +189,7 @@ describe('PropertyBinding', function () {
         // - Assert -
         // double check we have the correct target observer
         assert.instanceOf(sut.targetObserver, PropertyAccessor, `sut.targetObserver`);
-        assert.strictEqual(target['$observers'], undefined, `target['$observers']`);
+        assert.strictEqual(getObserver(target, prop), undefined, `getObserver(target, prop)`);
 
         // verify the behavior inside $bind
         // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
@@ -275,7 +276,7 @@ describe('PropertyBinding', function () {
         }
 
         assert.instanceOf(sut.targetObserver, PropertyAccessor, `sut.targetObserver #07`);
-        assert.strictEqual(target['$observers'], undefined, `target['$observers'] #08`);
+        assert.strictEqual(getObserver(target, prop), undefined, `getObserver(target, prop) #08`);
 
         // expect(expr.evaluate, `expr.evaluate #09`).to.have.been.calledOnce;
         // expect(expr.evaluate, `expr.evaluate #10`).to.have.been.calledWithExactly(flags, scope, container);
@@ -486,7 +487,7 @@ describe('PropertyBinding', function () {
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
-        assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop]`);
+        assert.instanceOf(getObserver(target, prop)[prop], SetterObserver, `getObserver(target, prop)[prop]`);
 
         assert.strictEqual(sut['_observer0'], undefined, `sut['_observer0']`);
         assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
@@ -626,7 +627,7 @@ describe('PropertyBinding', function () {
 
         assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver #09`);
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver #10`);
-        assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop] #11`);
+        assert.instanceOf(getObserver(target, prop)[prop], SetterObserver, `getObserver(target, prop)[prop] #11`);
 
         // expect(expr.assign).not.to.have.been.called;
 

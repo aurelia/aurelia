@@ -459,7 +459,6 @@ export {
   ICollectionObserver,
   ICollectionSubscriber,
   IndexMap,
-  IObservable,
   IObservedArray,
   IObservedMap,
   IObservedSet,
@@ -470,7 +469,6 @@ export {
   ISubscribable,
   ISubscriberCollection,
   ObservedCollection,
-  ObserversLookup,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
@@ -485,6 +483,9 @@ export {
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
+  getObserver,
+  setObserver,
+  hasObserver,
 } from './observation';
 export {
   instructionRenderer,

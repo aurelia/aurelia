@@ -54,7 +54,7 @@
     "@aurelia/validation": "0.5.0-dev.201911142058",
     "@aurelia/webpack-loader": "0.5.0-dev.201911142058",
     "i18next": "^17.0.0",
-    "jsdom": "^15.1.1",
+    "jsdom": "^15.2.1",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {

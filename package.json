@@ -40,12 +40,12 @@
   },
   "dependencies": {
     "i18next": "^17.0.0",
-    "jsdom": "^15.1.1",
+    "jsdom": "^15.2.1",
     "loader-utils": "^1.2.3",
     "modify-code": "^1.0.1",
-    "parse5": "^5.1.0",
+    "parse5": "^5.1.1",
     "pixi.js": "^4.8.8",
-    "rxjs": "^6.5.2"
+    "rxjs": "^6.5.3"
   },
   "devDependencies": {
     "@types/acorn": "^4.0.5",

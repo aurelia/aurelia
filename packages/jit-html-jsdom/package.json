@@ -36,13 +36,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.5.0-dev.201911142058",
-    "@aurelia/runtime": "0.5.0-dev.201911142058",
-    "@aurelia/runtime-html": "0.5.0-dev.201911142058",
-    "@aurelia/runtime-html-jsdom": "0.5.0-dev.201911142058",
-    "@aurelia/jit": "0.5.0-dev.201911142058",
-    "@aurelia/jit-html": "0.5.0-dev.201911142058",
-    "jsdom": "^15.1.1"
+    "@aurelia/kernel": "0.4.0",
+    "@aurelia/runtime": "0.4.0",
+    "@aurelia/runtime-html": "0.4.0",
+    "@aurelia/runtime-html-jsdom": "0.4.0",
+    "@aurelia/jit": "0.4.0",
+    "@aurelia/jit-html": "0.4.0",
+    "jsdom": "^15.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.7",

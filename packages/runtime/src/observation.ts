@@ -2,6 +2,32 @@ import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 
+const observerLookups = new Map<PropertyKey, WeakMap<object, IAccessor>>();
+
+export function getObserver<T extends IAccessor = IAccessor>(obj: object, propertyKey: PropertyKey): T | undefined {
+  const lookup = observerLookups.get(propertyKey);
+  if (lookup === void 0) {
+    return void 0;
+  }
+  return lookup.get(obj) as T | undefined;
+}
+
+export function setObserver(obj: object, propertyKey: PropertyKey, observer: IAccessor): void {
+  let lookup = observerLookups.get(propertyKey);
+  if (lookup === void 0) {
+    observerLookups.set(propertyKey, lookup = new WeakMap());
+  }
+  lookup.set(obj, observer);
+}
+
+export function hasObserver(obj: object, propertyKey: PropertyKey): boolean {
+  const lookup = observerLookups.get(propertyKey);
+  if (lookup === void 0) {
+    return false;
+  }
+  return lookup.has(obj);
+}
+
 /** @internal */
 export const enum SubscriberFlags {
   None            = 0,
@@ -318,21 +344,14 @@ export interface ICollectionObserver<T extends CollectionKind> extends
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
-  [key: string]: any;
-
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup;
-  getObservers?(flags: LifecycleFlags): ObserversLookup;
+  [key: string]: unknown;
 }
 
 export interface IOverrideContext {
   [key: string]: unknown;
 
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
   readonly parentOverrideContext: IOverrideContext | null;
-  getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IScope {
@@ -341,19 +360,3 @@ export interface IScope {
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
 }
-
-export type ObserversLookup = IIndexable<{
-  getOrCreate(
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver;
-}, PropertyObserver>;
-
-export type InlineObserversLookup<T> = IIndexable<{}, T>;
-
-export type IObservable<T = {}> = {
-  readonly $synthetic?: false;
-  $observers?: ObserversLookup | InlineObserversLookup<T>;
-};

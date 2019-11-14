@@ -7,21 +7,17 @@ import {
   ISubscriber,
   ISubscriberCollection,
   LifecycleFlags,
-  ObserversLookup,
   SetterObserver,
   subscriberCollection,
   IScheduler,
   ITask,
+  getObserver,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
-  $observers?: ObserversLookup & {
-    model?: SetterObserver;
-    value?: ValueAttributeObserver;
-  };
   matcher?: typeof defaultMatcher;
 }
 
@@ -79,12 +75,9 @@ export class CheckedObserver implements IAccessor<unknown> {
       this.oldValue = currentValue;
 
       if (this.valueObserver === void 0) {
-        if (this.obj.$observers !== void 0) {
-          if (this.obj.$observers.model !== void 0) {
-            this.valueObserver = this.obj.$observers.model;
-          } else if (this.obj.$observers.value !== void 0) {
-            this.valueObserver = this.obj.$observers.value;
-          }
+        this.valueObserver = getObserver<ValueAttributeObserver | SetterObserver>(this.obj, 'model');
+        if (this.valueObserver === void 0) {
+          this.valueObserver = getObserver<ValueAttributeObserver | SetterObserver>(this.obj, 'value');
         }
         if (this.valueObserver !== void 0) {
           this.valueObserver.subscribe(this);

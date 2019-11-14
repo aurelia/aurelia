@@ -66,6 +66,7 @@ import {
   IOverrideContext,
   IScope,
   ObservedCollection,
+  getObserver,
 } from '../observation';
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
@@ -453,11 +454,11 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
     if (obj instanceof Object) {
-      if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
-        obj.$observers[this.name].setValue(value, flags);
-        return value;
+      const observer = getObserver(obj, this.name);
+      if (observer !== void 0) {
+        observer.setValue(value, flags);
       } else {
-        return obj[this.name] = value;
+        obj[this.name] = value;
       }
     }
     return void 0;
@@ -492,8 +493,9 @@ export class AccessMemberExpression implements IAccessMemberExpression {
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {
     const obj = this.object.evaluate(flags, scope, locator, part) as IBindingContext;
     if (obj instanceof Object) {
-      if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
-        obj.$observers[this.name].setValue(value, flags);
+      const observer = getObserver(obj, this.name);
+      if (observer !== void 0) {
+        observer.setValue(value, flags);
       } else {
         obj[this.name] = value;
       }

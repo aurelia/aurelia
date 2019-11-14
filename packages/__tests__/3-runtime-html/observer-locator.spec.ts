@@ -9,7 +9,8 @@ import {
   SetterObserver,
   CollectionSizeObserver,
   computed,
-  GetterObserver
+  GetterObserver,
+  setObserver
 } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
@@ -334,7 +335,7 @@ describe('ObserverLocator', function () {
     const { sut } = setup();
     const obj = {};
     const writeSpy = createSpy(Reporter, 'write');
-    Reflect.defineProperty(obj, '$observers', { value: undefined });
+    setObserver(obj, 'value', (void 0)!);
     sut.getObserver(LF.none, obj, 'foo');
 
     writeSpy.restore();

@@ -48,6 +48,8 @@ import {
 import {
   IBindingTargetAccessor,
   IScope,
+  hasObserver,
+  setObserver,
 } from '../observation';
 import {
   Scope,
@@ -995,8 +997,6 @@ function createObservers(
   flags: LifecycleFlags,
   instance: object,
 ): void {
-  const hasLookup = (instance as IIndexable).$observers != void 0;
-  const observers: Record<string, SelfObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, SelfObserver> : {};
   const bindables = description.bindables;
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
@@ -1007,15 +1007,14 @@ function createObservers(
   let name: string;
   for (let i = 0; i < length; ++i) {
     name = observableNames[i];
-
-    if (observers[name] == void 0) {
-      observers[name] = new SelfObserver(
+    if (!hasObserver(instance, name)) {
+      setObserver(instance, name, new SelfObserver(
         lifecycle,
         flags,
         useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
         name,
         bindables[name].callback
-      );
+      ));
     }
   }
 
@@ -1030,9 +1029,9 @@ function createObservers(
       for (let i = 0; i < length; ++i) {
         name = childObserverNames[i];
 
-        if (observers[name] == void 0) {
+        if (!hasObserver(instance, name)) {
           const childrenDescription = childrenObservers[name];
-          observers[name] = new ChildrenObserver(
+          setObserver(instance, name, new ChildrenObserver(
             controller,
             instance as IIndexable,
             flags,
@@ -1042,17 +1041,10 @@ function createObservers(
             childrenDescription.filter,
             childrenDescription.map,
             childrenDescription.options
-          );
+          ));
         }
       }
     }
-  }
-
-  if (!useProxy || hasChildrenObservers) {
-    Reflect.defineProperty(instance, '$observers', {
-      enumerable: false,
-      value: observers
-    });
   }
 }
 

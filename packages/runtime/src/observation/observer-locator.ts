@@ -4,7 +4,7 @@ import {
   IResolver,
   Primitive,
   Registration,
-  Reporter,
+  IIndexable,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -16,12 +16,11 @@ import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
   ICollectionObserver,
-  IObservable,
   IObservedArray,
   IObservedMap,
   IObservedSet,
-  ObserversLookup,
-  PropertyObserver,
+  getObserver,
+  setObserver,
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -105,27 +104,19 @@ export class ObserverLocator implements IObserverLocator {
     return Registration.singleton(IObserverLocator, this).register(container);
   }
 
-  public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
+  public getObserver(flags: LifecycleFlags, obj: IIndexable, propertyName: string): AccessorOrObserver {
     if (flags & LifecycleFlags.proxyStrategy && typeof obj === 'object') {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
-    if (isBindingContext(obj)) {
-      return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
-    }
-    let observersLookup = obj.$observers as ObserversLookup;
-
-    if (observersLookup && propertyName in observersLookup) {
-      return observersLookup[propertyName];
+    const existingObserver = getObserver<AccessorOrObserver>(obj, propertyName);
+    if (existingObserver !== void 0) {
+      return existingObserver;
     }
 
     const observer: AccessorOrObserver & { doNotCache?: boolean } = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
-      if (observersLookup === void 0) {
-        observersLookup = this.getOrCreateObserversLookup(obj) as ObserversLookup;
-      }
-
-      observersLookup[propertyName] = observer as PropertyObserver;
+      setObserver(obj, propertyName, observer);
     }
 
     return observer;
@@ -135,7 +126,7 @@ export class ObserverLocator implements IObserverLocator {
     this.adapters.push(adapter);
   }
 
-  public getAccessor(flags: LifecycleFlags, obj: IObservable, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(flags: LifecycleFlags, obj: IIndexable, propertyName: string): IBindingTargetAccessor {
     if (this.targetAccessorLocator.handles(flags, obj)) {
       if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
         return this.getObserver(flags, obj, propertyName);
@@ -161,24 +152,7 @@ export class ObserverLocator implements IObserverLocator {
     return getSetObserver(flags, this.lifecycle, observedSet);
   }
 
-  private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
-    return obj.$observers as ObserversLookup || this.createObserversLookup(obj);
-  }
-
-  private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
-    const value: Record<string, IBindingTargetObserver> = {};
-    if (!Reflect.defineProperty(obj, '$observers', {
-      enumerable: false,
-      configurable: false,
-      writable: false,
-      value: value
-    })) {
-      Reporter.write(0, obj);
-    }
-    return value;
-  }
-
-  private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
+  private getAdapterObserver(flags: LifecycleFlags, obj: IIndexable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       const adapter = this.adapters[i];
       const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
@@ -189,7 +163,7 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
-  private createPropertyObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string): AccessorOrObserver {
+  private createPropertyObserver(flags: LifecycleFlags, obj: IIndexable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj as unknown as Primitive, propertyName) as IBindingTargetAccessor;
     }
@@ -207,23 +181,23 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
+          return this.getArrayObserver(flags, obj as unknown as IObservedArray).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
+          return this.getMapObserver(flags, obj as unknown as IObservedMap).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
+          return this.getSetObserver(flags, obj as unknown as IObservedSet).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
     const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
-      get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
+      get: PropertyDescriptor['get'] & { getObserver(obj: IIndexable): IBindingTargetObserver };
     };
 
     if (descriptor && (descriptor.get || descriptor.set)) {
@@ -262,8 +236,4 @@ export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecyc
       return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
   }
   return void 0;
-}
-
-function isBindingContext(obj: unknown): obj is IBindingContext {
-  return (obj as IBindingContext).$synthetic === true;
 }

@@ -12,7 +12,6 @@ import {
   ILifecycle,
 } from '../lifecycle';
 import {
-  IObservable,
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
@@ -32,7 +31,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public $scope?: IScope = void 0;
   public part?: string;
 
-  public target: (IObservable & IIndexable) | null = null;
+  public target: IIndexable | null = null;
 
   public constructor(
     public sourceExpression: IExpression,

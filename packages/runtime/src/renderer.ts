@@ -57,7 +57,7 @@ import {
 import {
   Controller,
 } from './templating/controller';
-import { ObserversLookup } from './observation';
+import { getObserver } from './observation';
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -241,12 +241,12 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    const obj = getTarget(target) as IIndexable & { $observers: ObserversLookup };
-    if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
-      obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
-    } else {
-      obj[instruction.to] = instruction.value;
+    const obj = getTarget(target) as IIndexable;
+    const accessor = getObserver(obj, instruction.to);
+    if (accessor !== void 0) {
+      accessor.setValue(instruction.value, LifecycleFlags.fromBind);
     }
+    obj[instruction.to] = instruction.value;
   }
 }
 

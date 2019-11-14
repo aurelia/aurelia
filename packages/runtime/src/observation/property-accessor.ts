@@ -1,19 +1,20 @@
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetAccessor } from '../observation';
+import { IBindingTargetAccessor, getObserver, IAccessor } from '../observation';
 
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {}
 
 export class PropertyAccessor implements PropertyAccessor {
+  private readonly innerAccessor: IAccessor | null;
+
   public constructor(
     public obj: Record<string, unknown>,
     public propertyKey: string,
   ) {
-    if (
-      obj.$observers !== void 0
-      && (obj.$observers as Record<string, unknown>)[propertyKey] !== void 0
-      && ((obj.$observers as Record<string, unknown>)[propertyKey] as IBindingTargetAccessor).setValue !== void 0
-    ) {
-      this.setValue = this.setValueDirect;
+    const inner = getObserver(obj, propertyKey);
+    if (inner !== void 0 && inner.setValue !== void 0) {
+      this.innerAccessor = inner;
+    } else {
+      this.innerAccessor = null;
     }
   }
 
@@ -22,10 +23,10 @@ export class PropertyAccessor implements PropertyAccessor {
   }
 
   public setValue(value: unknown, flags?: LifecycleFlags): void {
-    this.obj[this.propertyKey] = value;
-  }
-
-  private setValueDirect(value: unknown, flags: LifecycleFlags): void {
-    ((this.obj.$observers as Record<string, unknown>)[this.propertyKey] as IBindingTargetAccessor).setValue(value, flags);
+    if (this.innerAccessor === null) {
+      this.obj[this.propertyKey] = value;
+    } else {
+      this.innerAccessor.setValue(value, flags!);
+    }
   }
 }

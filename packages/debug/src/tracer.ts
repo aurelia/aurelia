@@ -305,8 +305,6 @@ const BindingArgsProcessor = {
     switch (info.methodName) {
       case 'get':
         return `${scopeText(info)},${primitive(info, 1)},${primitive(info, 2)},${flagsText(info, 3)}`;
-      case 'getObservers':
-        return flagsText(info);
       default:
         return 'unknown';
     }
@@ -327,8 +325,6 @@ const BindingArgsProcessor = {
     switch (info.methodName) {
       case 'create':
         return `${flagsText(info)},${ctorName(info, 1)},${ctorName(info, 2)}`;
-      case 'getObservers':
-        return '';
       default:
         return 'unknown';
     }

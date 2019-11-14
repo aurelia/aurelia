@@ -1,16 +1,13 @@
 import { IIndexable, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import {
   IBindingContext,
   IOverrideContext,
   IScope,
   ObservedCollection,
-  ObserversLookup,
-  PropertyObserver
 } from '../observation';
 import { ProxyObserver } from './proxy-observer';
-import { SetterObserver } from './setter-observer';
 
 const enum RuntimeError {
   NilScope = 250,
@@ -20,34 +17,12 @@ const enum RuntimeError {
 
 const marker = Object.freeze({});
 
-/** @internal */
-export class InternalObserversLookup {
-  public getOrCreate(
-    this: { [key: string]: PropertyObserver },
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver {
-    if (this[key] === void 0) {
-      this[key] = new SetterObserver(lifecycle, flags, obj, key);
-    }
-    return this[key];
-  }
-}
-
 export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-
-  public $observers?: ObserversLookup;
-
   private constructor(keyOrObj?: string | IIndexable, value?: unknown) {
-    this.$synthetic = true;
-
     if (keyOrObj !== void 0) {
       if (value !== void 0) {
         // if value is defined then it's just a property and a value to initialize with
@@ -153,13 +128,6 @@ export class BindingContext implements IBindingContext {
     }
     return scope.bindingContext || scope.overrideContext;
   }
-
-  public getObservers(flags: LifecycleFlags): ObserversLookup {
-    if (this.$observers == null) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
-  }
 }
 
 export class Scope implements IScope {
@@ -230,25 +198,15 @@ export class Scope implements IScope {
 export class OverrideContext implements IOverrideContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-  public $observers?: ObserversLookup;
   public bindingContext: IBindingContext;
   public parentOverrideContext: IOverrideContext | null;
 
   private constructor(bindingContext: IBindingContext, parentOverrideContext: IOverrideContext | null) {
-    this.$synthetic = true;
     this.bindingContext = bindingContext;
     this.parentOverrideContext = parentOverrideContext;
   }
 
   public static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext {
     return new OverrideContext(bc as IBindingContext, poc === void 0 ? null : poc);
-  }
-
-  public getObservers(): ObserversLookup {
-    if (this.$observers === void 0) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
   }
 }

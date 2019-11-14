@@ -121,7 +121,6 @@ export class Controller<
   public prevMount?: Controller<T, C> = void 0;
   public prevUnmount?: Controller<T, C> = void 0;
 
-  public parent?: IController<T> = void 0;
   public bindings?: IBinding[] = void 0;
   public controllers?: Controller<T, C>[] = void 0;
 
@@ -649,7 +648,6 @@ export class Controller<
     if (controllers !== void 0) {
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
-        controllers[i].parent = this;
         task = controllers[i].bind(flags, scope, this.part);
         if (!task.done) {
           if (tasks === void 0) {
@@ -749,7 +747,6 @@ export class Controller<
     if (controllers !== void 0) {
       for (let i = controllers.length - 1; i >= 0; --i) {
         task = controllers[i].unbind(flags);
-        controllers[i].parent = void 0;
         if (!task.done) {
           if (tasks === void 0) {
             tasks = [];

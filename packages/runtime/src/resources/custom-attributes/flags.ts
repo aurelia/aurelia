@@ -25,7 +25,6 @@ abstract class FlagsTemplateController<T extends INode = INode> {
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
-    this.view.parent = this.$controller;
     return this.view.bind(flags | this.flags, this.$controller.scope);
   }
 
@@ -39,7 +38,6 @@ abstract class FlagsTemplateController<T extends INode = INode> {
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
     const task = this.view.unbind(flags);
-    this.view.parent = void 0;
     return task;
   }
 }

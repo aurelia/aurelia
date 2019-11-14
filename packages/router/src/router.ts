@@ -594,32 +594,15 @@ export class Router implements IRouter {
    * @returns The Viewport that is the closest ancestor.
    */
   public closestViewport(element: Element): Viewport | null {
-    let el: Element & { $viewport?: Viewport } | null = element;
-    let $viewport: Viewport | undefined = el.$viewport;
-    while (!$viewport && el.parentElement) {
-      el = el.parentElement;
-      $viewport = el.$viewport;
+    const controller = CustomElement.for(element, 'au-viewport', true);
+    if (controller === void 0) {
+      return null;
     }
-    // TODO: Always also check controllers and return the closest one
-    if (el.$viewport) {
-      return el.$viewport;
+    const viewport = this.allViewports().find((item) => item.element === controller.host);
+    if (viewport === void 0) {
+      return null;
     }
-    el = element;
-    let controller = CustomElement.for(el);
-    while (!controller && el.parentElement) {
-      el = el.parentElement;
-      CustomElement.for(el);
-    }
-    while (controller) {
-      if (controller.host) {
-        const viewport = this.allViewports().find((item) => item.element === controller!.host);
-        if (viewport) {
-          return viewport;
-        }
-      }
-      controller = controller.parent;
-    }
-    return null;
+    return viewport;
   }
 
   private findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], withoutViewports: boolean = false): { found: ViewportInstruction[]; remaining: ViewportInstruction[] } {

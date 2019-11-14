@@ -7,6 +7,8 @@ export {
   IFile,
   IFileSystem,
   IOptions,
+  IDirent,
+  IStats,
 } from './system/interfaces';
 
 export {

@@ -6894,7 +6894,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): CompletionRecord {
     this.logger.debug('EvaluateLabelled()');
     const realm = this.realm;
     const stack = realm.stack;
@@ -6924,7 +6924,7 @@ export class $SourceFile implements I$Node, IModule {
     // 1. Return NormalCompletion(empty).
 
     let $statement: $$TSModuleItem;
-    let sl: CompletionRecord;
+    let sl: CompletionRecord = (void 0)!;
     for (let i = 0, ii = $statements.length; i < ii; ++i) {
       $statement = $statements[i];
 
@@ -7024,7 +7024,7 @@ export class $SourceFile implements I$Node, IModule {
       }
     }
 
-    return null as any; // TODO: implement this
+    return sl;
   }
 }
 
@@ -9060,19 +9060,29 @@ export class $ReturnStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-return-statement
   public Evaluate(): CompletionRecord {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // ReturnStatement : return ;
 
     // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
+    if (this.$expression === void 0) {
+      return CompletionRecord.createNormal(intrinsics.undefined, realm);
+    }
 
     // ReturnStatement : return Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
-    // 2. Let exprValue be ? GetValue(exprRef).
-    // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue).
-    // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
+    const exprRef = this.$expression.Evaluate();
 
-    return null as any; // TODO: implement this
+    // 2. Let exprValue be ? GetValue(exprRef).
+    const exprValue = exprRef.GetValue();
+
+    // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue). // TODO
+
+    // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
+    return CompletionRecord.createNormal(exprValue, realm);
   }
 }
 

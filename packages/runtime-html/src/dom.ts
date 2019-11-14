@@ -18,8 +18,10 @@ import {
   ITemplate,
   ITemplateFactory,
   NodeSequence,
-  CustomElementDefinition
+  CustomElementDefinition,
+  CustomElement
 } from '@aurelia/runtime';
+import { ShadowDOMProjector } from './projectors';
 
 export const enum NodeType {
   Element = 1,
@@ -181,7 +183,7 @@ export class HTMLDOM implements IDOM {
         if (prev.textContent === 'au-end') {
           // The closest comment above this node is au-end, meaning the provided node is not a child of a containerless custom element
           // so we return the normal parent
-          return node.parentNode;
+          break;
         }
         if (prev.textContent === 'au-start') {
           return prev;
@@ -189,6 +191,24 @@ export class HTMLDOM implements IDOM {
       }
       prev = prev.previousSibling;
     }
+
+    if (node.parentNode === null) {
+      if (node.nodeType === NodeType.DocumentFragment) {
+        // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
+        const controller = CustomElement.for(node);
+        if (controller === void 0) {
+          // Not a shadow root (or at least, not one created by Aurelia)
+          // Nothing more we can try, just return null
+          return null;
+        }
+        const projector = controller.projector!;
+        if (projector instanceof ShadowDOMProjector) {
+          // Now we can use the original host to traverse further up
+          return this.getEffectiveParentNode(projector.host);
+        }
+      }
+    }
+
     return node.parentNode;
   }
 

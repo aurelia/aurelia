@@ -203,12 +203,11 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
       if (caController !== void 0) {
         return caController.viewModel!;
       }
-      const ceController = CustomElement.for(refHost);
-      if (ceController !== void 0) {
-        // TODO: do we want to make sure the name matches?
-        return ceController.viewModel!;
+      const ceController = CustomElement.for(refHost, refTargetName);
+      if (ceController === void 0) {
+        throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
       }
-      throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+      return ceController.viewModel!;
     }
   }
 }

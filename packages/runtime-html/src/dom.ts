@@ -174,6 +174,18 @@ export class HTMLDOM implements IDOM {
     return this.document.createTextNode(text);
   }
 
+  /**
+   * Returns the effective parentNode according to Aurelia's component hierarchy.
+   *
+   * Used by Aurelia to find the closest parent controller relative to a node.
+   *
+   * This method supports two additional scenarios that `node.parentNode` does not support:
+   * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
+   * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
+   *
+   * @param node - The node to get the parent for.
+   * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), or `null` if this is either the absolute document root or a disconnected node.
+   */
   public getEffectiveParentNode(node: Node): Node | null {
     // First try to get the nearest au-start render location, which would be the containerless parent,
     // otherwise return the normal parent node

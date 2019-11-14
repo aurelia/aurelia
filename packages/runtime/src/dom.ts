@@ -76,6 +76,18 @@ export interface IDOM<T extends INode = INode> {
   createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;
+  /**
+   * Returns the effective parentNode according to Aurelia's component hierarchy.
+   *
+   * Used by Aurelia to find the closest parent controller relative to a node.
+   *
+   * This method supports two additional scenarios that `node.parentNode` does not support:
+   * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
+   * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
+   *
+   * @param node - The node to get the parent for.
+   * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), or `null` if this is either the absolute document root or a disconnected node.
+   */
   getEffectiveParentNode(node: T): T | null;
   insertBefore(nodeToInsert: T, referenceNode: T): void;
   isMarker(node: unknown): node is T;

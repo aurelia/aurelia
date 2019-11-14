@@ -28,7 +28,7 @@
     "@types/faker": "latest",
     "autoprefixer": "latest",
     "html-loader": "^0.5.5",
-    "http-server": "0.9.0",
+    "http-server": "^0.11.1",
     "node-sass": "latest",
     "postcss-loader": "latest",
     "rimraf": "^3.0.0",

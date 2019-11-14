@@ -20,7 +20,7 @@
     "browserify": "latest",
     "fancy-log": "^1.3.3",
     "gulp": "^4.0.2",
-    "http-server": "0.9.0",
+    "http-server": "^0.11.1",
     "rimraf": "^3.0.0",
     "stringify": "latest",
     "tsify": "latest",

@@ -16,7 +16,7 @@
     "browser-sync": "latest",
     "browserify": "latest",
     "gulp": "^4.0.2",
-    "http-server": "0.9.0",
+    "http-server": "^0.11.1",
     "rimraf": "^3.0.0",
     "stringify": "latest",
     "tsify": "latest",

@@ -29,7 +29,7 @@
     "css-loader": "latest",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "latest",
-    "http-server": "0.9.0",
+    "http-server": "^0.11.1",
     "rimraf": "^3.0.0",
     "style-loader": "^1.0.0",
     "ts-loader": "^6.2.1",

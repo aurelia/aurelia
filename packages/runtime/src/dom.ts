@@ -76,6 +76,7 @@ export interface IDOM<T extends INode = INode> {
   createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;
+  getEffectiveParentNode(node: T): T | null;
   insertBefore(nodeToInsert: T, referenceNode: T): void;
   isMarker(node: unknown): node is T;
   isNodeInstance(potentialNode: unknown): potentialNode is T;
@@ -104,6 +105,7 @@ const niDOM: IDOM = {
   createNodeObserver: ni,
   createTemplate: ni,
   createTextNode: ni,
+  getEffectiveParentNode: ni,
   insertBefore: ni,
   isMarker: ni,
   isNodeInstance: ni,

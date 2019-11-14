@@ -172,6 +172,26 @@ export class HTMLDOM implements IDOM {
     return this.document.createTextNode(text);
   }
 
+  public getEffectiveParentNode(node: Node): Node | null {
+    // First try to get the nearest au-start render location, which would be the containerless parent,
+    // otherwise return the normal parent node
+    let prev = node.previousSibling;
+    while (prev !== null) {
+      if (prev.nodeType === NodeType.Comment) {
+        if (prev.textContent === 'au-end') {
+          // The closest comment above this node is au-end, meaning the provided node is not a child of a containerless custom element
+          // so we return the normal parent
+          return node.parentNode;
+        }
+        if (prev.textContent === 'au-start') {
+          return prev;
+        }
+      }
+      prev = prev.previousSibling;
+    }
+    return node.parentNode;
+  }
+
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
     referenceNode.parentNode!.insertBefore(nodeToInsert, referenceNode);
   }

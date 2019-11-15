@@ -318,7 +318,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     if (!PLATFORM.isBrowserLike && browserOnly) {
       return;
     }
-    it(`\n\t(${idx + 1}). ${title}\n\t`, async function() {
+    it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
       let host: HTMLElement;
       let body: HTMLElement;
       try {

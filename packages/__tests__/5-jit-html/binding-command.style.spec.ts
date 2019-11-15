@@ -18,7 +18,7 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 }
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands.style', function() {
+describe('template-compiler.binding-commands.style', function () {
 
   /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
   const rulesTests: [string, string, string, boolean?, string?][] = [
@@ -142,7 +142,7 @@ describe('template-compiler.binding-commands.style', function() {
   eachCartesianJoin(
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
-      it(testCase.title(ruleName, ruleValue, callIndex), async function() {
+      it(testCase.title(ruleName, ruleValue, callIndex), async function () {
         const { ctx, au, scheduler, host, component, tearDown } = setup(
           testCase.template(ruleName),
           class App {

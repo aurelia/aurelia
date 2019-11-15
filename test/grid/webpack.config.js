@@ -1,6 +1,6 @@
 const { resolve } = require('path');
 
-const loadPostCssPlugins = function() {
+const loadPostCssPlugins = function () {
   return [
     require("autoprefixer")({ browsers: ["last 2 versions"] })
   ];
@@ -14,7 +14,7 @@ const load = {
   ts: { loader: "ts-loader" }
 };
 
-module.exports = function(env, { mode }) {
+module.exports = function (env, { mode }) {
   const production = mode === 'production';
   return {
     target: 'web',

@@ -168,7 +168,7 @@ describe('route sut', function () {
     assert.strictEqual(!!sut.recognize('/b'), true, `!!sut.recognize('/b')`);
   });
 
-  eachCartesianJoin([routeSpecs], function(routeSpec) {
+  eachCartesianJoin([routeSpecs], function (routeSpec) {
     it(`should recognize - ${routeSpec.t}`, function () {
       const { route, path, isDynamic, params } = routeSpec;
       const sut = new RouteRecognizer();

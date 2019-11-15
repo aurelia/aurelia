@@ -158,7 +158,7 @@ const methods: ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'] 
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  push: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
+  push: function (this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
@@ -183,7 +183,7 @@ const observe = {
     return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  unshift: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
+  unshift: function (this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
@@ -204,7 +204,7 @@ const observe = {
     return len;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-  pop: function(this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
+  pop: function (this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
@@ -225,7 +225,7 @@ const observe = {
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-  shift: function(this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
+  shift: function (this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
@@ -245,7 +245,7 @@ const observe = {
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  splice: function(this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
+  splice: function (this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
     const start: number = args[0];
     const deleteCount: number|undefined = args[1];
     let $this = this;
@@ -288,7 +288,7 @@ const observe = {
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-  reverse: function(this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
+  reverse: function (this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
@@ -314,7 +314,7 @@ const observe = {
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.sort
   // https://github.com/v8/v8/blob/master/src/js/array.js
-  sort: function(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
+  sort: function (this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;

@@ -175,6 +175,11 @@ module.exports = {
     'quotes': ['off'],
     'radix': 'error',
     'sort-keys': ['off'],
+    'space-before-function-paren': ['error', {
+      anonymous: 'always',
+      named: 'never',
+      asyncArrow: 'always'
+    }],
     'space-in-parens': 'error',
     'spaced-comment': ['error', 'always', {
       line: { markers: ['/'], exceptions: ['-', '+'] },

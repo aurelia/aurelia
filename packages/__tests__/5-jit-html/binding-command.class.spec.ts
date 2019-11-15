@@ -6,10 +6,10 @@ import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '
 import { ClassAttributePattern } from './attribute-pattern';
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands.class', function() {
+describe('template-compiler.binding-commands.class', function () {
 
   const falsyValues = [0, false, null, undefined, ''];
-  const truthyValues = [1, '1', true, {}, [], Symbol(), function() {/**/}, Number, new Proxy({}, {})];
+  const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/}, Number, new Proxy({}, {})];
 
   const classNameTests: string[] = [
     'background',
@@ -130,7 +130,7 @@ describe('template-compiler.binding-commands.class', function() {
   eachCartesianJoin(
     [classNameTests, testCases],
     (className, testCase, callIndex) => {
-      it(testCase.title(className, callIndex), async function() {
+      it(testCase.title(className, callIndex), async function () {
         const { ctx, au, scheduler, host, component, tearDown } = setup(
           testCase.template(className),
           class App {

@@ -16,7 +16,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe('templating-compiler.ref.spec.ts', function() {
+describe('templating-compiler.ref.spec.ts', function () {
 
   interface IRefIntegrationTestCase {
     title: string;
@@ -463,7 +463,7 @@ describe('templating-compiler.ref.spec.ts', function() {
       ? it.only(_title, fn)
       : it(_title, fn);
 
-    suit(title, async function() {
+    suit(title, async function () {
       let body: HTMLElement;
       let host: HTMLElement;
       try {

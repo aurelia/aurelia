@@ -108,10 +108,10 @@ exports.config = {
    */
   onPrepare: function (config, capabilities) {
     console.log('Connecting local');
-    return new Promise(function(resolve, reject){
+    return new Promise(function (resolve, reject){
       // eslint-disable-next-line @typescript-eslint/camelcase
       exports.bs_local = new browserstack.Local();
-      exports.bs_local.start({'key': exports.config.key }, function(error) {
+      exports.bs_local.start({'key': exports.config.key }, function (error) {
         if (error) return reject(error);
         console.log('Connected. Now testing...');
 
@@ -253,7 +253,7 @@ exports.config = {
    * Gets executed when an error happens, good place to take a screenshot
    * @ {String} error message
    */
-  onError: function(message) {
+  onError: function (message) {
     console.log(`Error - marking session ${browser.sessionId} as failed - ${message}`);
     CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message })
       .catch((error: Error) => { throw error; });

@@ -37,7 +37,7 @@ export interface ILogConfig {
  *
  * To customize what data is sent to the sinks, replace the implementation for this interface with your own.
  *
- * Example:
+ * @example
  *
  * ```ts
  * export class MyLogEventFactory {
@@ -77,7 +77,8 @@ export interface ILogEventFactory {
  *
  * Multiple sinks can be registered, and all events will be emitted to all of them.
  *
- * Example for a buffered file sink that writes once per second:
+ * @example
+ * // A buffered file sink that writes once per second:
  *
  * ```ts
  * export class BufferedFileSink {
@@ -268,7 +269,7 @@ export interface ILogger {
    *
    * This is preliminary API and subject to change before alpha release.
    *
-   * Example:
+   * @example
    *
    * ```ts
    * export class MyComponent {

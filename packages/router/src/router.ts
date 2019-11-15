@@ -16,6 +16,7 @@ import { arrayRemove, closestController } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
+import { HookManager, HookTypes, IHookDefinition } from './hook-manager';
 
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
@@ -44,6 +45,7 @@ export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
   statefulHistoryLength?: number;
   useDirectRoutes?: boolean;
   useConfiguredRoutes?: boolean;
+  hooks?: IHookDefinition[];
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
@@ -56,6 +58,7 @@ export interface IRouter {
   navigator: Navigator;
   readonly navigation: BrowserNavigator;
   readonly guardian: Guardian;
+  readonly hookManager: HookManager;
   readonly linkHandler: LinkHandler;
   readonly navs: Readonly<Record<string, Nav>>;
   readonly options: IRouterOptions;
@@ -105,6 +108,7 @@ export class Router implements IRouter {
   public rootScope: Viewport | null = null;
 
   public guardian: Guardian;
+  public hookManager: HookManager;
 
   public navs: Record<string, Nav> = {};
   public activeComponents: ViewportInstruction[] = [];
@@ -133,6 +137,7 @@ export class Router implements IRouter {
     public instructionResolver: InstructionResolver
   ) {
     this.guardian = new Guardian();
+    this.hookManager = new HookManager();
   }
 
   public get isNavigating(): boolean {
@@ -156,6 +161,11 @@ export class Router implements IRouter {
         transformToUrl: this.routeTransformer.transformToUrl,
       }, ...options
     };
+    if (this.options.hooks !== void 0) {
+      for (const hook of this.options.hooks) {
+        this.hookManager.addHook(hook.hook, hook.options );
+      }
+    }
 
     this.instructionResolver.activate({ separators: this.options.separators });
     this.navigator.activate(this, {
@@ -739,6 +749,9 @@ export class Router implements IRouter {
   }
 
   private unknownRoute(route: string) {
+    if (typeof route !== 'string' || route.length === 0) {
+      return;
+    }
     if (this.options.useConfiguredRoutes && this.options.useDirectRoutes) {
       // TODO: Add missing/unknown route handling
       throw new Error(`No matching configured route or component found for '${route}'`);
@@ -794,7 +807,7 @@ export class Router implements IRouter {
   }
 
   private replacePaths(instruction: INavigatorInstruction): Promise<void> {
-    (this.rootScope as Viewport).reparentViewportInstructions();
+    (this.rootScope as Viewport).content.content.nextScopeInstructions = (this.rootScope as Viewport).reparentViewportInstructions();
     const viewports: Viewport[] = (this.rootScope as Viewport).children.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
     let instructions = viewports.map(viewport => viewport.content.content);
     // TODO: Check if this is really necessary

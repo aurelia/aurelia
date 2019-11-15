@@ -838,7 +838,7 @@ describe('defer registration', function() {
       value: 42
     }
   ].forEach(x => {
-    it (`does not pass ${x.name} params to the container's register when no handler is found`, function() {
+    it(`does not pass ${x.name} params to the container's register when no handler is found`, function() {
       const container = DI.createContainer();
       container.register(
         Registration.defer('.css', x.value)

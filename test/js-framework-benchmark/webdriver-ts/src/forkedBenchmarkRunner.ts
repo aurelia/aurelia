@@ -22,11 +22,26 @@ interface Timingresult {
   evt?: any;
 }
 
+interface IRelevantEvent {
+  method?: string;
+  params: {
+    args: {
+      data: {
+        message: string;
+        type: string;
+      };
+      usedHeapSizeAfter: unknown;
+    };
+    dur: number;
+    name: string;
+    ts: number;
+  };
+}
 function extractRelevantEvents(entries: logging.Entry[]) {
   const filteredEvents: Timingresult[] = [];
   const protocolEvents: any[] = [];
   entries.forEach(x => {
-    const e = JSON.parse(x.message).message;
+    const e: IRelevantEvent = JSON.parse(x.message).message;
     if (config.LOG_DETAILS) console.log(JSON.stringify(e));
     if (e.method === 'Tracing.dataCollected') {
       protocolEvents.push(e);
@@ -103,8 +118,12 @@ function extractRawValue(results: any, id: string) {
 
 function rmDir(dirPath: string) {
   let files: string[] = [];
-  try { files = fs.readdirSync(dirPath); }
-  catch(e) { console.log(`error in rmDir ${dirPath}`, e); return; }
+  try {
+    files = fs.readdirSync(dirPath);
+  } catch(e) {
+    console.log(`error in rmDir ${dirPath}`, e);
+    return;
+  }
   if (files.length > 0)
     for (let i = 0; i < files.length; i++) {
       const filePath = path.join(dirPath, files[i]);
@@ -154,13 +173,12 @@ async function runLighthouse(framework: FrameworkData, benchmarkOptions: Benchma
     }
     // console.log("lh result", results);
 
-    const LighthouseData: LighthouseData = {
+    return {
       TimeToConsistentlyInteractive: extractRawValue(results.lhr, 'interactive'),
       ScriptBootUpTtime: Math.max(16, extractRawValue(results.lhr, 'bootup-time')),
       MainThreadWorkCost: extractRawValue(results.lhr, 'mainthread-work-breakdown'),
       TotalKiloByteWeight: extractRawValue(results.lhr, 'total-byte-weight')/1024.0
     };
-    return LighthouseData;
   } catch (error) {
     console.log("error running lighthouse", error);
     throw error;
@@ -292,8 +310,7 @@ async function snapMemorySize(driver: WebDriver): Promise<number> {
     selfSize += nodes[k];
   }
 
-  const memory = selfSize / 1024.0 / 1024.0;
-  return memory;
+  return selfSize / 1024.0 / 1024.0;
 }
 
 async function runBenchmark(driver: WebDriver, benchmark: Benchmark, framework: FrameworkData): Promise<any> {
@@ -370,8 +387,7 @@ async function registerError(driver: WebDriver, framework: FrameworkData, benchm
 
 const wait = (delay = 1000) => new Promise(res => setTimeout(res, delay));
 
-async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
-{
+async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   const errors: BenchmarkError[] = [];
   const warnings: string[] = [];
 
@@ -436,8 +452,7 @@ async function runCPUBenchmark(framework: FrameworkData, benchmark: Benchmark, b
   return {errors, warnings};
 }
 
-async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
-{
+async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   const errors: BenchmarkError[] = [];
   const warnings: string[] = [];
   const allResults: number[] = [];
@@ -487,8 +502,7 @@ async function runMemBenchmark(framework: FrameworkData, benchmark: Benchmark, b
   return {errors, warnings};
 }
 
-async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning>
-{
+async function runStartupBenchmark(framework: FrameworkData, benchmark: Benchmark, benchmarkOptions: BenchmarkOptions): Promise<ErrorsAndWarning> {
   console.log("benchmarking startup", framework, benchmark.id);
 
   const errors: BenchmarkError[] = [];

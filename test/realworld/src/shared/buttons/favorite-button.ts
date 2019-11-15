@@ -19,7 +19,7 @@ export class FavoriteButton {
 
   public onToggleFavorited() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('auth(type=login)');
+      this.router.goto('auth(type=login)').catch((error: Error) => { throw error; });
       return;
     }
     if (!this.article || !this.article.slug) { return; }

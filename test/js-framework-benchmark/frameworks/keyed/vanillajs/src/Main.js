@@ -122,50 +122,41 @@ class Main {
         e.preventDefault();
         // console.log("add");
         this.add();
-      }
-      else if (e.target.matches('#run')) {
+      } else if (e.target.matches('#run')) {
         e.preventDefault();
         // console.log("run");
         this.run();
-      }
-      else if (e.target.matches('#update')) {
+      } else if (e.target.matches('#update')) {
         e.preventDefault();
         // console.log("update");
         this.update();
-      }
-      else if (e.target.matches('#hideall')) {
+      } else if (e.target.matches('#hideall')) {
         e.preventDefault();
         // console.log("hideAll");
         this.hideAll();
-      }
-      else if (e.target.matches('#showall')) {
+      } else if (e.target.matches('#showall')) {
         e.preventDefault();
         // console.log("showAll");
         this.showAll();
-      }
-      else if (e.target.matches('#runlots')) {
+      } else if (e.target.matches('#runlots')) {
         e.preventDefault();
         // console.log("runLots");
         this.runLots();
-      }
-      else if (e.target.matches('#clear')) {
+      } else if (e.target.matches('#clear')) {
         e.preventDefault();
         // console.log("clear");
         this.clear();
-      }
-      else if (e.target.matches('#swaprows')) {
+      } else if (e.target.matches('#swaprows')) {
         e.preventDefault();
         // console.log("swapRows");
         this.swapRows();
-      }
-      else if (e.target.matches('.remove')) {
+      } else if (e.target.matches('.remove')) {
         e.preventDefault();
         const id = getParentId(e.target);
         const idx = this.findIdx(id);
         // console.log("delete",idx);
         this.delete(idx);
-      }
-      else if (e.target.matches('.lbl')) {
+      } else if (e.target.matches('.lbl')) {
         e.preventDefault();
         const id = getParentId(e.target);
         const idx = this.findIdx(id);

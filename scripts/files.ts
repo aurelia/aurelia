@@ -152,7 +152,7 @@ export class File {
         }
       }
 
-      stream.on('open', onStreamOpen);
+      stream.on('open', onStreamOpen as (descriptor: number) => void);
     }
 
     return new Promise(streamCompare);

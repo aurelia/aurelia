@@ -198,13 +198,13 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
   switch (refTargetName) {
     case 'controller':
       // this means it supports returning undefined
-      return (refHost as CustomElementHost<INode>).$controller as IController;
+      return (refHost as CustomElementHost).$controller as IController;
     case 'view':
       // todo: returns node sequences for fun?
       throw new Error('Not supported API');
     case 'view-model':
       // this means it supports returning undefined
-      return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
+      return ((refHost as CustomElementHost).$controller as IController).viewModel!;
     default:
       refTargetController = $auRefs[refTargetName];
       if (refTargetController === void 0) {

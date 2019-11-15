@@ -66,7 +66,7 @@ export function stringify(value: any): string {
 export function jsonStringify(o: unknown): string {
   try {
     let cache: string[] = [];
-    const result = JSON.stringify(o, function(_key: string, value: any): string {
+    const result = JSON.stringify(o, function (_key: string, value: any): string {
       if (typeof value === 'object' && value !== null) {
         if (value.nodeType > 0) {
           return htmlStringify(value);

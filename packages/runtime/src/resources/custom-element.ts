@@ -363,7 +363,7 @@ export const CustomElement: CustomElementKind = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultProto = {} as any;
 
-    return function <P extends {} = {}>(
+    return function <P extends {} = {}> (
       name: string,
       proto: P = defaultProto,
     ): CustomElementType<Constructable<P>> {

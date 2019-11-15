@@ -10,22 +10,22 @@ const log = createLogger('container');
 const suites = {
   ['register']() {
     const suite = new Benchmark.Suite('register', {
-      onCycle: function(event) {
+      onCycle: function (event) {
         log(`[${c.cyan(name)}] ${event.target}`);
       }
     });
 
-    suite.add(`local runtime-html BasicConfiguration`, function() {
+    suite.add(`local runtime-html BasicConfiguration`, function () {
       local.kernel.DI.createContainer().register(local.runtimeHtml.BasicConfiguration);
     });
-    suite.add(`local jit-html     BasicConfiguration`, function() {
+    suite.add(`local jit-html     BasicConfiguration`, function () {
       local.kernel.DI.createContainer().register(local.jitHtml.BasicConfiguration);
     });
 
-    suite.add(`  dev runtime-html BasicConfiguration`, function() {
+    suite.add(`  dev runtime-html BasicConfiguration`, function () {
       dev.kernel.DI.createContainer().register(dev.runtimeHtml.HTMLRuntimeConfiguration);
     });
-    suite.add(`  dev jit-html     BasicConfiguration`, function() {
+    suite.add(`  dev jit-html     BasicConfiguration`, function () {
       dev.kernel.DI.createContainer().register(dev.jitHtml.HTMLJitConfiguration);
     });
 
@@ -59,31 +59,31 @@ const suites = {
     devContainer.register(DevSingleton, DevTransient);
 
     const suite = new Benchmark.Suite('resolve', {
-      setup: function() {
+      setup: function () {
         return;
       },
-      onCycle: function(event) {
+      onCycle: function (event) {
         log(`[${c.cyan(name)}] ${event.target}`);
       }
     });
 
-    suite.add(`local transient x ${count}`, function() {
+    suite.add(`local transient x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         localContainer.get(LocalTransient);
       }
     });
-    suite.add(`  dev transient x ${count}`, function() {
+    suite.add(`  dev transient x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         devContainer.get(DevTransient);
       }
     });
 
-    suite.add(`local singleton x ${count}`, function() {
+    suite.add(`local singleton x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         localContainer.get(LocalSingleton);
       }
     });
-    suite.add(`  dev singleton x ${count}`, function() {
+    suite.add(`  dev singleton x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         devContainer.get(DevSingleton);
       }

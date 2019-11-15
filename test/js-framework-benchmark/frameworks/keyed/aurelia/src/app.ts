@@ -2,12 +2,12 @@ import {Store} from './store';
 
 let startTime: number;
 let lastMeasure: string;
-const startMeasure = function(name) {
+const startMeasure = function (name) {
   startTime = performance.now();
   lastMeasure = name;
 };
-const stopMeasure = function() {
-  window.setTimeout(function() {
+const stopMeasure = function () {
+  window.setTimeout(function () {
     const stop = performance.now();
     console.log(`${lastMeasure} took ${stop-startTime}`);
   }, 0);

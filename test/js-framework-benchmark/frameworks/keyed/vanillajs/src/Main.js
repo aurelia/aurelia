@@ -2,11 +2,11 @@
 
 let startTime;
 let lastMeasure;
-const startMeasure = function(name) {
+const startMeasure = function (name) {
   startTime = performance.now();
   lastMeasure = name;
 };
-const stopMeasure = function() {
+const stopMeasure = function () {
   const last = lastMeasure;
   if (lastMeasure) {
     window.setTimeout(function () {
@@ -94,7 +94,7 @@ class Store {
   }
 }
 
-const getParentId = function(elem) {
+const getParentId = function (elem) {
   while (elem) {
     if (elem.tagName==="TR") {
       return elem.dataId;

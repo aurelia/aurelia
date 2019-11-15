@@ -2,7 +2,7 @@ import { Transform } from 'stream';
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import * as Vinyl from 'vinyl';
 
-export default function(options: IOptionalPreprocessOptions = {}) {
+export default function (options: IOptionalPreprocessOptions = {}) {
   return plugin({
     ...options,
     useProcessedFilePairFilename: true,
@@ -17,7 +17,7 @@ export function plugin(
   const allOptions = preprocessOptions(options);
   return new Transform({
     objectMode: true,
-    transform: function(file: Vinyl, enc, cb) {
+    transform: function (file: Vinyl, enc, cb) {
       if (file.isStream()) {
         this.emit('error', new Error('@aurelia/plugin-gulp: Streaming is not supported'));
       } else if (file.isBuffer()) {

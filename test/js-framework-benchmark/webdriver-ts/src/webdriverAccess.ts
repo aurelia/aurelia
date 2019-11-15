@@ -58,7 +58,7 @@ function elemNull(v: any) {
 }
 
 function waitForCondition(driver: WebDriver) {
-  return async function(text: string, fn: (driver: WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
+  return async function (text: string, fn: (driver: WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
     // eslint-disable-next-line no-return-await
     return await driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
   };
@@ -69,7 +69,7 @@ function waitForCondition(driver: WebDriver) {
 export async function testTextContains(driver: WebDriver, xpath: string, text: string, timeout = config.TIMEOUT) {
   return waitForCondition(driver)(
     `testTextContains ${xpath} ${text}`,
-    async function(driver) {
+    async function (driver) {
       try {
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
@@ -87,7 +87,7 @@ export async function testTextContains(driver: WebDriver, xpath: string, text: s
 export function testTextNotContained(driver: WebDriver, xpath: string, text: string, timeout = config.TIMEOUT) {
   return waitForCondition(driver)(
     `testTextNotContained ${xpath} ${text}`,
-    async function(driver) {
+    async function (driver) {
       try {
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
@@ -105,7 +105,7 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
 export function testClassContains(driver: WebDriver, xpath: string, text: string, timeout = config.TIMEOUT) {
   return waitForCondition(driver)(
     `testClassContains ${xpath} ${text}`,
-    async function(driver) {
+    async function (driver) {
       try {
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
@@ -123,7 +123,7 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
 export function testElementLocatedByXpath(driver: WebDriver, xpath: string, timeout = config.TIMEOUT) {
   return waitForCondition(driver)(
     `testElementLocatedByXpath ${xpath}`,
-    async function(driver) {
+    async function (driver) {
       try {
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
@@ -139,7 +139,7 @@ export function testElementLocatedByXpath(driver: WebDriver, xpath: string, time
 export function testElementNotLocatedByXPath(driver: WebDriver, xpath: string, timeout = config.TIMEOUT) {
   return waitForCondition(driver)(
     `testElementNotLocatedByXPath ${xpath}`,
-    async function(driver) {
+    async function (driver) {
       try {
         let elem = await shadowRoot(driver);
         elem = await findByXPath(elem, xpath);
@@ -155,7 +155,7 @@ export function testElementNotLocatedByXPath(driver: WebDriver, xpath: string, t
 export function testElementLocatedById(driver: WebDriver, id: string, timeout = config.TIMEOUT) {
   return waitForCondition(driver)(
     `testElementLocatedById ${id}`,
-    async function(driver) {
+    async function (driver) {
       try {
         let elem = await shadowRoot(driver);
         elem = await elem.findElement(By.id(id));
@@ -189,7 +189,7 @@ export function clickElementById(driver: WebDriver, id: string) {
 }
 
 export function clickElementByXPath(driver: WebDriver, xpath: string) {
-  return retry(5, driver, async function(driver, count) {
+  return retry(5, driver, async function (driver, count) {
     if (count>1 && config.LOG_DETAILS) console.log("clickElementByXPath ",xpath," attempt #",count);
     let elem = await shadowRoot(driver);
     elem = await findByXPath(elem, xpath);
@@ -200,7 +200,7 @@ export function clickElementByXPath(driver: WebDriver, xpath: string) {
 }
 
 export async function getTextByXPath(driver: WebDriver, xpath: string): Promise<string> {
-  return retry(5, driver, async function(driver, count) {
+  return retry(5, driver, async function (driver, count) {
     if (count>1 && config.LOG_DETAILS) console.log("getTextByXPath ",xpath," attempt #",count);
     let elem = await shadowRoot(driver);
     elem = await findByXPath(elem, xpath);

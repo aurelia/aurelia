@@ -25,7 +25,7 @@ const methods: ['set', 'clear', 'delete'] = ['set', 'clear', 'delete'];
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.map
-  set: function(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
+  set: function (this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
@@ -59,7 +59,7 @@ const observe = {
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
-  clear: function(this: IObservedMap): ReturnType<typeof $clear>  {
+  clear: function (this: IObservedMap): ReturnType<typeof $clear>  {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
@@ -85,7 +85,7 @@ const observe = {
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-  delete: function(this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
+  delete: function (this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;

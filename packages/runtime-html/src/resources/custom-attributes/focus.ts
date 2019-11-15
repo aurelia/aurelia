@@ -52,11 +52,10 @@ export class Focus {
     // before applying the value to the element
     if (this.$controller.state & State.isAttached) {
       this.apply();
-    }
-    // If the element is not currently connect
-    // toggle the flag to add pending work for later
-    // in attached lifecycle
-    else {
+    } else {
+      // If the element is not currently connect
+      // toggle the flag to add pending work for later
+      // in attached lifecycle
       this.needsApply = true;
     }
   }
@@ -92,15 +91,14 @@ export class Focus {
     // only need to switch the value to true
     if (e.type === 'focus') {
       this.value = true;
-    }
-    // else, it's blur event
-    // when a blur event happens, there are two situations
-    // 1. the element itself lost the focus
-    // 2. window lost the focus
-    // To handle both (1) and (2), only need to check if
-    // current active element is still the same element of this focus custom attribute
-    // If it's not, it's a blur event happened on Window because the browser tab lost focus
-    else if (this.dom.document.activeElement !== this.element) {
+    } else if (this.dom.document.activeElement !== this.element) {
+      // else, it's blur event
+      // when a blur event happens, there are two situations
+      // 1. the element itself lost the focus
+      // 2. window lost the focus
+      // To handle both (1) and (2), only need to check if
+      // current active element is still the same element of this focus custom attribute
+      // If it's not, it's a blur event happened on Window because the browser tab lost focus
       this.value = false;
     }
   }

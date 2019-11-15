@@ -18,7 +18,7 @@ export class FollowButton {
 
   public onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('auth(type=login)');
+      this.router.goto('auth(type=login)').catch((error: Error) => { throw error; });
       return;
     }
     this.article.author.following = !this.article.author.following;

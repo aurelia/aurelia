@@ -497,7 +497,7 @@ export class Resolver implements IResolver, IRegistration {
   }
 
   public getFactory(container: IContainer): IFactory | null {
-    let resolver: IResolver<any> | null;
+    let resolver: IResolver | null;
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:

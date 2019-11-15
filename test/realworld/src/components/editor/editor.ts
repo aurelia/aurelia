@@ -70,7 +70,8 @@ export class Editor {
     this.articleService.save(this.article)
       .then((article) => {
         this.slug = article.slug;
-        this.router.goto({ component: 'article', parameters: { slug: this.slug } });
+        this.router.goto({ component: 'article', parameters: { slug: this.slug } })
+          .catch((error: Error) => { throw error; });
       });
   }
 }

@@ -67,7 +67,10 @@ _.each(testable, function([dir,name]) {
 });
 
 function isDifferent([dir,name]) {
-  try { exec(`git diff --quiet ${referenceBranch} -- ${dir}${name}`); }
-  catch(e) { return true; }
+  try {
+    exec(`git diff --quiet ${referenceBranch} -- ${dir}${name}`);
+  } catch(e) {
+    return true;
+  }
   return false;
 }

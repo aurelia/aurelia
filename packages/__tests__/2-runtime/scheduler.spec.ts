@@ -513,11 +513,11 @@ describe('Scheduler', function () {
                   } else {
                     assert.strictEqual(task.status, 'pending', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-                    task.result.then(callback);
+                    task.result.then(callback).catch((error) => { throw error; });
                   }
                 }
 
-                task.result.then(callback);
+                task.result.then(callback).catch((error) => { throw error; });
               });
 
               it(`from within a followup task`, function (done) {
@@ -574,11 +574,11 @@ describe('Scheduler', function () {
                     assert.strictEqual(nextTask.status, 'pending', `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
                     assert.strictEqual(task.status, 'pending', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-                    nextTask.result.then(callback);
+                    nextTask.result.then(callback).catch((error) => { throw error; });
                   }
                 }
 
-                nextTask.result.then(callback);
+                nextTask.result.then(callback).catch((error) => { throw error; });
               });
 
               it(`yields after the first iteration with no other tasks`, function (done) {
@@ -613,7 +613,7 @@ describe('Scheduler', function () {
                         done();
                       }
                     }
-                  });
+                  }).catch((error) => { throw error; });
                 }
 
                 yieldAndVerify();
@@ -689,7 +689,7 @@ describe('Scheduler', function () {
                   assert.isSchedulerEmpty();
 
                   done();
-                });
+                }).catch((error) => { throw error; });
               });
             });
           }

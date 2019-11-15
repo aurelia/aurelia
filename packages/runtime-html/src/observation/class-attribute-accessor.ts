@@ -7,7 +7,7 @@ import {
 } from '@aurelia/runtime';
 import { PLATFORM } from '@aurelia/kernel';
 
-export class ClassAttributeAccessor implements IAccessor<unknown> {
+export class ClassAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';

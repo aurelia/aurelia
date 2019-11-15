@@ -7,7 +7,7 @@ import {
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
 
-export class StyleAttributeAccessor implements IAccessor<unknown> {
+export class StyleAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';

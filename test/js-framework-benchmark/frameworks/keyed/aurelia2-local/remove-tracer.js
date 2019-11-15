@@ -24,4 +24,4 @@ async function* walk(dir) {
       await fs.writeFile(file, newContent);
     }
   }
-})();
+})().catch((error) => { throw error; });

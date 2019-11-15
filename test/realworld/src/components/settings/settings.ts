@@ -29,6 +29,6 @@ export class Settings {
 
   public logout() {
     this.userService.purgeAuth();
-    this.router.goto('home');
+    this.router.goto('home').catch((error: Error) => { throw error; });
   }
 }

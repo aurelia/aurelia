@@ -1,3 +1,4 @@
+import { HookManager } from './hook-manager';
 export {
   BrowserNavigator,
 } from './browser-navigator';
@@ -39,6 +40,12 @@ export {
   lifecycleLogger,
   LifecycleClass,
 } from './lifecycle-logger';
+
+export {
+  HookManager,
+  HookTypes,
+  IHookDefinition,
+} from './hook-manager';
 
 export {
   INavRoute,

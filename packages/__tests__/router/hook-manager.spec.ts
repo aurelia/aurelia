@@ -25,6 +25,7 @@ describe('HookManager', function () {
 
     async function tearDown() {
       router.deactivate();
+      RouterConfiguration.customize();
       await au.stop().wait();
     }
 
@@ -60,6 +61,16 @@ describe('HookManager', function () {
 
     const hooked = sut.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'hooked2:hooked:testing', `hooked`);
+
+    await tearDown();
+  });
+
+  it('works with no hooks', async function () {
+    const { router, tearDown, navigationInstruction } = await setup();
+
+    const sut = new HookManager();
+    const hooked = sut.invokeTransformFromUrl('testing', navigationInstruction);
+    assert.strictEqual(hooked, 'testing', `hooked`);
 
     await tearDown();
   });
@@ -231,6 +242,27 @@ describe('HookManager', function () {
     const str = 'testing';
 
     const hooked: string | ViewportInstruction[] = sut.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
+    assert.strictEqual(hooked[0].componentName, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
+
+    await tearDown();
+  });
+
+  it('sets a TransformToUrl hook with alternating types through api', async function () {
+    const { router, tearDown, navigationInstruction } = await setup();
+
+    const str = 'testing';
+
+    let hooked: string | ViewportInstruction[] = router.hookManager.invokeTransformToUrl(str, navigationInstruction) as string;
+    assert.strictEqual(hooked, `${str}`, `not hooked`);
+
+    const hookFunction = (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): string | ViewportInstruction[] =>
+      typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`;
+
+    router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
+    router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
+    router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
+
+    hooked = router.hookManager.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
     assert.strictEqual(hooked[0].componentName, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
 
     await tearDown();

@@ -20,7 +20,7 @@ const methods: ['add', 'clear', 'delete'] = ['add', 'clear', 'delete'];
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-set.prototype.add
-  add: function(this: IObservedSet, value: unknown): ReturnType<typeof $add> {
+  add: function (this: IObservedSet, value: unknown): ReturnType<typeof $add> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
@@ -41,7 +41,7 @@ const observe = {
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.clear
-  clear: function(this: IObservedSet): ReturnType<typeof $clear>  {
+  clear: function (this: IObservedSet): ReturnType<typeof $clear>  {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
@@ -67,7 +67,7 @@ const observe = {
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.delete
-  delete: function(this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
+  delete: function (this: IObservedSet, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;

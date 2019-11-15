@@ -92,7 +92,7 @@ export interface IDOM<T extends INode = INode> {
   setAttribute(node: T, name: string, value: unknown): void;
 }
 
-const ni = function(...args: unknown[]): unknown {
+const ni = function (...args: unknown[]): unknown {
   throw Reporter.error(1000); // TODO: create error code (not implemented exception)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any; // this function doesn't need typing because it is never directly called

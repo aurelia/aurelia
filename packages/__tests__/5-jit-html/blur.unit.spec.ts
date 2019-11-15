@@ -3,7 +3,7 @@ import { ILifecycle } from '@aurelia/runtime';
 import { Blur } from '@aurelia/runtime-html';
 import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
-describe('[UNIT] blur.unit.spec.ts', function() {
+describe('[UNIT] blur.unit.spec.ts', function () {
 
   if (!PLATFORM.isBrowserLike) {
     return;
@@ -11,14 +11,14 @@ describe('[UNIT] blur.unit.spec.ts', function() {
 
   const falsyPansyValues = [false, 0, '', undefined, null];
 
-  describe('contains()', function() {
+  describe('contains()', function () {
     for (const value of falsyPansyValues) {
-      it(`bails when value is already falsy: "${value}"`, function() {
+      it(`bails when value is already falsy: "${value}"`, function () {
         const { ctx, sut, dispose } = setup();
         const accessed: Record<string, number> = {};
         sut.value = value as unknown as boolean;
         sut.contains = (originalFn => {
-          return function(...args: unknown[]) {
+          return function (...args: unknown[]) {
             const proxy = new Proxy(this, {
               get(obj: Blur, propertyName: string): unknown {
                 accessed[propertyName] = (accessed[propertyName] || 0) + 1;
@@ -38,7 +38,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       });
     }
 
-    it('returns true when invoked on child element', function() {
+    it('returns true when invoked on child element', function () {
       const { ctx, target, sut, dispose } = setup();
       const child = target.appendChild(ctx.createElement('div'));
       sut.value = true;
@@ -47,19 +47,19 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       dispose();
     });
 
-    it('returns true when invoked on the its own element', function() {
+    it('returns true when invoked on the its own element', function () {
       const { target, sut, dispose } = setup();
       sut.value = true;
       assert.equal(sut.contains(target), true);
       dispose();
     });
 
-    it('bails when there is no thing linked and the hosting element does not contain the target', function() {
+    it('bails when there is no thing linked and the hosting element does not contain the target', function () {
       const { ctx, sut, dispose } = setup();
       let accessed: Record<string, number> = {};
       sut.value = true;
       sut.contains = (originalFn => {
-        return function(...args: unknown[]) {
+        return function (...args: unknown[]) {
           const proxy = new Proxy(this, {
             get(obj: Blur, propertyName: string): unknown {
               accessed[propertyName] = (accessed[propertyName] || 0) + 1;
@@ -99,7 +99,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       dispose();
     });
 
-    it('throws when given anything not a Node but also not null/undefined', function() {
+    it('throws when given anything not a Node but also not null/undefined', function () {
       const { sut } = setup();
       sut.value = true;
       for (const imcompatValue of [true, false, 'a', 5, Symbol(), Number, new Date(), {}, [], new Proxy({}, {})]) {
@@ -107,7 +107,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       }
     });
 
-    it('returns "true" when checking contains with element in different tree', function() {
+    it('returns "true" when checking contains with element in different tree', function () {
       const { target, sut, dispose } = setup();
       target
         .attachShadow({ mode: 'open' })
@@ -126,7 +126,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
 
     for (let i = 1; 10 > i; ++i) {
-      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, function() {
+      it(`returns "true" when checking contains with element in ${i} deeply nested shadow root`, function () {
         const { ctx, target, sut, dispose } = setup();
         const { rootShadowRoot, lastShadowRoot } = createNestingShadowRoot(ctx, i, target);
         assert.notEqual(rootShadowRoot, lastShadowRoot, 'root #ShadowRoot !== leaf #ShadowRoot');
@@ -152,8 +152,8 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     }
   });
 
-  describe('.triggerBlur()', function() {
-    it('sets value to false', function() {
+  describe('.triggerBlur()', function () {
+    it('sets value to false', function () {
       const { dispose, sut } = setup();
       for (const value of [true, 'a', 5, Symbol(), Number, new Date(), null, undefined, {}, [], new Proxy({}, {})]) {
         sut.value = value as unknown as boolean;
@@ -163,14 +163,14 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       dispose();
     });
 
-    it('calls onBlur() if present', function() {
+    it('calls onBlur() if present', function () {
       const { dispose, sut } = setup();
       let count = 0;
-      const onBlurSpy = createSpy(function() {
+      const onBlurSpy = createSpy(function () {
         count++;
       });
       sut.onBlur = onBlurSpy;
-      const testValues = [true, 'a', 5, Symbol(), function() {/***/}, Number, new Date(), null, undefined, {}, [], new Proxy({}, {})];
+      const testValues = [true, 'a', 5, Symbol(), function () {/***/}, Number, new Date(), null, undefined, {}, [], new Proxy({}, {})];
       for (const value of testValues) {
         sut.value = value as unknown as boolean;
         sut.triggerBlur();
@@ -182,7 +182,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       dispose();
     });
 
-    it('does not call onBlur if value is not a function', function() {
+    it('does not call onBlur if value is not a function', function () {
       const { sut, dispose } = setup();
       const testValues = [true, 'a', 5, Symbol(), new Date(), null, undefined, {}, [], new Proxy({}, {})];
       let onBlurValue: any;
@@ -204,8 +204,8 @@ describe('[UNIT] blur.unit.spec.ts', function() {
     });
   });
 
-  describe('\n\t+ [linkedWith]', function() {
-    describe('object/object[] scenarios', function() {
+  describe('\n\t+ [linkedWith]', function () {
+    describe('object/object[] scenarios', function () {
       const { doc } = TestContext.createHTMLTestContext();
       const fakeEl = doc.body.appendChild(doc.createElement('fake'));
       const linkedWithValues: (HasContains | HasContains[])[] = [
@@ -236,7 +236,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
         ]
       ];
       for (const linkedWith of linkedWithValues) {
-        it('invokes contains on linkedWith object', function() {
+        it('invokes contains on linkedWith object', function () {
           const { sut, dispose } = setup();
           sut.linkedWith = linkedWith;
           assert.equal(
@@ -249,7 +249,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       }
     });
 
-    describe('string/string[] scenarios', function() {
+    describe('string/string[] scenarios', function () {
       const template = `
         <some-el><div data-query="some-el"></div></some-el>,
         <div class="some-css-class">
@@ -271,7 +271,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
         '#some-complex-selector > .some-nested-complex-selector + button'
       ];
       for (const linkWith of linkedWithValues) {
-        it(`works when linkedWith is a string: ${linkWith}`, function() {
+        it(`works when linkedWith is a string: ${linkWith}`, function () {
           const { sut, ctx: { doc }, dispose } = setup();
           sut.linkedWith = linkWith;
           const linkedWithTargetsCt = doc.body.insertAdjacentElement('afterbegin', doc.createElement('div'));
@@ -288,7 +288,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
         });
       }
 
-      it('works when linkedWith is an array of string', function() {
+      it('works when linkedWith is an array of string', function () {
         const { sut, ctx: { doc }, dispose } = setup();
         sut.linkedWith = linkedWithValues;
         const linkedWithTargetsCt = doc.body.insertAdjacentElement('afterbegin', doc.createElement('div'));
@@ -358,7 +358,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
             assert.equal(sut.contains(input), true);
           }
 
-          for (const truthyValue of [{}, [], 1, new Date(), function() {/*  */}, Symbol()]) {
+          for (const truthyValue of [{}, [], 1, new Date(), function () {/*  */}, Symbol()]) {
             sut.linkingContext = truthyValue as any;
             assert.throws(
               () => {
@@ -432,7 +432,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       [testCases],
       (testCase) => {
         const { linkedWith, linkingContext, template, title, assertFn, blurHost } = testCase;
-        it(title(), async function() {
+        it(title(), async function () {
           const ctx = TestContext.createHTMLTestContext();
           const host = ctx.doc.body.appendChild(ctx.createElement('div'));
           host.innerHTML = template();

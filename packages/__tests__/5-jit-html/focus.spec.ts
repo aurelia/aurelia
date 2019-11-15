@@ -3,7 +3,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
-describe('focus.spec.ts', function() {
+describe('focus.spec.ts', function () {
 
   if (!PLATFORM.isBrowserLike) {
     return;
@@ -16,10 +16,10 @@ describe('focus.spec.ts', function() {
     selectedOption?: string;
   }
 
-  describe('basic scenarios', function() {
+  describe('basic scenarios', function () {
 
-    describe('with non-focusable element', function() {
-      it('focuses when there is tabindex attribute', async function() {
+    describe('with non-focusable element', function () {
+      it('focuses when there is tabindex attribute', async function () {
         const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
           `<template>
             <div focus.two-way="hasFocus" id="blurred" tabindex="-1"></div>
@@ -41,9 +41,9 @@ describe('focus.spec.ts', function() {
       });
     });
 
-    it('invokes focus when there is **NO** tabindex attribute', async function() {
+    it('invokes focus when there is **NO** tabindex attribute', async function () {
       let callCount = 0;
-      HTMLDivElement.prototype.focus = function() {
+      HTMLDivElement.prototype.focus = function () {
         callCount++;
         return HTMLElement.prototype.focus.call(this);
       };
@@ -81,8 +81,8 @@ describe('focus.spec.ts', function() {
       ['<select/> + <option/>', `<select focus.two-way=hasFocus id=blurred><option tabindex=1>Hello</option></select>`],
       ['<textarea/>', `<textarea focus.two-way=hasFocus id=blurred></textarea>`]
     ]) {
-      describe(`with ${desc}`, function() {
-        it('Works in basic scenario', async function() {
+      describe(`with ${desc}`, function () {
+        it('Works in basic scenario', async function () {
           const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
             `<template>
               ${template}
@@ -114,7 +114,7 @@ describe('focus.spec.ts', function() {
     // Assertion should at least focus on which active element is
     //                  How the component will be affected by the start up
     //                  Focus method on custom element has been invoked
-    describe('CustomElements -- Initialization only', function() {
+    describe('CustomElements -- Initialization only', function () {
 
       // when shadowModes is null, custom element sets its innerHTML directly on it own
       // instead of its shadow root
@@ -141,7 +141,7 @@ describe('focus.spec.ts', function() {
           const isFocusable = ceProp && (typeof ceProp.tabIndex !== 'undefined' || ceProp.contentEditable);
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
 
-          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function() {
+          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function () {
             const { testHost, start, dispose, component, ctx } = setup<IApp>(
               `<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`,
               class App {
@@ -198,7 +198,7 @@ describe('focus.spec.ts', function() {
     });
   });
 
-  describe('Interactive scenarios', function() {
+  describe('Interactive scenarios', function () {
     const focusAttrs = [
       'focus.two-way=hasFocus',
       // 'focus.two-way=hasFocus',
@@ -302,7 +302,7 @@ describe('focus.spec.ts', function() {
     eachCartesianJoin(
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
-        it(title(command), async function() {
+        it(title(command), async function () {
           const { testHost, start, dispose, component, ctx } = setup<IApp>(
             template(command),
             app,

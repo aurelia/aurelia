@@ -1,6 +1,6 @@
 const { resolve } = require('path');
 
-module.exports = function() {
+module.exports = function () {
   return {
     target: 'web',
     mode: 'development',

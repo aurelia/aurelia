@@ -311,7 +311,7 @@ describe('SelectValueObserver', function () {
       }
 
       function select(...options: SelectValidChild[]): (ctx: HTMLTestContext) => HTMLSelectElement {
-        return function(ctx: HTMLTestContext) {
+        return function (ctx: HTMLTestContext) {
           return h(
             'select',
             { multiple: true },
@@ -323,13 +323,13 @@ describe('SelectValueObserver', function () {
   });
 
   function option(attributes: Record<string, any>) {
-    return function(ctx: HTMLTestContext) {
+    return function (ctx: HTMLTestContext) {
       return h('option', attributes);
     };
   }
 
   function optgroup(attributes: Record<string, any>, ...optionFactories: ((ctx: HTMLTestContext) => HTMLOptionElement)[]) {
-    return function(ctx: HTMLTestContext) {
+    return function (ctx: HTMLTestContext) {
       return h('optgroup', attributes, ...optionFactories.map(create => create(ctx)));
     };
   }

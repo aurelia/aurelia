@@ -14,7 +14,7 @@ import {
 
 export function subscriberCollection(): ClassDecorator {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  return function(target: Function): void { // ClassDecorator expects it to be derived from Function
+  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as ISubscriberCollection;
 
     proto._subscriberFlags = SF.None;
@@ -32,7 +32,7 @@ export function subscriberCollection(): ClassDecorator {
 
 export function proxySubscriberCollection(): ClassDecorator {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  return function(target: Function): void { // ClassDecorator expects it to be derived from Function
+  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as IProxySubscriberCollection;
 
     proto._proxySubscriberFlags = SF.None;
@@ -50,7 +50,7 @@ export function proxySubscriberCollection(): ClassDecorator {
 
 export function collectionSubscriberCollection(): ClassDecorator {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  return function(target: Function): void { // ClassDecorator expects it to be derived from Function
+  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as ICollectionSubscriberCollection;
 
     proto._collectionSubscriberFlags = SF.None;

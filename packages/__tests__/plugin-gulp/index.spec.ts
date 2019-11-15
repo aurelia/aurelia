@@ -67,7 +67,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file', function(done) {
+  it('transforms html file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
 
@@ -95,7 +95,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in shadowDOM mode', function(done) {
+  it('transforms html file in shadowDOM mode', function (done) {
     const content = 'content';
     const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
 
@@ -130,7 +130,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in CSSModule mode', function(done) {
+  it('transforms html file in CSSModule mode', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
 
@@ -159,7 +159,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in shadowDOM mode + CSSModule mode', function(done) {
+  it('transforms html file in shadowDOM mode + CSSModule mode', function (done) {
     const content = 'content';
     const expected = 'processed {"mode":"open"} src/foo-bar.html content';
 
@@ -195,7 +195,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms js file', function(done) {
+  it('transforms js file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.js content';
 
@@ -223,7 +223,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms ts file', function(done) {
+  it('transforms ts file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.ts content';
 

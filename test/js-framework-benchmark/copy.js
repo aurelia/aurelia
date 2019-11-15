@@ -64,7 +64,7 @@ function copyFolderRecursiveSync(source, target) {
   }
 }
 
-_.each(fs.readdirSync('.'), function(name) {
+_.each(fs.readdirSync('.'), function (name) {
   if(fs.statSync(name).isDirectory() && name[0] !== '.' && !excludedDirectories.includes(name)) {
     console.log(`dist${path.sep}${name}`);
     fs.mkdirSync(`dist${path.sep}${name}`);

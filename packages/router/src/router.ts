@@ -345,6 +345,14 @@ export class Router implements IRouter {
       if (typeof outcome !== 'boolean') {
         viewportInstructions = outcome;
       }
+
+      const hooked = this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
+      if (hooked === false) {
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+      } else {
+        viewportInstructions = hooked as ViewportInstruction[];
+      }
+
       for (const viewportInstruction of viewportInstructions) {
         const viewport: Viewport = viewportInstruction.viewport as Viewport;
         viewport.path = configuredRoutePath;

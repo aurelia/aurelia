@@ -16,7 +16,7 @@ import { arrayRemove, closestController } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions } from './hook-manager';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
 
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
@@ -98,6 +98,10 @@ export interface IRouter {
   addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[];
   removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void;
   addHooks(hooks: IHookDefinition[]): HookIdentity[];
+
+  addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
   addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
   removeHooks(hooks: HookIdentity[]): void;
 
@@ -698,6 +702,10 @@ export class Router implements IRouter {
   public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
     return hooks.map(hook => this.addHook(hook.hook, hook.options));
   }
+  public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
     return this.hookManager.addHook(hook, options);
   }

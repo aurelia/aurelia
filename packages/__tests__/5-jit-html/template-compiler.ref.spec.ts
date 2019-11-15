@@ -418,7 +418,7 @@ describe('templating-compiler.ref.spec.ts', function() {
     // just to complete the assertion
     ...[
       'view',
-      'controller',
+      // 'controller', // why would this be invalid? @bigopon
       'view-model',
       'rando'
     ].map(refTarget => {

@@ -10,7 +10,7 @@ export interface IOptionElement extends HTMLOptionElement {
 }
 export interface SelectValueObserver extends ISubscriberCollection {
 }
-export declare class SelectValueObserver implements IAccessor<unknown> {
+export declare class SelectValueObserver implements IAccessor {
     readonly scheduler: IScheduler;
     readonly observerLocator: IObserverLocator;
     readonly dom: IDOM;

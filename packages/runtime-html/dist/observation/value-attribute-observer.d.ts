@@ -6,7 +6,7 @@ export interface ValueAttributeObserver extends ISubscriberCollection {
 /**
  * Observer for non-radio, non-checkbox input.
  */
-export declare class ValueAttributeObserver implements IAccessor<unknown> {
+export declare class ValueAttributeObserver implements IAccessor {
     readonly scheduler: IScheduler;
     readonly handler: IEventSubscriber;
     readonly obj: Node & IIndexable;

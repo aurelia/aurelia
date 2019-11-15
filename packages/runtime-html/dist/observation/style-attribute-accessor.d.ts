@@ -1,5 +1,5 @@
 import { IAccessor, LifecycleFlags, IScheduler, ITask, INode } from '@aurelia/runtime';
-export declare class StyleAttributeAccessor implements IAccessor<unknown> {
+export declare class StyleAttributeAccessor implements IAccessor {
     readonly scheduler: IScheduler;
     readonly obj: HTMLElement;
     currentValue: unknown;

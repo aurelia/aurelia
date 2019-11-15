@@ -26,8 +26,7 @@ export const JitHtmlJsdomConfiguration = {
      * Create a new container with this configuration applied to it.
      */
     createContainer() {
-        const container = this.register(DI.createContainer());
-        return container;
+        return this.register(DI.createContainer());
     }
 };
 //# sourceMappingURL=index.js.map

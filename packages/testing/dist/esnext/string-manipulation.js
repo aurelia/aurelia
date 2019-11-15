@@ -113,8 +113,8 @@ export function htmlStringify(node) {
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
  */
-export function padRight(str, len) {
-    str = `${str}`;
+export function padRight(input, len) {
+    const str = `${input}`;
     const strLen = str.length;
     if (strLen >= len) {
         return str;
@@ -124,8 +124,8 @@ export function padRight(str, len) {
 /**
  * pad a string with spaces on the left-hand side until it's the specified length
  */
-export function padLeft(str, len) {
-    str = `${str}`;
+export function padLeft(input, len) {
+    const str = `${input}`;
     const strLen = str.length;
     if (strLen >= len) {
         return str;

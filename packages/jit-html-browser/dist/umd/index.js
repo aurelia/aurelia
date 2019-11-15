@@ -37,8 +37,7 @@
          * Create a new container with this configuration applied to it.
          */
         createContainer() {
-            const container = this.register(kernel_1.DI.createContainer());
-            return container;
+            return this.register(kernel_1.DI.createContainer());
         }
     };
 });

@@ -1,6 +1,6 @@
 {
   "name": "aurelia",
-  "version": "0.5.0-dev.201911151441",
+  "version": "0.5.0-dev.201911151518",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -35,16 +35,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.5.0-dev.201911151441",
-    "@aurelia/fetch-client": "0.5.0-dev.201911151441",
-    "@aurelia/jit": "0.5.0-dev.201911151441",
-    "@aurelia/jit-html": "0.5.0-dev.201911151441",
-    "@aurelia/jit-html-browser": "0.5.0-dev.201911151441",
-    "@aurelia/kernel": "0.5.0-dev.201911151441",
-    "@aurelia/router": "0.5.0-dev.201911151441",
-    "@aurelia/runtime": "0.5.0-dev.201911151441",
-    "@aurelia/runtime-html": "0.5.0-dev.201911151441",
-    "@aurelia/runtime-html-browser": "0.5.0-dev.201911151441"
+    "@aurelia/debug": "0.5.0-dev.201911151518",
+    "@aurelia/fetch-client": "0.5.0-dev.201911151518",
+    "@aurelia/jit": "0.5.0-dev.201911151518",
+    "@aurelia/jit-html": "0.5.0-dev.201911151518",
+    "@aurelia/jit-html-browser": "0.5.0-dev.201911151518",
+    "@aurelia/kernel": "0.5.0-dev.201911151518",
+    "@aurelia/router": "0.5.0-dev.201911151518",
+    "@aurelia/runtime": "0.5.0-dev.201911151518",
+    "@aurelia/runtime-html": "0.5.0-dev.201911151518",
+    "@aurelia/runtime-html-browser": "0.5.0-dev.201911151518"
   },
   "devDependencies": {
     "@types/node": "^12.12.7",

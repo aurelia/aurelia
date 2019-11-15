@@ -12,7 +12,7 @@ export interface IInputElement extends HTMLInputElement {
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface CheckedObserver extends ISubscriberCollection {
 }
-export declare class CheckedObserver implements IAccessor<unknown> {
+export declare class CheckedObserver implements IAccessor {
     readonly scheduler: IScheduler;
     readonly observerLocator: IObserverLocator;
     readonly handler: IEventSubscriber;

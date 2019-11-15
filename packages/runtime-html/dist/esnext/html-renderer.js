@@ -43,6 +43,7 @@ class ListenerBindingRenderer {
         this.eventManager = eventManager;
     }
     render(flags, dom, context, renderable, target, instruction) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
         const binding = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
         addBinding(renderable, binding);

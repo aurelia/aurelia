@@ -66,19 +66,19 @@
                             : (`${value}`).split(' ');
                     el.classList.add(...value);
                 }
-                // for attributes with matching properties, simply assign
-                // other if special attribute like data, or ones start with _
-                // assign as well
                 else if (attr in el || attr === 'data' || attr.startsWith('_')) {
+                    // for attributes with matching properties, simply assign
+                    // other if special attribute like data, or ones start with _
+                    // assign as well
                     // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
                     el[attr] = value;
                 }
-                // if it's an asElement attribute, camel case it
                 else if (attr === 'asElement') {
+                    // if it's an asElement attribute, camel case it
                     el.setAttribute('as-element', value);
                 }
-                // ortherwise do fallback check
                 else {
+                    // ortherwise do fallback check
                     // is it an event handler?
                     if (attr.startsWith('o') && attr[1] === 'n' && !attr.endsWith('$')) {
                         const decoded = kernel_1.kebabCase(attr.slice(2));

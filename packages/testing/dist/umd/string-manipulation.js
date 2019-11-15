@@ -128,8 +128,8 @@
     /**
      * pad a string with spaces on the right-hand side until it's the specified length
      */
-    function padRight(str, len) {
-        str = `${str}`;
+    function padRight(input, len) {
+        const str = `${input}`;
         const strLen = str.length;
         if (strLen >= len) {
             return str;
@@ -140,8 +140,8 @@
     /**
      * pad a string with spaces on the left-hand side until it's the specified length
      */
-    function padLeft(str, len) {
-        str = `${str}`;
+    function padLeft(input, len) {
+        const str = `${input}`;
         const strLen = str.length;
         if (strLen >= len) {
             return str;

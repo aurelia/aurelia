@@ -179,7 +179,7 @@ GetterObserver = __decorate([
 export { GetterObserver };
 const toStringTag = Object.prototype.toString;
 function createGetterTraps(flags, observerLocator, observer) {
-    const traps = {
+    return {
         get: function (target, key, receiver) {
             if (observer.doNotCollect(key)) {
                 return Reflect.get(target, key, receiver);
@@ -208,7 +208,6 @@ function createGetterTraps(flags, observerLocator, observer) {
             return proxyOrValue(flags, target, key, observerLocator, observer);
         }
     };
-    return traps;
 }
 function proxyOrValue(flags, target, key, observerLocator, observer) {
     const value = Reflect.get(target, key, target);

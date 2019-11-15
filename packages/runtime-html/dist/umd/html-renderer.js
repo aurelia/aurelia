@@ -54,6 +54,7 @@
             this.eventManager = eventManager;
         }
         render(flags, dom, context, renderable, target, instruction) {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
             const binding = new listener_1.Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
             runtime_1.addBinding(renderable, binding);

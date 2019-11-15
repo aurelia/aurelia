@@ -29,9 +29,9 @@ export declare function htmlStringify(node: object & {
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
  */
-export declare function padRight(str: any, len: number): string;
+export declare function padRight(input: unknown, len: number): string;
 /**
  * pad a string with spaces on the left-hand side until it's the specified length
  */
-export declare function padLeft(str: any, len: number): string;
+export declare function padLeft(input: unknown, len: number): string;
 //# sourceMappingURL=string-manipulation.d.ts.map

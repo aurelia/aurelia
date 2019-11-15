@@ -1043,7 +1043,7 @@
             }
             else {
                 const parts = this.parts;
-                return parts[0] + this.firstExpression.evaluate(flags, scope, locator, part) + parts[1];
+                return `${parts[0]}${this.firstExpression.evaluate(flags, scope, locator, part)}${parts[1]}`;
             }
         }
         assign(flags, scope, locator, obj, part) {

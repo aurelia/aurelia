@@ -7,7 +7,7 @@ import { IAccessor, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
  *
  * @see DataAttributeAccessor
  */
-export declare class ElementPropertyAccessor implements IAccessor<unknown> {
+export declare class ElementPropertyAccessor implements IAccessor {
     readonly scheduler: IScheduler;
     readonly obj: Node & IIndexable;
     readonly propertyKey: string;

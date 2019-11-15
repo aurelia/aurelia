@@ -8,7 +8,8 @@ import {
   IRegistry,
   IResolver,
   Key,
-  Registration
+  Registration,
+  Metadata
 } from '@aurelia/kernel';
 import {
   addBinding,
@@ -53,7 +54,8 @@ import {
   CustomElementDefinition,
   ToViewBindingInstruction,
   ITemplateCompiler,
-  IScheduler
+  IScheduler,
+  CustomElement
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 
@@ -343,6 +345,15 @@ export class AuDOM implements IDOM<AuNode> {
   public createTextNode(text: string): AuNode {
     return AuNode.createText(text);
   }
+  public getEffectiveParentNode(node: AuNode): AuNode | null {
+    // TODO: implement this properly (if we're going to keep AuDOM around)
+    return node.parentNode;
+  }
+  public setEffectiveParentNode(child: INodeSequence, parent: AuNode): void;
+  public setEffectiveParentNode(child: AuNode, parent: AuNode): void;
+  public setEffectiveParentNode(child: AuNode | INodeSequence, parent: AuNode): void {
+    // TODO: implement this properly (if we're going to keep AuDOM around)
+  }
   public insertBefore(nodeToInsert: AuNode, referenceNode: AuNode): void {
     if (referenceNode.parentNode == null) {
       throw new Error('referenceNode.parentNode is null in insertBefore');
@@ -396,7 +407,7 @@ export class AuProjector implements IElementProjector {
 
   public constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
-    this.host.$controller = $controller;
+    Metadata.define(CustomElement.name, $controller, host);
   }
 
   public get children(): ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>> {

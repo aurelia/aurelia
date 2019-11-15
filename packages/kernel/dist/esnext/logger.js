@@ -1,15 +1,24 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { toLookup } from './functions';
 import { DI, all, Registration } from './di';
+/**
+ * Flags to enable/disable color usage in the logging output.
+ */
 export var ColorOptions;
 (function (ColorOptions) {
+    /**
+     * Do not use ASCII color codes in logging output.
+     */
     ColorOptions[ColorOptions["noColors"] = 0] = "noColors";
+    /**
+     * Use ASCII color codes in logging output. By default, timestamps and the TRC and DBG prefix are colored grey. INF white, WRN yellow, and ERR and FTL red.
+     */
     ColorOptions[ColorOptions["colors"] = 1] = "colors";
 })(ColorOptions || (ColorOptions = {}));
-export const ILogConfig = DI.createInterface('ILogConfig').noDefault();
+export const ILogConfig = DI.createInterface('ILogConfig').withDefault(x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
 export const ISink = DI.createInterface('ISink').noDefault();
-export const ILogEventFactory = DI.createInterface('ILogEventFactory').noDefault();
-export const ILogger = DI.createInterface('ILogger').noDefault();
+export const ILogEventFactory = DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
+export const ILogger = DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
 const format = toLookup({
     red(str) {
@@ -229,11 +238,40 @@ DefaultLogger = __decorate([
     __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
 ], DefaultLogger);
 export { DefaultLogger };
+/**
+ * A basic `ILogger` configuration that configures a single `console` sink based on provided options.
+ *
+ * NOTE: You *must* register the return value of `.create` with the container / au instance, not this `LoggerConfiguration` object itself.
+ *
+ * ```ts
+ * // GOOD
+ * container.register(LoggerConfiguration.create(console))
+ * // GOOD
+ * container.register(LoggerConfiguration.create(console, LogLevel.debug))
+ * // GOOD
+ * container.register(LoggerConfiguration.create({
+ *   debug: PLATFORM.noop,
+ *   info: PLATFORM.noop,
+ *   warn: PLATFORM.noop,
+ *   error: msg => {
+ *     throw new Error(msg);
+ *   }
+ * }, LogLevel.debug))
+ *
+ * // BAD
+ * container.register(LoggerConfiguration)
+ * ```
+ */
 export const LoggerConfiguration = toLookup({
+    /**
+     * @param $console - The `console` object to use. Can be the native `window.console` / `global.console`, but can also be a wrapper or mock that implements the same interface.
+     * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.
+     * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
+     */
     create($console, level = 3 /* warn */, colorOptions = 0 /* noColors */) {
         return toLookup({
             register(container) {
-                return container.register(Registration.instance(ILogConfig, new LogConfig(colorOptions, level)), Registration.instance(ISink, new ConsoleSink($console)), Registration.singleton(ILogEventFactory, DefaultLogEventFactory), Registration.singleton(ILogger, DefaultLogger));
+                return container.register(Registration.instance(ILogConfig, new LogConfig(colorOptions, level)), Registration.instance(ISink, new ConsoleSink($console)));
             },
         });
     },

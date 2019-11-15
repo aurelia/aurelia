@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-gulp",
-  "version": "0.5.0-dev.201911142101",
+  "version": "0.5.0-dev.201911151441",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/plugin-conventions": "0.5.0-dev.201911142101",
+    "@aurelia/plugin-conventions": "0.5.0-dev.201911151441",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {

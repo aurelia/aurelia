@@ -51,8 +51,8 @@ export class HookManager {
   private lastIdentity: number = 0;
 
   public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(transformFromHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(transformToHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity {
     const hook: Hook = new Hook(hookFunction, options || {}, ++this.lastIdentity);

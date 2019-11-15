@@ -67,7 +67,8 @@ function waitForCondition(driver: WebDriver) {
 // driver.findElement(By.xpath("//tbody/tr[1]/td[1]")).getText().then(...) can throw a stale element error:
 // thus we're using a safer way here:
 export async function testTextContains(driver: WebDriver, xpath: string, text: string, timeout = config.TIMEOUT) {
-  return waitForCondition(driver)(`testTextContains ${xpath} ${text}`,
+  return waitForCondition(driver)(
+    `testTextContains ${xpath} ${text}`,
     async function(driver) {
       try {
         let elem = await shadowRoot(driver);
@@ -78,11 +79,14 @@ export async function testTextContains(driver: WebDriver, xpath: string, text: s
       } catch(err) {
         console.log(`ignoring error in testTextContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
-    }, timeout);
+    },
+    timeout,
+  );
 }
 
 export function testTextNotContained(driver: WebDriver, xpath: string, text: string, timeout = config.TIMEOUT) {
-  return waitForCondition(driver)(`testTextNotContained ${xpath} ${text}`,
+  return waitForCondition(driver)(
+    `testTextNotContained ${xpath} ${text}`,
     async function(driver) {
       try {
         let elem = await shadowRoot(driver);
@@ -93,11 +97,14 @@ export function testTextNotContained(driver: WebDriver, xpath: string, text: str
       } catch(err) {
         console.log(`ignoring error in testTextNotContained for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
-    }, timeout);
+    },
+    timeout,
+  );
 }
 
 export function testClassContains(driver: WebDriver, xpath: string, text: string, timeout = config.TIMEOUT) {
-  return waitForCondition(driver)(`testClassContains ${xpath} ${text}`,
+  return waitForCondition(driver)(
+    `testClassContains ${xpath} ${text}`,
     async function(driver) {
       try {
         let elem = await shadowRoot(driver);
@@ -108,11 +115,14 @@ export function testClassContains(driver: WebDriver, xpath: string, text: string
       } catch(err) {
         console.log(`ignoring error in testClassContains for xpath = ${xpath} text = ${text}`,err.toString().split("\n")[0]);
       }
-    }, timeout);
+    },
+    timeout,
+  );
 }
 
 export function testElementLocatedByXpath(driver: WebDriver, xpath: string, timeout = config.TIMEOUT) {
-  return waitForCondition(driver)(`testElementLocatedByXpath ${xpath}`,
+  return waitForCondition(driver)(
+    `testElementLocatedByXpath ${xpath}`,
     async function(driver) {
       try {
         let elem = await shadowRoot(driver);
@@ -121,11 +131,14 @@ export function testElementLocatedByXpath(driver: WebDriver, xpath: string, time
       } catch(err) {
         console.log(`ignoring error in testElementLocatedByXpath for xpath = ${xpath}`,err.toString());
       }
-    }, timeout);
+    },
+    timeout,
+  );
 }
 
 export function testElementNotLocatedByXPath(driver: WebDriver, xpath: string, timeout = config.TIMEOUT) {
-  return waitForCondition(driver)(`testElementNotLocatedByXPath ${xpath}`,
+  return waitForCondition(driver)(
+    `testElementNotLocatedByXPath ${xpath}`,
     async function(driver) {
       try {
         let elem = await shadowRoot(driver);
@@ -134,11 +147,14 @@ export function testElementNotLocatedByXPath(driver: WebDriver, xpath: string, t
       } catch(err) {
         console.log(`ignoring error in testElementNotLocatedByXPath for xpath = ${xpath}`,err.toString().split("\n")[0]);
       }
-    }, timeout);
+    },
+    timeout,
+  );
 }
 
 export function testElementLocatedById(driver: WebDriver, id: string, timeout = config.TIMEOUT) {
-  return waitForCondition(driver)(`testElementLocatedById ${id}`,
+  return waitForCondition(driver)(
+    `testElementLocatedById ${id}`,
     async function(driver) {
       try {
         let elem = await shadowRoot(driver);
@@ -147,7 +163,9 @@ export function testElementLocatedById(driver: WebDriver, id: string, timeout = 
       } catch(err) {
         // console.log("ignoring error in testElementLocatedById for id = "+id,err.toString().split("\n")[0]);
       }
-    }, timeout);
+    },
+    timeout,
+  );
 }
 
 async function retry<T>(retryCount: number, driver: WebDriver, fun: (driver:  WebDriver, retryCount: number) => Promise<T>):  Promise<T> {

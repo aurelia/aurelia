@@ -2,7 +2,7 @@ import { compareNumber, nextId } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags as LF, State } from '../../flags';
+import { LifecycleFlags as LF, State, LifecycleFlags } from '../../flags';
 import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import {
   AggregateContinuationTask,
@@ -25,8 +25,6 @@ import { bindable } from '../../templating/bindable';
 import { templateController } from '../custom-attribute';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
-
-const isMountedOrAttached = State.isMounted | State.isAttached;
 
 @templateController('repeat')
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> {
@@ -181,17 +179,17 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   // todo: subscribe to collection from inner expression
   private checkCollectionObserver(flags: LF): void {
     const oldObserver = this.observer;
-    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+    if ((flags & LifecycleFlags.fromUnbind)) {
+      if (oldObserver !== void 0) {
+        oldObserver.unsubscribeFromCollection(this);
+      }
+    } else if ((this.$controller.state & State.isBoundOrBinding) > 0) {
       const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeFromCollection(this);
       }
       if (newObserver) {
         newObserver.subscribeToCollection(this);
-      }
-    } else {
-      if (oldObserver !== void 0) {
-        oldObserver.unsubscribeFromCollection(this);
       }
     }
   }

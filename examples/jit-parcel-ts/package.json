@@ -15,14 +15,14 @@
     "aurelia": "dev"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "^12.12.7",
     "babel-core": "latest",
     "babel-plugin-transform-class-properties": "latest",
     "babel-plugin-transform-decorators-legacy": "latest",
-    "http-server": "latest",
+    "http-server": "0.9.0",
     "parcel-bundler": "latest",
     "parcel-plugin-typescript": "latest",
-    "rimraf": "latest",
-    "typescript": "latest"
+    "rimraf": "^3.0.0",
+    "typescript": "^3.7.2"
   }
 }

@@ -40,9 +40,9 @@
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
-    "@types/node": "^10.14.13",
-    "@types/vinyl": "^2.0.3",
+    "@types/node": "^12.12.7",
+    "@types/vinyl": "^2.0.4",
     "tslib": "^1.10.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   }
 }

@@ -319,7 +319,6 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm i
             npm run build
       - run:
           name: "Serve e2e app in the background"
@@ -469,18 +468,18 @@ workflows:
           <<: *filter_ignore_develop_release
           name: unit_test_chrome
           e: docker-circleci
-          npm_command: "test-chrome"
+          npm_command: "test-chrome:verbose"
       - unit_test:
          <<: *filter_ignore_develop_release
          name: unit_test_firefox
          e: docker-circleci
-         npm_command: "test-firefox"
+         npm_command: "test-firefox:verbose"
          coverage: false
       - unit_test:
          <<: *filter_ignore_develop_release
          name: unit_test_node
          e: docker-circleci
-         npm_command: "test-node"
+         npm_command: "test-node:verbose"
          coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
@@ -578,18 +577,18 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
-          npm_command: "test-chrome"
+          npm_command: "test-chrome:verbose"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox
          e: docker-circleci
-         npm_command: "test-firefox"
+         npm_command: "test-firefox:verbose"
          coverage: false
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_node
          e: docker-circleci
-         npm_command: "test-node"
+         npm_command: "test-node:verbose"
          coverage: false
       - lint_packages:
           <<: *filter_only_tag

@@ -3,6 +3,7 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
+  INode,
 } from '@aurelia/runtime';
 
 /**
@@ -10,6 +11,7 @@ import {
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
  */
 export class AttributeNSAccessor implements IAccessor<string | null> {
+  public readonly obj: HTMLElement;
   public currentValue: string | null = null;
   public oldValue: string | null = null;
 
@@ -21,10 +23,11 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public constructor(
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    public readonly obj: HTMLElement,
+    obj: INode,
     public readonly propertyKey: string,
     public readonly namespace: string,
   ) {
+    this.obj = obj as HTMLElement;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 

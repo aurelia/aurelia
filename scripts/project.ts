@@ -6,7 +6,6 @@ import { camelCase } from '../packages/kernel/src/index';
 // TODO: generate this file automatically
 
 const rootPath = resolve(__dirname, '..');
-const packagesPath = join(rootPath, 'packages');
 
 const testApps = [
   'jit-aurelia-cli-ts',
@@ -56,10 +55,10 @@ export default {
     'path': join(rootPath, 'node_modules')
   },
   'packages': lernaJson.packages.map(p => {
-    const kebabName = p.split('/')[1];
+    const [folder, kebabName] = p.split('/');
     const camelName = camelCase(kebabName);
 
-    const path = join(packagesPath, kebabName);
+    const path = join(rootPath, folder, kebabName);
     const nodeModules = join(path, 'node_modules');
     const coverage = join(rootPath, 'coverage', kebabName);
     const tsconfig = join(path, 'tsconfig.json');
@@ -98,7 +97,7 @@ export default {
       namespace: 'au',
       iife: `au.${camelName}`,
     };
-    return { path, nodeModules, coverage, tsconfig, changelog, src, test, dist, name };
+    return { path, folder, nodeModules, coverage, tsconfig, changelog, src, test, dist, name };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts'),

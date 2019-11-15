@@ -1,5 +1,4 @@
 export class JwtService {
-
   public getToken() {
     return window.localStorage.jwtToken;
   }

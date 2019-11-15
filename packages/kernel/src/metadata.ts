@@ -1,20 +1,12 @@
+import { isObject, isNullOrUndefined } from './functions';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 
 const metadataInternalSlot = new WeakMap<any, Map<string | symbol | undefined, Map<any, any>>>();
 
-function ensureObject(target: any): boolean {
-  switch (typeof target) {
-    case 'function':
-      return target;
-    case 'object':
-      if (target === null) {
-        throw new TypeError(`Attempted to perform get() or define() metadata operation on null value.`);
-      }
-      return target;
-    default:
-      throw new TypeError(`Attempted to perform get() or define() metadata operation on ${typeof target} value: ${target}.`);
-  }
+function $typeError(operation: string, args: unknown[], paramName: string, actualValue: unknown, expectedType: string): TypeError {
+  return new TypeError(`${operation}(${args.map(String).join(',')}) - Expected '${paramName}' to be of type ${expectedType}, but got: ${Object.prototype.toString.call(actualValue)} (${String(actualValue)})`);
 }
 
 function toPropertyKeyOrUndefined(propertyKey: any): undefined | string | symbol {
@@ -359,11 +351,15 @@ function metadata(metadataKey: any, metadataValue: any) {
     // 1. Assert: F has a [[MetadataKey]] internal slot whose value is an ECMAScript language value, or undefined.
     // 2. Assert: F has a [[MetadataValue]] internal slot whose value is an ECMAScript language value, or undefined.
     // 3. If Type(target) is not Object, throw a TypeError exception.
+    if (!isObject(target)) {
+      throw $typeError('@metadata', [metadataKey, metadataValue, target, propertyKey], 'target', target, 'Object or Function');
+    }
     // 4. If key is not undefined and IsPropertyKey(key) is false, throw a TypeError exception.
     // 5. Let metadataKey be the value of F's [[MetadataKey]] internal slot.
     // 6. Let metadataValue be the value of F's [[MetadataValue]] internal slot.
     // 7. Perform ? target.[[DefineMetadata]](metadataKey, metadataValue, target, key).
-    OrdinaryDefineOwnMetadata(metadataKey, metadataValue, ensureObject(target), ensurePropertyKeyOrUndefined(propertyKey));
+
+    OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, ensurePropertyKeyOrUndefined(propertyKey));
 
     // 8. Return undefined.
   }
@@ -379,13 +375,13 @@ function decorate(
 ): PropertyDescriptor | Function | undefined {
   if (propertyKey !== void 0) {
     if (!Array.isArray(decorators)) {
-      throw new TypeError();
+      throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'decorators', decorators, 'Array');
     }
-    if (typeof target !== 'object' || target === null) {
-      throw new TypeError();
+    if (!isObject(target)) {
+      throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'target', target, 'Object or Function');
     }
-    if ((typeof attributes !== 'object' || attributes === null) && typeof attributes !== 'function' && attributes !== null && attributes !== void 0) {
-      throw new TypeError();
+    if (!isObject(attributes) && !isNullOrUndefined(attributes)) {
+      throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'attributes', attributes, 'Object, Function, null, or undefined');
     }
     if (attributes === null) {
       attributes = void 0;
@@ -394,10 +390,10 @@ function decorate(
     return DecorateProperty(decorators as (MethodDecorator | PropertyDecorator)[], target, propertyKey, attributes);
   } else {
     if (!Array.isArray(decorators)) {
-      throw new TypeError();
+      throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'decorators', decorators, 'Array');
     }
     if (typeof target !== 'function') {
-      throw new TypeError();
+      throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'target', target, 'Function');
     }
     return DecorateConstructor(decorators as ClassDecorator[], target);
   }
@@ -410,9 +406,9 @@ function DecorateConstructor(
   for (let i = decorators.length - 1; i >= 0; --i) {
     const decorator = decorators[i];
     const decorated = decorator(target);
-    if (decorated !== void 0 && decorated !== null) {
+    if (!isNullOrUndefined(decorated)) {
       if (typeof decorated !== 'function') {
-        throw new TypeError();
+        throw $typeError('DecorateConstructor', [decorators, target], 'decorated', decorated, 'Function, null, or undefined');
       }
       target = decorated;
     }
@@ -429,9 +425,9 @@ function DecorateProperty(
   for (let i = decorators.length - 1; i >= 0; --i) {
     const decorator = decorators[i];
     const decorated = decorator(target, propertyKey, descriptor!);
-    if (decorated !== void 0 && decorated !== null) {
-      if ((typeof decorated !== 'object' || decorated === null) && typeof decorated !== 'function') {
-        throw new TypeError();
+    if (!isNullOrUndefined(decorated)) {
+      if (!isObject(decorated)) {
+        throw $typeError('DecorateProperty', [decorators, target, propertyKey, descriptor], 'decorated', decorated, 'Object, Function, null, or undefined');
       }
       descriptor = decorated;
     }
@@ -501,8 +497,11 @@ function $define(metadataKey: any, metadataValue: any, target: any): void;
 function $define(metadataKey: any, metadataValue: any, target: any, propertyKey: string | symbol): void;
 function $define(metadataKey: any, metadataValue: any, target: any, propertyKey?: string | symbol): void {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.define', [metadataKey, metadataValue, target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[DefineMetadata]](metadataKey, metadataValue, propertyKey).
-  return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.4 Reflect.hasMetadata(metadataKey, target [, propertyKey])
@@ -558,8 +557,11 @@ function $has(metadataKey: any, target: any): boolean;
 function $has(metadataKey: any, target: any, propertyKey: string | symbol): boolean;
 function $has(metadataKey: any, target: any, propertyKey?: string | symbol): boolean {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.has', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[HasMetadata]](metadataKey, propertyKey).
-  return OrdinaryHasMetadata(metadataKey, ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryHasMetadata(metadataKey, target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.5 Reflect.hasOwnMetadata(metadataKey, target [, propertyKey])
@@ -615,8 +617,11 @@ function $hasOwn(metadataKey: any, target: any): boolean;
 function $hasOwn(metadataKey: any, target: any, propertyKey: string | symbol): boolean;
 function $hasOwn(metadataKey: any, target: any, propertyKey?: string | symbol): boolean {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.hasOwn', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[HasOwn]](metadataKey, propertyKey).
-  return OrdinaryHasOwnMetadata(metadataKey, ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryHasOwnMetadata(metadataKey, target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.6 Reflect.getMetadata(metadataKey, target [, propertyKey])
@@ -672,8 +677,11 @@ function $get(metadataKey: any, target: any): any;
 function $get(metadataKey: any, target: any, propertyKey: string | symbol): any;
 function $get(metadataKey: any, target: any, propertyKey?: string | symbol): any {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.get', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[GetMetadata]](metadataKey, propertyKey).
-  return OrdinaryGetMetadata(metadataKey, ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryGetMetadata(metadataKey, target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.7 Reflect.getOwnMetadata(metadataKey, target [, propertyKey])
@@ -729,8 +737,11 @@ function $getOwn(metadataKey: any, target: any): any;
 function $getOwn(metadataKey: any, target: any, propertyKey: string | symbol): any;
 function $getOwn(metadataKey: any, target: any, propertyKey?: string | symbol): any {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.getOwn', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[GetOwnMetadata]](metadataKey, propertyKey).
-  return OrdinaryGetOwnMetadata(metadataKey, ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryGetOwnMetadata(metadataKey, target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.8 Reflect.getMetadataKeys(target [, propertyKey])
@@ -784,8 +795,11 @@ function $getKeys(target: any): any[];
 function $getKeys(target: any, propertyKey: string | symbol): any[];
 function $getKeys(target: any, propertyKey?: string | symbol): any[] {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.getKeys', [target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[GetMetadataKeys]](propertyKey).
-  return OrdinaryMetadataKeys(ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryMetadataKeys(target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.9 Reflect.getOwnMetadataKeys(target [, propertyKey])
@@ -839,8 +853,11 @@ function $getOwnKeys(target: any): any[];
 function $getOwnKeys(target: any, propertyKey: string | symbol): any[];
 function $getOwnKeys(target: any, propertyKey?: string | symbol): any[] {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.getOwnKeys', [target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[GetOwnMetadataKeys]](propertyKey).
-  return OrdinaryOwnMetadataKeys(ensureObject(target), toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryOwnMetadataKeys(target, toPropertyKeyOrUndefined(propertyKey));
 }
 
 // 4.1.10 Reflect.deleteMetadata(metadataKey, target [, propertyKey])
@@ -896,8 +913,11 @@ function $delete(metadataKey: any, target: any): boolean;
 function $delete(metadataKey: any, target: any, propertyKey: string | symbol): boolean;
 function $delete(metadataKey: any, target: any, propertyKey?: string | symbol): boolean {
   // 1. If Type(target) is not Object, throw a TypeError exception.
+  if (!isObject(target)) {
+    throw $typeError('Metadata.delete', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
+  }
   // 2. Return ? target.[[DeleteMetadata]](metadataKey, propertyKey).
-  return OrdinaryDeleteMetadata(ensureObject(target), metadataKey, toPropertyKeyOrUndefined(propertyKey));
+  return OrdinaryDeleteMetadata(target, metadataKey, toPropertyKeyOrUndefined(propertyKey));
 }
 
 const Metadata = {

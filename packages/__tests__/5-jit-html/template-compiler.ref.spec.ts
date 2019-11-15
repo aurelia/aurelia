@@ -179,7 +179,10 @@ describe('templating-compiler.ref.spec.ts', function() {
         public unbindingCalls = 0;
         public unboundCalls = 0;
 
-        public constructor(public readonly el: HTMLElement) {}
+        private readonly el: Element;
+        public constructor(el: INode) {
+          this.el = el as Element;
+        }
 
         public binding(): void {
           this.bindingCalls++;

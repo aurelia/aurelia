@@ -19,6 +19,7 @@ import {
   LifecycleFlags,
   State,
   IScheduler,
+  INode,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
@@ -52,9 +53,11 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
+  public target: Element;
+
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
-    public target: Element,
+    target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
     // such as style -> collection of style rules
@@ -66,6 +69,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator
   ) {
+    this.target = target as Element;
     connectable.assignIdTo(this);
     this.$scheduler = locator.get(IScheduler);
   }

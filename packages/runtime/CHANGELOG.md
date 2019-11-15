@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Features:
+
+* **dom:** add setEffectiveParentNode for portal-like components ([5f40cd5](https://github.com/aurelia/aurelia/commit/5f40cd5))
+* **custom-element:** add 'name' and 'searchParents' parameters to CustomElement.for api ([46da0dc](https://github.com/aurelia/aurelia/commit/46da0dc))
+* **controller:** add 'is' api for checking if the resource name matches ([47b61a6](https://github.com/aurelia/aurelia/commit/47b61a6))
+* **dom:** add getEffectiveParentNode api for containerless support ([77a04e0](https://github.com/aurelia/aurelia/commit/77a04e0))
+* **custom-attribute:** add behaviorFor api ([31145e1](https://github.com/aurelia/aurelia/commit/31145e1))
+
+
+### Bug Fixes:
+
+* **repeat:** unsubscribe from array observer when unbinding ([ebf237d](https://github.com/aurelia/aurelia/commit/ebf237d))
+* **runtime:** remove stray semicolon triggering Terser error ([0fabdee](https://github.com/aurelia/aurelia/commit/0fabdee))
+* **renderer:** revert to observer.setValue again ([9038263](https://github.com/aurelia/aurelia/commit/9038263))
+* **renderer:** set default value instead ([f9d5960](https://github.com/aurelia/aurelia/commit/f9d5960))
+* **renderer:** add fromBinding to setPropertyBinding ([ac1c8ac](https://github.com/aurelia/aurelia/commit/ac1c8ac))
+
+
+### Performance Improvements:
+
+* **collection-observation:** store observers in weakmaps ([c6e0a70](https://github.com/aurelia/aurelia/commit/c6e0a70))
+* **collection-observation:** store observers in weakmaps ([26114ea](https://github.com/aurelia/aurelia/commit/26114ea))
+* **all:** remove unnecessary Object.freezes ([16b0484](https://github.com/aurelia/aurelia/commit/16b0484))
+
+
+### Refactorings:
+
+* **ref:** check element name again ([2625040](https://github.com/aurelia/aurelia/commit/2625040))
+* **all:** rename behaviorFor to for ([0823dfe](https://github.com/aurelia/aurelia/commit/0823dfe))
+* **runtime:** use metadata api to associate resources with nodes ([f46dacc](https://github.com/aurelia/aurelia/commit/f46dacc))
+* **custom-element:** retrieve controller from metadata ([2c715f5](https://github.com/aurelia/aurelia/commit/2c715f5))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Features:
+
+* **replace:** Nested replaceables didn't render ([71e815c](https://github.com/aurelia/aurelia/commit/71e815c))
+* **kernel:** initial logger implementation ([7f77340](https://github.com/aurelia/aurelia/commit/7f77340))
+
+
+### Bug Fixes:
+
+* **test-nod:** verbose script ([42a18a8](https://github.com/aurelia/aurelia/commit/42a18a8))
+* **di:** warn instead of throwing on native function dependencies ([7d56668](https://github.com/aurelia/aurelia/commit/7d56668))
+* **integration:** fixing testfor FF ([edaae69](https://github.com/aurelia/aurelia/commit/edaae69))
+* **runtime-html:** style-attribute-accessor issue ([40db3dc](https://github.com/aurelia/aurelia/commit/40db3dc))
+* **runtime-html:** uniform syntax for class CA ([feede3a](https://github.com/aurelia/aurelia/commit/feede3a))
+
+
+### Refactorings:
+
+* **ref:** check element name again ([2625040](https://github.com/aurelia/aurelia/commit/2625040))
+* **all:** rename behaviorFor to for ([0823dfe](https://github.com/aurelia/aurelia/commit/0823dfe))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

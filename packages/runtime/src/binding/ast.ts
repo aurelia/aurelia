@@ -756,18 +756,18 @@ export class BinaryExpression implements IBinaryExpression {
     const right: any = this.right.evaluate(f, s, l, p);
 
     if ((f & LifecycleFlags.isStrictBindingStrategy) > 0) {
-      return left + right;
+      return (left as number) + (right as number);
     }
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!left || !right) {
       if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        return (left || 0) + (right || 0);
+        return (left as number || 0) + (right as number || 0);
       }
       if (isStringOrDate(left) || isStringOrDate(right)) {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        return (left || '') + (right || '');
+        return (left as string || '') + (right as string || '');
       }
     }
     return (left as number) + (right as number);
@@ -1232,7 +1232,7 @@ export class Interpolation implements IInterpolationExpression {
       return result;
     } else {
       const parts = this.parts;
-      return parts[0] + this.firstExpression.evaluate(flags, scope, locator, part) + parts[1];
+      return `${parts[0]}${this.firstExpression.evaluate(flags, scope, locator, part)}${parts[1]}`;
     }
   }
 

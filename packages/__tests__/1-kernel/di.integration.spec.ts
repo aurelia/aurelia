@@ -775,7 +775,7 @@ describe('DI.createInterface() -> container.get()', function () {
   });
 });
 
-describe('defer registration', function() {
+describe('defer registration', function () {
   class FakeCSSService {
     public constructor(public data: any) {}
   }
@@ -791,7 +791,7 @@ describe('defer registration', function() {
     }
   }
 
-  it(`enables the handler class to provide registrations for data`, function() {
+  it(`enables the handler class to provide registrations for data`, function () {
     const container = DI.createContainer();
     const data = {};
 
@@ -808,7 +808,7 @@ describe('defer registration', function() {
     assert.strictEqual(service.data, data);
   });
 
-  it(`passes the params to the container's register method if no handler is found`, function() {
+  it(`passes the params to the container's register method if no handler is found`, function () {
     const container = DI.createContainer();
     const data = {
       wasCalled: false,
@@ -838,7 +838,7 @@ describe('defer registration', function() {
       value: 42
     }
   ].forEach(x => {
-    it (`does not pass ${x.name} params to the container's register when no handler is found`, function() {
+    it(`does not pass ${x.name} params to the container's register when no handler is found`, function () {
       const container = DI.createContainer();
       container.register(
         Registration.defer('.css', x.value)

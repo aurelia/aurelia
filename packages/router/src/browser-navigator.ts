@@ -57,14 +57,14 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
     this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
-    this.window.addEventListener('popstate', this.handlePopstate);
+    this.window.addEventListener('popstate', this.handlePopstate as (ev: PopStateEvent | null) => void);
   }
 
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Browser navigation has not been activated');
     }
-    this.window.removeEventListener('popstate', this.handlePopstate);
+    this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent | null) => void);
     this.pendingCalls.deactivate();
     this.options = { useUrlFragmentHash: true, callback: () => { } };
     this.isActive = false;

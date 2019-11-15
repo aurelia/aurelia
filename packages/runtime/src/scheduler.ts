@@ -157,7 +157,7 @@ const createPromise = (function () {
     $reject = reject;
   }
 
-  return function <T>(): ExposedPromise<T> {
+  return function <T> (): ExposedPromise<T> {
     const p = new Promise(executor) as ExposedPromise<T>;
     p.resolve = $resolve!;
     p.reject = $reject!;

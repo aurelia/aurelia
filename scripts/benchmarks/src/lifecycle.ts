@@ -47,12 +47,12 @@ const suites = {
     const devFoos = Array(count).fill(0).map(() => devContainer.get(DevFoo));
 
     const suite = new Benchmark.Suite('bind', {
-      onCycle: function(event) {
+      onCycle: function (event) {
         log(`[${c.cyan(name)}] ${event.target}`);
       }
     });
 
-    suite.add(`local beginBind+enqueueBound+endBind x ${count}`, function() {
+    suite.add(`local beginBind+enqueueBound+endBind x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         localLifecycle.beginBind();
         localLifecycle.enqueueBound(localFoos[i]);
@@ -61,7 +61,7 @@ const suites = {
         localLifecycle.endBind(0);
       }
     });
-    suite.add(`  dev beginBind+enqueueBound+endBind x ${count}`, function() {
+    suite.add(`  dev beginBind+enqueueBound+endBind x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         devLifecycle.beginBind();
         devLifecycle.enqueueBound(devFoos[i]);

@@ -2,7 +2,7 @@ import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aure
 import { getOptions } from 'loader-utils';
 import * as webpack from 'webpack';
 
-export default function(
+export default function (
   this: webpack.loader.LoaderContext,
   contents: string,
   sourceMap?: object, // ignore existing source map for now

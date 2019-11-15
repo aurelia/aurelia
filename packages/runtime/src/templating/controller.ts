@@ -7,6 +7,7 @@ import {
   PLATFORM,
   Writable,
   Constructable,
+  isObject,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -32,10 +33,10 @@ import {
   IController,
   ILifecycle,
   IRenderContext,
-  IViewCache,
   IViewModel,
   ViewModelKind,
   MountStrategy,
+  IViewFactory,
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -147,7 +148,7 @@ export class Controller<
   public constructor(
     public readonly vmKind: ViewModelKind,
     public readonly flags: LifecycleFlags,
-    public readonly viewCache: IViewCache<T> | undefined,
+    public readonly viewFactory: IViewFactory<T> | undefined,
     public readonly lifecycle: ILifecycle,
     public readonly viewModel: C | undefined,
     public readonly parentContext: IContainer | IRenderContext<T> | undefined,
@@ -156,9 +157,9 @@ export class Controller<
   ) {
     switch (vmKind) {
       case ViewModelKind.synthetic: {
-        if (viewCache == void 0) {
+        if (viewFactory == void 0) {
           // TODO: create error code
-          throw new Error(`No IViewCache was provided when rendering a synthetic view.`);
+          throw new Error(`No IViewFactory was provided when rendering a synthetic view.`);
         }
 
         this.hooks = HooksDefinition.none;
@@ -204,7 +205,7 @@ export class Controller<
 
         let instruction: IHydrateElementInstruction | IHydrateTemplateController;
         let parts: PartialCustomElementDefinitionParts;
-        let template: ITemplate<INode>|undefined = void 0;
+        let template: ITemplate|undefined = void 0;
 
         if (this.hooks.hasRender) {
           const result = this.bindingContext.render(
@@ -349,20 +350,36 @@ export class Controller<
   }
 
   public static forSyntheticView<T extends INode = INode>(
-    viewCache: IViewCache<T>,
+    viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T> {
     return new Controller<T>(
       ViewModelKind.synthetic,
       flags,
-      viewCache,
+      viewFactory,
       lifecycle,
       void 0,
       void 0,
       void 0,
       PLATFORM.emptyObject,
     );
+  }
+
+  public is(name: string): boolean {
+    switch (this.vmKind) {
+      case ViewModelKind.customAttribute: {
+        const def = CustomAttribute.getDefinition(this.viewModel!.constructor as Constructable);
+        return def.name === name;
+      }
+      case ViewModelKind.customElement: {
+        const def = CustomElement.getDefinition(this.viewModel!.constructor as Constructable);
+        return def.name === name;
+      }
+      case ViewModelKind.synthetic:
+        return this.viewFactory!.name === name;
+    }
+    return false;
   }
 
   public lockScope(scope: IScope): void {
@@ -380,7 +397,7 @@ export class Controller<
     this.state |= State.canBeCached;
     if ((this.state & State.isAttached) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return this.viewCache!.canReturnToCache(this); // non-null is implied by the hook
+      return this.viewFactory!.canReturnToCache(this); // non-null is implied by the hook
     }
 
     return this.unmountSynthetic(flags);
@@ -947,7 +964,7 @@ export class Controller<
     if ((this.state & State.canBeCached) > 0) {
       this.state = (this.state | State.canBeCached) ^ State.canBeCached;
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (this.viewCache!.tryReturnToCache(this)) { // non-null is implied by the hook
+      if (this.viewFactory!.tryReturnToCache(this)) { // non-null is implied by the hook
         this.state |= State.isCached;
         return true;
       }

@@ -2,7 +2,7 @@ import { preprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
 
 describe('preprocessOptions', function () {
-  it('returns default options', function() {
+  it('returns default options', function () {
     assert.deepEqual(
       preprocessOptions(),
       {
@@ -14,7 +14,7 @@ describe('preprocessOptions', function () {
     );
   });
 
-  it('merges optional extensions', function() {
+  it('merges optional extensions', function () {
     assert.deepEqual(
       preprocessOptions({
         cssExtensions: ['.css', '.some'],
@@ -30,7 +30,7 @@ describe('preprocessOptions', function () {
     );
   });
 
-  it('merges optional options', function() {
+  it('merges optional options', function () {
     const wrap = (id: string) => `text!${id}`;
 
     assert.deepEqual(
@@ -52,7 +52,7 @@ describe('preprocessOptions', function () {
     );
   });
 
-  it('merges optional options, turn off stringModuleWrap if uses CSSModule', function() {
+  it('merges optional options, turn off stringModuleWrap if uses CSSModule', function () {
     const wrap = (id: string) => `text!${id}`;
 
     assert.deepEqual(

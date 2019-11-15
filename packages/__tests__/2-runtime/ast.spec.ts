@@ -1840,7 +1840,7 @@ class Test {
   }
 
   public makeString = (cooked: string[], a: any, b: any): string => {
-    return cooked[0] + a + cooked[1] + b + cooked[2] + this.value;
+    return `${cooked[0]}${a}${cooked[1]}${b}${cooked[2]}${this.value}`;
   };
 }
 
@@ -1878,7 +1878,7 @@ describe('LiteralTemplate', function () {
         new AccessScopeExpression('baz', 0)
       ),
       expected: 'foobar',
-      ctx: { baz: cooked => cooked[0] + cooked.raw[0] }
+      ctx: { baz: cooked => `${cooked[0]}${cooked.raw[0]}` }
     },
     {
       expr: new TaggedTemplateExpression(
@@ -1888,7 +1888,7 @@ describe('LiteralTemplate', function () {
         [new PrimitiveLiteralExpression('foo')]
       ),
       expected: '1foo2',
-      ctx: { makeString: (cooked, foo) => cooked[0] + foo + cooked[1] }
+      ctx: { makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
     },
     {
       expr: new TaggedTemplateExpression(
@@ -1898,7 +1898,7 @@ describe('LiteralTemplate', function () {
         [new AccessScopeExpression('foo', 0)]
       ),
       expected: '1bar2',
-      ctx: { foo: 'bar', makeString: (cooked, foo) => cooked[0] + foo + cooked[1] }
+      ctx: { foo: 'bar', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
     },
     {
       expr: new TaggedTemplateExpression(
@@ -1908,7 +1908,7 @@ describe('LiteralTemplate', function () {
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
       expected: 'bazqux',
-      ctx: { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => foo + bar }
+      ctx: { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => `${foo}${bar}` }
     },
     {
       expr: new TaggedTemplateExpression(

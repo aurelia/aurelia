@@ -27,8 +27,8 @@ export class Home {
   ) {}
 
   public attached() {
-    this.getArticles();
-    this.getTags();
+    this.getArticles().catch((error: Error) => { throw error; });
+    this.getTags().catch((error: Error) => { throw error; });
     this.setupNav();
   }
 
@@ -81,7 +81,7 @@ export class Home {
     if (type === 'feed' && !this.sharedState.isAuthenticated) { return; }
     this.shownList = type;
     this.filterTag = tag;
-    this.getArticles();
+    this.getArticles().catch((error: Error) => { throw error; });
   }
 
   public getFeedLinkClass() {
@@ -97,6 +97,6 @@ export class Home {
 
   public setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
-    this.getArticles();
+    this.getArticles().catch((error: Error) => { throw error; });
   }
 }

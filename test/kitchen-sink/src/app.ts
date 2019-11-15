@@ -52,15 +52,15 @@ export class App {
       strategy |= BindingStrategy.proxies;
     }
     const dom = this.$controller.context.get<IDOM<Node>>(IDOM);
-    this.subject = createElement<Node>(
+    this.subject = createElement(
       dom,
       'table',
       {
         class: 'table is-fullwidth',
       },
       [
-        createElement<Node>(dom, 'thead', {}, [
-          createElement<Node>(dom, 'tr', {
+        createElement(dom, 'thead', {}, [
+          createElement(dom, 'tr', {
             $1: new HydrateTemplateController({
               name: '',
               template: '<th><au-m class="au"></au-m> </th>',
@@ -72,7 +72,7 @@ export class App {
             )
           })
         ]),
-        createElement<Node>(dom, 'tbody', {
+        createElement(dom, 'tbody', {
           $1: new HydrateTemplateController({
             name: '',
             template: '<tr><au-m class="au"></au-m></tr>',

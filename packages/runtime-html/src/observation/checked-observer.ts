@@ -29,7 +29,7 @@ export interface CheckedObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class CheckedObserver implements IAccessor<unknown> {
+export class CheckedObserver implements IAccessor {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 

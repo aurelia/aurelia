@@ -264,7 +264,7 @@ function main() {
   if (args.help) {
     yargs.showHelp();
   } else {
-    runBench(runFrameworks);
+    runBench(runFrameworks).catch((error: Error) => { throw error; });
   }
 }
 

@@ -20,7 +20,7 @@ import {
 } from '@aurelia/testing';
 import { HTMLDOM } from '../../runtime-html/dist';
 
-describe('template-compiler.primary-bindable.spec.ts', function() {
+describe('template-compiler.primary-bindable.spec.ts', function () {
 
   interface IPrimaryBindableTestCase {
     title: string;
@@ -479,7 +479,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       ? it.only(_title, fn)
       : it(_title, fn);
 
-    suit(title, async function() {
+    suit(title, async function () {
       let body: HTMLElement;
       let host: HTMLElement;
       try {
@@ -529,7 +529,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
     });
   }
 
-  describe('mimic vCurrent route-href', function() {
+  describe('mimic vCurrent route-href', function () {
     class $RouteHref$ {
 
       public static readonly inject = [INode, IDOM];
@@ -584,7 +584,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       }
     );
 
-    it('works correctly when binding only route name', async function() {
+    it('works correctly when binding only route name', async function () {
       const ctx = TestContext.createHTMLTestContext();
 
       const App = CustomElement.define({
@@ -610,7 +610,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
       host.remove();
     });
 
-    it('works correctly when using with value converter and a colon', async function() {
+    it('works correctly when using with value converter and a colon', async function () {
       const ctx = TestContext.createHTMLTestContext();
 
       const App = CustomElement.define({
@@ -638,7 +638,7 @@ describe('template-compiler.primary-bindable.spec.ts', function() {
 
     // todo: fix:
     //      + timing issue (change handler is invoked before binding)
-    it('works correctly when using multi binding syntax', async function() {
+    it('works correctly when using multi binding syntax', async function () {
       const ctx = TestContext.createHTMLTestContext();
 
       const App = CustomElement.define(

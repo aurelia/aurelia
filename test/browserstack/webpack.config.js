@@ -1,6 +1,6 @@
 const path = require('path');
 
-module.exports = function(env, { app }) {
+module.exports = function (env, { app }) {
   return {
     mode: 'development',
     entry: `./src/${app}/startup.ts`,

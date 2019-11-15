@@ -37,7 +37,7 @@ export interface SelectValueObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class SelectValueObserver implements IAccessor<unknown> {
+export class SelectValueObserver implements IAccessor {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 

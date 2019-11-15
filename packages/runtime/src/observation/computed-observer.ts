@@ -234,8 +234,7 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  // eslint-disable-next-line sonarjs/prefer-immediate-return
-  const traps = {
+  return {
     get: function (target: IIndexable, key: PropertyKey, receiver?: unknown): unknown {
       if (!observer['isCollecting']) {
         return Reflect.get(target, key, receiver);
@@ -269,7 +268,6 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
       return proxyOrValue(flags, target, key, observerLocator, observer);
     }
   };
-  return traps;
 }
 
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {

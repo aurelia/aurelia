@@ -94,7 +94,7 @@ describe('DirtyChecker', function () {
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.framesPerCheck} RAF call`, function(done) {
+    it(`updates after ${spec.framesPerCheck} RAF call`, function (done) {
       const { framesPerCheck, frameChecks } = spec;
       DirtyCheckSettings.framesPerCheck = framesPerCheck;
       const { dirtyChecker, taskQueue } = setup();
@@ -253,7 +253,7 @@ describe('DirtyChecker', function () {
     });
   }
 
-  it('does nothing if disabled', function(done) {
+  it('does nothing if disabled', function (done) {
     const framesPerCheck: number = 1;
     DirtyCheckSettings.framesPerCheck = framesPerCheck;
     DirtyCheckSettings.disabled = true;
@@ -312,7 +312,7 @@ describe('DirtyChecker', function () {
   it.skip('warns by default', function () {
     let warnCalled = false;
     const writeBackup = Reporter.write;
-    Reporter.write = function(code) {
+    Reporter.write = function (code) {
       if (code === 801) {
         warnCalled = true;
       }
@@ -329,7 +329,7 @@ describe('DirtyChecker', function () {
     let warnCalled = false;
     DirtyCheckSettings.warn = false;
     const writeBackup = Reporter.write;
-    Reporter.write = function(code) {
+    Reporter.write = function (code) {
       if (code === 801) {
         warnCalled = true;
       }

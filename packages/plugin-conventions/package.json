@@ -39,7 +39,7 @@
     "@aurelia/kernel": "0.4.0",
     "@aurelia/runtime": "0.4.0",
     "modify-code": "^1.0.1",
-    "parse5": "^5.1.0",
+    "parse5": "^5.1.1",
     "typescript": "^3.7.2"
   },
   "devDependencies": {

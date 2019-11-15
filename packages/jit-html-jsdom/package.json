@@ -42,7 +42,7 @@
     "@aurelia/runtime-html-jsdom": "0.4.0",
     "@aurelia/jit": "0.4.0",
     "@aurelia/jit-html": "0.4.0",
-    "jsdom": "^15.1.1"
+    "jsdom": "^15.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.7",

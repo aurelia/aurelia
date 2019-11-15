@@ -16,7 +16,7 @@ import { arrayRemove, closestController } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
-import { HookManager, HookTypes, IHookDefinition } from './hook-manager';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions } from './hook-manager';
 
 export interface IRouteTransformer {
   transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
@@ -97,6 +97,10 @@ export interface IRouter {
 
   addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[];
   removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void;
+  addHooks(hooks: IHookDefinition[]): HookIdentity[];
+  addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
+  removeHooks(hooks: HookIdentity[]): void;
+
   createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
 }
 
@@ -162,9 +166,7 @@ export class Router implements IRouter {
       }, ...options
     };
     if (this.options.hooks !== void 0) {
-      for (const hook of this.options.hooks) {
-        this.hookManager.addHook(hook.hook, hook.options );
-      }
+      this.addHooks(this.options.hooks);
     }
 
     this.instructionResolver.activate({ separators: this.options.separators });
@@ -683,6 +685,16 @@ export class Router implements IRouter {
   public removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void {
     const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     return viewport.removeRoutes(routes);
+  }
+
+  public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
+    return hooks.map(hook => this.addHook(hook.hook, hook.options));
+  }
+  public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
+    return this.hookManager.addHook(hook, options);
+  }
+  public removeHooks(hooks: HookIdentity[]): void {
+    return;
   }
 
   public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {

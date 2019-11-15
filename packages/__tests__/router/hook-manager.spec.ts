@@ -1,18 +1,19 @@
 import { HookManager, HookTypes, INavigatorInstruction, ViewportInstruction, RouterConfiguration, IRouter } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
-import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { CustomElement, Aurelia, IScheduler } from '@aurelia/runtime';
 import { DebugConfiguration } from '@aurelia/debug';
 
 describe('HookManager', function () {
   this.timeout(5000);
 
-  async function setup(config?) {
+  async function setup(config?, App?, dependencies: any[] = []) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, doc } = ctx;
 
     const host = doc.createElement('div');
-    const App = CustomElement.define({ name: 'app', template: 'HookManager<au-viewport></au-viewport>' });
-
+    if (App === void 0) {
+      App = CustomElement.define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies });
+    }
     const au = new Aurelia(container)
       .register(
         DebugConfiguration,
@@ -33,6 +34,11 @@ describe('HookManager', function () {
     const viewportInstructions: ViewportInstruction[] = router.instructionResolver.parseViewportInstructions('parent/child');
     return { au, container, scheduler, host, router, tearDown, navigationInstruction, viewportInstructions };
   }
+
+  const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+    await router.goto(path);
+    scheduler.getRenderTaskQueue().flush();
+  };
 
   it('can be created', function () {
     const sut = new HookManager();
@@ -264,6 +270,57 @@ describe('HookManager', function () {
 
     hooked = router.hookManager.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
     assert.strictEqual(hooked[0].componentName, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
+
+    await tearDown();
+  });
+
+  it('can prevent navigation', async function () {
+    const One = CustomElement.define({ name: 'one', template: '!one!', });
+    const Two = CustomElement.define({ name: 'two', template: '!two!', });
+
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, [One, Two]);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+
+    router.addHook((instructions: ViewportInstruction[], navigation: INavigatorInstruction) => {
+      return false;
+    }, { type: HookTypes.BeforeNavigation, include: ['two'] });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await tearDown();
+  });
+
+  it('can redirect navigation', async function () {
+    const One = CustomElement.define({ name: 'one', template: '!one!', });
+    const Two = CustomElement.define({ name: 'two', template: '!two!', });
+    const Three = CustomElement.define({ name: 'three', template: '!three!', });
+
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, [One, Two, Three]);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+
+    router.addHook((instructions: ViewportInstruction[], navigation: INavigatorInstruction) => {
+      return [router.createViewportInstruction('three', instructions[0].viewport)];
+    }, { type: HookTypes.BeforeNavigation, include: ['two'] });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
   });

@@ -203,7 +203,7 @@ export class Controller<
 
         let instruction: IHydrateElementInstruction | IHydrateTemplateController;
         let parts: PartialCustomElementDefinitionParts;
-        let template: ITemplate<INode>|undefined = void 0;
+        let template: ITemplate|undefined = void 0;
 
         if (this.hooks.hasRender) {
           const result = this.bindingContext.render(

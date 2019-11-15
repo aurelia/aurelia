@@ -114,7 +114,7 @@ describe('ChildrenObserver', function() {
   });
 
   function waitForUpdate(callback: () => void) {
-    Promise.resolve().then(() => callback());
+    Promise.resolve().then(() => callback()).catch((error: Error) => { throw error; });
   }
 
   function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {

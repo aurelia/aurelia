@@ -59,6 +59,7 @@ const url = require('url');
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   const server = http.createServer(handleRequest);
 
   server.listen(8080, '0.0.0.0');

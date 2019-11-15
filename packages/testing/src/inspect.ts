@@ -691,7 +691,7 @@ function groupArrayElements(ctx: IInspectContext, output: string[]): string[] {
     // Calculate the maximum length of all entries that are visible in the first
     // column of the group.
     const tmp = [];
-    let firstLineMaxLength = dataLen[0];
+    let firstLineMaxLength: number = dataLen[0];
     for (i = columns; i < dataLen.length; i += columns) {
       if (dataLen[i] > firstLineMaxLength) {
         firstLineMaxLength = dataLen[i];

@@ -48,7 +48,7 @@ export class App implements IViewModel {
         if (this.state.isAuthenticated) {
           return true;
         }
-        this.router.goto(`auth(type=login)`);
+        this.router.goto(`auth(type=login)`).catch((error: Error) => { throw error; });
         return [];
       },
       {

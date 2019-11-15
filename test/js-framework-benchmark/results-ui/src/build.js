@@ -171,4 +171,4 @@ async function build() {
   console.log(`Built in ${+new Date() - start}ms, (${(html.length / 1024).toFixed(1)}KB)`);
 }
 
-build();
+build().catch((error) => { throw error; });

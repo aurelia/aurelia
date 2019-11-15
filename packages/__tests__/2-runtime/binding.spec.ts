@@ -31,8 +31,8 @@ import {
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
  */
-export function padRight(str: any, len: number): string {
-  str = `${str}`;
+export function padRight(input: unknown, len: number): string {
+  const str = `${input}`;
   const strLen = str.length;
   if (strLen >= len) {
     return str;

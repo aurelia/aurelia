@@ -432,7 +432,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
       [testCases],
       (testCase) => {
         const { linkedWith, linkingContext, template, title, assertFn, blurHost } = testCase;
-        it(title(), function() {
+        it(title(), async function() {
           const ctx = TestContext.createHTMLTestContext();
           const host = ctx.doc.body.appendChild(ctx.createElement('div'));
           host.innerHTML = template();
@@ -446,7 +446,7 @@ describe('[UNIT] blur.unit.spec.ts', function() {
           );
           sut.linkedWith = linkedWith;
           sut.linkingContext = linkingContext;
-          assertFn(ctx, host, sut);
+          await assertFn(ctx, host, sut);
           host.remove();
         });
       }

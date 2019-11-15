@@ -52,7 +52,7 @@ export class Profile {
 
   public onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('auth(type=login)');
+      this.router.goto('auth(type=login)').catch((error: Error) => { throw error; });
       return;
     }
     if (!this.profile) { return; }

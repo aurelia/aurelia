@@ -555,13 +555,13 @@ describe(`ArrayObserver`, function () {
   });
 });
 
-function padLeft(str: any, len: number): string {
-  str = `${str}`;
+function padLeft(input: unknown, len: number): string {
+  const str = `${input}`;
   return new Array(len - str.length + 1).join(' ') + str;
 }
 
-function padRight(str: any, len: number): string {
-  str = `${str}`;
+function padRight(input: unknown, len: number): string {
+  const str = `${input}`;
   return str + new Array(len - str.length + 1).join(' ');
 }
 

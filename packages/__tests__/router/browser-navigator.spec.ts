@@ -143,11 +143,11 @@ describe('BrowserNavigator', function () {
     sut.activate({ callback });
     await wait();
 
-    const length = sut['pendingCalls'].length;
-    sut.pushNavigatorState(toNavigatorState('one')); // 1 item, cost 1
-    sut.replaceNavigatorState(toNavigatorState('two')); // 1 item, cost 1
-    sut.go(-1); // 2 items (forwardState + go), cost 0 + 1
-    sut.go(1); // 2 items (forwardState + go), cost 0 + 1
+    const length: number = sut['pendingCalls'].length;
+    sut.pushNavigatorState(toNavigatorState('one')).catch((error: Error) => { throw error; }); // 1 item, cost 1
+    sut.replaceNavigatorState(toNavigatorState('two')).catch((error: Error) => { throw error; }); // 1 item, cost 1
+    sut.go(-1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1
+    sut.go(1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1
     const noOfItems = 6;
     const processedItems = 3; // sut.allowedNoOfExecsWithinTick === 2
     assert.strictEqual(sut['pendingCalls'].length, length + noOfItems - processedItems, `sut.pendingCalls.length`);

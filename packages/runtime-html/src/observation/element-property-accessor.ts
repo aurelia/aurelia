@@ -13,7 +13,7 @@ import {
  *
  * @see DataAttributeAccessor
  */
-export class ElementPropertyAccessor implements IAccessor<unknown> {
+export class ElementPropertyAccessor implements IAccessor {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 

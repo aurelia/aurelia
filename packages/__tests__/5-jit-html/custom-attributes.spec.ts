@@ -2,7 +2,8 @@ import {
   bindable,
   alias,
   customAttribute,
-  INode
+  INode,
+  CustomAttribute
 } from '@aurelia/runtime';
 import { assert, setup } from '@aurelia/testing';
 
@@ -211,7 +212,7 @@ describe('custom-attributes', function () {
     });
   });
 
-  describe('03. Change Handler', function() {
+  describe('03. Change Handler', function () {
     interface IChangeHandlerTestViewModel {
       prop: any;
       propChangedCallCount: number;
@@ -228,7 +229,7 @@ describe('custom-attributes', function () {
       }
     }
 
-    it('does not invoke change handler when starts with plain usage', function() {
+    it('does not invoke change handler when starts with plain usage', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo="prop"></div>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -236,7 +237,7 @@ describe('custom-attributes', function () {
       tearDown();
     });
 
-    it('does not invoke chane handler when starts with commands', function() {
+    it('does not invoke chane handler when starts with commands', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo.bind="prop"></foo>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -244,7 +245,7 @@ describe('custom-attributes', function () {
       tearDown();
     });
 
-    it('does not invoke chane handler when starts with interpolation', function() {
+    it('does not invoke chane handler when starts with interpolation', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo="\${prop}"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -252,7 +253,7 @@ describe('custom-attributes', function () {
       tearDown();
     });
 
-    it('does not invoke chane handler when starts with two way binding', function() {
+    it('does not invoke chane handler when starts with two way binding', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo.two-way="prop"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -263,7 +264,7 @@ describe('custom-attributes', function () {
     function setupChangeHandlerTest(template: string) {
       const options = setup(template, class {}, [Foo]);
       const fooEl = options.appHost.querySelector('div') as INode;
-      const fooVm = fooEl.$au.foo.viewModel as Foo;
+      const fooVm = CustomAttribute.for(fooEl, 'foo').viewModel as Foo;
       return {
         fooVm: fooVm,
         tearDown: () => options.au.stop()

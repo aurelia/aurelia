@@ -210,7 +210,7 @@ export class DI {
   }
 
   public static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
-    const Interface: InternalDefaultableInterfaceSymbol<K> = function(target: Injectable<K>, property: string, index: number): any {
+    const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
       if (target == null) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
@@ -224,12 +224,12 @@ export class DI {
       return Interface;
     };
 
-    Interface.withDefault = function(configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
+    Interface.withDefault = function (configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
         throw Reporter.error(17, Interface);
       };
 
-      Interface.register = function(container: IContainer, key?: Key): IResolver<K> {
+      Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
         const trueKey = key == null ? Interface : key;
         return configure({
           instance(value: K): IResolver<K> {
@@ -257,7 +257,7 @@ export class DI {
   }
 
   public static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
-    return function(target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
+    return function (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
         const dep = dependencies[0];
@@ -354,7 +354,7 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
       DI.inject(resolver)(target, property, descriptor);
     };
 
-    resolver.resolve = function(handler: IContainer, requestor: IContainer): any {
+    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
       return getter(key, handler, requestor);
     };
 
@@ -497,7 +497,7 @@ export class Resolver implements IResolver, IRegistration {
   }
 
   public getFactory(container: IContainer): IFactory | null {
-    let resolver: IResolver<any> | null;
+    let resolver: IResolver | null;
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
@@ -562,7 +562,7 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   }
 }
 
-const createFactory = (function() {
+const createFactory = (function () {
   function invokeWithDynamicDependencies<T>(
     container: IContainer,
     Type: Constructable<T>,
@@ -645,7 +645,7 @@ const createFactory = (function() {
     invokeWithDynamicDependencies
   };
 
-  return function <T extends Constructable>(Type: T): Factory<T> {
+  return function <T extends Constructable> (Type: T): Factory<T> {
     if (isNativeFunction(Type)) {
       Reporter.write(5, Type.name);
     }

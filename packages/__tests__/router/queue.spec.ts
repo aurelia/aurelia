@@ -14,7 +14,7 @@ describe('Queue', function () {
 
   it('adds to queue', async function () {
     this.timeout(5000);
-    const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
+    const callback = async (qAnimal: QueueItem<Animal>) => {
       const animal = qAnimal as Animal;
       await wait(100);
       if (animal.name === 'dog') {
@@ -22,10 +22,11 @@ describe('Queue', function () {
       } else {
         qAnimal.resolve();
       }
-    });
-    q.enqueue(new Animal('dog', 'Pluto'));
+    };
+    const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
+    q.enqueue(new Animal('dog', 'Pluto')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
-    q.enqueue(new Animal('cat', 'Figaro'));
+    q.enqueue(new Animal('cat', 'Figaro')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(110);
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
@@ -33,7 +34,7 @@ describe('Queue', function () {
 
   it('adds to queue with right costs', function () {
     this.timeout(5000);
-    const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
+    const callback = async (qAnimal: QueueItem<Animal>) => {
       const animal = qAnimal as Animal;
       await wait(100);
       if (animal.name === 'dog') {
@@ -41,13 +42,14 @@ describe('Queue', function () {
       } else {
         qAnimal.resolve();
       }
-    });
-    q.enqueue(new Animal('dog', 'Pluto'));
+    };
+    const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
+    q.enqueue(new Animal('dog', 'Pluto')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
-    q.enqueue(new Animal('cat', 'Figaro'));
+    q.enqueue(new Animal('cat', 'Figaro')).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     assert.strictEqual(q.pending[0].cost, 1, `q.pending[0].cost`);
-    q.enqueue(new Animal('cat', 'Figaro II'), 2);
+    q.enqueue(new Animal('cat', 'Figaro II'), 2).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 2, `q.pending.length`);
     assert.strictEqual(q.pending[1].cost, 2, `q.pending[1].cost`);
     q.enqueue([
@@ -70,11 +72,11 @@ describe('Queue', function () {
     const ctx = TestContext.createHTMLTestContext();
     const { scheduler } = ctx;
 
-    const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
-      const animal = qAnimal as Animal;
+    const callback = async (qAnimal: QueueItem<Animal>) => {
       await wait(100);
       qAnimal.resolve();
-    });
+    };
+    const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
     q.activate({ allowedExecutionCostWithinTick: 0, scheduler });
     let promise = q.enqueue(new Animal('dog', 'Pluto'));
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);

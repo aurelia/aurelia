@@ -396,7 +396,7 @@ describe('custom-elements', function () {
 
   });
 
-  describe('08. Change Handler', function() {
+  describe('08. Change Handler', function () {
     interface IChangeHandlerTestViewModel {
       prop: any;
       propChangedCallCount: number;
@@ -416,7 +416,7 @@ describe('custom-elements', function () {
       }
     }
 
-    it('does not invoke change handler when starts with plain usage', function() {
+    it('does not invoke change handler when starts with plain usage', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -424,7 +424,7 @@ describe('custom-elements', function () {
       tearDown();
     });
 
-    it('does not invoke chane handler when starts with commands', function() {
+    it('does not invoke chane handler when starts with commands', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -432,7 +432,7 @@ describe('custom-elements', function () {
       tearDown();
     });
 
-    it('does not invoke chane handler when starts with interpolation', function() {
+    it('does not invoke chane handler when starts with interpolation', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -440,7 +440,7 @@ describe('custom-elements', function () {
       tearDown();
     });
 
-    it('does not invoke chane handler when starts with two way binding', function() {
+    it('does not invoke chane handler when starts with two way binding', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -451,7 +451,7 @@ describe('custom-elements', function () {
     function setupChangeHandlerTest(template: string) {
       const options = setup(template, app, [Foo]);
       const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
-      const fooVm = fooEl.$controller.viewModel as Foo;
+      const fooVm = CustomElement.for(fooEl).viewModel as Foo;
       return {
         fooVm: fooVm,
         tearDown: () => options.au.stop()

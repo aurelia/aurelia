@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Bug Fixes:
+
+* **router:** do not use DOM types in constructor args ([778e48f](https://github.com/aurelia/aurelia/commit/778e48f))
+
+
+### Refactorings:
+
+* **all:** rename behaviorFor to for ([0823dfe](https://github.com/aurelia/aurelia/commit/0823dfe))
+* **router:** use new resource apis ([6fc87ae](https://github.com/aurelia/aurelia/commit/6fc87ae))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

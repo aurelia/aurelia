@@ -99,7 +99,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       browserOnly: true,
       assertFn: (ctx, host) => {
         const ceEl: CustomElementHost<HTMLElement> = host.querySelector('c-e');
-        const $ceViewModel = ceEl.$controller.viewModel as { hasFocus: boolean; focus: number; blur: number };
+        const $ceViewModel = CustomElement.for(ceEl).viewModel as { hasFocus: boolean; focus: number; blur: number };
         assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
         assert.equal($ceViewModel.focus, undefined);
         assert.equal(ceEl.hasAttribute('tabindex'), true, 'host.hasAttribute(tabindex)');
@@ -152,7 +152,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           // todo: self-recursive does not work
           // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
           const leafCeHost: CustomElementHost<HTMLElement> = host.querySelector(`[lvl=lvl-${idx}]`);
-          const $leafCeVm = leafCeHost.$controller.viewModel as { focus: number };
+          const $leafCeVm = CustomElement.for(leafCeHost).viewModel as { focus: number };
           assert.strictEqual(ctx.doc.activeElement, leafCeHost, `activeElement === <c-e lvl=lvl-${idx}>`);
           assert.equal($leafCeVm.focus, 1);
         }
@@ -318,7 +318,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     if (!PLATFORM.isBrowserLike && browserOnly) {
       return;
     }
-    it(`\n\t(${idx + 1}). ${title}\n\t`, async function() {
+    it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
       let host: HTMLElement;
       let body: HTMLElement;
       try {

@@ -4,7 +4,8 @@ import {
   PLATFORM,
   Registration,
   Reporter,
-  toArray
+  toArray,
+  Metadata
 } from '@aurelia/kernel';
 import {
   CustomElementHost,
@@ -13,11 +14,10 @@ import {
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
-  CustomElementDefinition
+  CustomElementDefinition,
+  CustomElement
 } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
-
-const slice = Array.prototype.slice;
 
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
@@ -68,8 +68,8 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
       shadowOptions = defaultShadowOptions;
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
-    this.host.$controller = $controller as IController<HTMLElement>;
-    this.shadowRoot.$controller = $controller as IController<ShadowRoot>;
+    Metadata.define(CustomElement.name, $controller, this.host);
+    Metadata.define(CustomElement.name, $controller, this.shadowRoot);
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -119,7 +119,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
     }
 
     this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
-    this.host.$controller = $controller;
+    Metadata.define(CustomElement.name, $controller, this.host);
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -151,7 +151,7 @@ export class HostProjector implements IElementProjector<Node> {
     $controller: IController<Node>,
     public host: CustomElementHost<Node>,
   ) {
-    host.$controller = $controller;
+    Metadata.define(CustomElement.name, $controller, host);
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {

@@ -1,7 +1,7 @@
 import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 
-describe('template-compiler.ce_and_surrogate.spec.ts', function() {
+describe('template-compiler.ce_and_surrogate.spec.ts', function () {
 
   interface ISurrogateIntegrationTestCase {
     title: string;
@@ -163,7 +163,7 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function() {
       assertFn
     } = testCase;
 
-    it(title, async function() {
+    it(title, async function () {
       let host: HTMLElement;
       try {
         const ctx = TestContext.createHTMLTestContext();

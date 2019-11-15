@@ -370,7 +370,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
     for (const bindingStrategy of [BindingStrategy.getterSetter, BindingStrategy.proxies]) {
 
-      suit(title, async function(): Promise<void> {
+      suit(title, async function (): Promise<void> {
         const ctx = TestContext.createHTMLTestContext();
 
         let body: HTMLElement;

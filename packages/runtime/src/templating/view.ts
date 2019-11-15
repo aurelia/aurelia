@@ -135,7 +135,7 @@ export const Views = {
 };
 
 export function view(v: PartialCustomElementDefinition) {
-  return function<T extends Constructable>(target: T) {
+  return function<T extends Constructable> (target: T) {
     Views.add(target, v);
   };
 }

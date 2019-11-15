@@ -140,8 +140,14 @@ describe('ChildrenObserver', function () {
     au.app({ host, component });
     au.start();
 
-    const hostViewModel = (host as any).$controller.viewModel;
-    const viewModel = (host.children[0] as any).$controller.viewModel;
+    const hostViewModel = CustomElement.for(host).viewModel as {
+      oneCount: number;
+      twoCount: number;
+    };
+    const viewModel = CustomElement.for(host.children[0]).viewModel as {
+      children: any[];
+      childrenChangedCallCount: number;
+    };
 
     return {
       au,

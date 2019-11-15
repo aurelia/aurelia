@@ -35,7 +35,7 @@ describe('app', function () {
   };
 
   function getViewModel<T>(element: Element) {
-    const { viewModel } = (CustomElement.behaviorFor(element) as unknown) as { viewModel: T };
+    const { viewModel } = (CustomElement.for(element) as unknown) as { viewModel: T };
     return viewModel;
   }
   function assertCalls(calls: Call[], fromIndex: number, instance: any, expectedCalls: string[], unexpectedCalls?: string[], message?: string) {

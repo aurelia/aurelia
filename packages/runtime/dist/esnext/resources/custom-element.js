@@ -1,5 +1,6 @@
 import { DI, Registration, Protocol, Metadata, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, } from '@aurelia/kernel';
 import { registerAliases, HooksDefinition, } from '../definitions';
+import { DOM } from '../dom';
 import { Bindable } from '../templating/bindable';
 import { Children } from '../templating/children';
 export function customElement(nameOrDef) {
@@ -109,8 +110,40 @@ export const CustomElement = {
     isType(value) {
         return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
     },
-    behaviorFor(node) {
-        return node.$controller;
+    for(node, nameOrSearchParents, searchParents) {
+        if (nameOrSearchParents === void 0) {
+            return Metadata.getOwn(CustomElement.name, node);
+        }
+        if (typeof nameOrSearchParents === 'string') {
+            if (searchParents !== true) {
+                const controller = Metadata.getOwn(CustomElement.name, node);
+                if (controller === void 0) {
+                    return (void 0);
+                }
+                if (controller.is(nameOrSearchParents)) {
+                    return controller;
+                }
+                return (void 0);
+            }
+            let cur = node;
+            while (cur !== null) {
+                const controller = Metadata.getOwn(CustomElement.name, node);
+                if (controller !== void 0 && controller.is(nameOrSearchParents)) {
+                    return controller;
+                }
+                cur = DOM.getEffectiveParentNode(node);
+            }
+            return (void 0);
+        }
+        let cur = node;
+        while (cur !== null) {
+            const controller = Metadata.getOwn(CustomElement.name, node);
+            if (controller !== void 0) {
+                return controller;
+            }
+            cur = DOM.getEffectiveParentNode(node);
+        }
+        return (void 0);
     },
     define(nameOrDef, Type) {
         const definition = CustomElementDefinition.create(nameOrDef, Type);

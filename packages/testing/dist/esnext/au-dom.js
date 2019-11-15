@@ -1,7 +1,7 @@
 import { __decorate, __metadata } from "tslib";
 import { parseExpression } from '@aurelia/jit';
-import { DI, IContainer, inject, Registration } from '@aurelia/kernel';
-import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
+import { DI, IContainer, inject, Registration, Metadata } from '@aurelia/kernel';
+import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler, CustomElement } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 const slice = Array.prototype.slice;
 export class AuNode {
@@ -248,6 +248,13 @@ export class AuDOM {
     createTextNode(text) {
         return AuNode.createText(text);
     }
+    getEffectiveParentNode(node) {
+        // TODO: implement this properly (if we're going to keep AuDOM around)
+        return node.parentNode;
+    }
+    setEffectiveParentNode(child, parent) {
+        // TODO: implement this properly (if we're going to keep AuDOM around)
+    }
     insertBefore(nodeToInsert, referenceNode) {
         if (referenceNode.parentNode == null) {
             throw new Error('referenceNode.parentNode is null in insertBefore');
@@ -297,7 +304,7 @@ export class AuProjectorLocator {
 export class AuProjector {
     constructor($controller, host) {
         this.host = host;
-        this.host.$controller = $controller;
+        Metadata.define(CustomElement.name, $controller, host);
     }
     get children() {
         return this.host.childNodes;

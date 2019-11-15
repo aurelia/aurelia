@@ -1,8 +1,9 @@
 import { Constructable, IContainer, IResourceKind, Omit, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { HooksDefinition } from '../definitions';
 import { BindingMode, BindingStrategy } from '../flags';
-import { IViewModel } from '../lifecycle';
+import { IViewModel, IController } from '../lifecycle';
 import { BindableDefinition, PartialBindableDefinition } from '../templating/bindable';
+import { INode } from '../dom';
 export declare type PartialCustomAttributeDefinition = PartialResourceDefinition<{
     readonly defaultBindingMode?: BindingMode;
     readonly isTemplateController?: boolean;
@@ -12,6 +13,7 @@ export declare type PartialCustomAttributeDefinition = PartialResourceDefinition
 }>;
 export declare type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomAttributeDefinition>;
 export declare type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+    for<T extends INode = INode>(node: T, name: string): IController<T> | undefined;
     isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
     define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
     define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;

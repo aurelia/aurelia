@@ -23,6 +23,7 @@ let Portal = class Portal {
         // todo: is this necessary
         this.currentTarget = dom.createElement('div');
         this.view = this.factory.create();
+        dom.setEffectiveParentNode(this.view.nodes, originalLoc);
         this.view.hold(originalLoc, 1 /* insertBefore */);
     }
     binding(flags) {

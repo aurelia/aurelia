@@ -29,6 +29,8 @@
         createNodeObserver: ni,
         createTemplate: ni,
         createTextNode: ni,
+        getEffectiveParentNode: ni,
+        setEffectiveParentNode: ni,
         insertBefore: ni,
         isMarker: ni,
         isNodeInstance: ni,

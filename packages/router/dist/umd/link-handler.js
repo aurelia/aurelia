@@ -53,7 +53,8 @@
             if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
                 return info;
             }
-            const goto = target.$au !== void 0 && target.$au['goto'] !== void 0 ? target.$au['goto'].viewModel.value : null;
+            const gotoAttr = runtime_1.CustomAttribute.for(target, 'goto');
+            const goto = gotoAttr !== void 0 ? gotoAttr.viewModel.value : null;
             const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
             if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
                 return info;

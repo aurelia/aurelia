@@ -1,6 +1,7 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { PLATFORM, Registration, Reporter } from '@aurelia/kernel';
-import { CompiledTemplate, DOM, IDOM, INode, ITemplateFactory, NodeSequence } from '@aurelia/runtime';
+import { CompiledTemplate, DOM, IDOM, INode, ITemplateFactory, NodeSequence, CustomElement } from '@aurelia/runtime';
+import { ShadowDOMProjector } from './projectors';
 export var NodeType;
 (function (NodeType) {
     NodeType[NodeType["Element"] = 1] = "Element";
@@ -16,6 +17,7 @@ export var NodeType;
     NodeType[NodeType["DocumentFragment"] = 11] = "DocumentFragment";
     NodeType[NodeType["Notation"] = 12] = "Notation";
 })(NodeType || (NodeType = {}));
+const effectiveParentNodeOverrides = new WeakMap();
 /**
  * IDOM implementation for Html.
  */
@@ -112,6 +114,73 @@ export class HTMLDOM {
     }
     createTextNode(text) {
         return this.document.createTextNode(text);
+    }
+    /**
+     * Returns the effective parentNode according to Aurelia's component hierarchy.
+     *
+     * Used by Aurelia to find the closest parent controller relative to a node.
+     *
+     * This method supports 3 additional scenarios that `node.parentNode` does not support:
+     * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
+     * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
+     * - Portals. If the provided node was moved to a different location in the DOM by a `portal` attribute, then the original parent of the node will be returned.
+     *
+     * @param node - The node to get the parent for.
+     * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), original portal host, or `null` if this is either the absolute document root or a disconnected node.
+     */
+    getEffectiveParentNode(node) {
+        // TODO: this method needs more tests!
+        // First look for any overrides
+        if (effectiveParentNodeOverrides.has(node)) {
+            return effectiveParentNodeOverrides.get(node);
+        }
+        // Then try to get the nearest au-start render location, which would be the containerless parent,
+        // again looking for any overrides along the way.
+        // otherwise return the normal parent node
+        let containerlessOffset = 0;
+        let next = node.nextSibling;
+        while (next !== null) {
+            if (next.nodeType === 8 /* Comment */) {
+                switch (next.textContent) {
+                    case 'au-start':
+                        // If we see an au-start before we see au-end, it will precede the host of a sibling containerless element rather than a parent.
+                        // So we use the offset to ignore the next au-end
+                        ++containerlessOffset;
+                        break;
+                    case 'au-end':
+                        if (containerlessOffset-- === 0) {
+                            return next;
+                        }
+                }
+            }
+            next = next.nextSibling;
+        }
+        if (node.parentNode === null && node.nodeType === 11 /* DocumentFragment */) {
+            // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
+            const controller = CustomElement.for(node);
+            if (controller === void 0) {
+                // Not a shadow root (or at least, not one created by Aurelia)
+                // Nothing more we can try, just return null
+                return null;
+            }
+            const projector = controller.projector;
+            if (projector instanceof ShadowDOMProjector) {
+                // Now we can use the original host to traverse further up
+                return this.getEffectiveParentNode(projector.host);
+            }
+        }
+        return node.parentNode;
+    }
+    setEffectiveParentNode(childNodeOrNodeSequence, parentNode) {
+        if (this.isNodeInstance(childNodeOrNodeSequence)) {
+            effectiveParentNodeOverrides.set(childNodeOrNodeSequence, parentNode);
+        }
+        else {
+            const nodes = childNodeOrNodeSequence.childNodes;
+            for (let i = 0, ii = nodes.length; i < ii; ++i) {
+                effectiveParentNodeOverrides.set(nodes[i], parentNode);
+            }
+        }
     }
     insertBefore(nodeToInsert, referenceNode) {
         referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);

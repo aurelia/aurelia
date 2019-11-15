@@ -2,7 +2,7 @@ import { IContainer, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { HooksDefinition, PartialCustomElementDefinitionParts } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags, State } from '../flags';
-import { IBinding, IController, ILifecycle, IRenderContext, IViewCache, IViewModel, ViewModelKind, MountStrategy } from '../lifecycle';
+import { IBinding, IController, ILifecycle, IRenderContext, IViewModel, ViewModelKind, MountStrategy, IViewFactory } from '../lifecycle';
 import { ILifecycleTask, MaybePromiseOrTask } from '../lifecycle-task';
 import { IBindingTargetAccessor, IScope } from '../observation';
 import { ITemplate } from '../rendering-engine';
@@ -26,7 +26,7 @@ declare type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexab
 export declare class Controller<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> implements IController<T, C> {
     readonly vmKind: ViewModelKind;
     readonly flags: LifecycleFlags;
-    readonly viewCache: IViewCache<T> | undefined;
+    readonly viewFactory: IViewFactory<T> | undefined;
     readonly lifecycle: ILifecycle;
     readonly viewModel: C | undefined;
     readonly parentContext: IContainer | IRenderContext<T> | undefined;
@@ -60,14 +60,15 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     context?: IContainer | IRenderContext<T>;
     location?: IRenderLocation<T>;
     mountStrategy: MountStrategy;
-    constructor(vmKind: ViewModelKind, flags: LifecycleFlags, viewCache: IViewCache<T> | undefined, lifecycle: ILifecycle, viewModel: C | undefined, parentContext: IContainer | IRenderContext<T> | undefined, host: T | undefined, options: {
+    constructor(vmKind: ViewModelKind, flags: LifecycleFlags, viewFactory: IViewFactory<T> | undefined, lifecycle: ILifecycle, viewModel: C | undefined, parentContext: IContainer | IRenderContext<T> | undefined, host: T | undefined, options: {
         parts?: PartialCustomElementDefinitionParts;
     });
     static forCustomElement<T extends INode = INode>(viewModel: object, parentContext: IContainer | IRenderContext<T>, host: T, flags?: LifecycleFlags, options?: {
         parts?: PartialCustomElementDefinitionParts;
     }): Controller<T>;
     static forCustomAttribute<T extends INode = INode>(viewModel: object, parentContext: IContainer | IRenderContext<T>, flags?: LifecycleFlags): Controller<T>;
-    static forSyntheticView<T extends INode = INode>(viewCache: IViewCache<T>, lifecycle: ILifecycle, flags?: LifecycleFlags): Controller<T>;
+    static forSyntheticView<T extends INode = INode>(viewFactory: IViewFactory<T>, lifecycle: ILifecycle, flags?: LifecycleFlags): Controller<T>;
+    is(name: string): boolean;
     lockScope(scope: IScope): void;
     hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
     release(flags: LifecycleFlags): boolean;

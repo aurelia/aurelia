@@ -4,15 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
+        define(["require", "exports", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const runtime_1 = require("@aurelia/runtime");
     function closestCustomElement(element) {
         let el = element;
-        while (el) {
-            if (el.$controller) {
+        while (el !== null) {
+            if (runtime_1.CustomElement.for(el) !== void 0) {
                 break;
             }
             el = el.parentElement;

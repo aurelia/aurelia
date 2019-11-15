@@ -260,6 +260,13 @@
         createTextNode(text) {
             return AuNode.createText(text);
         }
+        getEffectiveParentNode(node) {
+            // TODO: implement this properly (if we're going to keep AuDOM around)
+            return node.parentNode;
+        }
+        setEffectiveParentNode(child, parent) {
+            // TODO: implement this properly (if we're going to keep AuDOM around)
+        }
         insertBefore(nodeToInsert, referenceNode) {
             if (referenceNode.parentNode == null) {
                 throw new Error('referenceNode.parentNode is null in insertBefore');
@@ -311,7 +318,7 @@
     class AuProjector {
         constructor($controller, host) {
             this.host = host;
-            this.host.$controller = $controller;
+            kernel_1.Metadata.define(runtime_1.CustomElement.name, $controller, host);
         }
         get children() {
             return this.host.childNodes;

@@ -207,7 +207,7 @@
         const children = [];
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
             const node = nodes[i];
-            const controller = custom_element_1.CustomElement.behaviorFor(node);
+            const controller = custom_element_1.CustomElement.for(node);
             const viewModel = controller ? controller.viewModel : null;
             if (filter(node, controller, viewModel)) {
                 children.push(map(node, controller, viewModel));

@@ -45,6 +45,9 @@ export declare class AuDOM implements IDOM<AuNode> {
     createElement(name: string): AuNode;
     createTemplate(nodeOrText?: AuNode | string): AuNode;
     createTextNode(text: string): AuNode;
+    getEffectiveParentNode(node: AuNode): AuNode | null;
+    setEffectiveParentNode(child: INodeSequence, parent: AuNode): void;
+    setEffectiveParentNode(child: AuNode, parent: AuNode): void;
     insertBefore(nodeToInsert: AuNode, referenceNode: AuNode): void;
     isMarker(node: AuNode): node is AuNode;
     isNodeInstance(node: AuNode): node is AuNode;

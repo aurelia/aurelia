@@ -1,7 +1,8 @@
+import { CustomElement } from '@aurelia/runtime';
 export function closestCustomElement(element) {
     let el = element;
-    while (el) {
-        if (el.$controller) {
+    while (el !== null) {
+        if (CustomElement.for(el) !== void 0) {
             break;
         }
         el = el.parentElement;

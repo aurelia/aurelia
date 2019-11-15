@@ -475,10 +475,10 @@ export class Router {
             return el.$viewport;
         }
         el = element;
-        let controller = CustomElement.behaviorFor(el);
+        let controller = CustomElement.for(el);
         while (!controller && el.parentElement) {
             el = el.parentElement;
-            CustomElement.behaviorFor(el);
+            CustomElement.for(el);
         }
         while (controller) {
             if (controller.host) {

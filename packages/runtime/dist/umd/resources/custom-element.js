@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../definitions", "../templating/bindable", "../templating/children"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../templating/bindable", "../templating/children"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
+    const dom_1 = require("../dom");
     const bindable_1 = require("../templating/bindable");
     const children_1 = require("../templating/children");
     function customElement(nameOrDef) {
@@ -125,8 +126,40 @@
         isType(value) {
             return typeof value === 'function' && kernel_1.Metadata.hasOwn(exports.CustomElement.name, value);
         },
-        behaviorFor(node) {
-            return node.$controller;
+        for(node, nameOrSearchParents, searchParents) {
+            if (nameOrSearchParents === void 0) {
+                return kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+            }
+            if (typeof nameOrSearchParents === 'string') {
+                if (searchParents !== true) {
+                    const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+                    if (controller === void 0) {
+                        return (void 0);
+                    }
+                    if (controller.is(nameOrSearchParents)) {
+                        return controller;
+                    }
+                    return (void 0);
+                }
+                let cur = node;
+                while (cur !== null) {
+                    const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+                    if (controller !== void 0 && controller.is(nameOrSearchParents)) {
+                        return controller;
+                    }
+                    cur = dom_1.DOM.getEffectiveParentNode(node);
+                }
+                return (void 0);
+            }
+            let cur = node;
+            while (cur !== null) {
+                const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+                if (controller !== void 0) {
+                    return controller;
+                }
+                cur = dom_1.DOM.getEffectiveParentNode(node);
+            }
+            return (void 0);
         },
         define(nameOrDef, Type) {
             const definition = CustomElementDefinition.create(nameOrDef, Type);

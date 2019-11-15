@@ -54,6 +54,9 @@ export const CustomAttribute = {
     isType(value) {
         return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
     },
+    for(node, name) {
+        return Metadata.getOwn(CustomAttribute.keyFrom(name), node);
+    },
     define(nameOrDef, Type) {
         const definition = CustomAttributeDefinition.create(nameOrDef, Type);
         Metadata.define(CustomAttribute.name, definition, definition.Type);

@@ -117,7 +117,7 @@
             }
         }
         updateAttribute(attribute, value, flags) {
-            const controller = runtime_1.CustomElement.behaviorFor(this.target);
+            const controller = runtime_1.CustomElement.for(this.target);
             const observer = controller && controller.viewModel
                 ? this.observerLocator.getAccessor(0 /* none */, controller.viewModel, attribute)
                 : this.observerLocator.getAccessor(0 /* none */, this.target, attribute);

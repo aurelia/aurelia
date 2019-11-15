@@ -195,7 +195,7 @@ export function filterChildren(projector, query, filter, map) {
     const children = [];
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
         const node = nodes[i];
-        const controller = CustomElement.behaviorFor(node);
+        const controller = CustomElement.for(node);
         const viewModel = controller ? controller.viewModel : null;
         if (filter(node, controller, viewModel)) {
             children.push(map(node, controller, viewModel));

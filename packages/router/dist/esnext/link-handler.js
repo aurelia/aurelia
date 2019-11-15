@@ -1,4 +1,4 @@
-import { IDOM } from '@aurelia/runtime';
+import { IDOM, CustomAttribute } from '@aurelia/runtime';
 /**
  * Class responsible for handling interactions that should trigger navigation.
  */
@@ -42,7 +42,8 @@ export class LinkHandler {
         if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
             return info;
         }
-        const goto = target.$au !== void 0 && target.$au['goto'] !== void 0 ? target.$au['goto'].viewModel.value : null;
+        const gotoAttr = CustomAttribute.for(target, 'goto');
+        const goto = gotoAttr !== void 0 ? gotoAttr.viewModel.value : null;
         const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
         if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
             return info;

@@ -11,10 +11,10 @@ import { IProjectorLocator, CustomElement } from '../resources/custom-element';
 import { CustomAttribute } from '../resources/custom-attribute';
 export class Controller {
     // todo: refactor
-    constructor(vmKind, flags, viewCache, lifecycle, viewModel, parentContext, host, options) {
+    constructor(vmKind, flags, viewFactory, lifecycle, viewModel, parentContext, host, options) {
         this.vmKind = vmKind;
         this.flags = flags;
-        this.viewCache = viewCache;
+        this.viewFactory = viewFactory;
         this.lifecycle = lifecycle;
         this.viewModel = viewModel;
         this.parentContext = parentContext;
@@ -39,9 +39,9 @@ export class Controller {
         this.mountStrategy = 1 /* insertBefore */;
         switch (vmKind) {
             case 2 /* synthetic */: {
-                if (viewCache == void 0) {
+                if (viewFactory == void 0) {
                     // TODO: create error code
-                    throw new Error(`No IViewCache was provided when rendering a synthetic view.`);
+                    throw new Error(`No IViewFactory was provided when rendering a synthetic view.`);
                 }
                 this.hooks = HooksDefinition.none;
                 this.bindingContext = void 0; // stays undefined
@@ -168,8 +168,23 @@ export class Controller {
         }
         return controller;
     }
-    static forSyntheticView(viewCache, lifecycle, flags = 0 /* none */) {
-        return new Controller(2 /* synthetic */, flags, viewCache, lifecycle, void 0, void 0, void 0, PLATFORM.emptyObject);
+    static forSyntheticView(viewFactory, lifecycle, flags = 0 /* none */) {
+        return new Controller(2 /* synthetic */, flags, viewFactory, lifecycle, void 0, void 0, void 0, PLATFORM.emptyObject);
+    }
+    is(name) {
+        switch (this.vmKind) {
+            case 1 /* customAttribute */: {
+                const def = CustomAttribute.getDefinition(this.viewModel.constructor);
+                return def.name === name;
+            }
+            case 0 /* customElement */: {
+                const def = CustomElement.getDefinition(this.viewModel.constructor);
+                return def.name === name;
+            }
+            case 2 /* synthetic */:
+                return this.viewFactory.name === name;
+        }
+        return false;
     }
     lockScope(scope) {
         this.scope = scope;
@@ -184,7 +199,7 @@ export class Controller {
         this.state |= 32768 /* canBeCached */;
         if ((this.state & 32 /* isAttached */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            return this.viewCache.canReturnToCache(this); // non-null is implied by the hook
+            return this.viewFactory.canReturnToCache(this); // non-null is implied by the hook
         }
         return this.unmountSynthetic(flags);
     }
@@ -648,7 +663,7 @@ export class Controller {
         if ((this.state & 32768 /* canBeCached */) > 0) {
             this.state = (this.state | 32768 /* canBeCached */) ^ 32768 /* canBeCached */;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (this.viewCache.tryReturnToCache(this)) { // non-null is implied by the hook
+            if (this.viewFactory.tryReturnToCache(this)) { // non-null is implied by the hook
                 this.state |= 128 /* isCached */;
                 return true;
             }

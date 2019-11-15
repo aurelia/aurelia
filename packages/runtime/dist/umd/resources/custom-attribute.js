@@ -68,6 +68,9 @@
         isType(value) {
             return typeof value === 'function' && kernel_1.Metadata.hasOwn(exports.CustomAttribute.name, value);
         },
+        for(node, name) {
+            return kernel_1.Metadata.getOwn(exports.CustomAttribute.keyFrom(name), node);
+        },
         define(nameOrDef, Type) {
             const definition = CustomAttributeDefinition.create(nameOrDef, Type);
             kernel_1.Metadata.define(exports.CustomAttribute.name, definition, definition.Type);

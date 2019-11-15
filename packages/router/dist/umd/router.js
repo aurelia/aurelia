@@ -486,10 +486,10 @@
                 return el.$viewport;
             }
             el = element;
-            let controller = runtime_1.CustomElement.behaviorFor(el);
+            let controller = runtime_1.CustomElement.for(el);
             while (!controller && el.parentElement) {
                 el = el.parentElement;
-                runtime_1.CustomElement.behaviorFor(el);
+                runtime_1.CustomElement.for(el);
             }
             while (controller) {
                 if (controller.host) {

@@ -46,7 +46,7 @@
     "@aurelia/jit-html": "0.5.0",
     "@aurelia/jit-html-jsdom": "0.5.0",
     "typescript": "^3.7.2",
-    "jsdom": "^15.1.1"
+		"jsdom": "^15.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.7",

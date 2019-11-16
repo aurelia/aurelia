@@ -8492,7 +8492,7 @@ export class $IfStatement implements I$Node {
 
       this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
     } else {
-      const $elseStatement = $$esStatement(node.elseStatement as $StatementNode, this, ctx);
+      const $elseStatement = this.$elseStatement = $$esStatement(node.elseStatement as $StatementNode, this, ctx);
 
       this.VarScopedDeclarations = [
         ...$thenStatement.VarScopedDeclarations,

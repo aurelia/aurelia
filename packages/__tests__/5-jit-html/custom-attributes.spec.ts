@@ -280,7 +280,7 @@ describe('custom-attributes', function () {
   // foo1: has both normal change handler and all properties change handler
   // foo2: has only normal change handler
   // foo3: has only all properties change handler
-  describe('04. Change handler with "propertyChanged" callback', function() {
+  describe('04. Change handler with "propertyChanged" callback', function () {
     interface IChangeHandlerTestViewModel {
       prop: any;
       propChangedCallCount: number;
@@ -371,7 +371,7 @@ describe('custom-attributes', function () {
     eachCartesianJoin(
       [templateUsages, testCases],
       ([usageDesc, usageSyntax], testCase) => {
-        it(`does not invoke change handler when starts with ${usageDesc} usage`, function() {
+        it(`does not invoke change handler when starts with ${usageDesc} usage`, function () {
           const template = `<div foo1${usageSyntax} foo2${usageSyntax} foo3${usageSyntax}></div>`;
           const { foos, tearDown } = setupChangeHandlerTest(template);
           const callCounts = testCase.callCounts;
@@ -399,8 +399,8 @@ describe('custom-attributes', function () {
       }
     );
 
-    describe('04.1 + with two-way', function() {
-      it('does not invoke change handler when starts with two-way usage', function() {
+    describe('04.1 + with two-way', function () {
+      it('does not invoke change handler when starts with two-way usage', function () {
         const template = `<div foo1.two-way="prop"></div>`;
         const options = setup(
           template,
@@ -411,7 +411,7 @@ describe('custom-attributes', function () {
         );
 
         const fooEl = options.appHost.querySelector('div') as INode;
-        const foo1Vm = fooEl.$au.foo1.viewModel as Foo1;
+        const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
 
         assert.strictEqual(foo1Vm.propChangedCallCount, 0, `#1 Foo1 count`);
         assert.strictEqual(foo1Vm.propertyChangedCallCount, 0, `#2 Foo1 count`);
@@ -442,9 +442,9 @@ describe('custom-attributes', function () {
     function setupChangeHandlerTest(template: string) {
       const options = setup(template, class {}, [Foo1, Foo2, Foo3]);
       const fooEl = options.appHost.querySelector('div') as INode;
-      const foo1Vm = fooEl.$au.foo1.viewModel as Foo1;
-      const foo2Vm = fooEl.$au.foo2.viewModel as Foo2;
-      const foo3Vm = fooEl.$au.foo3.viewModel as Foo3;
+      const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
+      const foo2Vm = CustomAttribute.for(fooEl, 'foo2').viewModel as Foo2;
+      const foo3Vm = CustomAttribute.for(fooEl, 'foo3').viewModel as Foo3;
       return {
         rootVm: options.component,
         fooVm: foo1Vm,
@@ -459,7 +459,7 @@ describe('custom-attributes', function () {
     }
   });
 
-  describe('05. with setter/getter', function() {
+  describe('05. with setter/getter', function () {
     /**
      * Specs:
      * - with setter coercing to string for "prop" property
@@ -590,7 +590,7 @@ describe('custom-attributes', function () {
     eachCartesianJoin(
       [templateUsages, testCases],
       ([usageType, usageSyntax], [mutationValue, ...getFooVmProps]) => {
-        it(`does not invoke change handler when starts with ${UsageType[usageType]} usage`, function() {
+        it(`does not invoke change handler when starts with ${UsageType[usageType]} usage`, function () {
           const template =
             `<div
               foo1${usageSyntax}
@@ -634,10 +634,10 @@ describe('custom-attributes', function () {
     function setupChangeHandlerTest(template: string) {
       const options = setup(template, class { public prop: string = 'prop'; }, [Foo1, Foo2, Foo3, Foo4]);
       const fooEl = options.appHost.querySelector('div') as INode;
-      const foo1Vm = fooEl.$au.foo1.viewModel as Foo1;
-      const foo2Vm = fooEl.$au.foo2.viewModel as Foo2;
-      const foo3Vm = fooEl.$au.foo3.viewModel as Foo3;
-      const foo4Vm = fooEl.$au.foo4.viewModel as Foo4;
+      const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
+      const foo2Vm = CustomAttribute.for(fooEl, 'foo2').viewModel as Foo2;
+      const foo3Vm = CustomAttribute.for(fooEl, 'foo3').viewModel as Foo3;
+      const foo4Vm = CustomAttribute.for(fooEl, 'foo4').viewModel as Foo4;
       return {
         rootVm: options.component,
         foo1Vm,
@@ -652,8 +652,8 @@ describe('custom-attributes', function () {
       };
     }
 
-    describe('05.1 + with two-way', function() {
-      it('works properly when two-way binding with number setter interceptor', function() {
+    describe('05.1 + with two-way', function () {
+      it('works properly when two-way binding with number setter interceptor', function () {
         const template = `<div foo1.two-way="prop">\${prop}</div>`;
         const options = setup(
           template,
@@ -662,8 +662,9 @@ describe('custom-attributes', function () {
           },
           [Foo1, Foo2, Foo3, Foo4]
         );
+        const fooEl = options.appHost.querySelector('div');
         const rootVm = options.au.root.viewModel as any;
-        const foo1Vm = (options.appHost.querySelector('div') as INode).$au.foo1.viewModel as Foo1;
+        const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
 
         assert.strictEqual(foo1Vm.prop, 'prop', '#1 <-> Foo1 initial');
         assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');
@@ -686,7 +687,7 @@ describe('custom-attributes', function () {
         options.appHost.remove();
       });
 
-      it('does not result in overflow error when getter/setter are different, but getter convert to primitive value', function() {
+      it('does not result in overflow error when getter/setter are different, but getter convert to primitive value', function () {
         /**
          * Specs:
          * - With bindable with getter coerce to string, setter coerce to number for "prop" property
@@ -708,8 +709,9 @@ describe('custom-attributes', function () {
           },
           [Foo5]
         );
+        const fooEl = options.appHost.querySelector('div');
         const rootVm = options.au.root.viewModel as any;
-        const foo5Vm = (options.appHost.querySelector('div') as INode).$au.foo5.viewModel as Foo5;
+        const foo5Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo5;
 
         assert.strictEqual(foo5Vm.prop, 'NaN', '#1 <-> Foo1 initial');
         assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');

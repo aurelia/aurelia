@@ -397,9 +397,9 @@ describe('custom-elements', function () {
 
   });
 
-  describe('08. Change Handler', function() {
+  describe('08. Change Handler', function () {
 
-    describe('+ with only [prop]Changed()', function() {
+    describe('+ with only [prop]Changed()', function () {
       interface IChangeHandlerTestViewModel {
         prop: any;
         propChangedCallCount: number;
@@ -419,7 +419,7 @@ describe('custom-elements', function () {
         }
       }
 
-      it('does not invoke change handler when starts with plain usage', function() {
+      it('does not invoke change handler when starts with plain usage', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         fooVm.prop = '5';
@@ -427,7 +427,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with commands', function() {
+      it('does not invoke change handler when starts with commands', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         fooVm.prop = '5';
@@ -435,7 +435,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with interpolation', function() {
+      it('does not invoke change handler when starts with interpolation', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         fooVm.prop = '5';
@@ -443,7 +443,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with two way binding', function() {
+      it('does not invoke change handler when starts with two way binding', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         fooVm.prop = '5';
@@ -465,7 +465,7 @@ describe('custom-elements', function () {
       }
     });
 
-    describe('+ with only propertyChanged(name, newValue, oldValue)', function() {
+    describe('+ with only propertyChanged(name, newValue, oldValue)', function () {
       interface IChangeHandlerTestViewModel {
         prop: any;
         propertyChangedCallCount: number;
@@ -485,7 +485,7 @@ describe('custom-elements', function () {
         }
       }
 
-      it('does not invoke change handler when starts with plain usage', function() {
+      it('does not invoke change handler when starts with plain usage', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
         fooVm.prop = '5';
@@ -493,7 +493,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with commands', function() {
+      it('does not invoke change handler when starts with commands', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
         fooVm.prop = '5';
@@ -501,7 +501,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with interpolation', function() {
+      it('does not invoke change handler when starts with interpolation', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
         fooVm.prop = '5';
@@ -509,7 +509,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with two way binding', function() {
+      it('does not invoke change handler when starts with two way binding', function () {
         const { fooVm, rootVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
         fooVm.prop = '5';
@@ -533,7 +533,7 @@ describe('custom-elements', function () {
       }
     });
 
-    describe('+ with both [prop]Changed() + propertyChanged(name, newValue, oldValue)', function() {
+    describe('+ with both [prop]Changed() + propertyChanged(name, newValue, oldValue)', function () {
       interface IChangeHandlerTestViewModel {
         prop: any;
         propChangedCallCount: number;
@@ -559,7 +559,7 @@ describe('custom-elements', function () {
         }
       }
 
-      it('does not invoke change handler when starts with plain usage', function() {
+      it('does not invoke change handler when starts with plain usage', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
@@ -569,7 +569,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with commands', function() {
+      it('does not invoke change handler when starts with commands', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
@@ -579,7 +579,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with interpolation', function() {
+      it('does not invoke change handler when starts with interpolation', function () {
         const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
@@ -589,7 +589,7 @@ describe('custom-elements', function () {
         tearDown();
       });
 
-      it('does not invoke change handler when starts with two way binding', function() {
+      it('does not invoke change handler when starts with two way binding', function () {
         const { fooVm, rootVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
         assert.strictEqual(fooVm.propChangedCallCount, 0);
         assert.strictEqual(fooVm.propertyChangedCallCount, 0);
@@ -616,8 +616,8 @@ describe('custom-elements', function () {
     });
   });
 
-  describe('09. with setter', function() {
-    it('works with direct input binding', function() {
+  describe('09. with setter', function () {
+    it('works with direct input binding', function () {
       const ctx = TestContext.createHTMLTestContext();
       const au = new Aurelia(ctx.container);
       const host = ctx.createElement('app');

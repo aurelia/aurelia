@@ -4,9 +4,10 @@ import {
   CustomElement,
   LifecycleFlags,
   alias,
-  CustomElementHost
+  CustomElementHost,
+  Aurelia
 } from '@aurelia/runtime';
-import { TestConfiguration, assert, setup } from '@aurelia/testing';
+import { TestConfiguration, assert, setup, TestContext } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
 interface Person { firstName?: string; lastName?: string; fullName?: string }
@@ -396,66 +397,276 @@ describe('custom-elements', function () {
 
   });
 
-  describe('08. Change Handler', function () {
-    interface IChangeHandlerTestViewModel {
-      prop: any;
-      propChangedCallCount: number;
-      propChanged(newValue: any): void;
-    }
+  describe('08. Change Handler', function() {
 
-    @customElement({
-      name: 'foo',
-      template: ''
-    })
-    class Foo implements IChangeHandlerTestViewModel {
-      @bindable()
-      public prop: any;
-      public propChangedCallCount: number = 0;
-      public propChanged(): void {
-        this.propChangedCallCount++;
+    describe('+ with only [prop]Changed()', function() {
+      interface IChangeHandlerTestViewModel {
+        prop: any;
+        propChangedCallCount: number;
+        propChanged(newValue: any): void;
       }
-    }
 
-    it('does not invoke change handler when starts with plain usage', function () {
-      const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
-      assert.strictEqual(fooVm.propChangedCallCount, 0);
-      fooVm.prop = '5';
-      assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
+      @customElement({
+        name: 'foo',
+        template: ''
+      })
+      class Foo implements IChangeHandlerTestViewModel {
+        @bindable()
+        public prop: any;
+        public propChangedCallCount: number = 0;
+        public propChanged(): void {
+          this.propChangedCallCount++;
+        }
+      }
+
+      it('does not invoke change handler when starts with plain usage', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with commands', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with interpolation', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with two way binding', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        tearDown();
+      });
+
+      function setupChangeHandlerTest(template: string) {
+        const options = setup(template, app, [Foo]);
+        const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
+        const fooVm = fooEl.$controller.viewModel as Foo;
+        return {
+          fooVm: fooVm,
+          tearDown: () => {
+            options.au.stop();
+            options.appHost.remove();
+          }
+        };
+      }
     });
 
-    it('does not invoke chane handler when starts with commands', function () {
-      const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
-      assert.strictEqual(fooVm.propChangedCallCount, 0);
-      fooVm.prop = '5';
-      assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
+    describe('+ with only propertyChanged(name, newValue, oldValue)', function() {
+      interface IChangeHandlerTestViewModel {
+        prop: any;
+        propertyChangedCallCount: number;
+        propertyChanged(name: string, newValue: any, oldValue: any): void;
+      }
+
+      @customElement({
+        name: 'foo',
+        template: ''
+      })
+      class Foo implements IChangeHandlerTestViewModel {
+        @bindable()
+        public prop: any;
+        public propertyChangedCallCount: number = 0;
+        public propertyChanged(): void {
+          this.propertyChangedCallCount++;
+        }
+      }
+
+      it('does not invoke change handler when starts with plain usage', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with commands', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with interpolation', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with two way binding', function() {
+        const { fooVm, rootVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        assert.strictEqual(rootVm.prop, '5');
+        tearDown();
+      });
+
+      function setupChangeHandlerTest(template: string) {
+        const options = setup(template, app, [Foo]);
+        const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
+        const fooVm = fooEl.$controller.viewModel as Foo;
+        return {
+          fooVm: fooVm,
+          rootVm: options.au.root.viewModel as any,
+          tearDown: () => {
+            options.au.stop();
+            options.appHost.remove();
+          }
+        };
+      }
     });
 
-    it('does not invoke chane handler when starts with interpolation', function () {
-      const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
-      assert.strictEqual(fooVm.propChangedCallCount, 0);
-      fooVm.prop = '5';
-      assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
+    describe('+ with both [prop]Changed() + propertyChanged(name, newValue, oldValue)', function() {
+      interface IChangeHandlerTestViewModel {
+        prop: any;
+        propChangedCallCount: number;
+        propChanged(): void;
+        propertyChangedCallCount: number;
+        propertyChanged(name: string, newValue: any, oldValue: any): void;
+      }
+
+      @customElement({
+        name: 'foo',
+        template: ''
+      })
+      class Foo implements IChangeHandlerTestViewModel {
+        @bindable()
+        public prop: any;
+        public propChangedCallCount: number = 0;
+        public propChanged(): void {
+          this.propChangedCallCount++;
+        }
+        public propertyChangedCallCount: number = 0;
+        public propertyChanged(): void {
+          this.propertyChangedCallCount++;
+        }
+      }
+
+      it('does not invoke change handler when starts with plain usage', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop="prop"></foo>');
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with commands', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest('<foo prop.bind="prop"></foo>');
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with interpolation', function() {
+        const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop="\${prop}"></foo>`);
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        tearDown();
+      });
+
+      it('does not invoke change handler when starts with two way binding', function() {
+        const { fooVm, rootVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
+        assert.strictEqual(fooVm.propChangedCallCount, 0);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 0);
+        fooVm.prop = '5';
+        assert.strictEqual(fooVm.propChangedCallCount, 1);
+        assert.strictEqual(fooVm.propertyChangedCallCount, 1);
+        assert.strictEqual(rootVm.prop, '5');
+        tearDown();
+      });
+
+      function setupChangeHandlerTest(template: string) {
+        const options = setup(template, app, [Foo]);
+        const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
+        const fooVm = fooEl.$controller.viewModel as Foo;
+        return {
+          fooVm: fooVm,
+          rootVm: options.au.root.viewModel as any,
+          tearDown: () => {
+            options.au.stop();
+            options.appHost.remove();
+          }
+        };
+      }
+    });
+  });
+
+  describe('09. with setter', function() {
+    it('works with direct input binding', function() {
+      const ctx = TestContext.createHTMLTestContext();
+      const au = new Aurelia(ctx.container);
+      const host = ctx.createElement('app');
+
+      @customElement({
+        name: 'app',
+        template: `<input value.bind="value">`
+      })
+      class App {
+        @bindable({
+          set: Number
+        })
+        public value: number;
+      }
+
+      au.app({ host: host, component: App });
+      au.start();
+
+      const rootVm = au.root.viewModel as any as App;
+      const inputEl = host.querySelector('input');
+
+      assert.strictEqual(inputEl.value, '');
+      assert.strictEqual(rootVm.value, undefined);
+
+      inputEl.value = '5';
+      inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+      assert.strictEqual(rootVm.value, 5);
+
+      // emulate wrong input scenario
+      // that it won't cause an overflow, because guarded with Object.is(newValue, currentValue)
+      inputEl.value = 'a5';
+      inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+      assert.strictEqual(Object.is(rootVm.value, NaN), true);
+
+      // emulate view model value change
+      rootVm.value = 4;
+      assert.strictEqual(inputEl.value, 'a5');
+      ctx.scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(inputEl.value, '4');
+
+      // emulate wrong value assignment
+      rootVm.value = NaN;
+      assert.strictEqual(Object.is(rootVm.value, NaN), true);
+      ctx.scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(inputEl.value, 'NaN');
     });
 
-    it('does not invoke chane handler when starts with two way binding', function () {
-      const { fooVm, tearDown } = setupChangeHandlerTest(`<foo prop.two-way="prop"></foo>`);
-      assert.strictEqual(fooVm.propChangedCallCount, 0);
-      fooVm.prop = '5';
-      assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
-    });
+    // it('works with range input', function() {
 
-    function setupChangeHandlerTest(template: string) {
-      const options = setup(template, app, [Foo]);
-      const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
-      const fooVm = CustomElement.for(fooEl).viewModel as Foo;
-      return {
-        fooVm: fooVm,
-        tearDown: () => options.au.stop()
-      };
-    }
+    // });
   });
 });

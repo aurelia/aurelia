@@ -267,7 +267,10 @@ describe('custom-attributes', function () {
       const fooVm = CustomAttribute.for(fooEl, 'foo').viewModel as Foo;
       return {
         fooVm: fooVm,
-        tearDown: () => options.au.stop()
+        tearDown: () => {
+          options.au.stop();
+          options.appHost.remove();
+        }
       };
     }
   });
@@ -287,8 +290,8 @@ describe('custom-attributes', function () {
       propertyChanged?(...args: unknown[]): void;
     }
 
-    @customAttribute('foo')
-    class Foo implements IChangeHandlerTestViewModel {
+    @customAttribute('foo1')
+    class Foo1 implements IChangeHandlerTestViewModel {
       @bindable()
       public prop: any;
       public propChangedCallCount: number = 0;
@@ -369,7 +372,7 @@ describe('custom-attributes', function () {
       [templateUsages, testCases],
       ([usageDesc, usageSyntax], testCase) => {
         it(`does not invoke change handler when starts with ${usageDesc} usage`, function() {
-          const template = `<div foo${usageSyntax} foo2${usageSyntax} foo3${usageSyntax}></div>`;
+          const template = `<div foo1${usageSyntax} foo2${usageSyntax} foo3${usageSyntax}></div>`;
           const { foos, tearDown } = setupChangeHandlerTest(template);
           const callCounts = testCase.callCounts;
 
@@ -396,24 +399,71 @@ describe('custom-attributes', function () {
       }
     );
 
+    describe('04.1 + with two-way', function() {
+      it('does not invoke change handler when starts with two-way usage', function() {
+        const template = `<div foo1.two-way="prop"></div>`;
+        const options = setup(
+          template,
+          class {
+            public prop: string = 'prop';
+          },
+          [Foo1]
+        );
+
+        const fooEl = options.appHost.querySelector('div') as INode;
+        const foo1Vm = fooEl.$au.foo1.viewModel as Foo1;
+
+        assert.strictEqual(foo1Vm.propChangedCallCount, 0, `#1 Foo1 count`);
+        assert.strictEqual(foo1Vm.propertyChangedCallCount, 0, `#2 Foo1 count`);
+        assert.strictEqual(foo1Vm.prop, `prop`);
+
+        const rootVm = options.au.root.viewModel;
+        // changing source value should trigger the change handler
+        rootVm['prop'] = 5;
+        assert.strictEqual(foo1Vm.propChangedCallCount, 1, '#3 Foo1 propChanged()');
+        assert.strictEqual(foo1Vm.propertyChangedCallCount, 1, '#3 Foo1 propChanged()');
+        assert.strictEqual(foo1Vm.prop, 5);
+
+        // manually setting the value in the view model should also trigger the change handler
+        foo1Vm.prop = 6;
+        assert.strictEqual(foo1Vm.propChangedCallCount, 2, '#4 Foo1 propChanged()');
+        assert.strictEqual(foo1Vm.propertyChangedCallCount, 2, '#4 Foo1 propChanged()');
+        assert.strictEqual(foo1Vm.prop, 6);
+        assert.strictEqual(rootVm['prop'], 6);
+
+        options.au.stop();
+      });
+
+      // Foo1 should cover both Foo2, and Foo3
+      // but for completeness, should have tests for Foo2 & Foo3, similar like above
+      // todo: test with Foo2, and Foo3
+    });
+
     function setupChangeHandlerTest(template: string) {
-      const options = setup(template, class {}, [Foo, Foo2, Foo3]);
+      const options = setup(template, class {}, [Foo1, Foo2, Foo3]);
       const fooEl = options.appHost.querySelector('div') as INode;
-      const fooVm = fooEl.$au.foo.viewModel as Foo;
+      const foo1Vm = fooEl.$au.foo1.viewModel as Foo1;
       const foo2Vm = fooEl.$au.foo2.viewModel as Foo2;
       const foo3Vm = fooEl.$au.foo3.viewModel as Foo3;
       return {
         rootVm: options.component,
-        fooVm,
+        fooVm: foo1Vm,
         foo2Vm,
         foo3Vm,
-        foos: [fooVm, foo2Vm, foo3Vm] as [IChangeHandlerTestViewModel, IChangeHandlerTestViewModel, IChangeHandlerTestViewModel],
-        tearDown: () => options.au.stop()
+        foos: [foo1Vm, foo2Vm, foo3Vm] as [IChangeHandlerTestViewModel, IChangeHandlerTestViewModel, IChangeHandlerTestViewModel],
+        tearDown: () => {
+          options.au.stop();
+          options.appHost.remove();
+        }
       };
     }
   });
 
   describe('05. with setter/getter', function() {
+    /**
+     * Specs:
+     * - with setter coercing to string for "prop" property
+     */
     @customAttribute('foo1')
     class Foo1 {
       @bindable({
@@ -422,12 +472,20 @@ describe('custom-attributes', function () {
       public prop: any;
     }
 
+    /**
+     * Specs:
+     * - plain bindable "prop"
+     */
     @customAttribute('foo2')
     class Foo2 {
       @bindable()
       public prop: any;
     }
 
+    /**
+     * Specs:
+     * - with setter/getter coercing to string for "prop" property
+     */
     @customAttribute('foo3')
     class Foo3 {
       @bindable({
@@ -437,6 +495,12 @@ describe('custom-attributes', function () {
       public prop: any;
     }
 
+    /**
+     * Foo4 specs:
+     * - with primary bindable with setter
+     * - with setter coercing to number
+     * - with change handler for "prop" property
+     */
     @customAttribute('foo4')
     class Foo4 {
 
@@ -581,8 +645,93 @@ describe('custom-attributes', function () {
         foo3Vm,
         foo4Vm,
         foos: [foo1Vm, foo2Vm, foo3Vm, foo4Vm] as IChangeHandlerTestViewModel[],
-        tearDown: () => options.au.stop()
+        tearDown: () => {
+          options.au.stop();
+          options.appHost.remove();
+        }
       };
     }
+
+    describe('05.1 + with two-way', function() {
+      it('works properly when two-way binding with number setter interceptor', function() {
+        const template = `<div foo1.two-way="prop">\${prop}</div>`;
+        const options = setup(
+          template,
+          class {
+            public prop: string = 'prop';
+          },
+          [Foo1, Foo2, Foo3, Foo4]
+        );
+        const rootVm = options.au.root.viewModel as any;
+        const foo1Vm = (options.appHost.querySelector('div') as INode).$au.foo1.viewModel as Foo1;
+
+        assert.strictEqual(foo1Vm.prop, 'prop', '#1 <-> Foo1 initial');
+        assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');
+        assert.strictEqual(options.appHost.textContent, 'prop');
+
+        rootVm.prop = 5;
+        assert.strictEqual(foo1Vm.prop, '5', '#2 <-> RootVm.prop << 5');
+        assert.strictEqual(rootVm.prop, '5', '#2 <-> RootVm.prop << 5');
+        options.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(options.appHost.textContent, '5');
+
+        const date = new Date();
+        foo1Vm.prop = date;
+        assert.strictEqual(foo1Vm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
+        assert.strictEqual(rootVm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
+        options.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(options.appHost.textContent, date.toString());
+
+        options.au.stop();
+        options.appHost.remove();
+      });
+
+      it('does not result in overflow error when getter/setter are different, but getter convert to primitive value', function() {
+        /**
+         * Specs:
+         * - With bindable with getter coerce to string, setter coerce to number for "prop" property
+         */
+        @customAttribute('foo5')
+        class Foo5 {
+          @bindable({
+            get: String,
+            set: Number,
+          })
+          public prop: any;
+        }
+
+        const template = `<div foo5.two-way="prop">\${prop}</div>`;
+        const options = setup(
+          template,
+          class {
+            public prop: string = 'prop';
+          },
+          [Foo5]
+        );
+        const rootVm = options.au.root.viewModel as any;
+        const foo5Vm = (options.appHost.querySelector('div') as INode).$au.foo5.viewModel as Foo5;
+
+        assert.strictEqual(foo5Vm.prop, 'NaN', '#1 <-> Foo1 initial');
+        assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');
+        assert.strictEqual(options.appHost.textContent, 'prop');
+
+        rootVm.prop = 5;
+        assert.strictEqual(foo5Vm.prop, '5', '#2 <-> RootVm.prop << 5 -> foo5Vm');
+        assert.strictEqual((foo5Vm as any).$observers.prop.currentValue, 5, '#2 Foo5.$observer.prop.currentValue');
+        assert.strictEqual(rootVm.prop, 5, '#2 <-> RootVm.prop << 5 -> rootVm');
+        options.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(options.appHost.textContent, '5');
+
+        const date = new Date();
+        foo5Vm.prop = date;
+        assert.strictEqual(foo5Vm.prop, date.getTime().toString(), '#3 <-> foo1Vm.prop << Date');
+        assert.strictEqual(rootVm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
+        options.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(options.appHost.textContent, date.getTime().toString());
+
+        options.au.stop();
+        options.appHost.remove();
+      });
+    });
   });
 });

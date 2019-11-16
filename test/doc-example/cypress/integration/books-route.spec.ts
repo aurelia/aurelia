@@ -3,7 +3,7 @@ import { BookComponent, BooksComponent, LoginComponent, Shared } from './selecto
 
 describe('doc-example / books route', function () {
   it('navigates to books route', function () {
-    cy.visit(cypressConfig.baseUrl + '/#/books+about')
+    cy.visit(`${cypressConfig.baseUrl}/#/books+about`)
       .url()
       .should('contain', '/#/books+about');
   });

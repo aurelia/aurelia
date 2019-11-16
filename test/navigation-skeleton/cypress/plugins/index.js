@@ -5,7 +5,7 @@ module.exports = (on, config) => {
   // `config` is the resolved Cypress config
   const options = {
     webpackOptions: require('../../webpack.config'),
-  }
+  };
 
   on('file:preprocessor', wp(options));
-}
+};

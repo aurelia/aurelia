@@ -86,7 +86,7 @@ export class BindableObserver {
       // example: two way binding
       //    - setter: Number
       //    - getter: String
-      //    someVm.prop = '5' <-- triggers setter      
+      //    someVm.prop = '5' <-- triggers setter
       ? this.getterInterceptor(currentValue)
       : currentValue;
   }

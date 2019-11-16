@@ -1,4 +1,4 @@
-import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp } from './_shared';
+import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
 import { Realm } from '../realm';
 import { $FunctionDeclaration, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration } from '../ast';
 import { $Object } from './object';
@@ -13,7 +13,11 @@ export class $Undefined {
   public readonly id: number = nextValueId();
   public readonly IntrinsicName: 'undefined' = 'undefined' as const;
 
-  public readonly value: undefined = void 0;
+  public '[[Type]]': PotentialNonEmptyCompletionType;
+  public readonly '[[Value]]': undefined = void 0;
+  public '[[Target]]': CompletionTarget;
+
+  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
 
   public get Type(): 'Undefined' { return 'Undefined'; }
   public get isEmpty(): false { return false; }
@@ -40,11 +44,33 @@ export class $Undefined {
 
   public constructor(
     public readonly realm: Realm,
+    type: PotentialNonEmptyCompletionType = CompletionType.normal,
+    target: CompletionTarget = realm['[[Intrinsics]]'].empty,
     public readonly sourceNode: $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
-  ) {}
+  ) {
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+  }
 
   public is(other: $Any): other is $Undefined {
     return other instanceof $Undefined;
+  }
+
+  public ToCompletion(
+    type: PotentialNonEmptyCompletionType,
+    target: CompletionTarget,
+  ): this {
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  public UpdateEmpty(value: $Any): this {
+    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
+    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
+    return this;
+    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
   }
 
   public ToObject(): $Object {
@@ -66,7 +92,9 @@ export class $Undefined {
   public ToBoolean(): $Boolean {
     return new $Boolean(
       /* realm */this.realm,
-      /* value */Boolean(this.value),
+      /* value */Boolean(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -75,7 +103,9 @@ export class $Undefined {
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Number(this.value),
+      /* value */Number(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -84,7 +114,9 @@ export class $Undefined {
   public ToInt32(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Int32(this.value),
+      /* value */Int32(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -93,7 +125,9 @@ export class $Undefined {
   public ToUint32(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint32(this.value),
+      /* value */Uint32(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -102,7 +136,9 @@ export class $Undefined {
   public ToInt16(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Int16(this.value),
+      /* value */Int16(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -111,7 +147,9 @@ export class $Undefined {
   public ToUint16(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint16(this.value),
+      /* value */Uint16(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -120,7 +158,9 @@ export class $Undefined {
   public ToInt8(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Int8(this.value),
+      /* value */Int8(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -129,7 +169,9 @@ export class $Undefined {
   public ToUint8(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint8(this.value),
+      /* value */Uint8(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -138,7 +180,9 @@ export class $Undefined {
   public ToUint8Clamp(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint8Clamp(this.value),
+      /* value */Uint8Clamp(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -147,7 +191,9 @@ export class $Undefined {
   public ToString(): $String {
     return new $String(
       /* realm */this.realm,
-      /* value */String(this.value),
+      /* value */String(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );

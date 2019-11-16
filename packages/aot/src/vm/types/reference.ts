@@ -6,7 +6,7 @@ import { $Symbol } from './symbol';
 import { $Number } from './number';
 import { $EnvRec } from './environment-record';
 import { $Undefined } from './undefined';
-import { $Any } from './_shared';
+import { $AnyNonEmpty } from './_shared';
 import { $Empty } from './empty';
 import { $Set } from '../operations';
 
@@ -89,7 +89,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getvalue
-  public GetValue(): $Any {
+  public GetValue(): $AnyNonEmpty {
     // 1. ReturnIfAbrupt(V).
     // 2. If Type(V) is not Reference, return V.
     // 3. Let base be GetBase(V).
@@ -120,7 +120,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-putvalue
-  public PutValue(W: $Any): $Boolean | $Empty {
+  public PutValue(W: $AnyNonEmpty): $Boolean | $Empty {
     // 1. ReturnIfAbrupt(V).
     // 2. ReturnIfAbrupt(W).
     // 3. If Type(V) is not Reference, throw a ReferenceError exception.
@@ -182,7 +182,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-initializereferencedbinding
-  public InitializeReferencedBinding(W: $Any): $Boolean | $Empty {
+  public InitializeReferencedBinding(W: $AnyNonEmpty): $Boolean | $Empty {
     // 1. ReturnIfAbrupt(V).
     // 2. ReturnIfAbrupt(W).
     // 3. Assert: Type(V) is Reference.

@@ -1,4 +1,4 @@
-import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp } from './_shared';
+import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
 import { $Number } from './number';
 import { $Undefined } from './undefined';
 import { Realm } from '../realm';
@@ -12,6 +12,12 @@ export class $String<T extends string = string> {
 
   public readonly id: number = nextValueId();
   public readonly IntrinsicName: 'string' = 'string' as const;
+
+  public '[[Type]]': PotentialNonEmptyCompletionType;
+  public readonly '[[Value]]': T;
+  public '[[Target]]': CompletionTarget;
+
+  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
 
   public get Type(): 'String' { return 'String'; }
   public get isEmpty(): false { return false; }
@@ -28,14 +34,14 @@ export class $String<T extends string = string> {
   public get isProxy(): false { return false; }
   public get isFunction(): false { return false; }
   public get isBoundFunction(): false { return false; }
-  public get isTruthy(): boolean { return this.value.length > 0; }
-  public get isFalsey(): boolean { return this.value.length === 0; }
+  public get isTruthy(): boolean { return this['[[Value]]'].length > 0; }
+  public get isFalsey(): boolean { return this['[[Value]]'].length === 0; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
 
   // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
   public get CanonicalNumericIndexString(): $Number | $Undefined {
-    if (this.value === '-0') {
+    if (this['[[Value]]'] === '-0') {
       return this.realm['[[Intrinsics]]']['-0'];
     }
 
@@ -49,11 +55,11 @@ export class $String<T extends string = string> {
 
   // http://www.ecma-international.org/ecma-262/#array-index
   public get IsArrayIndex(): boolean {
-    if (this.value === '-0') {
+    if (this['[[Value]]'] === '-0') {
       return false;
     }
-    const num = Number(this.value);
-    if (num.toString() === this.value) {
+    const num = Number(this['[[Value]]']);
+    if (num.toString() === this['[[Value]]']) {
       return num >= 0 && num <= (2 ** 32 - 1);
     }
     return false;
@@ -61,13 +67,36 @@ export class $String<T extends string = string> {
 
   public constructor(
     public readonly realm: Realm,
-    public readonly value: T,
+    value: T,
+    type: PotentialNonEmptyCompletionType = CompletionType.normal,
+    target: CompletionTarget = realm['[[Intrinsics]]'].empty,
     public readonly sourceNode: $Identifier | $StringLiteral | $NumericLiteral | null = null,
     public readonly conversionSource: $Any | null = null,
-  ) {}
+  ) {
+    this['[[Value]]'] = value;
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+  }
 
   public is(other: $Any): other is $String<T> {
-    return other instanceof $String && this.value === other.value;
+    return other instanceof $String && this['[[Value]]'] === other['[[Value]]'];
+  }
+
+  public ToCompletion(
+    type: PotentialNonEmptyCompletionType,
+    target: CompletionTarget,
+  ): this {
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  public UpdateEmpty(value: $Any): this {
+    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
+    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
+    return this;
+    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
   }
 
   public ToObject(): $Object {
@@ -89,7 +118,9 @@ export class $String<T extends string = string> {
   public ToBoolean(): $Boolean {
     return new $Boolean(
       /* realm */this.realm,
-      /* value */Boolean(this.value),
+      /* value */Boolean(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -98,7 +129,9 @@ export class $String<T extends string = string> {
   public ToNumber(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Number(this.value),
+      /* value */Number(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -107,7 +140,9 @@ export class $String<T extends string = string> {
   public ToInt32(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Int32(this.value),
+      /* value */Int32(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -116,7 +151,9 @@ export class $String<T extends string = string> {
   public ToUint32(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint32(this.value),
+      /* value */Uint32(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -125,7 +162,9 @@ export class $String<T extends string = string> {
   public ToInt16(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Int16(this.value),
+      /* value */Int16(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -134,7 +173,9 @@ export class $String<T extends string = string> {
   public ToUint16(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint16(this.value),
+      /* value */Uint16(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -143,7 +184,9 @@ export class $String<T extends string = string> {
   public ToInt8(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Int8(this.value),
+      /* value */Int8(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -152,7 +195,9 @@ export class $String<T extends string = string> {
   public ToUint8(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint8(this.value),
+      /* value */Uint8(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );
@@ -161,7 +206,9 @@ export class $String<T extends string = string> {
   public ToUint8Clamp(): $Number {
     return new $Number(
       /* realm */this.realm,
-      /* value */Uint8Clamp(this.value),
+      /* value */Uint8Clamp(this['[[Value]]']),
+      /* type */this['[[Type]]'],
+      /* target */this['[[Target]]'],
       /* sourceNode */null,
       /* conversionSource */this,
     );

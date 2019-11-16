@@ -148,12 +148,11 @@ import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
-import { AssertionError } from 'assert';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
 import { $Function } from './types/function';
-import { $Any } from './types/_shared';
+import { $Any, CompletionType, $AnyNonEmpty } from './types/_shared';
 import { $Object } from './types/object';
 import { $Reference } from './types/reference';
 import { $Number } from './types/number';
@@ -1056,7 +1055,7 @@ function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
 }
 
 function evaluateStatement(statement: $$ESStatement) {
-  let stmtCompletion: CompletionRecord = null as any; // which one is missing?
+  let stmtCompletion: $Any = null as any; // which one is missing?
   switch (statement.$kind) {
     case SyntaxKind.Block:
     case SyntaxKind.VariableStatement:
@@ -1088,20 +1087,21 @@ function evaluateStatement(statement: $$ESStatement) {
 
 // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
 // StatementList : StatementList StatementListItem
-function evaluateStatementList(statements: readonly $$TSStatementListItem[], realm: Realm) {
+function evaluateStatementList(statements: readonly $$TSStatementListItem[], realm: Realm): $Any {
   // 1. Let sl be the result of evaluating StatementList.
   // 2. ReturnIfAbrupt(sl).
   // 3. Let s be the result of evaluating StatementListItem.
   // 4. Return Completion(UpdateEmpty(s, sl)).
-  let sl: CompletionRecord = CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
+  let sl: $Any = realm['[[Intrinsics]]'].empty;
   for (const statement of statements) {
     const s = evaluateStatement(statement as $$ESStatement); // TODO handle the declarations.
-    s.UpdateEmpty(sl.Value);
-    sl = s;
-    if (sl.Type !== CompletionKind.normal) {
-      return sl;
+    if (s.isAbrupt) {
+      return s;
     }
+    sl = sl.UpdateEmpty(s);
   }
+
+  var e = realm['[[Intrinsics]]'].empty.UpdateEmpty(realm['[[Intrinsics]]'].NaN)
   return sl;
 }
 
@@ -1242,7 +1242,7 @@ export class $VariableStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
 
@@ -1627,11 +1627,11 @@ function $FunctionDeclarationInstantiation(
   let hasDuplicates = false;
   const seen = new Set<string>();
   for (const parameterName of parameterNames) {
-    if (seen.has(parameterName.value)) {
+    if (seen.has(parameterName['[[Value]]'])) {
       hasDuplicates = true;
       break;
     } else {
-      seen.add(parameterName.value);
+      seen.add(parameterName['[[Value]]']);
     }
   }
 
@@ -1690,14 +1690,14 @@ function $FunctionDeclarationInstantiation(
     argumentsObjectNeeded = false;
   }
   // 19. Else if "arguments" is an element of parameterNames, then
-  else if (parameterNames.some(x => x.value === 'arguments')) {
+  else if (parameterNames.some(x => x['[[Value]]'] === 'arguments')) {
     // 19. a. Set argumentsObjectNeeded to false.
     argumentsObjectNeeded = false;
   }
   // 20. Else if hasParameterExpressions is false, then
   else if (!hasParameterExpressions) {
     // 20. a. If "arguments" is an element of functionNames or if "arguments" is an element of lexicalNames, then
-    if (functionNames.some(x => x.value === 'arguments') || lexicalNames.some(x => x.value === 'arguments')) {
+    if (functionNames.some(x => x['[[Value]]'] === 'arguments') || lexicalNames.some(x => x['[[Value]]'] === 'arguments')) {
       // 20. a. i. Set argumentsObjectNeeded to false.
       argumentsObjectNeeded = false;
     }
@@ -2041,7 +2041,7 @@ export class $ClassDeclaration implements I$Node {
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     let $name: $Identifier | $Undefined;
     if (node.name === void 0) {
-      $name = this.$name = new $Undefined(realm, this);
+      $name = this.$name = new $Undefined(realm, void 0, void 0, this);
     } else {
       $name = this.$name = new $Identifier(node.name, this, ctx);
     }
@@ -2644,7 +2644,7 @@ export class $ThisExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // PrimaryExpression : this
 
@@ -2670,7 +2670,7 @@ export class $SuperExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // SuperProperty : super [ Expression ]
 
@@ -2954,7 +2954,7 @@ export class $PropertyAccessExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // MemberExpression : MemberExpression . IdentifierName
 
@@ -2994,7 +2994,7 @@ export class $ElementAccessExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // MemberExpression : MemberExpression [ Expression ]
 
@@ -3036,7 +3036,7 @@ export class $CallExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // CallExpression : CoverCallExpressionAndAsyncArrowHead
 
@@ -3095,7 +3095,7 @@ export class $NewExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // NewExpression : new NewExpression
 
@@ -3144,7 +3144,7 @@ export class $TaggedTemplateExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // MemberExpression : MemberExpression TemplateLiteral
 
@@ -3250,7 +3250,7 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
@@ -3492,7 +3492,7 @@ export class $ParenthesizedExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any | $Reference {
+  public Evaluate(): $AnyNonEmpty | $Reference {
     // PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList
 
     // 1. Let expr be CoveredParenthesizedExpression of CoverParenthesizedExpressionAndArrowParameterList.
@@ -3589,7 +3589,7 @@ export class $ClassExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // ClassExpression : class BindingIdentifier opt ClassTail
 
@@ -3627,7 +3627,7 @@ export class $NonNullExpression implements I$Node {
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
-  public Evaluate(): $Any | $Reference {
+  public Evaluate(): $AnyNonEmpty | $Reference {
     return this.$expression.Evaluate();
   }
 }
@@ -3655,7 +3655,7 @@ export class $MetaProperty implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // NewTarget : new . target
 
@@ -3692,7 +3692,7 @@ export class $DeleteExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $Boolean {
     this.logger.debug('EvaluateLabelled()');
     // 1. Let ref be the result of evaluating UnaryExpression.
     // 2. ReturnIfAbrupt(ref).
@@ -3737,7 +3737,7 @@ export class $TypeOfExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $String {
     this.logger.debug('EvaluateLabelled()');
     // UnaryExpression : typeof UnaryExpression
 
@@ -3774,7 +3774,7 @@ export class $VoidExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
-  public Evaluate(): $Any {
+  public Evaluate(): $Undefined {
     this.logger.debug('EvaluateLabelled()');
     // UnaryExpression : void UnaryExpression
 
@@ -3809,7 +3809,7 @@ export class $AwaitExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // AwaitExpression : await UnaryExpression
 
@@ -3847,7 +3847,7 @@ export class $PrefixUnaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
@@ -3916,7 +3916,7 @@ export class $PostfixUnaryExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
@@ -3966,7 +3966,7 @@ export class $TypeAssertion implements I$Node {
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
-  public Evaluate(): $Any | $Reference {
+  public Evaluate(): $AnyNonEmpty | $Reference {
     return this.$expression.Evaluate();
   }
 }
@@ -4010,7 +4010,7 @@ export class $BinaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -4040,7 +4040,7 @@ export class $BinaryExpression implements I$Node {
         const exponent = rightValue.ToNumber();
 
         // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
-        return new $Number(realm, base.value ** exponent.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.AsteriskToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -4066,7 +4066,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rightValue.ToNumber();
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-        return new $Number(realm, lnum.value * rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.SlashToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -4092,7 +4092,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rightValue.ToNumber();
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-        return new $Number(realm, lnum.value / rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.PercentToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -4118,7 +4118,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rightValue.ToNumber();
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-        return new $Number(realm, lnum.value % rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.PlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
@@ -4152,7 +4152,7 @@ export class $BinaryExpression implements I$Node {
           const rstr = rprim.ToString();
 
           // 7. c. Return the string-concatenation of lstr and rstr.
-          return new $String(realm, lstr.value + rstr.value); // TODO: add temporal state snapshot for tracing
+          return new $String(realm, lstr['[[Value]]'] + rstr['[[Value]]']); // TODO: add temporal state snapshot for tracing
         }
 
         // 8. Let lnum be ? ToNumber(lprim).
@@ -4162,7 +4162,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rprim.ToNumber();
 
         // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
-        return new $Number(realm, lnum.value + rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
@@ -4188,7 +4188,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToNumber();
 
         // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
-        return new $Number(realm, lnum.value - rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.LessThanLessThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
@@ -4214,10 +4214,10 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToUint32();
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-        const shiftCount = rnum.value & 0b11111;
+        const shiftCount = rnum['[[Value]]'] & 0b11111;
 
         // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
-        return new $Number(realm, lnum.value << shiftCount); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] << shiftCount); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.GreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
@@ -4243,10 +4243,10 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToUint32();
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-        const shiftCount = rnum.value & 0b11111;
+        const shiftCount = rnum['[[Value]]'] & 0b11111;
 
         // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
-        return new $Number(realm, lnum.value >> shiftCount); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] >> shiftCount); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
@@ -4272,10 +4272,10 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToUint32();
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
-        const shiftCount = rnum.value & 0b11111;
+        const shiftCount = rnum['[[Value]]'] & 0b11111;
 
         // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
-        return new $Number(realm, lnum.value >>> shiftCount); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] >>> shiftCount); // TODO: add temporal state snapshot for tracing
       }
       // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
       case SyntaxKind.LessThanToken: {
@@ -4508,7 +4508,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToInt32();
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-        return new $Number(realm, lnum.value & rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.CaretToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
@@ -4532,7 +4532,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToInt32();
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-        return new $Number(realm, lnum.value ^ rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       case SyntaxKind.BarToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
@@ -4556,7 +4556,7 @@ export class $BinaryExpression implements I$Node {
         const rnum = rval.ToInt32();
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-        return new $Number(realm, lnum.value | rnum.value); // TODO: add temporal state snapshot for tracing
+        return new $Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
       case SyntaxKind.AmpersandAmpersandToken: {
@@ -4690,7 +4690,7 @@ export class $ConditionalExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
 
@@ -4806,7 +4806,7 @@ export class $ArrowFunction implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // ArrowFunction : ArrowParameters => ConciseBody
 
@@ -4843,7 +4843,7 @@ export class $YieldExpression implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // YieldExpression : yield
 
@@ -4939,7 +4939,7 @@ export class $AsExpression implements I$Node {
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
-  public Evaluate(): $Any | $Reference {
+  public Evaluate(): $AnyNonEmpty | $Reference {
     return this.$expression.Evaluate();
   }
 }
@@ -4965,7 +4965,7 @@ export class $TemplateHead implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -4989,7 +4989,7 @@ export class $TemplateMiddle implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -5013,7 +5013,7 @@ export class $TemplateTail implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     // TemplateSpans : TemplateTail
@@ -5052,7 +5052,7 @@ export class $TemplateSpan implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // TemplateSpans : TemplateMiddleList TemplateTail
 
@@ -5129,11 +5129,11 @@ export class $Identifier implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    const StringValue = this.StringValue = new $String(realm, node.text, this);
+    const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
     this.BoundNames = [StringValue] as const;
 
-    if (hasBit(ctx, Context.InStrictMode) && (StringValue.value === 'eval' || StringValue.value === 'arguments')) {
+    if (hasBit(ctx, Context.InStrictMode) && (StringValue['[[Value]]'] === 'eval' || StringValue['[[Value]]'] === 'arguments')) {
       this.AssignmentTargetType = 'strict';
     } else {
       this.AssignmentTargetType = 'simple';
@@ -5230,7 +5230,7 @@ export class $JsxElement implements I$Node {
     this.$closingElement = new $JsxClosingElement(node.closingElement, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -5294,7 +5294,7 @@ export class $JsxSelfClosingElement implements I$Node {
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -5327,7 +5327,7 @@ export class $JsxFragment implements I$Node {
     this.$closingFragment = new $JsxClosingFragment(node.closingFragment, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -5612,8 +5612,8 @@ export class $NumericLiteral implements I$Node {
     this.id = realm.registerNode(this);
 
     const num = Number(node.text);
-    this.PropName = new $String(realm, num.toString(), this);
-    this.Value = new $Number(realm, num, this);
+    this.PropName = new $String(realm, num.toString(), void 0, void 0, this);
+    this.Value = new $Number(realm, num, void 0, void 0, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -5650,7 +5650,7 @@ export class $BigIntLiteral implements I$Node {
     this.id = realm.registerNode(this);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(): $Number {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -5690,7 +5690,7 @@ export class $StringLiteral implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    const StringValue = this.StringValue = new $String(realm, node.text, this);
+    const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
     this.Value = StringValue;
   }
@@ -5811,7 +5811,7 @@ export class $NullLiteral implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    this.Value = new $Null(realm, this);
+    this.Value = new $Null(realm, void 0, void 0, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -5852,7 +5852,7 @@ export class $BooleanLiteral implements I$Node {
     this.id = realm.registerNode(this);
     this.$kind = node.kind;
 
-    this.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, this);
+    this.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, void 0, void 0, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -6411,7 +6411,7 @@ export class $SourceFile implements I$Node, IModule {
           // 11. a. ii. 1. Let ie be the element of importEntries whose [[LocalName]] is the same as ee.[[LocalName]].
           const ie = importEntries.find(x => x.LocalName.is(ee.LocalName))!;
           // 11. a. ii. 2. If ie.[[ImportName]] is "*", then
-          if (ie.ImportName.value === '*') {
+          if (ie.ImportName['[[Value]]'] === '*') {
             // 11. a. ii. 2. a. Assert: This is a re-export of an imported module namespace object.
             // 11. a. ii. 2. b. Append ee to localExportEntries.
             localExportEntries.push(ee);
@@ -6430,7 +6430,7 @@ export class $SourceFile implements I$Node, IModule {
         }
       }
       // 11. b. Else if ee.[[ImportName]] is "*", then
-      else if (ee.ImportName.value === '*') {
+      else if (ee.ImportName['[[Value]]'] === '*') {
         // 11. b. i. Append ee to starExportEntries.
         starExportEntries.push(ee);
       }
@@ -6617,7 +6617,7 @@ export class $SourceFile implements I$Node, IModule {
 
       // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
       // 9. c. If in.[[ImportName]] is "*", then
-      if (ie.ImportName.value === '*') {
+      if (ie.ImportName['[[Value]]'] === '*') {
         // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
         const namespace = (function (mod) {
           // http://www.ecma-international.org/ecma-262/#sec-getmodulenamespace
@@ -6779,7 +6779,7 @@ export class $SourceFile implements I$Node, IModule {
       // 7. c. For each element n of starNames, do
       for (const n of starNames) {
         // 7. c. i. If SameValue(n, "default") is false, then
-        if (n.value !== 'default') {
+        if (n['[[Value]]'] !== 'default') {
           // 7. c. i. 1. If n is not an element of exportedNames, then
           if (!exportedNames.includes(n)) {
             // 7. c. i. 1. a. Append n to exportedNames.
@@ -6813,7 +6813,7 @@ export class $SourceFile implements I$Node, IModule {
       // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
       if (exportName.is(e.ExportName)) {
         // 4. a. i. Assert: module provides the direct binding for this export.
-        this.logger.debug(`[ResolveExport] found direct binding for ${exportName.value}`);
+        this.logger.debug(`[ResolveExport] found direct binding for ${exportName['[[Value]]']}`);
 
         // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
         return new ResolvedBindingRecord(this, e.LocalName as $String);
@@ -6827,7 +6827,7 @@ export class $SourceFile implements I$Node, IModule {
       // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
       if (exportName.is(e.ExportName)) {
         // 5. a. i. Assert: module imports a specific binding for this export.
-        this.logger.debug(`[ResolveExport] found specific imported binding for ${exportName.value}`);
+        this.logger.debug(`[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
         const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
@@ -6838,7 +6838,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // 6. If SameValue(exportName, "default") is true, then
-    if (exportName.value === 'default') {
+    if (exportName['[[Value]]'] === 'default') {
       // 6. a. Assert: A default export was not explicitly defined by this module.
       // 6. b. Return null.
       this.logger.warn(`[ResolveExport] No default export defined`);
@@ -6860,7 +6860,7 @@ export class $SourceFile implements I$Node, IModule {
 
       // 8. c. If resolution is "ambiguous", return "ambiguous".
       if (resolution === 'ambiguous') {
-        this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName.value}`);
+        this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
 
         return 'ambiguous';
       }
@@ -6877,7 +6877,7 @@ export class $SourceFile implements I$Node, IModule {
           // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
           // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
           if (!(resolution.Module === starResolution.Module && resolution.BindingName === starResolution.BindingName)) {
-            this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName.value}`);
+            this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
 
             return 'ambiguous';
           }
@@ -6886,7 +6886,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     if (starResolution === null) {
-      this.logger.warn(`[ResolveExport] starResolution is null for ${exportName.value}`);
+      this.logger.warn(`[ResolveExport] starResolution is null for ${exportName['[[Value]]']}`);
     }
 
     // 9. Return starResolution.
@@ -6894,7 +6894,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     const realm = this.realm;
     const stack = realm.stack;
@@ -6924,7 +6924,7 @@ export class $SourceFile implements I$Node, IModule {
     // 1. Return NormalCompletion(empty).
 
     let $statement: $$TSModuleItem;
-    let sl: CompletionRecord = (void 0)!;
+    let sl: $Any = (void 0)!;
     for (let i = 0, ii = $statements.length; i < ii; ++i) {
       $statement = $statements[i];
 
@@ -7061,7 +7061,7 @@ export class $DocumentFragment implements I$Node, IModule {
   }
 
   public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
-    this.logger.debug(`[ResolveExport] returning content as '${exportName.value}'`);
+    this.logger.debug(`[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
 
     return new ResolvedBindingRecord(this, exportName);
   }
@@ -7246,7 +7246,7 @@ export class $ImportDeclaration implements I$Node {
     const moduleSpecifier = this.moduleSpecifier = $moduleSpecifier.StringValue;
 
     if (node.importClause === void 0) {
-      this.$importClause = new $Undefined(realm, this);
+      this.$importClause = new $Undefined(realm, void 0, void 0, this);
 
       this.BoundNames = emptyArray;
       this.ImportEntries = emptyArray;
@@ -7299,7 +7299,7 @@ export class $ImportClause implements I$Node {
     const ImportEntriesForModule = this.ImportEntriesForModule = [] as ImportEntryRecord[];
 
     if (node.name === void 0) {
-      this.$name = new $Undefined(realm, this);
+      this.$name = new $Undefined(realm, void 0, void 0, this);
     } else {
       const $name = this.$name = new $Identifier(node.name, this, ctx);
 
@@ -7389,7 +7389,7 @@ export class $ImportSpecifier implements I$Node {
 
     let $propertyName: $Identifier | $Undefined;
     if (node.propertyName === void 0) {
-      $propertyName = this.$propertyName = new $Undefined(realm, this);
+      $propertyName = this.$propertyName = new $Undefined(realm, void 0, void 0, this);
     } else {
       $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx);
     }
@@ -7660,7 +7660,7 @@ export class $ExportSpecifier implements I$Node {
 
     let $propertyName: $Identifier | $Undefined;
     if (node.propertyName === void 0) {
-      $propertyName = this.$propertyName = new $Undefined(realm, this);
+      $propertyName = this.$propertyName = new $Undefined(realm, void 0, void 0, this);
     } else {
       $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx);
     }
@@ -7865,7 +7865,7 @@ export class $ComputedPropertyName implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
-    this.PropName = new $Empty(realm, this);
+    this.PropName = new $Empty(realm, void 0, void 0, this);
   }
 }
 
@@ -8357,14 +8357,14 @@ export class $Block implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     const { $statements, realm } = this;
 
     // Block : { }
     // 1. Return NormalCompletion(empty).
     if ($statements.length === 0) {
-      return CompletionRecord.createNormal(realm['[[Intrinsics]]'].empty, realm);
+      return realm['[[Intrinsics]]'].empty;
     }
 
     // Block : { StatementList }
@@ -8410,12 +8410,12 @@ export class $EmptyStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
-    return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].empty, this.realm);
+    return this.realm['[[Intrinsics]]'].empty;
   }
 }
 
@@ -8451,14 +8451,14 @@ export class $ExpressionStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // ExpressionStatement : Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Return ? GetValue(exprRef).
 
-    return this.$expression.Evaluate() as unknown as CompletionRecord; // TODO fix this
+    return this.$expression.Evaluate().GetValue();
   }
 }
 
@@ -8502,7 +8502,7 @@ export class $IfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
     const { $expression, $thenStatement, $elseStatement, realm } = this;
@@ -8517,7 +8517,7 @@ export class $IfStatement implements I$Node {
       // 1. Let exprRef be the result of evaluating Expression.
       // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
 
-      let stmtCompletion: CompletionRecord;
+      let stmtCompletion: $Any;
       // 3. If exprValue is true, then
       if (exprValue.is(intrinsics.true)) {
         // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
@@ -8535,11 +8535,11 @@ export class $IfStatement implements I$Node {
 
       // 1. Let exprRef be the result of evaluating Expression.
       // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
-      let stmtCompletion: CompletionRecord;
+      let stmtCompletion: $Any;
       // 3. If exprValue is false, then
       if (exprValue.is(intrinsics.false)) {
         // 3. a. Return NormalCompletion(undefined).
-        return CompletionRecord.createNormal(intrinsics.undefined, realm);
+        return new $Undefined(realm);
       } else {
         // 4. Else,
         // 4. a. Let stmtCompletion be the result of evaluating Statement.
@@ -8580,7 +8580,7 @@ export class $DoStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): CompletionRecord {
+  public EvaluateLabelled(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : do Statement while ( Expression ) ;
 
@@ -8625,7 +8625,7 @@ export class $WhileStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): CompletionRecord {
+  public EvaluateLabelled(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : while ( Expression ) Statement
 
@@ -8698,7 +8698,7 @@ export class $ForStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): CompletionRecord {
+  public EvaluateLabelled(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
 
@@ -8786,7 +8786,7 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): CompletionRecord {
+  public EvaluateLabelled(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
@@ -8837,7 +8837,7 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // ForBinding : BindingIdentifier
 
@@ -8895,7 +8895,7 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): CompletionRecord {
+  public EvaluateLabelled(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
@@ -8946,7 +8946,7 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
     return null as any; // TODO: implement this
@@ -8977,7 +8977,7 @@ export class $ContinueStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // ContinueStatement : continue ;
 
@@ -9016,7 +9016,7 @@ export class $BreakStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // BreakStatement : break ;
 
@@ -9059,7 +9059,7 @@ export class $ReturnStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-return-statement
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $AnyNonEmpty {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -9068,7 +9068,7 @@ export class $ReturnStatement implements I$Node {
 
     // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
     if (this.$expression === void 0) {
-      return CompletionRecord.createNormal(intrinsics.undefined, realm);
+      return new $Undefined(realm, CompletionType.return);
     }
 
     // ReturnStatement : return Expression ;
@@ -9082,7 +9082,7 @@ export class $ReturnStatement implements I$Node {
     // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue). // TODO
 
     // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
-    return CompletionRecord.createNormal(exprValue, realm);
+    return exprValue.ToCompletion(CompletionType.return, intrinsics.empty);
   }
 }
 
@@ -9114,7 +9114,7 @@ export class $WithStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // WithStatement : with ( Expression ) Statement
 
@@ -9182,7 +9182,7 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     const { realm } = this;
     // SwitchStatement : switch ( Expression ) CaseBlock
@@ -9220,13 +9220,13 @@ export class $SwitchStatement implements I$Node {
     // CaseBlock : { }
     // 1. Return NormalCompletion(undefined).
     if (clauses.length === 0) {
-      return CompletionRecord.createNormal($undefined, realm);
+      return new $Undefined(realm);
     }
 
-    let V: $Any = $undefined;
+    let V: $AnyNonEmpty = $undefined;
     const defaultClauseIndex: number = clauses.findIndex((clause) => clause.$kind === SyntaxKind.DefaultClause);
     class CaseClausesEvaluationResult {
-      constructor(public result: CompletionRecord, public found: boolean, public isAbrupt: boolean) { }
+      constructor(public result: $Any, public found: boolean, public isAbrupt: boolean) { }
     }
     const evaluateCaseClauses = (inclusiveStartIndex: number, exclusiveEndIndex: number, found = false) => {
       // 1. Let V be undefined.
@@ -9245,18 +9245,21 @@ export class $SwitchStatement implements I$Node {
           // 4. b. i. Let R be the result of evaluating C.
           const R = evaluateStatementList(C.$statements, realm);
           // 4. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
-          if (R.Value !== empty) {
-            V = R.Value;
+          if (R.hasValue) {
+            V = R;
           }
           // 4. b. iii. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
-          if (R.Type !== CompletionKind.normal) {
-            R.UpdateEmpty(V);
-            return new CaseClausesEvaluationResult(R, found, true);
+          if (R.isAbrupt) {
+            return new CaseClausesEvaluationResult(R.UpdateEmpty(V), found, true);
           }
         }
       }
       // 5. Return NormalCompletion(V).
-      return new CaseClausesEvaluationResult(CompletionRecord.createNormal(V, realm), found, false);
+      return new CaseClausesEvaluationResult(
+        V.ToCompletion(CompletionType.normal, realm['[[Intrinsics]]'].empty),
+        found,
+        false,
+      );
     }
 
     // CaseBlock : { CaseClauses }
@@ -9376,7 +9379,7 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): CompletionRecord {
+  public EvaluateLabelled(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
@@ -9402,7 +9405,7 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
@@ -9437,7 +9440,7 @@ export class $ThrowStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // ThrowStatement : throw Expression ;
 
@@ -9503,7 +9506,7 @@ export class $TryStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
     // TryStatement : try Block Catch
 
@@ -9552,7 +9555,7 @@ export class $DebuggerStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
-  public Evaluate(): CompletionRecord {
+  public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
     // DebuggerStatement : debugger ;
 
@@ -9691,42 +9694,4 @@ export class $CatchClause implements I$Node {
 
 // #endregion
 
-export enum CompletionKind {
-  normal,
-  break,
-  continue,
-  return,
-  throw
-}
-export class CompletionRecord {
-  public static createNormal(value: $Any | $Empty, realm: Realm) {
-    return new CompletionRecord(CompletionKind.normal, value, realm['[[Intrinsics]]'].empty, realm);
-  }
-
-  constructor(
-    public Type: CompletionKind,
-    public Value: $Any | $Empty,
-    public Target: $String | $Empty,
-    public realm: Realm,
-  ) { }
-
-  public GetValue() { return this.Value; }
-
-  // http://www.ecma-international.org/ecma-262/#sec-updateempty
-  public UpdateEmpty(value: $Any) {
-    const { Type, Value, realm } = this;
-    const isEmpty = Value.is(realm['[[Intrinsics]]'].empty);
-    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
-    if ((Type === CompletionKind.return || Type === CompletionKind.throw) && isEmpty) {
-      // TODO use Reporter
-      throw new AssertionError()
-    }
-
-    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
-    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
-    if (isEmpty) {
-      this.Value = value;
-    }
-  }
-}
 // #endregion

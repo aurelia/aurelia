@@ -1,14 +1,14 @@
 import { $Object } from '../types/object';
 import { $Function } from '../types/function';
-import { $Any } from '../types/_shared';
+import { $Any, $AnyNonEmpty } from '../types/_shared';
 import { Realm } from '../realm';
 import { $Call, $Construct } from '../operations';
 
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
   public '[[BoundTargetFunction]]': $Function;
-  public '[[BoundThis]]': $Any;
-  public '[[BoundArguments]]': $Any[];
+  public '[[BoundThis]]': $AnyNonEmpty;
+  public '[[BoundArguments]]': $AnyNonEmpty[];
 
   public get isBoundFunction(): true { return true; }
 
@@ -16,8 +16,8 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   public constructor(
     realm: Realm,
     targetFunction: $Function,
-    boundThis: $Any,
-    boundArgs: $Any[],
+    boundThis: $AnyNonEmpty,
+    boundArgs: $AnyNonEmpty[],
   ) {
     // 1. Assert: Type(targetFunction) is Object.
     // 2. Let proto be ? targetFunction.[[GetPrototypeOf]]().
@@ -43,7 +43,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $AnyNonEmpty[]): $AnyNonEmpty {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].
@@ -67,7 +67,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
 
 
   // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Object) {
+  public '[[Construct]]'(argumentsList: readonly $AnyNonEmpty[], newTarget: $Object) {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].

@@ -4,7 +4,7 @@ import { $EnvRec, $FunctionEnvRec } from './environment-record';
 import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
 import { $String } from './string';
-import { $Any } from './_shared';
+import { $Any, $AnyNonEmpty } from './_shared';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Number } from './number';
 import { $DefinePropertyOrThrow, $Get } from '../operations';
@@ -42,7 +42,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $Any[]): $AnyNonEmpty {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
     const realm = F['[[Realm]]'];
@@ -91,7 +91,7 @@ export class $Function<
     // 4. Let kind be F.[[ConstructorKind]].
     const kind = F['[[ConstructorKind]]'];
 
-    let thisArgument: $Any;
+    let thisArgument: $AnyNonEmpty;
     // 5. If kind is "base", then
     if (kind === 'base') {
       // 5. a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%ObjectPrototype%").
@@ -327,14 +327,14 @@ export class $Function<
       }
       // 4. c. Else, set name to the string-concatenation of "[", description, and "]".
       else {
-        name = new $String(realm, `[${description.value}]`);
+        name = new $String(realm, `[${description['[[Value]]']}]`);
       }
     }
 
     // 5. If prefix is present, then
     if (prefix !== void 0) {
       // 5. a. Set name to the string-concatenation of prefix, the code unit 0x0020 (SPACE), and name.
-      name = new $String(realm, `${prefix.value} ${name.value}`);
+      name = new $String(realm, `${prefix['[[Value]]']} ${name['[[Value]]']}`);
     }
 
     // 6. Return ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
@@ -380,7 +380,7 @@ function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrins
   if (!proto.isObject) {
     // 4. a. Let realm be ? GetFunctionRealm(constructor).
     // 4. b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-    proto = intrinsics[intrinsicDefaultProto];
+    proto = intrinsics[intrinsicDefaultProto] as $AnyNonEmpty;
   }
 
   // 5. Return proto.
@@ -436,8 +436,8 @@ function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined):
 function $OrdinaryCallBindThis(
   F: $Function,
   calleeContext: ExecutionContext,
-  thisArgument: $Any,
-): $Any {
+  thisArgument: $AnyNonEmpty,
+): $AnyNonEmpty {
   const calleeRealm = F['[[Realm]]'];
   const intrinsics = calleeRealm['[[Intrinsics]]'];
 
@@ -453,7 +453,7 @@ function $OrdinaryCallBindThis(
   // 4. Let localEnv be the LexicalEnvironment of calleeContext.
   const localEnv = calleeContext.LexicalEnvironment;
 
-  let thisValue: $Any;
+  let thisValue: $AnyNonEmpty;
   // 5. If thisMode is strict, let thisValue be thisArgument.
   if (thisMode === 'strict') {
     thisValue = thisArgument;
@@ -493,7 +493,7 @@ function $OrdinaryCallBindThis(
 function $OrdinaryCallEvaluateBody(
   F: $Function,
   argumentsList: readonly $Any[],
-): $Any {
+): $AnyNonEmpty {
   // TODO: hook this up to EvaluateBody
   return null as any;
 }

@@ -32,7 +32,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
     // 8. Set S.[[Prototype]] to prototype.
     // 9. Set S.[[Extensible]] to true.
     // 10. Let length be the number of code unit elements in value.
-    const length = value.value.length;
+    const length = value['[[Value]]'].length;
 
     // 11. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: length, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
     $DefinePropertyOrThrow(
@@ -108,7 +108,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
 
     // 3. Assert: Type(str) is String.
     // 4. Let len be the length of str.
-    const len = str.value.length;
+    const len = str['[[Value]]'].length;
     let i = 0;
     let keysLen = 0;
 
@@ -161,15 +161,15 @@ function $StringGetOwnProperty(realm: Realm, S: $StringExoticObject, P: $Propert
 
   // 9. Assert: Type(str) is String.
   // 10. Let len be the length of str.
-  const len = str.value.length;
+  const len = str['[[Value]]'].length;
 
   // 11. If index < 0 or len ≤ index, return undefined.
-  if (index.value < 0 || len <= index.value) {
+  if (index['[[Value]]'] < 0 || len <= index['[[Value]]']) {
     return realm['[[Intrinsics]]'].undefined;
   }
 
   // 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index index.
-  const resultStr = new $String(realm, str.value[index.value]);
+  const resultStr = new $String(realm, str['[[Value]]'][index['[[Value]]']]);
 
   // 13. Return a PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.
   return new $PropertyDescriptor(

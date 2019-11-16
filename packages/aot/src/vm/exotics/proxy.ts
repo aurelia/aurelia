@@ -1,7 +1,7 @@
 import { $Object } from '../types/object';
 import { $Null } from '../types/null';
 import { Realm } from '../realm';
-import { $Any, $PropertyKey } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $Call, $ToPropertyDescriptor, $ValidateAndApplyPropertyDescriptor, $FromPropertyDescriptor, $CreateListFromArrayLike, $CreateArrayFromList, $Construct } from '../operations';
 import { $Boolean } from '../types/boolean';
 import { $PropertyDescriptor } from '../types/property-descriptor';
@@ -20,8 +20,8 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   // http://www.ecma-international.org/ecma-262/#sec-proxycreate
   public constructor(
     realm: Realm,
-    target: $Any,
-    handler: $Any,
+    target: $AnyNonEmpty,
+    handler: $AnyNonEmpty,
   ) {
     super(realm, 'ProxyExoticObject', realm['[[Intrinsics]]'].null);
 
@@ -500,7 +500,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Any): $Any {
+  public '[[Get]]'(P: $PropertyKey, Receiver: $AnyNonEmpty): $AnyNonEmpty {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -557,7 +557,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean {
+  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -790,7 +790,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $Any, argumentsList: readonly $Any[]): $Any {
+  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $AnyNonEmpty[]): $AnyNonEmpty {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -823,7 +823,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Object): $Object {
+  public '[[Construct]]'(argumentsList: readonly $AnyNonEmpty[], newTarget: $Object): $Object {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

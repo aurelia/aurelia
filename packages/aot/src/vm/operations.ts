@@ -5,7 +5,7 @@ import { $EnvRec } from './types/environment-record';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
 import { $ArrayExoticObject } from './exotics/array';
 import { $ProxyExoticObject } from './exotics/proxy';
-import { $Any, $PropertyKey, $Primitive, ESType } from './types/_shared';
+import { $PropertyKey, $Primitive, ESType, $AnyNonEmpty, $Any } from './types/_shared';
 import { $Object } from './types/object';
 import { $BuiltinFunction, $Function } from './types/function';
 import { $Boolean } from './types/boolean';
@@ -15,9 +15,9 @@ import { $String } from './types/string';
 import { $Reference } from './types/reference';
 
 export type CallableFunction = (
-  thisArgument: $Any,
-  argumentsList: readonly $Any[],
-  NewTarget: $Any,
+  thisArgument: $AnyNonEmpty,
+  argumentsList: readonly $AnyNonEmpty[],
+  NewTarget: $AnyNonEmpty,
 ) => $Any;
 
 export type FunctionPrototype = Realm['[[Intrinsics]]']['%FunctionPrototype%'];
@@ -52,7 +52,7 @@ export function $CreateBuiltinFunction<T extends string = string, TSlots extends
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-get-o-p
-export function $Get(O: $Object, P: $PropertyKey): $Any {
+export function $Get(O: $Object, P: $PropertyKey): $AnyNonEmpty {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Return ? O.[[Get]](P, O).
@@ -60,7 +60,7 @@ export function $Get(O: $Object, P: $PropertyKey): $Any {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
-export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: $Boolean): $Boolean {
+export function $Set(O: $Object, P: $PropertyKey, V: $AnyNonEmpty, Throw: $Boolean): $Boolean {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Assert: Type(Throw) is Boolean.
@@ -77,7 +77,7 @@ export function $Set(O: $Object, P: $PropertyKey, V: $Any, Throw: $Boolean): $Bo
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-createdataproperty
-export function $CreateDataProperty(O: $Object, P: $PropertyKey, V: $Any): $Boolean {
+export function $CreateDataProperty(O: $Object, P: $PropertyKey, V: $AnyNonEmpty): $Boolean {
   const realm = O.realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -95,7 +95,7 @@ export function $CreateDataProperty(O: $Object, P: $PropertyKey, V: $Any): $Bool
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarysetwithowndescriptor
-export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $Any, Receiver: $Object, ownDesc: $PropertyDescriptor | $Undefined): $Boolean {
+export function $OrdinarySetWithOwnDescriptor(O: $Object, P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object, ownDesc: $PropertyDescriptor | $Undefined): $Boolean {
   const realm = O.realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -198,7 +198,7 @@ export function $HasOwnProperty(O: $Object, P: $PropertyKey): $Boolean {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-call
-export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $Any {
+export function $Call(F: $Function, V: $AnyNonEmpty, argumentsList?: readonly $AnyNonEmpty[]): $AnyNonEmpty {
   // 1. If argumentsList is not present, set argumentsList to a new empty List.
   if (argumentsList === void 0) {
     argumentsList = [];
@@ -214,7 +214,7 @@ export function $Call(F: $Function, V: $Any, argumentsList?: readonly $Any[]): $
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-construct
-export function $Construct(F: $Function, argumentsList?: readonly $Any[], newTarget?: $Object): $Object {
+export function $Construct(F: $Function, argumentsList?: readonly $AnyNonEmpty[], newTarget?: $Object): $Object {
   // 1. If newTarget is not present, set newTarget to F.
   if (newTarget === void 0) {
     newTarget = F;
@@ -512,7 +512,7 @@ export function $GetIdentifierReference(lex: $EnvRec | $Null, name: $String, str
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-relational-comparison
-export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $Any): $Boolean | $Undefined {
+export function $AbstractRelationalComparison(leftFirst: boolean, x: $AnyNonEmpty, y: $AnyNonEmpty): $Boolean | $Undefined {
   const realm = x.realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -544,7 +544,7 @@ export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $A
     // 3. d. Let m be the integer that is the numeric value of the code unit at index k within px.
     // 3. e. Let n be the integer that is the numeric value of the code unit at index k within py.
     // 3. f. If m < n, return true. Otherwise, return false.
-    if (px.value < py.value) {
+    if (px['[[Value]]'] < py['[[Value]]']) {
       return intrinsics.true;
     }
 
@@ -604,7 +604,7 @@ export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $A
   }
 
   // 4. m. If the mathematical value of nx is less than the mathematical value of ny—note that these mathematical values are both finite and not both zero—return true. Otherwise, return false.
-  if ((px.value as number) < (py.value as number)) {
+  if ((px['[[Value]]'] as number) < (py['[[Value]]'] as number)) {
     return intrinsics.true;
   }
 
@@ -612,7 +612,7 @@ export function $AbstractRelationalComparison(leftFirst: boolean, x: $Any, y: $A
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-equality-comparison
-export function $AbstractEqualityComparison(x: $Any, y: $Any): $Boolean {
+export function $AbstractEqualityComparison(x: $AnyNonEmpty, y: $AnyNonEmpty): $Boolean {
   const realm = x.realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -687,7 +687,7 @@ export function $AbstractEqualityComparison(x: $Any, y: $Any): $Boolean {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-strict-equality-comparison
-export function $StrictEqualityComparison(x: $Any, y: $Any): $Boolean {
+export function $StrictEqualityComparison(x: $AnyNonEmpty, y: $AnyNonEmpty): $Boolean {
   // 1. If Type(x) is different from Type(y), return false.
   // 2. If Type(x) is Number, then
   // 2. a. If x is NaN, return false.
@@ -706,7 +706,7 @@ export function $StrictEqualityComparison(x: $Any, y: $Any): $Boolean {
 
 
 // http://www.ecma-international.org/ecma-262/#sec-instanceofoperator
-export function $InstanceOfOperator(V: $Any, target: $Any): $Boolean {
+export function $InstanceOfOperator(V: $AnyNonEmpty, target: $AnyNonEmpty): $Boolean {
   const realm = V.realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -734,7 +734,7 @@ export function $InstanceOfOperator(V: $Any, target: $Any): $Boolean {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinaryhasinstance
-export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
+export function $OrdinaryHasInstance(C: $Object, O: $AnyNonEmpty): $Boolean {
   const realm = C.realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -768,7 +768,7 @@ export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
   // 6. Repeat,
   while (true) {
     // 6. a. Set O to ? O.[[GetPrototypeOf]]().
-    O = (O as $Object)['[[GetPrototypeOf]]']();
+    O = O['[[GetPrototypeOf]]']();
 
     // 6. b. If O is null, return false.
     if (O.isNull) {
@@ -783,7 +783,7 @@ export function $OrdinaryHasInstance(C: $Object, O: $Any): $Boolean {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-topropertydescriptor
-export function $ToPropertyDescriptor(realm: Realm, Obj: $Any, key: $PropertyKey): $PropertyDescriptor {
+export function $ToPropertyDescriptor(realm: Realm, Obj: $AnyNonEmpty, key: $PropertyKey): $PropertyDescriptor {
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. If Type(Obj) is not Object, throw a TypeError exception.
@@ -945,9 +945,9 @@ const defaultElementTypes = [
 // http://www.ecma-international.org/ecma-262/#sec-createlistfromarraylike
 export function $CreateListFromArrayLike(
   realm: Realm,
-  obj: $Any,
+  obj: $AnyNonEmpty,
   elementTypes: readonly ESType[] = defaultElementTypes,
-): $Any[] {
+): $AnyNonEmpty[] {
   // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, Object ».
   // 2. If Type(obj) is not Object, throw a TypeError exception.
   if (!obj.isObject) {
@@ -958,13 +958,13 @@ export function $CreateListFromArrayLike(
   const len = $Get(obj, realm['[[Intrinsics]]'].length).ToLength();
 
   // 4. Let list be a new empty List.
-  const list: $Any[] = [];
+  const list: $AnyNonEmpty[] = [];
 
   // 5. Let index be 0.
   let index = 0;
 
   // 6. Repeat, while index < len
-  while (index < len.value) {
+  while (index < len['[[Value]]']) {
     // 6. a. Let indexName be ! ToString(index).
     const indexName = new $String(realm, index.toString());
 
@@ -989,7 +989,7 @@ export function $CreateListFromArrayLike(
 // http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
 export function $CreateArrayFromList(
   realm: Realm,
-  elements: readonly $Any[],
+  elements: readonly $AnyNonEmpty[],
 ): $ArrayExoticObject {
   // 1. Assert: elements is a List whose elements are all ECMAScript language values.
   // 2. Let array be ! ArrayCreate(0).
@@ -1013,7 +1013,7 @@ export function $CreateArrayFromList(
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-getfunctionrealm
-export function $GetFunctionRealm(realm: Realm, obj: $Any): Realm {
+export function $GetFunctionRealm(realm: Realm, obj: $AnyNonEmpty): Realm {
   // 1. Assert: obj is a callable object.
   // 2. If obj has a [[Realm]] internal slot, then
   if ('[[Realm]]' in obj) {

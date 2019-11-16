@@ -30,7 +30,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     }
 
     // 3. If length > 232 - 1, throw a RangeError exception.
-    if (length.value > (2 ** 32 - 1)) {
+    if (length['[[Value]]'] > (2 ** 32 - 1)) {
       throw new RangeError('3. If length > 2^32 - 1, throw a RangeError exception.');
     }
 
@@ -82,7 +82,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       const index = P.ToUint32();
 
       // 3. e. If index ≥ oldLen and oldLenDesc.[[Writable]] is false, return false.
-      if (index.value >= oldLen.value && oldLenDesc['[[Writable]]'].isFalsey) {
+      if (index['[[Value]]'] >= oldLen['[[Value]]'] && oldLenDesc['[[Writable]]'].isFalsey) {
         return intrinsics.false;
       }
 
@@ -95,9 +95,9 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       }
 
       // 3. h. If index ≥ oldLen, then
-      if (index.value >= oldLen.value) {
+      if (index['[[Value]]'] >= oldLen['[[Value]]']) {
         // 3. h. i. Set oldLenDesc.[[Value]] to index + 1.
-        oldLenDesc['[[Value]]'] = new $Number(realm, index.value + 1);
+        oldLenDesc['[[Value]]'] = new $Number(realm, index['[[Value]]'] + 1);
 
         // 3. h. ii. Let succeeded be OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
         const succeeded = super['[[DefineOwnProperty]]'](intrinsics.length, oldLenDesc);
@@ -157,7 +157,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     const oldLen = oldLenDesc['[[Value]]'] as $Number;
 
     // 10. If newLen ≥ oldLen, then
-    if (newLen.value >= oldLen.value) {
+    if (newLen['[[Value]]'] >= oldLen['[[Value]]']) {
       // 10. a. Return OrdinaryDefineOwnProperty(A, "length", newLenDesc).
       return super['[[DefineOwnProperty]]'](intrinsics.length, newLenDesc);
     }
@@ -190,8 +190,8 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       return intrinsics.false;
     }
 
-    let $newLen = newLen.value;
-    let $oldLen = oldLen.value;
+    let $newLen = newLen['[[Value]]'];
+    let $oldLen = oldLen['[[Value]]'];
 
     // 16. Repeat, while newLen < oldLen,
     while ($newLen < $oldLen) {

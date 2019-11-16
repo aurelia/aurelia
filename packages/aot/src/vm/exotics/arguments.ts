@@ -2,7 +2,7 @@ import { $Object } from '../types/object';
 import { Realm } from '../realm';
 import { $Function } from '../types/function';
 import { $ParameterDeclaration, getBoundNames } from '../ast';
-import { $Any, $PropertyKey } from '../types/_shared';
+import { $Any, $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $EnvRec } from '../types/environment-record';
 import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Get, $Set, $CreateBuiltinFunction } from '../operations';
 import { $String } from '../types/string';
@@ -21,7 +21,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     realm: Realm,
     func: $Function,
     formals: readonly $ParameterDeclaration[],
-    argumentsList: readonly $Any[],
+    argumentsList: readonly $AnyNonEmpty[],
     env: $EnvRec,
   ) {
     super(realm, 'ArgumentsExoticObject', realm['[[Intrinsics]]']['%ObjectPrototype%']);
@@ -237,7 +237,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Object): $Any {
+  public '[[Get]]'(P: $PropertyKey, Receiver: $Object): $AnyNonEmpty {
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
@@ -258,7 +258,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean {
+  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
     // 1. Let args be the arguments object.
     // 2. If SameValue(args, Receiver) is false, then
     // 2. a. Let isMapped be false.
@@ -312,9 +312,9 @@ function MakeArgGetter(realm: Realm, name: $String, env: $EnvRec): $Function {
     'ArgGetter',
     // 1. Let steps be the steps of an ArgGetter function as specified below.
     function steps(
-      thisArgument: $Any,
-      argumentsList: readonly $Any[],
-      NewTarget: $Any,
+      thisArgument: $AnyNonEmpty,
+      argumentsList: readonly $AnyNonEmpty[],
+      NewTarget: $AnyNonEmpty,
     ): $Any {
       // 1. Let f be the active function object.
       const f = getter;
@@ -349,9 +349,9 @@ function MakeArgSetter(realm: Realm, name: $String, env: $EnvRec): $Function {
     'ArgGetter',
     // 1. Let steps be the steps of an ArgGetter function as specified below.
     function steps(
-      thisArgument: $Any,
-      [value]: readonly $Any[],
-      NewTarget: $Any,
+      thisArgument: $AnyNonEmpty,
+      [value]: readonly $AnyNonEmpty[],
+      NewTarget: $AnyNonEmpty,
     ): $Any {
       // 1. Let f be the active function object.
       const f = setter;

@@ -16,7 +16,7 @@ import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
 import { $Object } from './types/object';
 import { $Reference } from './types/reference';
-import { $Any } from './types/_shared';
+import { $Any, $AnyNonEmpty } from './types/_shared';
 import { $Function } from './types/function';
 import { $Null } from './types/null';
 
@@ -337,7 +337,7 @@ export class Realm {
 
   // http://www.ecma-international.org/ecma-262/#sec-hostresolveimportedmodule
   public HostResolveImportedModule(referencingModule: $SourceFile, $specifier: $String): IModule {
-    const specifier = normalizePath($specifier.value);
+    const specifier = normalizePath($specifier['[[Value]]']);
     const isRelative = isRelativeModulePath(specifier);
     const pkg = referencingModule.pkg;
 
@@ -357,7 +357,7 @@ export class Realm {
     }
 
     if (isRelative) {
-      this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+      this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
 
       const filePath = resolvePath(dirname(referencingModule.$file.path), specifier);
       const files = pkg.files.filter(x => x.shortPath === filePath || x.path === filePath).sort(comparePathLength);
@@ -387,7 +387,7 @@ export class Realm {
     } else {
       const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(n.refName + '/'));
       if (pkgDep === void 0) {
-        this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+        this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
 
         if (referencingModule.matcher !== null) {
           const file = referencingModule.matcher.findMatch(pkg.files, specifier);
@@ -396,7 +396,7 @@ export class Realm {
           throw new Error(`Cannot resolve absolute file path without path mappings in tsconfig`);
         }
       } else {
-        this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier.value}' for ${referencingModule.$file.name}`);
+        this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
 
         const externalPkg = pkg.loader.getCachedPackage(pkgDep.refName);
         if (pkgDep.refName !== specifier) {
@@ -489,7 +489,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolvethisbinding
-  public ResolveThisBinding(): $Any {
+  public ResolveThisBinding(): $AnyNonEmpty {
     // 1. Let envRec be GetThisEnvironment().
     const envRec = this.GetThisEnvironment();
 

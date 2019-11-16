@@ -3,7 +3,7 @@ import { $Null } from '../types/null';
 import { $Number } from '../types/number';
 import { $String } from '../types/string';
 import { Realm } from '../realm';
-import { $PropertyKey, $Any } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $Undefined } from '../types/undefined';
 import { $Boolean } from '../types/boolean';
@@ -98,7 +98,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Any): $Any {
+  public '[[Get]]'(P: $PropertyKey, Receiver: $AnyNonEmpty): $AnyNonEmpty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     return null as any; // TODO
@@ -111,7 +111,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean {
+  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
     return null as any; // TODO
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is String, then
@@ -137,7 +137,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integerindexedelementget
-  public ElementGet(index: $Number): $Any {
+  public ElementGet(index: $Number): $AnyNonEmpty {
     return null as any; // TODO
     // 1. Assert: Type(index) is Number.
     // 2. Assert: O is an Object that has [[ViewedArrayBuffer]], [[ArrayLength]], [[ByteOffset]], and [[TypedArrayName]] internal slots.
@@ -156,7 +156,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integerindexedelementset
-  public ElementSet(index: $Number, value: $Number): $Any {
+  public ElementSet(index: $Number, value: $Number): $AnyNonEmpty {
     return null as any; // TODO
     // 1. Assert: Type(index) is Number.
     // 2. Assert: O is an Object that has [[ViewedArrayBuffer]], [[ArrayLength]], [[ByteOffset]], and [[TypedArrayName]] internal slots.

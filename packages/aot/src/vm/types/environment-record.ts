@@ -2,7 +2,7 @@
 import { IModule, Realm } from '../realm';
 import { $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $Any } from './_shared';
+import { $Any, $AnyNonEmpty } from './_shared';
 import { $String } from './string';
 import { $Null } from './null';
 import { $Boolean } from './boolean';
@@ -83,7 +83,7 @@ export class $DeclarativeEnvRec {
     const envRec = this;
 
     // 2. If envRec has a binding for the name that is the value of N, return true.
-    if (envRec.bindings.has(N.value)) {
+    if (envRec.bindings.has(N['[[Value]]'])) {
       return intrinsics.true;
     }
 
@@ -104,12 +104,12 @@ export class $DeclarativeEnvRec {
       /* isMutable */true,
       /* isStrict */false,
       /* isInitialized */false,
-      /* canBeDeleted */D.value,
+      /* canBeDeleted */D['[[Value]]'],
       /* value */intrinsics.empty,
-      /* name */N.value,
+      /* name */N['[[Value]]'],
       /* origin */this,
     );
-    envRec.bindings.set(N.value, binding);
+    envRec.bindings.set(N['[[Value]]'], binding);
 
     // 4. Return NormalCompletion(empty).
     return intrinsics.empty;
@@ -126,28 +126,28 @@ export class $DeclarativeEnvRec {
     // 3. Create an immutable binding in envRec for N and record that it is uninitialized. If S is true, record that the newly created binding is a strict binding.
     const binding = new $Binding(
       /* isMutable */false,
-      /* isStrict */S.value,
+      /* isStrict */S['[[Value]]'],
       /* isInitialized */false,
       /* canBeDeleted */false,
       /* value */intrinsics.empty,
-      /* name */N.value,
+      /* name */N['[[Value]]'],
       /* origin */this,
     );
-    envRec.bindings.set(N.value, binding);
+    envRec.bindings.set(N['[[Value]]'], binding);
 
     // 4. Return NormalCompletion(empty).
     return intrinsics.empty;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-initializebinding-n-v
-  public InitializeBinding(N: $String, V: $Any): $Empty {
+  public InitializeBinding(N: $String, V: $AnyNonEmpty): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
 
     // 2. Assert: envRec must have an uninitialized binding for N.
-    const binding = envRec.bindings.get(N.value)!;
+    const binding = envRec.bindings.get(N['[[Value]]'])!;
 
     // 3. Set the bound value for N in envRec to V.
     binding.value = V;
@@ -160,7 +160,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-setmutablebinding-n-v-s
-  public SetMutableBinding(N: $String, V: $Any, S: $Boolean): $Empty {
+  public SetMutableBinding(N: $String, V: $AnyNonEmpty, S: $Boolean): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -168,7 +168,7 @@ export class $DeclarativeEnvRec {
 
     // 2. If envRec does not have a binding for N, then
     const bindings = this.bindings;
-    const binding = bindings.get(N.value);
+    const binding = bindings.get(N['[[Value]]']);
     if (binding === void 0) {
       // 2. a. If S is true, throw a ReferenceError exception.
       if (S.isTruthy) {
@@ -212,12 +212,12 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $Any {
+  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
 
     // 2. Assert: envRec has a binding for N.
-    const binding = envRec.bindings.get(N.value)!;
+    const binding = envRec.bindings.get(N['[[Value]]'])!;
 
     // 3. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
     if (!binding.isInitialized) {
@@ -225,7 +225,7 @@ export class $DeclarativeEnvRec {
     }
 
     // 4. Return the value currently bound to N in envRec.
-    return binding.value;
+    return binding.value as $AnyNonEmpty;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-deletebinding-n
@@ -237,7 +237,7 @@ export class $DeclarativeEnvRec {
     const bindings = envRec.bindings;
 
     // 2. Assert: envRec has a binding for the name that is the value of N.
-    const binding = bindings.get(N.value)!;
+    const binding = bindings.get(N['[[Value]]'])!;
 
     // 3. If the binding for N in envRec cannot be deleted, return false.
     if (!binding.canBeDeleted) {
@@ -245,7 +245,7 @@ export class $DeclarativeEnvRec {
     }
 
     // 4. Remove the binding for N from envRec.
-    bindings.delete(N.value);
+    bindings.delete(N['[[Value]]']);
 
     // 5. Return true.
     return intrinsics.true;
@@ -377,7 +377,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-initializebinding-n-v
-  public InitializeBinding(N: $String, V: $Any): $Boolean {
+  public InitializeBinding(N: $String, V: $AnyNonEmpty): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -392,7 +392,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-setmutablebinding-n-v-s
-  public SetMutableBinding(N: $String, V: $Any, S: $Boolean): $Boolean {
+  public SetMutableBinding(N: $String, V: $AnyNonEmpty, S: $Boolean): $Boolean {
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -404,7 +404,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $Any {
+  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -480,7 +480,7 @@ export type BindingStatus = 'lexical' | 'initialized' | 'uninitialized';
 export class $FunctionEnvRec extends $DeclarativeEnvRec {
   public readonly '<$FunctionEnvRec>': unknown;
 
-  public '[[ThisValue]]': $Any;
+  public '[[ThisValue]]': $AnyNonEmpty;
   public '[[ThisBindingStatus]]': BindingStatus;
   public '[[FunctionObject]]': $Function;
   public '[[HomeObject]]': $Object | $Undefined;
@@ -579,7 +579,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-bindthisvalue
-  public BindThisValue<T extends $Any>(V: T): T {
+  public BindThisValue<T extends $AnyNonEmpty>(V: T): T {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -600,7 +600,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-environment-records-getthisbinding
-  public GetThisBinding(): $Any {
+  public GetThisBinding(): $AnyNonEmpty {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -751,7 +751,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-initializebinding-n-v
-  public InitializeBinding(N: $String, V: $Any): $Boolean | $Empty {
+  public InitializeBinding(N: $String, V: $AnyNonEmpty): $Boolean | $Empty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -773,7 +773,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-setmutablebinding-n-v-s
-  public SetMutableBinding(N: $String, V: $Any, S: $Boolean): $Boolean | $Empty {
+  public SetMutableBinding(N: $String, V: $AnyNonEmpty, S: $Boolean): $Boolean | $Empty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -794,7 +794,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $Any {
+  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -850,7 +850,7 @@ export class $GlobalEnvRec {
         const varNames = envRec['[[VarNames]]'];
 
         // 7. b. ii. If N is an element of varNames, remove that element from the varNames.
-        const idx = varNames.indexOf(N.value);
+        const idx = varNames.indexOf(N['[[Value]]']);
         if (idx >= 0) {
           varNames.splice(idx, 1);
         }
@@ -909,7 +909,7 @@ export class $GlobalEnvRec {
     const varDeclaredNames = envRec['[[VarNames]]'];
 
     // 3. If varDeclaredNames contains N, return true.
-    if (varDeclaredNames.includes(N.value)) {
+    if (varDeclaredNames.includes(N['[[Value]]'])) {
       return intrinsics.true;
     }
 
@@ -1051,9 +1051,9 @@ export class $GlobalEnvRec {
     const varDeclaredNames = envRec['[[VarNames]]'];
 
     // 8. If varDeclaredNames does not contain N, then
-    if (!varDeclaredNames.includes(N.value)) {
+    if (!varDeclaredNames.includes(N['[[Value]]'])) {
       // 8. a. Append N to varDeclaredNames.
-      varDeclaredNames.push(N.value);
+      varDeclaredNames.push(N['[[Value]]']);
     }
 
     // 9. Return NormalCompletion(empty).
@@ -1061,7 +1061,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalfunctionbinding
-  public CreateGlobalFunctionBinding(N: $String, V: $Any, D: $Boolean): $Empty {
+  public CreateGlobalFunctionBinding(N: $String, V: $AnyNonEmpty, D: $Boolean): $Empty {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1109,9 +1109,9 @@ export class $GlobalEnvRec {
     const varDeclaredNames = envRec['[[VarNames]]'];
 
     // 11. If varDeclaredNames does not contain N, then
-    if (!varDeclaredNames.includes(N.value)) {
+    if (!varDeclaredNames.includes(N['[[Value]]'])) {
       // 11. a. Append N to varDeclaredNames.
-      varDeclaredNames.push(N.value);
+      varDeclaredNames.push(N['[[Value]]']);
     }
 
     // 12. Return NormalCompletion(empty).
@@ -1150,7 +1150,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $Any {
+  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Assert: S is true.
@@ -1158,7 +1158,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
     const envRec = this;
 
     // 3. Assert: envRec has a binding for N.
-    const binding = envRec.bindings.get(N.value)!;
+    const binding = envRec.bindings.get(N['[[Value]]'])!;
 
     // 4. If the binding for N is an indirect binding, then
     if (binding.isIndirect) {
@@ -1185,7 +1185,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
     }
 
     // 6. Return the value currently bound to N in envRec.
-    return binding.value;
+    return binding.value as $AnyNonEmpty;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-deletebinding-n
@@ -1229,12 +1229,12 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
       /* isInitialized */true,
       /* canBeDeleted */false,
       /* value */intrinsics.empty,
-      /* name */N.value,
+      /* name */N['[[Value]]'],
       /* origin */this,
       /* M */M,
       /* N2 */N2,
     );
-    envRec.bindings.set(N.value, binding);
+    envRec.bindings.set(N['[[Value]]'], binding);
 
     // 6. Return NormalCompletion(empty).
     return intrinsics.empty;

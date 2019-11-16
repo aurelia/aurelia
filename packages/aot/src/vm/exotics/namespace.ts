@@ -4,7 +4,7 @@ import { $String } from '../types/string';
 import { Realm } from '../realm';
 import { $Boolean } from '../types/boolean';
 import { $SetImmutablePrototype } from '../operations';
-import { $PropertyKey, $Any } from '../types/_shared';
+import { $PropertyKey, $Any, $AnyNonEmpty } from '../types/_shared';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $Undefined } from '../types/undefined';
 
@@ -115,17 +115,17 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     }
 
     // 5. If Desc.[[Writable]] is present and has value false, return false.
-    if (Desc['[[Writable]]'].value === false) {
+    if (Desc['[[Writable]]'].hasValue && Desc['[[Writable]]'].isFalsey) {
       return intrinsics.false;
     }
 
     // 6. If Desc.[[Enumerable]] is present and has value false, return false.
-    if (Desc['[[Enumerable]]'].value === false) {
+    if (Desc['[[Enumerable]]'].hasValue && Desc['[[Enumerable]]'].isFalsey) {
       return intrinsics.false;
     }
 
     // 7. If Desc.[[Configurable]] is present and has value true, return false.
-    if (Desc['[[Configurable]]'].value === true) {
+    if (Desc['[[Configurable]]'].hasValue === Desc['[[Configurable]]'].isTruthy) {
       return intrinsics.false;
     }
 
@@ -165,7 +165,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Object): $Any {
+  public '[[Get]]'(P: $PropertyKey, Receiver: $Object): $AnyNonEmpty {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is Symbol, then
     // 2. a. Return ? OrdinaryGet(O, P, Receiver).
@@ -210,7 +210,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean<false> {
+  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean<false> {
     // 1. Return false.
     return this.realm['[[Intrinsics]]'].false;
   }

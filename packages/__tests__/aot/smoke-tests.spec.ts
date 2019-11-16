@@ -47,7 +47,7 @@ describe('AOT (smoke tests)', function () {
 
     const result = mod.Evaluate();
 
-    assert.strictEqual((result.Value as $Number).value, 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('simple if statement with binary expression', async function () {
@@ -61,7 +61,7 @@ describe('AOT (smoke tests)', function () {
 
     const result = mod.Evaluate();
 
-    assert.strictEqual((result.Value as $Number).value, 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('simple if/else statement with binary expression', async function () {
@@ -77,7 +77,7 @@ describe('AOT (smoke tests)', function () {
 
     const result = mod.Evaluate();
 
-    assert.strictEqual((result.Value as $Number).value, 5);
+    assert.strictEqual(result['[[Value]]'], 5);
   });
 
   it('simple function declaration with binary expression', async function () {
@@ -92,6 +92,6 @@ describe('AOT (smoke tests)', function () {
 
     const result = mod.Evaluate();
 
-    assert.strictEqual((result.Value as $Number).value, 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 });

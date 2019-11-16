@@ -1,4 +1,4 @@
-import { nextValueId, $PropertyKey, $Any, $Primitive, compareIndices } from './_shared';
+import { nextValueId, $PropertyKey, $Any, $Primitive, compareIndices, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty } from './_shared';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Null } from './null';
 import { $Boolean } from './boolean';
@@ -17,6 +17,20 @@ export class $Object<
   public readonly '<$Object>': unknown;
 
   public readonly id: number = nextValueId();
+
+  public '[[Type]]': PotentialNonEmptyCompletionType;
+  public get '[[Value]]'(): Object {
+    const obj = {};
+    for (const pd of this.propertyDescriptors) {
+      // Reflect.defineProperty(obj, pd.name['[[Value]]'], {
+        // TODO: materialize
+      // })
+    }
+    return obj;
+  }
+  public '[[Target]]': CompletionTarget;
+
+  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
 
   private readonly propertyMap: Map<string | symbol, number> = new Map();
   private readonly propertyDescriptors: $PropertyDescriptor[] = [];
@@ -49,9 +63,13 @@ export class $Object<
     public readonly realm: Realm,
     public readonly IntrinsicName: T,
     proto: $Object | $Null,
+    type: PotentialNonEmptyCompletionType = CompletionType.normal,
+    target: CompletionTarget = realm['[[Intrinsics]]'].empty,
   ) {
     this['[[Prototype]]'] = proto;
     this['[[Extensible]]'] = realm['[[Intrinsics]]'].true;
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-objectcreate
@@ -76,6 +94,23 @@ export class $Object<
 
   public is(other: $Any): other is $Object<T> {
     return this.id === other.id;
+  }
+
+  public ToCompletion(
+    type: PotentialNonEmptyCompletionType,
+    target: CompletionTarget,
+  ): this {
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  public UpdateEmpty(value: $Any): this {
+    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
+    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
+    return this;
+    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
   }
 
   public ToObject(): this {
@@ -161,12 +196,12 @@ export class $Object<
     }
 
     // 2. f. If hint is "default", set hint to "number".
-    if (hint.value === 'default') {
+    if (hint['[[Value]]'] === 'default') {
       hint = intrinsics.number;
     }
 
     // 2. g. Return ? OrdinaryToPrimitive(input, hint).
-    return input.OrdinaryToPrimitive(hint.value);
+    return input.OrdinaryToPrimitive(hint['[[Value]]']);
 
     // 3. Return input.
     // N/A since this is always an object
@@ -279,29 +314,29 @@ export class $Object<
   }
 
   protected hasProperty(key: $PropertyKey): boolean {
-    return this.propertyMap.has(key.value);
+    return this.propertyMap.has(key['[[Value]]']);
   }
 
   protected getProperty(key: $PropertyKey): $PropertyDescriptor {
-    return this.propertyDescriptors[this.propertyMap.get(key.value)!];
+    return this.propertyDescriptors[this.propertyMap.get(key['[[Value]]'])!];
   }
 
   protected setProperty(desc: $PropertyDescriptor): void {
-    if (this.propertyMap.has(desc.name.value)) {
-      const idx = this.propertyMap.get(desc.name.value)!;
+    if (this.propertyMap.has(desc.name['[[Value]]'])) {
+      const idx = this.propertyMap.get(desc.name['[[Value]]'])!;
       this.propertyDescriptors[idx] = desc;
       this.propertyKeys[idx] = desc.name;
     } else {
       const idx = this.propertyDescriptors.length;
       this.propertyDescriptors[idx] = desc;
       this.propertyKeys[idx] = desc.name;
-      this.propertyMap.set(desc.name.value, idx);
+      this.propertyMap.set(desc.name['[[Value]]'], idx);
     }
   }
 
   protected deleteProperty(key: $PropertyKey): void {
-    const idx = this.propertyMap.get(key.value)!;
-    this.propertyMap.delete(key.value);
+    const idx = this.propertyMap.get(key['[[Value]]'])!;
+    this.propertyMap.delete(key['[[Value]]']);
     this.propertyDescriptors.splice(idx, 1)
     this.propertyKeys.splice(idx, 1)
   }
@@ -328,7 +363,7 @@ export class $Object<
 
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let extensible be O.[[Extensible]].
-    const extensible = O['[[Extensible]]'].value;
+    const extensible = O['[[Extensible]]']['[[Value]]'];
 
     // 3. Let current be O.[[Prototype]].
     const current = O['[[Prototype]]'];
@@ -505,7 +540,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Any): $Any {
+  public '[[Get]]'(P: $PropertyKey, Receiver: $AnyNonEmpty): $AnyNonEmpty {
     const intrinsics = this.realm['[[Intrinsics]]'];
     // 1. Return ? OrdinaryGet(O, P, Receiver).
 
@@ -532,7 +567,7 @@ export class $Object<
 
     // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
     if (desc.isDataDescriptor) {
-      return desc['[[Value]]'];
+      return desc['[[Value]]'] as $AnyNonEmpty;
     }
 
     // 5. Assert: IsAccessorDescriptor(desc) is true.
@@ -549,7 +584,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean {
+  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
     // 1. Return ? OrdinarySet(O, P, V, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryset

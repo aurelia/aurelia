@@ -12,6 +12,39 @@ import { $BoundFunctionExoticObject } from '../exotics/bound-function';
 import { $ArrayExoticObject } from '../exotics/array';
 import { $ProxyExoticObject } from '../exotics/proxy';
 
+export const enum CompletionType {
+  normal   = 1,
+  break    = 2,
+  continue = 3,
+  return   = 4,
+  throw    = 5,
+}
+
+export type AbruptCompletionType = (
+  CompletionType.break |
+  CompletionType.continue |
+  CompletionType.return |
+  CompletionType.throw
+);
+
+// CompletionType.break and CompletionType.continue *always* have the value empty.
+// The other 3 (listed below) are the only possible types for values that are not empty.
+export type PotentialNonEmptyCompletionType = (
+  CompletionType.normal |
+  CompletionType.return |
+  CompletionType.throw
+);
+
+// CompletionType.return and CompletionType.throw *never* have the value empty.
+// The other 3 (listed below) are the only possible types for the value empty.
+export type PotentialEmptyCompletionType = (
+  CompletionType.normal |
+  CompletionType.break |
+  CompletionType.continue
+);
+
+export type CompletionTarget = $String | $Empty;
+
 export const nextValueId = (function () {
   let id = 0;
 
@@ -29,14 +62,18 @@ export type $Primitive = (
   $Number
 );
 
-export type $Any = (
-  $Empty |
+export type $AnyNonEmpty = (
   $Primitive |
   $Object |
   $Function |
   $BoundFunctionExoticObject |
   $ArrayExoticObject |
   $ProxyExoticObject
+);
+
+export type $Any = (
+  $Empty |
+  $AnyNonEmpty
 );
 
 export type $PropertyKey = (
@@ -107,5 +144,5 @@ export const Uint8Clamp = (function () {
 // Sort two strings numerically instead of alphabetically
 export function compareIndices(a: $String, b: $String): number {
   // Rely on coercion as natively subtracting strings has some shortcuts (for better perf) compared to explicitly converting to number first
-  return (a.value as unknown as number) - (b.value as unknown as number);
+  return (a['[[Value]]'] as unknown as number) - (b['[[Value]]'] as unknown as number);
 }

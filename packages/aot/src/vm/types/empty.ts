@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { nextValueId, $Any, ESType, $Primitive } from './_shared';
+import { nextValueId, $Any, ESType, $Primitive, PotentialEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty } from './_shared';
 import { Realm } from '../realm';
 import { $Object } from './object';
 import { $String } from './string';
@@ -15,7 +15,11 @@ export class $Empty {
   public readonly id: number = nextValueId();
   public readonly IntrinsicName: 'empty' = 'empty' as const;
 
-  public readonly value: empty = empty;
+  public '[[Type]]': PotentialEmptyCompletionType;
+  public readonly '[[Value]]': empty = empty;
+  public '[[Target]]': CompletionTarget;
+
+  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
 
   public get Type(): ESType { throw new TypeError(); }
   public get isEmpty(): true { return true; }
@@ -39,11 +43,33 @@ export class $Empty {
 
   public constructor(
     public readonly realm: Realm,
+    type: PotentialEmptyCompletionType = CompletionType.normal,
+    target: CompletionTarget = realm['[[Intrinsics]]'].empty,
     public readonly sourceNode: $ComputedPropertyName | null = null,
-  ) {}
+  ) {
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+  }
 
   public is(other: $Any): other is $Empty {
     return other instanceof $Empty;
+  }
+
+  public ToCompletion(
+    type: PotentialEmptyCompletionType,
+    target: CompletionTarget,
+  ): this {
+    this['[[Type]]'] = type;
+    this['[[Target]]'] = target;
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  public UpdateEmpty(value: $Any): typeof value { // Can't use generics here due to "expression produces a type union that is too complex to represent" :(
+    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
+    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
+    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
+    return value.ToCompletion(this['[[Type]]'] as CompletionType.normal, this['[[Target]]']);
   }
 
   public ToObject(): $Object {

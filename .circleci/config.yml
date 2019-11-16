@@ -346,7 +346,6 @@ jobs:
           name: "Install and build test app"
           command: |
             cd packages/__tests__/router/e2e/doc-example/app
-            npm i
             npm run build
       - run:
           name: "Serve test app in the background"

@@ -1592,6 +1592,21 @@ export class $FunctionDeclaration implements I$Node {
     // 7. Return F.
     return F;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+  public Evaluate(): $Empty {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+
+    // 1. Return NormalCompletion(empty).
+
+    // FunctionDeclaration : function ( FormalParameters ) { FunctionBody }
+
+    // 1. Return NormalCompletion(empty).
+    return new $Empty(realm, CompletionType.normal, intrinsics.empty, this);
+  }
 }
 
 

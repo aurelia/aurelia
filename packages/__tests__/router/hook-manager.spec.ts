@@ -8,7 +8,14 @@ describe('HookManager', function () {
 
   async function setup(config?, App?, dependencies: any[] = []) {
     const ctx = TestContext.createHTMLTestContext();
-    const { container, scheduler, doc } = ctx;
+    const { container, scheduler, doc, wnd } = ctx;
+
+    let path = wnd.location.href;
+    const hash = path.indexOf('#');
+    if (hash >= 0) {
+      path = path.slice(0, hash);
+    }
+    wnd.history.replaceState({}, '', path);
 
     const host = doc.createElement('div');
     if (App === void 0) {

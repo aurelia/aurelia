@@ -184,7 +184,7 @@ describe('BindableObserver', function () {
   function setup(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.createHTMLTestContext();
     const lifecycle = ctx.lifecycle;
-    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`);
+    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, PLATFORM.noop, PLATFORM.noop);
 
     return { sut };
   }

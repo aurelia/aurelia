@@ -81,6 +81,12 @@ export class BindableObserver {
   public getValue(): unknown {
     const currentValue = this.currentValue;
     return this.shouldInterceptGet
+      // only intercepting getValue() call means there are cases where incoming value in setValue()
+      // is not the same with out going value in getValue(), but the assignment wont be considered a change
+      // example: two way binding
+      //    - setter: Number
+      //    - getter: String
+      //    someVm.prop = '5' <-- triggers setter      
       ? this.getterInterceptor(currentValue)
       : currentValue;
   }
@@ -125,7 +131,10 @@ export class BindableObserver {
   public subscribe(subscriber: ISubscriber): void {
     if (this.observing === false) {
       this.observing = true;
-      this.currentValue = this.obj[this.propertyKey];
+      const currentValue = this.obj[this.propertyKey];
+      this.currentValue = this.shouldInterceptSet
+        ? this.setterInterceptor(currentValue)
+        : currentValue;
       this.createGetterSetter();
     }
 
